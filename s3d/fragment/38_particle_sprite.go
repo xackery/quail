@@ -4,6 +4,8 @@ import (
 	"encoding/binary"
 	"fmt"
 	"io"
+
+	"github.com/xackery/quail/common"
 )
 
 // ParticleSprite information
@@ -12,7 +14,7 @@ type ParticleSprite struct {
 	Reference uint32
 }
 
-func loadParticleSprite(r io.ReadSeeker) (Fragment, error) {
+func LoadParticleSprite(r io.ReadSeeker) (common.WldFragmenter, error) {
 	v := &ParticleSprite{}
 	err := parseParticleSprite(r, v)
 	if err != nil {

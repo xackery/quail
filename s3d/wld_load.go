@@ -1,13 +1,15 @@
 package s3d
 
 import (
+	"bytes"
 	"encoding/binary"
+	"encoding/hex"
 	"fmt"
 	"io"
 	"strings"
 
 	"github.com/xackery/quail/helper"
-	"github.com/xackery/quail/s3d/fragment"
+	"github.com/xackery/quail/log"
 )
 
 // Load loads a wld file
@@ -96,10 +98,19 @@ func (e *Wld) Load(r io.ReadSeeker) error {
 		if err != nil {
 			return fmt.Errorf("frag position seek %d/%d: %w", i, e.FragmentCount, err)
 		}
-		frag, err := fragment.Load(fragIndex, r)
+
+		buf := make([]byte, fragSize)
+		_, err = r.Read(buf)
+		if err != nil {
+			return fmt.Errorf("read: %w", err)
+		}
+
+		frag, err := e.ParseFragment(fragIndex, bytes.NewReader(buf))
 		if err != nil {
 			return fmt.Errorf("fragment load: %w", err)
 		}
+		log.Debugf("fragIndex: %d 0x%x %s, len %d\n%s", fragIndex, fragIndex, frag.FragmentType(), len(buf), hex.Dump(buf))
+
 		e.Fragments = append(e.Fragments, frag)
 
 		_, err = r.Seek(fragPosition+int64(fragSize), io.SeekStart)

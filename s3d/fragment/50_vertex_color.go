@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"image/color"
 	"io"
+
+	"github.com/xackery/quail/common"
 )
 
 // VertexColor information
@@ -14,7 +16,7 @@ type VertexColor struct {
 	hashIndex uint32
 }
 
-func loadVertexColor(r io.ReadSeeker) (Fragment, error) {
+func LoadVertexColor(r io.ReadSeeker) (common.WldFragmenter, error) {
 	v := &VertexColor{}
 	err := parseVertexColor(r, v)
 	if err != nil {

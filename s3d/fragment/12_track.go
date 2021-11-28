@@ -6,6 +6,7 @@ import (
 	"io"
 
 	"github.com/g3n/engine/math32"
+	"github.com/xackery/quail/common"
 )
 
 // Track information
@@ -22,7 +23,7 @@ type BoneTransform struct {
 	ModelMatrix math32.Matrix4
 }
 
-func loadTrack(r io.ReadSeeker) (Fragment, error) {
+func LoadTrack(r io.ReadSeeker) (common.WldFragmenter, error) {
 	v := &Track{}
 	err := parseTrack(r, v)
 	if err != nil {

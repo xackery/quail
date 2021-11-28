@@ -3,13 +3,15 @@ package fragment
 import (
 	"fmt"
 	"io"
+
+	"github.com/xackery/quail/common"
 )
 
 // SimpleSpriteReference information
 type SimpleSpriteReference struct {
 }
 
-func loadSimpleSpriteReference(r io.ReadSeeker) (Fragment, error) {
+func LoadSimpleSpriteReference(r io.ReadSeeker) (common.WldFragmenter, error) {
 	l := &SimpleSpriteReference{}
 	err := parseSimpleSpriteReference(r, l)
 	if err != nil {

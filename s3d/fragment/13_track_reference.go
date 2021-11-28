@@ -4,27 +4,29 @@ import (
 	"encoding/binary"
 	"fmt"
 	"io"
+
+	"github.com/xackery/quail/common"
 )
 
-// SkeletonReference information
-type SkeletonReference struct {
+// TrackReference information
+type TrackReference struct {
 	hashIndex uint32
 	Reference uint32
 	FrameMs   uint32
 }
 
-func loadSkeletonReference(r io.ReadSeeker) (Fragment, error) {
-	v := &SkeletonReference{}
-	err := parseSkeletonReference(r, v)
+func LoadTrackReference(r io.ReadSeeker) (common.WldFragmenter, error) {
+	v := &TrackReference{}
+	err := parseTrackReference(r, v)
 	if err != nil {
-		return nil, fmt.Errorf("parse skeleton reference: %w", err)
+		return nil, fmt.Errorf("parse track reference: %w", err)
 	}
 	return v, nil
 }
 
-func parseSkeletonReference(r io.ReadSeeker, v *SkeletonReference) error {
+func parseTrackReference(r io.ReadSeeker, v *TrackReference) error {
 	if v == nil {
-		return fmt.Errorf("skeleton reference is nil")
+		return fmt.Errorf("track reference is nil")
 	}
 	var value uint32
 	err := binary.Read(r, binary.LittleEndian, &v.hashIndex)
@@ -56,6 +58,6 @@ func parseSkeletonReference(r io.ReadSeeker, v *SkeletonReference) error {
 	return nil
 }
 
-func (v *SkeletonReference) FragmentType() string {
-	return "Skeleton Reference"
+func (v *TrackReference) FragmentType() string {
+	return "Track Reference"
 }

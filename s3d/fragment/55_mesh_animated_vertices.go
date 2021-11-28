@@ -3,13 +3,15 @@ package fragment
 import (
 	"fmt"
 	"io"
+
+	"github.com/xackery/quail/common"
 )
 
 // MeshAnimatedVertices information
 type MeshAnimatedVertices struct {
 }
 
-func loadMeshAnimatedVertices(r io.ReadSeeker) (Fragment, error) {
+func LoadMeshAnimatedVertices(r io.ReadSeeker) (common.WldFragmenter, error) {
 	l := &MeshAnimatedVertices{}
 	err := parseMeshAnimatedVertices(r, l)
 	if err != nil {

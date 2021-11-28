@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"image/color"
 	"io"
+
+	"github.com/xackery/quail/common"
 )
 
 // LightSource information
@@ -20,7 +22,7 @@ type LightSource struct {
 	hashIndex    uint32
 }
 
-func loadLightSource(r io.ReadSeeker) (Fragment, error) {
+func LoadLightSource(r io.ReadSeeker) (common.WldFragmenter, error) {
 	l := &LightSource{}
 	err := parseLightSource(r, l)
 	if err != nil {

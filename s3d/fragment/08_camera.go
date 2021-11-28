@@ -3,13 +3,15 @@ package fragment
 import (
 	"fmt"
 	"io"
+
+	"github.com/xackery/quail/common"
 )
 
 // Camera information
 type Camera struct {
 }
 
-func loadCamera(r io.ReadSeeker) (Fragment, error) {
+func LoadCamera(r io.ReadSeeker) (common.WldFragmenter, error) {
 	l := &Camera{}
 	err := parseCamera(r, l)
 	if err != nil {

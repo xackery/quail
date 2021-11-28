@@ -6,6 +6,7 @@ import (
 	"io"
 
 	"github.com/g3n/engine/math32"
+	"github.com/xackery/quail/common"
 )
 
 // MeshReference information
@@ -18,7 +19,7 @@ type MeshReference struct {
 	Scale     math32.Vector3
 }
 
-func loadMeshReference(r io.ReadSeeker) (Fragment, error) {
+func LoadMeshReference(r io.ReadSeeker) (common.WldFragmenter, error) {
 	v := &MeshReference{}
 	err := parseMeshReference(r, v)
 	if err != nil {

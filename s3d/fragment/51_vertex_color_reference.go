@@ -4,6 +4,8 @@ import (
 	"encoding/binary"
 	"fmt"
 	"io"
+
+	"github.com/xackery/quail/common"
 )
 
 // VertexColorReference, Referenced by an ObjectInstance fragment.
@@ -13,7 +15,7 @@ type VertexColorReference struct {
 	hashIndex   uint32
 }
 
-func loadVertexColorReference(r io.ReadSeeker) (Fragment, error) {
+func LoadVertexColorReference(r io.ReadSeeker) (common.WldFragmenter, error) {
 	v := &VertexColorReference{}
 	err := parseVertexColorReference(r, v)
 	if err != nil {

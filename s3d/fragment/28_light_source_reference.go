@@ -4,6 +4,8 @@ import (
 	"encoding/binary"
 	"fmt"
 	"io"
+
+	"github.com/xackery/quail/common"
 )
 
 // LightSourceReference information
@@ -12,7 +14,7 @@ type LightSourceReference struct {
 	Reference uint32
 }
 
-func loadLightSourceReference(r io.ReadSeeker) (Fragment, error) {
+func LoadLightSourceReference(r io.ReadSeeker) (common.WldFragmenter, error) {
 	l := &LightSourceReference{}
 	err := parseLightSourceReference(r, l)
 	if err != nil {

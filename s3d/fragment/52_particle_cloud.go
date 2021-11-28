@@ -4,6 +4,8 @@ import (
 	"encoding/binary"
 	"fmt"
 	"io"
+
+	"github.com/xackery/quail/common"
 )
 
 // ParticleCloud information
@@ -11,7 +13,7 @@ type ParticleCloud struct {
 	hashIndex uint32
 }
 
-func loadParticleCloud(r io.ReadSeeker) (Fragment, error) {
+func LoadParticleCloud(r io.ReadSeeker) (common.WldFragmenter, error) {
 	v := &ParticleCloud{}
 	err := parseParticleCloud(r, v)
 	if err != nil {

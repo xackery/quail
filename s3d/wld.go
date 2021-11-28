@@ -1,6 +1,6 @@
 package s3d
 
-import "github.com/xackery/quail/s3d/fragment"
+import "github.com/xackery/quail/common"
 
 // Wld is a collection of fragments representing a world file
 type Wld struct {
@@ -9,5 +9,5 @@ type Wld struct {
 	FragmentCount  uint32
 	BspRegionCount uint32
 	Hash           map[int]string
-	Fragments      []fragment.Fragment
+	Fragments      []common.WldFragmenter
 }

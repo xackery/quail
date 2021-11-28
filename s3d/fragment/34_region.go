@@ -4,6 +4,8 @@ import (
 	"encoding/binary"
 	"fmt"
 	"io"
+
+	"github.com/xackery/quail/common"
 )
 
 // Region information
@@ -14,7 +16,7 @@ type Region struct {
 	RegionType  uint32
 }
 
-func loadRegion(r io.ReadSeeker) (Fragment, error) {
+func LoadRegion(r io.ReadSeeker) (common.WldFragmenter, error) {
 	v := &Region{}
 	err := parseRegion(r, v)
 	if err != nil {

@@ -6,6 +6,7 @@ import (
 	"io"
 
 	"github.com/g3n/engine/math32"
+	"github.com/xackery/quail/common"
 )
 
 // LightInstance information
@@ -16,7 +17,7 @@ type LightInstance struct {
 	Radius    float32
 }
 
-func loadLightInstance(r io.ReadSeeker) (Fragment, error) {
+func LoadLightInstance(r io.ReadSeeker) (common.WldFragmenter, error) {
 	l := &LightInstance{}
 	err := parseLightInstance(r, l)
 	if err != nil {

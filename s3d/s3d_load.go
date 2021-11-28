@@ -9,6 +9,7 @@ import (
 	"sort"
 
 	"github.com/xackery/quail/helper"
+	"github.com/xackery/quail/log"
 )
 
 // Load will load a s3d file
@@ -166,6 +167,6 @@ func (e *S3D) Load(r io.ReadSeeker) error {
 		}
 		entry.Name = filenames[i]
 	}
-	fmt.Printf("%+v\n", e)
+	log.Printf("%+v\n", e)
 	return nil
 }

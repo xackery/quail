@@ -6,6 +6,7 @@ import (
 	"io"
 
 	"github.com/g3n/engine/math32"
+	"github.com/xackery/quail/common"
 )
 
 // LegacyMesh information
@@ -62,7 +63,7 @@ type LegacyVertexTex struct {
 	Y int16
 }
 
-func loadLegacyMesh(r io.ReadSeeker) (Fragment, error) {
+func LoadLegacyMesh(r io.ReadSeeker) (common.WldFragmenter, error) {
 	l := &LegacyMesh{}
 	err := parseLegacyMesh(r, l)
 	if err != nil {

@@ -7,6 +7,7 @@ import (
 	"io"
 
 	"github.com/g3n/engine/math32"
+	"github.com/xackery/quail/common"
 )
 
 // Mesh information
@@ -25,7 +26,14 @@ type Mesh struct {
 	Indices              []*Polygon
 }
 
-func loadMesh(r io.ReadSeeker) (Fragment, error) {
+type Polygon struct {
+	IsSolid bool
+	Vertex1 int
+	Vertex2 int
+	Vertex3 int
+}
+
+func LoadMesh(r io.ReadSeeker) (common.WldFragmenter, error) {
 	v := &Mesh{}
 	return v, nil
 	err := parseMesh(r, v, false)

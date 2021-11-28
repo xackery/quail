@@ -4,6 +4,8 @@ import (
 	"encoding/binary"
 	"fmt"
 	"io"
+
+	"github.com/xackery/quail/common"
 )
 
 // MaterialList information
@@ -12,7 +14,7 @@ type MaterialList struct {
 	MaterialReferences []uint32
 }
 
-func loadMaterialList(r io.ReadSeeker) (Fragment, error) {
+func LoadMaterialList(r io.ReadSeeker) (common.WldFragmenter, error) {
 	m := &MaterialList{}
 	err := parseMaterialList(r, m)
 	if err != nil {

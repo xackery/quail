@@ -6,10 +6,11 @@ import (
 	"io"
 
 	"github.com/g3n/engine/math32"
+	"github.com/xackery/quail/common"
 )
 
-// ObjectInstance information
-type ObjectInstance struct {
+// ActorInstance information
+type ActorInstance struct {
 	hashIndex uint32
 	Name      string
 	Position  math32.Vector3
@@ -17,18 +18,18 @@ type ObjectInstance struct {
 	Scale     math32.Vector3
 }
 
-func loadObjectInstance(r io.ReadSeeker) (Fragment, error) {
-	v := &ObjectInstance{}
-	err := parseObjectInstance(r, v)
+func LoadActorInstance(r io.ReadSeeker) (common.WldFragmenter, error) {
+	v := &ActorInstance{}
+	err := parseActorInstance(r, v)
 	if err != nil {
-		return nil, fmt.Errorf("parse object instance: %w", err)
+		return nil, fmt.Errorf("parse Actor instance: %w", err)
 	}
 	return v, nil
 }
 
-func parseObjectInstance(r io.ReadSeeker, v *ObjectInstance) error {
+func parseActorInstance(r io.ReadSeeker, v *ActorInstance) error {
 	if v == nil {
-		return fmt.Errorf("object instance is nil")
+		return fmt.Errorf("Actor instance is nil")
 	}
 	var value uint32
 	err := binary.Read(r, binary.LittleEndian, &v.hashIndex)
@@ -43,7 +44,7 @@ func parseObjectInstance(r io.ReadSeeker, v *ObjectInstance) error {
 	if err != nil {
 		return fmt.Errorf("read flags: %w", err)
 	}
-	// Main zone: 0x2E, Objects: 0x32E
+	// Main zone: 0x2E, Actors: 0x32E
 	//TODO if flags != 0x2E && flags != 0x32E {
 	//	return fmt.Errorf("unknown flags want 0x2E or 0x32E, got 0x%x", flags)
 	//}
@@ -123,6 +124,6 @@ func parseObjectInstance(r io.ReadSeeker, v *ObjectInstance) error {
 	return nil
 }
 
-func (v *ObjectInstance) FragmentType() string {
-	return "Object Instance"
+func (v *ActorInstance) FragmentType() string {
+	return "Actor Instance"
 }
