@@ -1,41 +1,22 @@
+/*
+Copyright © 2022 NAME HERE <EMAIL ADDRESS>
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
 package main
 
-import (
-	"fmt"
-	"os"
-	"time"
-
-	"github.com/xackery/quail/log"
-	"github.com/xackery/quail/s3d"
-)
-
-var (
-	Version = "v0.0.0"
-)
+import "github.com/xackery/quail/cmd"
 
 func main() {
-	start := time.Now()
-	err := run()
-	if err != nil {
-		log.Println("failed:", err.Error())
-		os.Exit(1)
-	}
-	log.Printf("finished in %0.2f seconds\n", time.Since(start).Seconds())
-}
-
-func run() error {
-	log.SetLogLevel(1)
-	log.Println("quail", Version)
-	path := "s3d/test/clz.wld"
-	log.Println("working on", path)
-	f, err := os.Open(path)
-	if err != nil {
-		return fmt.Errorf("open %s: %w", path, err)
-	}
-	e := &s3d.Wld{}
-	err = e.Load(f)
-	if err != nil {
-		return fmt.Errorf("load: %v", err)
-	}
-	return nil
+	cmd.Execute()
 }
