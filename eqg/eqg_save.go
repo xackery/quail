@@ -41,21 +41,21 @@ func (e *EQG) Save(w io.WriteSeeker) error {
 	pos += 4
 
 	fileBuffer := bytes.NewBuffer(nil)
-	err = binary.Write(fileBuffer, binary.LittleEndian, uint32(len(e.Files)+1))
+	err = binary.Write(fileBuffer, binary.LittleEndian, uint32(len(e.files)+1))
 	if err != nil {
 		return fmt.Errorf("write file count: %w", err)
 	}
 	pos += 4
 
 	filePos := 0
-	err = binary.Write(fileBuffer, binary.LittleEndian, uint32(len(e.Files)))
+	err = binary.Write(fileBuffer, binary.LittleEndian, uint32(len(e.files)))
 	if err != nil {
 		return fmt.Errorf("write name count: %w", err)
 	}
 	filePos += 4
 
-	e.Files = byCRC(e.Files)
-	for _, file := range e.Files {
+	e.files = byCRC(e.files)
+	for _, file := range e.files {
 		pos, err = w.Seek(0, io.SeekCurrent)
 		if err != nil {
 			return fmt.Errorf("%s seek: %w", file.name, err)

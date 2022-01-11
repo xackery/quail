@@ -4,7 +4,7 @@ import "github.com/xackery/quail/helper"
 
 // EQG represents a modern everquest zone archive format
 type EQG struct {
-	Files []*fileEntry
+	files []*fileEntry
 }
 
 type fileEntry struct {

@@ -100,10 +100,16 @@ void hexdump(vector<char> buf) {
 			if (i+j < sz) {
 				printf("%02x ", buf[i+j]);
 			} else {
-				printf("   ");
+				printf("00 ");
 			}
-			if (j == 8) {
+			if (j == 7) {
 				printf(" ");
+			}
+		}
+		printf("|");
+		for (j=0; j<16; j++) {
+			if (i+j < sz) {
+				printf("%c", isprint(buf[i+j]) ? buf[i+j] : '.');
 			}
 		}
 		printf("|\n");
@@ -111,24 +117,13 @@ void hexdump(vector<char> buf) {
 }
 
 int main() {
-    vector<char> data; //readFile("test.txt");
-	data.push_back('t');
-	data.push_back('e');
-	data.push_back('s');
-	data.push_back('t');
+    vector<char> data = readFile("test.txt");
     vector<char> out;
-	int sz = data.size();
-	for (int i = 0; i < sz; i++) {
-		printf("%02x ", data[i]);
-	}
     if (!Deflate(data, out)) {
         printf("failed to deflate");
         return 1;
     }
 
-
-	
-	printf("\n");
 	hexdump(out);
 }
 
