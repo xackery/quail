@@ -1,4 +1,4 @@
-package ter
+package mod
 
 import (
 	"fmt"
@@ -6,7 +6,7 @@ import (
 	"github.com/g3n/engine/math32"
 )
 
-func (e *TER) AddMaterial(name string, shaderName string) error {
+func (e *MOD) AddMaterial(name string, shaderName string) error {
 	e.materials = append(e.materials, &material{
 		name:       name,
 		shaderName: shaderName,
@@ -14,7 +14,7 @@ func (e *TER) AddMaterial(name string, shaderName string) error {
 	return nil
 }
 
-func (e *TER) AddMaterialProperty(materialName string, propertyName string, typeValue uint32, floatValue float32, intValue uint32) error {
+func (e *MOD) AddMaterialProperty(materialName string, propertyName string, typeValue uint32, floatValue float32, intValue uint32) error {
 	for _, o := range e.materials {
 		if o.name != materialName {
 			continue
@@ -30,7 +30,7 @@ func (e *TER) AddMaterialProperty(materialName string, propertyName string, type
 	return fmt.Errorf("materialName not found: %s", materialName)
 }
 
-func (e *TER) AddVertex(position math32.Vector3, position2 math32.Vector3, uv math32.Vector2) error {
+func (e *MOD) AddVertex(position math32.Vector3, position2 math32.Vector3, uv math32.Vector2) error {
 	e.vertices = append(e.vertices, &vertex{
 		position:  position,
 		position2: position2,
@@ -39,7 +39,7 @@ func (e *TER) AddVertex(position math32.Vector3, position2 math32.Vector3, uv ma
 	return nil
 }
 
-func (e *TER) AddTriangle(index math32.Vector3, materialName string, flag uint32) error {
+func (e *MOD) AddTriangle(index math32.Vector3, materialName string, flag uint32) error {
 	for _, o := range e.materials {
 		if o.name != materialName {
 			continue
@@ -54,4 +54,19 @@ func (e *TER) AddTriangle(index math32.Vector3, materialName string, flag uint32
 	}
 
 	return fmt.Errorf("materialName not found: %s", materialName)
+}
+
+func (e *MOD) AddBone(name string, unknown [13]float32) error {
+	e.bones = append(e.bones, &bone{
+		name:    name,
+		unknown: unknown,
+	})
+	return nil
+}
+
+func (e *MOD) AddBoneAssignment(unknown [9]uint32) error {
+	e.boneAssignments = append(e.boneAssignments, &boneAssignment{
+		unknown: unknown,
+	})
+	return nil
 }

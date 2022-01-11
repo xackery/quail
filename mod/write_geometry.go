@@ -1,4 +1,4 @@
-package ter
+package mod
 
 import (
 	"bytes"
@@ -8,7 +8,7 @@ import (
 	"github.com/xackery/quail/helper"
 )
 
-func (e *TER) writeGeometry() ([]byte, []byte, error) {
+func (e *MOD) writeGeometry() ([]byte, []byte, error) {
 	var err error
 
 	names := []string{}
