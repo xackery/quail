@@ -8,7 +8,6 @@ import (
 	"io"
 	"strings"
 
-	"github.com/xackery/quail/helper"
 	"github.com/xackery/quail/log"
 )
 
@@ -54,9 +53,9 @@ func (e *Wld) Load(r io.ReadSeeker) error {
 	if err != nil {
 		return fmt.Errorf("read after bsp region offset: %w", err)
 	}
-	//if value != 0x000680D4 {
-	//	return fmt.Errorf("after bsp region offset wanted 0x%x, got 0x%x", 0x000680D4, value)
-	//}//
+	if value != 0x680D4 {
+		return fmt.Errorf("after bsp region offset wanted 0x%x, got 0x%x", 0x680D4, value)
+	}
 
 	var hashSize uint32
 	err = binary.Read(r, binary.LittleEndian, &hashSize)
@@ -68,18 +67,25 @@ func (e *Wld) Load(r io.ReadSeeker) error {
 		return fmt.Errorf("read after hash size offset: %w", err)
 	}
 
-	hashRaw, err := helper.ParseFixedString(r, hashSize)
+	hashRaw := make([]byte, hashSize)
+
+	err = binary.Read(r, binary.LittleEndian, hashRaw)
 	if err != nil {
-		return fmt.Errorf("read hash: %w", err)
+		return fmt.Errorf("read hash raw: %w", err)
 	}
 
-	hashSplit := strings.Split(hashRaw, "\x00")
+	hashString := decodeStringHash(hashRaw)
+
+	hashSplit := strings.Split(hashString, "\x00")
 	e.Hash = make(map[int]string)
 	offset := 0
 	for _, h := range hashSplit {
 		e.Hash[offset] = h
 		offset += len(h) + 1
+		log.Debugf("adding hash at 0x%x", offset)
 	}
+
+	log.Debugf("fragments: %d, bsp regions: %d, bsp region offset: 0x%x, hashSize: %d", e.FragmentCount, e.BspRegionCount, value, hashSize)
 
 	for i := 0; i < int(e.FragmentCount); i++ {
 		var fragSize uint32
@@ -105,11 +111,12 @@ func (e *Wld) Load(r io.ReadSeeker) error {
 			return fmt.Errorf("read: %w", err)
 		}
 
+		log.Debugf("%d fragIndex: %d 0x%x, len %d\n%s", i, fragIndex, fragIndex, len(buf), hex.Dump(buf))
 		frag, err := e.ParseFragment(fragIndex, bytes.NewReader(buf))
 		if err != nil {
 			return fmt.Errorf("fragment load: %w", err)
 		}
-		log.Debugf("fragIndex: %d 0x%x %s, len %d\n%s", fragIndex, fragIndex, frag.FragmentType(), len(buf), hex.Dump(buf))
+		log.Debugf("%d fragIndex: %d 0x%x determined to be %s", i, fragIndex, fragIndex, frag.FragmentType())
 
 		e.Fragments = append(e.Fragments, frag)
 
@@ -119,4 +126,13 @@ func (e *Wld) Load(r io.ReadSeeker) error {
 		}
 	}
 	return nil
+}
+
+func decodeStringHash(hash []byte) string {
+	hashKey := []byte{0x95, 0x3A, 0xC5, 0x2A, 0x95, 0x7A, 0x95, 0x6A}
+	out := ""
+	for i := 0; i < len(hash); i++ {
+		out = string(hash[i] ^ hashKey[i%8])
+	}
+	return out
 }

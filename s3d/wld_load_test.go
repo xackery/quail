@@ -6,7 +6,7 @@ import (
 )
 
 func TestWldLoad(t *testing.T) {
-	f, err := os.Open("test/clz.wld")
+	f, err := os.Open("test/lights.wld")
 	if err != nil {
 		t.Fatalf("open: %v", err)
 	}
