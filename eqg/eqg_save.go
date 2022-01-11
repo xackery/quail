@@ -58,53 +58,53 @@ func (e *EQG) Save(w io.WriteSeeker) error {
 	for _, file := range e.files {
 		pos, err = w.Seek(0, io.SeekCurrent)
 		if err != nil {
-			return fmt.Errorf("%s seek: %w", file.name, err)
+			return fmt.Errorf("%s seek: %w", file.Name, err)
 		}
 
 		dirEntries = append(dirEntries, &dirEntry{
-			crc:    helper.FilenameCRC32(file.name),
-			sz:     uint32(len(file.data)),
+			crc:    helper.FilenameCRC32(file.Name),
+			sz:     uint32(len(file.Data)),
 			offset: uint32(pos),
 		})
 
 		//write compressed data
-		cData, err := helper.Deflate(file.data)
+		cData, err := helper.Deflate(file.Data)
 		if err != nil {
-			return fmt.Errorf("deflate %s: %w", file.name, err)
+			return fmt.Errorf("deflate %s: %w", file.Name, err)
 		}
 
 		err = binary.Write(w, binary.LittleEndian, uint32(len(cData)))
 		if err != nil {
-			return fmt.Errorf("%s write compressed size: %w", file.name, err)
+			return fmt.Errorf("%s write compressed size: %w", file.Name, err)
 		}
 
 		// prep filebuffer
-		err = binary.Write(fileBuffer, binary.LittleEndian, uint32(len(file.name)+1))
+		err = binary.Write(fileBuffer, binary.LittleEndian, uint32(len(file.Name)+1))
 		if err != nil {
-			return fmt.Errorf("%s write name length: %w", file.name, err)
+			return fmt.Errorf("%s write name length: %w", file.Name, err)
 		}
 		filePos += 4
 
-		err = helper.WriteString(fileBuffer, file.name)
+		err = helper.WriteString(fileBuffer, file.Name)
 		if err != nil {
-			return fmt.Errorf("%s write name: %w", file.name, err)
+			return fmt.Errorf("%s write name: %w", file.Name, err)
 		}
-		filePos += len(file.name) + 1
+		filePos += len(file.Name) + 1
 
 		err = binary.Write(fileBuffer, binary.LittleEndian, uint8(filePos))
 		if err != nil {
-			return fmt.Errorf("%s write file pos: %w", file.name, err)
+			return fmt.Errorf("%s write file pos: %w", file.Name, err)
 		}
 
-		err = binary.Write(fileBuffer, binary.LittleEndian, uint32(len(file.data)))
+		err = binary.Write(fileBuffer, binary.LittleEndian, uint32(len(file.Data)))
 		if err != nil {
-			return fmt.Errorf("%s write uncompressed size: %w", file.name, err)
+			return fmt.Errorf("%s write uncompressed size: %w", file.Name, err)
 		}
 		filePos += 4
 
 		err = binary.Write(fileBuffer, binary.LittleEndian, cData)
 		if err != nil {
-			return fmt.Errorf("%s write compressed data: %w", file.name, err)
+			return fmt.Errorf("%s write compressed data: %w", file.Name, err)
 		}
 		filePos += len(cData)
 	}
@@ -138,33 +138,33 @@ func (e *EQG) Save(w io.WriteSeeker) error {
 	if err != nil {
 		return fmt.Errorf("dirOffset write: %w", err)
 	}
-	for _, dir := range dirEntries {
+	for i, dir := range dirEntries {
 		err = binary.Write(w, binary.LittleEndian, dir.crc)
 		if err != nil {
-			return fmt.Errorf("crc write: %w", err)
+			return fmt.Errorf("dir %d crc write: %w", i, err)
 		}
 		err = binary.Write(w, binary.LittleEndian, dir.offset)
 		if err != nil {
-			return fmt.Errorf("offset write: %w", err)
+			return fmt.Errorf("dir %d offset write: %w", i, err)
 		}
 		err = binary.Write(w, binary.LittleEndian, dir.sz)
 		if err != nil {
-			return fmt.Errorf("size write: %w", err)
+			return fmt.Errorf("dir %d size write: %w", i, err)
 		}
 	}
 	err = binary.Write(w, binary.LittleEndian, uint32(0x61580AC9))
 	if err != nil {
-		return fmt.Errorf("dirEntry header write: %w", err)
+		return fmt.Errorf("magic number 0x61580AC9: %w", err)
 	}
 
 	err = binary.Write(w, binary.LittleEndian, uint32(fileOffset))
 	if err != nil {
-		return fmt.Errorf("dirEntry header write: %w", err)
+		return fmt.Errorf("fileOffset: %w", err)
 	}
 
 	err = binary.Write(w, binary.LittleEndian, uint32(len(fileBuffer.Bytes())))
 	if err != nil {
-		return fmt.Errorf("dirEntry header write: %w", err)
+		return fmt.Errorf("fileBuffer count: %w", err)
 	}
 
 	return nil

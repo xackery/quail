@@ -4,13 +4,15 @@ import (
 	"encoding/binary"
 	"fmt"
 	"io"
+
+	"github.com/xackery/quail/common"
 )
 
 // Save writes a zon file to location
 func (e *TER) Save(w io.Writer) error {
 	var err error
 
-	nameData, data, err := e.writeGeometry()
+	nameData, data, err := common.WriteGeometry(e.materials, e.vertices, e.triangles)
 	if err != nil {
 		return fmt.Errorf("writeGeometry: %w", err)
 	}
