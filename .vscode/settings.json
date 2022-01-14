@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "*.log": "ini",
+        "fstream": "cpp",
+        "iosfwd": "cpp"
+    }
+}

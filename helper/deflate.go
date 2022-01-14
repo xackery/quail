@@ -2,46 +2,65 @@ package helper
 
 import (
 	"bytes"
-	"compress/zlib"
 	"encoding/binary"
 	"fmt"
+
+	"github.com/xackery/go-zlib"
 )
 
 func Deflate(in []byte) ([]byte, error) {
 	out := bytes.NewBuffer(nil)
-	lastPos := 0
 	pos := 0
-	sz := len(in)
-	for sz > pos {
-		if pos+8192 > sz {
-			pos = sz
+	remain := len(in)
+	blockSize := 8192
+	for remain > 0 {
+		sz := int(0)
+		if remain > blockSize {
+			sz = blockSize
+			remain -= blockSize
 		} else {
-			pos += 8192
+			sz = remain
+			remain = 0
 		}
-		buf := bytes.NewBuffer(nil)
-		w := zlib.NewWriter(buf)
 
-		total, err := w.Write(in[lastPos:pos])
+		fmt.Println(pos+blockSize, "vs", sz)
+		buf := bytes.NewBuffer(nil)
+
+		//w, err := zlib.NewWriterLevel(buf, 2)
+		//w := zlib.NewWriter(buf)
+		//13 = 58 01
+		w, err := zlib.NewWriterRaw(buf, 6, 0, 13, 8)
+		if err != nil {
+			return nil, fmt.Errorf("newWriter: %w", err)
+		}
+		//if err != nil {
+		//	return nil, fmt.Errorf("newWriter: %w", err)
+		//}
+
+		inflateSize, err := w.Write(in[pos : pos+sz])
 		if err != nil {
 			return nil, fmt.Errorf("write: %w", err)
 		}
+		pos += sz
 
-		err = w.Flush()
-		if err != nil {
-			return nil, fmt.Errorf("flush: %w", err)
-		}
-		lastPos = pos
 		w.Close()
 		if err != nil {
 			return nil, fmt.Errorf("close: %w", err)
 		}
 
+		/*err = binary.Write(out, binary.LittleEndian, adler32.Checksum(buf.Bytes()))
+		if err != nil {
+			return nil, fmt.Errorf("checksum: %w", err)
+		}*/
+
+		fmt.Println("deflate size", buf.Len())
 		err = binary.Write(out, binary.LittleEndian, uint32(buf.Len()))
 		if err != nil {
 			return nil, fmt.Errorf("write deflateSize: %w", err)
 		}
 
-		err = binary.Write(out, binary.LittleEndian, uint32(total))
+		fmt.Println("inflate size", inflateSize)
+		err = binary.Write(out, binary.LittleEndian, uint32(inflateSize))
 		if err != nil {
 			return nil, fmt.Errorf("write sz: %w", err)
 		}

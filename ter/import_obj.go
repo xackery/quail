@@ -25,10 +25,11 @@ func (e *TER) ImportObj(objReader io.Reader, mtlReader io.Reader) error {
 			if err != nil {
 				return fmt.Errorf("readfile %s: %w", o.MapKd, err)
 			}
-			e.files = append(e.files, &common.FileEntry{
-				Name: o.MapKd,
-				Data: data,
-			})
+			fe, err := common.NewFileEntry(o.MapKd, data)
+			if err != nil {
+				return fmt.Errorf("new file %s: %w", o.MapKd, err)
+			}
+			e.files = append(e.files, fe)
 			// TODO: add string based values?
 			//e.AddMaterialProperty(o.Name, "e_TextureDiffuse0", 2, )
 		}

@@ -1,9 +1,16 @@
 package zon
 
-import "github.com/g3n/engine/math32"
+import (
+	"bytes"
+	"fmt"
+	"os"
+
+	"github.com/g3n/engine/math32"
+)
 
 // ZON is a zon file struct
 type ZON struct {
+	name    string
 	models  []*model
 	objects []*object
 	regions []*region
@@ -34,4 +41,25 @@ type light struct {
 	position math32.Vector3
 	color    math32.Color
 	radius   float32
+}
+
+func New(name string) (*ZON, error) {
+	z := &ZON{
+		name: name,
+	}
+	return z, nil
+}
+
+func (e *ZON) Name() string {
+	return e.name
+}
+
+func (e *ZON) Data() []byte {
+	w := bytes.NewBuffer(nil)
+	err := e.Save(w)
+	if err != nil {
+		fmt.Println("failed to save zon data:", err)
+		os.Exit(1)
+	}
+	return w.Bytes()
 }
