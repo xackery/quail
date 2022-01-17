@@ -9,6 +9,7 @@ type MOD struct {
 	triangles       []*common.Triangle
 	bones           []*bone
 	boneAssignments []*boneAssignment
+	files           []common.Filer
 }
 
 type bone struct {

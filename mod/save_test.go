@@ -9,6 +9,7 @@ import (
 
 func TestSave(t *testing.T) {
 	var err error
+
 	e := &MOD{}
 	err = e.AddMaterial("test", "test2")
 	if err != nil {
