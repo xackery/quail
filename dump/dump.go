@@ -18,10 +18,11 @@ import (
 
 const (
 	width  = 550
-	height = 550
+	height = 4000
 )
 
 type Dump struct {
+	name           string
 	img            *image.RGBA
 	groups         map[string]*group
 	groupKeys      []string
@@ -51,8 +52,9 @@ type group struct {
 	mask *image.RGBA
 }
 
-func New() (*Dump, error) {
+func New(name string) (*Dump, error) {
 	e := &Dump{
+		name:   name,
 		img:    image.NewRGBA(image.Rect(0, 0, width, height)),
 		groups: make(map[string]*group),
 	}
@@ -88,10 +90,7 @@ func Hex(data interface{}, format string, a ...interface{}) {
 func (e *Dump) Hex(data interface{}, format string, a ...interface{}) {
 
 	buf := bytes.NewBuffer(nil)
-	err := binary.Write(buf, binary.LittleEndian, data)
-	if err != nil {
-
-	}
+	binary.Write(buf, binary.LittleEndian, data)
 
 	labelName := fmt.Sprintf(format, a...)
 
@@ -153,6 +152,23 @@ func (e *Dump) Save(path string) error {
 		d.Dot = fixed.P(420, pos)
 		d.DrawString(name)
 		pos += 16
+	}
+
+	if pos < e.lastPos.Y {
+		pos = e.lastPos.Y
+	}
+
+	d.Src = e.grayImage
+	d.Dot = fixed.P(200, pos)
+	d.DrawString(e.name)
+
+	pos += 16
+	if pos < height {
+		b := e.img.Bounds()
+		b.Max.Y = pos
+		newOut := image.NewRGBA(b)
+		draw.Draw(newOut, e.img.Bounds(), out, newOut.Bounds().Min, draw.Src)
+		out = newOut
 	}
 
 	f, err := os.Create(path)

@@ -8,12 +8,13 @@ import (
 )
 
 func TestDump(t *testing.T) {
-	f, err := os.Open("test/eqzip-test.eqg")
+	path := "test/eqzip-test2.eqg"
+	f, err := os.Open(path)
 	if err != nil {
 		t.Fatalf("%s", err)
 	}
 	defer f.Close()
-	d, err := dump.New()
+	d, err := dump.New(path)
 	if err != nil {
 		t.Fatalf("dump.new: %s", err)
 	}

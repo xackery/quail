@@ -7,6 +7,7 @@ import (
 
 	"github.com/xackery/quail/common"
 	"github.com/xackery/quail/dump"
+	"github.com/xackery/quail/helper"
 )
 
 // Load will load an EQG
@@ -127,6 +128,12 @@ func (e *EQG) Load(r io.ReadSeeker) error {
 			return fmt.Errorf("read inflate size %d: %w", i, err)
 		}
 		dump.Hex(deflateData, "%ddata chunk", i)
+
+		data, err := helper.Inflate(deflateData)
+		if err != nil {
+			return fmt.Errorf("inflate %d: %w", i, err)
+		}
+		fmt.Println(data)
 	}
 
 	dump.Hex(fileCount, "fileCount=%d", fileCount)
