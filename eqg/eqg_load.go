@@ -54,6 +54,7 @@ func (e *EQG) Load(r io.ReadSeeker) error {
 			return fmt.Errorf("read %d size: %w", i, err)
 		}
 		dirEntries = append(dirEntries, entry)
+		fmt.Println(entry.crc, entry.offset, entry.size)
 	}
 
 	// reset back to start of file
@@ -62,7 +63,7 @@ func (e *EQG) Load(r io.ReadSeeker) error {
 		return fmt.Errorf("seek start: %w", err)
 	}
 
-	dump.Hex(dirOffset, fmt.Sprintf("dirOffset=%d", dirOffset))
+	dump.Hex(dirOffset, fmt.Sprintf("dirOffset=0x%x", dirOffset))
 	pfsHeader := [4]byte{}
 	err = binary.Read(r, binary.LittleEndian, &pfsHeader)
 	if err != nil {
@@ -90,11 +91,13 @@ func (e *EQG) Load(r io.ReadSeeker) error {
 	var deflateSize uint32
 	var inflateSize uint32
 
+	fmt.Println("found", fileCount, "files")
 	for i := 0; i < int(fileCount); i++ {
 		pos, err := r.Seek(0, io.SeekCurrent)
 		if err != nil {
 			return fmt.Errorf("seek current %d: %w", i, err)
 		}
+		fmt.Println("looking for", pos)
 
 		entryIndex := -1
 		for j, entry := range dirEntries {
@@ -108,39 +111,63 @@ func (e *EQG) Load(r io.ReadSeeker) error {
 		}
 		entry := dirEntries[entryIndex]
 
-		err = binary.Read(r, binary.LittleEndian, &deflateSize)
-		if err != nil {
-			return fmt.Errorf("read deflate size %d: %w", i, err)
-		}
-		dump.Hex(deflateSize, "%ddeflateSize=%d", i, deflateSize)
-		err = binary.Read(r, binary.LittleEndian, &inflateSize)
-		if err != nil {
-			return fmt.Errorf("read inflate size %d: %w", i, err)
-		}
-		dump.Hex(deflateSize, "%dinflateSize=%d", i, inflateSize)
+		var firstByte byte
+		var lastByte byte
 
-		deflateData := make([]byte, deflateSize)
-		err = binary.Read(r, binary.LittleEndian, &deflateData)
-		if err != nil {
-			return fmt.Errorf("read inflate size %d: %w", i, err)
-		}
-		dump.Hex(deflateData, "%ddata chunk", i)
+		data := []byte{}
+		currentSize := 0
+		for entry.size > uint32(currentSize) {
+			err = binary.Read(r, binary.LittleEndian, &deflateSize)
+			if err != nil {
+				return fmt.Errorf("read deflate size %d: %w", i, err)
+			}
 
-		data, err := helper.Inflate(deflateData, int(inflateSize))
-		if err != nil {
-			return fmt.Errorf("inflate %d: %w", i, err)
+			err = binary.Read(r, binary.LittleEndian, &inflateSize)
+			if err != nil {
+				return fmt.Errorf("read inflate size %d: %w", i, err)
+			}
+
+			deflateData := make([]byte, deflateSize)
+			err = binary.Read(r, binary.LittleEndian, &deflateData)
+			if err != nil {
+				return fmt.Errorf("read inflate size %d: %w", i, err)
+			}
+			if currentSize == 0 {
+				firstByte = deflateData[0]
+			}
+
+			//fmt.Println("inflating", deflateSize, inflateSize)
+			chunkData, err := helper.Inflate(deflateData, int(inflateSize))
+			if err != nil {
+				return fmt.Errorf("inflate %d: %w", i, err)
+			}
+			currentSize += int(inflateSize)
+			data = append(data, chunkData...)
+			lastByte = deflateData[len(deflateData)-1]
+			if entry.size < 16 {
+				dump.Hex(deflateData, "%dchunk", i)
+			}
+		}
+		if entry.size >= 16 {
+			dump.Hex([]byte{firstByte, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, lastByte}, "%dchunk", i)
 		}
 
-		if entry.crc != 4294967295 {
+		fmt.Println(entry.crc)
+		/*if entry.crc != 4294967295 {
 			fileByCRCs[entry.crc] = data
 			continue
-		}
+		}*/
 
 		nameBuf := bytes.NewBuffer(data)
 		var fileNameCount uint32
 		err = binary.Read(nameBuf, binary.LittleEndian, &fileNameCount)
 		if err != nil {
 			return fmt.Errorf("read fileNameCount %w", err)
+		}
+
+		if fileNameCount != fileCount-1 {
+			fileByCRCs[entry.crc] = data
+			continue
 		}
 
 		for j := 0; j < int(fileNameCount); j++ {
@@ -155,8 +182,9 @@ func (e *EQG) Load(r io.ReadSeeker) error {
 			if err != nil {
 				return fmt.Errorf("read nameData %w", err)
 			}
-			name := string(nameData)
+			name := string(nameData[0 : len(nameData)-1])
 			dirNameByCRCs[helper.FilenameCRC32(name)] = name
+			fmt.Println("added crc", helper.FilenameCRC32(name), "for", name)
 		}
 
 	}
@@ -184,7 +212,14 @@ func (e *EQG) Load(r io.ReadSeeker) error {
 	steveFooter := [5]byte{}
 	err = binary.Read(r, binary.LittleEndian, &steveFooter)
 	if err != nil {
-		return fmt.Errorf("read steveFooter: %w", err)
+		if err != io.EOF {
+			return fmt.Errorf("read steveFooter: %w", err)
+		}
+		if dump.IsActive() {
+			fmt.Println("inspect: warning: STEVE footer missing, can be ignored")
+			return nil
+		}
+		return nil
 	}
 	dump.Hex(steveFooter, "steveFooter")
 	if steveFooter != [5]byte{'S', 'T', 'E', 'V', 'E'} {

@@ -8,7 +8,7 @@ import (
 )
 
 func TestDump(t *testing.T) {
-	path := "test/eqzip-test2.eqg"
+	path := "test/eqzip-test.eqg"
 	f, err := os.Open(path)
 	if err != nil {
 		t.Fatalf("%s", err)

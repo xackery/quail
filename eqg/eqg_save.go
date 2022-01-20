@@ -3,7 +3,6 @@ package eqg
 import (
 	"bytes"
 	"encoding/binary"
-	"encoding/hex"
 	"fmt"
 	"io"
 	"time"
@@ -41,7 +40,7 @@ func (e *EQG) Save(w io.WriteSeeker) error {
 	}
 
 	fileBuffer := bytes.NewBuffer(nil)
-	err = binary.Write(fileBuffer, binary.LittleEndian, uint32(len(e.files)+1))
+	err = binary.Write(fileBuffer, binary.LittleEndian, uint32(len(e.files)))
 	if err != nil {
 		return fmt.Errorf("write file count: %w", err)
 	}
@@ -76,16 +75,17 @@ func (e *EQG) Save(w io.WriteSeeker) error {
 			return fmt.Errorf("%s write name length: %w", file.Name(), err)
 		}
 
-		_, err = fileBuffer.Write([]byte(file.Name()))
+		err = helper.WriteString(fileBuffer, file.Name())
+		//_, err = fileBuffer.Write([]byte(file.Name()))
 		if err != nil {
 			return fmt.Errorf("write name %s: %w", file.Name(), err)
 		}
 		//fmt.Println(len(file.Name)+1, hex.Dump([]byte(file.Name)))
 
-		err = binary.Write(fileBuffer, binary.LittleEndian, uint8(fileBuffer.Len()))
+		/*err = binary.Write(fileBuffer, binary.LittleEndian, uint8(fileBuffer.Len()))
 		if err != nil {
 			return fmt.Errorf("%s write file pos: %w", file.Name(), err)
-		}
+		}*/
 	}
 
 	fileOffset, err := w.Seek(0, io.SeekCurrent)
@@ -93,7 +93,7 @@ func (e *EQG) Save(w io.WriteSeeker) error {
 		return fmt.Errorf("seek fileOffset: %w", err)
 	}
 
-	fmt.Println("filebuffer deflate\n", hex.Dump(fileBuffer.Bytes()))
+	//fmt.Println("filebuffer deflate\n", hex.Dump(fileBuffer.Bytes()))
 	cData, err := helper.Deflate(fileBuffer.Bytes())
 	if err != nil {
 		return fmt.Errorf("deflate fileBuffer: %w", err)

@@ -87,8 +87,11 @@ func Hex(data interface{}, format string, a ...interface{}) {
 	instance.Hex(data, format, a...)
 }
 
-func (e *Dump) Hex(data interface{}, format string, a ...interface{}) {
+func IsActive() bool {
+	return instance != nil
+}
 
+func (e *Dump) Hex(data interface{}, format string, a ...interface{}) {
 	buf := bytes.NewBuffer(nil)
 	binary.Write(buf, binary.LittleEndian, data)
 
@@ -115,9 +118,20 @@ func (e *Dump) Hex(data interface{}, format string, a ...interface{}) {
 		e.groups[labelName] = grp
 		e.lastGroupColor++
 	}
+
+	if len(buf.Bytes()) > 16 {
+		e.addLabel(grp.mask, fmt.Sprintf("%02X ", buf.Bytes()[0]))
+		e.addLabel(grp.mask, ".. ")
+		e.addLabel(grp.mask, fmt.Sprintf("%02X ", buf.Bytes()[buf.Len()-1]))
+
+		fmt.Printf("inspect: analyzed %d bytes (truncated to %d) for %s\n", buf.Len(), 3, labelName)
+		return
+	}
 	for _, d := range buf.Bytes() {
 		e.addLabel(grp.mask, fmt.Sprintf("%02X ", d))
 	}
+
+	fmt.Printf("inspect: analyzed %d bytes for %s\n", buf.Len(), labelName)
 }
 
 func (e *Dump) addLabel(mask image.Image, text string) {
