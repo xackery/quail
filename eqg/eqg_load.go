@@ -1,6 +1,7 @@
 package eqg
 
 import (
+	"bytes"
 	"encoding/binary"
 	"fmt"
 	"io"
@@ -82,14 +83,9 @@ func (e *EQG) Load(r io.ReadSeeker) error {
 		return fmt.Errorf("unknown version")
 	}
 
-	/*fileCount := uint32(0)
-	err = binary.Read(r, binary.LittleEndian, &fileCount)
-	if err != nil {
-		return fmt.Errorf("read file count: %w", err)
-	}
-	dump.Hex(fileCount, "fileCount=%d", fileCount)*/
-
 	e.files = []common.Filer{}
+	fileByCRCs := make(map[uint32][]byte)
+	dirNameByCRCs := make(map[uint32]string)
 
 	var deflateSize uint32
 	var inflateSize uint32
@@ -110,6 +106,7 @@ func (e *EQG) Load(r io.ReadSeeker) error {
 		if entryIndex == -1 {
 			return fmt.Errorf("data chunk %d has malformed offset %x", i, pos)
 		}
+		entry := dirEntries[entryIndex]
 
 		err = binary.Read(r, binary.LittleEndian, &deflateSize)
 		if err != nil {
@@ -129,11 +126,51 @@ func (e *EQG) Load(r io.ReadSeeker) error {
 		}
 		dump.Hex(deflateData, "%ddata chunk", i)
 
-		data, err := helper.Inflate(deflateData)
+		data, err := helper.Inflate(deflateData, int(inflateSize))
 		if err != nil {
 			return fmt.Errorf("inflate %d: %w", i, err)
 		}
-		fmt.Println(data)
+
+		if entry.crc != 4294967295 {
+			fileByCRCs[entry.crc] = data
+			continue
+		}
+
+		nameBuf := bytes.NewBuffer(data)
+		var fileNameCount uint32
+		err = binary.Read(nameBuf, binary.LittleEndian, &fileNameCount)
+		if err != nil {
+			return fmt.Errorf("read fileNameCount %w", err)
+		}
+
+		for j := 0; j < int(fileNameCount); j++ {
+			var fileNameLength uint32
+			err = binary.Read(nameBuf, binary.LittleEndian, &fileNameLength)
+			if err != nil {
+				return fmt.Errorf("read fileNameCount %w", err)
+			}
+
+			nameData := make([]byte, fileNameLength)
+			err = binary.Read(nameBuf, binary.LittleEndian, &nameData)
+			if err != nil {
+				return fmt.Errorf("read nameData %w", err)
+			}
+			name := string(nameData)
+			dirNameByCRCs[helper.FilenameCRC32(name)] = name
+		}
+
+	}
+
+	for crc, data := range fileByCRCs {
+		dirName, ok := dirNameByCRCs[crc]
+		if !ok {
+			return fmt.Errorf("dirName for crc %d not found", crc)
+		}
+		file, err := common.NewFileEntry(dirName, data)
+		if err != nil {
+			return fmt.Errorf("new file entry %s: %w", dirName, err)
+		}
+		e.files = append(e.files, file)
 	}
 
 	dump.Hex(fileCount, "fileCount=%d", fileCount)
@@ -160,110 +197,5 @@ func (e *EQG) Load(r io.ReadSeeker) error {
 	}
 	dump.Hex(dateFooter, "dateFooter=%d", dateFooter)
 
-	/*
-		dirEntries = append(dirEntries, &dirEntry{
-				crc:    helper.FilenameCRC32(file.Name),
-				size:   uint32(len(file.Data)),
-				offset: uint32(pos),
-			})
-
-			//write compressed data
-			cData, err := helper.Deflate(file.Data)
-			if err != nil {
-				return fmt.Errorf("deflate %s: %w", file.Name, err)
-			}
-
-			err = binary.Read(r, binary.LittleEndian, cData)
-			if err != nil {
-				return fmt.Errorf("%s write data: %w", file.Name, err)
-			}
-
-			// prep filebuffer
-			err = binary.Read(fileBuffer, binary.LittleEndian, uint32(len(file.Name)+1))
-			if err != nil {
-				return fmt.Errorf("%s write name length: %w", file.Name, err)
-			}
-
-			_, err = fileBuffer.Write([]byte(file.Name))
-			if err != nil {
-				return fmt.Errorf("write name %s: %w", file.Name, err)
-			}
-			//fmt.Println(len(file.Name)+1, hex.Dump([]byte(file.Name)))
-
-			err = binary.Read(fileBuffer, binary.LittleEndian, uint8(fileBuffer.Len()))
-			if err != nil {
-				return fmt.Errorf("%s write file pos: %w", file.Name, err)
-			}
-		}
-
-		fileOffset, err := r.Seek(0, io.SeekCurrent)
-		if err != nil {
-			return fmt.Errorf("seek fileOffset: %w", err)
-		}
-
-		fmt.Println("filebuffer deflate\n", hex.Dump(fileBuffer.Bytes()))
-		cData, err := helper.Deflate(fileBuffer.Bytes())
-		if err != nil {
-			return fmt.Errorf("deflate fileBuffer: %w", err)
-		}
-		//fmt.Println("after", hex.Dump(cData))
-
-		err = binary.Read(r, binary.LittleEndian, cData)
-		if err != nil {
-			return fmt.Errorf("write fileBuffer: %w", err)
-		}
-
-		dirOffset, err := r.Seek(0, io.SeekCurrent)
-		if err != nil {
-			return fmt.Errorf("seek dirOffset: %w", err)
-		}
-
-		err = binary.Read(r, binary.LittleEndian, uint32(len(dirEntries)+1))
-		if err != nil {
-			return fmt.Errorf("write dir count: %w", err)
-		}
-
-		for i, file := range dirEntries {
-			err = binary.Read(r, binary.LittleEndian, file.crc)
-			if err != nil {
-				return fmt.Errorf("write direntry %d crc: %w", i, err)
-			}
-			err = binary.Read(r, binary.LittleEndian, file.offset)
-			if err != nil {
-				return fmt.Errorf("write direntry %d offset: %w", i, err)
-			}
-			err = binary.Read(r, binary.LittleEndian, file.size)
-			if err != nil {
-				return fmt.Errorf("write direntry %d size: %w", i, err)
-			}
-		}
-
-		err = binary.Read(r, binary.LittleEndian, uint32(0x61580AC9))
-		if err != nil {
-			return fmt.Errorf("magic number 0x61580AC9: %w", err)
-		}
-
-		err = binary.Read(r, binary.LittleEndian, uint32(fileOffset))
-		if err != nil {
-			return fmt.Errorf("fileOffset: %w", err)
-		}
-		pos += 4
-
-		err = binary.Read(r, binary.LittleEndian, uint32(len(fileBuffer.Bytes())))
-		if err != nil {
-			return fmt.Errorf("fileBuffer count: %w", err)
-		}
-		pos += int64(len(fileBuffer.Bytes()))
-
-		err = binary.Read(r, binary.LittleEndian, [5]byte{'S', 'T', 'E', 'V', 'E'})
-		if err != nil {
-			return fmt.Errorf("write header magic: %w", err)
-		}
-
-		err = binary.Read(r, binary.LittleEndian, uint32(time.Now().Unix()))
-		if err != nil {
-			return fmt.Errorf("write header magic: %w", err)
-		}
-	*/
 	return nil
 }

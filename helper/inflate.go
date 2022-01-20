@@ -1,24 +1,21 @@
 package helper
 
 import (
-	"bytes"
 	"fmt"
 
-	"compress/zlib"
-	//"github.com/xackery/go-zlib"
+	"github.com/xackery/go-zlib"
 )
 
-func Inflate(in []byte) ([]byte, error) {
-	buf := bytes.NewBuffer(in)
-	r, err := zlib.NewReader(buf)
+func Inflate(in []byte, size int) ([]byte, error) {
+	r, err := zlib.NewReader(nil)
 	if err != nil {
 		return nil, fmt.Errorf("newReader: %w", err)
 	}
-	data := []byte{}
-	_, err = r.Read(data)
+	out := make([]byte, size)
+	_, _, err = r.ReadBuffer(in, out)
 	if err != nil {
 		return nil, fmt.Errorf("read: %w", err)
 	}
-	//fmt.Println("deflated:", len(data), ":", hex.Dump(data))
-	return data, nil
+	//fmt.Println("inflated\n", hex.Dump(out))
+	return out, nil
 }

@@ -6,16 +6,24 @@ import (
 	"io"
 	"os"
 	"testing"
+
+	"github.com/xackery/quail/dump"
 )
 
 func TestSave(t *testing.T) {
+	path := "test/out2.eqg"
+	d, err := dump.New(path)
+	if err != nil {
+		t.Fatalf("dump.new: %s", err)
+	}
+	defer d.Save("test/out.png")
 
 	e := &EQG{}
-	err := e.Add("test.txt", []byte("test"))
+	err = e.Add("test.txt", []byte("test"))
 	if err != nil {
 		t.Fatalf("add: %s", err.Error())
 	}
-	f, err := os.Create("test/out2.eqg")
+	f, err := os.Create(path)
 	if err != nil {
 		t.Fatalf("create: %s", err.Error())
 	}
@@ -24,6 +32,15 @@ func TestSave(t *testing.T) {
 		t.Fatalf("save: %s", err.Error())
 	}
 	f.Close()
+
+	r, err := os.Open(path)
+	if err != nil {
+		t.Fatalf("open: %s", err)
+	}
+	err = e.Load(r)
+	if err != nil {
+		t.Fatalf("load: %s", err)
+	}
 	compareFile(t, "test/out2.eqg", "test/eqzip-test.eqg")
 }
 
