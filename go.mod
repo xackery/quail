@@ -26,6 +26,7 @@ require (
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/subosito/gotenv v1.2.0 // indirect
+	github.com/xackery/colors v1.0.1 // indirect
 	golang.org/x/image v0.0.0-20210607152325-775e3b0c77b9 // indirect
 	golang.org/x/sys v0.0.0-20211205182925-97ca703d548d // indirect
 	golang.org/x/text v0.3.7 // indirect
