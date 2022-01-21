@@ -3,6 +3,7 @@ package mod
 import (
 	"encoding/binary"
 	"fmt"
+	"image/color"
 	"io"
 
 	"github.com/g3n/engine/math32"
@@ -11,11 +12,6 @@ import (
 
 func (e *MOD) Load(r io.ReadSeeker) error {
 	var err error
-	/*
-		e.materials, e.vertices, e.triangles, err = common.ReadGeometry(r)
-		if err != nil {
-			return fmt.Errorf("readGeometry: %w", err)
-		}*/
 
 	header := [4]byte{}
 	err = binary.Read(r, binary.LittleEndian, &header)
@@ -33,8 +29,8 @@ func (e *MOD) Load(r io.ReadSeeker) error {
 		return fmt.Errorf("read header version: %w", err)
 	}
 	dump.Hex(version, "version=%d", version)
-	if version != 1 {
-		return fmt.Errorf("version is %d, wanted 1", version)
+	if version != 1 && version != 3 {
+		return fmt.Errorf("version is %d, wanted 1 or 3", version)
 	}
 
 	nameLength := uint32(0)
@@ -83,9 +79,10 @@ func (e *MOD) Load(r io.ReadSeeker) error {
 	if err != nil {
 		return fmt.Errorf("read nameData: %w", err)
 	}
-	dump.Hex(nameData, "nameData")
+	dump.HexRange(nameData, int(nameLength), "nameData=(%d)", nameLength)
 
 	names := make(map[uint32]string)
+
 	chunk := []byte{}
 	lastOffset := 0
 	for i, b := range nameData {
@@ -96,8 +93,6 @@ func (e *MOD) Load(r io.ReadSeeker) error {
 		}
 		chunk = append(chunk, b)
 	}
-
-	fmt.Printf("%+v", names)
 
 	for i := 0; i < int(materialCount); i++ {
 		materialID := uint32(0)
@@ -173,6 +168,7 @@ func (e *MOD) Load(r io.ReadSeeker) error {
 	}
 
 	for i := 0; i < int(verticesCount); i++ {
+
 		pos := math32.Vector3{}
 		err = binary.Read(r, binary.LittleEndian, &pos)
 		if err != nil {
@@ -185,6 +181,20 @@ func (e *MOD) Load(r io.ReadSeeker) error {
 			return fmt.Errorf("read vertex %d normal: %w", i, err)
 		}
 
+		color := color.RGBA{}
+		if version >= 3 {
+			err = binary.Read(r, binary.LittleEndian, &color)
+			if err != nil {
+				return fmt.Errorf("read vertex %d color: %w", i, err)
+			}
+
+			unkUV := math32.Vector2{}
+			err = binary.Read(r, binary.LittleEndian, &unkUV)
+			if err != nil {
+				return fmt.Errorf("read vertex %d unkUV: %w", i, err)
+			}
+		}
+
 		uv := math32.Vector2{}
 		err = binary.Read(r, binary.LittleEndian, &uv)
 		if err != nil {
@@ -194,6 +204,10 @@ func (e *MOD) Load(r io.ReadSeeker) error {
 		if err != nil {
 			return fmt.Errorf("addVertex %d: %w", i, err)
 		}
+	}
+	vSize := 32
+	if version >= 3 {
+		vSize += 12
 	}
 	dump.HexRange([]byte{0x01, 0x02}, int(verticesCount)*32, "vertData=(%d bytes)", int(verticesCount)*32)
 
@@ -209,9 +223,10 @@ func (e *MOD) Load(r io.ReadSeeker) error {
 		if err != nil {
 			return fmt.Errorf("read triangle %d materialID: %w", i, err)
 		}
-		materialName, ok := names[materialID]
-		if !ok {
-			return fmt.Errorf("%d read triangle material name: %w", i, err)
+
+		materialName, err := e.MaterialByID(int(materialID))
+		if err != nil {
+			return fmt.Errorf("material by id for triangle %d: %w", i, err)
 		}
 
 		flag := uint32(0)

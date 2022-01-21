@@ -131,7 +131,7 @@ func (e *Dump) Hex(data interface{}, size int, format string, a ...interface{}) 
 		e.addLabel(grp.mask, ".. ")
 		e.addLabel(grp.mask, fmt.Sprintf("%02X ", buf.Bytes()[buf.Len()-1]))
 
-		fmt.Printf("inspect: analyzed %d bytes (truncated to %d) for %s\n", size, 3, labelName)
+		fmt.Printf("inspect: dump %d bytes (truncated to %d) for %s\n", size, 3, labelName)
 		return
 	}
 	for _, d := range buf.Bytes() {
@@ -140,7 +140,7 @@ func (e *Dump) Hex(data interface{}, size int, format string, a ...interface{}) 
 	if size == 0 {
 		size = buf.Len()
 	}
-	fmt.Printf("inspect: analyzed %d bytes for %s\n", size, labelName)
+	fmt.Printf("inspect: dump %d bytes for %s\n", size, labelName)
 }
 
 func (e *Dump) addLabel(mask image.Image, text string) {
