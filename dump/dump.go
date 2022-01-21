@@ -17,7 +17,7 @@ import (
 )
 
 const (
-	width  = 550
+	width  = 800
 	height = 4000
 )
 
@@ -84,14 +84,21 @@ func Hex(data interface{}, format string, a ...interface{}) {
 	if instance == nil {
 		return
 	}
-	instance.Hex(data, format, a...)
+	instance.Hex(data, 0, format, a...)
+}
+
+func HexRange(data interface{}, size int, format string, a ...interface{}) {
+	if instance == nil {
+		return
+	}
+	instance.Hex(data, size, format, a...)
 }
 
 func IsActive() bool {
 	return instance != nil
 }
 
-func (e *Dump) Hex(data interface{}, format string, a ...interface{}) {
+func (e *Dump) Hex(data interface{}, size int, format string, a ...interface{}) {
 	buf := bytes.NewBuffer(nil)
 	binary.Write(buf, binary.LittleEndian, data)
 
@@ -119,19 +126,21 @@ func (e *Dump) Hex(data interface{}, format string, a ...interface{}) {
 		e.lastGroupColor++
 	}
 
-	if len(buf.Bytes()) > 16 {
+	if len(buf.Bytes()) >= 16 || size >= 16 {
 		e.addLabel(grp.mask, fmt.Sprintf("%02X ", buf.Bytes()[0]))
 		e.addLabel(grp.mask, ".. ")
 		e.addLabel(grp.mask, fmt.Sprintf("%02X ", buf.Bytes()[buf.Len()-1]))
 
-		fmt.Printf("inspect: analyzed %d bytes (truncated to %d) for %s\n", buf.Len(), 3, labelName)
+		fmt.Printf("inspect: analyzed %d bytes (truncated to %d) for %s\n", size, 3, labelName)
 		return
 	}
 	for _, d := range buf.Bytes() {
 		e.addLabel(grp.mask, fmt.Sprintf("%02X ", d))
 	}
-
-	fmt.Printf("inspect: analyzed %d bytes for %s\n", buf.Len(), labelName)
+	if size == 0 {
+		size = buf.Len()
+	}
+	fmt.Printf("inspect: analyzed %d bytes for %s\n", size, labelName)
 }
 
 func (e *Dump) addLabel(mask image.Image, text string) {
@@ -173,7 +182,7 @@ func (e *Dump) Save(path string) error {
 	}
 
 	d.Src = e.grayImage
-	d.Dot = fixed.P(200, pos)
+	d.Dot = fixed.P(200, e.lastPos.Y+16)
 	d.DrawString(e.name)
 
 	pos += 16
