@@ -130,9 +130,9 @@ func (e *EQG) Save(w io.WriteSeeker) error {
 		}
 	}
 
-	err = binary.Write(w, binary.LittleEndian, uint32(0x61580AC9))
+	err = binary.Write(w, binary.LittleEndian, uint32(0xFFFFFFFF))
 	if err != nil {
-		return fmt.Errorf("magic number 0x61580AC9: %w", err)
+		return fmt.Errorf("crc direntry: %w", err)
 	}
 
 	err = binary.Write(w, binary.LittleEndian, uint32(fileOffset))

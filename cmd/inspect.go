@@ -30,6 +30,13 @@ Supported extensions:
 		if path == "" {
 			return cmd.Usage()
 		}
+		out, err := cmd.Flags().GetString("out")
+		if err != nil {
+			return fmt.Errorf("parse out: %w", err)
+		}
+		if out == "" {
+			out = "inspect.png"
+		}
 
 		fi, err := os.Stat(path)
 		if err != nil {
@@ -39,12 +46,12 @@ Supported extensions:
 			return fmt.Errorf("inspect requires a target file, directory provided")
 		}
 
-		fmt.Println("inspect: generated ./inspect.png")
+		fmt.Println("inspect: generated", out)
 		d, err := dump.New(filepath.Base(path))
 		if err != nil {
 			return fmt.Errorf("dump.New: %w", err)
 		}
-		defer d.Save("inspect.png")
+		defer d.Save(out)
 		f, err := os.Open(path)
 		if err != nil {
 			fmt.Println("Error: open:", err)
@@ -78,5 +85,6 @@ Supported extensions:
 func init() {
 	rootCmd.AddCommand(inspectCmd)
 	inspectCmd.PersistentFlags().String("path", "", "path to inspect")
+	inspectCmd.PersistentFlags().String("out", "", "out file of inspect")
 
 }

@@ -205,3 +205,9 @@ func (e *Dump) Save(path string) error {
 	}
 	return nil
 }
+
+func Close() {
+	if instance != nil {
+		instance = nil
+	}
+}

@@ -17,3 +17,8 @@ quail.log
 
 _*/
 *.eqg
+
+test/*.zon
+test/*.png
+test/*.mod
+test/*.eqg

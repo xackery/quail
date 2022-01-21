@@ -5,6 +5,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"io"
+	"time"
 
 	"github.com/xackery/quail/common"
 	"github.com/xackery/quail/dump"
@@ -203,9 +204,9 @@ func (e *EQG) Load(r io.ReadSeeker) error {
 
 	dump.Hex(fileCount, "fileCount=%d", fileCount)
 	for i, entry := range dirEntries {
-		dump.Hex(entry.crc, "%dcrc", i)
-		dump.Hex(entry.offset, "%doffset", i)
-		dump.Hex(entry.size, "%dsize", i)
+		dump.Hex(entry.crc, "%dcrc=%d", i, entry.crc)
+		dump.Hex(entry.offset, "%doffset=0x%x", i, entry.offset)
+		dump.Hex(entry.size, "%dsize=%d", i, entry.size)
 	}
 	r.Seek(int64(4+(len(dirEntries)*12)), io.SeekCurrent)
 
@@ -230,7 +231,8 @@ func (e *EQG) Load(r io.ReadSeeker) error {
 	if err != nil {
 		return fmt.Errorf("read dateFooter: %w", err)
 	}
-	dump.Hex(dateFooter, "dateFooter=%d", dateFooter)
+
+	dump.Hex(dateFooter, "dateFooter=%s", time.Unix(int64(dateFooter), 0).Format(time.RFC3339))
 
 	return nil
 }

@@ -1,4 +1,4 @@
-package mod
+package zon
 
 import (
 	"os"
@@ -8,7 +8,8 @@ import (
 )
 
 func TestLoad(t *testing.T) {
-	path := "test/cube.mod"
+	//path := "test/ecommons.zon"
+	path := "test/soldungb.zon"
 	f, err := os.Open(path)
 	if err != nil {
 		t.Fatalf("%s", err)
@@ -20,7 +21,7 @@ func TestLoad(t *testing.T) {
 	}
 	defer d.Save("test/out.png")
 
-	e := &MOD{}
+	e := &ZON{}
 	err = e.Load(f)
 	if err != nil {
 		t.Fatalf("load: %s", err)
@@ -28,7 +29,7 @@ func TestLoad(t *testing.T) {
 }
 
 func TestLoadSaveLoad(t *testing.T) {
-	path := "test/obj_gears.mod"
+	path := "test/soldungb.zon"
 	f, err := os.Open(path)
 	if err != nil {
 		t.Fatalf("%s", err)
@@ -39,12 +40,12 @@ func TestLoadSaveLoad(t *testing.T) {
 		t.Fatalf("dump.new: %s", err)
 	}
 
-	e := &MOD{}
+	e := &ZON{}
 	err = e.Load(f)
 	if err != nil {
 		t.Fatalf("load: %s", err)
 	}
-	w, err := os.Create("test/out.mod")
+	w, err := os.Create("test/out.zon")
 	if err != nil {
 		t.Fatalf("create: %s", err)
 	}
@@ -56,7 +57,7 @@ func TestLoadSaveLoad(t *testing.T) {
 	d.Save("test/out.png")
 	dump.Close()
 
-	path = "test/out.mod"
+	path = "test/out.zon"
 	d, err = dump.New(path)
 	if err != nil {
 		t.Fatalf("dump.new: %s", err)
