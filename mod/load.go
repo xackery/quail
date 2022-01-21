@@ -79,7 +79,6 @@ func (e *MOD) Load(r io.ReadSeeker) error {
 	if err != nil {
 		return fmt.Errorf("read nameData: %w", err)
 	}
-	dump.HexRange(nameData, int(nameLength), "nameData=(%d)", nameLength)
 
 	names := make(map[uint32]string)
 
@@ -90,10 +89,11 @@ func (e *MOD) Load(r io.ReadSeeker) error {
 			names[uint32(lastOffset)] = string(chunk)
 			chunk = []byte{}
 			lastOffset = i + 1
+			continue
 		}
 		chunk = append(chunk, b)
 	}
-
+	dump.HexRange(nameData, int(nameLength), "nameData=(%d bytes, %d entries)", nameLength, len(names))
 	for i := 0; i < int(materialCount); i++ {
 		materialID := uint32(0)
 		err = binary.Read(r, binary.LittleEndian, &materialID)
@@ -109,7 +109,7 @@ func (e *MOD) Load(r io.ReadSeeker) error {
 		}
 		name, ok := names[nameOffset]
 		if !ok {
-			return fmt.Errorf("%d names offset 0x%x not found", i, nameOffset)
+			return fmt.Errorf("%dnames offset 0x%x not found", i, nameOffset)
 		}
 		dump.Hex(nameOffset, "%dnameOffset=0x%x(%s)", i, nameOffset, name)
 
@@ -241,5 +241,68 @@ func (e *MOD) Load(r io.ReadSeeker) error {
 	}
 	dump.HexRange([]byte{0x03, 0x04}, int(triangleCount)*20, "triangleData=(%d bytes)", int(triangleCount)*20)
 
+	//64bytes worth
+	for i := 0; i < int(boneCount); i++ {
+		//52?
+		materialID := uint32(0)
+		err = binary.Read(r, binary.LittleEndian, &materialID)
+		if err != nil {
+			return fmt.Errorf("read bone %d materialID: %w", i, err)
+		}
+
+		dump.Hex(materialID, "%dmaterialid=%d(%s)", i, materialID, names[materialID])
+		maxVal := uint32(0)
+		err = binary.Read(r, binary.LittleEndian, &maxVal)
+		if err != nil {
+			return fmt.Errorf("read bone %d maxVal: %w", i, err)
+		}
+		dump.Hex(maxVal, "%dmaxVal=%d", i, maxVal)
+
+		fiveVal := uint32(0)
+		err = binary.Read(r, binary.LittleEndian, &fiveVal)
+		if err != nil {
+			return fmt.Errorf("read bone %d fiveVal: %w", i, err)
+		}
+		dump.Hex(fiveVal, "%dfiveVal=%d", i, fiveVal)
+
+		oneVal := uint32(0)
+		err = binary.Read(r, binary.LittleEndian, &oneVal)
+		if err != nil {
+			return fmt.Errorf("read bone %d oneVal: %w", i, err)
+		}
+		dump.Hex(oneVal, "%doneVal=%d", i, oneVal)
+
+		pos := math32.Vector3{}
+		err = binary.Read(r, binary.LittleEndian, &pos)
+		if err != nil {
+			return fmt.Errorf("read bone %d pos: %w", i, err)
+		}
+		dump.Hex(pos, "%dpos=%+v", i, pos)
+
+		rot := math32.Vector3{}
+		err = binary.Read(r, binary.LittleEndian, &rot)
+		if err != nil {
+			return fmt.Errorf("read bone %d rot: %w", i, err)
+		}
+		dump.Hex(rot, "%drot=%+v", i, rot)
+
+		scale := math32.Vector3{}
+		err = binary.Read(r, binary.LittleEndian, &scale)
+		if err != nil {
+			return fmt.Errorf("read bone %d scale: %w", i, err)
+		}
+		dump.Hex(scale, "%dscale=%+v", i, scale)
+
+		chunk := make([]byte, 60)
+		err = binary.Read(r, binary.LittleEndian, &chunk)
+		if err != nil {
+			return fmt.Errorf("read chunk %d: %w", i, err)
+		}
+		dump.Hex(chunk, "%dchunk=(%d bytes)", i, len(chunk))
+		// pure f's
+
+		//5
+		//1
+	}
 	return nil
 }

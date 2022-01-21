@@ -9,7 +9,7 @@ import (
 func TestGLTFImport(t *testing.T) {
 
 	e := &MOD{}
-	path := "test/cube.gltf"
+	path := "test/animatedCube.gltf"
 	err := e.ImportGLTF(path)
 	if err != nil {
 		t.Fatalf("import %s: %s", path, err)

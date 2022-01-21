@@ -3,66 +3,95 @@ package common
 import (
 	"bytes"
 	"encoding/binary"
+	"encoding/hex"
 	"fmt"
-
-	"github.com/xackery/quail/helper"
 )
+
+type nameInfo struct {
+	offset uint32
+	name   string
+}
 
 func WriteGeometry(materials []*Material, vertices []*Vertex, triangles []*Triangle) ([]byte, []byte, error) {
 	var err error
 
-	names := []string{}
+	names := []*nameInfo{}
 	nameBuf := bytes.NewBuffer(nil)
 	dataBuf := bytes.NewBuffer(nil)
-	nameID := -1
+	nameOffset := int32(-1)
 	// materials
 
+	tmpNames := []string{}
+	for _, o := range materials {
+		tmpNames = append(tmpNames, o.Name)
+		tmpNames = append(tmpNames, o.ShaderName)
+		for _, p := range o.Properties {
+			tmpNames = append(tmpNames, p.Name)
+		}
+	}
+	for _, name := range tmpNames {
+		isNew := true
+		for _, val := range names {
+			if val.name == name {
+				isNew = false
+				break
+			}
+		}
+		if !isNew {
+			continue
+		}
+
+		names = append(names, &nameInfo{
+			offset: uint32(nameBuf.Len()),
+			name:   name,
+		})
+		_, err = nameBuf.Write([]byte(name))
+		if err != nil {
+			return nil, nil, fmt.Errorf("write name: %w", err)
+		}
+		_, err = nameBuf.Write([]byte{0})
+		if err != nil {
+			return nil, nil, fmt.Errorf("write 0: %w", err)
+		}
+	}
+
+	fmt.Println(hex.Dump(nameBuf.Bytes()))
 	for materialID, o := range materials {
 		err = binary.Write(dataBuf, binary.LittleEndian, uint32(materialID))
 		if err != nil {
 			return nil, nil, fmt.Errorf("write material id %s: %w", o.Name, err)
 		}
 
-		nameID = -1
-		for i, name := range names {
-			if name == o.Name {
-				nameID = i
+		nameOffset = -1
+		for _, val := range names {
+			if val.name == o.Name {
+				nameOffset = int32(val.offset)
 				break
 			}
 		}
-		if nameID == -1 {
-			names = append(names, o.Name)
-			nameID = len(names) - 1
-			err = helper.WriteString(nameBuf, o.Name)
-			if err != nil {
-				return nil, nil, fmt.Errorf("writestring material %s: %w", o.Name, err)
-			}
+		if nameOffset == -1 {
+			return nil, nil, fmt.Errorf("name %s not found", o.Name)
 		}
 
-		err = binary.Write(dataBuf, binary.LittleEndian, uint32(nameID))
+		err = binary.Write(dataBuf, binary.LittleEndian, uint32(nameOffset))
 		if err != nil {
-			return nil, nil, fmt.Errorf("write material name id %s: %w", o.Name, err)
+			return nil, nil, fmt.Errorf("write material name offset %s: %w", o.Name, err)
 		}
 
-		nameID = -1
-		for i, name := range names {
-			if name == o.ShaderName {
-				nameID = i
+		nameOffset = -1
+		for _, val := range names {
+			if val.name == o.ShaderName {
+				nameOffset = int32(val.offset)
 				break
 			}
 		}
-		if nameID == -1 {
-			names = append(names, o.ShaderName)
-			nameID = len(names) - 1
-			err = helper.WriteString(nameBuf, o.ShaderName)
-			if err != nil {
-				return nil, nil, fmt.Errorf("writestring material %s shader: %w", o.Name, err)
-			}
+		if nameOffset == -1 {
+			return nil, nil, fmt.Errorf("shaderName %s not found", o.Name)
 		}
 
-		err = binary.Write(dataBuf, binary.LittleEndian, uint32(nameID))
+		err = binary.Write(dataBuf, binary.LittleEndian, uint32(nameOffset))
 		if err != nil {
-			return nil, nil, fmt.Errorf("write material shader id %s: %w", o.Name, err)
+			return nil, nil, fmt.Errorf("write shader name offset %s: %w", o.ShaderName, err)
 		}
 
 		err = binary.Write(dataBuf, binary.LittleEndian, uint32(len(o.Properties)))
@@ -71,25 +100,25 @@ func WriteGeometry(materials []*Material, vertices []*Vertex, triangles []*Trian
 		}
 
 		for propertyID, p := range o.Properties {
-			nameID = -1
-			for i, name := range names {
-				if name == p.Name {
-					nameID = i
+			nameOffset = -1
+			for _, val := range names {
+				if val.name == p.Name {
+					nameOffset = int32(val.offset)
 					break
 				}
 			}
-			if nameID == -1 {
-				names = append(names, p.Name)
-				nameID = len(names) - 1
-				err = helper.WriteString(nameBuf, p.Name)
-				if err != nil {
-					return nil, nil, fmt.Errorf("writestring material %s property %s: %w", o.Name, p.Name, err)
-				}
+			if nameOffset == -1 {
+				return nil, nil, fmt.Errorf("%s prop %s not found", o.Name, p.Name)
 			}
 
-			err = binary.Write(dataBuf, binary.LittleEndian, uint32(nameID))
+			err = binary.Write(dataBuf, binary.LittleEndian, uint32(nameOffset))
 			if err != nil {
-				return nil, nil, fmt.Errorf("write material %s property %s id %d: %w", o.Name, p.Name, propertyID, err)
+				return nil, nil, fmt.Errorf("write %s property %s name offset: %w", o.Name, p.Name, err)
+			}
+
+			err = binary.Write(dataBuf, binary.LittleEndian, p.TypeValue)
+			if err != nil {
+				return nil, nil, fmt.Errorf("write %s property %s type: %w", o.Name, p.Name, err)
 			}
 
 			if p.TypeValue == 0 {
@@ -124,9 +153,9 @@ func WriteGeometry(materials []*Material, vertices []*Vertex, triangles []*Trian
 
 	// triangles
 	for i, o := range triangles {
-		nameID = -1
-		for i, name := range names {
-			if name == o.MaterialName {
+		nameID := -1
+		for i, val := range names {
+			if val.name == o.MaterialName {
 				nameID = i
 				break
 			}

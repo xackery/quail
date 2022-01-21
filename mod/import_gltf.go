@@ -15,6 +15,7 @@ func (e *MOD) ImportGLTF(path string) error {
 	}
 	for _, m := range doc.Materials {
 		//TODO: add _mat.txt parsing
+		fmt.Println("add material", m.Name)
 		err = e.AddMaterial(m.Name, "Opaque_MaxCB1.fx")
 		if err != nil {
 			return fmt.Errorf("add material %s: %w", m.Name, err)
@@ -67,6 +68,11 @@ func (e *MOD) ImportGLTF(path string) error {
 				}
 			}
 		}
+	}
+	//https://github.com/KhronosGroup/glTF-Tutorials/blob/master/gltfTutorial/gltfTutorial_007_Animations.md
+	for _, a := range doc.Animations {
+
+		fmt.Println("animation", a.Name)
 	}
 	return nil
 }
