@@ -23,7 +23,10 @@ var compressCmd = &cobra.Command{
 			return fmt.Errorf("parse path: %w", err)
 		}
 		if path == "" {
-			return cmd.Usage()
+			if len(args) < 1 {
+				return cmd.Usage()
+			}
+			path = args[0]
 		}
 		out, err := cmd.Flags().GetString("out")
 		if err != nil {
@@ -34,7 +37,11 @@ var compressCmd = &cobra.Command{
 			return fmt.Errorf("parse absolute path: %w", err)
 		}
 		if out == "" {
-			out = filepath.Base(absPath)
+			if len(args) < 2 {
+				out = filepath.Base(absPath)
+			} else {
+				out = args[1]
+			}
 		}
 
 		out = strings.ToLower(out)
@@ -110,5 +117,8 @@ func init() {
 	rootCmd.AddCommand(compressCmd)
 	compressCmd.PersistentFlags().String("path", "", "path to compress")
 	compressCmd.PersistentFlags().String("out", "", "name of compressed eqg archive output, defaults to path's basename")
-	compressCmd.Example = `quail compress --path="./_clz.eqg/"`
+	compressCmd.Example = `quail compress --path="./_clz.eqg/"
+quail compress ./_soldungb.eqg/
+quail compress _soldungb.eqg/ foo.eqg
+quail compress --path=_soldungb.eqg/ --out=foo.eqg`
 }

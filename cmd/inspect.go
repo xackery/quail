@@ -30,14 +30,21 @@ Supported extensions:
 			return fmt.Errorf("parse path: %w", err)
 		}
 		if path == "" {
-			return cmd.Usage()
+			if len(args) < 1 {
+				return cmd.Usage()
+			}
+			path = args[0]
 		}
 		out, err := cmd.Flags().GetString("out")
 		if err != nil {
 			return fmt.Errorf("parse out: %w", err)
 		}
 		if out == "" {
-			out = "inspect.png"
+			if len(args) < 2 {
+				out = "inspect.png"
+			} else {
+				out = args[1]
+			}
 		}
 
 		fi, err := os.Stat(path)

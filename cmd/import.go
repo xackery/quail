@@ -43,7 +43,10 @@ to quickly create a Cobra application.`,
 			return fmt.Errorf("parse path: %w", err)
 		}
 		if path == "" {
-			return cmd.Usage()
+			if len(args) < 1 {
+				return cmd.Usage()
+			}
+			path = args[0]
 		}
 		out, err := cmd.Flags().GetString("out")
 		if err != nil {
@@ -54,7 +57,11 @@ to quickly create a Cobra application.`,
 			return fmt.Errorf("parse absolute path: %w", err)
 		}
 		if out == "" {
-			out = filepath.Base(absPath)
+			if len(args) < 2 {
+				out = filepath.Base(absPath)
+			} else {
+				out = args[1]
+			}
 		}
 
 		out = strings.ToLower(out)
