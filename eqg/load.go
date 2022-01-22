@@ -55,7 +55,7 @@ func (e *EQG) Load(r io.ReadSeeker) error {
 			return fmt.Errorf("read %d size: %w", i, err)
 		}
 		dirEntries = append(dirEntries, entry)
-		fmt.Println(entry.crc, entry.offset, entry.size)
+		//fmt.Println(entry.crc, entry.offset, entry.size)
 	}
 
 	// reset back to start of file
@@ -92,13 +92,12 @@ func (e *EQG) Load(r io.ReadSeeker) error {
 	var deflateSize uint32
 	var inflateSize uint32
 
-	fmt.Println("found", fileCount, "files")
+	//fmt.Println("found", fileCount, "files")
 	for i := 0; i < int(fileCount); i++ {
 		pos, err := r.Seek(0, io.SeekCurrent)
 		if err != nil {
 			return fmt.Errorf("seek current %d: %w", i, err)
 		}
-		fmt.Println("looking for", pos)
 
 		entryIndex := -1
 		for j, entry := range dirEntries {
@@ -153,7 +152,7 @@ func (e *EQG) Load(r io.ReadSeeker) error {
 			dump.Hex([]byte{firstByte, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, lastByte}, "%dchunk", i)
 		}
 
-		fmt.Println(entry.crc)
+		//fmt.Println(entry.crc)
 		/*if entry.crc != 4294967295 {
 			fileByCRCs[entry.crc] = data
 			continue
@@ -185,7 +184,6 @@ func (e *EQG) Load(r io.ReadSeeker) error {
 			}
 			name := string(nameData[0 : len(nameData)-1])
 			dirNameByCRCs[helper.FilenameCRC32(name)] = name
-			fmt.Println("added crc", helper.FilenameCRC32(name), "for", name)
 		}
 
 	}
