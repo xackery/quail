@@ -28,6 +28,20 @@ func (e *TER) ImportGLTF(path string) error {
 				return fmt.Errorf("primitive in mesh %s is mode %d, unsupported", m.Name, p.Mode)
 			}
 
+			materialName := doc.Materials[*p.Material].Name
+
+			indices, err := modeler.ReadIndices(doc, doc.Accessors[*p.Indices], []uint32{})
+			if err != nil {
+				return fmt.Errorf("readIndices: %w", err)
+			}
+
+			for i := 0; i < len(indices); i += 3 {
+				err = e.AddTriangle(math32.Vector3{X: float32(indices[i]), Y: float32(indices[i+1]), Z: float32(indices[i+2])}, materialName, 0)
+				if err != nil {
+					return fmt.Errorf("addTriangle: %w", err)
+				}
+			}
+
 			posIndex, ok := p.Attributes[gltf.POSITION]
 			if !ok {
 				return fmt.Errorf("primitive in mesh %s has no position", m.Name)
