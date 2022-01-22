@@ -1,4 +1,4 @@
-package mod
+package ter
 
 import (
 	"fmt"
@@ -7,7 +7,7 @@ import (
 )
 
 func TestGLTFImport(t *testing.T) {
-	e := &MOD{}
+	e := &TER{}
 	path := "test/ecommons.gltf"
 	err := e.ImportGLTF(path)
 	if err != nil {
@@ -26,17 +26,18 @@ func TestGLTFImport(t *testing.T) {
 }
 
 func TestGLTFImportSave(t *testing.T) {
-	e := &MOD{}
+	e := &TER{}
 	path := "test/ecommons.gltf"
 	err := e.ImportGLTF(path)
 	if err != nil {
 		t.Fatalf("import %s: %s", path, err)
 	}
 
-	w, err := os.Create("test/out.mod")
+	w, err := os.Create("test/out.ter")
 	if err != nil {
 		t.Fatalf("create: %s", err)
 	}
+
 	err = e.Save(w)
 	if err != nil {
 		t.Fatalf("save: %s", err)

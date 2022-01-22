@@ -219,7 +219,7 @@ func (e *TER) Load(r io.ReadSeeker) error {
 
 		materialName, err := e.MaterialByID(int(materialID))
 		if err != nil {
-			return fmt.Errorf("material by id for triangle %d: %w", i, err)
+			return fmt.Errorf("material by id for triangle %d (%d): %w", i, materialID, err)
 		}
 
 		flag := uint32(0)

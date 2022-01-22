@@ -10,6 +10,8 @@ import (
 	"github.com/xackery/quail/dump"
 	"github.com/xackery/quail/eqg"
 	"github.com/xackery/quail/mod"
+	"github.com/xackery/quail/ter"
+	"github.com/xackery/quail/zon"
 )
 
 // inspectCmd represents the inspect command
@@ -69,6 +71,20 @@ Supported extensions:
 			}
 		case ".mod":
 			e := &mod.MOD{}
+			err = e.Load(f)
+			if err != nil {
+				fmt.Printf("Error: load %s: %s\n", filepath.Base(path), err)
+				return nil
+			}
+		case ".ter":
+			e := &ter.TER{}
+			err = e.Load(f)
+			if err != nil {
+				fmt.Printf("Error: load %s: %s\n", filepath.Base(path), err)
+				return nil
+			}
+		case ".zon":
+			e := &zon.ZON{}
 			err = e.Load(f)
 			if err != nil {
 				fmt.Printf("Error: load %s: %s\n", filepath.Base(path), err)

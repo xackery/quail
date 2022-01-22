@@ -1,4 +1,4 @@
-package mod
+package ter
 
 import (
 	"fmt"
@@ -9,7 +9,7 @@ import (
 )
 
 // ImportGLTF takes a provided GLTF path and loads relative data as a mod
-func (e *MOD) ImportGLTF(path string) error {
+func (e *TER) ImportGLTF(path string) error {
 	doc, err := gltf.Open(path)
 	if err != nil {
 		return fmt.Errorf("open: %w", err)
