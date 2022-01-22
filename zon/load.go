@@ -118,6 +118,7 @@ func (e *ZON) Load(r io.ReadSeeker) error {
 			return fmt.Errorf("addModel %s: %w", name, err)
 		}
 	}
+	dump.HexRange([]byte{1, 2}, int(modelCount*4), "modelChunk=(%d bytes, %d entries)", int(modelCount*4), objectCount)
 
 	for i := 0; i < int(objectCount); i++ {
 
@@ -127,10 +128,10 @@ func (e *ZON) Load(r io.ReadSeeker) error {
 			return fmt.Errorf("object %d modelID: %w", i, err)
 		}
 		if len(names) <= int(modelID) {
-			return fmt.Errorf("modelID greater than names")
+			return fmt.Errorf("modelID 0x%x greater than names", modelID)
 		}
 		modelName := names[int(modelID)].name
-		//dump.Hex(modelID, "modelID=%d(%s)", modelID, names[int(modelID)].name)
+		//dump.Hex(modelID, "%dmodelID=%d(%s)", i, modelID, names[int(modelID)].name)
 
 		objectNameOffset := uint32(0)
 		err = binary.Read(r, binary.LittleEndian, &objectNameOffset)
@@ -147,14 +148,14 @@ func (e *ZON) Load(r io.ReadSeeker) error {
 		if name == "" {
 			return fmt.Errorf("model %d name at offset 0x%x not found", i, objectNameOffset)
 		}
-		//dump.Hex(objectNameOffset, "objectNameOffset=0x%x(%s)", objectNameOffset, name)
+		//dump.Hex(objectNameOffset, "%dobjectNameOffset=0x%x(%s)", i, objectNameOffset, name)
 
 		pos := math32.Vector3{}
 		err = binary.Read(r, binary.LittleEndian, &pos)
 		if err != nil {
 			return fmt.Errorf("object %d pos: %w", i, err)
 		}
-		//dump.Hex(pos, "pos=%+v", pos)
+		//dump.Hex(pos, "%dpos=%+v", i, pos)
 
 		rot := math32.Vector3{}
 		err = binary.Read(r, binary.LittleEndian, &rot)

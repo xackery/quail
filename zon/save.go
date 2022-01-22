@@ -5,178 +5,210 @@ import (
 	"encoding/binary"
 	"fmt"
 	"io"
-
-	"github.com/xackery/quail/helper"
 )
 
 // Save writes a zon file to location
 func (e *ZON) Save(w io.Writer) error {
 	var err error
 
-	names := []string{}
+	type nameInfo struct {
+		offset uint32
+		name   string
+	}
+	names := []*nameInfo{}
+
 	nameBuf := bytes.NewBuffer(nil)
 	dataBuf := bytes.NewBuffer(nil)
 
 	for _, o := range e.models {
-		names = append(names, o.name)
-		err = helper.WriteString(nameBuf, o.name)
-		if err != nil {
-			return fmt.Errorf("write model nameBuf %s: %w", o.name, err)
+		name := &nameInfo{
+			name:   o.name,
+			offset: uint32(nameBuf.Len()),
 		}
-		err = binary.Write(dataBuf, binary.LittleEndian, uint32(len(nameBuf.Bytes())))
+
+		isNew := true
+		for _, n := range names {
+			if n.name != name.name {
+				continue
+			}
+			isNew = false
+			name = n
+			break
+		}
+		if isNew {
+			names = append(names, name)
+			err = binary.Write(nameBuf, binary.LittleEndian, []byte(o.name))
+			if err != nil {
+				return fmt.Errorf("write name %s: %w", o.name, err)
+			}
+			err = binary.Write(nameBuf, binary.LittleEndian, []byte{0})
+			if err != nil {
+				return fmt.Errorf("write zero %s: %w", o.name, err)
+			}
+		}
+
+		err = binary.Write(dataBuf, binary.LittleEndian, name.offset)
 		if err != nil {
-			return fmt.Errorf("write model dataBuf %s: %w", o.name, err)
+			return fmt.Errorf("write name offset %s: %w", o.name, err)
 		}
 	}
 
 	for _, o := range e.objects {
-		names = append(names, o.name)
-		err = helper.WriteString(nameBuf, o.name)
-		if err != nil {
-			return fmt.Errorf("write object nameBuf %s: %w", o.name, err)
+
+		modelID := uint32(9999)
+		for i := range names {
+			if names[i].name != o.modelName {
+				continue
+			}
+			modelID = uint32(i)
+			break
+		}
+		if modelID == 9999 {
+			return fmt.Errorf("modelID %s not found", o.modelName)
 		}
 
-		modelID := -1
-		for i, m := range e.models {
-			if m.name == o.modelName {
-				modelID = i
-				break
+		err = binary.Write(dataBuf, binary.LittleEndian, modelID)
+		if err != nil {
+			return fmt.Errorf("write object model id %s: %w", o.name, err)
+		}
+		//binary.Write(dataBuf, binary.LittleEndian, uint16(0))
+
+		name := &nameInfo{
+			name:   o.name,
+			offset: uint32(nameBuf.Len()),
+		}
+
+		isNew := true
+		for _, n := range names {
+			if n.name != name.name {
+				continue
+			}
+			isNew = false
+			name = n
+			break
+		}
+		if isNew {
+			names = append(names, name)
+			err = binary.Write(nameBuf, binary.LittleEndian, []byte(o.name))
+			if err != nil {
+				return fmt.Errorf("write name %s: %w", o.name, err)
+			}
+			err = binary.Write(nameBuf, binary.LittleEndian, []byte{0})
+			if err != nil {
+				return fmt.Errorf("write zero %s: %w", o.name, err)
 			}
 		}
-		if modelID == -1 {
-			return fmt.Errorf("object %s refers to model %s which does not exist", o.name, o.modelName)
+
+		err = binary.Write(dataBuf, binary.LittleEndian, name.offset)
+		if err != nil {
+			return fmt.Errorf("write objectname offset %s: %w", o.name, err)
 		}
 
-		err = binary.Write(dataBuf, binary.LittleEndian, uint16(modelID))
+		err = binary.Write(dataBuf, binary.LittleEndian, o.position)
 		if err != nil {
-			return fmt.Errorf("write object id %s: %w", o.name, err)
+			return fmt.Errorf("write object pos %s: %w", o.name, err)
 		}
 
-		err = binary.Write(dataBuf, binary.LittleEndian, uint32(len(nameBuf.Bytes())))
+		err = binary.Write(dataBuf, binary.LittleEndian, o.rotation)
 		if err != nil {
-			return fmt.Errorf("write object dataBuf %s: %w", o.name, err)
-		}
-
-		err = binary.Write(dataBuf, binary.LittleEndian, o.position.X)
-		if err != nil {
-			return fmt.Errorf("write object pos x %s: %w", o.name, err)
-		}
-		err = binary.Write(dataBuf, binary.LittleEndian, o.position.Y)
-		if err != nil {
-			return fmt.Errorf("write object pos y %s: %w", o.name, err)
-		}
-		err = binary.Write(dataBuf, binary.LittleEndian, o.position.Z)
-		if err != nil {
-			return fmt.Errorf("write object pos z %s: %w", o.name, err)
-		}
-
-		err = binary.Write(dataBuf, binary.LittleEndian, o.rotation.X)
-		if err != nil {
-			return fmt.Errorf("write object rot x %s: %w", o.name, err)
-		}
-		err = binary.Write(dataBuf, binary.LittleEndian, o.rotation.Y)
-		if err != nil {
-			return fmt.Errorf("write object rot y %s: %w", o.name, err)
-		}
-		err = binary.Write(dataBuf, binary.LittleEndian, o.rotation.Z)
-		if err != nil {
-			return fmt.Errorf("write object rot z %s: %w", o.name, err)
+			return fmt.Errorf("write object rot %s: %w", o.name, err)
 		}
 
 		err = binary.Write(dataBuf, binary.LittleEndian, o.scale)
 		if err != nil {
 			return fmt.Errorf("write object scale %s: %w", o.name, err)
 		}
+
 	}
 
 	for _, o := range e.regions {
-		names = append(names, o.name)
-		err = helper.WriteString(nameBuf, o.name)
-		if err != nil {
-			return fmt.Errorf("write region nameBuf %s: %w", o.name, err)
+		name := &nameInfo{
+			name:   o.name,
+			offset: uint32(nameBuf.Len()),
 		}
 
-		err = binary.Write(dataBuf, binary.LittleEndian, uint32(len(nameBuf.Bytes())))
-		if err != nil {
-			return fmt.Errorf("write region dataBuf %s: %w", o.name, err)
+		isNew := true
+		for _, n := range names {
+			if n.name != name.name {
+				continue
+			}
+			isNew = false
+			name = n
+			break
+		}
+		if isNew {
+			names = append(names, name)
+			err = binary.Write(nameBuf, binary.LittleEndian, []byte(o.name))
+			if err != nil {
+				return fmt.Errorf("write name %s: %w", o.name, err)
+			}
+			err = binary.Write(nameBuf, binary.LittleEndian, []byte{0})
+			if err != nil {
+				return fmt.Errorf("write zero %s: %w", o.name, err)
+			}
 		}
 
-		err = binary.Write(dataBuf, binary.LittleEndian, o.center.X)
+		err = binary.Write(dataBuf, binary.LittleEndian, name.offset)
 		if err != nil {
-			return fmt.Errorf("write region center x %s: %w", o.name, err)
-		}
-		err = binary.Write(dataBuf, binary.LittleEndian, o.center.Y)
-		if err != nil {
-			return fmt.Errorf("write region center y %s: %w", o.name, err)
-		}
-		err = binary.Write(dataBuf, binary.LittleEndian, o.center.Z)
-		if err != nil {
-			return fmt.Errorf("write region center z %s: %w", o.name, err)
+			return fmt.Errorf("write region name offset %s: %w", o.name, err)
 		}
 
-		err = binary.Write(dataBuf, binary.LittleEndian, o.unknown.X)
+		err = binary.Write(dataBuf, binary.LittleEndian, o.center)
 		if err != nil {
-			return fmt.Errorf("write region unknown a %s: %w", o.name, err)
-		}
-		err = binary.Write(dataBuf, binary.LittleEndian, o.unknown.Y)
-		if err != nil {
-			return fmt.Errorf("write region unknown b %s: %w", o.name, err)
-		}
-		err = binary.Write(dataBuf, binary.LittleEndian, o.unknown.Z)
-		if err != nil {
-			return fmt.Errorf("write region unknown c %s: %w", o.name, err)
+			return fmt.Errorf("write region center %s: %w", o.name, err)
 		}
 
-		err = binary.Write(dataBuf, binary.LittleEndian, o.extent.X)
+		err = binary.Write(dataBuf, binary.LittleEndian, o.unknown)
 		if err != nil {
-			return fmt.Errorf("write region extent x %s: %w", o.name, err)
+			return fmt.Errorf("write region unknown %s: %w", o.name, err)
 		}
-		err = binary.Write(dataBuf, binary.LittleEndian, o.extent.Y)
+
+		err = binary.Write(dataBuf, binary.LittleEndian, o.extent)
 		if err != nil {
-			return fmt.Errorf("write region extent y %s: %w", o.name, err)
-		}
-		err = binary.Write(dataBuf, binary.LittleEndian, o.extent.Z)
-		if err != nil {
-			return fmt.Errorf("write region extent z %s: %w", o.name, err)
+			return fmt.Errorf("write region extent %s: %w", o.name, err)
 		}
 	}
 
 	for _, o := range e.lights {
-		names = append(names, o.name)
-		err = helper.WriteString(nameBuf, o.name)
-		if err != nil {
-			return fmt.Errorf("write light nameBuf %s: %w", o.name, err)
+		name := &nameInfo{
+			name:   o.name,
+			offset: uint32(nameBuf.Len()),
 		}
 
-		err = binary.Write(dataBuf, binary.LittleEndian, uint32(len(nameBuf.Bytes())))
-		if err != nil {
-			return fmt.Errorf("write light dataBuf %s: %w", o.name, err)
+		isNew := true
+		for _, n := range names {
+			if n.name != name.name {
+				continue
+			}
+			isNew = false
+			name = n
+			break
+		}
+		if isNew {
+			names = append(names, name)
+			err = binary.Write(nameBuf, binary.LittleEndian, []byte(o.name))
+			if err != nil {
+				return fmt.Errorf("write name %s: %w", o.name, err)
+			}
+			err = binary.Write(nameBuf, binary.LittleEndian, []byte{0})
+			if err != nil {
+				return fmt.Errorf("write zero %s: %w", o.name, err)
+			}
 		}
 
-		err = binary.Write(dataBuf, binary.LittleEndian, o.position.X)
+		err = binary.Write(dataBuf, binary.LittleEndian, name.offset)
 		if err != nil {
-			return fmt.Errorf("write light position x %s: %w", o.name, err)
-		}
-		err = binary.Write(dataBuf, binary.LittleEndian, o.position.Y)
-		if err != nil {
-			return fmt.Errorf("write light position y %s: %w", o.name, err)
-		}
-		err = binary.Write(dataBuf, binary.LittleEndian, o.position.Z)
-		if err != nil {
-			return fmt.Errorf("write light position z %s: %w", o.name, err)
+			return fmt.Errorf("write light name offset %s: %w", o.name, err)
 		}
 
-		err = binary.Write(dataBuf, binary.LittleEndian, o.color.R)
+		err = binary.Write(dataBuf, binary.LittleEndian, o.position)
 		if err != nil {
-			return fmt.Errorf("write light color r %s: %w", o.name, err)
+			return fmt.Errorf("write light position %s: %w", o.name, err)
 		}
-		err = binary.Write(dataBuf, binary.LittleEndian, o.color.G)
+
+		err = binary.Write(dataBuf, binary.LittleEndian, o.color)
 		if err != nil {
-			return fmt.Errorf("write light color g %s: %w", o.name, err)
-		}
-		err = binary.Write(dataBuf, binary.LittleEndian, o.color.B)
-		if err != nil {
-			return fmt.Errorf("write light color b %s: %w", o.name, err)
+			return fmt.Errorf("write light color %s: %w", o.name, err)
 		}
 
 		err = binary.Write(dataBuf, binary.LittleEndian, o.radius)
@@ -194,7 +226,7 @@ func (e *ZON) Save(w io.Writer) error {
 	if err != nil {
 		return fmt.Errorf("write header version: %w", err)
 	}
-	err = binary.Write(w, binary.LittleEndian, uint32(len(names)))
+	err = binary.Write(w, binary.LittleEndian, uint32(nameBuf.Len()))
 	if err != nil {
 		return fmt.Errorf("write name count: %w", err)
 	}
@@ -218,6 +250,7 @@ func (e *ZON) Save(w io.Writer) error {
 	if err != nil {
 		return fmt.Errorf("write nameBuf: %w", err)
 	}
+
 	err = binary.Write(w, binary.LittleEndian, dataBuf.Bytes())
 	if err != nil {
 		return fmt.Errorf("write dataBuf: %w", err)
