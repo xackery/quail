@@ -1,11 +1,20 @@
 package common
 
-import "github.com/g3n/engine/math32"
+import (
+	"fmt"
+
+	"github.com/g3n/engine/math32"
+)
 
 type Material struct {
 	Name       string
 	ShaderName string
+	Flag       uint32
 	Properties []*Property
+}
+
+func (e *Material) String() string {
+	return fmt.Sprintf("{Name: %s, Flag: %d, Properties: (%d)}", e.Name, e.Flag, len(e.Properties))
 }
 
 type Property struct {
@@ -13,6 +22,7 @@ type Property struct {
 	TypeValue  uint32
 	FloatValue float32
 	IntValue   uint32
+	StrValue   string
 }
 
 type Vertex struct {

@@ -8,6 +8,9 @@ import (
 )
 
 func TestLoad(t *testing.T) {
+	if os.Getenv("SINGLE_TEST") != "1" {
+		return
+	}
 	path := "../eq/_crushbone.s3d/crushbone.wld"
 	f, err := os.Open(path)
 	if err != nil {
