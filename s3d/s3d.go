@@ -1,5 +1,7 @@
 package s3d
 
+import "fmt"
+
 // S3D represents a classic everquest zone archive format
 type S3D struct {
 	ShortName                string
@@ -16,6 +18,10 @@ type FileEntry struct {
 	chunks          []*ChunkEntry
 	chunksTotalSize uint32
 	filePointer     uint32
+}
+
+func (e *FileEntry) String() string {
+	return fmt.Sprintf("[%s (%d bytes)]", e.Name, e.chunksTotalSize)
 }
 
 type ChunkEntry struct {

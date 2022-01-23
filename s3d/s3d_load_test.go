@@ -10,7 +10,7 @@ func TestS3DLoad(t *testing.T) {
 		return
 	}
 	e := &S3D{}
-	f, err := os.Open("../eq/tmp/load.s3d")
+	f, err := os.Open("../eq/crushbone.s3d")
 	if err != nil {
 		t.Fatalf("open: %v", err)
 	}

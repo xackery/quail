@@ -1,4 +1,4 @@
-package s3d
+package wld
 
 import (
 	"bytes"
@@ -11,7 +11,7 @@ func TestWldSave(t *testing.T) {
 		return
 	}
 	f := &bytes.Buffer{}
-	e := &Wld{}
+	e := &WLD{}
 	err := e.Save(f)
 	if err != nil {
 		t.Fatalf("save: %v", err)

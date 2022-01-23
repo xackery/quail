@@ -1,4 +1,4 @@
-package s3d
+package wld
 
 import (
 	"encoding/binary"
@@ -7,7 +7,7 @@ import (
 )
 
 // Save saves a wld file
-func (e *Wld) Save(w io.Writer) error {
+func (e *WLD) Save(w io.Writer) error {
 	if e == nil {
 		return fmt.Errorf("wld nil")
 	}

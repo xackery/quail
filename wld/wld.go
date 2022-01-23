@@ -1,9 +1,9 @@
-package s3d
+package wld
 
 import "github.com/xackery/quail/common"
 
-// Wld is a collection of fragments representing a world file
-type Wld struct {
+// WLD is a wld file struct
+type WLD struct {
 	IsOldWorld     bool
 	ShortName      string
 	FragmentCount  uint32

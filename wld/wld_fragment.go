@@ -1,16 +1,16 @@
-package s3d
+package wld
 
 import (
 	"fmt"
 	"io"
 
 	"github.com/xackery/quail/common"
-	"github.com/xackery/quail/s3d/fragment"
+	"github.com/xackery/quail/wld/fragment"
 )
 
 var fragmentTypes = make(map[int32](func(r io.ReadSeeker) (common.WldFragmenter, error)))
 
-func (e *Wld) ParseFragment(fragIndex int32, r io.ReadSeeker) (common.WldFragmenter, error) {
+func (e *WLD) ParseFragment(fragIndex int32, r io.ReadSeeker) (common.WldFragmenter, error) {
 	loadFunc, ok := fragmentTypes[fragIndex]
 	if !ok {
 		return nil, fmt.Errorf("unknown frag index: %d 0x%x", fragIndex, fragIndex)

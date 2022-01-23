@@ -7,7 +7,6 @@ import (
 
 	"github.com/xackery/quail/common"
 	"github.com/xackery/quail/helper"
-	"github.com/xackery/quail/log"
 )
 
 // SimpleSprite information
@@ -36,7 +35,7 @@ func parseSimpleSprite(r io.ReadSeeker, l *SimpleSprite) error {
 	}
 	var nameLength uint16
 	for i := 0; i < int(l.TextureCount); i++ {
-		log.Infof("%d/%d\n", i, l.TextureCount)
+		//log.Infof("%d/%d\n", i, l.TextureCount)
 		err = binary.Read(r, binary.LittleEndian, &nameLength)
 		if err != nil {
 			return fmt.Errorf("read name length: %w", err)
