@@ -15,12 +15,13 @@ var cfgFile string
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "quail",
-	Short: "everQuest Universal Archive Import and Ligma system",
-	Long: `Quail is an everQuest Universal Archive Import and Ligma system. 
-  - Manage .eqg (pfs) archives (load, create, save)
-  - Manage .zon (zone definition) files (create)
-  - Manage .ter (terrain definition) files (create)
-  `,
+	Short: "Ever[Q]uest [U]niversal [A]rchive, [I]mport, and [L]oader system",
+	Long: `An Ever[Q]uest [U]niversal [A]rchive, [I]mport, and [L]oader system. 
+  - .ani animation files (inspect)
+  - .eqg pfs archives (compress, extract, inspect)
+  - .mod model files (inspect)
+  - .ter terrain files (inspect)
+  - .zon zone files (inspect)`,
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.

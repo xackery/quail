@@ -17,12 +17,10 @@ import (
 // inspectCmd represents the inspect command
 var inspectCmd = &cobra.Command{
 	Use:   "inspect",
-	Short: "Review an EverQuest file",
-	Long: `Review an EverQuest file and inspect it's contents.
+	Short: "Inspect a file",
+	Long: `Inspect an EverQuest asset to discover contents within
 
-Supported extensions:
-- eqg: everquest archive
-- zon: zone definition
+Supported extensions: eqg, zon, ter, ani, mod
 `,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		path, err := cmd.Flags().GetString("path")
