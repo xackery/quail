@@ -4,4 +4,5 @@ package common
 type WldFragmenter interface {
 	// FragmentType identifies the fragment type
 	FragmentType() string
+	Data() []byte
 }
