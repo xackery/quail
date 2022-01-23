@@ -1,6 +1,7 @@
 package fragment
 
 import (
+	"bytes"
 	"encoding/binary"
 	"fmt"
 	"io"
@@ -50,4 +51,9 @@ func parseMeshReference(r io.ReadSeeker, v *MeshReference) error {
 
 func (v *MeshReference) FragmentType() string {
 	return "Mesh Reference"
+}
+
+func (e *MeshReference) Data() []byte {
+	buf := bytes.NewBuffer(nil)
+	return buf.Bytes()
 }

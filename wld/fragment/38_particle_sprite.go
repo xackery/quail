@@ -1,6 +1,7 @@
 package fragment
 
 import (
+	"bytes"
 	"encoding/binary"
 	"fmt"
 	"io"
@@ -53,4 +54,9 @@ func parseParticleSprite(r io.ReadSeeker, v *ParticleSprite) error {
 
 func (v *ParticleSprite) FragmentType() string {
 	return "Particle Sprite"
+}
+
+func (e *ParticleSprite) Data() []byte {
+	buf := bytes.NewBuffer(nil)
+	return buf.Bytes()
 }

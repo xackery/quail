@@ -1,6 +1,7 @@
 package fragment
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 
@@ -12,16 +13,16 @@ type SimpleSpriteInstance struct {
 }
 
 func LoadSimpleSpriteInstance(r io.ReadSeeker) (common.WldFragmenter, error) {
-	l := &SimpleSpriteInstance{}
-	err := parseSimpleSpriteInstance(r, l)
+	e := &SimpleSpriteInstance{}
+	err := parseSimpleSpriteInstance(r, e)
 	if err != nil {
 		return nil, fmt.Errorf("parse SimpleSpriteInstance: %w", err)
 	}
-	return l, nil
+	return e, nil
 }
 
-func parseSimpleSpriteInstance(r io.ReadSeeker, l *SimpleSpriteInstance) error {
-	if l == nil {
+func parseSimpleSpriteInstance(r io.ReadSeeker, e *SimpleSpriteInstance) error {
+	if e == nil {
 		return fmt.Errorf("SimpleSpriteInstance is nil")
 	}
 	/*
@@ -32,6 +33,11 @@ func parseSimpleSpriteInstance(r io.ReadSeeker, l *SimpleSpriteInstance) error {
 	return nil
 }
 
-func (l *SimpleSpriteInstance) FragmentType() string {
+func (e *SimpleSpriteInstance) FragmentType() string {
 	return "SimpleSpriteInstance"
+}
+
+func (e *SimpleSpriteInstance) Data() []byte {
+	buf := bytes.NewBuffer(nil)
+	return buf.Bytes()
 }

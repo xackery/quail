@@ -1,6 +1,7 @@
 package fragment
 
 import (
+	"bytes"
 	"encoding/binary"
 	"fmt"
 	"io"
@@ -163,4 +164,9 @@ func parseRegion(r io.ReadSeeker, v *Region) error {
 
 func (v *Region) FragmentType() string {
 	return "Region"
+}
+
+func (e *Region) Data() []byte {
+	buf := bytes.NewBuffer(nil)
+	return buf.Bytes()
 }

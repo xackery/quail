@@ -5,62 +5,68 @@ import (
 	"encoding/binary"
 	"fmt"
 	"io"
-	"strings"
 
 	"github.com/xackery/quail/dump"
+	"github.com/xackery/quail/wld/fragment"
 )
 
 // Load loads a wld file
 func (e *WLD) Load(r io.ReadSeeker) error {
+	var err error
 	if e == nil {
 		return fmt.Errorf("wld nil")
 	}
 	var value uint32
 
-	err := binary.Read(r, binary.LittleEndian, &value)
+	var header [4]byte
+	err = binary.Read(r, binary.LittleEndian, &header)
 	if err != nil {
-		return fmt.Errorf("read wld header: %w", err)
+		return fmt.Errorf("read header: %w", err)
 	}
-	if value != 0x54503D02 {
-		return fmt.Errorf("unknown wld header: wanted 0x%x, got 0x%x", 0x54503D02, value)
-	}
-	dump.Hex(value, "header=%d", value)
 
-	err = binary.Read(r, binary.LittleEndian, &value)
+	validHeader := [4]byte{0x02, 0x3D, 0x50, 0x54}
+	if header != validHeader {
+		return fmt.Errorf("header wanted 0x%x, got 0x%x", validHeader, header)
+	}
+	dump.Hex(header, "header=0x%x", header)
+
+	version := uint32(0)
+	err = binary.Read(r, binary.LittleEndian, &version)
 	if err != nil {
 		return fmt.Errorf("read identifier: %w", err)
 	}
-	dump.Hex(value, "identifier=0x%x", value)
-	switch value {
+
+	isOldWorld := false
+	switch version {
 	case 0x00015500:
-		e.IsOldWorld = true
+		isOldWorld = true
 	case 0x1000C800:
-		e.IsOldWorld = false
+		isOldWorld = false
 	default:
 		return fmt.Errorf("unknown wld identifier %d", value)
 	}
+	dump.Hex(value, "identifier=(isOld:%t)", isOldWorld)
 
-	err = binary.Read(r, binary.LittleEndian, &e.FragmentCount)
+	fragmentCount := uint32(0)
+	err = binary.Read(r, binary.LittleEndian, &fragmentCount)
 	if err != nil {
 		return fmt.Errorf("read fragmentCount: %w", err)
 	}
-	dump.Hex(e.FragmentCount, "fragmentCount=%d", e.FragmentCount)
+	dump.Hex(fragmentCount, "fragmentCount=%d", fragmentCount)
 
-	err = binary.Read(r, binary.LittleEndian, &e.BspRegionCount)
+	unk1 := uint32(0)
+	err = binary.Read(r, binary.LittleEndian, &unk1)
 	if err != nil {
-		return fmt.Errorf("read BspRegionCount: %w", err)
+		return fmt.Errorf("read unk1: %w", err)
 	}
-	dump.Hex(e.BspRegionCount, "BspRegionCount=%d", e.BspRegionCount)
+	dump.Hex(unk1, "unk1=%d", unk1)
 
-	err = binary.Read(r, binary.LittleEndian, &value)
+	unk2 := uint32(0)
+	err = binary.Read(r, binary.LittleEndian, &unk2)
 	if err != nil {
-		return fmt.Errorf("read after bsp region offset: %w", err)
+		return fmt.Errorf("read unk2: %w", err)
 	}
-	if value != 0x680D4 {
-		return fmt.Errorf("after bsp region offset wanted 0x%x, got 0x%x", 0x680D4, value)
-	}
-
-	dump.Hex(value, "BspRegionAfterOffset=0x%x", value)
+	dump.Hex(unk2, "unk2=%d", unk2)
 
 	var hashSize uint32
 	err = binary.Read(r, binary.LittleEndian, &hashSize)
@@ -69,48 +75,59 @@ func (e *WLD) Load(r io.ReadSeeker) error {
 	}
 	dump.Hex(hashSize, "hashSize=%d", hashSize)
 
-	err = binary.Read(r, binary.LittleEndian, &value)
+	unk3 := uint32(0)
+	err = binary.Read(r, binary.LittleEndian, &unk3)
 	if err != nil {
-		return fmt.Errorf("read after hash size offset: %w", err)
+		return fmt.Errorf("read unk3: %w", err)
 	}
-	dump.Hex(value, "afterHashOffset=0x%x", value)
+	dump.Hex(unk3, "unk3=%d", unk3)
 
 	hashRaw := make([]byte, hashSize)
 
-	err = binary.Read(r, binary.LittleEndian, hashRaw)
+	err = binary.Read(r, binary.LittleEndian, &hashRaw)
 	if err != nil {
-		return fmt.Errorf("read hash raw: %w", err)
+		return fmt.Errorf("read nameData: %w", err)
 	}
-	dump.Hex(hashRaw, "hashRaw=(%d bytes)", len(hashRaw))
 
-	hashString := decodeStringHash(hashRaw)
+	nameData := decodeStringHash(hashRaw)
 
-	hashSplit := strings.Split(hashString, "\x00")
-	e.Hash = make(map[int]string)
-	offset := 0
-	for _, h := range hashSplit {
-		e.Hash[offset] = h
-		offset += len(h) + 1
-		//log.Debugf("adding hash at 0x%x", offset)
+	names := make(map[uint32]string)
+
+	chunk := []rune{}
+	lastOffset := 0
+	for i, b := range nameData {
+		if b == 0 {
+			names[uint32(lastOffset)] = string(chunk)
+			chunk = []rune{}
+			lastOffset = i + 1
+			continue
+		}
+		chunk = append(chunk, b)
 	}
-	//log.Debugf("fragments: %d, bsp regions: %d, bsp region offset: 0x%x, hashSize: %d", e.FragmentCount, e.BspRegionCount, value, hashSize)
 
-	for i := 0; i < int(e.FragmentCount); i++ {
+	dump.HexRange(hashRaw, int(hashSize), "nameData=(%d bytes, %d names)", hashSize, len(names))
+
+	totalFragSize := uint32(0)
+	for i := 0; i < int(fragmentCount); i++ {
 		var fragSize uint32
 		var fragIndex int32
 
+		name := names[uint32(i)]
 		err = binary.Read(r, binary.LittleEndian, &fragSize)
 		if err != nil {
-			return fmt.Errorf("read fragment size %d/%d: %w", i, e.FragmentCount, err)
+			return fmt.Errorf("read fragment size %d/%d: %w", i, fragmentCount, err)
 		}
+		totalFragSize += fragSize
+		//dump.Hex(fragSize, "%d(%s)fragSize=%d", i, name, fragSize)
 		err = binary.Read(r, binary.LittleEndian, &fragIndex)
 		if err != nil {
-			return fmt.Errorf("read fragment index %d/%d: %w", i, e.FragmentCount, err)
+			return fmt.Errorf("read fragment index %d/%d: %w", i, fragmentCount, err)
 		}
+		//dump.Hex(fragSize, "%dfragIndex=%d", i, fragIndex)
 
 		fragPosition, err := r.Seek(0, io.SeekCurrent)
 		if err != nil {
-			return fmt.Errorf("frag position seek %d/%d: %w", i, e.FragmentCount, err)
+			return fmt.Errorf("frag position seek %d/%d: %w", i, fragmentCount, err)
 		}
 
 		buf := make([]byte, fragSize)
@@ -119,20 +136,21 @@ func (e *WLD) Load(r io.ReadSeeker) error {
 			return fmt.Errorf("read: %w", err)
 		}
 
-		//log.Debugf("%d fragIndex: %d 0x%x, len %d\n%s", i, fragIndex, fragIndex, len(buf), hex.Dump(buf))
-		frag, err := e.ParseFragment(fragIndex, bytes.NewReader(buf))
+		frag, err := fragment.New(fragIndex, bytes.NewReader(buf))
 		if err != nil {
-			return fmt.Errorf("fragment load: %w", err)
+			fmt.Printf("warning: fragment load 0x%x (%d): %s\n", fragIndex, fragIndex, err)
+			//return fmt.Errorf("fragment load: %w", err)
+		} else {
+			e.fragments = append(e.fragments, &fragmentInfo{name: name, data: frag})
 		}
-		//log.Debugf("%d fragIndex: %d 0x%x determined to be %s", i, fragIndex, fragIndex, frag.FragmentType())
-
-		e.Fragments = append(e.Fragments, frag)
 
 		_, err = r.Seek(fragPosition+int64(fragSize), io.SeekStart)
 		if err != nil {
-			return fmt.Errorf("seek end of frag %d/%d: %w", i, e.FragmentCount, err)
+			return fmt.Errorf("seek end of frag %d/%d: %w", i, fragmentCount, err)
 		}
 	}
+	//dump.HexRange([]byte{byte(i), byte(i) + 1}, int(fragSize), "%dfrag=%s", i, frag.FragmentType())
+	dump.HexRange([]byte{0, 1}, int(totalFragSize), "fragChunk=(%d bytes, %d entries)", int(totalFragSize), len(e.fragments))
 	return nil
 }
 
@@ -140,7 +158,7 @@ func decodeStringHash(hash []byte) string {
 	hashKey := []byte{0x95, 0x3A, 0xC5, 0x2A, 0x95, 0x7A, 0x95, 0x6A}
 	out := ""
 	for i := 0; i < len(hash); i++ {
-		out = string(hash[i] ^ hashKey[i%8])
+		out += string(hash[i] ^ hashKey[i%8])
 	}
 	return out
 }

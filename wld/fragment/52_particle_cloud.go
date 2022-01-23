@@ -1,6 +1,7 @@
 package fragment
 
 import (
+	"bytes"
 	"encoding/binary"
 	"fmt"
 	"io"
@@ -174,4 +175,9 @@ func parseParticleCloud(r io.ReadSeeker, v *ParticleCloud) error {
 
 func (v *ParticleCloud) FragmentType() string {
 	return "Particle Cloud"
+}
+
+func (e *ParticleCloud) Data() []byte {
+	buf := bytes.NewBuffer(nil)
+	return buf.Bytes()
 }

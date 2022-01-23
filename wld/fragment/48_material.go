@@ -1,6 +1,7 @@
 package fragment
 
 import (
+	"bytes"
 	"encoding/binary"
 	"fmt"
 	"image/color"
@@ -138,4 +139,9 @@ func parseMaterial(r io.ReadSeeker, m *Material) error {
 
 func (m *Material) FragmentType() string {
 	return "Material"
+}
+
+func (e *Material) Data() []byte {
+	buf := bytes.NewBuffer(nil)
+	return buf.Bytes()
 }

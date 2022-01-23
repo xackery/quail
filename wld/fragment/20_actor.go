@@ -1,6 +1,7 @@
 package fragment
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 
@@ -12,16 +13,16 @@ type Actor struct {
 }
 
 func LoadActor(r io.ReadSeeker) (common.WldFragmenter, error) {
-	l := &Actor{}
-	err := parseActor(r, l)
+	e := &Actor{}
+	err := parseActor(r, e)
 	if err != nil {
 		return nil, fmt.Errorf("parse Actor: %w", err)
 	}
-	return l, nil
+	return e, nil
 }
 
-func parseActor(r io.ReadSeeker, l *Actor) error {
-	if l == nil {
+func parseActor(r io.ReadSeeker, e *Actor) error {
+	if e == nil {
 		return fmt.Errorf("Actor is nil")
 	}
 	/*
@@ -32,6 +33,11 @@ func parseActor(r io.ReadSeeker, l *Actor) error {
 	return nil
 }
 
-func (l *Actor) FragmentType() string {
+func (e *Actor) FragmentType() string {
 	return "Actor"
+}
+
+func (e *Actor) Data() []byte {
+	buf := bytes.NewBuffer(nil)
+	return buf.Bytes()
 }

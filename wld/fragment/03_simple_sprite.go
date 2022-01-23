@@ -1,51 +1,56 @@
 package fragment
 
 import (
+	"bytes"
 	"encoding/binary"
 	"fmt"
 	"io"
 
 	"github.com/xackery/quail/common"
-	"github.com/xackery/quail/helper"
 )
 
 // SimpleSprite information
 type SimpleSprite struct {
 	TextureCount uint32
-	Textures     []string
 }
 
 func LoadSimpleSprite(r io.ReadSeeker) (common.WldFragmenter, error) {
-	l := &SimpleSprite{}
-	err := parseSimpleSprite(r, l)
+	e := &SimpleSprite{}
+	err := parseSimpleSprite(r, e)
 	if err != nil {
 		return nil, fmt.Errorf("parse SimpleSprite: %w", err)
 	}
-	return l, nil
+	return e, nil
 }
 
-func parseSimpleSprite(r io.ReadSeeker, l *SimpleSprite) error {
-	if l == nil {
+func parseSimpleSprite(r io.ReadSeeker, e *SimpleSprite) error {
+	if e == nil {
 		return fmt.Errorf("SimpleSprite is nil")
 	}
 
-	err := binary.Read(r, binary.LittleEndian, &l.TextureCount)
+	err := binary.Read(r, binary.LittleEndian, &e.TextureCount)
 	if err != nil {
 		return fmt.Errorf("read texture count: %w", err)
 	}
-	var nameLength uint16
-	for i := 0; i < int(l.TextureCount); i++ {
-		//log.Infof("%d/%d\n", i, l.TextureCount)
-		err = binary.Read(r, binary.LittleEndian, &nameLength)
-		if err != nil {
-			return fmt.Errorf("read name length: %w", err)
-		}
-		helper.ParseFixedString(r, uint32(nameLength))
-
-	}
+	/*
+		var nameLength uint16
+		for i := 0; i < int(l.TextureCount); i++ {
+			//log.Infof("%d/%d\n", i, l.TextureCount)
+			err = binary.Read(r, binary.LittleEndian, &nameLength)
+			if err != nil {
+				return fmt.Errorf("read name length: %w", err)
+			}
+			helper.ParseFixedString(r, uint32(nameLength))
+		}*/
 	return nil
 }
 
-func (l *SimpleSprite) FragmentType() string {
+func (e *SimpleSprite) FragmentType() string {
 	return "SimpleSprite"
+}
+
+func (e *SimpleSprite) Data() []byte {
+	buf := bytes.NewBuffer(nil)
+	binary.Write(buf, binary.LittleEndian, e.TextureCount)
+	return buf.Bytes()
 }

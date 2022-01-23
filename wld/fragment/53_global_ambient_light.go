@@ -1,6 +1,7 @@
 package fragment
 
 import (
+	"bytes"
 	"encoding/binary"
 	"fmt"
 	"io"
@@ -14,26 +15,31 @@ type GlobalAmbientLight struct {
 }
 
 func LoadGlobalAmbientLight(r io.ReadSeeker) (common.WldFragmenter, error) {
-	l := &GlobalAmbientLight{}
-	err := parseGlobalAmbientLight(r, l)
+	e := &GlobalAmbientLight{}
+	err := parseGlobalAmbientLight(r, e)
 	if err != nil {
 		return nil, fmt.Errorf("parse GlobalAmbientLight: %w", err)
 	}
-	return l, nil
+	return e, nil
 }
 
-func parseGlobalAmbientLight(r io.ReadSeeker, l *GlobalAmbientLight) error {
-	if l == nil {
+func parseGlobalAmbientLight(r io.ReadSeeker, e *GlobalAmbientLight) error {
+	if e == nil {
 		return fmt.Errorf("globalAmbientLight is nil")
 	}
 
-	err := binary.Read(r, binary.LittleEndian, l)
+	err := binary.Read(r, binary.LittleEndian, e)
 	if err != nil {
 		return fmt.Errorf("read light source : %w", err)
 	}
 	return nil
 }
 
-func (l *GlobalAmbientLight) FragmentType() string {
+func (e *GlobalAmbientLight) FragmentType() string {
 	return "Global Ambient Light"
+}
+
+func (e *GlobalAmbientLight) Data() []byte {
+	buf := bytes.NewBuffer(nil)
+	return buf.Bytes()
 }

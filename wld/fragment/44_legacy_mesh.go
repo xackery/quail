@@ -1,6 +1,7 @@
 package fragment
 
 import (
+	"bytes"
 	"encoding/binary"
 	"fmt"
 	"io"
@@ -64,60 +65,60 @@ type LegacyVertexTex struct {
 }
 
 func LoadLegacyMesh(r io.ReadSeeker) (common.WldFragmenter, error) {
-	l := &LegacyMesh{}
-	err := parseLegacyMesh(r, l)
+	e := &LegacyMesh{}
+	err := parseLegacyMesh(r, e)
 	if err != nil {
 		return nil, fmt.Errorf("parse LegacyMesh: %w", err)
 	}
-	return l, nil
+	return e, nil
 }
 
-func parseLegacyMesh(r io.ReadSeeker, l *LegacyMesh) error {
-	if l == nil {
+func parseLegacyMesh(r io.ReadSeeker, e *LegacyMesh) error {
+	if e == nil {
 		return fmt.Errorf("LegacyMesh is nil")
 	}
-	err := binary.Read(r, binary.LittleEndian, l)
+	err := binary.Read(r, binary.LittleEndian, e)
 	if err != nil {
 		return fmt.Errorf("read legacy mesh: %w", err)
 	}
-	for i := 0; i < int(l.VertexCount); i++ {
-		err := binary.Read(r, binary.LittleEndian, &l.verticies)
+	for i := 0; i < int(e.VertexCount); i++ {
+		err := binary.Read(r, binary.LittleEndian, &e.verticies)
 		if err != nil {
 			return fmt.Errorf("read vertex %d: %w", i, err)
 		}
 
 	}
-	for i := 0; i < int(l.TexCoordCount); i++ {
-		err := binary.Read(r, binary.LittleEndian, &l.texCoords)
+	for i := 0; i < int(e.TexCoordCount); i++ {
+		err := binary.Read(r, binary.LittleEndian, &e.texCoords)
 		if err != nil {
 			return fmt.Errorf("read tex coords %d: %w", i, err)
 		}
 	}
-	for i := 0; i < int(l.NormalCount); i++ {
-		err := binary.Read(r, binary.LittleEndian, &l.normals)
+	for i := 0; i < int(e.NormalCount); i++ {
+		err := binary.Read(r, binary.LittleEndian, &e.normals)
 		if err != nil {
 			return fmt.Errorf("read normal %d: %w", i, err)
 		}
 	}
 
-	for i := 0; i < int(l.ColorCount); i++ {
-		err := binary.Read(r, binary.LittleEndian, &l.colors)
+	for i := 0; i < int(e.ColorCount); i++ {
+		err := binary.Read(r, binary.LittleEndian, &e.colors)
 		if err != nil {
 			return fmt.Errorf("read color %d: %w", i, err)
 		}
 	}
 
-	for i := 0; i < int(l.PolygonCount); i++ {
+	for i := 0; i < int(e.PolygonCount); i++ {
 		p := &LegacyPolygon{}
 		err := binary.Read(r, binary.LittleEndian, p)
 		if err != nil {
 			return fmt.Errorf("read polygon %d: %w", i, err)
 		}
-		l.polygons = append(l.polygons, p)
+		e.polygons = append(e.polygons, p)
 	}
 
 	var value uint32
-	for i := 0; i < int(l.Size6); i++ {
+	for i := 0; i < int(e.Size6); i++ {
 		err := binary.Read(r, binary.LittleEndian, &value)
 		if err != nil {
 			return fmt.Errorf("read unk1 %d: %w", i, err)
@@ -143,23 +144,23 @@ func parseLegacyMesh(r io.ReadSeeker, l *LegacyMesh) error {
 		}
 	}
 
-	for i := 0; uint32(i) < l.VertexPieceCount; i++ {
+	for i := 0; uint32(i) < e.VertexPieceCount; i++ {
 		vp := &LegacyVertexPiece{}
 		err = binary.Read(r, binary.LittleEndian, vp)
 		if err != nil {
 			return fmt.Errorf("read vertex piece %d: %w", i, err)
 		}
-		l.vertexPieces = append(l.vertexPieces, vp)
+		e.vertexPieces = append(e.vertexPieces, vp)
 	}
 
-	if l.Flags&9 == 9 {
+	if e.Flags&9 == 9 {
 		err = binary.Read(r, binary.LittleEndian, &value)
 		if err != nil {
 			return fmt.Errorf("read size8: %w", err)
 		}
 	}
 
-	if l.Flags&11 == 11 {
+	if e.Flags&11 == 11 {
 		err = binary.Read(r, binary.LittleEndian, &value)
 		if err != nil {
 			return fmt.Errorf("read polygonTexCount: %w", err)
@@ -170,10 +171,10 @@ func parseLegacyMesh(r io.ReadSeeker, l *LegacyMesh) error {
 			if err != nil {
 				return fmt.Errorf("read render group %d: %w", i, err)
 			}
-			l.renderGroups = append(l.renderGroups, rg)
+			e.renderGroups = append(e.renderGroups, rg)
 		}
 	}
-	if l.Flags&12 == 12 {
+	if e.Flags&12 == 12 {
 		err = binary.Read(r, binary.LittleEndian, &value)
 		if err != nil {
 			return fmt.Errorf("read vertex count: %w", err)
@@ -184,11 +185,11 @@ func parseLegacyMesh(r io.ReadSeeker, l *LegacyMesh) error {
 			if err != nil {
 				return fmt.Errorf("read vertex tex %d: %w", i, err)
 			}
-			l.vertexTex = append(l.vertexTex, v)
+			e.vertexTex = append(e.vertexTex, v)
 		}
 	}
 
-	if l.Flags&13 == 13 {
+	if e.Flags&13 == 13 {
 		err = binary.Read(r, binary.LittleEndian, &value)
 		if err != nil {
 			return fmt.Errorf("read params3_1: %w", err)
@@ -206,6 +207,11 @@ func parseLegacyMesh(r io.ReadSeeker, l *LegacyMesh) error {
 	return nil
 }
 
-func (l *LegacyMesh) FragmentType() string {
+func (e *LegacyMesh) FragmentType() string {
 	return "Legacy Mesh"
+}
+
+func (e *LegacyMesh) Data() []byte {
+	buf := bytes.NewBuffer(nil)
+	return buf.Bytes()
 }

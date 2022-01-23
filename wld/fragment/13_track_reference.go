@@ -1,6 +1,7 @@
 package fragment
 
 import (
+	"bytes"
 	"encoding/binary"
 	"fmt"
 	"io"
@@ -60,4 +61,9 @@ func parseTrackReference(r io.ReadSeeker, v *TrackReference) error {
 
 func (v *TrackReference) FragmentType() string {
 	return "Track Reference"
+}
+
+func (e *TrackReference) Data() []byte {
+	buf := bytes.NewBuffer(nil)
+	return buf.Bytes()
 }

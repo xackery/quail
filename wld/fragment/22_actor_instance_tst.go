@@ -1,6 +1,7 @@
 package fragment
 
 import (
+	"bytes"
 	"encoding/binary"
 	"fmt"
 	"io"
@@ -14,25 +15,30 @@ type ActorInstanceTest struct {
 }
 
 func LoadActorInstanceTest(r io.ReadSeeker) (common.WldFragmenter, error) {
-	l := &ActorInstanceTest{}
-	err := parseActorInstanceTest(r, l)
+	e := &ActorInstanceTest{}
+	err := parseActorInstanceTest(r, e)
 	if err != nil {
 		return nil, fmt.Errorf("parse ActorInstanceTest: %w", err)
 	}
-	return l, nil
+	return e, nil
 }
 
-func parseActorInstanceTest(r io.ReadSeeker, l *ActorInstanceTest) error {
-	if l == nil {
+func parseActorInstanceTest(r io.ReadSeeker, e *ActorInstanceTest) error {
+	if e == nil {
 		return fmt.Errorf("ActorInstanceTest is nil")
 	}
-	err := binary.Read(r, binary.LittleEndian, &l.Parameter)
+	err := binary.Read(r, binary.LittleEndian, &e.Parameter)
 	if err != nil {
 		return fmt.Errorf("read ActorInstanceTest: %w", err)
 	}
 	return nil
 }
 
-func (l *ActorInstanceTest) FragmentType() string {
+func (e *ActorInstanceTest) FragmentType() string {
 	return "ActorInstanceTest"
+}
+
+func (e *ActorInstanceTest) Data() []byte {
+	buf := bytes.NewBuffer(nil)
+	return buf.Bytes()
 }

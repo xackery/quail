@@ -1,6 +1,7 @@
 package fragment
 
 import (
+	"bytes"
 	"encoding/binary"
 	"fmt"
 	"image/color"
@@ -421,4 +422,8 @@ func parseMesh(r io.ReadSeeker, v *Mesh, isNewWorldFormat bool) error {
 
 func (v *Mesh) FragmentType() string {
 	return "Mesh"
+}
+func (e *Mesh) Data() []byte {
+	buf := bytes.NewBuffer(nil)
+	return buf.Bytes()
 }

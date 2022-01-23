@@ -1,6 +1,7 @@
 package fragment
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 
@@ -12,16 +13,16 @@ type CameraReference struct {
 }
 
 func LoadCameraReference(r io.ReadSeeker) (common.WldFragmenter, error) {
-	l := &CameraReference{}
-	err := parseCameraReference(r, l)
+	e := &CameraReference{}
+	err := parseCameraReference(r, e)
 	if err != nil {
 		return nil, fmt.Errorf("parse CameraReference: %w", err)
 	}
-	return l, nil
+	return e, nil
 }
 
-func parseCameraReference(r io.ReadSeeker, l *CameraReference) error {
-	if l == nil {
+func parseCameraReference(r io.ReadSeeker, e *CameraReference) error {
+	if e == nil {
 		return fmt.Errorf("CameraReference is nil")
 	}
 	/*
@@ -32,6 +33,11 @@ func parseCameraReference(r io.ReadSeeker, l *CameraReference) error {
 	return nil
 }
 
-func (l *CameraReference) FragmentType() string {
+func (e *CameraReference) FragmentType() string {
 	return "CameraReference"
+}
+
+func (e *CameraReference) Data() []byte {
+	buf := bytes.NewBuffer(nil)
+	return buf.Bytes()
 }

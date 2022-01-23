@@ -1,6 +1,7 @@
 package fragment
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 
@@ -12,16 +13,16 @@ type MeshAnimatedVertices struct {
 }
 
 func LoadMeshAnimatedVertices(r io.ReadSeeker) (common.WldFragmenter, error) {
-	l := &MeshAnimatedVertices{}
-	err := parseMeshAnimatedVertices(r, l)
+	e := &MeshAnimatedVertices{}
+	err := parseMeshAnimatedVertices(r, e)
 	if err != nil {
 		return nil, fmt.Errorf("parse MeshAnimatedVertices: %w", err)
 	}
-	return l, nil
+	return e, nil
 }
 
-func parseMeshAnimatedVertices(r io.ReadSeeker, l *MeshAnimatedVertices) error {
-	if l == nil {
+func parseMeshAnimatedVertices(r io.ReadSeeker, e *MeshAnimatedVertices) error {
+	if e == nil {
 		return fmt.Errorf("MeshAnimatedVertices is nil")
 	}
 	/*
@@ -32,6 +33,11 @@ func parseMeshAnimatedVertices(r io.ReadSeeker, l *MeshAnimatedVertices) error {
 	return nil
 }
 
-func (l *MeshAnimatedVertices) FragmentType() string {
+func (e *MeshAnimatedVertices) FragmentType() string {
 	return "MeshAnimatedVertices"
+}
+
+func (e *MeshAnimatedVertices) Data() []byte {
+	buf := bytes.NewBuffer(nil)
+	return buf.Bytes()
 }

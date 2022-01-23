@@ -1,6 +1,7 @@
 package fragment
 
 import (
+	"bytes"
 	"encoding/binary"
 	"fmt"
 	"io"
@@ -126,4 +127,9 @@ func parseActorInstance(r io.ReadSeeker, v *ActorInstance) error {
 
 func (v *ActorInstance) FragmentType() string {
 	return "Actor Instance"
+}
+
+func (e *ActorInstance) Data() []byte {
+	buf := bytes.NewBuffer(nil)
+	return buf.Bytes()
 }

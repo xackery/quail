@@ -1,6 +1,7 @@
 package fragment
 
 import (
+	"bytes"
 	"encoding/binary"
 	"fmt"
 	"io"
@@ -60,4 +61,9 @@ func parseSkeletonReference(r io.ReadSeeker, v *SkeletonReference) error {
 
 func (v *SkeletonReference) FragmentType() string {
 	return "Skeleton Reference"
+}
+
+func (e *SkeletonReference) Data() []byte {
+	buf := bytes.NewBuffer(nil)
+	return buf.Bytes()
 }

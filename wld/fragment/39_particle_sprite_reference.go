@@ -1,6 +1,7 @@
 package fragment
 
 import (
+	"bytes"
 	"encoding/binary"
 	"fmt"
 	"io"
@@ -51,4 +52,8 @@ func parseParticleSpriteReference(r io.ReadSeeker, v *ParticleSpriteReference) e
 
 func (v *ParticleSpriteReference) FragmentType() string {
 	return "Particle Sprite Reference"
+}
+func (e *ParticleSpriteReference) Data() []byte {
+	buf := bytes.NewBuffer(nil)
+	return buf.Bytes()
 }

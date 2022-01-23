@@ -1,6 +1,7 @@
 package fragment
 
 import (
+	"bytes"
 	"encoding/binary"
 	"fmt"
 	"io"
@@ -18,25 +19,25 @@ type LightInstance struct {
 }
 
 func LoadLightInstance(r io.ReadSeeker) (common.WldFragmenter, error) {
-	l := &LightInstance{}
-	err := parseLightInstance(r, l)
+	e := &LightInstance{}
+	err := parseLightInstance(r, e)
 	if err != nil {
 		return nil, fmt.Errorf("parse kight instance: %w", err)
 	}
-	return l, nil
+	return e, nil
 }
 
-func parseLightInstance(r io.ReadSeeker, l *LightInstance) error {
-	if l == nil {
+func parseLightInstance(r io.ReadSeeker, e *LightInstance) error {
+	if e == nil {
 		return fmt.Errorf("light instance is nil")
 	}
 	var value uint32
-	err := binary.Read(r, binary.LittleEndian, &l.hashIndex)
+	err := binary.Read(r, binary.LittleEndian, &e.hashIndex)
 	if err != nil {
 		return fmt.Errorf("read hash index: %w", err)
 	}
 
-	err = binary.Read(r, binary.LittleEndian, &l.Reference)
+	err = binary.Read(r, binary.LittleEndian, &e.Reference)
 	if err != nil {
 		return fmt.Errorf("read reference: %w", err)
 	}
@@ -46,22 +47,22 @@ func parseLightInstance(r io.ReadSeeker, l *LightInstance) error {
 		return fmt.Errorf("read flags: %w", err)
 	}
 
-	err = binary.Read(r, binary.LittleEndian, &l.Position.X)
+	err = binary.Read(r, binary.LittleEndian, &e.Position.X)
 	if err != nil {
 		return fmt.Errorf("read x: %w", err)
 	}
 
-	err = binary.Read(r, binary.LittleEndian, &l.Position.Y)
+	err = binary.Read(r, binary.LittleEndian, &e.Position.Y)
 	if err != nil {
 		return fmt.Errorf("read y: %w", err)
 	}
 
-	err = binary.Read(r, binary.LittleEndian, &l.Position.Z)
+	err = binary.Read(r, binary.LittleEndian, &e.Position.Z)
 	if err != nil {
 		return fmt.Errorf("read z: %w", err)
 	}
 
-	err = binary.Read(r, binary.LittleEndian, &l.Radius)
+	err = binary.Read(r, binary.LittleEndian, &e.Radius)
 	if err != nil {
 		return fmt.Errorf("read radius: %w", err)
 	}
@@ -69,6 +70,11 @@ func parseLightInstance(r io.ReadSeeker, l *LightInstance) error {
 	return nil
 }
 
-func (l *LightInstance) FragmentType() string {
+func (e *LightInstance) FragmentType() string {
 	return "Light Instance"
+}
+
+func (e *LightInstance) Data() []byte {
+	buf := bytes.NewBuffer(nil)
+	return buf.Bytes()
 }

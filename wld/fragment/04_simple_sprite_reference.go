@@ -1,6 +1,8 @@
 package fragment
 
 import (
+	"bytes"
+	"encoding/binary"
 	"fmt"
 	"io"
 
@@ -9,29 +11,45 @@ import (
 
 // SimpleSpriteReference information
 type SimpleSpriteReference struct {
+	flags        uint32
+	textureCount uint32
 }
 
 func LoadSimpleSpriteReference(r io.ReadSeeker) (common.WldFragmenter, error) {
-	l := &SimpleSpriteReference{}
-	err := parseSimpleSpriteReference(r, l)
+	e := &SimpleSpriteReference{}
+	err := parseSimpleSpriteReference(r, e)
 	if err != nil {
 		return nil, fmt.Errorf("parse SimpleSpriteReference: %w", err)
 	}
-	return l, nil
+	return e, nil
 }
 
-func parseSimpleSpriteReference(r io.ReadSeeker, l *SimpleSpriteReference) error {
-	if l == nil {
+func parseSimpleSpriteReference(r io.ReadSeeker, e *SimpleSpriteReference) error {
+	if e == nil {
 		return fmt.Errorf("SimpleSpriteReference is nil")
 	}
-	/*
-		err := binary.Read(r, binary.LittleEndian, &l)
-		if err != nil {
-			return fmt.Errorf("read light source : %w", err)
-		}*/
+
+	err := binary.Read(r, binary.LittleEndian, &e.flags)
+	if err != nil {
+		return fmt.Errorf("read flags: %w", err)
+	}
+
+	err = binary.Read(r, binary.LittleEndian, &e.textureCount)
+	if err != nil {
+		return fmt.Errorf("read textureCount: %w", err)
+	}
+
 	return nil
 }
 
-func (l *SimpleSpriteReference) FragmentType() string {
+func (e *SimpleSpriteReference) FragmentType() string {
 	return "SimpleSpriteReference"
+}
+
+func (e *SimpleSpriteReference) Data() []byte {
+	buf := bytes.NewBuffer(nil)
+
+	binary.Write(buf, binary.LittleEndian, e.flags)
+	binary.Write(buf, binary.LittleEndian, e.textureCount)
+	return buf.Bytes()
 }

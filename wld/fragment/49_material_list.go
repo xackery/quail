@@ -1,6 +1,7 @@
 package fragment
 
 import (
+	"bytes"
 	"encoding/binary"
 	"fmt"
 	"io"
@@ -58,4 +59,9 @@ func parseMaterialList(r io.ReadSeeker, m *MaterialList) error {
 
 func (m *MaterialList) FragmentType() string {
 	return "Material List"
+}
+
+func (e *MaterialList) Data() []byte {
+	buf := bytes.NewBuffer(nil)
+	return buf.Bytes()
 }

@@ -1,6 +1,7 @@
 package fragment
 
 import (
+	"bytes"
 	"encoding/binary"
 	"fmt"
 	"image/color"
@@ -98,4 +99,9 @@ func parseVertexColor(r io.ReadSeeker, v *VertexColor) error {
 
 func (v *VertexColor) FragmentType() string {
 	return "Vertex Color"
+}
+
+func (e *VertexColor) Data() []byte {
+	buf := bytes.NewBuffer(nil)
+	return buf.Bytes()
 }

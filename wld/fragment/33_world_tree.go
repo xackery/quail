@@ -1,6 +1,7 @@
 package fragment
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 
@@ -12,16 +13,16 @@ type WorldTree struct {
 }
 
 func LoadWorldTree(r io.ReadSeeker) (common.WldFragmenter, error) {
-	l := &WorldTree{}
-	err := parseWorldTree(r, l)
+	e := &WorldTree{}
+	err := parseWorldTree(r, e)
 	if err != nil {
 		return nil, fmt.Errorf("parse WorldTree: %w", err)
 	}
-	return l, nil
+	return e, nil
 }
 
-func parseWorldTree(r io.ReadSeeker, l *WorldTree) error {
-	if l == nil {
+func parseWorldTree(r io.ReadSeeker, e *WorldTree) error {
+	if e == nil {
 		return fmt.Errorf("WorldTree is nil")
 	}
 	/*
@@ -32,6 +33,11 @@ func parseWorldTree(r io.ReadSeeker, l *WorldTree) error {
 	return nil
 }
 
-func (l *WorldTree) FragmentType() string {
+func (e *WorldTree) FragmentType() string {
 	return "WorldTree"
+}
+
+func (e *WorldTree) Data() []byte {
+	buf := bytes.NewBuffer(nil)
+	return buf.Bytes()
 }
