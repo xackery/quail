@@ -8,8 +8,10 @@ import (
 )
 
 func TestLoad(t *testing.T) {
-	//path := "test/bl2h_ba_1_ala.ani"
-	path := "test/obj_gears_default.ani"
+	if os.Getenv("SINGLE_TEST") != "1" {
+		return
+	}
+	path := "../eq/_steamfontmts.eqg/obj_gears_default.ani"
 	f, err := os.Open(path)
 	if err != nil {
 		t.Fatalf("open: %s", err)
@@ -19,7 +21,7 @@ func TestLoad(t *testing.T) {
 	if err != nil {
 		t.Fatalf("dump.New: %s", err)
 	}
-	defer d.Save("test/out.png")
+	defer d.Save("../eq/tmp/out.png")
 	e := &ANI{}
 	err = e.Load(f)
 	if err != nil {

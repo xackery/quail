@@ -1,4 +1,4 @@
-package ter
+package eqg
 
 import (
 	"os"
@@ -8,8 +8,10 @@ import (
 )
 
 func TestLoad(t *testing.T) {
-	//path := "test/ecommons.ter"
-	path := "test/soldungb.ter"
+	if os.Getenv("SINGLE_TEST") != "1" {
+		return
+	}
+	path := "../eq/arena.eqg"
 	f, err := os.Open(path)
 	if err != nil {
 		t.Fatalf("%s", err)
@@ -19,17 +21,21 @@ func TestLoad(t *testing.T) {
 	if err != nil {
 		t.Fatalf("dump.new: %s", err)
 	}
-	defer d.Save("test/out.png")
-
-	e := &TER{}
+	defer d.Save("../eq/tmp/out.png")
+	e := &EQG{}
 	err = e.Load(f)
 	if err != nil {
+		d.Save("../eq/tmp/out.png")
 		t.Fatalf("load: %s", err)
 	}
+
 }
 
 func TestLoadSaveLoad(t *testing.T) {
-	path := "test/soldungb.ter"
+	if os.Getenv("SINGLE_TEST") != "1" {
+		return
+	}
+	path := "../eq/tmp/out.eqg"
 	f, err := os.Open(path)
 	if err != nil {
 		t.Fatalf("%s", err)
@@ -40,39 +46,36 @@ func TestLoadSaveLoad(t *testing.T) {
 		t.Fatalf("dump.new: %s", err)
 	}
 
-	e := &TER{}
+	e := &EQG{}
 	err = e.Load(f)
 	if err != nil {
-		d.Save("test/out.png")
 		t.Fatalf("load: %s", err)
 	}
-	w, err := os.Create("test/out.ter")
+	w, err := os.Create("../eq/tmp/out.eqg")
 	if err != nil {
-		d.Save("test/out.png")
 		t.Fatalf("create: %s", err)
 	}
 	defer w.Close()
 	err = e.Save(w)
 	if err != nil {
-		d.Save("test/out.png")
 		t.Fatalf("save: %s", err)
 	}
-	d.Save("test/out.png")
+	d.Save("../eq/tmp/out.png")
 	dump.Close()
 
-	path = "test/out.ter"
+	path = "../eq/tmp/out.eqg"
 	d, err = dump.New(path)
 	if err != nil {
 		t.Fatalf("dump.new: %s", err)
 	}
-	defer d.Save("test/out2.png")
+	defer d.Save("../eq/tmp/out2.png")
 	r, err := os.Open(path)
 	if err != nil {
 		t.Fatalf("open: %s", err)
 	}
 	err = e.Load(r)
 	if err != nil {
-		t.Fatalf("reload: %s", err)
+		t.Fatalf("load: %s", err)
 	}
 
 }

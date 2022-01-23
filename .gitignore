@@ -4,6 +4,7 @@
 *.dll
 *.so
 *.dylib
+*.cpp
 
 # Test binary, built with `go test -c`
 *.test
@@ -18,7 +19,9 @@ quail.log
 _*/
 *.eqg
 
+test/*.ani
 test/*.zon
-test/*.png
+*.png
 test/*.mod
 test/*.eqg
+eq/

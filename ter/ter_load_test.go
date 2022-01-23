@@ -1,4 +1,4 @@
-package zon
+package ter
 
 import (
 	"os"
@@ -8,8 +8,10 @@ import (
 )
 
 func TestLoad(t *testing.T) {
-	//path := "test/ecommons.zon"
-	path := "test/soldungb.zon"
+	if os.Getenv("SINGLE_TEST") != "1" {
+		return
+	}
+	path := "../eq/_steamfontmts.eqg/steamfontmts.ter"
 	f, err := os.Open(path)
 	if err != nil {
 		t.Fatalf("%s", err)
@@ -19,9 +21,9 @@ func TestLoad(t *testing.T) {
 	if err != nil {
 		t.Fatalf("dump.new: %s", err)
 	}
-	defer d.Save("test/out.png")
+	defer d.Save("../eq/tmp/out.png")
 
-	e := &ZON{}
+	e := &TER{}
 	err = e.Load(f)
 	if err != nil {
 		t.Fatalf("load: %s", err)
@@ -29,7 +31,10 @@ func TestLoad(t *testing.T) {
 }
 
 func TestLoadSaveLoad(t *testing.T) {
-	path := "test/soldungb.zon"
+	if os.Getenv("SINGLE_TEST") != "1" {
+		return
+	}
+	path := "../eq/_ecommons.eqg/ecommons.ter"
 	f, err := os.Open(path)
 	if err != nil {
 		t.Fatalf("%s", err)
@@ -40,32 +45,32 @@ func TestLoadSaveLoad(t *testing.T) {
 		t.Fatalf("dump.new: %s", err)
 	}
 
-	e := &ZON{}
+	e := &TER{}
 	err = e.Load(f)
 	if err != nil {
-		d.Save("test/out.png")
+		d.Save("../eq/tmp/out.png")
 		t.Fatalf("load: %s", err)
 	}
-	w, err := os.Create("test/out.zon")
+	w, err := os.Create("../eq/tmp/out.ter")
 	if err != nil {
-		d.Save("test/out.png")
+		d.Save("../eq/tmp/out.png")
 		t.Fatalf("create: %s", err)
 	}
 	defer w.Close()
 	err = e.Save(w)
 	if err != nil {
-		d.Save("test/out.png")
+		d.Save("../eq/tmp/out.png")
 		t.Fatalf("save: %s", err)
 	}
-	d.Save("test/out.png")
+	d.Save("../eq/tmp/out.png")
 	dump.Close()
 
-	path = "test/out.zon"
+	path = "../eq/tmp/out.ter"
 	d, err = dump.New(path)
 	if err != nil {
 		t.Fatalf("dump.new: %s", err)
 	}
-	defer d.Save("test/out2.png")
+	defer d.Save("../eq/tmp/out2.png")
 	r, err := os.Open(path)
 	if err != nil {
 		t.Fatalf("open: %s", err)

@@ -1,4 +1,4 @@
-package eqg
+package mod
 
 import (
 	"os"
@@ -8,7 +8,10 @@ import (
 )
 
 func TestLoad(t *testing.T) {
-	path := "test/eqzip-test.eqg"
+	if os.Getenv("SINGLE_TEST") != "1" {
+		return
+	}
+	path := "../eq/tmp/cube.mod"
 	f, err := os.Open(path)
 	if err != nil {
 		t.Fatalf("%s", err)
@@ -18,18 +21,20 @@ func TestLoad(t *testing.T) {
 	if err != nil {
 		t.Fatalf("dump.new: %s", err)
 	}
-	defer d.Save("test/out.png")
-	e := &EQG{}
+	defer d.Save("../eq/tmp/out.png")
+
+	e := &MOD{}
 	err = e.Load(f)
 	if err != nil {
-		d.Save("test/out.png")
 		t.Fatalf("load: %s", err)
 	}
-
 }
 
 func TestLoadSaveLoad(t *testing.T) {
-	path := "test/soldungb.eqg"
+	if os.Getenv("SINGLE_TEST") != "1" {
+		return
+	}
+	path := "../eq/tmp/obj_gears.mod"
 	f, err := os.Open(path)
 	if err != nil {
 		t.Fatalf("%s", err)
@@ -40,12 +45,12 @@ func TestLoadSaveLoad(t *testing.T) {
 		t.Fatalf("dump.new: %s", err)
 	}
 
-	e := &EQG{}
+	e := &MOD{}
 	err = e.Load(f)
 	if err != nil {
 		t.Fatalf("load: %s", err)
 	}
-	w, err := os.Create("test/out.eqg")
+	w, err := os.Create("../eq/tmp/out.mod")
 	if err != nil {
 		t.Fatalf("create: %s", err)
 	}
@@ -54,15 +59,15 @@ func TestLoadSaveLoad(t *testing.T) {
 	if err != nil {
 		t.Fatalf("save: %s", err)
 	}
-	d.Save("test/out.png")
+	d.Save("../eq/tmp/out.png")
 	dump.Close()
 
-	path = "test/out.eqg"
+	path = "../eq/tmp/out.mod"
 	d, err = dump.New(path)
 	if err != nil {
 		t.Fatalf("dump.new: %s", err)
 	}
-	defer d.Save("test/out2.png")
+	defer d.Save("../eq/tmp/out2.png")
 	r, err := os.Open(path)
 	if err != nil {
 		t.Fatalf("open: %s", err)

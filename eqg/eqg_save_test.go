@@ -1,4 +1,4 @@
-package zon
+package eqg
 
 import (
 	"encoding/hex"
@@ -6,36 +6,66 @@ import (
 	"io"
 	"os"
 	"testing"
+
+	"github.com/xackery/quail/dump"
 )
 
 func TestSave(t *testing.T) {
-	var err error
-	z := &ZON{}
-	err = z.AddModel("ecommons.ter")
-	if err != nil {
-		t.Fatalf("addModel: %s", err)
+	if os.Getenv("SINGLE_TEST") != "1" {
+		return
 	}
-	/*err = z.AddObject("test", "test01", math32.Vector3{X: 1, Y: 2, Z: 3}, math32.Vector3{}, 0)
+	path := "../eq/ecommons.eqg"
+	d, err := dump.New(path)
 	if err != nil {
-		t.Fatalf("addObject: %s", err)
+		t.Fatalf("dump.new: %s", err)
 	}
+	defer d.Save("../eq/tmp/out.png")
 
-	//buf := bytes.NewBuffer(nil)*/
-	w, err := os.Create("test/ecommons.zon")
+	e := &EQG{}
+	err = e.Add("test.txt", []byte("test"))
 	if err != nil {
-		t.Fatalf("create: %s", err)
+		t.Fatalf("add: %s", err.Error())
 	}
-	defer w.Close()
-
-	err = z.Save(w)
+	f, err := os.Create(path)
+	if err != nil {
+		t.Fatalf("create: %s", err.Error())
+	}
+	err = e.Save(f)
 	if err != nil {
 		t.Fatalf("save: %s", err.Error())
 	}
-	//	fmt.Println(hex.Dump(buf.Bytes()))
+	f.Close()
+
+	r, err := os.Open(path)
+	if err != nil {
+		t.Fatalf("open: %s", err)
+	}
+	err = e.Load(r)
+	if err != nil {
+		t.Fatalf("load: %s", err)
+	}
+	compareFile(t, "../eq/tmp/out.eqg", "../eq/tmp/eqzip-test.eqg")
 }
 
-func TestCompare(t *testing.T) {
-	compareFile(t, "test/out.zon", "test/soldungb.zon")
+func TestSave2(t *testing.T) {
+	if os.Getenv("SINGLE_TEST") != "1" {
+		return
+	}
+	e := &EQG{}
+	err := e.Add("test.txt", []byte("test2"))
+	if err != nil {
+		t.Fatalf("add: %s", err.Error())
+	}
+	f, err := os.Create("../eq/tmp/out2.eqg")
+	if err != nil {
+		t.Fatalf("create: %s", err.Error())
+	}
+	err = e.Save(f)
+	if err != nil {
+		t.Fatalf("save: %s", err.Error())
+	}
+	f.Close()
+	compareFile(t, "../eq/tmp/out2.eqg", "../eq/tmp/eqzip-test2.eqg")
 }
 
 func compareFile(t *testing.T, path1 string, path2 string) {

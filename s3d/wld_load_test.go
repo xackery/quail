@@ -6,7 +6,10 @@ import (
 )
 
 func TestWldLoad(t *testing.T) {
-	f, err := os.Open("test/lights.wld")
+	if os.Getenv("SINGLE_TEST") != "1" {
+		return
+	}
+	f, err := os.Open("../eq/tmp/lights.wld")
 	if err != nil {
 		t.Fatalf("open: %v", err)
 	}

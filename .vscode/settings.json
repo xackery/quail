@@ -3,5 +3,8 @@
         "*.log": "ini",
         "fstream": "cpp",
         "iosfwd": "cpp"
+    },
+    "go.testEnvVars": {
+        "SINGLE_TEST": "1"
     }
 }

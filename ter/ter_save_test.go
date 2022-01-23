@@ -4,10 +4,14 @@ import (
 	"bytes"
 	"encoding/hex"
 	"fmt"
+	"os"
 	"testing"
 )
 
 func TestSave(t *testing.T) {
+	if os.Getenv("SINGLE_TEST") != "1" {
+		return
+	}
 	var err error
 	e := &TER{}
 	err = e.AddMaterial("test", "test2")

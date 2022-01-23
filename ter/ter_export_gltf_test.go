@@ -6,10 +6,13 @@ import (
 )
 
 func TestGLTFExport(t *testing.T) {
+	if os.Getenv("SINGLE_TEST") != "1" {
+		return
+	}
 	e := &TER{
 		name: "soldungb",
 	}
-	path := "test/soldungb.ter"
+	path := "../eq/tmp/soldungb.ter"
 	r, err := os.Open(path)
 	if err != nil {
 		t.Fatalf("open %s: %s", path, err)
@@ -20,7 +23,7 @@ func TestGLTFExport(t *testing.T) {
 		t.Fatalf("import %s: %s", path, err)
 	}
 
-	err = e.ExportGLTF("test/out.glb")
+	err = e.ExportGLTF("../eq/tmp/out.glb")
 	if err != nil {
 		t.Fatalf("save: %s", err)
 	}

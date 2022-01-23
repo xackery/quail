@@ -8,7 +8,7 @@ import (
 )
 
 func TestDeflate(t *testing.T) {
-	data, err := ioutil.ReadFile("test/grass.dds")
+	data, err := ioutil.ReadFile("../eq/_steamfontmts.eqg/grass_stmfnt.dds")
 	if err != nil {
 		t.Fatalf("readfile: %s", err.Error())
 	}
