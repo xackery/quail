@@ -2,7 +2,6 @@ package ter
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/qmuntal/gltf"
 	"github.com/qmuntal/gltf/modeler"
@@ -55,9 +54,7 @@ func (e *TER) ExportGLTF(path string) error {
 	prim.Indices = gltf.Index(modeler.WriteIndices(doc, indices))
 	doc.Meshes = append(doc.Meshes, mesh)
 
-	w, err := os.Create(path)
-	err = gltf.NewEncoder(w).Encode(doc)
-	//err = gltf.Save(doc, path)
+	err = gltf.SaveBinary(doc, path)
 	if err != nil {
 		return fmt.Errorf("save %s: %w", path, err)
 	}

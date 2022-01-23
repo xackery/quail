@@ -70,6 +70,12 @@ func (e *ANI) Load(r io.ReadSeeker) error {
 
 	for i := 0; i < int(animationCount); i++ {
 
+		chunk := make([]byte, 2000)
+		err = binary.Read(r, binary.LittleEndian, &chunk)
+		if err != nil {
+			return fmt.Errorf("read chunk %d: %w", i, err)
+		}
+		dump.Hex(chunk, "%dchunk", i)
 	}
 	return nil
 }

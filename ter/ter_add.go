@@ -8,6 +8,9 @@ import (
 )
 
 func (e *TER) AddMaterial(name string, shaderName string) error {
+	if shaderName == "" {
+		shaderName = "Opaque_MaxCB1.fx"
+	}
 	e.materials = append(e.materials, &common.Material{
 		Name:       name,
 		ShaderName: shaderName,

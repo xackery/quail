@@ -9,6 +9,7 @@ import (
 	"image/draw"
 	"image/png"
 	"os"
+	"path/filepath"
 
 	"github.com/xackery/colors"
 	"golang.org/x/image/font"
@@ -54,10 +55,11 @@ type group struct {
 
 func New(name string) (*Dump, error) {
 	e := &Dump{
-		name:   name,
+		name:   filepath.Base(name),
 		img:    image.NewRGBA(image.Rect(0, 0, width, height)),
 		groups: make(map[string]*group),
 	}
+
 	draw.Draw(e.img, e.img.Bounds(), image.Black, image.Point{X: 0, Y: 0}, draw.Src)
 	e.grayImage = image.NewUniform(colors.Gray)
 
