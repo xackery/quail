@@ -3,7 +3,6 @@ package common
 import (
 	"bytes"
 	"encoding/binary"
-	"encoding/hex"
 	"fmt"
 )
 
@@ -55,7 +54,7 @@ func WriteGeometry(materials []*Material, vertices []*Vertex, triangles []*Trian
 		}
 	}
 
-	fmt.Println(hex.Dump(nameBuf.Bytes()))
+	//fmt.Println(hex.Dump(nameBuf.Bytes()))
 	for materialID, o := range materials {
 		err = binary.Write(dataBuf, binary.LittleEndian, uint32(materialID))
 		if err != nil {

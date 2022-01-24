@@ -28,6 +28,11 @@ func (e *ZON) AddObject(modelName string, name string, position math32.Vector3, 
 }
 
 func (e *ZON) AddModel(name string) error {
+	for _, m := range e.models {
+		if m.name == name {
+			return nil
+		}
+	}
 	e.models = append(e.models, &model{name: name})
 	return nil
 }

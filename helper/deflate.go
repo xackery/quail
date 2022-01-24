@@ -23,7 +23,7 @@ func Deflate(in []byte) ([]byte, error) {
 			remain = 0
 		}
 
-		fmt.Println(pos+blockSize, "vs", sz)
+		//fmt.Println(pos+blockSize, "vs", sz)
 		buf := bytes.NewBuffer(nil)
 
 		//w, err := zlib.NewWriterLevel(buf, 2)
@@ -53,13 +53,13 @@ func Deflate(in []byte) ([]byte, error) {
 			return nil, fmt.Errorf("checksum: %w", err)
 		}*/
 
-		fmt.Println("deflate size", buf.Len())
+		//fmt.Println("deflate size", buf.Len())
 		err = binary.Write(out, binary.LittleEndian, uint32(buf.Len()))
 		if err != nil {
 			return nil, fmt.Errorf("write deflateSize: %w", err)
 		}
 
-		fmt.Println("inflate size", inflateSize)
+		//fmt.Println("inflate size", inflateSize)
 		err = binary.Write(out, binary.LittleEndian, uint32(inflateSize))
 		if err != nil {
 			return nil, fmt.Errorf("write sz: %w", err)
