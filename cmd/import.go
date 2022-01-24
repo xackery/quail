@@ -24,6 +24,7 @@ import (
 	"time"
 
 	"github.com/spf13/cobra"
+	"github.com/xackery/quail/blend"
 	"github.com/xackery/quail/eqg"
 	"github.com/xackery/quail/helper"
 	"github.com/xackery/quail/mod"
@@ -69,7 +70,9 @@ to quickly create a Cobra application.`,
 			}
 		}
 
-		err = importExec(path, out)
+		blenderPath, _ := cmd.Flags().GetString("blender")
+
+		err = importExec(path, out, blenderPath)
 		if err != nil {
 			fmt.Println("import:", err)
 			os.Exit(1)
@@ -81,11 +84,12 @@ to quickly create a Cobra application.`,
 func init() {
 	rootCmd.AddCommand(importCmd)
 	importCmd.PersistentFlags().String("path", "", "path to import")
+	importCmd.PersistentFlags().String("blender", "", "blender path (optional)")
 	importCmd.PersistentFlags().String("out", "", "name of compressed eqg archive output, defaults to path's basename")
 	importCmd.Example = `quail import --path="./_clz.eqg/"`
 }
 
-func importExec(path string, out string) error {
+func importExec(path string, out string, blenderPath string) error {
 	start := time.Now()
 
 	out = strings.ToLower(out)
@@ -107,19 +111,36 @@ func importExec(path string, out string) error {
 		return fmt.Errorf("path invalid, must be a directory (%s)", path)
 	}
 
-	shortname := strings.TrimSuffix(filepath.Base(path), ".eqg")
+	shortname, err := filepath.Abs(path)
+	if err != nil {
+		return fmt.Errorf("filepath.Abs %s: %w", path, err)
+	}
+	shortname = strings.TrimSuffix(filepath.Base(shortname), ".eqg")
 
+	fmt.Println("shortname", shortname)
 	cachePath := fmt.Sprintf("%s/cache/", path)
 	fi, err = os.Stat(cachePath)
 	if err != nil {
-		fmt.Printf("cache folder not found for import: %s\n", err)
-		os.Exit(1)
+		err = os.MkdirAll(cachePath, 0766)
+		if err != nil {
+			fmt.Printf("cache folder not found for import: %s\n", err)
+			os.Exit(1)
+		}
+		fi, err = os.Stat(cachePath)
+		if err != nil {
+			fmt.Printf("cache folder stat: %s\n", err)
+			os.Exit(1)
+		}
 	}
 	if !fi.IsDir() {
 		fmt.Println("cache file exists, should be folder")
 		os.Exit(1)
 	}
 
+	err = blend.Convert(path, shortname, blenderPath)
+	if err != nil {
+		return fmt.Errorf("blend.Convert: %w", err)
+	}
 	fi, err = os.Stat(fmt.Sprintf("%s/%s.obj", cachePath, shortname))
 	if err != nil {
 		return fmt.Errorf("import %s.obj: not found in cache", shortname)
@@ -195,7 +216,7 @@ func importExec(path string, out string) error {
 		os.Exit(1)
 	}
 
-	suffixes := []string{".obj", ".mtl", "_material.txt", "_light.txt", "_region.txt", "_doors.txt", "_mod.txt"}
+	suffixes := []string{".py", ".obj", ".mtl", "_material.txt", "_light.txt", "_region.txt", "_doors.txt", "_mod.txt"}
 	addStdout := ""
 	fileCount := 0
 	for _, file := range files {
