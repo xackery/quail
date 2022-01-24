@@ -26,6 +26,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/xackery/quail/eqg"
 	"github.com/xackery/quail/helper"
+	"github.com/xackery/quail/mod"
 	"github.com/xackery/quail/ter"
 	"github.com/xackery/quail/zon"
 )
@@ -147,10 +148,6 @@ func importExec(path string, out string) error {
 	if err != nil {
 		return fmt.Errorf("zon.Import: %w", err)
 	}
-	err = zon.AddModel(fmt.Sprintf("%s.ter", shortname))
-	if err != nil {
-		return fmt.Errorf("addModel %s.ter: %w", shortname, err)
-	}
 
 	zonW, err := os.Create(fmt.Sprintf("%s/%s.zon", cachePath, shortname))
 	if err != nil {
@@ -160,6 +157,32 @@ func importExec(path string, out string) error {
 	err = zon.Save(zonW)
 	if err != nil {
 		return fmt.Errorf("zon.Save: %w", err)
+	}
+
+	modNames := zon.ModelNames()
+	for _, modName := range modNames {
+		mod := &mod.MOD{}
+		modName = strings.TrimSuffix(modName, ".obj")
+		err = mod.ImportObj(fmt.Sprintf("%s/%s.obj", cachePath, modName), fmt.Sprintf("%s/%s.mtl", cachePath, modName), fmt.Sprintf("%s/%s_material.txt", cachePath, modName))
+		if err != nil {
+			return fmt.Errorf("importObj: %w", err)
+		}
+
+		modPath := fmt.Sprintf("%s/%s.mod", cachePath, modName)
+		modW, err := os.Create(modPath)
+		if err != nil {
+			return fmt.Errorf("mod create %s: %w", modPath, err)
+		}
+		err = mod.Save(modW)
+		if err != nil {
+			return fmt.Errorf("save: %w", err)
+		}
+		modW.Close()
+	}
+
+	err = zon.AddModel(fmt.Sprintf("%s.ter", shortname))
+	if err != nil {
+		return fmt.Errorf("addModel %s.ter: %w", shortname, err)
 	}
 
 	e := &eqg.EQG{}

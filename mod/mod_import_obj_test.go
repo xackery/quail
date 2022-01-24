@@ -11,16 +11,8 @@ func TestObjImport(t *testing.T) {
 	}
 	e := &MOD{}
 	oPath := "../eq/tmp/cube.obj"
-	r, err := os.Open(oPath)
-	if err != nil {
-		t.Fatalf("open %s: %s", oPath, err)
-	}
 	mPath := "../eq/tmp/cube.mtl"
-	mr, err := os.Open(mPath)
-	if err != nil {
-		t.Fatalf("open %s: %s", mPath, err)
-	}
-	err = e.ImportObj(r, mr)
+	err := e.ImportObj(oPath, mPath, "")
 	if err != nil {
 		t.Fatalf("importObj: %s", err)
 	}

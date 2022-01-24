@@ -2,52 +2,25 @@ package mod
 
 import (
 	"fmt"
-	"io"
-	"io/ioutil"
+	"os"
 
-	"github.com/g3n/engine/loader/obj"
-	"github.com/g3n/engine/math32"
-	"github.com/xackery/quail/common"
+	"github.com/xackery/quail/obj"
 )
 
-func (e *MOD) ImportObj(objReader io.Reader, mtlReader io.Reader) error {
-	dec, err := obj.DecodeReader(objReader, mtlReader)
+func (e *MOD) ImportObj(objPath string, mtlPath string, matPath string) error {
+	var err error
+	rm, err := os.Open(mtlPath)
 	if err != nil {
-		return fmt.Errorf("decodeReader: %w", err)
+		return err
 	}
-	for i, o := range dec.Materials {
-		err = e.AddMaterial(o.Name, "Opaque_MaxCB1.fx")
-		if err != nil {
-			return fmt.Errorf("add material %s: %w", i, err)
-		}
-		if o.MapKd != "" {
-			data, err := ioutil.ReadFile(o.MapKd)
-			if err != nil {
-				return fmt.Errorf("readfile %s: %w", o.MapKd, err)
-			}
-			fe, err := common.NewFileEntry(o.MapKd, data)
-			if err != nil {
-				return fmt.Errorf("new file %s: %w", o.MapKd, err)
-			}
-			e.files = append(e.files, fe)
-			// TODO: add string based values?
-			//e.AddMaterialProperty(o.Name, "e_TextureDiffuse0", 2, )
-		}
+	defer rm.Close()
+	objData, err := obj.Import(objPath, mtlPath, matPath)
+	if err != nil {
+		return fmt.Errorf("import: %w", err)
 	}
-
-	for i, o := range dec.Objects {
-		// this is returning 13, original is 24
-		for j, f := range o.Faces {
-			err = e.AddVertex(
-				math32.Vector3{X: float32(f.Vertices[0]), Y: float32(f.Vertices[1]), Z: float32(f.Vertices[2])},
-				math32.Vector3{X: float32(f.Normals[0]), Y: float32(f.Normals[1]), Z: float32(f.Normals[2])},
-				math32.Vector2{X: float32(f.Uvs[0]), Y: float32(f.Uvs[1])},
-			)
-			if err != nil {
-				return fmt.Errorf("add vertex object %d face %d: %w", i, j, err)
-			}
-		}
-	}
+	e.materials = objData.Materials
+	e.triangles = objData.Triangles
+	e.vertices = objData.Vertices
 
 	return nil
 }

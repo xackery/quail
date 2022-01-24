@@ -63,3 +63,12 @@ func (e *ZON) Data() []byte {
 	}
 	return w.Bytes()
 }
+
+// Models returns a slice of names
+func (e *ZON) ModelNames() []string {
+	names := []string{}
+	for _, m := range e.models {
+		names = append(names, m.name)
+	}
+	return names
+}
