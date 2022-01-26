@@ -12,7 +12,7 @@ import (
 
 // LightInstance information
 type LightInstance struct {
-	hashIndex uint32
+	name      string
 	Reference uint32
 	Position  math32.Vector3
 	Radius    float32
@@ -27,17 +27,18 @@ func LoadLightInstance(r io.ReadSeeker) (common.WldFragmenter, error) {
 	return e, nil
 }
 
-func parseLightInstance(r io.ReadSeeker, e *LightInstance) error {
-	if e == nil {
+func parseLightInstance(r io.ReadSeeker, v *LightInstance) error {
+	if v == nil {
 		return fmt.Errorf("light instance is nil")
 	}
 	var value uint32
-	err := binary.Read(r, binary.LittleEndian, &e.hashIndex)
+	var err error
+	v.name, err = nameFromHashIndex(r)
 	if err != nil {
-		return fmt.Errorf("read hash index: %w", err)
+		return fmt.Errorf("nameFromHasIndex: %w", err)
 	}
 
-	err = binary.Read(r, binary.LittleEndian, &e.Reference)
+	err = binary.Read(r, binary.LittleEndian, &v.Reference)
 	if err != nil {
 		return fmt.Errorf("read reference: %w", err)
 	}
@@ -47,22 +48,22 @@ func parseLightInstance(r io.ReadSeeker, e *LightInstance) error {
 		return fmt.Errorf("read flags: %w", err)
 	}
 
-	err = binary.Read(r, binary.LittleEndian, &e.Position.X)
+	err = binary.Read(r, binary.LittleEndian, &v.Position.X)
 	if err != nil {
 		return fmt.Errorf("read x: %w", err)
 	}
 
-	err = binary.Read(r, binary.LittleEndian, &e.Position.Y)
+	err = binary.Read(r, binary.LittleEndian, &v.Position.Y)
 	if err != nil {
 		return fmt.Errorf("read y: %w", err)
 	}
 
-	err = binary.Read(r, binary.LittleEndian, &e.Position.Z)
+	err = binary.Read(r, binary.LittleEndian, &v.Position.Z)
 	if err != nil {
 		return fmt.Errorf("read z: %w", err)
 	}
 
-	err = binary.Read(r, binary.LittleEndian, &e.Radius)
+	err = binary.Read(r, binary.LittleEndian, &v.Radius)
 	if err != nil {
 		return fmt.Errorf("read radius: %w", err)
 	}

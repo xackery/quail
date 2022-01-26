@@ -12,7 +12,7 @@ import (
 
 // MeshReference information
 type MeshReference struct {
-	hashIndex uint32
+	name      string
 	Reference uint32
 	Name      string
 	Position  math32.Vector3
@@ -34,12 +34,11 @@ func parseMeshReference(r io.ReadSeeker, v *MeshReference) error {
 		return fmt.Errorf("mesh reference is nil")
 	}
 
-	err := binary.Read(r, binary.LittleEndian, &v.hashIndex)
+	var err error
+	v.name, err = nameFromHashIndex(r)
 	if err != nil {
-		return fmt.Errorf("read hash index: %w", err)
+		return fmt.Errorf("nameFromHasIndex: %w", err)
 	}
-
-	//TODO: name from hash
 
 	err = binary.Read(r, binary.LittleEndian, &v.Reference)
 	if err != nil {

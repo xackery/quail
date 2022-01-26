@@ -20,7 +20,7 @@ type LightSource struct {
 	Color color.RGBA
 	//Attenuation (?) - guess from Windcatcher. Not sure what it is.
 	Attentuation uint32
-	hashIndex    uint32
+	name         string
 }
 
 func LoadLightSource(r io.ReadSeeker) (common.WldFragmenter, error) {
@@ -32,29 +32,29 @@ func LoadLightSource(r io.ReadSeeker) (common.WldFragmenter, error) {
 	return e, nil
 }
 
-func parseLightSource(r io.ReadSeeker, e *LightSource) error {
-	if e == nil {
+func parseLightSource(r io.ReadSeeker, v *LightSource) error {
+	if v == nil {
 		return fmt.Errorf("lightsource is nil")
 	}
 	var value uint32
-	err := binary.Read(r, binary.LittleEndian, &e.hashIndex)
+	var err error
+	v.name, err = nameFromHashIndex(r)
 	if err != nil {
-		return fmt.Errorf("read hash index: %w", err)
+		return fmt.Errorf("nameFromHasIndex: %w", err)
 	}
-
 	err = binary.Read(r, binary.LittleEndian, &value)
 	if err != nil {
 		return fmt.Errorf("read flags: %w", err)
 	}
 
 	if value&1 == 1 {
-		e.IsPlacedLightSource = true
+		v.IsPlacedLightSource = true
 	}
 	if value&4 == 4 {
-		e.IsColoredLight = true
+		v.IsColoredLight = true
 	}
 
-	if !e.IsPlacedLightSource {
+	if !v.IsPlacedLightSource {
 		err = binary.Read(r, binary.LittleEndian, &value)
 		if err != nil {
 			return fmt.Errorf("read unknown: %w", err)
@@ -70,24 +70,24 @@ func parseLightSource(r io.ReadSeeker, e *LightSource) error {
 	if err != nil {
 		return fmt.Errorf("read unknown1: %w", err)
 	}
-	if e.IsColoredLight {
-		err = binary.Read(r, binary.LittleEndian, &e.Attentuation)
+	if v.IsColoredLight {
+		err = binary.Read(r, binary.LittleEndian, &v.Attentuation)
 		if err != nil {
 			return fmt.Errorf("read attentuation: %w", err)
 		}
-		err = binary.Read(r, binary.LittleEndian, &e.Color.A)
+		err = binary.Read(r, binary.LittleEndian, &v.Color.A)
 		if err != nil {
 			return fmt.Errorf("read color alpha: %w", err)
 		}
-		err = binary.Read(r, binary.LittleEndian, &e.Color.R)
+		err = binary.Read(r, binary.LittleEndian, &v.Color.R)
 		if err != nil {
 			return fmt.Errorf("read color red: %w", err)
 		}
-		err = binary.Read(r, binary.LittleEndian, &e.Color.G)
+		err = binary.Read(r, binary.LittleEndian, &v.Color.G)
 		if err != nil {
 			return fmt.Errorf("read color green: %w", err)
 		}
-		err = binary.Read(r, binary.LittleEndian, &e.Color.B)
+		err = binary.Read(r, binary.LittleEndian, &v.Color.B)
 		if err != nil {
 			return fmt.Errorf("read color blue: %w", err)
 		}
@@ -97,7 +97,7 @@ func parseLightSource(r io.ReadSeeker, e *LightSource) error {
 	if err != nil {
 		return fmt.Errorf("read unknown noncolored: %w", err)
 	}
-	e.Color = color.RGBA{R: 255, G: 255, B: 255, A: 255}
+	v.Color = color.RGBA{R: 255, G: 255, B: 255, A: 255}
 	return nil
 }
 

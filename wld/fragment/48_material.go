@@ -12,12 +12,12 @@ import (
 
 // Material information
 type Material struct {
+	name string
 	//BitmapInfoReference
 	// ShaderType is the way to render the material
 	ShaderType int
 	// MaterialType is also part of rendering material
 	MaterialType int
-	hashIndex    uint32
 	// IsHandled is used when an alternative character skin is needed
 	IsHandled bool
 }
@@ -46,14 +46,16 @@ func LoadMaterial(r io.ReadSeeker) (common.WldFragmenter, error) {
 	return m, nil
 }
 
-func parseMaterial(r io.ReadSeeker, m *Material) error {
-	if m == nil {
+func parseMaterial(r io.ReadSeeker, v *Material) error {
+	if v == nil {
 		return fmt.Errorf("Material is nil")
 	}
 	var value uint32
-	err := binary.Read(r, binary.LittleEndian, &m.hashIndex)
+
+	var err error
+	v.name, err = nameFromHashIndex(r)
 	if err != nil {
-		return fmt.Errorf("read hash index: %w", err)
+		return fmt.Errorf("nameFromHasIndex: %w", err)
 	}
 
 	err = binary.Read(r, binary.LittleEndian, &value)
@@ -105,32 +107,32 @@ func parseMaterial(r io.ReadSeeker, m *Material) error {
 	//BitmapInfoReference = fragments[fragmentReference - 1] as BitmapInfoReference;
 	//}
 
-	m.MaterialType = int(int64(params) & ^0x80000000)
-	switch m.MaterialType {
+	v.MaterialType = int(int64(params) & ^0x80000000)
+	switch v.MaterialType {
 	case MaterialTypeBoundary:
-		m.ShaderType = ShaderTypeBoundary
+		v.ShaderType = ShaderTypeBoundary
 	case MaterialTypeInvisibleUnknown, MaterialTypeInvisibleUnknown2, MaterialTypeInvisibleUnknown3:
-		m.ShaderType = ShaderTypeInvisible
+		v.ShaderType = ShaderTypeInvisible
 	case MaterialTypeDiffuse, MaterialTypeDiffuse2, MaterialTypeDiffuse3, MaterialTypeDiffuse4, MaterialTypeDiffuse6, MaterialTypeDiffuse7, MaterialTypeDiffuse8, MaterialTypeCompleteUnknown, MaterialTypeTransparentMaskedPassable:
-		m.ShaderType = ShaderTypeDiffuse
+		v.ShaderType = ShaderTypeDiffuse
 	case MaterialTypeTransparent25:
-		m.ShaderType = ShaderTypeTransparent25
+		v.ShaderType = ShaderTypeTransparent25
 	case MaterialTypeTransparent50:
-		m.ShaderType = ShaderTypeTransparent50
+		v.ShaderType = ShaderTypeTransparent50
 	case MaterialTypeTransparent75:
-		m.ShaderType = ShaderTypeTransparent75
+		v.ShaderType = ShaderTypeTransparent75
 	case MaterialTypeTransparentAdditive:
-		m.ShaderType = ShaderTypeTransparentAdditive
+		v.ShaderType = ShaderTypeTransparentAdditive
 	case MaterialTypeTransparentAdditiveUnlit:
-		m.ShaderType = ShaderTypeTransparentAdditiveUnlit
+		v.ShaderType = ShaderTypeTransparentAdditiveUnlit
 	case MaterialTypeTransparentMasked, MaterialTypeDiffuse5:
-		m.ShaderType = ShaderTypeTransparentMasked
+		v.ShaderType = ShaderTypeTransparentMasked
 	case MaterialTypeDiffuseSkydome:
-		m.ShaderType = ShaderTypeDiffuseSkydome
+		v.ShaderType = ShaderTypeDiffuseSkydome
 	case MaterialTypeTransparentSkydome:
-		m.ShaderType = ShaderTypeTransparentSkydome
+		v.ShaderType = ShaderTypeTransparentSkydome
 	case MaterialTypeTransparentAdditiveUnlitSkydome:
-		m.ShaderType = ShaderTypeTransparentAdditiveUnlitSkydome
+		v.ShaderType = ShaderTypeTransparentAdditiveUnlitSkydome
 	default:
 		//m.ShaderType = BitmapInfoReference == null ? ShaderTypeInvisible : ShaderTypeDiffuse;
 	}

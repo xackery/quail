@@ -13,7 +13,7 @@ import (
 
 // Mesh information
 type Mesh struct {
-	hashIndex            uint32
+	name                 string
 	MaterialReference    uint32
 	AnimationReference   uint32
 	Center               math32.Vector3
@@ -44,13 +44,14 @@ func LoadMesh(r io.ReadSeeker) (common.WldFragmenter, error) {
 }
 
 func parseMesh(r io.ReadSeeker, v *Mesh, isNewWorldFormat bool) error {
+	var err error
 	if v == nil {
 		return fmt.Errorf("mesh is nil")
 	}
 	var value uint32
-	err := binary.Read(r, binary.LittleEndian, &v.hashIndex)
+	v.name, err = nameFromHashIndex(r)
 	if err != nil {
-		return fmt.Errorf("read hash index: %w", err)
+		return fmt.Errorf("nameFromHasIndex: %w", err)
 	}
 
 	err = binary.Read(r, binary.LittleEndian, &value)

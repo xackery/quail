@@ -11,7 +11,7 @@ import (
 
 // MaterialList information
 type MaterialList struct {
-	hashIndex          uint32
+	name               string
 	MaterialReferences []uint32
 }
 
@@ -24,14 +24,15 @@ func LoadMaterialList(r io.ReadSeeker) (common.WldFragmenter, error) {
 	return m, nil
 }
 
-func parseMaterialList(r io.ReadSeeker, m *MaterialList) error {
-	if m == nil {
+func parseMaterialList(r io.ReadSeeker, v *MaterialList) error {
+	if v == nil {
 		return fmt.Errorf("MaterialList is nil")
 	}
 	var value uint32
-	err := binary.Read(r, binary.LittleEndian, &m.hashIndex)
+	var err error
+	v.name, err = nameFromHashIndex(r)
 	if err != nil {
-		return fmt.Errorf("read hash index: %w", err)
+		return fmt.Errorf("nameFromHasIndex: %w", err)
 	}
 
 	err = binary.Read(r, binary.LittleEndian, &value)
@@ -52,7 +53,7 @@ func parseMaterialList(r io.ReadSeeker, m *MaterialList) error {
 		if err != nil {
 			return fmt.Errorf("read %d materialReference: %w", i, err)
 		}
-		m.MaterialReferences = append(m.MaterialReferences, value)
+		v.MaterialReferences = append(v.MaterialReferences, value)
 	}
 	return nil
 }

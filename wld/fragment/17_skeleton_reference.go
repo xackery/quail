@@ -11,7 +11,7 @@ import (
 
 // SkeletonReference information
 type SkeletonReference struct {
-	hashIndex uint32
+	name      string
 	Reference uint32
 	FrameMs   uint32
 }
@@ -30,9 +30,10 @@ func parseSkeletonReference(r io.ReadSeeker, v *SkeletonReference) error {
 		return fmt.Errorf("skeleton reference is nil")
 	}
 	var value uint32
-	err := binary.Read(r, binary.LittleEndian, &v.hashIndex)
+	var err error
+	v.name, err = nameFromHashIndex(r)
 	if err != nil {
-		return fmt.Errorf("read hash index: %w", err)
+		return fmt.Errorf("nameFromHasIndex: %w", err)
 	}
 
 	err = binary.Read(r, binary.LittleEndian, &v.Reference)

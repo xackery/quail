@@ -12,11 +12,10 @@ import (
 
 // ActorInstance information
 type ActorInstance struct {
-	hashIndex uint32
-	Name      string
-	Position  math32.Vector3
-	Rotation  math32.Vector3
-	Scale     math32.Vector3
+	name     string
+	Position math32.Vector3
+	Rotation math32.Vector3
+	Scale    math32.Vector3
 }
 
 func LoadActorInstance(r io.ReadSeeker) (common.WldFragmenter, error) {
@@ -33,12 +32,11 @@ func parseActorInstance(r io.ReadSeeker, v *ActorInstance) error {
 		return fmt.Errorf("Actor instance is nil")
 	}
 	var value uint32
-	err := binary.Read(r, binary.LittleEndian, &v.hashIndex)
+	var err error
+	v.name, err = nameFromHashIndex(r)
 	if err != nil {
-		return fmt.Errorf("read hash index: %w", err)
+		return fmt.Errorf("nameFromHasIndex: %w", err)
 	}
-
-	//TODO: name from hash
 
 	var flags uint32
 	err = binary.Read(r, binary.LittleEndian, &flags)

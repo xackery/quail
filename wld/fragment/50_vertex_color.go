@@ -13,8 +13,8 @@ import (
 // VertexColor information
 type VertexColor struct {
 	// Colors of the vertex, if applicable
-	Colors    []color.RGBA
-	hashIndex uint32
+	Colors []color.RGBA
+	name   string
 }
 
 func LoadVertexColor(r io.ReadSeeker) (common.WldFragmenter, error) {
@@ -31,9 +31,11 @@ func parseVertexColor(r io.ReadSeeker, v *VertexColor) error {
 		return fmt.Errorf("VertexColor is nil")
 	}
 	var value uint32
-	err := binary.Read(r, binary.LittleEndian, &v.hashIndex)
+	var err error
+
+	v.name, err = nameFromHashIndex(r)
 	if err != nil {
-		return fmt.Errorf("read hash index: %w", err)
+		return fmt.Errorf("nameFromHasIndex: %w", err)
 	}
 
 	//unknown

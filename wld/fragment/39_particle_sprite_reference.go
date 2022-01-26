@@ -11,7 +11,7 @@ import (
 
 // ParticleSpriteReference information
 type ParticleSpriteReference struct {
-	hashIndex uint32
+	name      string
 	Reference uint32
 }
 
@@ -29,11 +29,11 @@ func parseParticleSpriteReference(r io.ReadSeeker, v *ParticleSpriteReference) e
 		return fmt.Errorf("particle sprite reference is nil")
 	}
 	var value uint32
-	err := binary.Read(r, binary.LittleEndian, &v.hashIndex)
+	var err error
+	v.name, err = nameFromHashIndex(r)
 	if err != nil {
-		return fmt.Errorf("read hash index: %w", err)
+		return fmt.Errorf("nameFromHasIndex: %w", err)
 	}
-
 	err = binary.Read(r, binary.LittleEndian, &v.Reference)
 	if err != nil {
 		return fmt.Errorf("read reference: %w", err)

@@ -12,8 +12,8 @@ import (
 
 // Track information
 type Track struct {
-	hashIndex uint32
-	Frames    []*BoneTransform
+	name   string
+	Frames []*BoneTransform
 }
 
 // BoneTransform coordinate data
@@ -38,11 +38,11 @@ func parseTrack(r io.ReadSeeker, v *Track) error {
 		return fmt.Errorf("track  is nil")
 	}
 	var value uint32
-	err := binary.Read(r, binary.LittleEndian, &v.hashIndex)
+	var err error
+	v.name, err = nameFromHashIndex(r)
 	if err != nil {
-		return fmt.Errorf("read hash index: %w", err)
+		return fmt.Errorf("nameFromHasIndex: %w", err)
 	}
-
 	err = binary.Read(r, binary.LittleEndian, &value)
 	if err != nil {
 		return fmt.Errorf("read flag: %w", err)

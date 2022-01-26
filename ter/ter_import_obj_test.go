@@ -56,3 +56,23 @@ func TestObjImportSave(t *testing.T) {
 	}
 	fmt.Printf("dump: %+v\n", e)
 }
+
+func TestObjImportExport(t *testing.T) {
+	if os.Getenv("SINGLE_TEST") != "1" {
+		return
+	}
+	e := &TER{}
+	objPath := "../eq/soldungb/cache/soldungb.obj"
+	mtlPath := "../eq/soldungb/cache/soldungb.mtl"
+	matTxtPath := "../eq/soldungb/cache/soldungb_material.txt"
+
+	err := e.ImportObj(objPath, mtlPath, matTxtPath)
+	if err != nil {
+		t.Fatalf("import: %s", err)
+	}
+
+	err = e.ExportObj("../eq/tmp/out.obj", "../eq/tmp/out.mtl", "../eq/tmp/out_material.txt")
+	if err != nil {
+		t.Fatalf("export: %s", err)
+	}
+}

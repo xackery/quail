@@ -11,7 +11,7 @@ import (
 
 // LightSourceReference information
 type LightSourceReference struct {
-	hashIndex uint32
+	name      string
 	Reference uint32
 }
 
@@ -24,16 +24,16 @@ func LoadLightSourceReference(r io.ReadSeeker) (common.WldFragmenter, error) {
 	return e, nil
 }
 
-func parseLightSourceReference(r io.ReadSeeker, e *LightSourceReference) error {
-	if e == nil {
+func parseLightSourceReference(r io.ReadSeeker, v *LightSourceReference) error {
+	if v == nil {
 		return fmt.Errorf("lightsourceReference is nil")
 	}
-	err := binary.Read(r, binary.LittleEndian, &e.hashIndex)
+	var err error
+	v.name, err = nameFromHashIndex(r)
 	if err != nil {
-		return fmt.Errorf("read hash index: %w", err)
+		return fmt.Errorf("nameFromHasIndex: %w", err)
 	}
-
-	err = binary.Read(r, binary.LittleEndian, &e.Reference)
+	err = binary.Read(r, binary.LittleEndian, &v.Reference)
 	if err != nil {
 		return fmt.Errorf("read reference: %w", err)
 	}
