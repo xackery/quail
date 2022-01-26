@@ -29,14 +29,13 @@ type Mesh struct {
 
 type Polygon struct {
 	IsSolid bool
-	Vertex1 int
-	Vertex2 int
-	Vertex3 int
+	Vertex1 int16
+	Vertex2 int16
+	Vertex3 int16
 }
 
 func LoadMesh(r io.ReadSeeker) (common.WldFragmenter, error) {
 	v := &Mesh{}
-	return v, nil
 	err := parseMesh(r, v, false)
 	if err != nil {
 		return nil, fmt.Errorf("parse Mesh: %w", err)

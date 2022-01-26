@@ -1,10 +1,17 @@
 package fragment
 
 import (
+	"encoding/binary"
 	"fmt"
 	"io"
 
 	"github.com/xackery/quail/common"
+	"github.com/xackery/quail/dump"
+)
+
+var (
+	fragmentTypes = make(map[int32](func(r io.ReadSeeker) (common.WldFragmenter, error)))
+	names         = make(map[uint32]string)
 )
 
 func New(fragIndex int32, r io.ReadSeeker) (common.WldFragmenter, error) {
@@ -15,7 +22,10 @@ func New(fragIndex int32, r io.ReadSeeker) (common.WldFragmenter, error) {
 	return loadFunc(r)
 }
 
-var fragmentTypes = make(map[int32](func(r io.ReadSeeker) (common.WldFragmenter, error)))
+// SetNames set a global names prop each fragment can look up from to get name based on hash index
+func SetNames(in map[uint32]string) {
+	names = in
+}
 
 func init() {
 	//0x01 DEFAULTPALETTEFILE
@@ -39,6 +49,7 @@ func init() {
 	//0xe COMPOSITESPRITEDEF
 	//0xf Unknown
 	//0x10 SkeletonHierarchy aka HIERARCHICALSPRITEDEF
+	fragmentTypes[16] = LoadSkeletonHierarchy
 	//0x11 SkeletonHierarchyReference
 	fragmentTypes[17] = LoadSkeletonReference
 	//0x12 TrackDefinition
@@ -52,7 +63,9 @@ func init() {
 	//0x16 ACTORINSTANCETEST
 	fragmentTypes[22] = LoadActorInstanceTest
 	//0x17 POLYHEDRONDEFINITION
-	//0x18 unknown
+	fragmentTypes[23] = LoadPolygonAnimation
+	//0x18 POLYHEDRONDEFINITIONREF
+	fragmentTypes[24] = LoadPolygonAnimationReference
 	//0x19 SPHERELISTDEFINITION
 	//0x1A unknown
 	//0x1B LightDefinition aka LightSource
@@ -76,6 +89,7 @@ func init() {
 	//0x28 PointLight aka LightInstance
 	fragmentTypes[40] = LoadLightInstance
 	//0x29 Zone aka BspRegionType
+	fragmentTypes[41] = LoadRegionType
 	//0x2A AmbientLight
 	fragmentTypes[42] = LoadAmbientLight
 	//0x2B DirectionalLight
@@ -99,4 +113,19 @@ func init() {
 	fragmentTypes[54] = LoadMesh
 	//0x37 MeshAnimatedVertices
 	fragmentTypes[55] = LoadMeshAnimatedVertices
+}
+
+func nameFromHashIndex(r io.ReadSeeker) (string, error) {
+	name := ""
+	var value uint32
+	err := binary.Read(r, binary.LittleEndian, &value)
+	if err != nil {
+		return "", fmt.Errorf("read hash index: %w", err)
+	}
+	name, ok := names[value]
+	if !ok {
+		return "", fmt.Errorf("hash 0x%x not found in names (%d)", value, len(names))
+	}
+	dump.Hex(value, "name=(%s)", name)
+	return name, nil
 }
