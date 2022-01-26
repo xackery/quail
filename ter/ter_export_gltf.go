@@ -54,7 +54,10 @@ func (e *TER) ExportGLTF(path string) error {
 	prim.Indices = gltf.Index(modeler.WriteIndices(doc, indices))
 	doc.Meshes = append(doc.Meshes, mesh)
 
-	err = gltf.SaveBinary(doc, path)
+	for _, buff := range doc.Buffers {
+		buff.EmbeddedResource()
+	}
+	err = gltf.Save(doc, path)
 	if err != nil {
 		return fmt.Errorf("save %s: %w", path, err)
 	}

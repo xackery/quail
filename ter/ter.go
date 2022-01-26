@@ -14,7 +14,6 @@ type TER struct {
 	materials []*common.Material
 	vertices  []*common.Vertex
 	triangles []*common.Triangle
-	files     []*common.FileEntry
 }
 
 func New(name string) (*TER, error) {

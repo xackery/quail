@@ -8,6 +8,7 @@ import (
 )
 
 type ObjData struct {
+	Name      string
 	Materials []*common.Material
 	Vertices  []*common.Vertex
 	Triangles []*common.Triangle

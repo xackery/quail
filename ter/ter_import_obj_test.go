@@ -7,6 +7,9 @@ import (
 )
 
 func TestObjImport(t *testing.T) {
+	if os.Getenv("SINGLE_TEST") != "1" {
+		return
+	}
 	e := &TER{}
 	objPath := "../eq/soldungb/cache/soldungb.obj"
 	mtlPath := "../eq/soldungb/cache/soldungb.mtl"

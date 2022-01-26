@@ -10,7 +10,7 @@ import (
 	"github.com/xackery/quail/dump"
 )
 
-func (e *TER) Load(r io.ReadSeeker) error {
+func (e *TER) Load(r io.ReadSeeker, name string) error {
 	var err error
 
 	header := [4]byte{}

@@ -7,6 +7,9 @@ import (
 )
 
 func TestGLTFImport(t *testing.T) {
+	if os.Getenv("SINGLE_TEST") != "1" {
+		return
+	}
 	e := &TER{}
 	path := "../eq/tmp/ecommons.gltf"
 	err := e.ImportGLTF(path)

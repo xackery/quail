@@ -3,6 +3,7 @@ package ter
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/xackery/quail/obj"
 )
@@ -21,6 +22,9 @@ func (e *TER) ImportObj(objPath string, mtlPath string, matPath string) error {
 	e.materials = objData.Materials
 	e.triangles = objData.Triangles
 	e.vertices = objData.Vertices
+	if e.name == "" {
+		e.name = filepath.Base(objPath)
+	}
 
 	return nil
 }
