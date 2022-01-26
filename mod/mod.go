@@ -4,6 +4,7 @@ import "github.com/xackery/quail/common"
 
 // MOD is a zon file struct
 type MOD struct {
+	name            string
 	materials       []*common.Material
 	vertices        []*common.Vertex
 	triangles       []*common.Triangle

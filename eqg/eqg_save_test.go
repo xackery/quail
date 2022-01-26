@@ -40,7 +40,7 @@ func TestSave(t *testing.T) {
 	if err != nil {
 		t.Fatalf("open: %s", err)
 	}
-	err = e.Load(r)
+	err = e.Load(r, "test")
 	if err != nil {
 		t.Fatalf("load: %s", err)
 	}

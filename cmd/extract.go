@@ -84,7 +84,7 @@ func extract(path string, out string, isDir bool) error {
 		return err
 	}
 	e := &eqg.EQG{}
-	err = e.Load(f)
+	err = e.Load(f, "test")
 	if err != nil {
 		return fmt.Errorf("load %s: %w", path, err)
 	}

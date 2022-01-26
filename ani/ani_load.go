@@ -8,8 +8,9 @@ import (
 	"github.com/xackery/quail/dump"
 )
 
-func (e *ANI) Load(r io.ReadSeeker) error {
+func (e *ANI) Load(r io.ReadSeeker, name string) error {
 	var err error
+	e.name = name
 	header := [4]byte{}
 	err = binary.Read(r, binary.LittleEndian, &header)
 	if err != nil {

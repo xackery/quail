@@ -24,7 +24,7 @@ func TestLoad(t *testing.T) {
 	defer d.Save("../eq/out.png")
 
 	e := &ZON{}
-	err = e.Load(f)
+	err = e.Load(f, "test")
 	if err != nil {
 		t.Fatalf("load: %s", err)
 	}
@@ -46,7 +46,7 @@ func TestLoadSaveLoad(t *testing.T) {
 	}
 
 	e := &ZON{}
-	err = e.Load(f)
+	err = e.Load(f, "test")
 	if err != nil {
 		d.Save("../eq/tmp/out.png")
 		t.Fatalf("load: %s", err)
@@ -75,7 +75,7 @@ func TestLoadSaveLoad(t *testing.T) {
 	if err != nil {
 		t.Fatalf("open: %s", err)
 	}
-	err = e.Load(r)
+	err = e.Load(r, "test")
 	if err != nil {
 		t.Fatalf("reload: %s", err)
 	}

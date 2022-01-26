@@ -68,8 +68,11 @@ Supported extensions: eqg, zon, ter, ani, mod
 		}
 		defer f.Close()
 		ext := strings.ToLower(filepath.Ext(path))
+
+		shortname := filepath.Base(path)
+		shortname = strings.TrimSuffix(shortname, filepath.Ext(shortname))
 		type loader interface {
-			Load(io.ReadSeeker) error
+			Load(io.ReadSeeker, string) error
 		}
 		type loadTypes struct {
 			instance  loader
@@ -87,7 +90,8 @@ Supported extensions: eqg, zon, ter, ani, mod
 			if ext != v.extension {
 				continue
 			}
-			err = v.instance.Load(f)
+
+			err = v.instance.Load(f, shortname)
 			if err != nil {
 				fmt.Printf("Error: load %s: %s\n", v.extension, err)
 				os.Exit(1)
