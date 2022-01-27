@@ -21,7 +21,10 @@ func TestSave(t *testing.T) {
 	}
 	defer d.Save("../eq/tmp/out.png")
 
-	e := &EQG{}
+	e, err := New("out")
+	if err != nil {
+		t.Fatalf("new: %s", err)
+	}
 	err = e.Add("test.txt", []byte("test"))
 	if err != nil {
 		t.Fatalf("add: %s", err.Error())
@@ -40,7 +43,7 @@ func TestSave(t *testing.T) {
 	if err != nil {
 		t.Fatalf("open: %s", err)
 	}
-	err = e.Load(r, "test")
+	err = e.Load(r)
 	if err != nil {
 		t.Fatalf("load: %s", err)
 	}
@@ -51,8 +54,11 @@ func TestSave2(t *testing.T) {
 	if os.Getenv("SINGLE_TEST") != "1" {
 		return
 	}
-	e := &EQG{}
-	err := e.Add("test.txt", []byte("test2"))
+	e, err := New("out")
+	if err != nil {
+		t.Fatalf("new: %s", err)
+	}
+	err = e.Add("test.txt", []byte("test2"))
 	if err != nil {
 		t.Fatalf("add: %s", err.Error())
 	}

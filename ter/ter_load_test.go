@@ -24,7 +24,7 @@ func TestLoad(t *testing.T) {
 	defer d.Save("../eq/tmp/out.png")
 
 	e := &TER{}
-	err = e.Load(f, "steamfontmts")
+	err = e.Load(f)
 	if err != nil {
 		t.Fatalf("load: %s", err)
 	}
@@ -45,8 +45,11 @@ func TestLoadSaveLoad(t *testing.T) {
 		t.Fatalf("dump.new: %s", err)
 	}
 
-	e := &TER{}
-	err = e.Load(f, "ecommons")
+	e, err := New("out")
+	if err != nil {
+		t.Fatalf("new: %s", err)
+	}
+	err = e.Load(f)
 	if err != nil {
 		d.Save("../eq/tmp/out.png")
 		t.Fatalf("load: %s", err)
@@ -75,7 +78,7 @@ func TestLoadSaveLoad(t *testing.T) {
 	if err != nil {
 		t.Fatalf("open: %s", err)
 	}
-	err = e.Load(r, "out")
+	err = e.Load(r)
 	if err != nil {
 		t.Fatalf("reload: %s", err)
 	}

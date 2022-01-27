@@ -17,7 +17,7 @@ func TestExport(t *testing.T) {
 	t.Fatalf("%+v", obj)
 }
 
-func TestImportExport(t *testing.T) {
+func TestImportExportSoldungb(t *testing.T) {
 	if os.Getenv("SINGLE_TEST") != "1" {
 		return
 	}
@@ -31,4 +31,16 @@ func TestImportExport(t *testing.T) {
 		t.Fatalf("Export: %s", err)
 	}
 	t.Fatalf("%+v", obj)
+}
+
+func TestImportExportCube(t *testing.T) {
+	obj, err := Import("../testdata/cube.obj", "../testdata/cube.mtl", "../testdata/cube_material.txt")
+	if err != nil {
+		t.Fatalf("import: %s", err)
+	}
+	obj.Name = "cube"
+	err = Export(obj, "../eq/tmp/out.obj", "../eq/tmp/out.mtl", "../eq/tmp/out_material.txt")
+	if err != nil {
+		t.Fatalf("Export: %s", err)
+	}
 }

@@ -13,7 +13,7 @@ import (
 )
 
 // Load will load an EQG
-func (e *EQG) Load(r io.ReadSeeker, name string) error {
+func (e *EQG) Load(r io.ReadSeeker) error {
 	var err error
 	type dirEntry struct {
 		crc    uint32

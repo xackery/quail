@@ -13,7 +13,10 @@ func TestSave(t *testing.T) {
 		return
 	}
 	var err error
-	e := &TER{}
+	e, err := New("out")
+	if err != nil {
+		t.Fatalf("new: %s", err)
+	}
 	err = e.AddMaterial("test", "test2")
 	if err != nil {
 		t.Fatalf("addModel: %s", err)

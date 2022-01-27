@@ -21,3 +21,10 @@ type bone struct {
 type boneAssignment struct {
 	unknown [9]uint32
 }
+
+func New(name string) (*MOD, error) {
+	e := &MOD{
+		name: name,
+	}
+	return e, nil
+}

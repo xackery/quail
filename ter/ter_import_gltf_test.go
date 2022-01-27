@@ -10,9 +10,12 @@ func TestGLTFImport(t *testing.T) {
 	if os.Getenv("SINGLE_TEST") != "1" {
 		return
 	}
-	e := &TER{}
+	e, err := New("out")
+	if err != nil {
+		t.Fatalf("new: %s", err)
+	}
 	path := "../eq/tmp/ecommons.gltf"
-	err := e.ImportGLTF(path)
+	err = e.ImportGLTF(path)
 	if err != nil {
 		t.Fatalf("import %s: %s", path, err)
 	}
@@ -32,9 +35,12 @@ func TestGLTFImportSave(t *testing.T) {
 	if os.Getenv("SINGLE_TEST") != "1" {
 		return
 	}
-	e := &TER{}
+	e, err := New("out")
+	if err != nil {
+		t.Fatalf("new: %s", err)
+	}
 	path := "../eq/tmp/ecommons.gltf"
-	err := e.ImportGLTF(path)
+	err = e.ImportGLTF(path)
 	if err != nil {
 		t.Fatalf("import %s: %s", path, err)
 	}

@@ -13,8 +13,11 @@ func TestSave(t *testing.T) {
 		return
 	}
 	var err error
-	z := &ZON{}
-	err = z.AddModel("ecommons.ter")
+	e, err := New("out")
+	if err != nil {
+		t.Fatalf("new: %s", err)
+	}
+	err = e.AddModel("ecommons.ter")
 	if err != nil {
 		t.Fatalf("addModel: %s", err)
 	}
@@ -30,7 +33,7 @@ func TestSave(t *testing.T) {
 	}
 	defer w.Close()
 
-	err = z.Save(w)
+	err = e.Save(w)
 	if err != nil {
 		t.Fatalf("save: %s", err.Error())
 	}

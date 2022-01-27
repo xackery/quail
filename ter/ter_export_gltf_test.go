@@ -12,8 +12,9 @@ func TestGLTFExport(t *testing.T) {
 	if os.Getenv("SINGLE_TEST") != "1" {
 		return
 	}
-	e := &TER{
-		name: "soldungb",
+	e, err := New("soldungb")
+	if err != nil {
+		t.Fatalf("new: %s", err)
 	}
 	path := "../eq/_ecommons.eqg/ecommons.ter"
 	r, err := os.Open(path)
@@ -21,7 +22,7 @@ func TestGLTFExport(t *testing.T) {
 		t.Fatalf("open %s: %s", path, err)
 	}
 	defer r.Close()
-	err = e.Load(r, "ecommons")
+	err = e.Load(r)
 	if err != nil {
 		t.Fatalf("import %s: %s", path, err)
 	}

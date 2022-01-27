@@ -22,8 +22,11 @@ func TestLoad(t *testing.T) {
 		t.Fatalf("dump.New: %s", err)
 	}
 	defer d.Save("../eq/tmp/out.png")
-	e := &ANI{}
-	err = e.Load(f, "out")
+	e, err := New("out")
+	if err != nil {
+		t.Fatalf("new: %s", err)
+	}
+	err = e.Load(f)
 	if err != nil {
 		t.Fatalf("load: %s", err)
 	}

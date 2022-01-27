@@ -9,9 +9,8 @@ import (
 	"github.com/xackery/quail/dump"
 )
 
-func (e *ZON) Load(r io.ReadSeeker, name string) error {
+func (e *ZON) Load(r io.ReadSeeker) error {
 	var err error
-	e.name = name
 
 	header := [4]byte{}
 	err = binary.Read(r, binary.LittleEndian, &header)

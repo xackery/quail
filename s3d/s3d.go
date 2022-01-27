@@ -4,6 +4,7 @@ import "fmt"
 
 // S3D represents a classic everquest zone archive format
 type S3D struct {
+	name                     string
 	ShortName                string
 	Files                    []*FileEntry
 	directoryChunks          []*ChunkEntry
@@ -56,4 +57,11 @@ func (s ByCRC) Swap(i, j int) {
 
 func (s ByCRC) Less(i, j int) bool {
 	return s[i].CRC < s[j].CRC
+}
+
+func New(name string) (*S3D, error) {
+	e := &S3D{
+		name: name,
+	}
+	return e, nil
 }

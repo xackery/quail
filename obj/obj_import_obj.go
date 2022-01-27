@@ -80,7 +80,9 @@ func importObjFile(obj *ObjData, objPath string) error {
 				Flag:         lastMaterial.Flag,
 			})
 		}
+
 		if strings.HasPrefix(line, "v ") {
+			fmt.Println(line)
 			position := math32.Vector3{}
 			records := strings.Split(line, " ")
 			if len(records) != 4 {

@@ -25,7 +25,7 @@ func (e *WLD) Save(w io.Writer) error {
 		return fmt.Errorf("write identifier: %w", err)
 	}
 
-	err = binary.Write(w, binary.LittleEndian, len(e.fragments))
+	err = binary.Write(w, binary.LittleEndian, uint32(len(e.fragments)))
 	if err != nil {
 		return fmt.Errorf("write fragment count: %w", err)
 	}

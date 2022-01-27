@@ -7,18 +7,21 @@ import (
 )
 
 func TestSave(t *testing.T) {
-	e := &TOG{
-		objects: []*Object{
-			{
-				Name: "test",
-			},
-			{
-				Name: "test2",
-			},
+	e, err := New("out")
+	if err != nil {
+		t.Fatalf("new: %s", err)
+	}
+	e.objects = []*Object{
+		{
+			name: "test",
+		},
+		{
+			name: "test2",
 		},
 	}
+
 	buf := bytes.NewBuffer(nil)
-	err := e.Save(buf)
+	err = e.Save(buf)
 	if err != nil {
 		t.Fatalf("save: %s", err)
 	}

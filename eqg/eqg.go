@@ -9,3 +9,10 @@ type EQG struct {
 	name  string
 	files []common.Filer
 }
+
+func New(name string) (*EQG, error) {
+	e := &EQG{
+		name: name,
+	}
+	return e, nil
+}

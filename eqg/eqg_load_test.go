@@ -22,8 +22,11 @@ func TestLoad(t *testing.T) {
 		t.Fatalf("dump.new: %s", err)
 	}
 	defer d.Save("../eq/tmp/out.png")
-	e := &EQG{}
-	err = e.Load(f, "dump")
+	e, err := New("out")
+	if err != nil {
+		t.Fatalf("new: %s", err)
+	}
+	err = e.Load(f)
 	if err != nil {
 		d.Save("../eq/tmp/out.png")
 		t.Fatalf("load: %s", err)
@@ -46,8 +49,11 @@ func TestLoadSaveLoad(t *testing.T) {
 		t.Fatalf("dump.new: %s", err)
 	}
 
-	e := &EQG{}
-	err = e.Load(f, "test")
+	e, err := New("out")
+	if err != nil {
+		t.Fatalf("new: %s", err)
+	}
+	err = e.Load(f)
 	if err != nil {
 		t.Fatalf("load: %s", err)
 	}
@@ -73,7 +79,7 @@ func TestLoadSaveLoad(t *testing.T) {
 	if err != nil {
 		t.Fatalf("open: %s", err)
 	}
-	err = e.Load(r, "test")
+	err = e.Load(r)
 	if err != nil {
 		t.Fatalf("load: %s", err)
 	}

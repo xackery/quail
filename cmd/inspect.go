@@ -72,7 +72,7 @@ Supported extensions: eqg, zon, ter, ani, mod
 		shortname := filepath.Base(path)
 		shortname = strings.TrimSuffix(shortname, filepath.Ext(shortname))
 		type loader interface {
-			Load(io.ReadSeeker, string) error
+			Load(io.ReadSeeker) error
 		}
 		type loadTypes struct {
 			instance  loader
@@ -91,7 +91,7 @@ Supported extensions: eqg, zon, ter, ani, mod
 				continue
 			}
 
-			err = v.instance.Load(f, shortname)
+			err = v.instance.Load(f)
 			if err != nil {
 				fmt.Printf("Error: load %s: %s\n", v.extension, err)
 				os.Exit(1)

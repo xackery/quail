@@ -27,6 +27,7 @@ func exportObjFile(obj *ObjData, objPath string) error {
 	}
 
 	for _, e := range obj.Vertices {
+		fmt.Println(e)
 		_, err = w.WriteString(fmt.Sprintf("v %0.6f %0.6f %0.6f\n", e.Position.X, e.Position.Y, e.Position.Z))
 		if err != nil {
 			return fmt.Errorf("export pos: %w", err)

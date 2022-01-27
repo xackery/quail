@@ -11,8 +11,11 @@ func TestWldSave(t *testing.T) {
 		return
 	}
 	f := &bytes.Buffer{}
-	e := &WLD{}
-	err := e.Save(f)
+	e, err := New("out")
+	if err != nil {
+		t.Fatalf("new: %s", err)
+	}
+	err = e.Save(f)
 	if err != nil {
 		t.Fatalf("save: %v", err)
 	}
