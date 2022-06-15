@@ -1,6 +1,7 @@
 package ter
 
 import (
+	"bufio"
 	"fmt"
 	"os"
 	"testing"
@@ -78,4 +79,48 @@ func TestObjImportExport(t *testing.T) {
 	if err != nil {
 		t.Fatalf("export: %s", err)
 	}
+	err = compare(objPath, "../eq/tmp/out.obj")
+	if err != nil {
+		t.Fatalf("compare: %s", err)
+	}
+	t.Fatalf("comp done")
+}
+
+func compare(src string, dst string) error {
+	lineNumber := 0
+	rs, err := os.Open(src)
+	if err != nil {
+		return err
+	}
+	defer rs.Close()
+
+	rd, err := os.Open(dst)
+	if err != nil {
+		return err
+	}
+	defer rd.Close()
+
+	rsr := bufio.NewScanner(rs)
+	rdr := bufio.NewScanner(rd)
+	for rsr.Scan() {
+		if !rdr.Scan() {
+			return fmt.Errorf("rdr ended")
+		}
+		lineNumber++
+		if lineNumber < 5 {
+			continue
+		}
+		lineS := rsr.Text()
+		lineD := rdr.Text()
+		if lineS == lineD {
+			continue
+		}
+		fmt.Printf("line %d mismatch: %s vs %s\n", lineNumber, lineS, lineD)
+		return fmt.Errorf("ended early")
+	}
+	err = rsr.Err()
+	if err != nil {
+		return fmt.Errorf("read %s: %w", src, err)
+	}
+	return nil
 }

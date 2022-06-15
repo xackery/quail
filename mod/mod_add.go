@@ -40,7 +40,7 @@ func (e *MOD) AddVertex(position math32.Vector3, position2 math32.Vector3, uv ma
 	return nil
 }
 
-func (e *MOD) AddTriangle(index math32.Vector3, materialName string, flag uint32) error {
+func (e *MOD) AddFace(index math32.Vector3, materialName string, flag uint32) error {
 	for _, o := range e.materials {
 		if o.Name != materialName {
 			continue
@@ -57,11 +57,8 @@ func (e *MOD) AddTriangle(index math32.Vector3, materialName string, flag uint32
 	return fmt.Errorf("materialName not found: %s", materialName)
 }
 
-func (e *MOD) AddBone(name string, unknown [13]float32) error {
-	e.bones = append(e.bones, &bone{
-		name:    name,
-		unknown: unknown,
-	})
+func (e *MOD) AddBone(bone *Bone) error {
+	e.bones = append(e.bones, bone)
 	return nil
 }
 

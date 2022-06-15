@@ -8,14 +8,16 @@ type MOD struct {
 	materials       []*common.Material
 	vertices        []*common.Vertex
 	triangles       []*common.Triangle
-	bones           []*bone
+	bones           []*Bone
 	boneAssignments []*boneAssignment
 	files           []common.Filer
 }
 
-type bone struct {
-	name    string
-	unknown [13]float32
+type Bone struct {
+	Delay       int32
+	Translation [3]float32
+	Rotation    [4]float32
+	Scale       [3]float32
 }
 
 type boneAssignment struct {

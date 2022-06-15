@@ -154,7 +154,15 @@ func (e *TER) Load(r io.ReadSeeker) error {
 			}
 			dump.Hex(value, "%d%value=%d", i, j, value)
 			if category == 2 {
-				names[value]
+				strValue, ok := names[value]
+				if !ok {
+					return fmt.Errorf("category 2 property refers to %d, length of names is %d", value, len(names))
+				}
+				err = e.AddMaterialProperty(name, propertyName, category, strValue)
+				if err != nil {
+					return fmt.Errorf("addMaterialProperty %s %s %s: %w", name, propertyName, strValue, err)
+				}
+				continue
 			}
 			err = e.AddMaterialProperty(name, propertyName, category, fmt.Sprintf("%0.4f", float32(value)))
 			if err != nil {

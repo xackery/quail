@@ -53,12 +53,12 @@ func (e *MOD) Load(r io.ReadSeeker) error {
 	}
 	dump.Hex(verticesCount, "verticesCount=%d", verticesCount)
 
-	triangleCount := uint32(0)
-	err = binary.Read(r, binary.LittleEndian, &triangleCount)
+	faceCount := uint32(0)
+	err = binary.Read(r, binary.LittleEndian, &faceCount)
 	if err != nil {
-		return fmt.Errorf("read triangle count: %w", err)
+		return fmt.Errorf("read face count: %w", err)
 	}
-	dump.Hex(triangleCount, "triangleCount=%d", triangleCount)
+	dump.Hex(faceCount, "faceCount=%d", faceCount)
 
 	boneCount := uint32(0)
 	err = binary.Read(r, binary.LittleEndian, &boneCount)
@@ -159,7 +159,7 @@ func (e *MOD) Load(r io.ReadSeeker) error {
 				return fmt.Errorf("read propertyValue: %w", err)
 			}
 			dump.Hex(propertyValue, "%d%dpropertyValue=%d", i, j, propertyValue)
-			err = e.AddMaterialProperty(name, propertyName, propertyType, float32(propertyValue), propertyValue)
+			err = e.AddMaterialProperty(name, propertyName, propertyType, fmt.Sprintf("%d", propertyValue))
 			if err != nil {
 				return fmt.Errorf("addMaterialProperty %s %s: %w", name, propertyName, err)
 			}
@@ -210,35 +210,35 @@ func (e *MOD) Load(r io.ReadSeeker) error {
 	}
 	dump.HexRange([]byte{0x01, 0x02}, int(verticesCount)*32, "vertData=(%d bytes)", int(verticesCount)*32)
 
-	for i := 0; i < int(triangleCount); i++ {
+	for i := 0; i < int(faceCount); i++ {
 		pos := math32.Vector3{}
 		err = binary.Read(r, binary.LittleEndian, &pos)
 		if err != nil {
-			return fmt.Errorf("read triangle %d pos: %w", i, err)
+			return fmt.Errorf("read face %d pos: %w", i, err)
 		}
 
 		materialID := uint32(0)
 		err = binary.Read(r, binary.LittleEndian, &materialID)
 		if err != nil {
-			return fmt.Errorf("read triangle %d materialID: %w", i, err)
+			return fmt.Errorf("read face %d materialID: %w", i, err)
 		}
 
 		materialName, err := e.MaterialByID(int(materialID))
 		if err != nil {
-			return fmt.Errorf("material by id for triangle %d: %w", i, err)
+			return fmt.Errorf("material by id for face %d: %w", i, err)
 		}
 
 		flag := uint32(0)
 		err = binary.Read(r, binary.LittleEndian, &flag)
 		if err != nil {
-			return fmt.Errorf("read triangle %d flag: %w", i, err)
+			return fmt.Errorf("read face %d flag: %w", i, err)
 		}
-		err = e.AddTriangle(pos, materialName, flag)
+		err = e.AddFace(pos, materialName, flag)
 		if err != nil {
-			return fmt.Errorf("addTriangle %d: %w", i, err)
+			return fmt.Errorf("addFace %d: %w", i, err)
 		}
 	}
-	dump.HexRange([]byte{0x03, 0x04}, int(triangleCount)*20, "triangleData=(%d bytes)", int(triangleCount)*20)
+	dump.HexRange([]byte{0x03, 0x04}, int(faceCount)*20, "faceData=(%d bytes)", int(faceCount)*20)
 
 	//64bytes worth
 	for i := 0; i < int(boneCount); i++ {
@@ -250,35 +250,35 @@ func (e *MOD) Load(r io.ReadSeeker) error {
 		}
 
 		dump.Hex(materialID, "%dmaterialid=%d(%s)", i, materialID, names[materialID])
-		maxVal := uint32(0)
-		err = binary.Read(r, binary.LittleEndian, &maxVal)
+		next := int32(0)
+		err = binary.Read(r, binary.LittleEndian, &next)
 		if err != nil {
-			return fmt.Errorf("read bone %d maxVal: %w", i, err)
+			return fmt.Errorf("read bone %d next: %w", i, err)
 		}
-		dump.Hex(maxVal, "%dmaxVal=%d", i, maxVal)
+		dump.Hex(next, "%dnext=%d", i, next)
 
-		fiveVal := uint32(0)
-		err = binary.Read(r, binary.LittleEndian, &fiveVal)
+		childrenCount := uint32(0)
+		err = binary.Read(r, binary.LittleEndian, &childrenCount)
 		if err != nil {
-			return fmt.Errorf("read bone %d fiveVal: %w", i, err)
+			return fmt.Errorf("read bone %d childrenCount: %w", i, err)
 		}
-		dump.Hex(fiveVal, "%dfiveVal=%d", i, fiveVal)
+		dump.Hex(childrenCount, "%dchildrenCount=%d", i, childrenCount)
 
-		oneVal := uint32(0)
-		err = binary.Read(r, binary.LittleEndian, &oneVal)
+		childIndex := int32(0)
+		err = binary.Read(r, binary.LittleEndian, &childIndex)
 		if err != nil {
-			return fmt.Errorf("read bone %d oneVal: %w", i, err)
+			return fmt.Errorf("read bone %d childIndex: %w", i, err)
 		}
-		dump.Hex(oneVal, "%doneVal=%d", i, oneVal)
+		dump.Hex(childIndex, "%dchildIndex=%d", i, childIndex)
 
-		pos := math32.Vector3{}
-		err = binary.Read(r, binary.LittleEndian, &pos)
+		pivot := math32.Vector3{}
+		err = binary.Read(r, binary.LittleEndian, &pivot)
 		if err != nil {
-			return fmt.Errorf("read bone %d pos: %w", i, err)
+			return fmt.Errorf("read bone %d pivot: %w", i, err)
 		}
-		dump.Hex(pos, "%dpos=%+v", i, pos)
+		dump.Hex(pivot, "%dpivot=%+v", i, pivot)
 
-		rot := math32.Vector3{}
+		rot := math32.Vector4{}
 		err = binary.Read(r, binary.LittleEndian, &rot)
 		if err != nil {
 			return fmt.Errorf("read bone %d rot: %w", i, err)
@@ -292,7 +292,8 @@ func (e *MOD) Load(r io.ReadSeeker) error {
 		}
 		dump.Hex(scale, "%dscale=%+v", i, scale)
 
-		chunk := make([]byte, 60)
+		//56
+		chunk := make([]byte, 0)
 		err = binary.Read(r, binary.LittleEndian, &chunk)
 		if err != nil {
 			return fmt.Errorf("read chunk %d: %w", i, err)

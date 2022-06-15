@@ -41,12 +41,12 @@ func (e *ANI) Load(r io.ReadSeeker) error {
 	}
 	dump.Hex(animationCount, "animationCount=%d", animationCount)
 
-	variationCount := uint32(0)
-	err = binary.Read(r, binary.LittleEndian, &variationCount)
+	flags := uint32(0)
+	err = binary.Read(r, binary.LittleEndian, &flags)
 	if err != nil {
-		return fmt.Errorf("read variationCount: %w", err)
+		return fmt.Errorf("read flags: %w", err)
 	}
-	dump.Hex(variationCount, "variationCount=%d", variationCount)
+	dump.Hex(flags, "flags=%d", flags)
 
 	nameData := make([]byte, nameLength)
 	err = binary.Read(r, binary.LittleEndian, &nameData)
@@ -69,13 +69,15 @@ func (e *ANI) Load(r io.ReadSeeker) error {
 	fmt.Printf("%+v", names)
 
 	for i := 0; i < int(animationCount); i++ {
+		bone := &Bone{}
 
-		chunk := make([]byte, 2000)
-		err = binary.Read(r, binary.LittleEndian, &chunk)
+		err = binary.Read(r, binary.LittleEndian, bone)
 		if err != nil {
-			return fmt.Errorf("read chunk %d: %w", i, err)
+			return fmt.Errorf("read bone %d: %w", i, err)
 		}
-		dump.Hex(chunk, "%dchunk", i)
+		dump.Hex(chunk, "%dbone(%d %0.2f, %0.2f, %0.2f)", i, bone.Delay, bone.Translation[0], bone.Translation[1], bone.Translation[2])
+		e.bones = append(e.bones, bone)
 	}
+
 	return nil
 }
