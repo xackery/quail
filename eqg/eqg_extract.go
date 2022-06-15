@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"strings"
 
 	"github.com/xackery/quail/helper"
 )
@@ -12,13 +11,12 @@ import (
 func (e *EQG) Extract(path string) (string, error) {
 	fi, err := os.Stat(path)
 	if err != nil {
-		if !strings.Contains(err.Error(), "no such file or directory") {
-			return "", err
-		}
-		fmt.Printf("creating directory %s/\n", path)
-		err = os.MkdirAll(path, 0766)
-		if err != nil {
-			return "", fmt.Errorf("mkdirall: %w", err)
+		if os.IsNotExist(err) {
+			fmt.Printf("creating directory %s/\n", path)
+			err = os.MkdirAll(path, 0766)
+			if err != nil {
+				return "", fmt.Errorf("mkdirall: %w", err)
+			}
 		}
 		fi, err = os.Stat(path)
 		if err != nil {
