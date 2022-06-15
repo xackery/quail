@@ -21,7 +21,7 @@ func TestSave(t *testing.T) {
 	if err != nil {
 		t.Fatalf("addModel: %s", err)
 	}
-	err = e.AddMaterialProperty("test", "testProp", 0, 1, 0)
+	err = e.AddMaterialProperty("test", "testProp", 0, "1")
 	if err != nil {
 		t.Fatalf("addMaterialProperty: %s", err)
 	}

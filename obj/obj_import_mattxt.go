@@ -67,9 +67,9 @@ func importMatTxt(obj *ObjData, matTxtPath string) error {
 			}
 
 			prop := &common.Property{
-				Name:      records[2],
-				TypeValue: uint32(val),
-				StrValue:  records[4],
+				Name:     records[2],
+				Category: uint32(val),
+				Value:    records[4],
 			}
 			material.Properties = append(material.Properties, prop)
 		default:

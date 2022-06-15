@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
+	"strconv"
 )
 
 type nameInfo struct {
@@ -26,6 +27,13 @@ func WriteGeometry(materials []*Material, vertices []*Vertex, triangles []*Trian
 		tmpNames = append(tmpNames, o.ShaderName)
 		for _, p := range o.Properties {
 			tmpNames = append(tmpNames, p.Name)
+			_, err = strconv.Atoi(p.Value)
+			if err != nil {
+				_, err = strconv.ParseFloat(p.Value, 64)
+				if err != nil {
+					tmpNames = append(tmpNames, p.Value)
+				}
+			}
 		}
 	}
 	for _, name := range tmpNames {
@@ -98,7 +106,7 @@ func WriteGeometry(materials []*Material, vertices []*Vertex, triangles []*Trian
 			return nil, nil, fmt.Errorf("write material property count %s: %w", o.Name, err)
 		}
 
-		for propertyID, p := range o.Properties {
+		for _, p := range o.Properties {
 			nameOffset = -1
 			for _, val := range names {
 				if val.name == p.Name {
@@ -115,21 +123,16 @@ func WriteGeometry(materials []*Material, vertices []*Vertex, triangles []*Trian
 				return nil, nil, fmt.Errorf("write %s property %s name offset: %w", o.Name, p.Name, err)
 			}
 
-			err = binary.Write(dataBuf, binary.LittleEndian, p.TypeValue)
+			err = binary.Write(dataBuf, binary.LittleEndian, p.Category)
 			if err != nil {
 				return nil, nil, fmt.Errorf("write %s property %s type: %w", o.Name, p.Name, err)
 			}
 
-			if p.TypeValue == 0 {
-				err = binary.Write(dataBuf, binary.LittleEndian, p.FloatValue)
-				if err != nil {
-					return nil, nil, fmt.Errorf("write material %s property %s id %d value (float): %w", o.Name, p.Name, propertyID, err)
-				}
-			} else {
-				err = binary.Write(dataBuf, binary.LittleEndian, p.IntValue)
-				if err != nil {
-					return nil, nil, fmt.Errorf("write material %s property %s id %d value (int): %w", o.Name, p.Name, propertyID, err)
-				}
+			nameOffset = -1
+
+			err = writePropertyValue(dataBuf, p.Value, names)
+			if err != nil {
+				return nil, nil, fmt.Errorf("writePropertyValue: %w", err)
 			}
 		}
 	}
@@ -177,4 +180,39 @@ func WriteGeometry(materials []*Material, vertices []*Vertex, triangles []*Trian
 		}
 	}
 	return nameBuf.Bytes(), dataBuf.Bytes(), nil
+}
+
+func writePropertyValue(buf *bytes.Buffer, value string, names []*nameInfo) error {
+	val, err := strconv.Atoi(value)
+	if err == nil {
+		err = binary.Write(buf, binary.LittleEndian, uint32(val))
+		if err != nil {
+			return fmt.Errorf("write int %s: %w", value, err)
+		}
+		return nil
+	}
+
+	fVal, err := strconv.ParseFloat(value, 64)
+	if err == nil {
+		err = binary.Write(buf, binary.LittleEndian, float32(fVal))
+		if err != nil {
+			return fmt.Errorf("write float %s: %w", value, err)
+		}
+		return nil
+	}
+	nameOffset := int32(-1)
+	for _, val := range names {
+		if val.name == value {
+			nameOffset = int32(val.offset)
+			break
+		}
+	}
+	if nameOffset == -1 {
+		return fmt.Errorf("value %s: %w", value, err)
+	}
+	err = binary.Write(buf, binary.LittleEndian, int32(nameOffset))
+	if err != nil {
+		return fmt.Errorf("write property offset: %w", err)
+	}
+	return nil
 }

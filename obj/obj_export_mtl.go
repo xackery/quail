@@ -27,15 +27,15 @@ func exportMtl(obj *ObjData, mtlPath string) error {
 			return fmt.Errorf("ka: %w", err)
 		}
 		for _, p := range m.Properties {
-			if p.Name == "e_TextureDiffuse0" && p.StrValue != "" {
-				_, err = w.WriteString(fmt.Sprintf("map_Kd %s\n", p.StrValue))
+			if p.Name == "e_TextureDiffuse0" && p.Value != "" {
+				_, err = w.WriteString(fmt.Sprintf("map_Kd %s\n", p.Value))
 				if err != nil {
 					return fmt.Errorf("ka: %w", err)
 				}
 				continue
 			}
-			if p.Name == "e_TextureNormal0" && p.StrValue != "" {
-				_, err = w.WriteString(fmt.Sprintf("map_Bump %s\n", p.StrValue))
+			if p.Name == "e_TextureNormal0" && p.Value != "" {
+				_, err = w.WriteString(fmt.Sprintf("map_Bump %s\n", p.Value))
 				if err != nil {
 					return fmt.Errorf("ka: %w", err)
 				}

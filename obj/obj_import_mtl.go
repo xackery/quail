@@ -37,14 +37,14 @@ func importMtl(obj *ObjData, mtlPath string) error {
 			if lastMaterial == nil {
 				return fmt.Errorf("map_kd line %d found before material definition", lineNumber)
 			}
-			lastMaterial.Properties = append(lastMaterial.Properties, &common.Property{Name: "e_TextureDiffuse0", StrValue: line[7:]})
+			lastMaterial.Properties = append(lastMaterial.Properties, &common.Property{Name: "e_TextureDiffuse0", Value: line[7:]})
 			continue
 		}
 		if strings.HasPrefix(line, "map_Bump") {
 			if lastMaterial == nil {
 				return fmt.Errorf("map_Bump line %d found before material definition", lineNumber)
 			}
-			lastMaterial.Properties = append(lastMaterial.Properties, &common.Property{Name: "e_TextureNormal0", StrValue: line[9:]})
+			lastMaterial.Properties = append(lastMaterial.Properties, &common.Property{Name: "e_TextureNormal0", Value: line[9:]})
 			continue
 		}
 	}

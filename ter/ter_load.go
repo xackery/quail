@@ -140,20 +140,23 @@ func (e *TER) Load(r io.ReadSeeker) error {
 			}
 			dump.Hex(propertyNameOffset, "%d%dpropertyNameOffset=0x%x(%s)", i, j, propertyNameOffset, propertyName)
 
-			propertyType := uint32(0)
-			err = binary.Read(r, binary.LittleEndian, &propertyType)
+			category := uint32(0)
+			err = binary.Read(r, binary.LittleEndian, &category)
 			if err != nil {
-				return fmt.Errorf("read propertyType: %w", err)
+				return fmt.Errorf("read category: %w", err)
 			}
-			dump.Hex(propertyType, "%d%dpropertyType=%d", i, j, propertyType)
+			dump.Hex(category, "%d%dcategory=%d", i, j, category)
 
-			propertyValue := uint32(0)
-			err = binary.Read(r, binary.LittleEndian, &propertyValue)
+			value := uint32(0)
+			err = binary.Read(r, binary.LittleEndian, &value)
 			if err != nil {
-				return fmt.Errorf("read propertyValue: %w", err)
+				return fmt.Errorf("read value: %w", err)
 			}
-			dump.Hex(propertyValue, "%d%dpropertyValue=%d", i, j, propertyValue)
-			err = e.AddMaterialProperty(name, propertyName, propertyType, float32(propertyValue), propertyValue)
+			dump.Hex(value, "%d%value=%d", i, j, value)
+			if category == 2 {
+				names[value]
+			}
+			err = e.AddMaterialProperty(name, propertyName, category, fmt.Sprintf("%0.4f", float32(value)))
 			if err != nil {
 				return fmt.Errorf("addMaterialProperty %s %s: %w", name, propertyName, err)
 			}

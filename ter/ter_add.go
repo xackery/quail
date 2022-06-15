@@ -19,16 +19,15 @@ func (e *TER) AddMaterial(name string, shaderName string) error {
 	return nil
 }
 
-func (e *TER) AddMaterialProperty(materialName string, propertyName string, typeValue uint32, floatValue float32, intValue uint32) error {
+func (e *TER) AddMaterialProperty(materialName string, propertyName string, category uint32, value string) error {
 	for _, o := range e.materials {
 		if o.Name != materialName {
 			continue
 		}
 		o.Properties = append(o.Properties, &common.Property{
-			Name:       propertyName,
-			TypeValue:  typeValue,
-			FloatValue: floatValue,
-			IntValue:   intValue,
+			Name:     propertyName,
+			Category: category,
+			Value:    value,
 		})
 		return nil
 	}

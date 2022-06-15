@@ -18,11 +18,9 @@ func (e *Material) String() string {
 }
 
 type Property struct {
-	Name       string
-	TypeValue  uint32
-	FloatValue float32
-	IntValue   uint32
-	StrValue   string
+	Name     string
+	Category uint32
+	Value    string
 }
 
 type Vertex struct {
