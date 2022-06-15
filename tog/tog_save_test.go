@@ -13,10 +13,10 @@ func TestSave(t *testing.T) {
 	}
 	e.objects = []*Object{
 		{
-			name: "test",
+			Name: "test",
 		},
 		{
-			name: "test2",
+			Name: "test2",
 		},
 	}
 

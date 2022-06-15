@@ -8,7 +8,7 @@ type TOG struct {
 }
 
 type Object struct {
-	name     string
+	Name     string
 	Position math32.Vector3
 	Rotation math32.Vector3
 	Scale    float32
