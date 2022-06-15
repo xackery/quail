@@ -6,8 +6,8 @@ import (
 )
 
 func blendPath() string {
-	path = fmt.Sprintf("/usr/local/blender/blender", path)
-	_, err = os.Stat(path)
+	path := fmt.Sprintf("/usr/local/blender/blender")
+	_, err := os.Stat(path)
 	if err == nil {
 		return path
 	}

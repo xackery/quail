@@ -12,6 +12,7 @@ func TestLoad(t *testing.T) {
 		return
 	}
 	path := "../eq/_steamfontmts.eqg/obj_gears_default.ani"
+	//path := "../eq/_bat.eqg/slpr_ba_1_bat.ani"
 	f, err := os.Open(path)
 	if err != nil {
 		t.Fatalf("open: %s", err)

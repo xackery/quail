@@ -38,7 +38,7 @@ func TestLoadSaveLoad(t *testing.T) {
 	if os.Getenv("SINGLE_TEST") != "1" {
 		return
 	}
-	path := "../eq/tmp/out.eqg"
+	path := "../eq/arena.eqg"
 	f, err := os.Open(path)
 	if err != nil {
 		t.Fatalf("%s", err)
@@ -57,7 +57,7 @@ func TestLoadSaveLoad(t *testing.T) {
 	if err != nil {
 		t.Fatalf("load: %s", err)
 	}
-	w, err := os.Create("../eq/tmp/out.eqg")
+	w, err := os.Create("../eq/tmp/arena.eqg")
 	if err != nil {
 		t.Fatalf("create: %s", err)
 	}
@@ -66,15 +66,15 @@ func TestLoadSaveLoad(t *testing.T) {
 	if err != nil {
 		t.Fatalf("save: %s", err)
 	}
-	d.Save("../eq/tmp/out.png")
+	d.Save("../eq/tmp/arena_original.png")
 	dump.Close()
 
-	path = "../eq/tmp/out.eqg"
+	path = "../eq/tmp/arena.eqg"
 	d, err = dump.New(path)
 	if err != nil {
 		t.Fatalf("dump.new: %s", err)
 	}
-	defer d.Save("../eq/tmp/out2.png")
+
 	r, err := os.Open(path)
 	if err != nil {
 		t.Fatalf("open: %s", err)
@@ -83,5 +83,6 @@ func TestLoadSaveLoad(t *testing.T) {
 	if err != nil {
 		t.Fatalf("load: %s", err)
 	}
+	d.Save("../eq/tmp/arena_new.png")
 
 }

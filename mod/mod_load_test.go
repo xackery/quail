@@ -37,7 +37,8 @@ func TestLoadSaveLoad(t *testing.T) {
 	if os.Getenv("SINGLE_TEST") != "1" {
 		return
 	}
-	path := "../eq/tmp/obj_gears.mod"
+	path := "../eq/_steamfontmts.eqg/obj_gears.mod"
+	//path := "../eq/_ork.eqg/ork.mod"
 	f, err := os.Open(path)
 	if err != nil {
 		t.Fatalf("%s", err)
@@ -73,7 +74,7 @@ func TestLoadSaveLoad(t *testing.T) {
 	if err != nil {
 		t.Fatalf("dump.new: %s", err)
 	}
-	defer d.Save("../eq/tmp/out2.png")
+	d.Save("../eq/tmp/out2.png")
 	r, err := os.Open(path)
 	if err != nil {
 		t.Fatalf("open: %s", err)
@@ -82,5 +83,38 @@ func TestLoadSaveLoad(t *testing.T) {
 	if err != nil {
 		t.Fatalf("load: %s", err)
 	}
+
+}
+
+func TestLoadSaveGLTF(t *testing.T) {
+	if os.Getenv("SINGLE_TEST") != "1" {
+		return
+	}
+	path := "../eq/_steamfontmts.eqg/obj_gears.mod"
+	f, err := os.Open(path)
+	if err != nil {
+		t.Fatalf("%s", err)
+	}
+	defer f.Close()
+	d, err := dump.New(path)
+	if err != nil {
+		t.Fatalf("dump.new: %s", err)
+	}
+
+	e, err := New("out")
+	if err != nil {
+		t.Fatalf("new: %s", err)
+	}
+	err = e.Load(f)
+	if err != nil {
+		t.Fatalf("load: %s", err)
+	}
+
+	err = e.ExportGLTF("../eq/tmp/obj_gears.gltf")
+	if err != nil {
+		t.Fatalf("save: %s", err)
+	}
+	d.Save("../eq/tmp/obj_gears_gltf.png")
+	dump.Close()
 
 }

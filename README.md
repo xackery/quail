@@ -9,6 +9,7 @@ blend|TBD|TBD
 eqg|compress,extract,inspect|load,save
 lit|TBD|load,save
 mod|inspect|add,importGtlf,importObj,load,save
+mds|TODO!|
 obj|TBD|exportMattxt,exportMtl,exportObj,export,importMattxt,importMtl,importObj,import
 s3d|TBD|load,save
 ter|inspect|add,exportGLTF,exportObj,importGTLF,importOBJ,load,save
@@ -16,3 +17,6 @@ tog|TBD|save
 wld|TBD|load,save
 zon|inspect|load,save,import
 
+## External resources
+
+[gltf writer for wld fragments in lantern](https://github.com/vermadas/LanternExtractor/blob/vermadas/multi_inject/LanternExtractor/EQ/Wld/Exporters/GltfWriter.cs)
