@@ -39,25 +39,34 @@ func (e *MOD) ImportGLTF(path string) error {
 
 			//fmt.Printf("pos: %+v\n", pos)
 
+			normal := [][3]float32{}
 			posIndex, ok = p.Attributes[gltf.NORMAL]
-			if !ok {
-				return fmt.Errorf("primitive in mesh %s has no normal", m.Name)
-			}
-			normal, err := modeler.ReadNormal(doc, doc.Accessors[posIndex], [][3]float32{})
-			if err != nil {
-				return fmt.Errorf("readNormal: %w", err)
+			if ok {
+				normal, err = modeler.ReadNormal(doc, doc.Accessors[posIndex], [][3]float32{})
+				if err != nil {
+					return fmt.Errorf("readNormal: %w", err)
+				}
+			} else {
+				for i := 0; i < len(pos); i++ {
+					normal = append(normal, [3]float32{0, 0, 0})
+				}
 			}
 
 			//fmt.Printf("normal: %+v\n", normal)
 
+			uv := [][2]float32{}
 			posIndex, ok = p.Attributes[gltf.TEXCOORD_0]
-			if !ok {
-				return fmt.Errorf("primitive in mesh %s has no texcoord", m.Name)
+			if ok {
+				uv, err = modeler.ReadTextureCoord(doc, doc.Accessors[posIndex], [][2]float32{})
+				if err != nil {
+					return fmt.Errorf("readTextureCoord: %w", err)
+				}
+			} else {
+				for i := 0; i < len(pos); i++ {
+					uv = append(uv, [2]float32{0, 0})
+				}
 			}
-			uv, err := modeler.ReadTextureCoord(doc, doc.Accessors[posIndex], [][2]float32{})
-			if err != nil {
-				return fmt.Errorf("readTextureCoord: %w", err)
-			}
+
 			//fmt.Printf("uv: %+v\n", uv)
 
 			for i := 0; i < len(pos); i++ {

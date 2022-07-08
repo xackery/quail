@@ -17,7 +17,7 @@ import (
 func (e *MOD) ExportGLTF(w io.Writer) error {
 	var err error
 	doc := gltf.NewDocument()
-	doc.Scenes[0] = &gltf.Scene{Name: e.name}
+	doc.Scenes[0] = &gltf.Scene{Name: strings.TrimSuffix(e.name, ".mod")}
 	for _, mat := range e.materials {
 
 		textureDiffuseName := ""
@@ -39,10 +39,11 @@ func (e *MOD) ExportGLTF(w io.Writer) error {
 		}
 
 		if buf.Len() == 0 {
-			return fmt.Errorf("%s not found", textureDiffuseName)
+			return fmt.Errorf("texture %s not found", textureDiffuseName)
 		}
 
-		if filepath.Ext(textureDiffuseName) == ".dds" {
+		switch filepath.Ext(textureDiffuseName) {
+		case ".dds":
 			img, err := dds.Decode(buf)
 			if err != nil {
 				return fmt.Errorf("dds.Decode %s: %w", textureDiffuseName, err)
@@ -53,8 +54,12 @@ func (e *MOD) ExportGLTF(w io.Writer) error {
 				return fmt.Errorf("png.Encode %s: %w", textureDiffuseName, err)
 			}
 			textureDiffuseName = strings.ReplaceAll(textureDiffuseName, ".dds", ".png")
+		case ".png":
+		default:
+			return fmt.Errorf("material %s has a texture of %s which is unsupported", e.name, textureDiffuseName)
 		}
 
+		meshName := strings.TrimSuffix(textureDiffuseName, ".png")
 		imageIdx, err := modeler.WriteImage(doc, textureDiffuseName, "image/png", buf)
 		if err != nil {
 			return fmt.Errorf("writeImage to gtlf: %w", err)
@@ -62,7 +67,7 @@ func (e *MOD) ExportGLTF(w io.Writer) error {
 		doc.Textures = append(doc.Textures, &gltf.Texture{Source: gltf.Index(imageIdx)})
 
 		doc.Materials = append(doc.Materials, &gltf.Material{
-			Name: mat.Name,
+			Name: meshName,
 			PBRMetallicRoughness: &gltf.PBRMetallicRoughness{
 				BaseColorTexture: &gltf.TextureInfo{
 					Index: uint32(len(doc.Textures) - 1),
@@ -72,7 +77,7 @@ func (e *MOD) ExportGLTF(w io.Writer) error {
 		})
 
 		mesh := &gltf.Mesh{
-			Name: textureDiffuseName,
+			Name: meshName,
 		}
 
 		prim := &gltf.Primitive{
@@ -86,12 +91,15 @@ func (e *MOD) ExportGLTF(w io.Writer) error {
 		uvs := [][2]float32{}
 		indices := []uint16{}
 
-		for _, vert := range e.vertices {
-			positions = append(positions, [3]float32{vert.Position.X, vert.Position.Y, vert.Position.Z})
-			normals = append(normals, [3]float32{vert.Normal.X, vert.Normal.Y, vert.Normal.Z})
-			uvs = append(uvs, [2]float32{vert.Uv.X, vert.Uv.Y})
-		}
-		for _, o := range e.triangles {
+		for i, o := range e.triangles {
+			if o.MaterialName != mat.Name {
+				continue
+			}
+
+			positions = append(positions, [3]float32{e.vertices[i].Position.X, e.vertices[i].Position.Y, e.vertices[i].Position.Z})
+			normals = append(normals, [3]float32{e.vertices[i].Normal.X, e.vertices[i].Normal.Y, e.vertices[i].Normal.Z})
+			uvs = append(uvs, [2]float32{e.vertices[i].Uv.X, e.vertices[i].Uv.Y})
+
 			indices = append(indices, uint16(o.Index.X))
 			indices = append(indices, uint16(o.Index.Y))
 			indices = append(indices, uint16(o.Index.Z))
@@ -105,9 +113,10 @@ func (e *MOD) ExportGLTF(w io.Writer) error {
 		if err != nil {
 			return fmt.Errorf("writeAttributes: %w", err)
 		}
+		fmt.Println(meshName, "has", len(positions), "positions based on", len(e.triangles), "total triangles")
 		prim.Indices = gltf.Index(modeler.WriteIndices(doc, indices))
 		doc.Meshes = append(doc.Meshes, mesh)
-		doc.Nodes = append(doc.Nodes, &gltf.Node{Name: textureDiffuseName, Mesh: gltf.Index(uint32(len(doc.Meshes) - 1))})
+		doc.Nodes = append(doc.Nodes, &gltf.Node{Name: meshName, Mesh: gltf.Index(uint32(len(doc.Meshes) - 1))})
 		doc.Scenes[0].Nodes = append(doc.Scenes[0].Nodes, uint32(len(doc.Nodes)-1))
 	}
 	for _, buff := range doc.Buffers {
