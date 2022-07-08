@@ -28,6 +28,12 @@ var compressCmd = &cobra.Command{
 			}
 			path = args[0]
 		}
+		defer func() {
+			if err != nil {
+				fmt.Println("Error:", err)
+				os.Exit(1)
+			}
+		}()
 		out, err := cmd.Flags().GetString("out")
 		if err != nil {
 			return fmt.Errorf("parse out: %w", err)
@@ -93,8 +99,7 @@ var compressCmd = &cobra.Command{
 			addStdout += file.Name() + ", "
 		}
 		if fileCount == 0 {
-			fmt.Println("no files found to add")
-			os.Exit(1)
+			return fmt.Errorf("no files found to add")
 		}
 		addStdout = addStdout[0:len(addStdout)-2] + "\n"
 

@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"image/color"
 	"io"
+	"io/ioutil"
 
 	"github.com/g3n/engine/math32"
+	"github.com/xackery/quail/common"
 	"github.com/xackery/quail/dump"
 )
 
@@ -92,6 +94,7 @@ func (e *MOD) Load(r io.ReadSeeker) error {
 		}
 		chunk = append(chunk, b)
 	}
+
 	dump.HexRange(nameData, int(nameLength), "nameData=(%d bytes, %d entries)", nameLength, len(names))
 	for i := 0; i < int(materialCount); i++ {
 		materialID := uint32(0)
@@ -159,10 +162,31 @@ func (e *MOD) Load(r io.ReadSeeker) error {
 				return fmt.Errorf("read propertyValue: %w", err)
 			}
 			dump.Hex(propertyValue, "%d%dpropertyValue=%d", i, j, propertyValue)
-			err = e.AddMaterialProperty(name, propertyName, propertyType, fmt.Sprintf("%d", propertyValue))
-			if err != nil {
-				return fmt.Errorf("addMaterialProperty %s %s: %w", name, propertyName, err)
+			if propertyType == 2 {
+				propertyValueName, ok := names[propertyValue]
+				if !ok {
+					return fmt.Errorf("property %d names offset %d not found", j, propertyValue)
+				}
+				data, err := ioutil.ReadFile(fmt.Sprintf("%s/%s", e.path, propertyValueName))
+				if err != nil {
+					return fmt.Errorf("read material %s: %w", propertyName, err)
+				}
+				fe, err := common.NewFileEntry(propertyValueName, data)
+				if err != nil {
+					return fmt.Errorf("new fileentry material %s: %w", propertyName, err)
+				}
+				e.files = append(e.files, fe)
+				err = e.AddMaterialProperty(name, propertyName, propertyType, propertyValueName)
+				if err != nil {
+					return fmt.Errorf("addMaterialProperty %s %s: %w", name, propertyName, err)
+				}
+			} else {
+				err = e.AddMaterialProperty(name, propertyName, propertyType, fmt.Sprintf("%d", propertyValue))
+				if err != nil {
+					return fmt.Errorf("addMaterialProperty %s %s: %w", name, propertyName, err)
+				}
 			}
+
 		}
 	}
 

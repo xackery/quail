@@ -2,13 +2,14 @@ package ter
 
 import (
 	"fmt"
+	"io"
 
 	"github.com/qmuntal/gltf"
 	"github.com/qmuntal/gltf/modeler"
 )
 
 // ExportGLTF exports a provided ter file to gltf format
-func (e *TER) ExportGLTF(path string) error {
+func (e *TER) ExportGLTF(w io.Writer) error {
 	var err error
 	doc := gltf.NewDocument()
 
@@ -57,9 +58,11 @@ func (e *TER) ExportGLTF(path string) error {
 	for _, buff := range doc.Buffers {
 		buff.EmbeddedResource()
 	}
-	err = gltf.Save(doc, path)
+	enc := gltf.NewEncoder(w)
+	enc.AsBinary = false
+	err = enc.Encode(doc)
 	if err != nil {
-		return fmt.Errorf("save %s: %w", path, err)
+		return fmt.Errorf("encode: %w", err)
 	}
 	return nil
 }

@@ -7,6 +7,7 @@ import (
 // MOD is a zon file struct
 type MOD struct {
 	name            string
+	path            string
 	materials       []*common.Material
 	vertices        []*common.Vertex
 	triangles       []*common.Triangle
@@ -26,9 +27,18 @@ type boneAssignment struct {
 	unknown [9]uint32
 }
 
-func New(name string) (*MOD, error) {
+func New(name string, path string) (*MOD, error) {
 	e := &MOD{
 		name: name,
+		path: path,
 	}
 	return e, nil
+}
+
+func (e *MOD) SetName(value string) {
+	e.name = value
+}
+
+func (e *MOD) SetPath(value string) {
+	e.path = value
 }

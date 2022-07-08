@@ -10,17 +10,21 @@ func TestGLTFImport(t *testing.T) {
 	if os.Getenv("SINGLE_TEST") != "1" {
 		return
 	}
-	e, err := New("out")
+	path := "test/"
+	inFile := "test/ecommons.gltf"
+	outFile := "test/ecommons_gltfimport.ter"
+
+	e, err := New("out", path)
 	if err != nil {
 		t.Fatalf("new: %s", err)
 	}
-	path := "../eq/tmp/ecommons.gltf"
-	err = e.ImportGLTF(path)
+
+	err = e.ImportGLTF(inFile)
 	if err != nil {
 		t.Fatalf("import %s: %s", path, err)
 	}
 
-	w, err := os.Create("../eq/tmp/out.mod")
+	w, err := os.Create(outFile)
 	if err != nil {
 		t.Fatalf("create: %s", err)
 	}
@@ -35,17 +39,22 @@ func TestGLTFImportSave(t *testing.T) {
 	if os.Getenv("SINGLE_TEST") != "1" {
 		return
 	}
-	e, err := New("out")
+
+	path := "test/"
+	inFile := "test/ecommons.gltf"
+	outFile := "test/ecommons_gltfimportsave.ter"
+
+	e, err := New("out", path)
 	if err != nil {
 		t.Fatalf("new: %s", err)
 	}
-	path := "../eq/tmp/ecommons.gltf"
-	err = e.ImportGLTF(path)
+
+	err = e.ImportGLTF(inFile)
 	if err != nil {
 		t.Fatalf("import %s: %s", path, err)
 	}
 
-	w, err := os.Create("../eq/tmp/out.ter")
+	w, err := os.Create(outFile)
 	if err != nil {
 		t.Fatalf("create: %s", err)
 	}

@@ -1,3 +1,4 @@
+// Ter package
 package ter
 
 import (
@@ -11,14 +12,16 @@ import (
 // TER is a terrain file struct
 type TER struct {
 	name      string
+	path      string
 	materials []*common.Material
 	vertices  []*common.Vertex
 	triangles []*common.Triangle
 }
 
-func New(name string) (*TER, error) {
+func New(name string, path string) (*TER, error) {
 	t := &TER{
 		name: name,
+		path: path,
 	}
 	return t, nil
 }
@@ -35,4 +38,12 @@ func (e *TER) Data() []byte {
 		os.Exit(1)
 	}
 	return w.Bytes()
+}
+
+func (e *TER) SetName(value string) {
+	e.name = value
+}
+
+func (e *TER) SetPath(value string) {
+	e.path = value
 }

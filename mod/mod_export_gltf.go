@@ -1,20 +1,74 @@
 package mod
 
 import (
+	"bytes"
 	"fmt"
+	"image/png"
+	"io"
+	"path/filepath"
+	"strings"
 
 	"github.com/qmuntal/gltf"
 	"github.com/qmuntal/gltf/modeler"
+	"github.com/spate/glimage/dds"
 )
 
 // ExportGLTF exports a provided mod file to gltf format
-func (e *MOD) ExportGLTF(path string) error {
+func (e *MOD) ExportGLTF(w io.Writer) error {
 	var err error
 	doc := gltf.NewDocument()
 
 	for _, mat := range e.materials {
+
+		textureDiffuseName := ""
+		for _, p := range mat.Properties {
+			if p.Category == 2 && strings.ToLower(p.Name) == "e_texturediffuse0" {
+				textureDiffuseName = p.Value
+			}
+		}
+
+		buf := &bytes.Buffer{}
+		if len(textureDiffuseName) > 0 {
+			for _, fe := range e.files {
+				if fe.Name() != textureDiffuseName {
+					continue
+				}
+				buf = bytes.NewBuffer(fe.Data())
+				break
+			}
+		}
+
+		if buf.Len() == 0 {
+			return fmt.Errorf("%s not found", textureDiffuseName)
+		}
+
+		if filepath.Ext(textureDiffuseName) == ".dds" {
+			img, err := dds.Decode(buf)
+			if err != nil {
+				return fmt.Errorf("dds.Decode %s: %w", textureDiffuseName, err)
+			}
+			buf = bytes.NewBuffer(nil)
+			err = png.Encode(buf, img)
+			if err != nil {
+				return fmt.Errorf("png.Encode %s: %w", textureDiffuseName, err)
+			}
+			textureDiffuseName = strings.ReplaceAll(textureDiffuseName, ".dds", ".png")
+		}
+
+		imageIdx, err := modeler.WriteImage(doc, textureDiffuseName, "image/png", buf)
+		if err != nil {
+			return fmt.Errorf("writeImage to gtlf: %w", err)
+		}
+		doc.Textures = append(doc.Textures, &gltf.Texture{Source: gltf.Index(imageIdx)})
+
 		doc.Materials = append(doc.Materials, &gltf.Material{
 			Name: mat.Name,
+			PBRMetallicRoughness: &gltf.PBRMetallicRoughness{
+				BaseColorTexture: &gltf.TextureInfo{
+					Index: uint32(len(doc.Textures) - 1),
+				},
+				MetallicFactor: gltf.Float(0),
+			},
 		})
 	}
 
@@ -57,9 +111,13 @@ func (e *MOD) ExportGLTF(path string) error {
 	for _, buff := range doc.Buffers {
 		buff.EmbeddedResource()
 	}
-	err = gltf.Save(doc, path)
+
+	enc := gltf.NewEncoder(w)
+	enc.AsBinary = false
+	err = enc.Encode(doc)
 	if err != nil {
-		return fmt.Errorf("save %s: %w", path, err)
+		return fmt.Errorf("encode: %w", err)
 	}
+
 	return nil
 }

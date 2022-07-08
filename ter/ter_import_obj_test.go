@@ -12,16 +12,16 @@ func TestObjImport(t *testing.T) {
 		return
 	}
 	e := &TER{}
-	objPath := "../eq/soldungb/cache/soldungb.obj"
-	mtlPath := "../eq/soldungb/cache/soldungb.mtl"
-	matTxtPath := "../eq/soldungb/cache/soldungb_material.txt"
+	objPath := "test/soldungb.obj"
+	mtlPath := "test/soldungb.mtl"
+	matTxtPath := "test/soldungb_material.txt"
 
 	err := e.ImportObj(objPath, mtlPath, matTxtPath)
 	if err != nil {
 		t.Fatalf("import: %s", err)
 	}
 
-	w, err := os.Create("../eq/tmp/out.ter")
+	w, err := os.Create("test/out.ter")
 	if err != nil {
 		t.Fatalf("create: %s", err)
 	}
@@ -46,7 +46,7 @@ func TestObjImportSave(t *testing.T) {
 		t.Fatalf("import: %s", err)
 	}
 
-	w, err := os.Create("../eq/tmp/out.ter")
+	w, err := os.Create("test/out.ter")
 	if err != nil {
 		t.Fatalf("create: %s", err)
 	}
@@ -62,24 +62,26 @@ func TestObjImportExport(t *testing.T) {
 	if os.Getenv("SINGLE_TEST") != "1" {
 		return
 	}
-	e, err := New("out")
+	path := "test/"
+
+	e, err := New("out", path)
 	if err != nil {
 		t.Fatalf("new: %s", err)
 	}
-	objPath := "../eq/soldungb/cache/soldungb.obj"
-	mtlPath := "../eq/soldungb/cache/soldungb.mtl"
-	matTxtPath := "../eq/soldungb/cache/soldungb_material.txt"
+	objPath := "test/soldungb.obj"
+	mtlPath := "test/soldungb.mtl"
+	matTxtPath := "test/soldungb_material.txt"
 
 	err = e.ImportObj(objPath, mtlPath, matTxtPath)
 	if err != nil {
 		t.Fatalf("import: %s", err)
 	}
 
-	err = e.ExportObj("../eq/tmp/out.obj", "../eq/tmp/out.mtl", "../eq/tmp/out_material.txt")
+	err = e.ExportObj("test/out.obj", "test/out.mtl", "test/out_material.txt")
 	if err != nil {
 		t.Fatalf("export: %s", err)
 	}
-	err = compare(objPath, "../eq/tmp/out.obj")
+	err = compare(objPath, "test/out.obj")
 	if err != nil {
 		t.Fatalf("compare: %s", err)
 	}

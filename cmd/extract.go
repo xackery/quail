@@ -50,8 +50,7 @@ var extractCmd = &cobra.Command{
 			}
 			files, err := os.ReadDir(path)
 			if err != nil {
-				fmt.Println("Error:", err)
-				os.Exit(1)
+				return err
 			}
 			for _, file := range files {
 				if file.IsDir() {
@@ -62,16 +61,14 @@ var extractCmd = &cobra.Command{
 				}
 				err = extract(fmt.Sprintf("%s/%s", path, file.Name()), fmt.Sprintf("%s/_%s", out, file.Name()), true)
 				if err != nil {
-					fmt.Println("Error:", err)
-					os.Exit(1)
+					return fmt.Errorf("extract: %w", err)
 				}
 			}
 			os.Exit(0)
 		}
 		err = extract(path, out, false)
 		if err != nil {
-			fmt.Println("Error: extract:", err)
-			os.Exit(1)
+			return fmt.Errorf("extract: %w", err)
 		}
 
 		return nil
@@ -93,7 +90,7 @@ func extract(path string, out string, isDir bool) error {
 	}
 	results, err := e.Extract(out)
 	if err != nil {
-		fmt.Printf("Error: extract %s: %s\n", filepath.Base(path), err)
+		fmt.Printf("failed to extract %s: %s\n", filepath.Base(path), err)
 		os.Exit(1)
 	}
 

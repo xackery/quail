@@ -12,22 +12,32 @@ func TestGLTFExport(t *testing.T) {
 	if os.Getenv("SINGLE_TEST") != "1" {
 		return
 	}
-	e, err := New("soldungb")
+	path := "test/"
+	inFile := "test/ecommons.ter"
+	outFile := "test/ecommons_gltfexport.gltf"
+
+	e, err := New("ecommons", path)
 	if err != nil {
 		t.Fatalf("new: %s", err)
 	}
-	path := "../eq/_ecommons.eqg/ecommons.ter"
-	r, err := os.Open(path)
+
+	r, err := os.Open(inFile)
 	if err != nil {
 		t.Fatalf("open %s: %s", path, err)
 	}
 	defer r.Close()
+
 	err = e.Load(r)
 	if err != nil {
 		t.Fatalf("import %s: %s", path, err)
 	}
 
-	err = e.ExportGLTF("../eq/tmp/out.gltf")
+	w, err := os.Create(outFile)
+	if err != nil {
+		t.Fatalf("create %s", err)
+	}
+	defer w.Close()
+	err = e.ExportGLTF(w)
 	if err != nil {
 		t.Fatalf("save: %s", err)
 	}
@@ -38,6 +48,8 @@ func TestGLTF(t *testing.T) {
 		return
 	}
 	var err error
+
+	outFile := "test/cube2.gtlf"
 
 	doc := &gltf.Document{}
 	attrs, _ := modeler.WriteAttributesInterleaved(doc, modeler.Attributes{
@@ -51,7 +63,7 @@ func TestGLTF(t *testing.T) {
 			{Extras: 8.0, Targets: []gltf.Attribute{{gltf.POSITION: 1, "THEN": 4}, {"OTHER": 2}}, Indices: gltf.Index(2), Material: gltf.Index(1), Mode: gltf.PrimitiveLines, Attributes: attrs},
 		}}}
 
-	err = gltf.Save(doc, "../eq/tmp/cube2.gltf")
+	err = gltf.Save(doc, outFile)
 	if err != nil {
 		t.Fatalf("save: %s", err)
 	}
@@ -61,6 +73,7 @@ func TestGLTFBin(t *testing.T) {
 	if os.Getenv("SINGLE_TEST") != "1" {
 		return
 	}
+	outFile := "test/example.gtlf"
 	doc := &gltf.Document{
 		Accessors: []*gltf.Accessor{
 			{BufferView: gltf.Index(0), ComponentType: gltf.ComponentUshort, Count: 36, Type: gltf.AccessorScalar},
@@ -93,7 +106,7 @@ func TestGLTFBin(t *testing.T) {
 		Scene:    gltf.Index(0),
 		Scenes:   []*gltf.Scene{{Name: "Root Scene", Nodes: []uint32{0}}},
 	}
-	if err := gltf.SaveBinary(doc, "./example.gltf"); err != nil {
+	if err := gltf.SaveBinary(doc, outFile); err != nil {
 		panic(err)
 	}
 }
@@ -102,6 +115,8 @@ func TestFoo(t *testing.T) {
 	if os.Getenv("SINGLE_TEST") != "1" {
 		return
 	}
+	outFile := "test/foo.glb"
+
 	doc := gltf.NewDocument()
 	attrs, _ := modeler.WriteAttributesInterleaved(doc, modeler.Attributes{
 		Position:       [][3]float32{{1, 2, 3}, {0, 0, -1}},
@@ -129,12 +144,14 @@ func TestFoo(t *testing.T) {
 	}}
 	doc.Nodes = []*gltf.Node{{Name: "Root", Mesh: gltf.Index(0)}}
 	doc.Scenes[0].Nodes = append(doc.Scenes[0].Nodes, 0)
-	if err := gltf.SaveBinary(doc, "../eq/tmp/out.glb"); err != nil {
+	if err := gltf.SaveBinary(doc, outFile); err != nil {
 		panic(err)
 	}
 }
 
 func TestGLTFSaveExample(t *testing.T) {
+	outFile := "test/cubesaveexample.gltf"
+
 	doc := &gltf.Document{
 		Accessors: []*gltf.Accessor{
 			{BufferView: gltf.Index(0), ComponentType: gltf.ComponentUshort, Count: 36, Type: gltf.AccessorScalar},
@@ -170,13 +187,14 @@ func TestGLTFSaveExample(t *testing.T) {
 	for _, buff := range doc.Buffers {
 		buff.EmbeddedResource()
 	}
-	err := gltf.Save(doc, "../eq/tmp/cube.gltf")
+	err := gltf.Save(doc, outFile)
 	if err != nil {
 		t.Fatalf("save: %s", err)
 	}
 }
 
 func TestGLTFTriangle(t *testing.T) {
+	outFile := "test/triangle.gltf"
 	doc := gltf.NewDocument()
 	doc.Meshes = []*gltf.Mesh{{
 		Name: "Pyramid",
@@ -191,13 +209,15 @@ func TestGLTFTriangle(t *testing.T) {
 	for _, buff := range doc.Buffers {
 		buff.EmbeddedResource()
 	}
-	err := gltf.Save(doc, "../eq/tmp/triangle.gltf")
+	err := gltf.Save(doc, outFile)
 	if err != nil {
 		t.Fatalf("save: %s", err)
 	}
 }
 
 func TestGLTFInterleaved(t *testing.T) {
+	outFile := "test/interleaved.gltf"
+
 	doc := gltf.NewDocument()
 	attrs, _ := modeler.WriteAttributesInterleaved(doc, modeler.Attributes{
 		Position:       [][3]float32{{1, 2, 3}, {0, 0, -1}},
@@ -228,7 +248,7 @@ func TestGLTFInterleaved(t *testing.T) {
 	for _, buff := range doc.Buffers {
 		buff.EmbeddedResource()
 	}
-	err := gltf.Save(doc, "../eq/tmp/interleaved.gltf")
+	err := gltf.Save(doc, outFile)
 	if err != nil {
 		t.Fatalf("save: %s", err)
 	}

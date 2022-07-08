@@ -9,12 +9,14 @@ func TestObjExport(t *testing.T) {
 	if os.Getenv("SINGLE_TEST") != "1" {
 		return
 	}
-	e, err := New("out")
+	path := "test/"
+	inFile := "test/soldungb.ter"
+
+	e, err := New("out", path)
 	if err != nil {
 		t.Fatalf("new: %s", err)
 	}
-	path := "../eq/_soldungb.eqg/soldungb.ter"
-	r, err := os.Open(path)
+	r, err := os.Open(inFile)
 	if err != nil {
 		t.Fatalf("open: %s", err)
 	}
@@ -23,7 +25,7 @@ func TestObjExport(t *testing.T) {
 		t.Fatalf("load: %s", err)
 	}
 
-	err = e.ExportObj("../eq/tmp/out.obj", "../eq/tmp/out.mtl", "../eq/tmp/out_material.txt")
+	err = e.ExportObj("test/objexport.obj", "test/objexport.mtl", "test/objexport.txt")
 	if err != nil {
 		t.Fatalf("export: %s", err)
 	}

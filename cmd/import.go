@@ -53,6 +53,12 @@ to quickly create a Cobra application.`,
 			}
 			path = args[0]
 		}
+		defer func() {
+			if err != nil {
+				fmt.Println("Error:", err)
+				os.Exit(1)
+			}
+		}()
 		out, err := cmd.Flags().GetString("out")
 		if err != nil {
 			return fmt.Errorf("parse out: %w", err)
@@ -74,8 +80,7 @@ to quickly create a Cobra application.`,
 
 		err = importExec(path, out, blenderPath)
 		if err != nil {
-			fmt.Println("import:", err)
-			os.Exit(1)
+			return fmt.Errorf("importExec: %w", err)
 		}
 		return nil
 	},
@@ -123,18 +128,15 @@ func importExec(path string, out string, blenderPath string) error {
 	if err != nil {
 		err = os.MkdirAll(cachePath, 0766)
 		if err != nil {
-			fmt.Printf("cache folder not found for import: %s\n", err)
-			os.Exit(1)
+			return fmt.Errorf("cache folder not found for import: %w", err)
 		}
 		fi, err = os.Stat(cachePath)
 		if err != nil {
-			fmt.Printf("cache folder stat: %s\n", err)
-			os.Exit(1)
+			return fmt.Errorf("stat cache folder: %w", err)
 		}
 	}
 	if !fi.IsDir() {
-		fmt.Println("cache file exists, should be folder")
-		os.Exit(1)
+		return fmt.Errorf("cache file exists, should be folder")
 	}
 
 	err = blend.Convert(path, shortname, blenderPath)
@@ -212,8 +214,7 @@ func importExec(path string, out string, blenderPath string) error {
 		return fmt.Errorf("readdir cachepath: %w", err)
 	}
 	if len(files) == 0 {
-		fmt.Printf("no files found in %s to import\n", cachePath)
-		os.Exit(1)
+		return fmt.Errorf("no files found in %s to import", cachePath)
 	}
 
 	suffixes := []string{".py", ".obj", ".mtl", "_material.txt", "_light.txt", "_region.txt", "_doors.txt", "_mod.txt"}
@@ -247,8 +248,7 @@ func importExec(path string, out string, blenderPath string) error {
 		addStdout += file.Name() + ", "
 	}
 	if fileCount == 0 {
-		fmt.Println("no files found to add")
-		os.Exit(1)
+		return fmt.Errorf("no files found to add")
 	}
 	addStdout = addStdout[0:len(addStdout)-2] + "\n"
 

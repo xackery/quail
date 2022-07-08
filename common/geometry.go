@@ -10,11 +10,24 @@ type Material struct {
 	Name       string
 	ShaderName string
 	Flag       uint32
-	Properties []*Property
+	Properties Properties
 }
 
 func (e *Material) String() string {
-	return fmt.Sprintf("{Name: %s, Flag: %d, Properties: (%d)}", e.Name, e.Flag, len(e.Properties))
+	return fmt.Sprintf("{Name: %s, Flag: %d, Properties: (%s)}", e.Name, e.Flag, e.Properties)
+}
+
+type Properties []*Property
+
+func (e Properties) String() string {
+	value := ""
+	for _, p := range e {
+		value += fmt.Sprintf("[%s: %s], ", p.Name, p.Value)
+	}
+	if len(e) > 0 {
+		value = value[0 : len(value)-2]
+	}
+	return value
 }
 
 type Property struct {

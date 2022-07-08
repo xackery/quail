@@ -14,7 +14,9 @@ func TestSave(t *testing.T) {
 	}
 	var err error
 
-	e, err := New("out")
+	path := "test/"
+
+	e, err := New("out", path)
 	if err != nil {
 		t.Fatalf("new: %s", err)
 	}
