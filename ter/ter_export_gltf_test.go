@@ -49,7 +49,7 @@ func TestGLTF(t *testing.T) {
 	}
 	var err error
 
-	outFile := "test/cube2.gtlf"
+	outFile := "test/cube2.gltf"
 
 	doc := &gltf.Document{}
 	attrs, _ := modeler.WriteAttributesInterleaved(doc, modeler.Attributes{

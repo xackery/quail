@@ -24,7 +24,8 @@ func (e *TER) ExportGLTF(w io.Writer) error {
 	}
 
 	prim := &gltf.Primitive{
-		Mode: gltf.PrimitiveTriangles,
+		Mode:     gltf.PrimitiveTriangles,
+		Material: gltf.Index(uint32(len(doc.Materials) - 1)),
 	}
 	mesh.Primitives = append(mesh.Primitives, prim)
 

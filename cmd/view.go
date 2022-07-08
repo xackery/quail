@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"image/color"
 	"io"
-	"math"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -29,7 +29,7 @@ var viewCmd = &cobra.Command{
 	Short: "View a model or image",
 	Long: `View an EverQuest asset
 
-Supported extensions: mod
+Supported extensions: gltf, mod, ter
 `,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		path, err := cmd.Flags().GetString("path")
@@ -74,6 +74,27 @@ Supported extensions: mod
 		type loadTypes struct {
 			instance  loader
 			extension string
+		}
+
+		if ext == ".gltf" {
+			data, err := ioutil.ReadFile(path)
+			if err != nil {
+				return err
+			}
+			v := &viewer{
+				width:         796,
+				height:        448,
+				drawDebugText: true,
+			}
+			err = v.load(data)
+			if err != nil {
+				return fmt.Errorf("load gltf to viewer: %w", err)
+			}
+			err = ebiten.RunGame(v)
+			if err != nil {
+				return fmt.Errorf("run viewer: %w", err)
+			}
+			return nil
 		}
 		loads := []*loadTypes{
 			//{instance: &ani.ANI{}, extension: ".ani"},
@@ -212,7 +233,7 @@ func (v *viewer) Update() error {
 	// Rotating the camera with the mouse
 
 	// Rotate and tilt the camera according to mouse movements
-	mx, my := ebiten.CursorPosition()
+	/*mx, my := ebiten.CursorPosition()
 
 	mv := vector.Vector{float64(mx), float64(my)}
 
@@ -230,7 +251,7 @@ func (v *viewer) Update() error {
 	v.camera.SetLocalRotation(tilt.Mult(rotate))
 
 	v.prevMousePosition = mv.Clone()
-
+	*/
 	/*	armature := v.scene.Root.ChildrenRecursive().ByName("Armature", true)[0].(*tetra3d.Node)
 		armature.Rotate(0, 1, 0, 0.01)
 
