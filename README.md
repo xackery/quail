@@ -8,11 +8,11 @@ ani|inspect|load
 blend|TBD|TBD
 eqg|compress,extract,inspect|load,save
 lit|TBD|load,save
-mod|inspect|add,importGtlf,importObj,load,save
+mod|inspect|add,gtlfImport,objImport,load,save
 mds|TODO!|
-obj|TBD|exportMattxt,exportMtl,exportObj,export,importMattxt,importMtl,importObj,import
+obj|TBD|mattxtExport,mtlExport,objExport,export,mattxtImport,mtlImport,objImport,import
 s3d|TBD|load,save
-ter|inspect|add,exportGLTF,exportObj,importGTLF,importOBJ,load,save
+ter|inspect|add,gltfExport,objExport,gltfImport,objImport,load,save
 tog|TBD|save
 wld|TBD|load,save
 zon|inspect|load,save,import

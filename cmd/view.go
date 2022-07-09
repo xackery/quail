@@ -71,6 +71,7 @@ Supported extensions: gltf, mod, ter
 			common.GLTFExporter
 			SetPath(string)
 		}
+
 		type loadTypes struct {
 			instance  loader
 			extension string
@@ -117,7 +118,7 @@ Supported extensions: gltf, mod, ter
 			}
 
 			buf := &bytes.Buffer{}
-			err = v.instance.ExportGLTF(buf)
+			err = v.instance.GLTFExport(buf)
 			if err != nil {
 				return fmt.Errorf("export gltf %s: %w", v.extension, err)
 			}

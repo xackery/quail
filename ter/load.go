@@ -1,4 +1,4 @@
-package mod
+package ter
 
 import (
 	"encoding/binary"
@@ -12,15 +12,16 @@ import (
 	"github.com/xackery/quail/dump"
 )
 
-func (e *MOD) Load(r io.ReadSeeker) error {
+func (e *TER) Load(r io.ReadSeeker) error {
 	var err error
+
 	header := [4]byte{}
 	err = binary.Read(r, binary.LittleEndian, &header)
 	if err != nil {
 		return fmt.Errorf("read header: %w", err)
 	}
 	dump.Hex(header, "header=%s", header)
-	if header != [4]byte{'E', 'Q', 'G', 'M'} {
+	if header != [4]byte{'E', 'Q', 'G', 'T'} {
 		return fmt.Errorf("header does not match EQGM")
 	}
 
@@ -30,8 +31,8 @@ func (e *MOD) Load(r io.ReadSeeker) error {
 		return fmt.Errorf("read header version: %w", err)
 	}
 	dump.Hex(version, "version=%d", version)
-	if version != 1 && version != 3 {
-		return fmt.Errorf("version is %d, wanted 1 or 3", version)
+	if version != 2 {
+		return fmt.Errorf("version is %d, wanted 2", version)
 	}
 
 	nameLength := uint32(0)
@@ -55,19 +56,12 @@ func (e *MOD) Load(r io.ReadSeeker) error {
 	}
 	dump.Hex(verticesCount, "verticesCount=%d", verticesCount)
 
-	faceCount := uint32(0)
-	err = binary.Read(r, binary.LittleEndian, &faceCount)
+	triangleCount := uint32(0)
+	err = binary.Read(r, binary.LittleEndian, &triangleCount)
 	if err != nil {
-		return fmt.Errorf("read face count: %w", err)
+		return fmt.Errorf("read triangle count: %w", err)
 	}
-	dump.Hex(faceCount, "faceCount=%d", faceCount)
-
-	boneCount := uint32(0)
-	err = binary.Read(r, binary.LittleEndian, &boneCount)
-	if err != nil {
-		return fmt.Errorf("read bone count: %w", err)
-	}
-	dump.Hex(boneCount, "boneCount=%d", boneCount)
+	dump.Hex(triangleCount, "triangleCount=%d", triangleCount)
 
 	/*err = binary.Read(r, binary.LittleEndian, uint32(len(e.boneAssignments)))
 	if err != nil {
@@ -94,7 +88,6 @@ func (e *MOD) Load(r io.ReadSeeker) error {
 		}
 		chunk = append(chunk, b)
 	}
-
 	dump.HexRange(nameData, int(nameLength), "nameData=(%d bytes, %d entries)", nameLength, len(names))
 	for i := 0; i < int(materialCount); i++ {
 		materialID := uint32(0)
@@ -133,7 +126,7 @@ func (e *MOD) Load(r io.ReadSeeker) error {
 		}
 		dump.Hex(propertyCount, "%dpropertyCount=%d", i, propertyCount)
 
-		err = e.AddMaterial(name, shaderName)
+		err = e.MaterialAdd(name, shaderName)
 		if err != nil {
 			return fmt.Errorf("addMaterial %s: %w", name, err)
 		}
@@ -186,7 +179,6 @@ func (e *MOD) Load(r io.ReadSeeker) error {
 					return fmt.Errorf("addMaterialProperty %s %s: %w", name, propertyName, err)
 				}
 			}
-
 		}
 	}
 
@@ -234,100 +226,35 @@ func (e *MOD) Load(r io.ReadSeeker) error {
 	}
 	dump.HexRange([]byte{0x01, 0x02}, int(verticesCount)*32, "vertData=(%d bytes)", int(verticesCount)*32)
 
-	for i := 0; i < int(faceCount); i++ {
+	for i := 0; i < int(triangleCount); i++ {
 		pos := [3]uint32{}
-		//pos := math32.Vector3{}
 		err = binary.Read(r, binary.LittleEndian, &pos)
 		if err != nil {
-			return fmt.Errorf("read face %d pos: %w", i, err)
+			return fmt.Errorf("read triangle %d pos: %w", i, err)
 		}
 
 		materialID := uint32(0)
 		err = binary.Read(r, binary.LittleEndian, &materialID)
 		if err != nil {
-			return fmt.Errorf("read face %d materialID: %w", i, err)
+			return fmt.Errorf("read triangle %d materialID: %w", i, err)
 		}
 
 		materialName, err := e.MaterialByID(int(materialID))
 		if err != nil {
-			return fmt.Errorf("material by id for face %d: %w", i, err)
+			return fmt.Errorf("material by id for triangle %d (%d): %w", i, materialID, err)
 		}
 
 		flag := uint32(0)
 		err = binary.Read(r, binary.LittleEndian, &flag)
 		if err != nil {
-			return fmt.Errorf("read face %d flag: %w", i, err)
+			return fmt.Errorf("read triangle %d flag: %w", i, err)
 		}
-		err = e.AddFace(pos, materialName, flag)
+		err = e.AddTriangle(pos, materialName, flag)
 		if err != nil {
-			return fmt.Errorf("addFace %d: %w", i, err)
+			return fmt.Errorf("addTriangle %d: %w", i, err)
 		}
 	}
-	dump.HexRange([]byte{0x03, 0x04}, int(faceCount)*20, "faceData=(%d bytes)", int(faceCount)*20)
+	dump.HexRange([]byte{0x03, 0x04}, int(triangleCount)*20, "triangleData=(%d bytes)", int(triangleCount)*20)
 
-	//64bytes worth
-	for i := 0; i < int(boneCount); i++ {
-		//52?
-		materialID := uint32(0)
-		err = binary.Read(r, binary.LittleEndian, &materialID)
-		if err != nil {
-			return fmt.Errorf("read bone %d materialID: %w", i, err)
-		}
-
-		dump.Hex(materialID, "%dmaterialid=%d(%s)", i, materialID, names[materialID])
-		next := int32(0)
-		err = binary.Read(r, binary.LittleEndian, &next)
-		if err != nil {
-			return fmt.Errorf("read bone %d next: %w", i, err)
-		}
-		dump.Hex(next, "%dnext=%d", i, next)
-
-		childrenCount := uint32(0)
-		err = binary.Read(r, binary.LittleEndian, &childrenCount)
-		if err != nil {
-			return fmt.Errorf("read bone %d childrenCount: %w", i, err)
-		}
-		dump.Hex(childrenCount, "%dchildrenCount=%d", i, childrenCount)
-
-		childIndex := int32(0)
-		err = binary.Read(r, binary.LittleEndian, &childIndex)
-		if err != nil {
-			return fmt.Errorf("read bone %d childIndex: %w", i, err)
-		}
-		dump.Hex(childIndex, "%dchildIndex=%d", i, childIndex)
-
-		pivot := math32.Vector3{}
-		err = binary.Read(r, binary.LittleEndian, &pivot)
-		if err != nil {
-			return fmt.Errorf("read bone %d pivot: %w", i, err)
-		}
-		dump.Hex(pivot, "%dpivot=%+v", i, pivot)
-
-		rot := math32.Vector4{}
-		err = binary.Read(r, binary.LittleEndian, &rot)
-		if err != nil {
-			return fmt.Errorf("read bone %d rot: %w", i, err)
-		}
-		dump.Hex(rot, "%drot=%+v", i, rot)
-
-		scale := math32.Vector3{}
-		err = binary.Read(r, binary.LittleEndian, &scale)
-		if err != nil {
-			return fmt.Errorf("read bone %d scale: %w", i, err)
-		}
-		dump.Hex(scale, "%dscale=%+v", i, scale)
-
-		//56
-		chunk := make([]byte, 0)
-		err = binary.Read(r, binary.LittleEndian, &chunk)
-		if err != nil {
-			return fmt.Errorf("read chunk %d: %w", i, err)
-		}
-		dump.Hex(chunk, "%dchunk=(%d bytes)", i, len(chunk))
-		// pure f's
-
-		//5
-		//1
-	}
 	return nil
 }

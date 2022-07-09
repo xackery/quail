@@ -16,12 +16,6 @@
 # vendor/
 quail.log
 
-_*/
-*.eqg
-
-test/*.ani
-test/*.zon
 *.png
-test/*.mod
-test/*.eqg
 eq/
+tmp.*

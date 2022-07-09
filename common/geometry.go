@@ -43,7 +43,7 @@ type Vertex struct {
 }
 
 type Triangle struct {
-	Index        math32.Vector3
+	Index        [3]uint32
 	MaterialName string
 	Flag         uint32
 }

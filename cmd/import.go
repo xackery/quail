@@ -186,7 +186,7 @@ func importExec(path string, out string, blenderPath string) error {
 	for _, modName := range modNames {
 		mod := &mod.MOD{}
 		modName = strings.TrimSuffix(modName, ".obj")
-		err = mod.ImportObj(fmt.Sprintf("%s/%s.obj", cachePath, modName), fmt.Sprintf("%s/%s.mtl", cachePath, modName), fmt.Sprintf("%s/%s_material.txt", cachePath, modName))
+		err = mod.ObjImport(fmt.Sprintf("%s/%s.obj", cachePath, modName), fmt.Sprintf("%s/%s.mtl", cachePath, modName), fmt.Sprintf("%s/%s_material.txt", cachePath, modName))
 		if err != nil {
 			return fmt.Errorf("importObj: %w", err)
 		}

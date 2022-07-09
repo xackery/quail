@@ -1,4 +1,4 @@
-package mod
+package ter
 
 import (
 	"fmt"
@@ -7,7 +7,10 @@ import (
 	"github.com/xackery/quail/common"
 )
 
-func (e *MOD) AddMaterial(name string, shaderName string) error {
+func (e *TER) MaterialAdd(name string, shaderName string) error {
+	if shaderName == "" {
+		shaderName = "Opaque_MaxCB1.fx"
+	}
 	e.materials = append(e.materials, &common.Material{
 		Name:       name,
 		ShaderName: shaderName,
@@ -16,7 +19,7 @@ func (e *MOD) AddMaterial(name string, shaderName string) error {
 	return nil
 }
 
-func (e *MOD) AddMaterialProperty(materialName string, propertyName string, category uint32, value string) error {
+func (e *TER) AddMaterialProperty(materialName string, propertyName string, category uint32, value string) error {
 	for _, o := range e.materials {
 		if o.Name != materialName {
 			continue
@@ -31,7 +34,7 @@ func (e *MOD) AddMaterialProperty(materialName string, propertyName string, cate
 	return fmt.Errorf("materialName not found: %s", materialName)
 }
 
-func (e *MOD) AddVertex(position math32.Vector3, position2 math32.Vector3, uv math32.Vector2) error {
+func (e *TER) AddVertex(position math32.Vector3, position2 math32.Vector3, uv math32.Vector2) error {
 	e.vertices = append(e.vertices, &common.Vertex{
 		Position: position,
 		Normal:   position2,
@@ -40,7 +43,7 @@ func (e *MOD) AddVertex(position math32.Vector3, position2 math32.Vector3, uv ma
 	return nil
 }
 
-func (e *MOD) AddFace(index [3]uint32, materialName string, flag uint32) error {
+func (e *TER) AddTriangle(index [3]uint32, materialName string, flag uint32) error {
 	for _, o := range e.materials {
 		if o.Name != materialName {
 			continue
@@ -55,16 +58,4 @@ func (e *MOD) AddFace(index [3]uint32, materialName string, flag uint32) error {
 	}
 
 	return fmt.Errorf("materialName not found: %s", materialName)
-}
-
-func (e *MOD) AddBone(bone *Bone) error {
-	e.bones = append(e.bones, bone)
-	return nil
-}
-
-func (e *MOD) AddBoneAssignment(unknown [9]uint32) error {
-	e.boneAssignments = append(e.boneAssignments, &boneAssignment{
-		unknown: unknown,
-	})
-	return nil
 }
