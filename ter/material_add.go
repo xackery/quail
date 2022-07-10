@@ -44,6 +44,15 @@ func (e *TER) AddVertex(position math32.Vector3, position2 math32.Vector3, uv ma
 }
 
 func (e *TER) AddTriangle(index [3]uint32, materialName string, flag uint32) error {
+	if materialName == "" && len(e.materials) == 0 {
+		e.triangles = append(e.triangles, &common.Triangle{
+			Index:        index,
+			MaterialName: materialName,
+			Flag:         flag,
+		})
+		return nil
+	}
+
 	for _, o := range e.materials {
 		if o.Name != materialName {
 			continue
