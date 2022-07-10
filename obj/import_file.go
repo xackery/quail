@@ -11,7 +11,7 @@ import (
 	"github.com/xackery/quail/common"
 )
 
-func importFile(obj *ObjData, objPath string) error {
+func importFile(req *ObjRequest) error {
 	var lastMaterial *common.Material
 
 	objCache := &objCache{
@@ -19,7 +19,7 @@ func importFile(obj *ObjData, objPath string) error {
 	}
 
 	lineNumber := 0
-	ro, err := os.Open(objPath)
+	ro, err := os.Open(req.ObjPath)
 	if err != nil {
 		return err
 	}
@@ -31,12 +31,12 @@ func importFile(obj *ObjData, objPath string) error {
 		line := scanner.Text()
 		if strings.HasPrefix(line, "usemtl ") {
 			line = strings.TrimPrefix(line, "usemtl ")
-			lastMaterial = materialByName(line, obj)
+			lastMaterial = materialByName(line, req.Obj)
 			if lastMaterial == nil {
 				lastMaterial = &common.Material{
 					Name: line,
 				}
-				obj.Materials = append(obj.Materials, lastMaterial)
+				req.Obj.Materials = append(req.Obj.Materials, lastMaterial)
 				fmt.Printf("warning: obj line %d refers to material %s, which isn't declared\n", lineNumber, line)
 			}
 			continue
@@ -62,19 +62,19 @@ func importFile(obj *ObjData, objPath string) error {
 					faces = append(faces, val)
 				}
 			}
-			index1, err := face(faces[0], faces[1], faces[2], objCache, obj)
+			index1, err := face(faces[0], faces[1], faces[2], objCache, req.Obj)
 			if err != nil {
 				return fmt.Errorf("face 1: line %d: %w", lineNumber, err)
 			}
-			index2, err := face(faces[3], faces[4], faces[5], objCache, obj)
+			index2, err := face(faces[3], faces[4], faces[5], objCache, req.Obj)
 			if err != nil {
 				return fmt.Errorf("face 2: line %d: %w", lineNumber, err)
 			}
-			index3, err := face(faces[6], faces[7], faces[8], objCache, obj)
+			index3, err := face(faces[6], faces[7], faces[8], objCache, req.Obj)
 			if err != nil {
 				return fmt.Errorf("face 3: line %d: %w", lineNumber, err)
 			}
-			obj.Triangles = append(obj.Triangles, &common.Triangle{
+			req.Obj.Triangles = append(req.Obj.Triangles, &common.Triangle{
 				Index:        [3]uint32{uint32(index1), uint32(index2), uint32(index3)},
 				MaterialName: lastMaterial.Name,
 				Flag:         lastMaterial.Flag,
@@ -149,7 +149,7 @@ func importFile(obj *ObjData, objPath string) error {
 	}
 	err = scanner.Err()
 	if err != nil {
-		return fmt.Errorf("read obj %s: %w", objPath, err)
+		return fmt.Errorf("read obj %s: %w", req.ObjPath, err)
 	}
 
 	//for i := 0; i < len(positions); i++ {

@@ -16,6 +16,7 @@ func (e *TER) ObjExport(objPath string, mtlPath string, matPath string) error {
 		return err
 	}
 	defer wm.Close()
+
 	objData := &obj.ObjData{
 		Name:      e.name,
 		Materials: e.materials,
@@ -23,12 +24,17 @@ func (e *TER) ObjExport(objPath string, mtlPath string, matPath string) error {
 		Vertices:  e.vertices,
 	}
 	if objData.Name == "" {
-
 		objData.Name = filepath.Base(objPath)
 		objData.Name = strings.TrimSuffix(objData.Name, filepath.Ext(objData.Name))
 	}
 
-	err = obj.Export(objData, objPath, mtlPath, matPath)
+	req := &obj.ObjRequest{
+		Obj:        objData,
+		ObjPath:    objPath,
+		MtlPath:    mtlPath,
+		MattxtPath: matPath,
+	}
+	err = obj.Export(req)
 	if err != nil {
 		return fmt.Errorf("import: %w", err)
 	}

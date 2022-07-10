@@ -9,8 +9,8 @@ import (
 	"github.com/xackery/quail/common"
 )
 
-func mtlImport(obj *ObjData, mtlPath string) error {
-	rm, err := os.Open(mtlPath)
+func mtlImport(req *ObjRequest) error {
+	rm, err := os.Open(req.MtlPath)
 	if err != nil {
 		return err
 	}
@@ -24,12 +24,12 @@ func mtlImport(obj *ObjData, mtlPath string) error {
 		line := scanner.Text()
 		if strings.HasPrefix(line, "newmtl") {
 			if len(line) < 8 {
-				return fmt.Errorf("%s line %d: newmtl is too short", mtlPath, lineNumber)
+				return fmt.Errorf("%s line %d: newmtl is too short", req.MtlPath, lineNumber)
 			}
-			lastMaterial = materialByName(line[7:], obj)
+			lastMaterial = materialByName(line[7:], req.Obj)
 			if lastMaterial == nil {
 				lastMaterial = &common.Material{Name: line[7:], ShaderName: "Opaque_MaxCB1.fx"}
-				obj.Materials = append(obj.Materials, lastMaterial)
+				req.Obj.Materials = append(req.Obj.Materials, lastMaterial)
 			}
 			continue
 		}
@@ -50,7 +50,7 @@ func mtlImport(obj *ObjData, mtlPath string) error {
 	}
 	err = scanner.Err()
 	if err != nil {
-		return fmt.Errorf("read mtl %s: %w", mtlPath, err)
+		return fmt.Errorf("read mtl %s: %w", req.MtlPath, err)
 	}
 
 	return nil

@@ -15,13 +15,18 @@ func (e *TER) ImportObj(objPath string, mtlPath string, matPath string) error {
 		return err
 	}
 	defer rm.Close()
-	objData, err := obj.Import(objPath, mtlPath, matPath)
+	req := &obj.ObjRequest{
+		ObjPath:    objPath,
+		MtlPath:    mtlPath,
+		MattxtPath: matPath,
+	}
+	err = obj.Import(req)
 	if err != nil {
 		return fmt.Errorf("import: %w", err)
 	}
-	e.materials = objData.Materials
-	e.triangles = objData.Triangles
-	e.vertices = objData.Vertices
+	e.materials = req.Obj.Materials
+	e.triangles = req.Obj.Triangles
+	e.vertices = req.Obj.Vertices
 	if e.name == "" {
 		e.name = filepath.Base(objPath)
 	}

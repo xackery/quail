@@ -5,19 +5,19 @@ import (
 	"os"
 )
 
-func mtlExport(obj *ObjData, mtlPath string) error {
-	w, err := os.Create(mtlPath)
+func mtlExport(req *ObjRequest) error {
+	w, err := os.Create(req.MtlPath)
 	if err != nil {
 		return err
 	}
 	defer w.Close()
 
-	_, err = w.WriteString(fmt.Sprintf("# exported by quail\n# Material Count: %d\n", len(obj.Materials)))
+	_, err = w.WriteString(fmt.Sprintf("# exported by quail\n# Material Count: %d\n", len(req.Obj.Materials)))
 	if err != nil {
 		return fmt.Errorf("export header: %w", err)
 	}
 
-	for _, m := range obj.Materials {
+	for _, m := range req.Obj.Materials {
 		_, err = w.WriteString(fmt.Sprintf("\nnewmtl %s\n", m.Name))
 		if err != nil {
 			return fmt.Errorf("newmtl: %w", err)

@@ -5,10 +5,13 @@ import (
 )
 
 func TestImportObjFile(t *testing.T) {
-	obj := &ObjData{}
-	err := importFile(obj, "test/box.obj")
+	req := &ObjRequest{
+		Obj:     &ObjData{},
+		ObjPath: "test/box.obj",
+	}
+	err := importFile(req)
 	if err != nil {
-		t.Fatalf("importObj: %s", err)
+		t.Fatalf("importFile: %s", err)
 	}
 	//t.Fatalf("%+v", obj)
 }

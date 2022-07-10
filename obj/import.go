@@ -6,26 +6,21 @@ import (
 	"github.com/xackery/quail/common"
 )
 
-func Import(objPath string, mtlPath string, matTxtPath string) (*ObjData, error) {
-	obj := &ObjData{}
-	err := objImport(obj, objPath, mtlPath, matTxtPath)
-	if err != nil {
-		return nil, err
-	}
-	return obj, nil
-}
-
-func objImport(obj *ObjData, objPath string, mtlPath string, matTxtPath string) error {
+func Import(req *ObjRequest) error {
 	var err error
-	err = mattxtImport(obj, matTxtPath)
+	if req == nil {
+		return fmt.Errorf("request is nil")
+	}
+	req.Obj = &ObjData{}
+	err = mattxtImport(req)
 	if err != nil {
 		return fmt.Errorf("importMatTxt: %w", err)
 	}
-	err = mtlImport(obj, mtlPath)
+	err = mtlImport(req)
 	if err != nil {
 		return fmt.Errorf("importMatTxt: %w", err)
 	}
-	err = importFile(obj, objPath)
+	err = importFile(req)
 	if err != nil {
 		return fmt.Errorf("importObjFile: %w", err)
 	}

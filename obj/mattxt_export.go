@@ -10,8 +10,8 @@ import (
 	"github.com/xackery/quail/common"
 )
 
-func mattxtExport(obj *ObjData, matTxtPath string) error {
-	w, err := os.Open(matTxtPath)
+func mattxtExport(req *ObjRequest) error {
+	w, err := os.Open(req.MattxtPath)
 	if err != nil {
 		if os.IsNotExist(err) {
 			return nil
@@ -33,12 +33,12 @@ func mattxtExport(obj *ObjData, matTxtPath string) error {
 
 		switch records[0] {
 		case "m":
-			material := materialByName(records[1], obj)
+			material := materialByName(records[1], req.Obj)
 			if material == nil {
 				material = &common.Material{
 					Name: records[1],
 				}
-				obj.Materials = append(obj.Materials, material)
+				req.Obj.Materials = append(req.Obj.Materials, material)
 			}
 			material.ShaderName = records[3]
 			val, err := strconv.Atoi(records[2])
@@ -47,12 +47,12 @@ func mattxtExport(obj *ObjData, matTxtPath string) error {
 			}
 			material.Flag = uint32(val)
 		case "e":
-			material := materialByName(records[1], obj)
+			material := materialByName(records[1], req.Obj)
 			if material == nil {
 				material = &common.Material{
 					Name: records[1],
 				}
-				obj.Materials = append(obj.Materials, material)
+				req.Obj.Materials = append(req.Obj.Materials, material)
 			}
 
 			val, err := strconv.Atoi(records[3])

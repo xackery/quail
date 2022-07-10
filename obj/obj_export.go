@@ -5,12 +5,18 @@ import (
 	"os"
 )
 
-func exportFile(obj *ObjData, objPath string) error {
+func objExport(req *ObjRequest) error {
 
-	if obj.Name == "" {
-		obj.Name = "unnamed"
+	if req == nil {
+		return fmt.Errorf("request is nil")
 	}
-	w, err := os.Create(objPath)
+	if req.Obj == nil {
+		return fmt.Errorf("request object is nil")
+	}
+	if req.Obj.Name == "" {
+		req.Obj.Name = "unnamed"
+	}
+	w, err := os.Create(req.ObjPath)
 	if err != nil {
 		return err
 	}
@@ -21,25 +27,25 @@ func exportFile(obj *ObjData, objPath string) error {
 		return fmt.Errorf("export header: %w", err)
 	}
 
-	_, err = w.WriteString(fmt.Sprintf("mtllib %s.mtl\no %s\n", obj.Name, obj.Name))
+	_, err = w.WriteString(fmt.Sprintf("mtllib %s.mtl\no %s\n", req.Obj.Name, req.Obj.Name))
 	if err != nil {
 		return fmt.Errorf("mtllib: %w", err)
 	}
 
-	for _, e := range obj.Vertices {
+	for _, e := range req.Obj.Vertices {
 		fmt.Println(e)
 		_, err = w.WriteString(fmt.Sprintf("v %0.6f %0.6f %0.6f\n", e.Position.X, e.Position.Y, e.Position.Z))
 		if err != nil {
 			return fmt.Errorf("export pos: %w", err)
 		}
 	}
-	for _, e := range obj.Vertices {
+	for _, e := range req.Obj.Vertices {
 		_, err = w.WriteString(fmt.Sprintf("vt %0.6f %0.6f\n", e.Uv.X, e.Uv.Y))
 		if err != nil {
 			return fmt.Errorf("export uv: %w", err)
 		}
 	}
-	for _, e := range obj.Vertices {
+	for _, e := range req.Obj.Vertices {
 		_, err = w.WriteString(fmt.Sprintf("vn %0.6f %0.6f %0.6f\n", e.Normal.X, e.Normal.Y, e.Normal.Z))
 		if err != nil {
 			return fmt.Errorf("export normal: %w", err)
@@ -48,7 +54,7 @@ func exportFile(obj *ObjData, objPath string) error {
 
 	lastMaterial := ""
 	group := 0
-	for _, e := range obj.Triangles {
+	for _, e := range req.Obj.Triangles {
 		if lastMaterial != e.MaterialName {
 			lastMaterial = e.MaterialName
 			_, err = w.WriteString(fmt.Sprintf("usemtl %s\ns off\ng piece%d\n", e.MaterialName, group))

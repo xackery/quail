@@ -4,17 +4,17 @@ import (
 	"fmt"
 )
 
-func Export(obj *ObjData, objPath string, mtlPath string, matTxtPath string) error {
+func Export(req *ObjRequest) error {
 	var err error
-	err = mattxtExport(obj, matTxtPath)
+	err = mattxtExport(req)
 	if err != nil {
 		return fmt.Errorf("exportMatTxt: %w", err)
 	}
-	err = mtlExport(obj, mtlPath)
+	err = mtlExport(req)
 	if err != nil {
 		return fmt.Errorf("exportMtl: %w", err)
 	}
-	err = exportFile(obj, objPath)
+	err = objExport(req)
 	if err != nil {
 		return fmt.Errorf("exportObjFile: %w", err)
 	}

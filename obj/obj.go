@@ -14,6 +14,13 @@ type ObjData struct {
 	Triangles []*common.Triangle
 }
 
+type ObjRequest struct {
+	Obj        *ObjData
+	ObjPath    string
+	MtlPath    string
+	MattxtPath string
+}
+
 func (e *ObjData) String() string {
 	return fmt.Sprintf("&{Materials (%d):[%+v]\n  Vertices (%d):[%+v]\n  Triangles (%d):[%+v]\n}", len(e.Materials), e.Materials, len(e.Vertices), e.Vertices, len(e.Triangles), e.Triangles)
 }

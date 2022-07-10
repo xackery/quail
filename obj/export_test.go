@@ -3,8 +3,13 @@ package obj
 import "testing"
 
 func TestExport(t *testing.T) {
-	obj := &ObjData{}
-	err := Export(obj, "test/tmp.obj", "test/tmp.mtl", "test/tmp_material.txt")
+	req := &ObjRequest{
+		Obj:        &ObjData{},
+		ObjPath:    "test/tmp.obj",
+		MtlPath:    "test/tmp.mtl",
+		MattxtPath: "test/tmp_material.txt",
+	}
+	err := Export(req)
 	if err != nil {
 		t.Fatalf("Export: %s", err)
 	}
@@ -12,12 +17,21 @@ func TestExport(t *testing.T) {
 }
 
 func TestImportExportBox(t *testing.T) {
-	obj, err := Import("test/box.obj", "test/box.mtl", "test/box_material.txt")
+	req := &ObjRequest{
+		ObjPath:    "test/box.obj",
+		MtlPath:    "test/box.mtl",
+		MattxtPath: "test/box_material.txt",
+	}
+	err := Import(req)
 	if err != nil {
 		t.Fatalf("import: %s", err)
 	}
-	obj.Name = "box"
-	err = Export(obj, "test/tmp.obj", "test/tmp.mtl", "test/tmp_material.txt")
+	req.Obj.Name = "box"
+	req.ObjPath = "test/tmp.obj"
+	req.MtlPath = "test/tmp.mtl"
+	req.MattxtPath = "test/tmp_material.txt"
+
+	err = Export(req)
 	if err != nil {
 		t.Fatalf("export: %s", err)
 	}

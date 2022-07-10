@@ -1,16 +1,15 @@
 package obj
 
 import (
-	"os"
 	"testing"
 )
 
 func TestExportMtl(t *testing.T) {
-	if os.Getenv("SINGLE_TEST") != "1" {
-		return
+	req := &ObjRequest{
+		Obj:     &ObjData{},
+		MtlPath: "test/tmp.mtl",
 	}
-	obj := &ObjData{}
-	err := mtlExport(obj, "../eq/tmp/out.mtl")
+	err := mtlExport(req)
 	if err != nil {
 		t.Fatalf("exportMtl: %s", err)
 	}
