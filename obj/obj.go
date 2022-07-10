@@ -15,7 +15,7 @@ type ObjData struct {
 }
 
 type ObjRequest struct {
-	Obj        *ObjData
+	Data       *ObjData
 	ObjPath    string
 	MtlPath    string
 	MattxtPath string

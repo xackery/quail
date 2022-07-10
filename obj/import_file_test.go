@@ -6,7 +6,7 @@ import (
 
 func TestImportObjFile(t *testing.T) {
 	req := &ObjRequest{
-		Obj:     &ObjData{},
+		Data:    &ObjData{},
 		ObjPath: "test/box.obj",
 	}
 	err := importFile(req)

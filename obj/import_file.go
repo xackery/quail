@@ -31,12 +31,12 @@ func importFile(req *ObjRequest) error {
 		line := scanner.Text()
 		if strings.HasPrefix(line, "usemtl ") {
 			line = strings.TrimPrefix(line, "usemtl ")
-			lastMaterial = materialByName(line, req.Obj)
+			lastMaterial = materialByName(line, req.Data)
 			if lastMaterial == nil {
 				lastMaterial = &common.Material{
 					Name: line,
 				}
-				req.Obj.Materials = append(req.Obj.Materials, lastMaterial)
+				req.Data.Materials = append(req.Data.Materials, lastMaterial)
 				fmt.Printf("warning: obj line %d refers to material %s, which isn't declared\n", lineNumber, line)
 			}
 			continue
@@ -62,19 +62,19 @@ func importFile(req *ObjRequest) error {
 					faces = append(faces, val)
 				}
 			}
-			index1, err := face(faces[0], faces[1], faces[2], objCache, req.Obj)
+			index1, err := face(faces[0], faces[1], faces[2], objCache, req.Data)
 			if err != nil {
 				return fmt.Errorf("face 1: line %d: %w", lineNumber, err)
 			}
-			index2, err := face(faces[3], faces[4], faces[5], objCache, req.Obj)
+			index2, err := face(faces[3], faces[4], faces[5], objCache, req.Data)
 			if err != nil {
 				return fmt.Errorf("face 2: line %d: %w", lineNumber, err)
 			}
-			index3, err := face(faces[6], faces[7], faces[8], objCache, req.Obj)
+			index3, err := face(faces[6], faces[7], faces[8], objCache, req.Data)
 			if err != nil {
 				return fmt.Errorf("face 3: line %d: %w", lineNumber, err)
 			}
-			req.Obj.Triangles = append(req.Obj.Triangles, &common.Triangle{
+			req.Data.Triangles = append(req.Data.Triangles, &common.Triangle{
 				Index:        [3]uint32{uint32(index1), uint32(index2), uint32(index3)},
 				MaterialName: lastMaterial.Name,
 				Flag:         lastMaterial.Flag,

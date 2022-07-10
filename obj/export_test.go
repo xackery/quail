@@ -4,7 +4,7 @@ import "testing"
 
 func TestExport(t *testing.T) {
 	req := &ObjRequest{
-		Obj:        &ObjData{},
+		Data:       &ObjData{},
 		ObjPath:    "test/tmp.obj",
 		MtlPath:    "test/tmp.mtl",
 		MattxtPath: "test/tmp_material.txt",
@@ -26,7 +26,7 @@ func TestImportExportBox(t *testing.T) {
 	if err != nil {
 		t.Fatalf("import: %s", err)
 	}
-	req.Obj.Name = "box"
+	req.Data.Name = "box"
 	req.ObjPath = "test/tmp.obj"
 	req.MtlPath = "test/tmp.mtl"
 	req.MattxtPath = "test/tmp_material.txt"

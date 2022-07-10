@@ -6,7 +6,7 @@ import (
 
 func TestMattxtImport(t *testing.T) {
 	req := &ObjRequest{
-		Obj:        &ObjData{},
+		Data:       &ObjData{},
 		MattxtPath: "test/box_material.txt",
 	}
 	err := mattxtImport(req)

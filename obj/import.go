@@ -11,7 +11,7 @@ func Import(req *ObjRequest) error {
 	if req == nil {
 		return fmt.Errorf("request is nil")
 	}
-	req.Obj = &ObjData{}
+	req.Data = &ObjData{}
 	err = mattxtImport(req)
 	if err != nil {
 		return fmt.Errorf("importMatTxt: %w", err)

@@ -6,7 +6,7 @@ import (
 
 func TestObjExport(t *testing.T) {
 	req := &ObjRequest{
-		Obj:     &ObjData{},
+		Data:    &ObjData{},
 		ObjPath: "test/tmp.obj",
 	}
 	err := objExport(req)

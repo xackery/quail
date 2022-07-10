@@ -158,28 +158,6 @@ func TestGLTFSaveExample(t *testing.T) {
 	}
 }
 
-func TestGLTFTriangle(t *testing.T) {
-	outFile := "test/triangle.gltf"
-	doc := gltf.NewDocument()
-	doc.Meshes = []*gltf.Mesh{{
-		Name: "Pyramid",
-		Primitives: []*gltf.Primitive{{
-			Indices: gltf.Index(modeler.WriteIndices(doc, []uint16{0, 1, 2})),
-			Attributes: map[string]uint32{
-				gltf.POSITION: modeler.WritePosition(doc, [][3]float32{{0, 0, 0}, {0, 10, 0}, {0, 0, 10}}),
-				gltf.COLOR_0:  modeler.WriteColor(doc, [][3]uint8{{255, 0, 0}, {0, 255, 0}, {0, 0, 255}}),
-			},
-		}},
-	}}
-	for _, buff := range doc.Buffers {
-		buff.EmbeddedResource()
-	}
-	err := gltf.Save(doc, outFile)
-	if err != nil {
-		t.Fatalf("save: %s", err)
-	}
-}
-
 func TestGLTFInterleaved(t *testing.T) {
 	outFile := "test/tmp.gltf"
 

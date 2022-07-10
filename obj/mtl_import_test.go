@@ -6,7 +6,7 @@ import (
 
 func TestMtlImport(t *testing.T) {
 	req := &ObjRequest{
-		Obj:     &ObjData{},
+		Data:    &ObjData{},
 		MtlPath: "test/tmp.mtl",
 	}
 	err := mtlImport(req)

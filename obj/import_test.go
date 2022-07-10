@@ -12,7 +12,7 @@ func TestImportBox(t *testing.T) {
 	if err != nil {
 		t.Fatalf("import: %s", err)
 	}
-	if req.Obj == nil {
+	if req.Data == nil {
 		t.Fatalf("empty object")
 	}
 }

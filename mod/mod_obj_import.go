@@ -23,9 +23,9 @@ func (e *MOD) ObjImport(objPath string, mtlPath string, matPath string) error {
 	if err != nil {
 		return fmt.Errorf("import: %w", err)
 	}
-	e.materials = req.Obj.Materials
-	e.triangles = req.Obj.Triangles
-	e.vertices = req.Obj.Vertices
+	e.materials = req.Data.Materials
+	e.triangles = req.Data.Triangles
+	e.vertices = req.Data.Vertices
 
 	return nil
 }

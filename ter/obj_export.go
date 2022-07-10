@@ -29,7 +29,7 @@ func (e *TER) ObjExport(objPath string, mtlPath string, matPath string) error {
 	}
 
 	req := &obj.ObjRequest{
-		Obj:        objData,
+		Data:       objData,
 		ObjPath:    objPath,
 		MtlPath:    mtlPath,
 		MattxtPath: matPath,

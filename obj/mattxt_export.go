@@ -33,12 +33,12 @@ func mattxtExport(req *ObjRequest) error {
 
 		switch records[0] {
 		case "m":
-			material := materialByName(records[1], req.Obj)
+			material := materialByName(records[1], req.Data)
 			if material == nil {
 				material = &common.Material{
 					Name: records[1],
 				}
-				req.Obj.Materials = append(req.Obj.Materials, material)
+				req.Data.Materials = append(req.Data.Materials, material)
 			}
 			material.ShaderName = records[3]
 			val, err := strconv.Atoi(records[2])
@@ -47,12 +47,12 @@ func mattxtExport(req *ObjRequest) error {
 			}
 			material.Flag = uint32(val)
 		case "e":
-			material := materialByName(records[1], req.Obj)
+			material := materialByName(records[1], req.Data)
 			if material == nil {
 				material = &common.Material{
 					Name: records[1],
 				}
-				req.Obj.Materials = append(req.Obj.Materials, material)
+				req.Data.Materials = append(req.Data.Materials, material)
 			}
 
 			val, err := strconv.Atoi(records[3])

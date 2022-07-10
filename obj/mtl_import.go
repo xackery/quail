@@ -26,10 +26,10 @@ func mtlImport(req *ObjRequest) error {
 			if len(line) < 8 {
 				return fmt.Errorf("%s line %d: newmtl is too short", req.MtlPath, lineNumber)
 			}
-			lastMaterial = materialByName(line[7:], req.Obj)
+			lastMaterial = materialByName(line[7:], req.Data)
 			if lastMaterial == nil {
 				lastMaterial = &common.Material{Name: line[7:], ShaderName: "Opaque_MaxCB1.fx"}
-				req.Obj.Materials = append(req.Obj.Materials, lastMaterial)
+				req.Data.Materials = append(req.Data.Materials, lastMaterial)
 			}
 			continue
 		}
