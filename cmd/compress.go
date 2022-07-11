@@ -113,7 +113,7 @@ var compressCmd = &cobra.Command{
 			return fmt.Errorf("save %s: %w", out, err)
 		}
 
-		fmt.Printf("%s created with %d file%s: %s", out, fileCount, helper.Pluralize(fileCount), addStdout)
+		fmt.Printf("%d file%s: %s\nwritten to %s\n", fileCount, helper.Pluralize(fileCount), addStdout, out)
 		return nil
 	},
 }

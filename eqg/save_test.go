@@ -10,68 +10,43 @@ import (
 	"github.com/xackery/quail/dump"
 )
 
-func TestSave(t *testing.T) {
-	if os.Getenv("SINGLE_TEST") != "1" {
-		return
-	}
-	path := "../eq/ecommons.eqg"
-	d, err := dump.New(path)
-	if err != nil {
-		t.Fatalf("dump.new: %s", err)
-	}
-	defer d.Save("../eq/tmp/out.png")
+func TestSaveBoxEQG(t *testing.T) {
+	inFile := "test/box.eqg"
+	outFile := "test/tmp.eqg"
+	isDump := true
 
-	e, err := New("out")
+	if isDump {
+		d, err := dump.New(inFile)
+		if err != nil {
+			t.Fatalf("dump.New: %s", err)
+		}
+		defer d.Save(fmt.Sprintf("%s.png", inFile))
+	}
+	r, err := os.Open(inFile)
+	if err != nil {
+		t.Fatalf("%s", err)
+	}
+	defer r.Close()
+
+	e, err := New(inFile)
 	if err != nil {
 		t.Fatalf("new: %s", err)
-	}
-	err = e.Add("test.txt", []byte("test"))
-	if err != nil {
-		t.Fatalf("add: %s", err.Error())
-	}
-	f, err := os.Create(path)
-	if err != nil {
-		t.Fatalf("create: %s", err.Error())
-	}
-	err = e.Save(f)
-	if err != nil {
-		t.Fatalf("save: %s", err.Error())
-	}
-	f.Close()
-
-	r, err := os.Open(path)
-	if err != nil {
-		t.Fatalf("open: %s", err)
 	}
 	err = e.Load(r)
 	if err != nil {
 		t.Fatalf("load: %s", err)
 	}
-	compareFile(t, "../eq/tmp/out.eqg", "../eq/tmp/eqzip-test.eqg")
-}
 
-func TestSave2(t *testing.T) {
-	if os.Getenv("SINGLE_TEST") != "1" {
-		return
-	}
-	e, err := New("out")
-	if err != nil {
-		t.Fatalf("new: %s", err)
-	}
-	err = e.Add("test.txt", []byte("test2"))
-	if err != nil {
-		t.Fatalf("add: %s", err.Error())
-	}
-	f, err := os.Create("../eq/tmp/out2.eqg")
+	w, err := os.Create(outFile)
 	if err != nil {
 		t.Fatalf("create: %s", err.Error())
 	}
-	err = e.Save(f)
+	defer w.Close()
+	err = e.Save(w)
 	if err != nil {
 		t.Fatalf("save: %s", err.Error())
 	}
-	f.Close()
-	compareFile(t, "../eq/tmp/out2.eqg", "../eq/tmp/eqzip-test2.eqg")
+	compareFile(t, inFile, outFile)
 }
 
 func compareFile(t *testing.T, path1 string, path2 string) {
