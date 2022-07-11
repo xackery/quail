@@ -2,7 +2,7 @@ module github.com/xackery/quail
 
 go 1.17
 
-require github.com/qmuntal/gltf v0.22.0
+require github.com/qmuntal/gltf v0.22.1
 
 require (
 	github.com/g3n/engine v0.2.0

@@ -139,7 +139,7 @@ func (e *TER) GLTFExport(w io.Writer) error {
 
 	enc := gltf.NewEncoder(w)
 	enc.AsBinary = false
-	//enc.SetIndent("", "\t")
+	enc.SetJSONIndent("", "\t")
 	err = enc.Encode(doc)
 	if err != nil {
 		return fmt.Errorf("encode: %w", err)
