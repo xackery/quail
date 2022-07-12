@@ -10,7 +10,7 @@ type MOD struct {
 	path            string
 	materials       []*common.Material
 	vertices        []*common.Vertex
-	triangles       []*common.Triangle
+	faces           []*common.Face
 	bones           []*Bone
 	boneAssignments []*boneAssignment
 	files           []common.Filer

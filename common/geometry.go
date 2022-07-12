@@ -37,12 +37,12 @@ type Property struct {
 }
 
 type Vertex struct {
-	Position math32.Vector3
-	Normal   math32.Vector3
-	Uv       math32.Vector2
+	Position *math32.Vector3
+	Normal   *math32.Vector3
+	Uv       *math32.Vector2
 }
 
-type Triangle struct {
+type Face struct {
 	Index        [3]uint32
 	MaterialName string
 	Flag         uint32

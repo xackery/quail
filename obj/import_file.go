@@ -74,7 +74,7 @@ func importFile(req *ObjRequest) error {
 			if err != nil {
 				return fmt.Errorf("face 3: line %d: %w", lineNumber, err)
 			}
-			req.Data.Triangles = append(req.Data.Triangles, &common.Triangle{
+			req.Data.Triangles = append(req.Data.Triangles, &common.Face{
 				Index:        [3]uint32{uint32(index1), uint32(index2), uint32(index3)},
 				MaterialName: lastMaterial.Name,
 				Flag:         lastMaterial.Flag,
@@ -187,9 +187,9 @@ func face(v, t, n int, objCache *objCache, obj *ObjData) (int, error) {
 	}
 
 	obj.Vertices = append(obj.Vertices, &common.Vertex{
-		Position: math32.Vector3{X: vert.X, Y: vert.Y, Z: vert.Z},
-		Normal:   math32.Vector3{X: norm.X, Y: norm.Y, Z: norm.Z},
-		Uv:       math32.Vector2{X: uv.X, Y: uv.Y},
+		Position: math32.NewVector3(vert.X, vert.Y, vert.Z),
+		Normal:   math32.NewVector3(norm.X, norm.Y, norm.Z),
+		Uv:       math32.NewVector2(uv.X, uv.Y),
 	})
 
 	index = len(obj.Vertices) - 1

@@ -192,14 +192,14 @@ func (e *MOD) Load(r io.ReadSeeker) error {
 
 	for i := 0; i < int(verticesCount); i++ {
 
-		pos := math32.Vector3{}
-		err = binary.Read(r, binary.LittleEndian, &pos)
+		pos := math32.NewVec3()
+		err = binary.Read(r, binary.LittleEndian, pos)
 		if err != nil {
 			return fmt.Errorf("read vertex %d position: %w", i, err)
 		}
 
-		normal := math32.Vector3{}
-		err = binary.Read(r, binary.LittleEndian, &normal)
+		normal := math32.NewVec3()
+		err = binary.Read(r, binary.LittleEndian, normal)
 		if err != nil {
 			return fmt.Errorf("read vertex %d normal: %w", i, err)
 		}
@@ -218,8 +218,8 @@ func (e *MOD) Load(r io.ReadSeeker) error {
 			}
 		}
 
-		uv := math32.Vector2{}
-		err = binary.Read(r, binary.LittleEndian, &uv)
+		uv := math32.NewVec2()
+		err = binary.Read(r, binary.LittleEndian, uv)
 		if err != nil {
 			return fmt.Errorf("read vertex %d uv: %w", i, err)
 		}

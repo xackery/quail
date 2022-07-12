@@ -2,6 +2,21 @@ package obj
 
 import "testing"
 
+func TestImportTriangle(t *testing.T) {
+	req := &ObjRequest{
+		ObjPath:    "test/box.obj",
+		MtlPath:    "test/box.mtl",
+		MattxtPath: "test/box_material.txt",
+	}
+	err := Import(req)
+	if err != nil {
+		t.Fatalf("import: %s", err)
+	}
+	if req.Data == nil {
+		t.Fatalf("empty object")
+	}
+}
+
 func TestImportBox(t *testing.T) {
 	req := &ObjRequest{
 		ObjPath:    "test/box.obj",

@@ -77,14 +77,14 @@ func (e *TER) GLTFImport(path string) error {
 			//fmt.Printf("uv: %+v\n", uv)
 
 			for i := 0; i < len(pos); i++ {
-				posEntry := math32.Vector3{X: pos[i][0], Y: pos[i][1], Z: pos[i][2]}
-				normalEntry := math32.Vector3{}
+				posEntry := math32.NewVector3(pos[i][0], pos[i][1], pos[i][2])
+				normalEntry := math32.NewVec3()
 				if len(normal) > i {
 					normalEntry.X = normal[i][0]
 					normalEntry.Y = normal[i][1]
 					normalEntry.Z = normal[i][2]
 				}
-				uvEntry := math32.Vector2{}
+				uvEntry := math32.NewVec2()
 				if len(uv) > i {
 					uvEntry.X = uv[i][0]
 					uvEntry.Y = uv[i][1]

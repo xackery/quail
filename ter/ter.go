@@ -15,7 +15,7 @@ type TER struct {
 	path      string
 	materials []*common.Material
 	vertices  []*common.Vertex
-	triangles []*common.Triangle
+	faces     []*common.Face
 	files     []common.Filer
 }
 

@@ -34,10 +34,10 @@ func (e *TER) AddMaterialProperty(materialName string, propertyName string, cate
 	return fmt.Errorf("materialName not found: %s", materialName)
 }
 
-func (e *TER) AddVertex(position math32.Vector3, position2 math32.Vector3, uv math32.Vector2) error {
+func (e *TER) AddVertex(position *math32.Vector3, normal *math32.Vector3, uv *math32.Vector2) error {
 	e.vertices = append(e.vertices, &common.Vertex{
 		Position: position,
-		Normal:   position2,
+		Normal:   normal,
 		Uv:       uv,
 	})
 	return nil
@@ -45,7 +45,7 @@ func (e *TER) AddVertex(position math32.Vector3, position2 math32.Vector3, uv ma
 
 func (e *TER) AddTriangle(index [3]uint32, materialName string, flag uint32) error {
 	if materialName == "" && len(e.materials) == 0 {
-		e.triangles = append(e.triangles, &common.Triangle{
+		e.faces = append(e.faces, &common.Face{
 			Index:        index,
 			MaterialName: materialName,
 			Flag:         flag,
@@ -58,7 +58,7 @@ func (e *TER) AddTriangle(index [3]uint32, materialName string, flag uint32) err
 			continue
 		}
 
-		e.triangles = append(e.triangles, &common.Triangle{
+		e.faces = append(e.faces, &common.Face{
 			Index:        index,
 			MaterialName: materialName,
 			Flag:         flag,

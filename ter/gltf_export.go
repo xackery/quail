@@ -102,21 +102,21 @@ func (e *TER) GLTFExport(w io.Writer) error {
 		normals := [][3]float32{}
 		uvs := [][2]float32{}
 		indices := []uint16{}
-
-		for i, o := range e.triangles {
+		for _, o := range e.faces {
 			if o.MaterialName != mat.Name {
 				continue
 			}
-			positions = append(positions, [3]float32{e.vertices[i].Position.X, e.vertices[i].Position.Y, e.vertices[i].Position.Z})
-			normals = append(normals, [3]float32{e.vertices[i].Normal.X, e.vertices[i].Normal.Y, e.vertices[i].Normal.Z})
-			uvs = append(uvs, [2]float32{e.vertices[i].Uv.X, e.vertices[i].Uv.Y})
 
 			indices = append(indices, uint16(o.Index[0]))
 			indices = append(indices, uint16(o.Index[1]))
 			indices = append(indices, uint16(o.Index[2]))
-			if i == 0 {
-				fmt.Println(positions, normals, uvs, indices)
-			}
+		}
+
+		for _, index := range indices {
+			o := e.vertices[int(index)]
+			positions = append(positions, [3]float32{o.Position.X, o.Position.Y, o.Position.Z})
+			normals = append(normals, [3]float32{o.Normal.X, o.Normal.Y, o.Normal.Z})
+			uvs = append(uvs, [2]float32{o.Uv.X, o.Uv.Y})
 		}
 
 		prim.Attributes, err = modeler.WriteAttributesInterleaved(doc, modeler.Attributes{
@@ -127,7 +127,7 @@ func (e *TER) GLTFExport(w io.Writer) error {
 		if err != nil {
 			return fmt.Errorf("writeAttributes: %w", err)
 		}
-		fmt.Println(modelName, "has", len(positions), "positions and", len(indices), "indices based on", len(e.triangles), "total triangles")
+		fmt.Println(modelName, "has", len(positions), "positions and", len(indices), "indices based on", len(e.faces), "total faces")
 		prim.Indices = gltf.Index(modeler.WriteIndices(doc, indices))
 	}
 	doc.Meshes = append(doc.Meshes, mesh)

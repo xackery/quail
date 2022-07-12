@@ -20,7 +20,7 @@ func (e *TER) ObjExport(objPath string, mtlPath string, matPath string) error {
 	objData := &obj.ObjData{
 		Name:      e.name,
 		Materials: e.materials,
-		Triangles: e.triangles,
+		Triangles: e.faces,
 		Vertices:  e.vertices,
 	}
 	if objData.Name == "" {

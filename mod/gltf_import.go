@@ -70,9 +70,9 @@ func (e *MOD) GLTFImport(path string) error {
 			//fmt.Printf("uv: %+v\n", uv)
 
 			for i := 0; i < len(pos); i++ {
-				err = e.AddVertex(math32.Vector3{X: pos[i][0], Y: pos[i][1], Z: pos[i][2]},
-					math32.Vector3{X: normal[i][0], Y: normal[i][1], Z: normal[i][2]},
-					math32.Vector2{X: uv[i][0], Y: uv[i][1]})
+				err = e.AddVertex(math32.NewVector3(pos[i][0], pos[i][1], pos[i][2]),
+					math32.NewVector3(normal[i][0], normal[i][1], normal[i][2]),
+					math32.NewVector2(uv[i][0], uv[i][1]))
 				if err != nil {
 					return fmt.Errorf("add vertex: %w", err)
 				}

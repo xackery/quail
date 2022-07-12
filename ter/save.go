@@ -12,7 +12,7 @@ import (
 func (e *TER) Save(w io.Writer) error {
 	var err error
 
-	nameData, data, err := common.WriteGeometry(e.materials, e.vertices, e.triangles)
+	nameData, data, err := common.WriteGeometry(e.materials, e.vertices, e.faces)
 	if err != nil {
 		return fmt.Errorf("writeGeometry: %w", err)
 	}
@@ -39,9 +39,9 @@ func (e *TER) Save(w io.Writer) error {
 		return fmt.Errorf("write vertices count: %w", err)
 	}
 
-	err = binary.Write(w, binary.LittleEndian, uint32(len(e.triangles)))
+	err = binary.Write(w, binary.LittleEndian, uint32(len(e.faces)))
 	if err != nil {
-		return fmt.Errorf("write triangle count: %w", err)
+		return fmt.Errorf("write face count: %w", err)
 	}
 
 	err = binary.Write(w, binary.LittleEndian, nameData)
