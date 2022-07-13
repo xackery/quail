@@ -169,12 +169,12 @@ func (e *TER) Load(r io.ReadSeeker) error {
 					return fmt.Errorf("new fileentry material %s: %w", propertyName, err)
 				}
 				e.files = append(e.files, fe)
-				err = e.AddMaterialProperty(name, propertyName, propertyType, propertyValueName)
+				err = e.MaterialPropertyAdd(name, propertyName, propertyType, propertyValueName)
 				if err != nil {
 					return fmt.Errorf("addMaterialProperty %s %s: %w", name, propertyName, err)
 				}
 			} else {
-				err = e.AddMaterialProperty(name, propertyName, propertyType, fmt.Sprintf("%d", propertyValue))
+				err = e.MaterialPropertyAdd(name, propertyName, propertyType, fmt.Sprintf("%d", propertyValue))
 				if err != nil {
 					return fmt.Errorf("addMaterialProperty %s %s: %w", name, propertyName, err)
 				}
@@ -215,7 +215,7 @@ func (e *TER) Load(r io.ReadSeeker) error {
 		if err != nil {
 			return fmt.Errorf("read vertex %d uv: %w", i, err)
 		}
-		err = e.AddVertex(pos, normal, uv)
+		err = e.VertexAdd(pos, normal, uv)
 		if err != nil {
 			return fmt.Errorf("addVertex %d: %w", i, err)
 		}
@@ -241,6 +241,7 @@ func (e *TER) Load(r io.ReadSeeker) error {
 
 		materialName, err := e.MaterialByID(int(materialID))
 		if err != nil {
+			//materialName = "BlendTex_5"
 			return fmt.Errorf("material by id for face %d (%d): %w", i, materialID, err)
 		}
 
@@ -249,7 +250,7 @@ func (e *TER) Load(r io.ReadSeeker) error {
 		if err != nil {
 			return fmt.Errorf("read face %d flag: %w", i, err)
 		}
-		err = e.AddTriangle(pos, materialName, flag)
+		err = e.FaceAdd(pos, materialName, flag)
 		if err != nil {
 			return fmt.Errorf("addTriangle %d: %w", i, err)
 		}

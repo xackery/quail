@@ -19,7 +19,7 @@ func (e *TER) MaterialAdd(name string, shaderName string) error {
 	return nil
 }
 
-func (e *TER) AddMaterialProperty(materialName string, propertyName string, category uint32, value string) error {
+func (e *TER) MaterialPropertyAdd(materialName string, propertyName string, category uint32, value string) error {
 	for _, o := range e.materials {
 		if o.Name != materialName {
 			continue
@@ -34,7 +34,7 @@ func (e *TER) AddMaterialProperty(materialName string, propertyName string, cate
 	return fmt.Errorf("materialName not found: %s", materialName)
 }
 
-func (e *TER) AddVertex(position *math32.Vector3, normal *math32.Vector3, uv *math32.Vector2) error {
+func (e *TER) VertexAdd(position *math32.Vector3, normal *math32.Vector3, uv *math32.Vector2) error {
 	e.vertices = append(e.vertices, &common.Vertex{
 		Position: position,
 		Normal:   normal,
@@ -43,7 +43,7 @@ func (e *TER) AddVertex(position *math32.Vector3, normal *math32.Vector3, uv *ma
 	return nil
 }
 
-func (e *TER) AddTriangle(index [3]uint32, materialName string, flag uint32) error {
+func (e *TER) FaceAdd(index [3]uint32, materialName string, flag uint32) error {
 	if materialName == "" && len(e.materials) == 0 {
 		e.faces = append(e.faces, &common.Face{
 			Index:        index,

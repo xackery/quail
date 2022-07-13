@@ -11,12 +11,13 @@ import (
 
 // TER is a terrain file struct
 type TER struct {
-	name      string
-	path      string
-	materials []*common.Material
-	vertices  []*common.Vertex
-	faces     []*common.Face
-	files     []common.Filer
+	name               string
+	path               string
+	materials          []*common.Material
+	vertices           []*common.Vertex
+	faces              []*common.Face
+	files              []common.Filer
+	gltfMaterialBuffer map[string]*uint32
 }
 
 func New(name string, path string) (*TER, error) {

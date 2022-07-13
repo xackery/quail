@@ -39,7 +39,7 @@ func (e *TER) GLTFImport(path string) error {
 			}
 
 			for i := 0; i < len(indices); i += 3 {
-				err = e.AddTriangle([3]uint32{uint32(indices[i]), uint32(indices[i+1]), uint32(indices[i+2])}, materialName, 0)
+				err = e.FaceAdd([3]uint32{uint32(indices[i]), uint32(indices[i+1]), uint32(indices[i+2])}, materialName, 0)
 				if err != nil {
 					return fmt.Errorf("addTriangle: %w", err)
 				}
@@ -89,7 +89,7 @@ func (e *TER) GLTFImport(path string) error {
 					uvEntry.X = uv[i][0]
 					uvEntry.Y = uv[i][1]
 				}
-				err = e.AddVertex(posEntry, normalEntry, uvEntry)
+				err = e.VertexAdd(posEntry, normalEntry, uvEntry)
 				if err != nil {
 					return fmt.Errorf("add vertex: %w", err)
 				}
