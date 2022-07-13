@@ -116,6 +116,9 @@ func (e *Dump) Hex(data interface{}, size int, format string, a ...interface{}) 
 		clr := groupColors[e.lastGroupColor]
 		for i := 0; i < width; i++ {
 			for j := 0; j < height; j++ {
+				if height > 1000 {
+					continue
+				}
 				img.SetRGBA(i, j, clr)
 			}
 		}
@@ -205,6 +208,7 @@ func (e *Dump) Save(path string) error {
 	if err != nil {
 		return fmt.Errorf("encode: %w", err)
 	}
+	fmt.Println("saved dump", path)
 	return nil
 }
 

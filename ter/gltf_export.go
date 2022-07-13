@@ -117,6 +117,19 @@ func (e *TER) gltfAddCacheMaterial(doc *gltf.Document, name string) (*uint32, er
 		}
 	}
 	if mat == nil {
+		if name == "" {
+			doc.Materials = append(doc.Materials, &gltf.Material{
+				Name: name,
+				PBRMetallicRoughness: &gltf.PBRMetallicRoughness{
+					BaseColorFactor: &[4]float32{0, 0, 0, 1},
+					MetallicFactor:  gltf.Float(0),
+				},
+			})
+
+			material = gltf.Index(uint32(len(doc.Materials) - 1))
+			e.gltfMaterialBuffer[name] = material
+			return material, nil
+		}
 		return material, fmt.Errorf("material '%s' not found", name)
 	}
 

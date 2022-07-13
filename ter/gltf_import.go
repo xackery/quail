@@ -41,7 +41,7 @@ func (e *TER) GLTFImport(path string) error {
 			for i := 0; i < len(indices); i += 3 {
 				err = e.FaceAdd([3]uint32{uint32(indices[i]), uint32(indices[i+1]), uint32(indices[i+2])}, materialName, 0)
 				if err != nil {
-					return fmt.Errorf("addTriangle: %w", err)
+					return fmt.Errorf("faceAdd: %w", err)
 				}
 			}
 

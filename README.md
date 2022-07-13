@@ -17,6 +17,12 @@ tog|10% - Save template prototyped
 wld|50% - Load/Save prototyped, needs attention
 zon|50% - Load/Save prototyped, needs attention
 
+# EQG Zone Versions
+
+- 1 e.g.: .zon will define
+- 4 e.g. shardslanding: .zon 
+
+
 ## External resources
 
 [gltf writer for wld fragments in lantern](https://github.com/vermadas/LanternExtractor/blob/vermadas/multi_inject/LanternExtractor/EQ/Wld/Exporters/GltfWriter.cs)
