@@ -6,6 +6,144 @@ import (
 	"testing"
 )
 
+func TestGLTFExportHeptagon(t *testing.T) {
+	path := "test/heptagon/"
+	inFile := "test/heptagon/_heptagon.eqg/heptagon.ter"
+	outFile := "test/heptagon/tmp.gltf"
+
+	e, err := New("heptagon", path)
+	if err != nil {
+		t.Fatalf("new: %s", err)
+	}
+
+	r, err := os.Open(inFile)
+	if err != nil {
+		t.Fatalf("open %s: %s", path, err)
+	}
+	defer r.Close()
+
+	err = e.Load(r)
+	if err != nil {
+		t.Fatalf("import %s: %s", path, err)
+	}
+
+	fw, err := os.Create("test/heptagon_ter.txt")
+	if err != nil {
+		t.Fatalf("heptagon.txt: %s", err)
+	}
+	defer fw.Close()
+	fmt.Fprintf(fw, "faces:\n")
+	for i, o := range e.faces {
+		fmt.Fprintf(fw, "%d %+v\n", i, o)
+	}
+
+	fmt.Fprintf(fw, "vertices:\n")
+	for i, o := range e.vertices {
+		fmt.Fprintf(fw, "%d pos: %0.0f %0.0f %0.0f, normal: %+v, uv: %+v\n", i, o.Position.X, o.Position.Y, o.Position.Z, o.Normal, o.Uv)
+	}
+
+	w, err := os.Create(outFile)
+	if err != nil {
+		t.Fatalf("create %s", err)
+	}
+	defer w.Close()
+	err = e.GLTFExport(w)
+	if err != nil {
+		t.Fatalf("save: %s", err)
+	}
+}
+func TestGLTFExportHexagon(t *testing.T) {
+	path := "test/hexagon/"
+	inFile := "test/hexagon/_hexagon.eqg/hexagon.ter"
+	outFile := "test/hexagon/tmp.gltf"
+
+	e, err := New("hexagon", path)
+	if err != nil {
+		t.Fatalf("new: %s", err)
+	}
+
+	r, err := os.Open(inFile)
+	if err != nil {
+		t.Fatalf("open %s: %s", path, err)
+	}
+	defer r.Close()
+
+	err = e.Load(r)
+	if err != nil {
+		t.Fatalf("import %s: %s", path, err)
+	}
+
+	fw, err := os.Create("test/hexagon_ter.txt")
+	if err != nil {
+		t.Fatalf("hexagon.txt: %s", err)
+	}
+	defer fw.Close()
+	fmt.Fprintf(fw, "faces:\n")
+	for i, o := range e.faces {
+		fmt.Fprintf(fw, "%d %+v\n", i, o)
+	}
+
+	fmt.Fprintf(fw, "vertices:\n")
+	for i, o := range e.vertices {
+		fmt.Fprintf(fw, "%d pos: %0.0f %0.0f %0.0f, normal: %+v, uv: %+v\n", i, o.Position.X, o.Position.Y, o.Position.Z, o.Normal, o.Uv)
+	}
+
+	w, err := os.Create(outFile)
+	if err != nil {
+		t.Fatalf("create %s", err)
+	}
+	defer w.Close()
+	err = e.GLTFExport(w)
+	if err != nil {
+		t.Fatalf("save: %s", err)
+	}
+}
+func TestGLTFExportPentagon(t *testing.T) {
+	path := "test/pentagon/"
+	inFile := "test/pentagon/_pentagon.eqg/pentagon.ter"
+	outFile := "test/pentagon/tmp.gltf"
+
+	e, err := New("pentagon", path)
+	if err != nil {
+		t.Fatalf("new: %s", err)
+	}
+
+	r, err := os.Open(inFile)
+	if err != nil {
+		t.Fatalf("open %s: %s", path, err)
+	}
+	defer r.Close()
+
+	err = e.Load(r)
+	if err != nil {
+		t.Fatalf("import %s: %s", path, err)
+	}
+
+	fw, err := os.Create("test/pentagon_ter.txt")
+	if err != nil {
+		t.Fatalf("pentagon.txt: %s", err)
+	}
+	defer fw.Close()
+	fmt.Fprintf(fw, "faces:\n")
+	for i, o := range e.faces {
+		fmt.Fprintf(fw, "%d %+v\n", i, o)
+	}
+
+	fmt.Fprintf(fw, "vertices:\n")
+	for i, o := range e.vertices {
+		fmt.Fprintf(fw, "%d pos: %0.0f %0.0f %0.0f, normal: %+v, uv: %+v\n", i, o.Position.X, o.Position.Y, o.Position.Z, o.Normal, o.Uv)
+	}
+
+	w, err := os.Create(outFile)
+	if err != nil {
+		t.Fatalf("create %s", err)
+	}
+	defer w.Close()
+	err = e.GLTFExport(w)
+	if err != nil {
+		t.Fatalf("save: %s", err)
+	}
+}
 func TestGLTFExportOctagon(t *testing.T) {
 	path := "test/octagon/"
 	inFile := "test/octagon/_octagon.eqg/octagon.ter"
