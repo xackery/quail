@@ -23,6 +23,7 @@ func TestGLTFExportSamples(t *testing.T) {
 		{category: "plane"},
 		{category: "triangle_material"},
 		{category: "triangle"},
+		{category: "triangle_plane"},
 	}
 	for _, tt := range tests {
 		isGLTFSource := false
