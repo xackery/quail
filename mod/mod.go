@@ -6,15 +6,18 @@ import (
 
 // MOD is a zon file struct
 type MOD struct {
-	name            string
-	path            string
+	// name is used as an identifier
+	name string
+	// path is used for relative paths when looking for flat file texture references
+	path string
+	// eqg is used as an alternative to path when loading data from a eqg file
+	eqg             common.Archiver
 	materials       []*common.Material
 	vertices        []*common.Vertex
 	faces           []*common.Face
 	bones           []*Bone
 	boneAssignments []*boneAssignment
 	files           []common.Filer
-	eqg             common.Archiver
 }
 
 type Bone struct {

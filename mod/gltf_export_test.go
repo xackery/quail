@@ -6,6 +6,7 @@ import (
 	"io/fs"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/xackery/quail/common"
@@ -19,16 +20,15 @@ func TestGLTFExportSamples(t *testing.T) {
 		{category: "arthwall"},
 		{category: "aro"},
 		{category: "she"},
-		{category: "smd"},
+		{category: "voaequip"},
 	}
 	for _, tt := range tests {
 
 		eqgFile := fmt.Sprintf("test/eq/%s.eqg", tt.category)
-		modFile := fmt.Sprintf("obj_%s.mod", tt.category)
-		modFile2 := fmt.Sprintf("%s.mod", tt.category)
+		//modFile := fmt.Sprintf("obj_%s.mod", tt.category)
 
-		outFile := fmt.Sprintf("test/eq/%s_mod.gltf", tt.category)
-		txtFile := fmt.Sprintf("test/eq/%s_mod.txt", tt.category)
+		//outFile := fmt.Sprintf("test/eq/%s_mod.gltf", tt.category)
+		//txtFile := fmt.Sprintf("test/eq/%s_mod.txt", tt.category)
 
 		ra, err := os.Open(eqgFile)
 		if err != nil {
@@ -44,49 +44,48 @@ func TestGLTFExportSamples(t *testing.T) {
 			t.Fatalf("load eqg: %s", err)
 		}
 
-		data, err := a.File(modFile)
-		if err != nil {
-			data, err = a.File(modFile2)
-			if err != nil {
-				t.Fatalf("file: %s", err)
+		files := a.Files()
+		for _, modEntry := range files {
+			if filepath.Ext(modEntry.Name()) != ".mod" {
+				continue
 			}
-		}
+			r := bytes.NewReader(modEntry.Data())
 
-		r := bytes.NewReader(data)
+			e, err := NewEQG(tt.category, a)
+			if err != nil {
+				t.Fatalf("new: %s", err)
+			}
 
-		e, err := NewEQG(tt.category, a)
-		if err != nil {
-			t.Fatalf("new: %s", err)
-		}
+			err = e.Load(r)
+			if err != nil {
+				t.Fatalf("load %s: %s", modEntry.Name(), err)
+			}
 
-		err = e.Load(r)
-		if err != nil {
-			t.Fatalf("load %s: %s", modFile, err)
-		}
+			/*			fw, err := os.Create(txtFile)
+						if err != nil {
+							t.Fatalf("%s", err)
+						}
+						defer fw.Close()
+						fmt.Fprintf(fw, "faces:\n")
+						for i, o := range e.faces {
+							fmt.Fprintf(fw, "%d %+v\n", i, o)
+						}
 
-		fw, err := os.Create(txtFile)
-		if err != nil {
-			t.Fatalf("%s", err)
-		}
-		defer fw.Close()
-		fmt.Fprintf(fw, "faces:\n")
-		for i, o := range e.faces {
-			fmt.Fprintf(fw, "%d %+v\n", i, o)
-		}
-
-		fmt.Fprintf(fw, "vertices:\n")
-		for i, o := range e.vertices {
-			fmt.Fprintf(fw, "%d pos: %0.0f %0.0f %0.0f, normal: %+v, uv: %+v\n", i, o.Position.X, o.Position.Y, o.Position.Z, o.Normal, o.Uv)
-		}
-
-		w, err := os.Create(outFile)
-		if err != nil {
-			t.Fatalf("create %s", err)
-		}
-		defer w.Close()
-		err = e.GLTFExport(w)
-		if err != nil {
-			t.Fatalf("save: %s", err)
+						fmt.Fprintf(fw, "vertices:\n")
+						for i, o := range e.vertices {
+							fmt.Fprintf(fw, "%d pos: %0.0f %0.0f %0.0f, normal: %+v, uv: %+v\n", i, o.Position.X, o.Position.Y, o.Position.Z, o.Normal, o.Uv)
+						}
+			*/
+			outFile := fmt.Sprintf("test/eq/%s_mod_%s.gltf", tt.category, modEntry.Name())
+			w, err := os.Create(outFile)
+			if err != nil {
+				t.Fatalf("create %s", err)
+			}
+			defer w.Close()
+			err = e.GLTFExport(w)
+			if err != nil {
+				t.Fatalf("save: %s", err)
+			}
 		}
 	}
 }
