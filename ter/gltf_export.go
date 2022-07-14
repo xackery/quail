@@ -126,7 +126,7 @@ func (e *TER) gltfAddCacheMaterial(doc *gltf.Document, name string) (*uint32, er
 			doc.Materials = append(doc.Materials, &gltf.Material{
 				Name: name,
 				PBRMetallicRoughness: &gltf.PBRMetallicRoughness{
-					BaseColorFactor: &[4]float32{0, 0, 0, 1},
+					BaseColorFactor: &[4]float32{1.0, 1.0, 1.0, 1},
 					MetallicFactor:  gltf.Float(0),
 				},
 			})
@@ -149,7 +149,7 @@ func (e *TER) gltfAddCacheMaterial(doc *gltf.Document, name string) (*uint32, er
 		doc.Materials = append(doc.Materials, &gltf.Material{
 			Name: name,
 			PBRMetallicRoughness: &gltf.PBRMetallicRoughness{
-				BaseColorFactor: &[4]float32{0, 0, 0, 1},
+				BaseColorFactor: &[4]float32{1.0, 1.0, 1.0, 1},
 				MetallicFactor:  gltf.Float(0),
 			},
 		})
@@ -208,7 +208,7 @@ func (e *TER) gltfAddCacheMaterial(doc *gltf.Document, name string) (*uint32, er
 	/*doc.Materials = append(doc.Materials, &gltf.Material{
 		Name: modelName,
 		PBRMetallicRoughness: &gltf.PBRMetallicRoughness{
-			BaseColorFactor: &[4]float32{0, 0, 0, 1},
+			BaseColorFactor: &[4]float32{1.0, 1.0, 1.0, 1},
 			MetallicFactor:  gltf.Float(0),
 		},
 	})*/
