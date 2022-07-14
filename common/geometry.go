@@ -39,11 +39,19 @@ type Property struct {
 type Vertex struct {
 	Position *math32.Vector3
 	Normal   *math32.Vector3
+	Tint     *Tint
 	Uv       *math32.Vector2
+	Uv2      *math32.Vector2
 }
 
 type Face struct {
 	Index        [3]uint32
 	MaterialName string
 	Flag         uint32
+}
+
+type Tint struct {
+	R uint8
+	G uint8
+	B uint8
 }

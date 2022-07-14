@@ -34,11 +34,13 @@ func (e *TER) MaterialPropertyAdd(materialName string, propertyName string, cate
 	return fmt.Errorf("materialName not found: %s", materialName)
 }
 
-func (e *TER) VertexAdd(position *math32.Vector3, normal *math32.Vector3, uv *math32.Vector2) error {
+func (e *TER) VertexAdd(position *math32.Vector3, normal *math32.Vector3, tint *common.Tint, uv *math32.Vector2, uv2 *math32.Vector2) error {
 	e.vertices = append(e.vertices, &common.Vertex{
 		Position: position,
 		Normal:   normal,
+		Tint:     tint,
 		Uv:       uv,
+		Uv2:      uv2,
 	})
 	return nil
 }

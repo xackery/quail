@@ -3,7 +3,6 @@ package ter
 import (
 	"encoding/binary"
 	"fmt"
-	"image/color"
 	"io"
 	"io/ioutil"
 
@@ -213,12 +212,15 @@ func (e *TER) loadVersion2(r io.Reader) error {
 			return fmt.Errorf("read vertex %d normal: %w", i, err)
 		}
 
+		tint := &common.Tint{R: 128, G: 128, B: 128}
+
 		uv := math32.NewVec2()
 		err = binary.Read(r, binary.LittleEndian, uv)
 		if err != nil {
 			return fmt.Errorf("read vertex %d uv: %w", i, err)
 		}
-		err = e.VertexAdd(pos, normal, uv)
+
+		err = e.VertexAdd(pos, normal, tint, uv, uv)
 		if err != nil {
 			return fmt.Errorf("addVertex %d: %w", i, err)
 		}
@@ -421,17 +423,10 @@ func (e *TER) loadVersion3(r io.Reader) error {
 			return fmt.Errorf("read vertex %d normal: %w", i, err)
 		}
 
-		color := color.RGBA{}
-		//version 3 exclusive
-		err = binary.Read(r, binary.LittleEndian, &color)
+		tint := &common.Tint{R: 128, G: 128, B: 128}
+		err = binary.Read(r, binary.LittleEndian, tint)
 		if err != nil {
-			return fmt.Errorf("read vertex %d color: %w", i, err)
-		}
-
-		unkUV := math32.Vector2{}
-		err = binary.Read(r, binary.LittleEndian, &unkUV)
-		if err != nil {
-			return fmt.Errorf("read vertex %d unkUV: %w", i, err)
+			return fmt.Errorf("read vertex %d tint: %w", i, err)
 		}
 
 		uv := math32.NewVec2()
@@ -439,7 +434,14 @@ func (e *TER) loadVersion3(r io.Reader) error {
 		if err != nil {
 			return fmt.Errorf("read vertex %d uv: %w", i, err)
 		}
-		err = e.VertexAdd(pos, normal, uv)
+
+		uv2 := math32.NewVec2()
+		err = binary.Read(r, binary.LittleEndian, uv2)
+		if err != nil {
+			return fmt.Errorf("read vertex %d uv2: %w", i, err)
+		}
+
+		err = e.VertexAdd(pos, normal, tint, uv, uv2)
 		if err != nil {
 			return fmt.Errorf("addVertex %d: %w", i, err)
 		}

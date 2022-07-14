@@ -2,10 +2,12 @@ package ter
 
 import (
 	"fmt"
+	"image/color"
 
 	"github.com/g3n/engine/math32"
 	"github.com/qmuntal/gltf"
 	"github.com/qmuntal/gltf/modeler"
+	"github.com/xackery/quail/common"
 )
 
 // GLTFImport takes a provided GLTF path and loads relative data as a mod
@@ -49,47 +51,63 @@ func (e *TER) GLTFImport(path string) error {
 			if !ok {
 				return fmt.Errorf("primitive in mesh '%s' has no position", m.Name)
 			}
-			pos, err := modeler.ReadPosition(doc, doc.Accessors[posIndex], [][3]float32{})
+			positions, err := modeler.ReadPosition(doc, doc.Accessors[posIndex], [][3]float32{})
 			if err != nil {
 				return fmt.Errorf("readPosition: %w", err)
 			}
 
 			//fmt.Printf("pos: %+v\n", pos)
-			normal := [][3]float32{}
-			posIndex, ok = p.Attributes[gltf.NORMAL]
+			normals := [][3]float32{}
+			normalIndex, ok := p.Attributes[gltf.NORMAL]
 			if ok {
-				normal, err = modeler.ReadNormal(doc, doc.Accessors[posIndex], [][3]float32{})
+				normals, err = modeler.ReadNormal(doc, doc.Accessors[normalIndex], [][3]float32{})
 				if err != nil {
 					return fmt.Errorf("readNormal: %w", err)
 				}
 			} //return fmt.Errorf("primitive in mesh '%s' has no normal", m.Name)
 
+			tints := &color.RGBA{255, 255, 255, 255}
+			tintIndex, ok := p.Attributes[gltf.COLOR_0]
+			if ok {
+				tintRaw, err := modeler.ReadColor(doc, doc.Accessors[tintIndex], [][4]uint8{})
+				if err != nil {
+					return fmt.Errorf("readTint: %w", err)
+				}
+				tints.R = tintRaw[0][0]
+				tints.G = tintRaw[0][1]
+				tints.B = tintRaw[0][2]
+				tints.A = tintRaw[0][3]
+			} //return fmt.Errorf("primitive in mesh '%s' has no normal", m.Name)
+
 			//fmt.Printf("normal: %+v\n", normal)
 
-			posIndex, ok = p.Attributes[gltf.TEXCOORD_0]
-			uv := [][2]float32{}
+			uvIndex, ok := p.Attributes[gltf.TEXCOORD_0]
+			uvs := [][2]float32{}
 			if ok {
-				uv, err = modeler.ReadTextureCoord(doc, doc.Accessors[posIndex], [][2]float32{})
+				uvs, err = modeler.ReadTextureCoord(doc, doc.Accessors[uvIndex], [][2]float32{})
 				if err != nil {
 					return fmt.Errorf("readTextureCoord: %w", err)
 				}
-			} //return fmt.Errorf("primitive in mesh '%s' has no texcoord", m.Name)
+			}
+			//return fmt.Errorf("primitive in mesh '%s' has no texcoord", m.Name)
 			//fmt.Printf("uv: %+v\n", uv)
 
-			for i := 0; i < len(pos); i++ {
-				posEntry := math32.NewVector3(pos[i][0], pos[i][1], pos[i][2])
+			for i := 0; i < len(positions); i++ {
+				posEntry := math32.NewVector3(positions[i][0], positions[i][1], positions[i][2])
 				normalEntry := math32.NewVec3()
-				if len(normal) > i {
-					normalEntry.X = normal[i][0]
-					normalEntry.Y = normal[i][1]
-					normalEntry.Z = normal[i][2]
+				if len(normals) > i {
+					normalEntry.X = normals[i][0]
+					normalEntry.Y = normals[i][1]
+					normalEntry.Z = normals[i][2]
 				}
 				uvEntry := math32.NewVec2()
-				if len(uv) > i {
-					uvEntry.X = uv[i][0]
-					uvEntry.Y = uv[i][1]
+				if len(uvs) > i {
+					uvEntry.X = uvs[i][0]
+					uvEntry.Y = uvs[i][1]
 				}
-				err = e.VertexAdd(posEntry, normalEntry, uvEntry)
+				tint := &common.Tint{R: 128, G: 128, B: 128}
+				fmt.Printf("%d pos: %0.0f %0.0f %0.0f, normal: %+v, uv: %+v\n", i, posEntry.X, posEntry.Y, posEntry.Z, normalEntry, uvEntry)
+				err = e.VertexAdd(posEntry, normalEntry, tint, uvEntry, uvEntry)
 				if err != nil {
 					return fmt.Errorf("add vertex: %w", err)
 				}

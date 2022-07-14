@@ -70,16 +70,21 @@ func (e *TER) GLTFExport(w io.Writer) error {
 			Mode:     gltf.PrimitiveTriangles,
 			Material: prim.materialIndex,
 		}
-		primitive.Attributes, err = modeler.WriteAttributesInterleaved(doc, modeler.Attributes{
+
+		/*primitive.Attributes, err = modeler.WriteAttributesInterleaved(doc, modeler.Attributes{
 			Position:       prim.positions,
 			Normal:         prim.normals,
 			TextureCoord_0: prim.uvs,
-		})
-		if err != nil {
-			return fmt.Errorf("writeAttributes: %w", err)
+		})*/
+
+		primitive.Attributes = map[string]uint32{
+			gltf.POSITION:   modeler.WritePosition(doc, prim.positions),
+			gltf.NORMAL:     modeler.WriteNormal(doc, prim.normals),
+			gltf.TEXCOORD_0: modeler.WriteTextureCoord(doc, prim.uvs),
 		}
 		primitive.Indices = gltf.Index(modeler.WriteIndices(doc, prim.indices))
 		mesh.Primitives = append(mesh.Primitives, primitive)
+		fmt.Println("last indices:", *primitive.Indices, "total buffers:", len(doc.BufferViews))
 	}
 
 	doc.Meshes = append(doc.Meshes, mesh)
