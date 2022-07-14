@@ -22,26 +22,36 @@ func TestGLTFExportSamples(t *testing.T) {
 		{category: "triangle_material"},
 	}
 	for _, tt := range tests {
+		isGLTFSource := false
 
 		path := "test/" + tt.category + "/_" + tt.category + ".eqg/"
 		inFile := "test/" + tt.category + "/_" + tt.category + ".eqg/" + tt.category + ".ter"
+		gltfInFile := "test/" + tt.category + "/" + tt.category + ".gltf"
 		outFile := "test/" + tt.category + "/tmp.gltf"
+
 		txtFile := "test/" + tt.category + "/" + tt.category + "_ter.txt"
 
-		e, err := New(""+tt.category+"", path)
+		e, err := New(tt.category, path)
 		if err != nil {
 			t.Fatalf("new: %s", err)
 		}
 
-		r, err := os.Open(inFile)
-		if err != nil {
-			t.Fatalf("open %s: %s", path, err)
-		}
-		defer r.Close()
+		if isGLTFSource {
+			err = e.GLTFImport(gltfInFile)
+			if err != nil {
+				t.Fatalf("import %s: %s", path, err)
+			}
+		} else {
+			r, err := os.Open(inFile)
+			if err != nil {
+				t.Fatalf("open %s: %s", path, err)
+			}
+			defer r.Close()
 
-		err = e.Load(r)
-		if err != nil {
-			t.Fatalf("import %s: %s", path, err)
+			err = e.Load(r)
+			if err != nil {
+				t.Fatalf("load %s: %s", path, err)
+			}
 		}
 
 		fw, err := os.Create(txtFile)
