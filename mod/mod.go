@@ -14,6 +14,7 @@ type MOD struct {
 	bones           []*Bone
 	boneAssignments []*boneAssignment
 	files           []common.Filer
+	eqg             common.Archiver
 }
 
 type Bone struct {
@@ -31,6 +32,14 @@ func New(name string, path string) (*MOD, error) {
 	e := &MOD{
 		name: name,
 		path: path,
+	}
+	return e, nil
+}
+
+func NewEQG(name string, eqg common.Archiver) (*MOD, error) {
+	e := &MOD{
+		name: name,
+		eqg:  eqg,
 	}
 	return e, nil
 }

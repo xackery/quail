@@ -1,56 +1,73 @@
 package ter
 
 import (
+	"bytes"
 	"fmt"
 	"os"
 	"testing"
+
+	"github.com/xackery/quail/eqg"
 )
 
 func TestGLTFExportSamples(t *testing.T) {
 	tests := []struct {
 		category string
 	}{
+		{category: "box"},
 		{category: "heptagon"},
 		{category: "hexagon"},
-		{category: "pentagon"},
 		{category: "octagon"},
+		{category: "pentagon"},
 		{category: "plane_top_bottom"},
 		{category: "plane_top_bottom2"},
-		{category: "box"},
 		{category: "plane"},
-		{category: "triangle"},
 		{category: "triangle_material"},
+		{category: "triangle"},
 	}
 	for _, tt := range tests {
 		isGLTFSource := false
 
-		path := "test/" + tt.category + "/_" + tt.category + ".eqg/"
-		inFile := "test/" + tt.category + "/_" + tt.category + ".eqg/" + tt.category + ".ter"
-		gltfInFile := "test/" + tt.category + "/" + tt.category + ".gltf"
-		outFile := "test/" + tt.category + "/tmp.gltf"
+		eqgFile := fmt.Sprintf("test/%s.eqg", tt.category)
+		terFile := fmt.Sprintf("%s.ter", tt.category)
+		gltfFile := fmt.Sprintf("test/%s.gltf", tt.category)
+		gltfOutFile := fmt.Sprintf("test/%s_out.gltf", tt.category)
+		txtFile := fmt.Sprintf("test/%s_ter.txt", tt.category)
+		if isGLTFSource {
+			txtFile = fmt.Sprintf("test/%s_gltf.txt", tt.category)
+		}
 
-		txtFile := "test/" + tt.category + "/" + tt.category + "_ter.txt"
+		a, err := eqg.New(tt.category)
+		if err != nil {
+			t.Fatalf("eqg.New: %s", err)
+		}
+		r, err := os.Open(eqgFile)
+		if err != nil {
+			t.Fatalf("%s", err)
+		}
+		err = a.Load(r)
+		if err != nil {
+			t.Fatalf("load: %s", err)
+		}
 
-		e, err := New(tt.category, path)
+		e, err := NewEQG(tt.category, a)
 		if err != nil {
 			t.Fatalf("new: %s", err)
 		}
 
 		if isGLTFSource {
-			err = e.GLTFImport(gltfInFile)
+			err = e.GLTFImport(gltfFile)
 			if err != nil {
-				t.Fatalf("import %s: %s", path, err)
+				t.Fatalf("import %s: %s", gltfFile, err)
 			}
 		} else {
-			r, err := os.Open(inFile)
+			data, err := a.File(terFile)
 			if err != nil {
-				t.Fatalf("open %s: %s", path, err)
+				t.Fatalf("File: %s", err)
 			}
-			defer r.Close()
-
+			r := bytes.NewReader(data)
 			err = e.Load(r)
 			if err != nil {
-				t.Fatalf("load %s: %s", path, err)
+				t.Fatalf("load %s: %s", terFile, err)
 			}
 		}
 
@@ -69,7 +86,7 @@ func TestGLTFExportSamples(t *testing.T) {
 			fmt.Fprintf(fw, "%d pos: %0.0f %0.0f %0.0f, normal: %+v, uv: %+v\n", i, o.Position.X, o.Position.Y, o.Position.Z, o.Normal, o.Uv)
 		}
 
-		w, err := os.Create(outFile)
+		w, err := os.Create(gltfOutFile)
 		if err != nil {
 			t.Fatalf("create %s", err)
 		}

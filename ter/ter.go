@@ -18,12 +18,21 @@ type TER struct {
 	faces              []*common.Face
 	files              []common.Filer
 	gltfMaterialBuffer map[string]*uint32
+	eqg                common.Archiver
 }
 
 func New(name string, path string) (*TER, error) {
 	t := &TER{
 		name: name,
 		path: path,
+	}
+	return t, nil
+}
+
+func NewEQG(name string, eqg common.Archiver) (*TER, error) {
+	t := &TER{
+		name: name,
+		eqg:  eqg,
 	}
 	return t, nil
 }
