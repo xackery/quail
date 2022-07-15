@@ -70,11 +70,6 @@ func (e *MOD) Load(r io.ReadSeeker) error {
 	}
 	dump.Hex(boneCount, "boneCount=%d", boneCount)
 
-	/*err = binary.Read(r, binary.LittleEndian, uint32(len(e.boneAssignments)))
-	if err != nil {
-		return fmt.Errorf("read bone assignemt count: %w", err)
-	}*/
-
 	nameData := make([]byte, nameLength)
 
 	err = binary.Read(r, binary.LittleEndian, &nameData)
@@ -293,8 +288,10 @@ func (e *MOD) Load(r io.ReadSeeker) error {
 		if err != nil {
 			return fmt.Errorf("read bone %d materialID: %w", i, err)
 		}
-
 		dump.Hex(materialID, "%dmaterialid=%d(%s)", i, materialID, names[materialID])
+
+		name := names[materialID]
+
 		next := int32(0)
 		err = binary.Read(r, binary.LittleEndian, &next)
 		if err != nil {
@@ -316,38 +313,30 @@ func (e *MOD) Load(r io.ReadSeeker) error {
 		}
 		dump.Hex(childIndex, "%dchildIndex=%d", i, childIndex)
 
-		pivot := math32.Vector3{}
-		err = binary.Read(r, binary.LittleEndian, &pivot)
+		pivot := math32.NewVec3()
+		err = binary.Read(r, binary.LittleEndian, pivot)
 		if err != nil {
 			return fmt.Errorf("read bone %d pivot: %w", i, err)
 		}
 		dump.Hex(pivot, "%dpivot=%+v", i, pivot)
 
-		rot := math32.Vector4{}
-		err = binary.Read(r, binary.LittleEndian, &rot)
+		rot := math32.NewVec4()
+		err = binary.Read(r, binary.LittleEndian, rot)
 		if err != nil {
 			return fmt.Errorf("read bone %d rot: %w", i, err)
 		}
 		dump.Hex(rot, "%drot=%+v", i, rot)
 
-		scale := math32.Vector3{}
-		err = binary.Read(r, binary.LittleEndian, &scale)
+		scale := math32.NewVec3()
+		err = binary.Read(r, binary.LittleEndian, scale)
 		if err != nil {
 			return fmt.Errorf("read bone %d scale: %w", i, err)
 		}
 		dump.Hex(scale, "%dscale=%+v", i, scale)
-
-		//56
-		chunk := make([]byte, 0)
-		err = binary.Read(r, binary.LittleEndian, &chunk)
+		err = e.BoneAdd(name, next, childrenCount, childIndex, pivot, rot, scale)
 		if err != nil {
-			return fmt.Errorf("read chunk %d: %w", i, err)
+			return fmt.Errorf("BoneAdd %d: %w", i, err)
 		}
-		dump.Hex(chunk, "%dchunk=(%d bytes)", i, len(chunk))
-		// pure f's
-
-		//5
-		//1
 	}
 	return nil
 }

@@ -19,6 +19,7 @@ func (e *MOD) GLTFExport(w io.Writer) error {
 	var err error
 	doc := gltf.NewDocument()
 	e.gltfMaterialBuffer = make(map[string]*uint32)
+	e.gltfBoneBuffer = make(map[int]uint32)
 
 	modelName := strings.TrimSuffix(e.name, ".ter")
 
@@ -31,11 +32,59 @@ func (e *MOD) GLTFExport(w io.Writer) error {
 		positions     [][3]float32
 		normals       [][3]float32
 		uvs           [][2]float32
+		joints        [][4]uint16
+		weights       [][4]uint16
 		indices       []uint16
 		uniqueIndices map[uint32]uint16
 	}
 	prims := make(map[*uint32]*primCache)
 
+	// ******** MESH SKINNING *******
+	var skinIndex *uint32
+	//rootNode := uint32(0)
+	for i, b := range e.bones {
+		doc.Nodes = append(doc.Nodes, &gltf.Node{
+			Name: b.name,
+			//Translation: [3]float32{b.pivot.X, b.pivot.Y, b.pivot.Z},
+			Rotation: [4]float32{b.rot.X, b.rot.Y, b.rot.Z, b.rot.W},
+			Scale:    [3]float32{b.scale.X, b.scale.Y, b.scale.Z},
+		})
+		//if strings.EqualFold(b.name, "ROOT_BONE") {
+		//		rootNode = uint32(len(doc.Nodes) - 1)
+		//}
+		e.gltfBoneBuffer[i] = uint32(len(doc.Nodes) - 1)
+	}
+
+	for i, b := range e.bones {
+		children := &[]uint32{}
+		if b.childIndex > -1 {
+			err = e.gltfBoneChildren(doc, children, int(b.childIndex))
+			if err != nil {
+				return fmt.Errorf("gltfBoneChildren: %w", err)
+			}
+		}
+
+		fmt.Printf("%d %d %d %d children for %s: %d\n", i, b.next, b.childIndex, b.childrenCount, b.name, len(*children))
+		if strings.EqualFold(b.name, "ROOT_BONE") {
+			//*children = append(*children, rootNode)
+			skin := &gltf.Skin{
+				Name:   e.bones[0].name,
+				Joints: *children,
+			}
+			doc.Skins = append(doc.Skins, skin)
+			tmp := uint32(len(doc.Skins) - 1)
+			skinIndex = &tmp
+		} else {
+			nodeIndex, ok := e.gltfBoneBuffer[i]
+			if !ok {
+				return fmt.Errorf("bone for %d not found", i)
+			}
+			node := doc.Nodes[int(nodeIndex)]
+			node.Children = *children
+		}
+	}
+
+	// ******** PRIM GENERATION *****
 	for _, o := range e.faces {
 		matIndex, err := e.gltfAddCacheMaterial(doc, o.MaterialName)
 		if err != nil {
@@ -78,18 +127,43 @@ func (e *MOD) GLTFExport(w io.Writer) error {
 			Material: prim.materialIndex,
 		}
 
+		for _, pos := range prim.positions {
+			x, y, z := pos[0], pos[1], pos[2]
+			for _, b := range e.bones {
+				if b.pivot.X != x {
+					continue
+				}
+				if b.pivot.Y != y {
+					continue
+				}
+				if b.pivot.Z != z {
+					continue
+				}
+				prim.joints = append(prim.joints, [4]uint16{uint16(b.pivot.X), uint16(b.pivot.Y), uint16(b.pivot.Z)})
+				prim.weights = append(prim.weights, [4]uint16{1, 1, 1, 1})
+			}
+		}
+
 		primitive.Attributes = map[string]uint32{
 			gltf.POSITION:   modeler.WritePosition(doc, prim.positions),
 			gltf.NORMAL:     modeler.WriteNormal(doc, prim.normals),
 			gltf.TEXCOORD_0: modeler.WriteTextureCoord(doc, prim.uvs),
+			gltf.JOINTS_0:   modeler.WriteJoints(doc, prim.joints),
+			gltf.WEIGHTS_0:  modeler.WriteWeights(doc, prim.weights),
 		}
 
 		primitive.Indices = gltf.Index(modeler.WriteIndices(doc, prim.indices))
 		mesh.Primitives = append(mesh.Primitives, primitive)
 	}
+
 	//fmt.Println("last indices:", *primitive.Indices, "total buffers:", len(doc.BufferViews))
 	doc.Meshes = append(doc.Meshes, mesh)
-	doc.Nodes = append(doc.Nodes, &gltf.Node{Name: modelName, Mesh: gltf.Index(uint32(len(doc.Meshes) - 1))})
+	doc.Nodes = append(doc.Nodes, &gltf.Node{
+		Name: modelName,
+		Mesh: gltf.Index(uint32(len(doc.Meshes) - 1)),
+		Skin: skinIndex,
+	})
+
 	doc.Scenes[0].Nodes = append(doc.Scenes[0].Nodes, uint32(len(doc.Nodes)-1))
 	for _, buff := range doc.Buffers {
 		buff.EmbeddedResource()
@@ -217,4 +291,20 @@ func (e *MOD) gltfAddCacheMaterial(doc *gltf.Document, name string) (*uint32, er
 	material = gltf.Index(uint32(len(doc.Materials) - 1))
 	e.gltfMaterialBuffer[name] = material
 	return material, nil
+}
+
+func (e *MOD) gltfBoneChildren(doc *gltf.Document, children *[]uint32, boneIndex int) error {
+
+	nodeIndex, ok := e.gltfBoneBuffer[boneIndex]
+	if !ok {
+		return fmt.Errorf("bone %d node not found", boneIndex)
+	}
+	*children = append(*children, nodeIndex)
+
+	bone := e.bones[boneIndex]
+	if bone.next == -1 {
+		return nil
+	}
+
+	return e.gltfBoneChildren(doc, children, int(bone.next))
 }

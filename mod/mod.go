@@ -1,6 +1,7 @@
 package mod
 
 import (
+	"github.com/g3n/engine/math32"
 	"github.com/xackery/quail/common"
 )
 
@@ -15,21 +16,20 @@ type MOD struct {
 	materials          []*common.Material
 	vertices           []*common.Vertex
 	faces              []*common.Face
-	bones              []*Bone
-	boneAssignments    []*boneAssignment
+	bones              []*bone
 	files              []common.Filer
 	gltfMaterialBuffer map[string]*uint32
+	gltfBoneBuffer     map[int]uint32
 }
 
-type Bone struct {
-	Delay       int32
-	Translation [3]float32
-	Rotation    [4]float32
-	Scale       [3]float32
-}
-
-type boneAssignment struct {
-	unknown [9]uint32
+type bone struct {
+	name          string
+	next          int32
+	childrenCount uint32
+	childIndex    int32
+	pivot         *math32.Vector3
+	rot           *math32.Vector4
+	scale         *math32.Vector3
 }
 
 func New(name string, path string) (*MOD, error) {

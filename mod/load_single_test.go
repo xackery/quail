@@ -12,14 +12,14 @@ func TestLoad(t *testing.T) {
 	if os.Getenv("SINGLE_TEST") != "1" {
 		return
 	}
-	path := "test/"
-	inFile := "test/obj_gears.mod"
-	f, err := os.Open(path)
+	path := "test/eq/_steamfontmts.eqg/"
+	inFile := "test/eq/_steamfontmts.eqg/obj_gears.mod"
+	f, err := os.Open(inFile)
 	if err != nil {
 		t.Fatalf("%s", err)
 	}
 	defer f.Close()
-	d, err := dump.New(path)
+	d, err := dump.New("obj_gears.mod")
 	if err != nil {
 		t.Fatalf("dump.new: %s", err)
 	}
