@@ -17,10 +17,11 @@ func TestGLTFExportSamples(t *testing.T) {
 	tests := []struct {
 		category string
 	}{
-		{category: "arthwall"},
+		//{category: "steamfontmts"},
+		//{category: "arthwall"},
 		{category: "aro"},
-		{category: "she"},
-		{category: "voaequip"},
+		//{category: "she"},
+		//{category: "voaequip"},
 	}
 	for _, tt := range tests {
 

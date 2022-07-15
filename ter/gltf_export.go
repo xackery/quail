@@ -32,61 +32,55 @@ func (e *TER) GLTFExport(w io.Writer) error {
 		normals       [][3]float32
 		uvs           [][2]float32
 		indices       []uint16
-		uniqueIndeces map[uint16]bool
+		uniqueIndices map[uint32]uint16
 	}
 	prims := make(map[*uint32]*primCache)
 
 	for _, o := range e.faces {
 		matIndex, err := e.gltfAddCacheMaterial(doc, o.MaterialName)
 		if err != nil {
-			return fmt.Errorf("addMaterial: %w", err)
+			return fmt.Errorf("gltfAddCacheMaterial: %w", err)
 		}
 
 		prim, ok := prims[matIndex]
 		if !ok {
 			prim = &primCache{
 				materialIndex: matIndex,
-				uniqueIndeces: make(map[uint16]bool),
+				uniqueIndices: make(map[uint32]uint16),
 			}
 			prims[matIndex] = prim
 		}
 
-		prim.indices = append(prim.indices, uint16(o.Index[0]))
-		prim.indices = append(prim.indices, uint16(o.Index[1]))
-		prim.indices = append(prim.indices, uint16(o.Index[2]))
-		prim.uniqueIndeces[uint16(o.Index[0])] = true
-		prim.uniqueIndeces[uint16(o.Index[1])] = true
-		prim.uniqueIndeces[uint16(o.Index[2])] = true
+		for i := 0; i < 3; i++ {
+			index, ok := prim.uniqueIndices[o.Index[i]]
+			if !ok {
+				v := e.vertices[int(o.Index[i])]
+				prim.positions = append(prim.positions, [3]float32{v.Position.X, v.Position.Y, v.Position.Z})
+				prim.normals = append(prim.normals, [3]float32{v.Normal.X, v.Normal.Y, v.Normal.Z})
+				prim.uvs = append(prim.uvs, [2]float32{v.Uv.X, v.Uv.Y})
+				prim.uniqueIndices[o.Index[i]] = uint16(len(prim.positions) - 1)
+				index = uint16(len(prim.positions) - 1)
+			}
+			prim.indices = append(prim.indices, index)
+		}
+
 	}
 
 	for _, prim := range prims {
-		for index := range prim.uniqueIndeces {
-			o := e.vertices[int(index)]
-			prim.positions = append(prim.positions, [3]float32{o.Position.X, o.Position.Y, o.Position.Z})
-			prim.normals = append(prim.normals, [3]float32{o.Normal.X, o.Normal.Y, o.Normal.Z})
-			prim.uvs = append(prim.uvs, [2]float32{o.Uv.X, o.Uv.Y})
-		}
 		primitive := &gltf.Primitive{
 			Mode:     gltf.PrimitiveTriangles,
 			Material: prim.materialIndex,
 		}
-
-		/*primitive.Attributes, err = modeler.WriteAttributesInterleaved(doc, modeler.Attributes{
-			Position:       prim.positions,
-			Normal:         prim.normals,
-			TextureCoord_0: prim.uvs,
-		})*/
 
 		primitive.Attributes = map[string]uint32{
 			gltf.POSITION:   modeler.WritePosition(doc, prim.positions),
 			gltf.NORMAL:     modeler.WriteNormal(doc, prim.normals),
 			gltf.TEXCOORD_0: modeler.WriteTextureCoord(doc, prim.uvs),
 		}
+
 		primitive.Indices = gltf.Index(modeler.WriteIndices(doc, prim.indices))
 		mesh.Primitives = append(mesh.Primitives, primitive)
-		fmt.Println("last indices:", *primitive.Indices, "total buffers:", len(doc.BufferViews))
 	}
-
 	doc.Meshes = append(doc.Meshes, mesh)
 	doc.Nodes = append(doc.Nodes, &gltf.Node{Name: modelName, Mesh: gltf.Index(uint32(len(doc.Meshes) - 1))})
 	doc.Scenes[0].Nodes = append(doc.Scenes[0].Nodes, uint32(len(doc.Nodes)-1))
@@ -122,7 +116,7 @@ func (e *TER) gltfAddCacheMaterial(doc *gltf.Document, name string) (*uint32, er
 		}
 	}
 	if mat == nil {
-		if name == "" {
+		if name == "" || strings.HasPrefix(name, "empty_") {
 			doc.Materials = append(doc.Materials, &gltf.Material{
 				Name: name,
 				PBRMetallicRoughness: &gltf.PBRMetallicRoughness{

@@ -133,7 +133,7 @@ func (e *MOD) Load(r io.ReadSeeker) error {
 		}
 		dump.Hex(propertyCount, "%dpropertyCount=%d", i, propertyCount)
 
-		err = e.AddMaterial(name, shaderName)
+		err = e.MaterialAdd(name, shaderName)
 		if err != nil {
 			return fmt.Errorf("addMaterial %s: %w", name, err)
 		}
@@ -184,12 +184,12 @@ func (e *MOD) Load(r io.ReadSeeker) error {
 					return fmt.Errorf("new fileentry material %s: %w", propertyName, err)
 				}
 				e.files = append(e.files, fe)
-				err = e.AddMaterialProperty(name, propertyName, propertyType, propertyValueName)
+				err = e.MaterialPropertyAdd(name, propertyName, propertyType, propertyValueName)
 				if err != nil {
 					return fmt.Errorf("addMaterialProperty %s %s: %w", name, propertyName, err)
 				}
 			} else {
-				err = e.AddMaterialProperty(name, propertyName, propertyType, fmt.Sprintf("%d", propertyValue))
+				err = e.MaterialPropertyAdd(name, propertyName, propertyType, fmt.Sprintf("%d", propertyValue))
 				if err != nil {
 					return fmt.Errorf("addMaterialProperty %s %s: %w", name, propertyName, err)
 				}
@@ -231,7 +231,8 @@ func (e *MOD) Load(r io.ReadSeeker) error {
 		if err != nil {
 			return fmt.Errorf("read vertex %d uv: %w", i, err)
 		}
-		err = e.AddVertex(pos, normal, uv)
+		tint := &common.Tint{R: 128, G: 128, B: 128}
+		err = e.VertexAdd(pos, normal, tint, uv, uv)
 		if err != nil {
 			return fmt.Errorf("addVertex %d: %w", i, err)
 		}
@@ -266,9 +267,16 @@ func (e *MOD) Load(r io.ReadSeeker) error {
 		if err != nil {
 			return fmt.Errorf("read face %d flag: %w", i, err)
 		}
-		err = e.AddFace(pos, materialName, flag)
+		if materialName == "" {
+			materialName = fmt.Sprintf("empty_%d", flag)
+		}
+
+		if materialName == "" {
+			materialName = fmt.Sprintf("empty_%d", flag)
+		}
+		err = e.FaceAdd(pos, materialName, flag)
 		if err != nil {
-			return fmt.Errorf("addFace %d: %w", i, err)
+			return fmt.Errorf("faceAdd %d: %w", i, err)
 		}
 	}
 	dump.HexRange([]byte{0x03, 0x04}, int(faceCount)*20, "faceData=(%d bytes)", int(faceCount)*20)

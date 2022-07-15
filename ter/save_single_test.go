@@ -25,7 +25,7 @@ func TestSave(t *testing.T) {
 	}
 	err = e.MaterialPropertyAdd("test", "testProp", 0, "1")
 	if err != nil {
-		t.Fatalf("addMaterialProperty: %s", err)
+		t.Fatalf("MaterialPropertyAdd: %s", err)
 	}
 	buf := bytes.NewBuffer(nil)
 

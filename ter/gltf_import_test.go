@@ -9,9 +9,8 @@ import (
 )
 
 func TestGLTFImportExportBoxGLTF(t *testing.T) {
-	path := "test/box/_box.eqg"
-	inFile := "test/box/_box.eqg/box.gltf"
-	outFile := "test/tmp.gltf"
+	path := "test/box.eqg"
+	inFile := "test/box_out.gltf"
 
 	e, err := New("out", path)
 	if err != nil {
@@ -23,20 +22,11 @@ func TestGLTFImportExportBoxGLTF(t *testing.T) {
 		t.Fatalf("import %s: %s", path, err)
 	}
 
-	w, err := os.Create(outFile)
-	if err != nil {
-		t.Fatalf("create: %s", err)
-	}
-	err = e.GLTFExport(w)
-	if err != nil {
-		t.Fatalf("GLTFExport: %s", err)
-	}
-	fmt.Printf("dump: %+v\n", e)
 }
 
 func TestGLTFBoxVerify(t *testing.T) {
-	inFile := "test/box/_box.eqg/box.gltf"
-	outFile := "test/tmp.gltf"
+	inFile := "test/box.gltf"
+	outFile := "test/box_out.gltf"
 
 	doc, err := gltf.Open(inFile)
 	if err != nil {
@@ -49,9 +39,9 @@ func TestGLTFBoxVerify(t *testing.T) {
 }
 
 func TestGLTFBoxSanity(t *testing.T) {
-	path := "test/_box.eqg"
-	inFile := "test/box/_box.eqg/box.gltf"
-	outFile := "test/tmp.gltf"
+	path := "test/box.eqg"
+	inFile := "test/box.gltf"
+	outFile := "test/box_out.gltf"
 
 	//validator: https://github.khronos.org/glTF-Validator/
 

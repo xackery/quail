@@ -6,6 +6,7 @@ import (
 	"github.com/g3n/engine/math32"
 	"github.com/qmuntal/gltf"
 	"github.com/qmuntal/gltf/modeler"
+	"github.com/xackery/quail/common"
 )
 
 // GLTFImport takes a provided GLTF path and loads relative data as a mod
@@ -17,7 +18,7 @@ func (e *MOD) GLTFImport(path string) error {
 	for _, m := range doc.Materials {
 		//TODO: add _mat.txt parsing
 		fmt.Println("add material", m.Name)
-		err = e.AddMaterial(m.Name, "Opaque_MaxCB1.fx")
+		err = e.MaterialAdd(m.Name, "Opaque_MaxCB1.fx")
 		if err != nil {
 			return fmt.Errorf("add material %s: %w", m.Name, err)
 		}
@@ -70,8 +71,11 @@ func (e *MOD) GLTFImport(path string) error {
 			//fmt.Printf("uv: %+v\n", uv)
 
 			for i := 0; i < len(pos); i++ {
-				err = e.AddVertex(math32.NewVector3(pos[i][0], pos[i][1], pos[i][2]),
+				tint := &common.Tint{R: 128, G: 128, B: 128}
+				err = e.VertexAdd(math32.NewVector3(pos[i][0], pos[i][1], pos[i][2]),
 					math32.NewVector3(normal[i][0], normal[i][1], normal[i][2]),
+					tint,
+					math32.NewVector2(uv[i][0], uv[i][1]),
 					math32.NewVector2(uv[i][0], uv[i][1]))
 				if err != nil {
 					return fmt.Errorf("add vertex: %w", err)

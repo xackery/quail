@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"strings"
 
 	"github.com/g3n/engine/math32"
 	"github.com/xackery/quail/common"
@@ -144,7 +145,7 @@ func (e *TER) loadVersion2(r io.Reader) error {
 
 		err = e.MaterialAdd(name, shaderName)
 		if err != nil {
-			return fmt.Errorf("addMaterial %s: %w", name, err)
+			return fmt.Errorf("MaterialAdd %s: %w", name, err)
 		}
 		for j := 0; j < int(propertyCount); j++ {
 			propertyNameOffset := uint32(0)
@@ -178,12 +179,12 @@ func (e *TER) loadVersion2(r io.Reader) error {
 				}
 				var data []byte
 				if e.eqg != nil {
-					data, err = e.eqg.File(propertyValueName)
+					data, err = e.eqg.File(strings.ToLower(propertyValueName))
 					if err != nil {
 						return fmt.Errorf("read material via eqg %s: %w", propertyName, err)
 					}
 				} else {
-					data, err = ioutil.ReadFile(fmt.Sprintf("%s/%s", e.path, propertyValueName))
+					data, err = ioutil.ReadFile(fmt.Sprintf("%s/%s", e.path, strings.ToLower(propertyValueName)))
 					if err != nil {
 						return fmt.Errorf("read material via path %s: %w", propertyName, err)
 					}
@@ -195,12 +196,12 @@ func (e *TER) loadVersion2(r io.Reader) error {
 				e.files = append(e.files, fe)
 				err = e.MaterialPropertyAdd(name, propertyName, propertyType, propertyValueName)
 				if err != nil {
-					return fmt.Errorf("addMaterialProperty %s %s: %w", name, propertyName, err)
+					return fmt.Errorf("MaterialPropertyAdd %s %s: %w", name, propertyName, err)
 				}
 			} else {
 				err = e.MaterialPropertyAdd(name, propertyName, propertyType, fmt.Sprintf("%d", propertyValue))
 				if err != nil {
-					return fmt.Errorf("addMaterialProperty %s %s: %w", name, propertyName, err)
+					return fmt.Errorf("MaterialPropertyAdd %s %s: %w", name, propertyName, err)
 				}
 			}
 		}
@@ -214,11 +215,21 @@ func (e *TER) loadVersion2(r io.Reader) error {
 			return fmt.Errorf("read vertex %d position: %w", i, err)
 		}
 
+		/*newPos := math32.NewVec3()
+		newPos.X = pos.Y
+		newPos.Y = -pos.X
+		newPos.Z = pos.Z
+		pos = newPos*/
+
 		normal := math32.NewVec3()
 		err = binary.Read(r, binary.LittleEndian, normal)
 		if err != nil {
 			return fmt.Errorf("read vertex %d normal: %w", i, err)
 		}
+
+		z := normal.Z
+		normal.Z = normal.Y
+		normal.Y = z
 
 		tint := &common.Tint{R: 128, G: 128, B: 128}
 
@@ -242,13 +253,13 @@ func (e *TER) loadVersion2(r io.Reader) error {
 			return fmt.Errorf("read face %d pos: %w", i, err)
 		}
 
-		materialID := uint32(0)
+		materialID := int32(0)
 		err = binary.Read(r, binary.LittleEndian, &materialID)
 		if err != nil {
 			return fmt.Errorf("read face %d materialID: %w", i, err)
 		}
 
-		materialName, err := e.MaterialByID(int(materialID))
+		materialName, err := e.MaterialByID(int32(materialID))
 		if err != nil {
 			//materialName = "BlendTex_5"
 			return fmt.Errorf("material by id for face %d (%d): %w", i, materialID, err)
@@ -259,9 +270,13 @@ func (e *TER) loadVersion2(r io.Reader) error {
 		if err != nil {
 			return fmt.Errorf("read face %d flag: %w", i, err)
 		}
+
+		if materialName == "" {
+			materialName = fmt.Sprintf("empty_%d", flag)
+		}
 		err = e.FaceAdd(pos, materialName, flag)
 		if err != nil {
-			return fmt.Errorf("addTriangle %d: %w", i, err)
+			return fmt.Errorf("faceAdd %d: %w", i, err)
 		}
 	}
 	dump.HexRange([]byte{0x03, 0x04}, int(faceCount)*20, "faceData=(%d bytes)", int(faceCount)*20)
@@ -363,7 +378,7 @@ func (e *TER) loadVersion3(r io.Reader) error {
 
 		err = e.MaterialAdd(name, shaderName)
 		if err != nil {
-			return fmt.Errorf("addMaterial %s: %w", name, err)
+			return fmt.Errorf("MaterialAdd %s: %w", name, err)
 		}
 		for j := 0; j < int(propertyCount); j++ {
 			propertyNameOffset := uint32(0)
@@ -414,12 +429,12 @@ func (e *TER) loadVersion3(r io.Reader) error {
 				e.files = append(e.files, fe)
 				err = e.MaterialPropertyAdd(name, propertyName, propertyType, propertyValueName)
 				if err != nil {
-					return fmt.Errorf("addMaterialProperty %s %s: %w", name, propertyName, err)
+					return fmt.Errorf("MaterialPropertyAdd %s %s: %w", name, propertyName, err)
 				}
 			} else {
 				err = e.MaterialPropertyAdd(name, propertyName, propertyType, fmt.Sprintf("%d", propertyValue))
 				if err != nil {
-					return fmt.Errorf("addMaterialProperty %s %s: %w", name, propertyName, err)
+					return fmt.Errorf("MaterialPropertyAdd %s %s: %w", name, propertyName, err)
 				}
 			}
 		}
@@ -471,13 +486,13 @@ func (e *TER) loadVersion3(r io.Reader) error {
 			return fmt.Errorf("read face %d pos: %w", i, err)
 		}
 
-		materialID := uint32(0)
+		materialID := int32(0)
 		err = binary.Read(r, binary.LittleEndian, &materialID)
 		if err != nil {
 			return fmt.Errorf("read face %d materialID: %w", i, err)
 		}
 
-		materialName, err := e.MaterialByID(int(materialID))
+		materialName, err := e.MaterialByID(materialID)
 		if err != nil {
 			//materialName = "BlendTex_5"
 			return fmt.Errorf("material by id for face %d (%d): %w", i, materialID, err)

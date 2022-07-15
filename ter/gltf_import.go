@@ -56,6 +56,13 @@ func (e *TER) GLTFImport(path string) error {
 				return fmt.Errorf("readPosition: %w", err)
 			}
 
+			/*for i, _ := range positions {
+				tmp := positions[i][1]
+				positions[i][1] = -positions[i][2]
+				positions[i][2] = tmp
+
+			}*/
+
 			//fmt.Printf("pos: %+v\n", pos)
 			normals := [][3]float32{}
 			normalIndex, ok := p.Attributes[gltf.NORMAL]

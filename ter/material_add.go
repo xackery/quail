@@ -2,6 +2,7 @@ package ter
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/g3n/engine/math32"
 	"github.com/xackery/quail/common"
@@ -46,7 +47,7 @@ func (e *TER) VertexAdd(position *math32.Vector3, normal *math32.Vector3, tint *
 }
 
 func (e *TER) FaceAdd(index [3]uint32, materialName string, flag uint32) error {
-	if materialName == "" && len(e.materials) == 0 {
+	if materialName == "" || strings.HasPrefix(materialName, "empty_") {
 		e.faces = append(e.faces, &common.Face{
 			Index:        index,
 			MaterialName: materialName,
