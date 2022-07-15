@@ -414,7 +414,10 @@ func (e *TER) loadVersion3(r io.Reader) error {
 				if e.eqg != nil {
 					data, err = e.eqg.File(propertyValueName)
 					if err != nil {
-						return fmt.Errorf("read material via eqg %s: %w", propertyName, err)
+						data, err = e.eqg.File(strings.ToLower(propertyValueName))
+						if err != nil {
+							return fmt.Errorf("read material via eqg %s: %w", propertyName, err)
+						}
 					}
 				} else {
 					data, err = ioutil.ReadFile(fmt.Sprintf("%s/%s", e.path, propertyValueName))

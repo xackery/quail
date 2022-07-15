@@ -6,6 +6,7 @@ import (
 	"image/color"
 	"io"
 	"io/ioutil"
+	"strings"
 
 	"github.com/g3n/engine/math32"
 	"github.com/xackery/quail/common"
@@ -171,7 +172,10 @@ func (e *MOD) Load(r io.ReadSeeker) error {
 				if e.eqg != nil {
 					data, err = e.eqg.File(propertyValueName)
 					if err != nil {
-						return fmt.Errorf("read material via eqg %s: %w", propertyName, err)
+						data, err = e.eqg.File(strings.ToLower(propertyValueName))
+						if err != nil {
+							return fmt.Errorf("read material via eqg %s: %w", propertyName, err)
+						}
 					}
 				} else {
 					data, err = ioutil.ReadFile(fmt.Sprintf("%s/%s", e.path, propertyValueName))
