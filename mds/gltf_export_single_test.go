@@ -1,4 +1,4 @@
-package mod
+package mds
 
 import (
 	"bytes"
@@ -37,14 +37,8 @@ func TestGLTFExportSamplesSingleTest(t *testing.T) {
 	tests := []struct {
 		category string
 	}{
-		//{category: "steamfontmts"},
-		//{category: "holeequip"},
-		//{category: "i00"},
 		//{category: "inv"},
-		//{category: "arthwall"},
-		//{category: "aro"},
-		//{category: "aam"},
-		//{category: "voaequip"},
+		{category: "aam"},
 	}
 	for _, tt := range tests {
 
@@ -69,20 +63,20 @@ func TestGLTFExportSamplesSingleTest(t *testing.T) {
 		}
 
 		files := a.Files()
-		for _, modEntry := range files {
-			if filepath.Ext(modEntry.Name()) != ".mod" {
+		for _, mdsEntry := range files {
+			if filepath.Ext(mdsEntry.Name()) != ".mds" {
 				continue
 			}
-			r := bytes.NewReader(modEntry.Data())
+			r := bytes.NewReader(mdsEntry.Data())
 
-			e, err := NewEQG(modEntry.Name(), a)
+			e, err := NewEQG(mdsEntry.Name(), a)
 			if err != nil {
 				t.Fatalf("new: %s", err)
 			}
 
 			err = e.Load(r)
 			if err != nil {
-				t.Fatalf("load %s: %s", modEntry.Name(), err)
+				t.Fatalf("load %s: %s", mdsEntry.Name(), err)
 			}
 
 			/*			fw, err := os.Create(txtFile)
@@ -100,7 +94,7 @@ func TestGLTFExportSamplesSingleTest(t *testing.T) {
 							fmt.Fprintf(fw, "%d pos: %0.0f %0.0f %0.0f, normal: %+v, uv: %+v\n", i, o.Position.X, o.Position.Y, o.Position.Z, o.Normal, o.Uv)
 						}
 			*/
-			outFile := fmt.Sprintf("test/eq/%s_eqg_%s.gltf", tt.category, modEntry.Name())
+			outFile := fmt.Sprintf("test/eq/%s_eqg_%s.gltf", tt.category, mdsEntry.Name())
 			w, err := os.Create(outFile)
 			if err != nil {
 				t.Fatalf("create %s", err)
