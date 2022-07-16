@@ -11,7 +11,7 @@ func TestWldSave(t *testing.T) {
 		return
 	}
 	f := &bytes.Buffer{}
-	e, err := New("out")
+	e, err := New("out", ".")
 	if err != nil {
 		t.Fatalf("new: %s", err)
 	}

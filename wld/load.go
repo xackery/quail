@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/g3n/engine/math32"
 	"github.com/xackery/quail/dump"
 	"github.com/xackery/quail/wld/fragment"
 )
@@ -151,6 +152,10 @@ func (e *WLD) Load(r io.ReadSeeker) error {
 	}
 	//dump.HexRange([]byte{byte(i), byte(i) + 1}, int(fragSize), "%dfrag=%s", i, frag.FragmentType())
 	dump.HexRange([]byte{0, 1}, int(totalFragSize), "fragChunk=(%d bytes, %d entries)", int(totalFragSize), len(e.fragments))
+	err = e.convertFragments()
+	if err != nil {
+		return fmt.Errorf("convertFragments: %w", err)
+	}
 	return nil
 }
 
@@ -161,4 +166,46 @@ func decodeStringHash(hash []byte) string {
 		out += string(hash[i] ^ hashKey[i%8])
 	}
 	return out
+}
+
+func (e *WLD) convertFragments() error {
+	type mesher interface {
+		Indices() []*math32.Vector3
+		Normals() []*math32.Vector3
+		Vertices() []*math32.Vector3
+		Uvs() []*math32.Vector2
+	}
+
+	type materialer interface {
+		Name() string
+		ShaderType() int
+		MaterialType() int
+	}
+
+	for _, frag := range e.fragments {
+		material, ok := frag.data.(materialer)
+		if !ok {
+			continue
+		}
+		err := e.MaterialAdd(material.Name(), fmt.Sprintf("%d", material.ShaderType()))
+		if err != nil {
+			return fmt.Errorf("materialadd: %w", err)
+		}
+	}
+
+	for _, frag := range e.fragments {
+		mesh, ok := frag.data.(mesher)
+		if !ok {
+			continue
+		}
+		fmt.Println(mesh)
+
+		/*for _, index := range mesh.Indices() {
+			name, err := e.MaterialByID(index.)
+			e.faces = append(e.faces, &common.Face{
+				Index: [3]uint32{uint32(index.X), uint32(index.Y), uint32(index.Z)},
+			})
+		}*/
+	}
+	return nil
 }
