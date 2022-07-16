@@ -1,15 +1,20 @@
 package ani
 
+import "github.com/g3n/engine/math32"
+
 type ANI struct {
-	name  string
-	bones []*Bone
+	name     string
+	bones    []*Bone
+	isStrict bool
 }
 
 type Bone struct {
-	Delay       int32
-	Translation [3]float32
-	Rotation    [4]float32
-	Scale       [3]float32
+	frameCount  uint32
+	name        string
+	delay       int32
+	translation *math32.Vector3
+	rotation    *math32.Vector4
+	scale       *math32.Vector3
 }
 
 func New(name string) (*ANI, error) {

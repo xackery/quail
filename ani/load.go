@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/g3n/engine/math32"
 	"github.com/xackery/quail/dump"
 )
 
@@ -41,12 +42,19 @@ func (e *ANI) Load(r io.ReadSeeker) error {
 	}
 	dump.Hex(animationCount, "animationCount=%d", animationCount)
 
-	flags := uint32(0)
-	err = binary.Read(r, binary.LittleEndian, &flags)
-	if err != nil {
-		return fmt.Errorf("read flags: %w", err)
+	e.isStrict = false
+	if version == 1 {
+		isStrict := uint32(0)
+		err = binary.Read(r, binary.LittleEndian, &isStrict)
+		if err != nil {
+			return fmt.Errorf("read isStrict: %w", err)
+		}
+		dump.Hex(isStrict, "isStrict=%d", isStrict)
+
+		if isStrict > 0 {
+			e.isStrict = true
+		}
 	}
-	dump.Hex(flags, "flags=%d", flags)
 
 	nameData := make([]byte, nameLength)
 	err = binary.Read(r, binary.LittleEndian, &nameData)
@@ -66,16 +74,49 @@ func (e *ANI) Load(r io.ReadSeeker) error {
 		}
 		chunk = append(chunk, b)
 	}
-	fmt.Printf("%+v", names)
 
 	for i := 0; i < int(animationCount); i++ {
 		bone := &Bone{}
 
-		err = binary.Read(r, binary.LittleEndian, bone)
+		err = binary.Read(r, binary.LittleEndian, &bone.frameCount)
 		if err != nil {
-			return fmt.Errorf("read bone %d: %w", i, err)
+			return fmt.Errorf("read bone %d frameCount: %w", i, err)
 		}
-		dump.Hex(chunk, "%dbone(%d %0.2f, %0.2f, %0.2f)", i, bone.Delay, bone.Translation[0], bone.Translation[1], bone.Translation[2])
+
+		nameOffset := uint32(0)
+		err = binary.Read(r, binary.LittleEndian, &nameOffset)
+		if err != nil {
+			return fmt.Errorf("read bone %d nameOffset: %w", i, err)
+		}
+
+		bone.name = names[nameOffset]
+
+		err = binary.Read(r, binary.LittleEndian, &bone.delay)
+		if err != nil {
+			return fmt.Errorf("read %d bone.delay: %w", i, err)
+		}
+		translation := math32.NewVec3()
+		err = binary.Read(r, binary.LittleEndian, translation)
+		if err != nil {
+			return fmt.Errorf("read %d bone.translation: %w", i, err)
+		}
+		bone.translation = translation
+
+		rotation := math32.NewVec4()
+		err = binary.Read(r, binary.LittleEndian, rotation)
+		if err != nil {
+			return fmt.Errorf("read %d bone.rotation: %w", i, err)
+		}
+		bone.rotation = rotation
+
+		scale := math32.NewVec3()
+		err = binary.Read(r, binary.LittleEndian, scale)
+		if err != nil {
+			return fmt.Errorf("read %d bone.scale: %w", i, err)
+		}
+		bone.scale = scale
+
+		dump.Hex(chunk, "%dbone(%d %+v)", i, bone.delay, bone.translation)
 		e.bones = append(e.bones, bone)
 	}
 

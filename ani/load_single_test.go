@@ -1,35 +1,83 @@
 package ani
 
 import (
+	"bytes"
+	"fmt"
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/xackery/quail/dump"
+	"github.com/xackery/quail/eqg"
 )
 
-func TestLoad(t *testing.T) {
+func TestLoadSingleTest(t *testing.T) {
 	if os.Getenv("SINGLE_TEST") != "1" {
 		return
 	}
-	path := "../eq/_steamfontmts.eqg/obj_gears_default.ani"
-	//path := "../eq/_bat.eqg/slpr_ba_1_bat.ani"
-	f, err := os.Open(path)
-	if err != nil {
-		t.Fatalf("open: %s", err)
+	isDump := true
+	tests := []struct {
+		category string
+	}{
+		{category: "steamfontmts"},
 	}
-	defer f.Close()
-	d, err := dump.New(path)
-	if err != nil {
-		t.Fatalf("dump.New: %s", err)
-	}
-	defer d.Save("../eq/tmp/out.png")
-	e, err := New("out")
-	if err != nil {
-		t.Fatalf("new: %s", err)
-	}
-	err = e.Load(f)
-	if err != nil {
-		t.Fatalf("load: %s", err)
-	}
+	for _, tt := range tests {
 
+		fmt.Println("loading", tt.category)
+		eqgFile := fmt.Sprintf("test/eq/%s.eqg", tt.category)
+
+		ra, err := os.Open(eqgFile)
+		if err != nil {
+			t.Fatalf("%s", err)
+		}
+		defer ra.Close()
+		a, err := eqg.New(tt.category)
+		if err != nil {
+			t.Fatalf("eqg.New: %s", err)
+		}
+		err = a.Load(ra)
+		if err != nil {
+			t.Fatalf("load eqg: %s", err)
+		}
+
+		files := a.Files()
+		for _, aniEntry := range files {
+			if filepath.Ext(aniEntry.Name()) != ".ani" {
+				continue
+			}
+
+			var d *dump.Dump
+			if isDump {
+				d, err = dump.New(aniEntry.Name())
+				if err != nil {
+					t.Fatalf("dump.New: %s", err)
+				}
+			}
+			r := bytes.NewReader(aniEntry.Data())
+
+			e, err := New(aniEntry.Name())
+			if err != nil {
+				t.Fatalf("new: %s", err)
+			}
+
+			err = e.Load(r)
+			if err != nil {
+				t.Fatalf("load %s: %s", aniEntry.Name(), err)
+			}
+			fmt.Println(e.name)
+			for _, bone := range e.bones {
+				fmt.Printf("delay %d translation %0.f %0.f %0.f rotation %0.f %0.f %0.f %0.f scale %0.f %0.f %0.f\n",
+					bone.delay,
+					bone.translation.X, bone.translation.Y, bone.translation.Z,
+					bone.rotation.X, bone.rotation.Y, bone.rotation.Z, bone.rotation.W,
+					bone.scale.X, bone.scale.Y, bone.scale.Z)
+			}
+			if isDump {
+				err = d.Save(fmt.Sprintf("test/eq/%s_eqg_%s.png", tt.category, aniEntry.Name()))
+				if err != nil {
+					t.Fatalf("save: %s", err)
+				}
+			}
+		}
+	}
 }
