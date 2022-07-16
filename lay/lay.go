@@ -3,6 +3,8 @@ package lay
 // https://github.com/Zaela/EQGModelImporter/blob/master/src/mds.cpp
 
 import (
+	"fmt"
+
 	"github.com/xackery/quail/common"
 )
 
@@ -21,6 +23,10 @@ type layer struct {
 	name    string
 	diffuse string
 	normal  string
+}
+
+func (e *layer) String() string {
+	return fmt.Sprintf("%s %s %s", e.name, e.diffuse, e.normal)
 }
 
 func New(name string, path string) (*LAY, error) {

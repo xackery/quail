@@ -30,11 +30,11 @@ func (e *LAY) Load(r io.ReadSeeker) error {
 	versionOffset := 0
 	switch version {
 	case 2:
-		versionOffset = 32
+		versionOffset = 40 //32
 	case 3:
-		versionOffset = 14
+		versionOffset = 18 //14
 	case 4:
-		versionOffset = 16
+		versionOffset = 20
 	default:
 
 	}
@@ -77,12 +77,17 @@ func (e *LAY) Load(r io.ReadSeeker) error {
 	fmt.Println(hex.Dump(nameData))
 	dump.HexRange(nameData, int(nameLength), "nameData=(%d bytes, %d entries)", nameLength, len(names))
 	for i := 0; i < int(materialCount); i++ {
-		materialID := int32(0)
+		materialID := uint32(0)
 		err = binary.Read(r, binary.LittleEndian, &materialID)
 		if err != nil {
 			return fmt.Errorf("read materialID: %w", err)
 		}
 		dump.Hex(materialID, "%dmaterialID=%d", i, materialID)
+
+		name, ok := names[materialID]
+		if !ok {
+			return fmt.Errorf("%d names materialID 0x%x not found", i, materialID)
+		}
 
 		diffuseOffset := uint32(0)
 		err = binary.Read(r, binary.LittleEndian, &diffuseOffset)
@@ -106,9 +111,9 @@ func (e *LAY) Load(r io.ReadSeeker) error {
 		}
 		dump.Hex(normalOffset, "%dnormalID=0x%x(%s)", i, normalOffset, normalName)
 
-		err = e.MaterialAdd(diffuseName, normalName)
+		err = e.MaterialAdd(name, diffuseName, normalName)
 		if err != nil {
-			return fmt.Errorf("materialADD: %w", err)
+			return fmt.Errorf("materialAdd: %w", err)
 		}
 
 		_, err = r.Seek(int64(versionOffset), io.SeekCurrent)
