@@ -8,6 +8,7 @@ import (
 	"io"
 	"sort"
 
+	"github.com/xackery/quail/common"
 	"github.com/xackery/quail/helper"
 )
 
@@ -152,19 +153,24 @@ func (e *S3D) Load(r io.ReadSeeker) error {
 			}
 			continue
 		}
-		e.Files = append(e.Files, entry)
+		e.fileEntries = append(e.fileEntries, entry)
 		_, err = r.Seek(cachedOffset, io.SeekStart)
 		if err != nil {
 			return fmt.Errorf("seek cached offset %s: %w", debugInfo, err)
 		}
 	}
 
-	sort.Sort(ByOffset(e.Files))
-	for i, entry := range e.Files {
+	sort.Sort(ByOffset(e.fileEntries))
+	for i, entry := range e.fileEntries {
 		if len(filenames) < i {
 			return fmt.Errorf("entry %d has no name", i)
 		}
 		entry.Name = filenames[i]
+		fe, err := common.NewFileEntry(entry.Name[0:len(entry.Name)-1], entry.Data)
+		if err != nil {
+			return fmt.Errorf("entry %d newFileEntry: %w", i, err)
+		}
+		e.files = append(e.files, fe)
 	}
 	return nil
 }

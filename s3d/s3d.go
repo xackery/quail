@@ -1,12 +1,17 @@
 package s3d
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/xackery/quail/common"
+)
 
 // S3D represents a classic everquest zone archive format
 type S3D struct {
 	name                     string
 	ShortName                string
-	Files                    []*FileEntry
+	files                    []common.Filer
+	fileEntries              []*FileEntry
 	directoryChunks          []*ChunkEntry
 	directoryChunksTotalSize uint32
 }
