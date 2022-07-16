@@ -2,12 +2,14 @@ package cmd
 
 import (
 	"fmt"
-	"io"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	"github.com/spf13/cobra"
+	"github.com/xackery/quail/common"
+	"github.com/xackery/quail/eqg"
 )
 
 // inspectCmd represents the inspect command
@@ -43,24 +45,11 @@ Supported extensions: eqg, zon, ter, ani, mod
 			return fmt.Errorf("inspect requires a target file, directory provided")
 		}
 
-		f, err := os.Open(path)
+		err = inspect(path)
 		if err != nil {
-			return fmt.Errorf("open: %w", err)
+			return err
 		}
-		defer f.Close()
-		ext := strings.ToLower(filepath.Ext(path))
-
-		//shortname := filepath.Base(path)
-		//shortname = strings.TrimSuffix(shortname, filepath.Ext(shortname))
-		ok, err := inspectEQG(f, ext)
-		if err != nil {
-			return fmt.Errorf("inspectEQG: %w", err)
-		}
-		if ok {
-			return nil
-		}
-
-		return fmt.Errorf("failed to inspect: unknown extension %s on file %s", ext, filepath.Base(path))
+		return nil
 	},
 }
 
@@ -70,10 +59,57 @@ func init() {
 
 }
 
-func inspectEQG(f io.Reader, ext string) (bool, error) {
-	if ext != ".eqg" {
-		return false, nil
+func inspect(path string) error {
+	var err error
+	ext := strings.ToLower(filepath.Ext(path))
+	switch ext {
+	case ".eqg":
+		err = inspectEQG(path)
+	default:
+		return fmt.Errorf("unsupported extension: %s", ext)
+	}
+	if err != nil {
+		return fmt.Errorf("inspectEQG: %w", err)
+	}
+	return nil
+}
+
+func inspectEQG(path string) error {
+	a, err := eqg.New(filepath.Base(path))
+	if err != nil {
+		return fmt.Errorf("new: %w", err)
+	}
+	r, err := os.Open(path)
+	if err != nil {
+		return err
+	}
+	defer r.Close()
+	err = a.Load(r)
+	if err != nil {
+		return fmt.Errorf("load: %w", err)
+	}
+	fmt.Printf("%s contains %d files:\n", filepath.Base(path), len(a.Files()))
+
+	filesByName := a.Files()
+	sort.Sort(common.ByName(filesByName))
+	for _, fe := range a.Files() {
+		base := float64(len(fe.Data()))
+		out := ""
+		num := float64(1024)
+		if base < num*num*num*num {
+			out = fmt.Sprintf("%0.0fG", base/num/num/num)
+		}
+		if base < num*num*num {
+			out = fmt.Sprintf("%0.0fM", base/num/num)
+		}
+		if base < num*num {
+			out = fmt.Sprintf("%0.0fK", base/num)
+		}
+		if base < num {
+			out = fmt.Sprintf("%0.0fB", base)
+		}
+		fmt.Printf("%s\t%s\n", out, fe.Name())
 	}
 
-	return true, nil
+	return nil
 }

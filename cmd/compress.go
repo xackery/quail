@@ -10,6 +10,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/xackery/quail/eqg"
 	"github.com/xackery/quail/helper"
+	"github.com/xackery/quail/s3d"
 )
 
 // compressCmd represents the compress command
@@ -52,68 +53,14 @@ var compressCmd = &cobra.Command{
 
 		out = strings.ToLower(out)
 
-		if strings.Contains(out, ".") && !strings.HasSuffix(out, ".eqg") {
-			return fmt.Errorf("only .eqg extension out names are supported")
-		}
-
-		if !strings.HasSuffix(out, ".eqg") {
-			out = out + ".eqg"
+		if strings.Contains(out, ".") && !strings.HasSuffix(out, ".eqg") && !strings.HasSuffix(out, ".s3d") {
+			return fmt.Errorf("only eqg and s3d extension out names are supported")
 		}
 		out = strings.TrimPrefix(out, "_")
-
-		fi, err := os.Stat(path)
+		err = compress(path, out)
 		if err != nil {
-			return fmt.Errorf("path check: %w", err)
+			return err
 		}
-		if !fi.IsDir() {
-			return fmt.Errorf("path invalid, must be a directory (%s)", path)
-		}
-
-		e := &eqg.EQG{}
-		files, err := os.ReadDir(path)
-		if err != nil {
-			return fmt.Errorf("readdir path: %w", err)
-		}
-		if len(files) == 0 {
-			return fmt.Errorf("no files found in %s to add to archive %s", path, out)
-		}
-
-		addStdout := ""
-		fileCount := 0
-		for _, file := range files {
-			if file.IsDir() {
-				continue
-			}
-			if file.Name() == ".DS_Store" {
-				continue
-			}
-			fileCount++
-			data, err := ioutil.ReadFile(fmt.Sprintf("%s/%s", path, file.Name()))
-			if err != nil {
-				return fmt.Errorf("read %s: %w", file.Name(), err)
-			}
-			err = e.Add(file.Name(), data)
-			if err != nil {
-				return fmt.Errorf("add %s: %w", file.Name(), err)
-			}
-			addStdout += file.Name() + ", "
-		}
-		if fileCount == 0 {
-			return fmt.Errorf("no files found to add")
-		}
-		addStdout = addStdout[0:len(addStdout)-2] + "\n"
-
-		w, err := os.Create(out)
-		if err != nil {
-			return fmt.Errorf("create %s: %w", out, err)
-		}
-		defer w.Close()
-		err = e.Save(w)
-		if err != nil {
-			return fmt.Errorf("save %s: %w", out, err)
-		}
-
-		fmt.Printf("%d file%s: %s\nwritten to %s\n", fileCount, helper.Pluralize(fileCount), addStdout, out)
 		return nil
 	},
 }
@@ -126,4 +73,130 @@ func init() {
 quail compress ./_soldungb.eqg/
 quail compress _soldungb.eqg/ foo.eqg
 quail compress --path=_soldungb.eqg/ --out=foo.eqg`
+}
+
+func compress(path string, out string) error {
+	if strings.HasSuffix(out, ".eqg") {
+		return compressEQG(path, out)
+	}
+	if strings.HasSuffix(out, ".s3d") {
+		return compressS3D(path, out)
+	}
+
+	out = out + ".eqg"
+	return compressEQG(path, out)
+}
+
+func compressEQG(path string, out string) error {
+	fi, err := os.Stat(path)
+	if err != nil {
+		return fmt.Errorf("path check: %w", err)
+	}
+	if !fi.IsDir() {
+		return fmt.Errorf("path invalid, must be a directory (%s)", path)
+	}
+
+	a := &eqg.EQG{}
+	files, err := os.ReadDir(path)
+	if err != nil {
+		return fmt.Errorf("readdir path: %w", err)
+	}
+	if len(files) == 0 {
+		return fmt.Errorf("no files found in %s to add to archive %s", path, out)
+	}
+
+	addStdout := ""
+	fileCount := 0
+	for _, file := range files {
+		if file.IsDir() {
+			continue
+		}
+		if file.Name() == ".DS_Store" {
+			continue
+		}
+		fileCount++
+		data, err := ioutil.ReadFile(fmt.Sprintf("%s/%s", path, file.Name()))
+		if err != nil {
+			return fmt.Errorf("read %s: %w", file.Name(), err)
+		}
+		err = a.Add(file.Name(), data)
+		if err != nil {
+			return fmt.Errorf("add %s: %w", file.Name(), err)
+		}
+		addStdout += file.Name() + ", "
+	}
+	if fileCount == 0 {
+		return fmt.Errorf("no files found to add")
+	}
+	addStdout = addStdout[0:len(addStdout)-2] + "\n"
+
+	w, err := os.Create(out)
+	if err != nil {
+		return fmt.Errorf("create %s: %w", out, err)
+	}
+	defer w.Close()
+	err = a.Save(w)
+	if err != nil {
+		return fmt.Errorf("save %s: %w", out, err)
+	}
+
+	fmt.Printf("%d file%s: %s\nwritten to %s\n", fileCount, helper.Pluralize(fileCount), addStdout, out)
+	return nil
+}
+
+func compressS3D(path string, out string) error {
+	fi, err := os.Stat(path)
+	if err != nil {
+		return fmt.Errorf("path check: %w", err)
+	}
+	if !fi.IsDir() {
+		return fmt.Errorf("path invalid, must be a directory (%s)", path)
+	}
+
+	a := &s3d.S3D{}
+	files, err := os.ReadDir(path)
+	if err != nil {
+		return fmt.Errorf("readdir path: %w", err)
+	}
+	if len(files) == 0 {
+		return fmt.Errorf("no files found in %s to add to archive %s", path, out)
+	}
+
+	addStdout := ""
+	fileCount := 0
+	for _, file := range files {
+		if file.IsDir() {
+			continue
+		}
+		if file.Name() == ".DS_Store" {
+			continue
+		}
+		fileCount++
+		data, err := ioutil.ReadFile(fmt.Sprintf("%s/%s", path, file.Name()))
+		if err != nil {
+			return fmt.Errorf("read %s: %w", file.Name(), err)
+		}
+		err = a.Add(file.Name(), data)
+		if err != nil {
+			return fmt.Errorf("add %s: %w", file.Name(), err)
+		}
+		addStdout += file.Name() + ", "
+	}
+	if fileCount == 0 {
+		return fmt.Errorf("no files found to add")
+	}
+	addStdout = addStdout[0:len(addStdout)-2] + "\n"
+
+	w, err := os.Create(out)
+	if err != nil {
+		return fmt.Errorf("create %s: %w", out, err)
+	}
+	defer w.Close()
+	err = a.Save(w)
+	if err != nil {
+		return fmt.Errorf("save %s: %w", out, err)
+	}
+
+	fmt.Printf("%d file%s: %s\nwritten to %s\n", fileCount, helper.Pluralize(fileCount), addStdout, out)
+	return nil
 }

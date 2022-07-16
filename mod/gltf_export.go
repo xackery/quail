@@ -10,7 +10,8 @@ import (
 
 	"github.com/qmuntal/gltf"
 	"github.com/qmuntal/gltf/modeler"
-	"github.com/spate/glimage/dds"
+
+	"github.com/malashin/dds"
 	"github.com/xackery/quail/common"
 )
 
@@ -32,16 +33,15 @@ func (e *MOD) GLTFExport(w io.Writer) error {
 		positions     [][3]float32
 		normals       [][3]float32
 		uvs           [][2]float32
-		joints        [][4]uint16
-		weights       [][4]uint16
+		//joints        [][4]uint16
+		//weights       [][4]uint16
 		indices       []uint16
 		uniqueIndices map[uint32]uint16
 	}
 	prims := make(map[*uint32]*primCache)
 
 	// ******** MESH SKINNING *******
-	var skinIndex *uint32
-	//rootNode := uint32(0)
+	/*var skinIndex *uint32
 	for i, b := range e.bones {
 		doc.Nodes = append(doc.Nodes, &gltf.Node{
 			Name: b.name,
@@ -83,6 +83,7 @@ func (e *MOD) GLTFExport(w io.Writer) error {
 			node.Children = *children
 		}
 	}
+	*/
 
 	// ******** PRIM GENERATION *****
 	for _, o := range e.faces {
@@ -127,7 +128,7 @@ func (e *MOD) GLTFExport(w io.Writer) error {
 			Material: prim.materialIndex,
 		}
 
-		for _, pos := range prim.positions {
+		/*for _, pos := range prim.positions {
 			x, y, z := pos[0], pos[1], pos[2]
 			for _, b := range e.bones {
 				if b.pivot.X != x {
@@ -142,14 +143,14 @@ func (e *MOD) GLTFExport(w io.Writer) error {
 				prim.joints = append(prim.joints, [4]uint16{uint16(b.pivot.X), uint16(b.pivot.Y), uint16(b.pivot.Z)})
 				prim.weights = append(prim.weights, [4]uint16{1, 1, 1, 1})
 			}
-		}
+		}*/
 
 		primitive.Attributes = map[string]uint32{
 			gltf.POSITION:   modeler.WritePosition(doc, prim.positions),
 			gltf.NORMAL:     modeler.WriteNormal(doc, prim.normals),
 			gltf.TEXCOORD_0: modeler.WriteTextureCoord(doc, prim.uvs),
-			gltf.JOINTS_0:   modeler.WriteJoints(doc, prim.joints),
-			gltf.WEIGHTS_0:  modeler.WriteWeights(doc, prim.weights),
+			//gltf.JOINTS_0:   modeler.WriteJoints(doc, prim.joints),
+			//gltf.WEIGHTS_0:  modeler.WriteWeights(doc, prim.weights),
 		}
 
 		primitive.Indices = gltf.Index(modeler.WriteIndices(doc, prim.indices))
@@ -161,7 +162,7 @@ func (e *MOD) GLTFExport(w io.Writer) error {
 	doc.Nodes = append(doc.Nodes, &gltf.Node{
 		Name: modelName,
 		Mesh: gltf.Index(uint32(len(doc.Meshes) - 1)),
-		Skin: skinIndex,
+		//Skin: skinIndex,
 	})
 
 	doc.Scenes[0].Nodes = append(doc.Scenes[0].Nodes, uint32(len(doc.Nodes)-1))
@@ -197,7 +198,7 @@ func (e *MOD) gltfAddCacheMaterial(doc *gltf.Document, name string) (*uint32, er
 		}
 	}
 	if mat == nil {
-		if name == "" {
+		if name == "" || strings.HasPrefix(name, "empty_") {
 			doc.Materials = append(doc.Materials, &gltf.Material{
 				Name: name,
 				PBRMetallicRoughness: &gltf.PBRMetallicRoughness{
@@ -214,9 +215,19 @@ func (e *MOD) gltfAddCacheMaterial(doc *gltf.Document, name string) (*uint32, er
 	}
 
 	textureDiffuseName := ""
+	textureNormalName := ""
 	for _, p := range mat.Properties {
-		if p.Category == 2 && strings.ToLower(p.Name) == "e_texturediffuse0" {
+		if p.Category != 2 {
+			continue
+		}
+		if strings.EqualFold(p.Name, "e_texturediffuse0") {
 			textureDiffuseName = p.Value
+			continue
+		}
+
+		if strings.EqualFold(p.Name, "e_texturenormal0") {
+			textureNormalName = p.Value
+			continue
 		}
 	}
 	if len(textureDiffuseName) == 0 {
@@ -233,53 +244,85 @@ func (e *MOD) gltfAddCacheMaterial(doc *gltf.Document, name string) (*uint32, er
 		return material, nil
 	}
 
-	buf := &bytes.Buffer{}
+	diffuseBuf := &bytes.Buffer{}
+	normalBuf := &bytes.Buffer{}
 	for _, fe := range e.files {
-		if fe.Name() != textureDiffuseName {
-			continue
+		if fe.Name() == textureDiffuseName {
+			diffuseBuf = bytes.NewBuffer(fe.Data())
 		}
-		buf = bytes.NewBuffer(fe.Data())
-		break
+
+		if fe.Name() == textureNormalName {
+			normalBuf = bytes.NewBuffer(fe.Data())
+		}
+		if diffuseBuf.Len() > 0 && normalBuf.Len() > 0 {
+			break
+		}
+		if diffuseBuf.Len() > 0 {
+			break
+		}
 	}
 
-	if buf.Len() == 0 {
+	if diffuseBuf.Len() == 0 {
 		return material, fmt.Errorf("texture '%s' not found", textureDiffuseName)
 	}
 
-	switch filepath.Ext(textureDiffuseName) {
-	case ".dds":
-		img, err := dds.Decode(buf)
+	pngData, err := gltfToPNG(diffuseBuf, textureDiffuseName)
+	if err != nil {
+		return material, fmt.Errorf("gltfToPNG diffuse: %w", err)
+	}
+	textureDiffuseName = strings.ReplaceAll(textureDiffuseName, ".dds", ".png")
+	diffuseBuf = bytes.NewBuffer(pngData)
+
+	if normalBuf.Len() > 0 {
+		fmt.Println("normal", textureNormalName, "is", normalBuf.Len())
+		pngData, err = gltfToPNG(normalBuf, textureNormalName)
 		if err != nil {
-			return material, fmt.Errorf("dds.Decode %s: %w", textureDiffuseName, err)
+			return material, fmt.Errorf("gltfToPNG normal: %w", err)
 		}
-		buf = bytes.NewBuffer(nil)
-		err = png.Encode(buf, img)
-		if err != nil {
-			return material, fmt.Errorf("png.Encode %s: %w", textureDiffuseName, err)
-		}
-		textureDiffuseName = strings.ReplaceAll(textureDiffuseName, ".dds", ".png")
-	case ".png":
-	case "":
-	default:
-		return material, fmt.Errorf("material %s has a texture of %s which is unsupported", e.name, textureDiffuseName)
+		normalBuf = bytes.NewBuffer(pngData)
+
+		textureNormalName = strings.ReplaceAll(textureNormalName, ".dds", ".png")
+		fmt.Println("normal", textureNormalName, "is", normalBuf.Len())
 	}
 
 	meshName := strings.TrimSuffix(textureDiffuseName, ".png")
-	imageIdx, err := modeler.WriteImage(doc, textureDiffuseName, "image/png", buf)
+	imageIdx, err := modeler.WriteImage(doc, textureDiffuseName, "image/png", diffuseBuf)
 	if err != nil {
 		return material, fmt.Errorf("writeImage to gtlf: %w", err)
 	}
 	doc.Textures = append(doc.Textures, &gltf.Texture{Source: gltf.Index(imageIdx)})
+	diffuseTexture := &gltf.TextureInfo{
+		Index: uint32(len(doc.Textures) - 1),
+	}
 
-	doc.Materials = append(doc.Materials, &gltf.Material{
+	var normalTexture *gltf.NormalTexture
+
+	if normalBuf.Len() > 0 {
+		imageIdx, err = modeler.WriteImage(doc, textureNormalName, "image/png", normalBuf)
+		if err != nil {
+			return material, fmt.Errorf("writeImage to gtlf: %w", err)
+		}
+		doc.Textures = append(doc.Textures, &gltf.Texture{Source: gltf.Index(imageIdx)})
+		normalTexture = &gltf.NormalTexture{
+			Index: gltf.Index(uint32(len(doc.Textures) - 1)),
+		}
+	}
+
+	newMaterial := &gltf.Material{
 		Name: meshName,
+
 		PBRMetallicRoughness: &gltf.PBRMetallicRoughness{
-			BaseColorTexture: &gltf.TextureInfo{
-				Index: uint32(len(doc.Textures) - 1),
-			},
-			MetallicFactor: gltf.Float(0),
+			BaseColorTexture: diffuseTexture,
+			MetallicFactor:   gltf.Float(0),
 		},
-	})
+	}
+
+	if normalTexture != nil {
+		newMaterial.NormalTexture = normalTexture
+	}
+
+	doc.Materials = append(doc.Materials, newMaterial)
+
 	/*doc.Materials = append(doc.Materials, &gltf.Material{
 		Name: modelName,
 		PBRMetallicRoughness: &gltf.PBRMetallicRoughness{
@@ -293,6 +336,7 @@ func (e *MOD) gltfAddCacheMaterial(doc *gltf.Document, name string) (*uint32, er
 	return material, nil
 }
 
+/*
 func (e *MOD) gltfBoneChildren(doc *gltf.Document, children *[]uint32, boneIndex int) error {
 
 	nodeIndex, ok := e.gltfBoneBuffer[boneIndex]
@@ -307,4 +351,26 @@ func (e *MOD) gltfBoneChildren(doc *gltf.Document, children *[]uint32, boneIndex
 	}
 
 	return e.gltfBoneChildren(doc, children, int(bone.next))
+}*/
+
+func gltfToPNG(buf *bytes.Buffer, name string) ([]byte, error) {
+	switch filepath.Ext(name) {
+	case ".dds":
+		img, err := dds.Decode(buf)
+		if err != nil {
+			return nil, fmt.Errorf("dds.Decode %s: %w", name, err)
+		}
+
+		buf = bytes.NewBuffer(nil)
+		err = png.Encode(buf, img)
+		if err != nil {
+			return nil, fmt.Errorf("png.Encode %s: %w", name, err)
+		}
+		return buf.Bytes(), nil
+	case ".png":
+		return buf.Bytes(), nil
+	case "":
+	default:
+	}
+	return nil, fmt.Errorf("unsupported extension '%s'", filepath.Ext(name))
 }

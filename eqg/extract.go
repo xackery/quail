@@ -2,7 +2,6 @@ package eqg
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 
 	"github.com/xackery/quail/helper"
@@ -28,10 +27,10 @@ func (e *EQG) Extract(path string) (string, error) {
 	}
 
 	extractStdout := ""
-	for _, file := range e.files {
-		err = ioutil.WriteFile(fmt.Sprintf("%s/%s", path, file.Name()), file.Data(), 0644)
+	for i, file := range e.files {
+		err = os.WriteFile(fmt.Sprintf("%s/%s", path, file.Name()), file.Data(), 0644)
 		if err != nil {
-			return "", err
+			return "", fmt.Errorf("index %d: %w", i, err)
 		}
 		extractStdout += file.Name() + ", "
 	}

@@ -5,10 +5,30 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/xackery/quail/eqg"
 )
+
+func TestGLTFFlushEQPath(t *testing.T) {
+	if os.Getenv("SINGLE_TEST") != "1" {
+		return
+	}
+	files, err := os.ReadDir("test/eq/")
+	if err != nil {
+		t.Fatalf("readdir: %s", err)
+	}
+	for _, fe := range files {
+		if !strings.HasSuffix(fe.Name(), ".gltf") {
+			continue
+		}
+		err = os.Remove(fmt.Sprintf("test/eq/%s", fe.Name()))
+		if err != nil {
+			t.Fatalf("remove: %s", err)
+		}
+	}
+}
 
 func TestGLTFExportSamplesSingleTest(t *testing.T) {
 	if os.Getenv("SINGLE_TEST") != "1" {
@@ -17,7 +37,10 @@ func TestGLTFExportSamplesSingleTest(t *testing.T) {
 	tests := []struct {
 		category string
 	}{
-		{category: "steamfontmts"},
+		//{category: "steamfontmts"},
+		//{category: "holeequip"},
+		//{category: "i00"},
+		{category: "inv"},
 		//{category: "arthwall"},
 		//{category: "aro"},
 		//{category: "she"},
@@ -52,7 +75,7 @@ func TestGLTFExportSamplesSingleTest(t *testing.T) {
 			}
 			r := bytes.NewReader(modEntry.Data())
 
-			e, err := NewEQG(tt.category, a)
+			e, err := NewEQG(modEntry.Name(), a)
 			if err != nil {
 				t.Fatalf("new: %s", err)
 			}
@@ -100,6 +123,8 @@ func TestGLTFExportSingleModel(t *testing.T) {
 		model    string
 	}{
 		{category: "steamfontmts", model: "obj_gears.mod"},
+		{category: "steamfontmts", model: "obj_oilbarrel.mod"},
+		{category: "voaequip", model: "obj_oilbarrel.mod"},
 		//{category: "arthwall"},
 		//{category: "aro"},
 		//{category: "she"},

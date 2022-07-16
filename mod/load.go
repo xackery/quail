@@ -163,13 +163,15 @@ func (e *MOD) Load(r io.ReadSeeker) error {
 				if !ok {
 					return fmt.Errorf("property %d names offset %d not found", j, propertyValue)
 				}
+
 				var data []byte
 				if e.eqg != nil {
 					data, err = e.eqg.File(propertyValueName)
 					if err != nil {
 						data, err = e.eqg.File(strings.ToLower(propertyValueName))
 						if err != nil {
-							return fmt.Errorf("read material via eqg %s: %w", propertyName, err)
+							fmt.Printf("warning: read material via eqg %s: %s\n", propertyName, err)
+							//	return fmt.Errorf("read material via eqg %s: %w", propertyName, err)
 						}
 					}
 				} else {
@@ -250,7 +252,7 @@ func (e *MOD) Load(r io.ReadSeeker) error {
 			return fmt.Errorf("read face %d pos: %w", i, err)
 		}
 
-		materialID := uint32(0)
+		materialID := int32(0)
 		err = binary.Read(r, binary.LittleEndian, &materialID)
 		if err != nil {
 			return fmt.Errorf("read face %d materialID: %w", i, err)
