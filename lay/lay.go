@@ -3,8 +3,6 @@ package lay
 // https://github.com/Zaela/EQGModelImporter/blob/master/src/mds.cpp
 
 import (
-	"fmt"
-
 	"github.com/xackery/quail/common"
 )
 
@@ -16,17 +14,7 @@ type LAY struct {
 	path string
 	// eqg is used as an alternative to path when loading data from a eqg file
 	eqg    common.Archiver
-	layers []*layer
-}
-
-type layer struct {
-	name    string
-	diffuse string
-	normal  string
-}
-
-func (e *layer) String() string {
-	return fmt.Sprintf("%s %s %s", e.name, e.diffuse, e.normal)
+	layers []*common.Layer
 }
 
 func New(name string, path string) (*LAY, error) {
@@ -51,4 +39,19 @@ func (e *LAY) SetName(value string) {
 
 func (e *LAY) SetPath(value string) {
 	e.path = value
+}
+
+func (e *LAY) Layers() []*common.Layer {
+	return e.layers
+}
+
+func (e *LAY) LayerByIndex(index int) *common.Layer {
+	if len(e.layers) <= index {
+		return nil
+	}
+	return e.layers[index]
+}
+
+func (e *LAY) LayerCount() int {
+	return len(e.layers)
 }

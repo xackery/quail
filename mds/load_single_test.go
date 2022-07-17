@@ -8,14 +8,15 @@ import (
 
 	"github.com/xackery/quail/dump"
 	"github.com/xackery/quail/eqg"
+	"github.com/xackery/quail/gltf"
 )
 
 func TestLoad(t *testing.T) {
 	if os.Getenv("SINGLE_TEST") != "1" {
 		return
 	}
-	path := "test/eq/inv.eqg"
-	inFile := "inv.mds"
+	path := "test/eq/bxi.eqg"
+	inFile := "bxi.mds"
 
 	a, err := eqg.New(path)
 	if err != nil {
@@ -132,9 +133,18 @@ func TestLoadSaveGLTF(t *testing.T) {
 	}
 	defer w.Close()
 
-	err = e.GLTFExport(w)
+	doc, err := gltf.New()
 	if err != nil {
-		t.Fatalf("save: %s", err)
+		t.Fatalf("gltf.New: %s", err)
+	}
+	err = e.GLTFExport(doc)
+	if err != nil {
+		t.Fatalf("gltf: %s", err)
+	}
+
+	err = doc.Export(w)
+	if err != nil {
+		t.Fatalf("export: %s", err)
 	}
 	d.Save(fmt.Sprintf("%s.png", outFile))
 	dump.Close()

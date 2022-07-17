@@ -6,46 +6,59 @@ import (
 	"os"
 
 	"github.com/g3n/engine/math32"
+	"github.com/xackery/quail/common"
 )
 
 // ZON is a zon file struct
 type ZON struct {
 	name    string
+	path    string
+	eqg     common.Archiver
 	models  []*model
-	objects []*object
-	regions []*region
-	lights  []*light
+	objects []*Object
+	regions []*Region
+	lights  []*Light
 }
 
 type model struct {
-	name string
-}
-
-type object struct {
-	modelName string
-	name      string
-	position  math32.Vector3
-	rotation  math32.Vector3
-	scale     float32
-}
-
-type region struct {
-	name    string
-	center  math32.Vector3
-	unknown math32.Vector3
-	extent  math32.Vector3
-}
-
-type light struct {
 	name     string
-	position math32.Vector3
+	baseName string
+}
+
+type Object struct {
+	modelName   string
+	name        string
+	translation [3]float32
+	rotation    [3]float32
+	scale       float32
+}
+
+type Region struct {
+	name    string
+	center  [3]float32
+	unknown [3]float32
+	extent  [3]float32
+}
+
+type Light struct {
+	name     string
+	position [3]float32
 	color    math32.Color
 	radius   float32
 }
 
-func New(name string) (*ZON, error) {
+func New(name string, path string) (*ZON, error) {
 	z := &ZON{
 		name: name,
+		path: path,
+	}
+	return z, nil
+}
+
+func NewEQG(name string, archive common.Archiver) (*ZON, error) {
+	z := &ZON{
+		name: name,
+		eqg:  archive,
 	}
 	return z, nil
 }
@@ -71,4 +84,16 @@ func (e *ZON) ModelNames() []string {
 		names = append(names, m.name)
 	}
 	return names
+}
+
+func (e *ZON) Regions() []*Region {
+	return e.regions
+}
+
+func (e *ZON) Lights() []*Light {
+	return e.lights
+}
+
+func (e *ZON) Objects() []*Object {
+	return e.objects
 }

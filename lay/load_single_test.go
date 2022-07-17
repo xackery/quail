@@ -19,8 +19,11 @@ func TestLoadSingleTest(t *testing.T) {
 	tests := []struct {
 		category string
 	}{
-		{category: "steamfontmts"},
-		{category: "lth"},
+		//{category: "steamfontmts"},
+		//{category: "lth"},
+		//{category: "bxi"}, //bixie, two models and multiple layers
+		{category: "alg"},
+		//{category: "cak"},
 	}
 	for _, tt := range tests {
 
@@ -73,7 +76,6 @@ func TestLoadSingleTest(t *testing.T) {
 					t.Fatalf("save: %s", err)
 				}
 			}
-			fmt.Println(e.layers)
 		}
 	}
 }

@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os"
 	"testing"
+
+	"github.com/xackery/quail/gltf"
 )
 
 func TestGLTFExportGLTF(t *testing.T) {
@@ -34,9 +36,18 @@ func TestGLTFExportGLTF(t *testing.T) {
 			t.Fatalf("create %s", err)
 		}
 		defer w.Close()
-		err = e.GLTFExport(w)
+		doc, err := gltf.New()
 		if err != nil {
-			t.Fatalf("save: %s", err)
+			t.Fatalf("gltf.New: %s", err)
+		}
+		err = e.GLTFExport(doc)
+		if err != nil {
+			t.Fatalf("gltf: %s", err)
+		}
+
+		err = doc.Export(w)
+		if err != nil {
+			t.Fatalf("export: %s", err)
 		}
 	}
 }

@@ -2,7 +2,6 @@ package lay
 
 import (
 	"encoding/binary"
-	"encoding/hex"
 	"fmt"
 	"io"
 
@@ -74,7 +73,6 @@ func (e *LAY) Load(r io.ReadSeeker) error {
 		chunk = append(chunk, b)
 	}
 
-	fmt.Println(hex.Dump(nameData))
 	dump.HexRange(nameData, int(nameLength), "nameData=(%d bytes, %d entries)", nameLength, len(names))
 	for i := 0; i < int(materialCount); i++ {
 		materialID := uint32(0)
@@ -82,36 +80,42 @@ func (e *LAY) Load(r io.ReadSeeker) error {
 		if err != nil {
 			return fmt.Errorf("read materialID: %w", err)
 		}
-		dump.Hex(materialID, "%dmaterialID=%d", i, materialID)
 
 		name, ok := names[materialID]
 		if !ok {
 			return fmt.Errorf("%d names materialID 0x%x not found", i, materialID)
 		}
 
-		diffuseOffset := uint32(0)
-		err = binary.Read(r, binary.LittleEndian, &diffuseOffset)
-		if err != nil {
-			return fmt.Errorf("read diffuseID: %w", err)
-		}
-		diffuseName, ok := names[diffuseOffset]
-		if !ok {
-			return fmt.Errorf("%d names diffuseOffset 0x%x not found", i, diffuseOffset)
-		}
-		dump.Hex(diffuseOffset, "%ddiffuseID=0x%x(%s)", i, diffuseOffset, diffuseName)
+		dump.Hex(materialID, "%dmaterialID=%d(%s)", i, materialID, name)
 
-		normalOffset := uint32(0)
-		err = binary.Read(r, binary.LittleEndian, &normalOffset)
+		entry0Offset := uint32(0)
+		err = binary.Read(r, binary.LittleEndian, &entry0Offset)
 		if err != nil {
-			return fmt.Errorf("read normalID: %w", err)
+			return fmt.Errorf("read entry0ID: %w", err)
 		}
-		normalName, ok := names[normalOffset]
+		entry0Name, ok := names[entry0Offset]
 		if !ok {
-			return fmt.Errorf("%d names normal offset 0x%x not found", i, normalOffset)
+			return fmt.Errorf("%d names entry0Offset 0x%x not found", i, entry0Offset)
 		}
-		dump.Hex(normalOffset, "%dnormalID=0x%x(%s)", i, normalOffset, normalName)
+		dump.Hex(entry0Offset, "%dentry0ID=0x%x(%s)", i, entry0Offset, entry0Name)
 
-		err = e.MaterialAdd(name, diffuseName, normalName)
+		entry1Offset := uint32(0)
+		err = binary.Read(r, binary.LittleEndian, &entry1Offset)
+		if err != nil {
+			return fmt.Errorf("read entry1ID: %w", err)
+		}
+
+		entry1Name := ""
+
+		if entry1Offset != 0xffffffff {
+			entry1Name, ok = names[entry1Offset]
+			if !ok {
+				return fmt.Errorf("%dnames entry1Offset 0x%x not found", i, entry1Offset)
+			}
+		}
+		dump.Hex(entry1Offset, "%dentry1ID=0x%x(%s)", i, entry1Offset, entry1Name)
+
+		err = e.MaterialAdd(name, entry0Name, entry1Name)
 		if err != nil {
 			return fmt.Errorf("materialAdd: %w", err)
 		}

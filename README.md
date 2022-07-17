@@ -26,6 +26,16 @@ zon|zone metadata (EQG), 50% - Load/Save prototyped, needs attention
 - 4 e.g. shardslanding: .zon 
 
 
+# Problem Children
+- b09.eqg mds
+- aam.eqg mds
+- ahf.eqg mds
+- alg.eqg c_ala_bd_s24_c.dds not found
+- alkabormare.eqg obp_td_pine_burnedb.mod td_pine_needles_c.dds not found
+- anguish.eqg obj_walltorch447ch modelName obj_smallgate15 not found
+- ans.eqg mds
+- arelis.eqg obj_village_rubble_med_lod1.mod residence.dds not found
+- arena.eqg obp_tower.mod grid_standard.dds
 ## External resources
 
 [gltf writer for wld fragments in lantern](https://github.com/vermadas/LanternExtractor/blob/vermadas/multi_inject/LanternExtractor/EQ/Wld/Exporters/GltfWriter.cs)

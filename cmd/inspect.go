@@ -91,7 +91,7 @@ func inspectEQG(path string) error {
 	fmt.Printf("%s contains %d files:\n", filepath.Base(path), len(a.Files()))
 
 	filesByName := a.Files()
-	sort.Sort(common.ByName(filesByName))
+	sort.Sort(common.FilerByName(filesByName))
 	for _, fe := range a.Files() {
 		base := float64(len(fe.Data()))
 		out := ""

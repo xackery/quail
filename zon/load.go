@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"io"
+	"strings"
 
 	"github.com/g3n/engine/math32"
 	"github.com/xackery/quail/dump"
@@ -112,6 +113,7 @@ func (e *ZON) Load(r io.ReadSeeker) error {
 		if name == "" {
 			return fmt.Errorf("model %d name at offset 0x%x not found", i, modelNameOffset)
 		}
+		name = strings.ToLower(name)
 
 		err = e.AddModel(name)
 		if err != nil {
@@ -132,7 +134,7 @@ func (e *ZON) Load(r io.ReadSeeker) error {
 		}
 		modelName := names[int(modelID)].name
 		//dump.Hex(modelID, "%dmodelID=%d(%s)", i, modelID, names[int(modelID)].name)
-
+		modelName = strings.ToLower(modelName)
 		objectNameOffset := uint32(0)
 		err = binary.Read(r, binary.LittleEndian, &objectNameOffset)
 		if err != nil {
@@ -149,18 +151,18 @@ func (e *ZON) Load(r io.ReadSeeker) error {
 			return fmt.Errorf("model %d name at offset 0x%x not found", i, objectNameOffset)
 		}
 		//dump.Hex(objectNameOffset, "%dobjectNameOffset=0x%x(%s)", i, objectNameOffset, name)
-
-		pos := math32.Vector3{}
-		err = binary.Read(r, binary.LittleEndian, &pos)
+		name = strings.ToLower(name)
+		translation := [3]float32{}
+		err = binary.Read(r, binary.LittleEndian, &translation)
 		if err != nil {
-			return fmt.Errorf("object %d pos: %w", i, err)
+			return fmt.Errorf("object %d translation: %w", i, err)
 		}
 		//dump.Hex(pos, "%dpos=%+v", i, pos)
 
-		rot := math32.Vector3{}
+		rot := [3]float32{}
 		err = binary.Read(r, binary.LittleEndian, &rot)
 		if err != nil {
-			return fmt.Errorf("object %d rot: %w", i, err)
+			return fmt.Errorf("object %d rotation: %w", i, err)
 		}
 		//dump.Hex(rot, "rot=%+v", rot)
 
@@ -171,7 +173,7 @@ func (e *ZON) Load(r io.ReadSeeker) error {
 		}
 		//dump.Hex(scale, "scale=%0.2f", scale)
 
-		err = e.AddObject(modelName, name, pos, rot, scale)
+		err = e.AddObject(modelName, name, translation, rot, scale)
 		if err != nil {
 			return fmt.Errorf("addObject %s: %w", name, err)
 		}
@@ -196,21 +198,21 @@ func (e *ZON) Load(r io.ReadSeeker) error {
 		}
 		//dump.Hex(regionNameOffset, "regionNameOffset=0x%x(%s)", regionNameOffset, name)
 
-		center := math32.Vector3{}
+		center := [3]float32{}
 		err = binary.Read(r, binary.LittleEndian, &center)
 		if err != nil {
 			return fmt.Errorf("region %d center: %w", i, err)
 		}
 		//dump.Hex(center, "center=%+v", center)
 
-		unknown := math32.Vector3{}
+		unknown := [3]float32{}
 		err = binary.Read(r, binary.LittleEndian, &unknown)
 		if err != nil {
 			return fmt.Errorf("region %d unknown: %w", i, err)
 		}
 		//dump.Hex(unknown, "unknown=%+v", unknown)
 
-		extent := math32.Vector3{}
+		extent := [3]float32{}
 		err = binary.Read(r, binary.LittleEndian, &extent)
 		if err != nil {
 			return fmt.Errorf("region %d extent: %w", i, err)
@@ -241,7 +243,7 @@ func (e *ZON) Load(r io.ReadSeeker) error {
 		}
 		//dump.Hex(lightNameOffset, "lightNameOffset=0x%x(%s)", lightNameOffset, name)
 
-		pos := math32.Vector3{}
+		pos := [3]float32{}
 		err = binary.Read(r, binary.LittleEndian, &pos)
 		if err != nil {
 			return fmt.Errorf("light %d pos: %w", i, err)

@@ -5,6 +5,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"io"
+	"strings"
 	"time"
 
 	"github.com/xackery/quail/common"
@@ -193,10 +194,14 @@ func (e *EQG) Load(r io.ReadSeeker) error {
 		if !ok {
 			return fmt.Errorf("dirName for crc %d not found", crc)
 		}
+
+		//force spaces in pfs archives to _
+		dirName = strings.ReplaceAll(dirName, " ", "_")
 		file, err := common.NewFileEntry(dirName, data)
 		if err != nil {
 			return fmt.Errorf("new file entry %s: %w", dirName, err)
 		}
+
 		e.files = append(e.files, file)
 	}
 

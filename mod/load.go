@@ -31,8 +31,8 @@ func (e *MOD) Load(r io.ReadSeeker) error {
 		return fmt.Errorf("read header version: %w", err)
 	}
 	dump.Hex(version, "version=%d", version)
-	if version != 1 && version != 3 {
-		return fmt.Errorf("version is %d, wanted 1 or 3", version)
+	if version > 3 {
+		return fmt.Errorf("version is %d, wanted < 4", version)
 	}
 
 	nameLength := uint32(0)
@@ -267,9 +267,6 @@ func (e *MOD) Load(r io.ReadSeeker) error {
 		err = binary.Read(r, binary.LittleEndian, &flag)
 		if err != nil {
 			return fmt.Errorf("read face %d flag: %w", i, err)
-		}
-		if materialName == "" {
-			materialName = fmt.Sprintf("empty_%d", flag)
 		}
 
 		if materialName == "" {

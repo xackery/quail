@@ -18,7 +18,6 @@ import (
 	"github.com/solarlune/tetra3d/colors"
 	"github.com/spf13/cobra"
 	"github.com/xackery/quail/common"
-	"github.com/xackery/quail/mod"
 	"github.com/xackery/quail/ter"
 	"golang.org/x/image/font/basicfont"
 )
@@ -100,7 +99,7 @@ Supported extensions: gltf, mod, ter
 		loads := []*loadTypes{
 			//{instance: &ani.ANI{}, extension: ".ani"},
 			//{instance: &eqg.EQG{}, extension: ".eqg"},
-			{instance: &mod.MOD{}, extension: ".mod"},
+			//{instance: &mod.MOD{}, extension: ".mod"},
 			{instance: &ter.TER{}, extension: ".ter"},
 			//{instance: &zon.ZON{}, extension: ".zon"},
 		}

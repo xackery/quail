@@ -23,8 +23,8 @@ func (e *LAY) Save(w io.Writer) error {
 
 	tmpNames := []string{}
 	for _, o := range e.layers {
-		tmpNames = append(tmpNames, o.diffuse)
-		tmpNames = append(tmpNames, o.normal)
+		tmpNames = append(tmpNames, o.Entry0)
+		tmpNames = append(tmpNames, o.Entry1)
 	}
 
 	for _, name := range tmpNames {

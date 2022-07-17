@@ -1,44 +1,74 @@
 package mds
 
 import (
-	"bytes"
 	"fmt"
-	"image/png"
-	"io"
-	"path/filepath"
 	"strings"
 
 	"github.com/qmuntal/gltf"
-	"github.com/qmuntal/gltf/modeler"
 
-	"github.com/malashin/dds"
-	"github.com/xackery/quail/common"
+	qgltf "github.com/xackery/quail/gltf"
 )
 
 // GLTFExport exports a provided mod file to gltf format
-func (e *MDS) GLTFExport(w io.Writer) error {
+func (e *MDS) GLTFExport(doc *qgltf.GLTF) error {
 	var err error
-	doc := gltf.NewDocument()
-	e.gltfMaterialBuffer = make(map[string]*uint32)
-	e.gltfBoneBuffer = make(map[int]uint32)
+	if doc == nil {
+		return fmt.Errorf("doc is nil")
+	}
 
-	modelName := strings.TrimSuffix(e.name, ".ter")
+	modelName := strings.TrimSuffix(e.name, ".mds")
 
 	mesh := &gltf.Mesh{
 		Name: modelName,
 	}
 
-	type primCache struct {
-		materialIndex *uint32
-		positions     [][3]float32
-		normals       [][3]float32
-		uvs           [][2]float32
-		//joints        [][4]uint16
-		//weights       [][4]uint16
-		indices       []uint16
-		uniqueIndices map[uint32]uint16
+	prims := make(map[*uint32]*qgltf.Primitive)
+
+	lastDiffuseName := ""
+	for _, material := range e.materials {
+
+		textureDiffuseName := ""
+		textureNormalName := ""
+		for _, p := range material.Properties {
+			if p.Category != 2 {
+				continue
+			}
+			if strings.EqualFold(p.Name, "e_texturediffuse0") {
+				textureDiffuseName = p.Value
+				continue
+			}
+
+			if strings.EqualFold(p.Name, "e_texturenormal0") {
+				textureNormalName = p.Value
+				continue
+			}
+		}
+		//fmt.Printf("%+v %s|%s\n", material, textureDiffuseName, textureNormalName)
+
+		var diffuseData []byte
+		if len(textureDiffuseName) == 0 {
+			textureDiffuseName = lastDiffuseName
+		}
+		if len(textureDiffuseName) > 0 {
+			lastDiffuseName = textureDiffuseName
+			diffuseData, err = e.eqg.File(textureDiffuseName)
+			if err != nil {
+				return fmt.Errorf("file %s: %w", textureDiffuseName, err)
+			}
+		}
+
+		var normalData []byte
+		if len(textureNormalName) > 0 {
+			normalData, err = e.eqg.File(textureNormalName)
+			if err != nil {
+				return fmt.Errorf("file %s: %w", textureNormalName, err)
+			}
+		}
+		_, err = doc.MaterialAdd(material, diffuseData, normalData)
+		if err != nil {
+			return fmt.Errorf("MaterialAdd %s: %w", material.Name, err)
+		}
 	}
-	prims := make(map[*uint32]*primCache)
 
 	// ******** MESH SKINNING *******
 	/*var skinIndex *uint32
@@ -87,253 +117,51 @@ func (e *MDS) GLTFExport(w io.Writer) error {
 
 	// ******** PRIM GENERATION *****
 	for _, o := range e.faces {
-		matIndex, err := e.gltfAddCacheMaterial(doc, o.MaterialName)
-		if err != nil {
-			return fmt.Errorf("addMaterial: %w", err)
+		matName := o.MaterialName
+		if strings.HasPrefix(matName, e.name+"_") {
+			matName = fmt.Sprintf("c_%s_s02_m01", e.name)
 		}
+
+		matIndex := doc.Material(matName)
 
 		prim, ok := prims[matIndex]
 		if !ok {
-			prim = &primCache{
-				materialIndex: matIndex,
-				uniqueIndices: make(map[uint32]uint16),
-			}
+			prim = qgltf.NewPrimitive()
+			prim.MaterialIndex = matIndex
 			prims[matIndex] = prim
 		}
 
 		for i := 0; i < 3; i++ {
-			index, ok := prim.uniqueIndices[o.Index[i]]
+			index, ok := prim.UniqueIndices[o.Index[i]]
 			if !ok {
 				v := e.vertices[int(o.Index[i])]
-				prim.positions = append(prim.positions, [3]float32{v.Position.X, v.Position.Y, v.Position.Z})
-				prim.normals = append(prim.normals, [3]float32{v.Normal.X, v.Normal.Y, v.Normal.Z})
-				prim.uvs = append(prim.uvs, [2]float32{v.Uv.X, v.Uv.Y})
-				prim.uniqueIndices[o.Index[i]] = uint16(len(prim.positions) - 1)
-				index = uint16(len(prim.positions) - 1)
+				prim.Positions = append(prim.Positions, [3]float32{v.Position.X, v.Position.Y, v.Position.Z})
+				prim.Normals = append(prim.Normals, [3]float32{v.Normal.X, v.Normal.Y, v.Normal.Z})
+				prim.Uvs = append(prim.Uvs, [2]float32{v.Uv.X, v.Uv.Y})
+				prim.UniqueIndices[o.Index[i]] = uint16(len(prim.Positions) - 1)
+				index = uint16(len(prim.Positions) - 1)
 			}
-			prim.indices = append(prim.indices, index)
+			prim.Indices = append(prim.Indices, index)
 		}
 
-		/*primitive.Attributes, err = modeler.WriteAttributesInterleaved(doc, modeler.Attributes{
-			Position:       prim.positions,
-			Normal:         prim.normals,
-			TextureCoord_0: prim.uvs,
-		})*/
-
 	}
+
+	meshIndex := doc.MeshAdd(mesh)
 
 	for _, prim := range prims {
-		primitive := &gltf.Primitive{
-			Mode:     gltf.PrimitiveTriangles,
-			Material: prim.materialIndex,
+		err = doc.PrimitiveAdd(e.name, prim)
+		if err != nil {
+			return fmt.Errorf("primitiveAdd: %w", err)
 		}
-
-		/*for _, pos := range prim.positions {
-			x, y, z := pos[0], pos[1], pos[2]
-			for _, b := range e.bones {
-				if b.pivot.X != x {
-					continue
-				}
-				if b.pivot.Y != y {
-					continue
-				}
-				if b.pivot.Z != z {
-					continue
-				}
-				prim.joints = append(prim.joints, [4]uint16{uint16(b.pivot.X), uint16(b.pivot.Y), uint16(b.pivot.Z)})
-				prim.weights = append(prim.weights, [4]uint16{1, 1, 1, 1})
-			}
-		}*/
-
-		primitive.Attributes = map[string]uint32{
-			gltf.POSITION:   modeler.WritePosition(doc, prim.positions),
-			gltf.NORMAL:     modeler.WriteNormal(doc, prim.normals),
-			gltf.TEXCOORD_0: modeler.WriteTextureCoord(doc, prim.uvs),
-			//gltf.JOINTS_0:   modeler.WriteJoints(doc, prim.joints),
-			//gltf.WEIGHTS_0:  modeler.WriteWeights(doc, prim.weights),
-		}
-
-		primitive.Indices = gltf.Index(modeler.WriteIndices(doc, prim.indices))
-		mesh.Primitives = append(mesh.Primitives, primitive)
 	}
 
-	//fmt.Println("last indices:", *primitive.Indices, "total buffers:", len(doc.BufferViews))
-	doc.Meshes = append(doc.Meshes, mesh)
-	doc.Nodes = append(doc.Nodes, &gltf.Node{
+	doc.NodeAdd(&gltf.Node{
 		Name: modelName,
-		Mesh: gltf.Index(uint32(len(doc.Meshes) - 1)),
+		Mesh: meshIndex,
 		//Skin: skinIndex,
 	})
 
-	doc.Scenes[0].Nodes = append(doc.Scenes[0].Nodes, uint32(len(doc.Nodes)-1))
-	for _, buff := range doc.Buffers {
-		buff.EmbeddedResource()
-	}
-
-	enc := gltf.NewEncoder(w)
-	enc.AsBinary = false
-	enc.SetJSONIndent("", "\t")
-	err = enc.Encode(doc)
-	if err != nil {
-		return fmt.Errorf("encode: %w", err)
-	}
-
 	return nil
-}
-
-func (e *MDS) gltfAddCacheMaterial(doc *gltf.Document, name string) (*uint32, error) {
-	materialIndex := uint32(0)
-	material := &materialIndex
-
-	material, ok := e.gltfMaterialBuffer[name]
-	if ok {
-		return material, nil
-	}
-
-	var mat *common.Material
-	for _, o := range e.materials {
-		if o.Name == name {
-			mat = o
-			break
-		}
-	}
-	if mat == nil {
-		if name == "" || strings.HasPrefix(name, "empty_") {
-			doc.Materials = append(doc.Materials, &gltf.Material{
-				Name: name,
-				PBRMetallicRoughness: &gltf.PBRMetallicRoughness{
-					BaseColorFactor: &[4]float32{1.0, 1.0, 1.0, 1},
-					MetallicFactor:  gltf.Float(0),
-				},
-			})
-
-			material = gltf.Index(uint32(len(doc.Materials) - 1))
-			e.gltfMaterialBuffer[name] = material
-			return material, nil
-		}
-		return material, fmt.Errorf("material '%s' not found", name)
-	}
-
-	textureDiffuseName := ""
-	textureNormalName := ""
-	for _, p := range mat.Properties {
-		if p.Category != 2 {
-			continue
-		}
-		if strings.EqualFold(p.Name, "e_texturediffuse0") {
-			textureDiffuseName = p.Value
-			continue
-		}
-
-		if strings.EqualFold(p.Name, "e_texturenormal0") {
-			textureNormalName = p.Value
-			continue
-		}
-	}
-	if len(textureDiffuseName) == 0 {
-		//return material, fmt.Errorf("material '%s' has no texturediffuse value", name)
-		doc.Materials = append(doc.Materials, &gltf.Material{
-			Name: name,
-			PBRMetallicRoughness: &gltf.PBRMetallicRoughness{
-				BaseColorFactor: &[4]float32{1.0, 1.0, 1.0, 1},
-				MetallicFactor:  gltf.Float(0),
-			},
-		})
-		material = gltf.Index(uint32(len(doc.Materials) - 1))
-		e.gltfMaterialBuffer[name] = material
-		return material, nil
-	}
-
-	diffuseBuf := &bytes.Buffer{}
-	normalBuf := &bytes.Buffer{}
-	for _, fe := range e.files {
-		if fe.Name() == textureDiffuseName {
-			diffuseBuf = bytes.NewBuffer(fe.Data())
-		}
-
-		if fe.Name() == textureNormalName {
-			normalBuf = bytes.NewBuffer(fe.Data())
-		}
-		if diffuseBuf.Len() > 0 && normalBuf.Len() > 0 {
-			break
-		}
-		if diffuseBuf.Len() > 0 {
-			break
-		}
-	}
-
-	if diffuseBuf.Len() == 0 {
-		return material, fmt.Errorf("texture '%s' not found", textureDiffuseName)
-	}
-
-	pngData, err := gltfToPNG(diffuseBuf, textureDiffuseName)
-	if err != nil {
-		return material, fmt.Errorf("gltfToPNG diffuse: %w", err)
-	}
-	textureDiffuseName = strings.ReplaceAll(textureDiffuseName, ".dds", ".png")
-	diffuseBuf = bytes.NewBuffer(pngData)
-
-	if normalBuf.Len() > 0 {
-		fmt.Println("normal", textureNormalName, "is", normalBuf.Len())
-		pngData, err = gltfToPNG(normalBuf, textureNormalName)
-		if err != nil {
-			return material, fmt.Errorf("gltfToPNG normal: %w", err)
-		}
-		normalBuf = bytes.NewBuffer(pngData)
-
-		textureNormalName = strings.ReplaceAll(textureNormalName, ".dds", ".png")
-		fmt.Println("normal", textureNormalName, "is", normalBuf.Len())
-	}
-
-	meshName := strings.TrimSuffix(textureDiffuseName, ".png")
-	imageIdx, err := modeler.WriteImage(doc, textureDiffuseName, "image/png", diffuseBuf)
-	if err != nil {
-		return material, fmt.Errorf("writeImage to gtlf: %w", err)
-	}
-	doc.Textures = append(doc.Textures, &gltf.Texture{Source: gltf.Index(imageIdx)})
-	diffuseTexture := &gltf.TextureInfo{
-		Index: uint32(len(doc.Textures) - 1),
-	}
-
-	var normalTexture *gltf.NormalTexture
-
-	if normalBuf.Len() > 0 {
-		imageIdx, err = modeler.WriteImage(doc, textureNormalName, "image/png", normalBuf)
-		if err != nil {
-			return material, fmt.Errorf("writeImage to gtlf: %w", err)
-		}
-		doc.Textures = append(doc.Textures, &gltf.Texture{Source: gltf.Index(imageIdx)})
-		normalTexture = &gltf.NormalTexture{
-			Index: gltf.Index(uint32(len(doc.Textures) - 1)),
-		}
-	}
-
-	newMaterial := &gltf.Material{
-		Name: meshName,
-
-		PBRMetallicRoughness: &gltf.PBRMetallicRoughness{
-			BaseColorTexture: diffuseTexture,
-			MetallicFactor:   gltf.Float(0),
-		},
-	}
-
-	if normalTexture != nil {
-		newMaterial.NormalTexture = normalTexture
-	}
-
-	doc.Materials = append(doc.Materials, newMaterial)
-
-	/*doc.Materials = append(doc.Materials, &gltf.Material{
-		Name: modelName,
-		PBRMetallicRoughness: &gltf.PBRMetallicRoughness{
-			BaseColorFactor: &[4]float32{1.0, 1.0, 1.0, 1},
-			MetallicFactor:  gltf.Float(0),
-		},
-	})*/
-
-	material = gltf.Index(uint32(len(doc.Materials) - 1))
-	e.gltfMaterialBuffer[name] = material
-	return material, nil
 }
 
 /*
@@ -352,25 +180,3 @@ func (e *MOD) gltfBoneChildren(doc *gltf.Document, children *[]uint32, boneIndex
 
 	return e.gltfBoneChildren(doc, children, int(bone.next))
 }*/
-
-func gltfToPNG(buf *bytes.Buffer, name string) ([]byte, error) {
-	switch filepath.Ext(name) {
-	case ".dds":
-		img, err := dds.Decode(buf)
-		if err != nil {
-			return nil, fmt.Errorf("dds.Decode %s: %w", name, err)
-		}
-
-		buf = bytes.NewBuffer(nil)
-		err = png.Encode(buf, img)
-		if err != nil {
-			return nil, fmt.Errorf("png.Encode %s: %w", name, err)
-		}
-		return buf.Bytes(), nil
-	case ".png":
-		return buf.Bytes(), nil
-	case "":
-	default:
-	}
-	return nil, fmt.Errorf("unsupported extension '%s'", filepath.Ext(name))
-}

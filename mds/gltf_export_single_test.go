@@ -9,6 +9,8 @@ import (
 	"testing"
 
 	"github.com/xackery/quail/eqg"
+	"github.com/xackery/quail/gltf"
+	"github.com/xackery/quail/lay"
 )
 
 func TestGLTFFlushEQPath(t *testing.T) {
@@ -37,11 +39,18 @@ func TestGLTFExportSamplesSingleTest(t *testing.T) {
 	tests := []struct {
 		category string
 	}{
-		//{category: "inv"},
-		{category: "aam"},
+		/*{category: "bxi"},
+		{category: "bnf"},
+		{category: "bnm"},
+		{category: "bnr"},
+		{category: "bnx"},*/
+		//{category: "bny"},
+		//{category: "dv6"},
+		{category: "lth"}, //Morell thule
 	}
 	for _, tt := range tests {
 
+		fmt.Println("loading", tt.category)
 		eqgFile := fmt.Sprintf("test/eq/%s.eqg", tt.category)
 		//modFile := fmt.Sprintf("obj_%s.mod", tt.category)
 
@@ -69,7 +78,7 @@ func TestGLTFExportSamplesSingleTest(t *testing.T) {
 			}
 			r := bytes.NewReader(mdsEntry.Data())
 
-			e, err := NewEQG(mdsEntry.Name(), a)
+			e, err := NewEQG(strings.TrimSuffix(mdsEntry.Name(), ".mds"), a)
 			if err != nil {
 				t.Fatalf("new: %s", err)
 			}
@@ -79,31 +88,46 @@ func TestGLTFExportSamplesSingleTest(t *testing.T) {
 				t.Fatalf("load %s: %s", mdsEntry.Name(), err)
 			}
 
-			/*			fw, err := os.Create(txtFile)
-						if err != nil {
-							t.Fatalf("%s", err)
-						}
-						defer fw.Close()
-						fmt.Fprintf(fw, "faces:\n")
-						for i, o := range e.faces {
-							fmt.Fprintf(fw, "%d %+v\n", i, o)
-						}
+			layName := fmt.Sprintf("%s.lay", strings.TrimSuffix(mdsEntry.Name(), ".mds"))
+			layEntry, err := a.File(layName)
+			if err != nil && !os.IsNotExist(err) {
+				t.Fatalf("file: %s", err)
+			}
 
-						fmt.Fprintf(fw, "vertices:\n")
-						for i, o := range e.vertices {
-							fmt.Fprintf(fw, "%d pos: %0.0f %0.0f %0.0f, normal: %+v, uv: %+v\n", i, o.Position.X, o.Position.Y, o.Position.Z, o.Normal, o.Uv)
-						}
-			*/
+			if len(layEntry) > 0 {
+				l, err := lay.NewEQG(layName, a)
+				if err != nil {
+					t.Fatalf("lay.NewEQG: %s", err)
+				}
+				err = l.Load(bytes.NewReader(layEntry))
+				if err != nil {
+					t.Fatalf("lay.Load: %s", err)
+				}
+				err = e.SetLayers(l.Layers())
+				if err != nil {
+					t.Fatalf("setLayers: %s", err)
+				}
+			}
+
 			outFile := fmt.Sprintf("test/eq/%s_eqg_%s.gltf", tt.category, mdsEntry.Name())
 			w, err := os.Create(outFile)
 			if err != nil {
 				t.Fatalf("create %s", err)
 			}
 			defer w.Close()
-			err = e.GLTFExport(w)
+			doc, err := gltf.New()
 			if err != nil {
-				t.Fatalf("save: %s", err)
+				t.Fatalf("gltf.New: %s", err)
 			}
+			err = e.GLTFExport(doc)
+			if err != nil {
+				t.Fatalf("gltf: %s", err)
+			}
+			err = doc.Export(w)
+			if err != nil {
+				t.Fatalf("export: %s", err)
+			}
+
 		}
 	}
 }
@@ -168,9 +192,124 @@ func TestGLTFExportSingleModel(t *testing.T) {
 			t.Fatalf("create %s", err)
 		}
 		defer w.Close()
-		err = e.GLTFExport(w)
+		doc, err := gltf.New()
 		if err != nil {
-			t.Fatalf("save: %s", err)
+			t.Fatalf("gltf.New: %s", err)
+		}
+		err = e.GLTFExport(doc)
+		if err != nil {
+			t.Fatalf("gltf: %s", err)
+		}
+
+		err = doc.Export(w)
+		if err != nil {
+			t.Fatalf("export: %s", err)
+		}
+	}
+}
+
+func TestGLTFExportSamplesDirectory(t *testing.T) {
+	if os.Getenv("SINGLE_TEST") != "1" {
+		return
+	}
+
+	dirs, err := os.ReadDir("test/eq/")
+	if err != nil {
+		t.Fatalf("read: %s", err)
+	}
+	for _, fe := range dirs {
+		if filepath.Ext(fe.Name()) != ".eqg" {
+			continue
+		}
+		fmt.Println("loading", fe.Name())
+		eqgFile := fmt.Sprintf("test/eq/%s", fe.Name())
+
+		ra, err := os.Open(eqgFile)
+		if err != nil {
+			t.Fatalf("%s", err)
+		}
+		defer ra.Close()
+		a, err := eqg.New(fe.Name())
+		if err != nil {
+			t.Fatalf("eqg.New: %s", err)
+		}
+		err = a.Load(ra)
+		if err != nil {
+			t.Fatalf("load eqg: %s", err)
+		}
+
+		files := a.Files()
+		for _, mdsEntry := range files {
+			if filepath.Ext(mdsEntry.Name()) != ".mds" {
+				continue
+			}
+			r := bytes.NewReader(mdsEntry.Data())
+
+			e, err := NewEQG(strings.TrimSuffix(mdsEntry.Name(), ".mds"), a)
+			if err != nil {
+				t.Fatalf("new: %s", err)
+			}
+
+			err = e.Load(r)
+			if err != nil {
+				t.Fatalf("load %s: %s", mdsEntry.Name(), err)
+			}
+
+			layName := fmt.Sprintf("%s.lay", strings.TrimSuffix(mdsEntry.Name(), ".mds"))
+			layEntry, err := a.File(layName)
+			if err != nil && !strings.Contains(err.Error(), "does not exist") {
+				t.Fatalf("file: %s", err)
+			}
+
+			if len(layEntry) > 0 {
+				l, err := lay.NewEQG(layName, a)
+				if err != nil {
+					t.Fatalf("lay.NewEQG: %s", err)
+				}
+				err = l.Load(bytes.NewReader(layEntry))
+				if err != nil {
+					t.Fatalf("lay.Load: %s", err)
+				}
+				err = e.SetLayers(l.Layers())
+				if err != nil {
+					t.Fatalf("setLayers: %s", err)
+				}
+			}
+
+			/*			fw, err := os.Create(txtFile)
+						if err != nil {
+							t.Fatalf("%s", err)
+						}
+						defer fw.Close()
+						fmt.Fprintf(fw, "faces:\n")
+						for i, o := range e.faces {
+							fmt.Fprintf(fw, "%d %+v\n", i, o)
+						}
+
+						fmt.Fprintf(fw, "vertices:\n")
+						for i, o := range e.vertices {
+							fmt.Fprintf(fw, "%d pos: %0.0f %0.0f %0.0f, normal: %+v, uv: %+v\n", i, o.Position.X, o.Position.Y, o.Position.Z, o.Normal, o.Uv)
+						}
+			*/
+			outFile := fmt.Sprintf("test/eq/%s_eqg_%s.gltf", fe.Name(), mdsEntry.Name())
+			w, err := os.Create(outFile)
+			if err != nil {
+				t.Fatalf("create %s", err)
+			}
+			defer w.Close()
+			doc, err := gltf.New()
+			if err != nil {
+				t.Fatalf("gltf.New: %s", err)
+			}
+			err = e.GLTFExport(doc)
+			if err != nil {
+				t.Fatalf("gltf: %s", err)
+			}
+
+			err = doc.Export(w)
+			if err != nil {
+				t.Fatalf("export: %s", err)
+			}
 		}
 	}
 }

@@ -106,15 +106,15 @@ func extractEQG(in string, out string, isDir bool) error {
 	if err != nil {
 		return err
 	}
-	e, err := eqg.New("out")
+	a, err := eqg.New("out")
 	if err != nil {
 		return fmt.Errorf("eqg.New: %w", err)
 	}
-	err = e.Load(f)
+	err = a.Load(f)
 	if err != nil {
 		return fmt.Errorf("load %s: %w", in, err)
 	}
-	results, err := e.Extract(out)
+	results, err := a.Extract(out)
 	if err != nil {
 		fmt.Printf("failed to extract %s: %s\n", filepath.Base(in), err)
 		os.Exit(1)
@@ -130,7 +130,6 @@ func extractEQG(in string, out string, isDir bool) error {
 func init() {
 	rootCmd.AddCommand(extractCmd)
 	extractCmd.PersistentFlags().String("path", "", "path to compressed eqg")
-	extractCmd.PersistentFlags().String("out", "", "out folder to extract to")
 }
 
 func extractS3D(path string, out string, isDir bool) error {
@@ -158,10 +157,4 @@ func extractS3D(path string, out string, isDir bool) error {
 	}
 	fmt.Println(filepath.Base(path), results)
 	return nil
-}
-
-func init() {
-	rootCmd.AddCommand(extractCmd)
-	//extractCmd.PersistentFlags().String("path", "", "path to compressed eqg")
-	//extractCmd.PersistentFlags().String("out", "", "out folder to extract to")
 }

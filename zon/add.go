@@ -2,14 +2,28 @@ package zon
 
 import (
 	"fmt"
+	"strings"
+
+	"regexp"
 
 	"github.com/g3n/engine/math32"
 )
 
-func (e *ZON) AddObject(modelName string, name string, position math32.Vector3, rotation math32.Vector3, scale float32) error {
+var (
+	numEndingRegex = regexp.MustCompile("[0-9]+$")
+)
+
+func (e *ZON) AddObject(modelName string, name string, position [3]float32, rotation [3]float32, scale float32) error {
+	modelName = strings.ToLower(modelName)
+	name = strings.ToLower(name)
+	baseName := baseName(name)
 	isModelFound := false
 	for _, m := range e.models {
 		if m.name == modelName {
+			isModelFound = true
+			break
+		}
+		if baseName == m.baseName {
 			isModelFound = true
 			break
 		}
@@ -17,28 +31,33 @@ func (e *ZON) AddObject(modelName string, name string, position math32.Vector3, 
 	if !isModelFound {
 		return fmt.Errorf("modelName %s not found", modelName)
 	}
-	e.objects = append(e.objects, &object{
-		name:      name,
-		modelName: modelName,
-		position:  position,
-		rotation:  rotation,
-		scale:     scale,
+	e.objects = append(e.objects, &Object{
+		name:        name,
+		modelName:   modelName,
+		translation: position,
+		rotation:    rotation,
+		scale:       scale,
 	})
 	return nil
 }
 
 func (e *ZON) AddModel(name string) error {
+	name = strings.ToLower(name)
 	for _, m := range e.models {
 		if m.name == name {
 			return nil
 		}
 	}
-	e.models = append(e.models, &model{name: name})
+	e.models = append(e.models, &model{
+		name:     name,
+		baseName: baseName(name),
+	})
 	return nil
 }
 
-func (e *ZON) AddRegion(name string, center math32.Vector3, unknown math32.Vector3, extent math32.Vector3) error {
-	e.regions = append(e.regions, &region{
+func (e *ZON) AddRegion(name string, center [3]float32, unknown [3]float32, extent [3]float32) error {
+	name = strings.ToLower(name)
+	e.regions = append(e.regions, &Region{
 		name:    name,
 		center:  center,
 		unknown: unknown,
@@ -47,12 +66,23 @@ func (e *ZON) AddRegion(name string, center math32.Vector3, unknown math32.Vecto
 	return nil
 }
 
-func (e *ZON) AddLight(name string, position math32.Vector3, color math32.Color, radius float32) error {
-	e.lights = append(e.lights, &light{
+func (e *ZON) AddLight(name string, position [3]float32, color math32.Color, radius float32) error {
+	name = strings.ToLower(name)
+	e.lights = append(e.lights, &Light{
 		name:     name,
 		position: position,
 		color:    color,
 		radius:   radius,
 	})
 	return nil
+}
+
+func baseName(in string) string {
+	if strings.Contains(in, ".") {
+		in = in[0:strings.Index(in, ".")]
+	}
+
+	in = numEndingRegex.ReplaceAllString(in, "")
+	in = strings.TrimSuffix(in, "_")
+	return in
 }

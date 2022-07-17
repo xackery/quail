@@ -9,6 +9,8 @@ import (
 	"testing"
 
 	"github.com/xackery/quail/eqg"
+	"github.com/xackery/quail/gltf"
+	"github.com/xackery/quail/lay"
 )
 
 func TestGLTFFlushEQPath(t *testing.T) {
@@ -37,12 +39,13 @@ func TestGLTFExportSamplesSingleTest(t *testing.T) {
 	tests := []struct {
 		category string
 	}{
+		//{category: "dkm"}, //drakkin male
 		//{category: "steamfontmts"},
 		//{category: "holeequip"},
 		//{category: "i00"},
 		//{category: "inv"},
 		//{category: "arthwall"},
-		//{category: "aro"},
+		{category: "aro"}, //arayane ro
 		//{category: "aam"},
 		//{category: "voaequip"},
 	}
@@ -100,15 +103,45 @@ func TestGLTFExportSamplesSingleTest(t *testing.T) {
 							fmt.Fprintf(fw, "%d pos: %0.0f %0.0f %0.0f, normal: %+v, uv: %+v\n", i, o.Position.X, o.Position.Y, o.Position.Z, o.Normal, o.Uv)
 						}
 			*/
+
+			layName := fmt.Sprintf("%s.lay", strings.TrimSuffix(modEntry.Name(), ".mod"))
+			layEntry, err := a.File(layName)
+			if err != nil && !strings.Contains(err.Error(), "does not exist") {
+				t.Fatalf("file: %s", err)
+			}
+
+			if len(layEntry) > 0 {
+				l, err := lay.NewEQG(layName, a)
+				if err != nil {
+					t.Fatalf("lay.NewEQG: %s", err)
+				}
+				err = l.Load(bytes.NewReader(layEntry))
+				if err != nil {
+					t.Fatalf("lay.Load: %s", err)
+				}
+				err = e.SetLayers(l.Layers())
+				if err != nil {
+					t.Fatalf("setLayers: %s", err)
+				}
+			}
+
 			outFile := fmt.Sprintf("test/eq/%s_eqg_%s.gltf", tt.category, modEntry.Name())
 			w, err := os.Create(outFile)
 			if err != nil {
 				t.Fatalf("create %s", err)
 			}
 			defer w.Close()
-			err = e.GLTFExport(w)
+			doc, err := gltf.New()
 			if err != nil {
-				t.Fatalf("save: %s", err)
+				t.Fatalf("gltf.New: %s", err)
+			}
+			err = e.GLTFExport(doc)
+			if err != nil {
+				t.Fatalf("gltf: %s", err)
+			}
+			err = doc.Export(w)
+			if err != nil {
+				t.Fatalf("export: %s", err)
 			}
 		}
 	}
@@ -174,9 +207,17 @@ func TestGLTFExportSingleModel(t *testing.T) {
 			t.Fatalf("create %s", err)
 		}
 		defer w.Close()
-		err = e.GLTFExport(w)
+		doc, err := gltf.New()
 		if err != nil {
-			t.Fatalf("save: %s", err)
+			t.Fatalf("gltf.New: %s", err)
+		}
+		err = e.GLTFExport(doc)
+		if err != nil {
+			t.Fatalf("gltf: %s", err)
+		}
+		err = doc.Export(w)
+		if err != nil {
+			t.Fatalf("export: %s", err)
 		}
 	}
 }

@@ -104,7 +104,7 @@ func (e *ZON) Save(w io.Writer) error {
 			return fmt.Errorf("write objectname offset %s: %w", o.name, err)
 		}
 
-		err = binary.Write(dataBuf, binary.LittleEndian, o.position)
+		err = binary.Write(dataBuf, binary.LittleEndian, o.translation)
 		if err != nil {
 			return fmt.Errorf("write object pos %s: %w", o.name, err)
 		}

@@ -6,17 +6,6 @@ import (
 	"github.com/g3n/engine/math32"
 )
 
-type Material struct {
-	Name       string
-	ShaderName string
-	Flag       uint32
-	Properties Properties
-}
-
-func (e *Material) String() string {
-	return fmt.Sprintf("{Name: %s, Flag: %d, Properties: (%s)}", e.Name, e.Flag, e.Properties)
-}
-
 type Properties []*Property
 
 func (e Properties) String() string {

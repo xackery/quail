@@ -1,6 +1,8 @@
 package mds
 
-import "fmt"
+import (
+	"fmt"
+)
 
 func (e *MDS) MaterialByID(id int) (string, error) {
 	if id == -1 {

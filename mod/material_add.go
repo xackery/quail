@@ -47,6 +47,7 @@ func (e *MOD) VertexAdd(position *math32.Vector3, normal *math32.Vector3, tint *
 }
 
 func (e *MOD) FaceAdd(index [3]uint32, materialName string, flag uint32) error {
+
 	if materialName == "" || strings.HasPrefix(materialName, "empty_") {
 		e.faces = append(e.faces, &common.Face{
 			Index:        index,

@@ -6,6 +6,7 @@ import (
 	"image/color"
 	"io"
 	"io/ioutil"
+	"sort"
 	"strings"
 
 	"github.com/g3n/engine/math32"
@@ -102,6 +103,7 @@ func (e *MDS) Load(r io.ReadSeeker) error {
 		if !ok {
 			return fmt.Errorf("%dnames offset 0x%x not found", i, nameOffset)
 		}
+		name = strings.ToLower(name)
 		dump.Hex(nameOffset, "%dnameOffset=0x%x(%s)", i, nameOffset, name)
 
 		shaderOffset := uint32(0)
@@ -121,6 +123,10 @@ func (e *MDS) Load(r io.ReadSeeker) error {
 			return fmt.Errorf("read propertyCount: %w", err)
 		}
 		dump.Hex(propertyCount, "%dpropertyCount=%d", i, propertyCount)
+
+		if name == fmt.Sprintf("%s_02", e.name) {
+			name = fmt.Sprintf("c_%s_s02_m01", e.name)
+		}
 
 		err = e.MaterialAdd(name, shaderName)
 		if err != nil {
@@ -319,6 +325,7 @@ func (e *MDS) Load(r io.ReadSeeker) error {
 		if err != nil {
 			return fmt.Errorf("read vertex %d uv: %w", i, err)
 		}
+		uv.Y = -uv.Y
 		tint := &common.Tint{R: 128, G: 128, B: 128}
 		err = e.VertexAdd(pos, normal, tint, uv, uv)
 		if err != nil {
@@ -359,15 +366,12 @@ func (e *MDS) Load(r io.ReadSeeker) error {
 			materialName = fmt.Sprintf("empty_%d", flag)
 		}
 
-		if materialName == "" {
-			materialName = fmt.Sprintf("empty_%d", flag)
-		}
 		err = e.FaceAdd(pos, materialName, flag)
 		if err != nil {
 			return fmt.Errorf("faceAdd %d: %w", i, err)
 		}
 	}
 	dump.HexRange([]byte{0x03, 0x04}, int(faceCount)*20, "faceData=(%d bytes)", int(faceCount)*20)
-
+	sort.Sort(common.MaterialByName(e.materials))
 	return nil
 }

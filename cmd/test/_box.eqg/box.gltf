@@ -1,0 +1,112 @@
+{
+	"buffers": [
+		{
+			"uri": "data:application/octet-stream;base64,AAAAwAAAAMAAAABAAAAAQAAAAEAAAABAAAAAwAAAAEAAAABAAAAAQAAAAEAAAABAAAAAQAAAAMAAAADAAAAAQAAAAEAAAADAAAAAQAAAAMAAAABAAAAAwAAAAMAAAADAAAAAQAAAAMAAAADAAAAAwAAAAEAAAADAAAAAQAAAAMAAAADAAAAAwAAAAMAAAADAAAAAwAAAAEAAAABAAAAAQAAAAEAAAADAAAAAwAAAAEAAAADAAAAAwAAAAMAAAABAAAAAwAAAAEAAAADAAAAAwAAAAMAAAADAAAAAQAAAAMAAAABAAAAAQAAAAMAAAABAAAAAwAAAAMAAAABAAAAAQAAAAEAAAADAAAAAQAAAAEAAAABAAAAAwAAAAEAAAABAAAAAAAAAgD8AAAAAAAAAAAAAgD8AAAAAAAAAAAAAgD8AAAAAAACAPwAAAAAAAAAAAACAPwAAAAAAAAAAAACAPwAAAAAAAAAAAAAAAAAAAAAAAIC/AAAAAAAAAAAAAIC/AAAAAAAAAAAAAIC/AAAAAAAAgL8AAAAAAAAAAAAAgL8AAAAAAAAAAAAAgL8AAAAAAAAAAAAAAAAAAIA/AAAAAAAAAAAAAIA/AAAAAAAAAAAAAIA/AACAvwAAAAAAAAAAAACAvwAAAAAAAAAAAACAvwAAAAAAAAAAAAAAAAAAgD8AAAAAAACAPwAAAAAAAAAAAAAAAAAAAAAAAIC/AAAAAAAAgL8AAAAAAAAAAAAAAAAAAIA/AACAvwAAAAAAAAAAAABgPwAAAD8AACA/AABAPwAAID8AAAA/AAAgPwAAQD8AAMA+AACAPwAAwD4AAEA/AAAgPwAAAAAAAMA+AACAPgAAwD4AAAAAAADAPgAAAD8AAAA+AABAPwAAAD4AAAA/AAAgPwAAAD8AAMA+AABAPwAAwD4AAAA/AAAgPwAAgD4AAMA+AAAAPwAAwD4AAIA+AABgPwAAQD8AACA/AACAPwAAID8AAIA+AADAPgAAQD8AACA/AABAPwAAID8AAAA/AAABAAIAAwAEAAUABgAHAAgACQAKAAsADAANAA4ADwAQABEAAAASAAEAAwATAAQABgAUAAcACQAVAAoADAAWAA0ADwAXABAA",
+			"byteLength": 840
+		}
+	],
+	"accessors": [
+		{
+			"bufferView": 0,
+			"componentType": 5126,
+			"count": 24,
+			"type": "VEC3",
+			"max": [
+				2,
+				2,
+				2
+			],
+			"min": [
+				-2,
+				-2,
+				-2
+			]
+		},
+		{
+			"bufferView": 1,
+			"componentType": 5126,
+			"count": 24,
+			"type": "VEC3"
+		},
+		{
+			"bufferView": 2,
+			"componentType": 5126,
+			"count": 24,
+			"type": "VEC2"
+		},
+		{
+			"bufferView": 3,
+			"componentType": 5123,
+			"count": 36,
+			"type": "SCALAR"
+		}
+	],
+	"asset": {
+		"generator": "qmuntal/gltf",
+		"version": "2.0"
+	},
+	"bufferViews": [
+		{
+			"buffer": 0,
+			"byteLength": 288,
+			"target": 34962
+		},
+		{
+			"buffer": 0,
+			"byteOffset": 288,
+			"byteLength": 288,
+			"target": 34962
+		},
+		{
+			"buffer": 0,
+			"byteOffset": 576,
+			"byteLength": 192,
+			"target": 34962
+		},
+		{
+			"buffer": 0,
+			"byteOffset": 768,
+			"byteLength": 72,
+			"target": 34963
+		}
+	],
+	"materials": [
+		{
+			"name": "Material",
+			"pbrMetallicRoughness": {
+				"metallicFactor": 0
+			}
+		}
+	],
+	"meshes": [
+		{
+			"name": "box",
+			"primitives": [
+				{
+					"attributes": {
+						"NORMAL": 1,
+						"POSITION": 0,
+						"TEXCOORD_0": 2
+					},
+					"indices": 3,
+					"material": 0
+				}
+			]
+		}
+	],
+	"nodes": [
+		{
+			"name": "box",
+			"mesh": 0
+		}
+	],
+	"scene": 0,
+	"scenes": [
+		{
+			"name": "Root Scene",
+			"nodes": [
+				0
+			]
+		}
+	]
+}

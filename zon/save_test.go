@@ -13,7 +13,7 @@ func TestSave(t *testing.T) {
 		return
 	}
 	var err error
-	e, err := New("out")
+	e, err := New("out", "test")
 	if err != nil {
 		t.Fatalf("new: %s", err)
 	}

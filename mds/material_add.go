@@ -12,6 +12,14 @@ func (e *MDS) MaterialAdd(name string, shaderName string) error {
 	if shaderName == "" {
 		shaderName = "Opaque_MaxCB1.fx"
 	}
+	name = strings.ToLower(name)
+	for _, mat := range e.materials {
+		if mat.Name != name {
+			continue
+		}
+
+		return nil
+	}
 	e.materials = append(e.materials, &common.Material{
 		Name:       name,
 		ShaderName: shaderName,
@@ -21,6 +29,7 @@ func (e *MDS) MaterialAdd(name string, shaderName string) error {
 }
 
 func (e *MDS) MaterialPropertyAdd(materialName string, propertyName string, category uint32, value string) error {
+	materialName = strings.ToLower(materialName)
 	for _, o := range e.materials {
 		if o.Name != materialName {
 			continue
@@ -28,7 +37,7 @@ func (e *MDS) MaterialPropertyAdd(materialName string, propertyName string, cate
 		o.Properties = append(o.Properties, &common.Property{
 			Name:     propertyName,
 			Category: category,
-			Value:    value,
+			Value:    strings.ToLower(value),
 		})
 		return nil
 	}

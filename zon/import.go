@@ -46,24 +46,24 @@ func (e *ZON) importLight(lightPath string) error {
 		if len(records) != 8 {
 			return fmt.Errorf("expected 8 arguments, got %d", len(records))
 		}
-		position := math32.Vector3{}
+		position := [3]float32{}
 		val, err := strconv.ParseFloat(records[1], 32)
 		if err != nil {
 			return fmt.Errorf("parse pos x: %w", err)
 		}
-		position.X = float32(val)
+		position[0] = float32(val)
 
 		val, err = strconv.ParseFloat(records[2], 32)
 		if err != nil {
 			return fmt.Errorf("parse pos y: %w", err)
 		}
-		position.Y = float32(val)
+		position[1] = float32(val)
 
 		val, err = strconv.ParseFloat(records[3], 32)
 		if err != nil {
 			return fmt.Errorf("parse pos z: %w", err)
 		}
-		position.Z = float32(val)
+		position[2] = float32(val)
 
 		color := math32.Color{}
 		val, err = strconv.ParseFloat(records[2], 32)
@@ -127,42 +127,42 @@ func (e *ZON) importMod(modPath string) error {
 			return fmt.Errorf("addModel: %w", err)
 		}
 
-		position := math32.Vector3{}
+		position := [3]float32{}
 		val, err := strconv.ParseFloat(records[2], 32)
 		if err != nil {
 			return fmt.Errorf("parse pos x: %w", err)
 		}
-		position.X = float32(val)
+		position[0] = float32(val)
 
 		val, err = strconv.ParseFloat(records[3], 32)
 		if err != nil {
 			return fmt.Errorf("parse pos y: %w", err)
 		}
-		position.Y = float32(val)
+		position[1] = float32(val)
 
 		val, err = strconv.ParseFloat(records[4], 32)
 		if err != nil {
 			return fmt.Errorf("parse pos z: %w", err)
 		}
-		position.Z = float32(val)
-		rotation := math32.Vector3{}
+		position[2] = float32(val)
+		rotation := [3]float32{}
 		val, err = strconv.ParseFloat(records[5], 32)
 		if err != nil {
 			return fmt.Errorf("parse rotation x: %w", err)
 		}
-		rotation.X = float32(val)
+		rotation[0] = float32(val)
 
 		val, err = strconv.ParseFloat(records[6], 32)
 		if err != nil {
 			return fmt.Errorf("parse rotation y: %w", err)
 		}
-		rotation.Y = float32(val)
+		rotation[1] = float32(val)
 
 		val, err = strconv.ParseFloat(records[7], 32)
 		if err != nil {
 			return fmt.Errorf("parse rotation z: %w", err)
 		}
-		rotation.Z = float32(val)
+		rotation[2] = float32(val)
 
 		err = e.AddObject(records[0], records[1], position, rotation, float32(val))
 		if err != nil {
@@ -196,55 +196,55 @@ func (e *ZON) importRegion(regionPath string) error {
 			return fmt.Errorf("expected 10 arguments, got %d", len(records))
 		}
 
-		center := math32.Vector3{}
+		center := [3]float32{}
 		val, err := strconv.ParseFloat(records[2], 32)
 		if err != nil {
 			return fmt.Errorf("parse center x: %w", err)
 		}
-		center.X = float32(val)
+		center[0] = float32(val)
 
 		val, err = strconv.ParseFloat(records[3], 32)
 		if err != nil {
 			return fmt.Errorf("parse center y: %w", err)
 		}
-		center.Y = float32(val)
+		center[1] = float32(val)
 
 		val, err = strconv.ParseFloat(records[4], 32)
 		if err != nil {
 			return fmt.Errorf("parse center z: %w", err)
 		}
-		center.Z = float32(val)
-		extent := math32.Vector3{}
+		center[2] = float32(val)
+		extent := [3]float32{}
 		val, err = strconv.ParseFloat(records[5], 32)
 		if err != nil {
 			return fmt.Errorf("parse extent x: %w", err)
 		}
-		extent.X = float32(val)
+		extent[0] = float32(val)
 
 		val, err = strconv.ParseFloat(records[6], 32)
 		if err != nil {
 			return fmt.Errorf("parse extent y: %w", err)
 		}
-		extent.Y = float32(val)
+		extent[1] = float32(val)
 
 		val, err = strconv.ParseFloat(records[7], 32)
 		if err != nil {
 			return fmt.Errorf("parse extent z: %w", err)
 		}
-		extent.Z = float32(val)
+		extent[2] = float32(val)
 
-		unknown := math32.Vector3{}
+		unknown := [3]float32{}
 		val, err = strconv.ParseFloat(records[8], 32)
 		if err != nil {
 			return fmt.Errorf("parse unknown x: %w", err)
 		}
-		unknown.X = float32(val)
+		unknown[0] = float32(val)
 
 		val, err = strconv.ParseFloat(records[9], 32)
 		if err != nil {
 			return fmt.Errorf("parse unknown y: %w", err)
 		}
-		unknown.Y = float32(val)
+		unknown[1] = float32(val)
 
 		err = e.AddRegion(records[0], center, unknown, extent)
 		if err != nil {

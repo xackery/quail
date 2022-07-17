@@ -12,30 +12,30 @@ type Filer interface {
 	Data() []byte
 }
 
-type ByCRC []Filer
+type FilerByCRC []Filer
 
-func (s ByCRC) Len() int {
+func (s FilerByCRC) Len() int {
 	return len(s)
 }
 
-func (s ByCRC) Swap(i, j int) {
+func (s FilerByCRC) Swap(i, j int) {
 	s[i], s[j] = s[j], s[i]
 }
 
-func (s ByCRC) Less(i, j int) bool {
+func (s FilerByCRC) Less(i, j int) bool {
 	return helper.FilenameCRC32(s[i].Name()) < helper.FilenameCRC32(s[j].Name())
 }
 
-type ByName []Filer
+type FilerByName []Filer
 
-func (s ByName) Len() int {
+func (s FilerByName) Len() int {
 	return len(s)
 }
 
-func (s ByName) Swap(i, j int) {
+func (s FilerByName) Swap(i, j int) {
 	s[i], s[j] = s[j], s[i]
 }
 
-func (s ByName) Less(i, j int) bool {
+func (s FilerByName) Less(i, j int) bool {
 	return strings.ToLower(s[i].Name()) < strings.ToLower(s[j].Name())
 }
