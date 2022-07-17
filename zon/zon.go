@@ -63,6 +63,10 @@ func NewEQG(name string, archive common.Archiver) (*ZON, error) {
 	return z, nil
 }
 
+func (e *ZON) SetPath(path string) {
+	e.path = path
+}
+
 func (e *ZON) Name() string {
 	return e.name
 }

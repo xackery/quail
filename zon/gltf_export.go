@@ -41,7 +41,7 @@ func (e *ZON) GLTFExport(doc *qgltf.GLTF) error {
 			if err != nil {
 				return fmt.Errorf("ter load %s: %w", baseName, err)
 			}
-			err = e.GLTF(doc)
+			err = e.GLTFExport(doc)
 			if err != nil {
 				return fmt.Errorf("ter gltf %s: %w", baseName, err)
 			}

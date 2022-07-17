@@ -9,6 +9,7 @@ import (
 
 	"github.com/xackery/quail/dump"
 	"github.com/xackery/quail/eqg"
+	"github.com/xackery/quail/gltf"
 )
 
 func TestGLTFExportEQGZones(t *testing.T) {
@@ -68,9 +69,19 @@ func TestGLTFExportEQGZones(t *testing.T) {
 				t.Fatalf("create %s", err)
 			}
 			defer w.Close()
-			err = e.GLTFExport(w)
+
+			doc, err := gltf.New()
 			if err != nil {
-				t.Fatalf("save: %s", err)
+				t.Fatalf("gltf.New: %s", err)
+			}
+			err = e.GLTFExport(doc)
+			if err != nil {
+				t.Fatalf("gltf: %s", err)
+			}
+
+			err = doc.Export(w)
+			if err != nil {
+				t.Fatalf("export: %s", err)
 			}
 			if d != nil {
 				err = d.Save(fileEntry.Name() + ".png")
@@ -127,9 +138,18 @@ func TestGLTFExportBroodlands(t *testing.T) {
 		t.Fatalf("create %s", err)
 	}
 	defer w.Close()
-	err = e.GLTFExport(w)
+	doc, err := gltf.New()
 	if err != nil {
-		t.Fatalf("save: %s", err)
+		t.Fatalf("gltf.New: %s", err)
+	}
+	err = e.GLTFExport(doc)
+	if err != nil {
+		t.Fatalf("gltf: %s", err)
+	}
+
+	err = doc.Export(w)
+	if err != nil {
+		t.Fatalf("export: %s", err)
 	}
 }
 
@@ -186,8 +206,18 @@ func TestGLTFExportCityOfBronze(t *testing.T) {
 		t.Fatalf("create %s", err)
 	}
 	defer w.Close()
-	err = e.GLTFExport(w)
+
+	doc, err := gltf.New()
 	if err != nil {
-		t.Fatalf("save: %s", err)
+		t.Fatalf("gltf.New: %s", err)
+	}
+	err = e.GLTFExport(doc)
+	if err != nil {
+		t.Fatalf("gltf: %s", err)
+	}
+
+	err = doc.Export(w)
+	if err != nil {
+		t.Fatalf("export: %s", err)
 	}
 }

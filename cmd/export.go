@@ -289,6 +289,10 @@ func convertFile(archive common.Archiver, name string, data []byte, out string) 
 		if err != nil {
 			return fmt.Errorf("gltf: %w", err)
 		}
+		err = doc.Export(w)
+		if err != nil {
+			return fmt.Errorf("export: %w", err)
+		}
 
 	case ".ter":
 		// we skip terrain data in archive, and instead load it via .zon

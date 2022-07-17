@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"image/color"
 	"io"
-	"io/ioutil"
+	"math"
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
@@ -17,8 +18,12 @@ import (
 	"github.com/solarlune/tetra3d"
 	"github.com/solarlune/tetra3d/colors"
 	"github.com/spf13/cobra"
-	"github.com/xackery/quail/common"
+	"github.com/xackery/quail/eqg"
+	"github.com/xackery/quail/gltf"
+	"github.com/xackery/quail/mds"
+	"github.com/xackery/quail/mod"
 	"github.com/xackery/quail/ter"
+	"github.com/xackery/quail/zon"
 	"golang.org/x/image/font/basicfont"
 )
 
@@ -41,12 +46,19 @@ Supported extensions: gltf, mod, ter
 			}
 			path = args[0]
 		}
+
+		file, err := cmd.Flags().GetString("file")
 		defer func() {
 			if err != nil {
 				fmt.Println("Error:", err)
 				os.Exit(1)
 			}
 		}()
+		if file == "" {
+			if len(args) >= 2 {
+				file = args[1]
+			}
+		}
 
 		fi, err := os.Stat(path)
 		if err != nil {
@@ -67,7 +79,7 @@ Supported extensions: gltf, mod, ter
 		//shortname = strings.TrimSuffix(shortname, filepath.Ext(shortname))
 		type loader interface {
 			Load(io.ReadSeeker) error
-			common.GLTFExporter
+			GLTFExport(doc *gltf.GLTF) error
 			SetPath(string)
 		}
 
@@ -76,8 +88,14 @@ Supported extensions: gltf, mod, ter
 			extension string
 		}
 
-		if ext == ".gltf" {
-			data, err := ioutil.ReadFile(path)
+		doc, err := gltf.New()
+		if err != nil {
+			return fmt.Errorf("")
+		}
+
+		switch ext {
+		case ".gltf":
+			data, err := os.ReadFile(path)
 			if err != nil {
 				return err
 			}
@@ -95,20 +113,144 @@ Supported extensions: gltf, mod, ter
 				return fmt.Errorf("run viewer: %w", err)
 			}
 			return nil
+		case ".eqg":
+			r, err := os.Open(path)
+			if err != nil {
+				return err
+			}
+			defer r.Close()
+
+			archive, err := eqg.New(path)
+			if err != nil {
+				return fmt.Errorf("eqg.New: %w", err)
+			}
+			err = archive.Load(r)
+			if err != nil {
+				return fmt.Errorf("eqg load: %w", err)
+			}
+			buf := &bytes.Buffer{}
+			if file != "" {
+				data, err := archive.File(file)
+				if err != nil {
+					return fmt.Errorf("eqg file: %w", err)
+				}
+				buf = bytes.NewBuffer(data)
+			} else {
+				isFound := false
+				for _, fe := range archive.Files() {
+					ext := filepath.Ext(fe.Name())
+					switch ext {
+					case ".zon":
+						start := time.Now()
+						fmt.Println(fe.Name(), "loading")
+						e, err := zon.NewEQG(fe.Name(), archive)
+						if err != nil {
+							return fmt.Errorf("zon.NewEQG: %w", err)
+						}
+						err = e.Load(bytes.NewReader(fe.Data()))
+						if err != nil {
+							return fmt.Errorf("zon.Load: %w", err)
+						}
+						err = e.GLTFExport(doc)
+						if err != nil {
+							return fmt.Errorf("zon.Export: %w", err)
+						}
+						err = doc.Export(buf)
+						if err != nil {
+							return fmt.Errorf("zon doc.Export: %w", err)
+						}
+						fmt.Printf("%s loaded in %.1fs\n", fe.Name(), time.Since(start).Seconds())
+						isFound = true
+					}
+				}
+				for _, fe := range archive.Files() {
+					if isFound {
+						break
+					}
+					ext := filepath.Ext(fe.Name())
+					switch ext {
+					case ".mds":
+						start := time.Now()
+						fmt.Println(fe.Name(), "loading")
+						e, err := mds.NewEQG(fe.Name(), archive)
+						if err != nil {
+							return fmt.Errorf("mds.NewEQG: %w", err)
+						}
+						err = e.Load(bytes.NewReader(fe.Data()))
+						if err != nil {
+							return fmt.Errorf("mds.Load: %w", err)
+						}
+						err = e.GLTFExport(doc)
+						if err != nil {
+							return fmt.Errorf("mds.Export: %w", err)
+						}
+						err = doc.Export(buf)
+						if err != nil {
+							return fmt.Errorf("mds doc.Export: %w", err)
+						}
+
+						fmt.Printf("%s loaded in %.1fs\n", fe.Name(), time.Since(start).Seconds())
+						isFound = true
+					case ".mod":
+						start := time.Now()
+						fmt.Println(fe.Name(), "loading")
+						e, err := mod.NewEQG(fe.Name(), archive)
+						if err != nil {
+							return fmt.Errorf("mod.NewEQG: %w", err)
+						}
+						err = e.Load(bytes.NewReader(fe.Data()))
+						if err != nil {
+							return fmt.Errorf("mod.Load: %w", err)
+						}
+						err = e.GLTFExport(doc)
+						if err != nil {
+							return fmt.Errorf("mod.Export: %w", err)
+						}
+						err = doc.Export(buf)
+						if err != nil {
+							return fmt.Errorf("mod doc.Export: %w", err)
+						}
+						fmt.Printf("%s loaded in %.1fs\n", fe.Name(), time.Since(start).Seconds())
+						isFound = true
+					case ".ter":
+					}
+					if isFound {
+						break
+					}
+				}
+			}
+			if buf.Len() == 0 {
+				return fmt.Errorf("eqg has no supported files to view")
+			}
+			v := &viewer{
+				width:         796,
+				height:        448,
+				drawDebugText: true,
+			}
+			err = v.load(buf.Bytes())
+			if err != nil {
+				return fmt.Errorf("load gltf to viewer: %w", err)
+			}
+			err = ebiten.RunGame(v)
+			if err != nil {
+				return fmt.Errorf("run viewer: %w", err)
+			}
 		}
+
 		loads := []*loadTypes{
 			//{instance: &ani.ANI{}, extension: ".ani"},
 			//{instance: &eqg.EQG{}, extension: ".eqg"},
-			//{instance: &mod.MOD{}, extension: ".mod"},
+			{instance: &mds.MDS{}, extension: ".mds"},
+			{instance: &mod.MOD{}, extension: ".mod"},
 			{instance: &ter.TER{}, extension: ".ter"},
-			//{instance: &zon.ZON{}, extension: ".zon"},
+			{instance: &zon.ZON{}, extension: ".zon"},
 		}
-
 		for _, v := range loads {
 			if ext != v.extension {
 				continue
 			}
-
+			start := time.Now()
+			fmt.Println(path, "loading")
 			v.instance.SetPath(filepath.Dir(path))
 
 			err = v.instance.Load(f)
@@ -117,12 +259,18 @@ Supported extensions: gltf, mod, ter
 			}
 
 			buf := &bytes.Buffer{}
-			err = v.instance.GLTFExport(buf)
+
+			err = v.instance.GLTFExport(doc)
 			if err != nil {
-				return fmt.Errorf("export gltf %s: %w", v.extension, err)
+				return fmt.Errorf("gltfExport %s: %w", v.extension, err)
 			}
 
-			v := &viewer{
+			err = doc.Export(buf)
+			if err != nil {
+				return fmt.Errorf("export %s: %w", v.extension, err)
+			}
+			fmt.Printf("%s loaded in %.1fs\n", path, time.Since(start).Seconds())
+			view := &viewer{
 				width:         796,
 				height:        448,
 				drawDebugText: true,
@@ -130,11 +278,11 @@ Supported extensions: gltf, mod, ter
 
 			//data, _ := ioutil.ReadFile("example.gltf")
 			//err = v.load(data)
-			err = v.load(buf.Bytes())
+			err = view.load(buf.Bytes())
 			if err != nil {
 				return fmt.Errorf("load gltf to viewer: %w", err)
 			}
-			err = ebiten.RunGame(v)
+			err = ebiten.RunGame(view)
 			if err != nil {
 				return fmt.Errorf("run viewer: %w", err)
 			}
@@ -148,6 +296,7 @@ Supported extensions: gltf, mod, ter
 func init() {
 	rootCmd.AddCommand(viewCmd)
 	viewCmd.PersistentFlags().String("path", "", "path to view")
+	viewCmd.PersistentFlags().String("file", "", "file to view (in eqg/s3d)")
 }
 
 type viewer struct {
@@ -233,25 +382,26 @@ func (v *viewer) Update() error {
 	// Rotating the camera with the mouse
 
 	// Rotate and tilt the camera according to mouse movements
-	/*mx, my := ebiten.CursorPosition()
+	mx, my := ebiten.CursorPosition()
 
 	mv := vector.Vector{float64(mx), float64(my)}
 
 	diff := mv.Sub(v.prevMousePosition)
 
-	v.cameraTilt -= diff[1] * 0.005
-	v.cameraRotate -= diff[0] * 0.005
+	if ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) {
 
-	v.cameraTilt = math.Max(math.Min(v.cameraTilt, math.Pi/2-0.1), -math.Pi/2+0.1)
+		v.cameraTilt -= diff[1] * 0.005
+		v.cameraRotate -= diff[0] * 0.005
 
-	tilt := tetra3d.NewMatrix4Rotate(1, 0, 0, v.cameraTilt)
-	rotate := tetra3d.NewMatrix4Rotate(0, 1, 0, v.cameraRotate)
+		v.cameraTilt = math.Max(math.Min(v.cameraTilt, math.Pi/2-0.1), -math.Pi/2+0.1)
 
-	// Order of this is important - tilt * rotate works, rotate * tilt does not, lol
-	v.camera.SetLocalRotation(tilt.Mult(rotate))
-
+		tilt := tetra3d.NewMatrix4Rotate(1, 0, 0, v.cameraTilt)
+		rotate := tetra3d.NewMatrix4Rotate(0, 1, 0, v.cameraRotate)
+		// Order of this is important - tilt * rotate works, rotate * tilt does not, lol
+		v.camera.SetLocalRotation(tilt.Mult(rotate))
+	}
 	v.prevMousePosition = mv.Clone()
-	*/
+
 	/*	armature := v.scene.Root.ChildrenRecursive().ByName("Armature", true)[0].(*tetra3d.Node)
 		armature.Rotate(0, 1, 0, 0.01)
 

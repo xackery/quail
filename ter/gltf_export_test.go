@@ -9,6 +9,7 @@ import (
 
 	"github.com/xackery/quail/dump"
 	"github.com/xackery/quail/eqg"
+	"github.com/xackery/quail/gltf"
 )
 
 func TestGLTFExportSamples(t *testing.T) {
@@ -104,9 +105,19 @@ func TestGLTFExportSamples(t *testing.T) {
 			t.Fatalf("create %s", err)
 		}
 		defer w.Close()
-		err = e.GLTFExport(w)
+
+		doc, err := gltf.New()
 		if err != nil {
-			t.Fatalf("save: %s", err)
+			t.Fatalf("gltf.New: %s", err)
+		}
+		err = e.GLTFExport(doc)
+		if err != nil {
+			t.Fatalf("gltf: %s", err)
+		}
+
+		err = doc.Export(w)
+		if err != nil {
+			t.Fatalf("export: %s", err)
 		}
 		if d != nil {
 			err = d.Save(strings.ReplaceAll(txtFile, ".txt", ".png"))
@@ -168,11 +179,20 @@ func TestGLTFExportSamplesSanityCheck(t *testing.T) {
 			t.Fatalf("create %s", err)
 		}
 		defer w.Close()
-		err = e.GLTFExport(w)
+
+		doc, err := gltf.New()
 		if err != nil {
-			t.Fatalf("save: %s", err)
+			t.Fatalf("gltf.New: %s", err)
+		}
+		err = e.GLTFExport(doc)
+		if err != nil {
+			t.Fatalf("gltf: %s", err)
 		}
 
+		err = doc.Export(w)
+		if err != nil {
+			t.Fatalf("export: %s", err)
+		}
 		e, err = New(tt.category, "test/")
 		if err != nil {
 			t.Fatalf("new: %s", err)
