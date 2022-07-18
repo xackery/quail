@@ -29,7 +29,7 @@ func TestGLTF(t *testing.T) {
 	if err != nil {
 		t.Fatalf("file: %s", err)
 	}
-	e, err := NewEQG(category, archive)
+	e, err := New(category, archive)
 	if err != nil {
 		t.Fatalf("newEQG: %s", err)
 	}

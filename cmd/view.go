@@ -4,12 +4,8 @@ import (
 	"bytes"
 	"fmt"
 	"image/color"
-	"io"
 	"math"
 	"os"
-	"path/filepath"
-	"strings"
-	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
@@ -18,12 +14,6 @@ import (
 	"github.com/solarlune/tetra3d"
 	"github.com/solarlune/tetra3d/colors"
 	"github.com/spf13/cobra"
-	"github.com/xackery/quail/eqg"
-	"github.com/xackery/quail/gltf"
-	"github.com/xackery/quail/mds"
-	"github.com/xackery/quail/mod"
-	"github.com/xackery/quail/ter"
-	"github.com/xackery/quail/zon"
 	"golang.org/x/image/font/basicfont"
 )
 
@@ -68,228 +58,27 @@ Supported extensions: gltf, mod, ter
 			return fmt.Errorf("view requires a target file, directory provided")
 		}
 
-		f, err := os.Open(path)
+		buf := bytes.NewBuffer(nil)
+		err = viewLoad(buf, path, file)
 		if err != nil {
-			return fmt.Errorf("open: %w", err)
-		}
-		defer f.Close()
-		ext := strings.ToLower(filepath.Ext(path))
-
-		//shortname := filepath.Base(path)
-		//shortname = strings.TrimSuffix(shortname, filepath.Ext(shortname))
-		type loader interface {
-			Load(io.ReadSeeker) error
-			GLTFExport(doc *gltf.GLTF) error
-			SetPath(string)
+			return fmt.Errorf("viewLoad: %w", err)
 		}
 
-		type loadTypes struct {
-			instance  loader
-			extension string
+		view := &viewer{
+			width:         796,
+			height:        448,
+			drawDebugText: true,
 		}
 
-		doc, err := gltf.New()
+		err = view.load(buf.Bytes())
 		if err != nil {
-			return fmt.Errorf("")
+			return fmt.Errorf("load gltf to viewer: %w", err)
 		}
-
-		switch ext {
-		case ".gltf":
-			data, err := os.ReadFile(path)
-			if err != nil {
-				return err
-			}
-			v := &viewer{
-				width:         796,
-				height:        448,
-				drawDebugText: true,
-			}
-			err = v.load(data)
-			if err != nil {
-				return fmt.Errorf("load gltf to viewer: %w", err)
-			}
-			err = ebiten.RunGame(v)
-			if err != nil {
-				return fmt.Errorf("run viewer: %w", err)
-			}
-			return nil
-		case ".eqg":
-			r, err := os.Open(path)
-			if err != nil {
-				return err
-			}
-			defer r.Close()
-
-			archive, err := eqg.New(path)
-			if err != nil {
-				return fmt.Errorf("eqg.New: %w", err)
-			}
-			err = archive.Load(r)
-			if err != nil {
-				return fmt.Errorf("eqg load: %w", err)
-			}
-			buf := &bytes.Buffer{}
-			if file != "" {
-				data, err := archive.File(file)
-				if err != nil {
-					return fmt.Errorf("eqg file: %w", err)
-				}
-				buf = bytes.NewBuffer(data)
-			} else {
-				isFound := false
-				for _, fe := range archive.Files() {
-					ext := filepath.Ext(fe.Name())
-					switch ext {
-					case ".zon":
-						start := time.Now()
-						fmt.Println(fe.Name(), "loading")
-						e, err := zon.NewEQG(fe.Name(), archive)
-						if err != nil {
-							return fmt.Errorf("zon.NewEQG: %w", err)
-						}
-						err = e.Load(bytes.NewReader(fe.Data()))
-						if err != nil {
-							return fmt.Errorf("zon.Load: %w", err)
-						}
-						err = e.GLTFExport(doc)
-						if err != nil {
-							return fmt.Errorf("zon.Export: %w", err)
-						}
-						err = doc.Export(buf)
-						if err != nil {
-							return fmt.Errorf("zon doc.Export: %w", err)
-						}
-						fmt.Printf("%s loaded in %.1fs\n", fe.Name(), time.Since(start).Seconds())
-						isFound = true
-					}
-				}
-				for _, fe := range archive.Files() {
-					if isFound {
-						break
-					}
-					ext := filepath.Ext(fe.Name())
-					switch ext {
-					case ".mds":
-						start := time.Now()
-						fmt.Println(fe.Name(), "loading")
-						e, err := mds.NewEQG(fe.Name(), archive)
-						if err != nil {
-							return fmt.Errorf("mds.NewEQG: %w", err)
-						}
-						err = e.Load(bytes.NewReader(fe.Data()))
-						if err != nil {
-							return fmt.Errorf("mds.Load: %w", err)
-						}
-						err = e.GLTFExport(doc)
-						if err != nil {
-							return fmt.Errorf("mds.Export: %w", err)
-						}
-						err = doc.Export(buf)
-						if err != nil {
-							return fmt.Errorf("mds doc.Export: %w", err)
-						}
-
-						fmt.Printf("%s loaded in %.1fs\n", fe.Name(), time.Since(start).Seconds())
-						isFound = true
-					case ".mod":
-						start := time.Now()
-						fmt.Println(fe.Name(), "loading")
-						e, err := mod.NewEQG(fe.Name(), archive)
-						if err != nil {
-							return fmt.Errorf("mod.NewEQG: %w", err)
-						}
-						err = e.Load(bytes.NewReader(fe.Data()))
-						if err != nil {
-							return fmt.Errorf("mod.Load: %w", err)
-						}
-						err = e.GLTFExport(doc)
-						if err != nil {
-							return fmt.Errorf("mod.Export: %w", err)
-						}
-						err = doc.Export(buf)
-						if err != nil {
-							return fmt.Errorf("mod doc.Export: %w", err)
-						}
-						fmt.Printf("%s loaded in %.1fs\n", fe.Name(), time.Since(start).Seconds())
-						isFound = true
-					case ".ter":
-					}
-					if isFound {
-						break
-					}
-				}
-			}
-			if buf.Len() == 0 {
-				return fmt.Errorf("eqg has no supported files to view")
-			}
-			v := &viewer{
-				width:         796,
-				height:        448,
-				drawDebugText: true,
-			}
-			err = v.load(buf.Bytes())
-			if err != nil {
-				return fmt.Errorf("load gltf to viewer: %w", err)
-			}
-			err = ebiten.RunGame(v)
-			if err != nil {
-				return fmt.Errorf("run viewer: %w", err)
-			}
+		err = ebiten.RunGame(view)
+		if err != nil {
+			return fmt.Errorf("run viewer: %w", err)
 		}
-
-		loads := []*loadTypes{
-			//{instance: &ani.ANI{}, extension: ".ani"},
-			//{instance: &eqg.EQG{}, extension: ".eqg"},
-			{instance: &mds.MDS{}, extension: ".mds"},
-			{instance: &mod.MOD{}, extension: ".mod"},
-			{instance: &ter.TER{}, extension: ".ter"},
-			{instance: &zon.ZON{}, extension: ".zon"},
-		}
-		for _, v := range loads {
-			if ext != v.extension {
-				continue
-			}
-			start := time.Now()
-			fmt.Println(path, "loading")
-			v.instance.SetPath(filepath.Dir(path))
-
-			err = v.instance.Load(f)
-			if err != nil {
-				return fmt.Errorf("instance load %s: %w", v.extension, err)
-			}
-
-			buf := &bytes.Buffer{}
-
-			err = v.instance.GLTFExport(doc)
-			if err != nil {
-				return fmt.Errorf("gltfExport %s: %w", v.extension, err)
-			}
-
-			err = doc.Export(buf)
-			if err != nil {
-				return fmt.Errorf("export %s: %w", v.extension, err)
-			}
-			fmt.Printf("%s loaded in %.1fs\n", path, time.Since(start).Seconds())
-			view := &viewer{
-				width:         796,
-				height:        448,
-				drawDebugText: true,
-			}
-
-			//data, _ := ioutil.ReadFile("example.gltf")
-			//err = v.load(data)
-			err = view.load(buf.Bytes())
-			if err != nil {
-				return fmt.Errorf("load gltf to viewer: %w", err)
-			}
-			err = ebiten.RunGame(view)
-			if err != nil {
-				return fmt.Errorf("run viewer: %w", err)
-			}
-			return nil
-		}
-
-		return fmt.Errorf("open: unsupported extension %s on file %s", ext, filepath.Base(path))
+		return nil
 	},
 }
 

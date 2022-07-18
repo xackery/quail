@@ -47,8 +47,10 @@ func TestGLTFExportSamplesSingleTest(t *testing.T) {
 		//{category: "arthwall"},
 		//{category: "aro"}, //arayane ro
 		//{category: "aam"},
-		{category: "zmm"},
+		//{category: "zmm"}, //zombie
 		//{category: "voaequip"},
+		{category: "t12"}, //spherical object
+		//{category: "prt"},
 	}
 	for _, tt := range tests {
 
@@ -63,23 +65,23 @@ func TestGLTFExportSamplesSingleTest(t *testing.T) {
 			t.Fatalf("%s", err)
 		}
 		defer ra.Close()
-		a, err := eqg.New(tt.category)
+		archive, err := eqg.New(tt.category)
 		if err != nil {
 			t.Fatalf("eqg.New: %s", err)
 		}
-		err = a.Load(ra)
+		err = archive.Load(ra)
 		if err != nil {
 			t.Fatalf("load eqg: %s", err)
 		}
 
-		files := a.Files()
+		files := archive.Files()
 		for _, modEntry := range files {
 			if filepath.Ext(modEntry.Name()) != ".mod" {
 				continue
 			}
 			r := bytes.NewReader(modEntry.Data())
 
-			e, err := NewEQG(modEntry.Name(), a)
+			e, err := New(modEntry.Name(), archive)
 			if err != nil {
 				t.Fatalf("new: %s", err)
 			}
@@ -106,15 +108,15 @@ func TestGLTFExportSamplesSingleTest(t *testing.T) {
 			*/
 
 			layName := fmt.Sprintf("%s.lay", strings.TrimSuffix(modEntry.Name(), ".mod"))
-			layEntry, err := a.File(layName)
+			layEntry, err := archive.File(layName)
 			if err != nil && !strings.Contains(err.Error(), "does not exist") {
 				t.Fatalf("file: %s", err)
 			}
 
 			if len(layEntry) > 0 {
-				l, err := lay.NewEQG(layName, a)
+				l, err := lay.New(layName, archive)
 				if err != nil {
-					t.Fatalf("lay.NewEQG: %s", err)
+					t.Fatalf("lay.New: %s", err)
 				}
 				err = l.Load(bytes.NewReader(layEntry))
 				if err != nil {
@@ -156,9 +158,11 @@ func TestGLTFExportSingleModel(t *testing.T) {
 		category string
 		model    string
 	}{
-		{category: "steamfontmts", model: "obj_gears.mod"},
-		{category: "steamfontmts", model: "obj_oilbarrel.mod"},
-		{category: "voaequip", model: "obj_oilbarrel.mod"},
+		//{category: "steamfontmts", model: "obj_gears.mod"},
+		//{category: "steamfontmts", model: "obj_oilbarrel.mod"},
+		//{category: "voaequip", model: "obj_oilbarrel.mod"},
+		//{category: "beastdomain", model: "obj_beastd_spike.mod"},
+		{category: "scorchedwoods", model: "obp_feerrott_felledtree_col.mod"},
 		//{category: "arthwall"},
 		//{category: "aro"},
 		//{category: "she"},
@@ -191,7 +195,7 @@ func TestGLTFExportSingleModel(t *testing.T) {
 			t.Fatalf("file: %s", err)
 		}
 
-		e, err := NewEQG(tt.model, a)
+		e, err := New(tt.model, a)
 		if err != nil {
 			t.Fatalf("new: %s", err)
 		}

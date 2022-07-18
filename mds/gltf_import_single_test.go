@@ -4,16 +4,21 @@ import (
 	"fmt"
 	"os"
 	"testing"
+
+	"github.com/xackery/quail/common"
 )
 
 func TestGLTFImport(t *testing.T) {
 	if os.Getenv("SINGLE_TEST") != "1" {
 		return
 	}
-	path := "test/"
+	filePath := "test/"
 	inFile := "test/ecommons.gltf"
 	outFile := "test/ecommons_gltfimport.mod"
-
+	path, err := common.NewPath(filePath)
+	if err != nil {
+		t.Fatalf("newPath: %s", err)
+	}
 	e, err := New("out", path)
 	if err != nil {
 		t.Fatalf("new: %s", err)
@@ -39,9 +44,14 @@ func TestGLTFImportSave(t *testing.T) {
 		return
 	}
 
-	path := "test/"
+	filePath := "test/"
 	inFile := "test/ecommons.gltf"
 	outFile := "test/ecommons_gltfimportsave.mod"
+
+	path, err := common.NewPath(filePath)
+	if err != nil {
+		t.Fatalf("newPath: %s", err)
+	}
 
 	e, err := New("out", path)
 	if err != nil {

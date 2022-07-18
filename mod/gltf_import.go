@@ -3,6 +3,7 @@ package mod
 import (
 	"fmt"
 	"image/color"
+	"strings"
 
 	"github.com/g3n/engine/math32"
 	"github.com/qmuntal/gltf"
@@ -17,11 +18,15 @@ func (e *MOD) GLTFImport(path string) error {
 		return fmt.Errorf("open: %w", err)
 	}
 	for _, m := range doc.Materials {
+		name := strings.ToLower(m.Name)
 		//TODO: add _mat.txt parsing
-		fmt.Println("add material", m.Name)
-		err = e.MaterialAdd(m.Name, "Opaque_MaxCB1.fx")
+		err = e.MaterialAdd(name, "Opaque_MaxCB1.fx")
 		if err != nil {
-			return fmt.Errorf("add material %s: %w", m.Name, err)
+			return fmt.Errorf("add material %s: %w", name, err)
+		}
+		err = e.MaterialPropertyAdd(name, "e_TextureDiffuse0", 2, name)
+		if err != nil {
+			return fmt.Errorf("materialPropertyAdd %s: %w", name, err)
 		}
 	}
 	for _, m := range doc.Meshes {

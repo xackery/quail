@@ -17,14 +17,15 @@ type MDS struct {
 	name string
 	// path is used for relative paths when looking for flat file texture references
 	path string
-	// eqg is used as an alternative to path when loading data from a eqg file
-	eqg            common.Archiver
-	materials      []*common.Material
-	vertices       []*common.Vertex
-	faces          []*common.Face
-	bones          []*bone
-	files          []common.Filer
-	gltfBoneBuffer map[int]uint32
+	// archive is used as an alternative to path when loading data from a archive file
+	archive   common.Archiver
+	materials []*common.Material
+	vertices  []*common.Vertex
+	faces     []*common.Face
+	bones     []*bone
+	files     []common.Filer
+	joints    [][4]uint16
+	weights   [][4]float32
 }
 
 type bone struct {
@@ -37,18 +38,10 @@ type bone struct {
 	scale         *math32.Vector3
 }
 
-func New(name string, path string) (*MDS, error) {
+func New(name string, archive common.Archiver) (*MDS, error) {
 	e := &MDS{
-		name: name,
-		path: path,
-	}
-	return e, nil
-}
-
-func NewEQG(name string, eqg common.Archiver) (*MDS, error) {
-	e := &MDS{
-		name: name,
-		eqg:  eqg,
+		name:    name,
+		archive: archive,
 	}
 	return e, nil
 }

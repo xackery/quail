@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"os"
 	"testing"
+
+	"github.com/xackery/quail/common"
 )
 
 func TestSave(t *testing.T) {
@@ -14,8 +16,11 @@ func TestSave(t *testing.T) {
 	}
 	var err error
 
-	path := "test/"
-
+	filePath := "test/"
+	path, err := common.NewPath(filePath)
+	if err != nil {
+		t.Fatalf("newPath: %s", err)
+	}
 	e, err := New("out", path)
 	if err != nil {
 		t.Fatalf("new: %s", err)

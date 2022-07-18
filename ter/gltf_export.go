@@ -16,10 +16,10 @@ func (e *TER) GLTFExport(doc *qgltf.GLTF) error {
 		return fmt.Errorf("doc is nil")
 	}
 
-	modelName := strings.TrimSuffix(e.name, ".mds")
+	meshName := strings.TrimSuffix(e.name, ".mds")
 
 	mesh := &gltf.Mesh{
-		Name: modelName,
+		Name: meshName,
 	}
 
 	prims := make(map[*uint32]*qgltf.Primitive)
@@ -148,14 +148,14 @@ func (e *TER) GLTFExport(doc *qgltf.GLTF) error {
 	meshIndex := doc.MeshAdd(mesh)
 
 	for _, prim := range prims {
-		err = doc.PrimitiveAdd(e.name, prim)
+		err = doc.PrimitiveAdd(meshName, prim)
 		if err != nil {
 			return fmt.Errorf("primitiveAdd: %w", err)
 		}
 	}
 
 	doc.NodeAdd(&gltf.Node{
-		Name: modelName,
+		Name: meshName,
 		Mesh: meshIndex,
 		//Skin: skinIndex,
 	})

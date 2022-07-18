@@ -151,46 +151,57 @@ func (e *MOD) Load(r io.ReadSeeker) error {
 				return fmt.Errorf("read propertyType: %w", err)
 			}
 			dump.Hex(propertyType, "%d%dpropertyType=%d", i, j, propertyType)
-
-			propertyValue := uint32(0)
-			err = binary.Read(r, binary.LittleEndian, &propertyValue)
-			if err != nil {
-				return fmt.Errorf("read propertyValue: %w", err)
-			}
-			dump.Hex(propertyValue, "%d%dpropertyValue=%d", i, j, propertyValue)
-			if propertyType == 2 {
-				propertyValueName, ok := names[propertyValue]
-				if !ok {
-					return fmt.Errorf("property %d names offset %d not found", j, propertyValue)
-				}
-
-				var data []byte
-				if e.eqg != nil {
-					data, err = e.eqg.File(propertyValueName)
-					if err != nil {
-						data, err = e.eqg.File(strings.ToLower(propertyValueName))
-						if err != nil {
-							fmt.Printf("warning: read material via eqg %s: %s\n", propertyName, err)
-							//	return fmt.Errorf("read material via eqg %s: %w", propertyName, err)
-						}
-					}
-				} else {
-					data, err = ioutil.ReadFile(fmt.Sprintf("%s/%s", e.path, propertyValueName))
-					if err != nil {
-						return fmt.Errorf("read material via path %s: %w", propertyName, err)
-					}
-				}
-				fe, err := common.NewFileEntry(propertyValueName, data)
+			if propertyType == 0 {
+				propFloatValue := float32(0)
+				err = binary.Read(r, binary.LittleEndian, &propFloatValue)
 				if err != nil {
-					return fmt.Errorf("new fileentry material %s: %w", propertyName, err)
+					return fmt.Errorf("read propFloatValue: %w", err)
 				}
-				e.files = append(e.files, fe)
-				err = e.MaterialPropertyAdd(name, propertyName, propertyType, propertyValueName)
+				dump.Hex(propFloatValue, "%d%dpropertyFloat=%0.2f", i, j, propFloatValue)
+
+				err = e.MaterialPropertyAdd(name, propertyName, propertyType, fmt.Sprintf("%0.2f", propFloatValue))
 				if err != nil {
 					return fmt.Errorf("addMaterialProperty %s %s: %w", name, propertyName, err)
 				}
+
 			} else {
-				err = e.MaterialPropertyAdd(name, propertyName, propertyType, fmt.Sprintf("%d", propertyValue))
+				propertyValue := uint32(0)
+				err = binary.Read(r, binary.LittleEndian, &propertyValue)
+				if err != nil {
+					return fmt.Errorf("read propertyValue: %w", err)
+				}
+				dump.Hex(propertyValue, "%d%dpropertyValue=%d", i, j, propertyValue)
+				propertyValueName := fmt.Sprintf("%d", propertyValue)
+				if propertyType == 2 {
+					propertyValueName, ok = names[propertyValue]
+					if !ok {
+						return fmt.Errorf("property %d names offset %d not found", j, propertyValue)
+					}
+
+					var data []byte
+					if e.archive != nil {
+						data, err = e.archive.File(propertyValueName)
+						if err != nil {
+							data, err = e.archive.File(strings.ToLower(propertyValueName))
+							if err != nil {
+								fmt.Printf("warning: read material via eqg %s: %s\n", propertyName, err)
+								//	return fmt.Errorf("read material via eqg %s: %w", propertyName, err)
+							}
+						}
+					} else {
+						data, err = ioutil.ReadFile(fmt.Sprintf("%s/%s", e.path, propertyValueName))
+						if err != nil {
+							return fmt.Errorf("read material via path %s: %w", propertyName, err)
+						}
+					}
+					fe, err := common.NewFileEntry(propertyValueName, data)
+					if err != nil {
+						return fmt.Errorf("new fileentry material %s: %w", propertyName, err)
+					}
+
+					e.files = append(e.files, fe)
+				}
+				err = e.MaterialPropertyAdd(name, propertyName, propertyType, propertyValueName)
 				if err != nil {
 					return fmt.Errorf("addMaterialProperty %s %s: %w", name, propertyName, err)
 				}

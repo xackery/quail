@@ -60,7 +60,7 @@ func TestLoadSingleTest(t *testing.T) {
 			}
 			r := bytes.NewReader(layEntry.Data())
 
-			e, err := NewEQG(layEntry.Name(), a)
+			e, err := New(layEntry.Name(), a)
 			if err != nil {
 				t.Fatalf("new: %s", err)
 			}

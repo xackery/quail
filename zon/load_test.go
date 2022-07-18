@@ -42,7 +42,7 @@ func TestLoadBox(t *testing.T) {
 	}
 	defer d.Save(fmt.Sprintf("%s.png", path))
 
-	e, err := NewEQG("out", archive)
+	e, err := New("out", archive)
 	if err != nil {
 		t.Fatalf("new: %s", err)
 	}

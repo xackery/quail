@@ -11,6 +11,7 @@ type S3D struct {
 	name                     string
 	ShortName                string
 	files                    []common.Filer
+	fileCount                int
 	fileEntries              []*FileEntry
 	directoryChunks          []*ChunkEntry
 	directoryChunksTotalSize uint32

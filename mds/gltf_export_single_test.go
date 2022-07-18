@@ -47,8 +47,11 @@ func TestGLTFExportSamplesSingleTest(t *testing.T) {
 		//{category: "bny"},
 		//{category: "dv6"},
 		//{category: "lth"}, //Morell thule
-		//{category: "djm"}, //Djinn Male
-		{category: "zmm"}, //Zombie Male
+		{category: "djm"}, //Djinn Male
+		//{category: "zmm"}, //Zombie Male
+		//{category: "wrm"}, //worm
+		//{category: "dgj"}, //jade dragon
+		//{category: "prt"},
 	}
 	for _, tt := range tests {
 
@@ -80,9 +83,9 @@ func TestGLTFExportSamplesSingleTest(t *testing.T) {
 			}
 			r := bytes.NewReader(mdsEntry.Data())
 
-			e, err := NewEQG(strings.TrimSuffix(mdsEntry.Name(), ".mds"), a)
+			e, err := New(strings.TrimSuffix(mdsEntry.Name(), ".mds"), a)
 			if err != nil {
-				t.Fatalf("new: %s", err)
+				t.Fatalf("mds new: %s", err)
 			}
 
 			err = e.Load(r)
@@ -97,7 +100,7 @@ func TestGLTFExportSamplesSingleTest(t *testing.T) {
 			}
 
 			if len(layEntry) > 0 {
-				l, err := lay.NewEQG(layName, a)
+				l, err := lay.New(layName, a)
 				if err != nil {
 					t.Fatalf("lay.NewEQG: %s", err)
 				}
@@ -177,9 +180,9 @@ func TestGLTFExportSingleModel(t *testing.T) {
 			t.Fatalf("file: %s", err)
 		}
 
-		e, err := NewEQG(tt.model, a)
+		e, err := New(tt.model, a)
 		if err != nil {
-			t.Fatalf("new: %s", err)
+			t.Fatalf("mds new: %s", err)
 		}
 
 		r := bytes.NewReader(data)
@@ -247,9 +250,9 @@ func TestGLTFExportSamplesDirectory(t *testing.T) {
 			}
 			r := bytes.NewReader(mdsEntry.Data())
 
-			e, err := NewEQG(strings.TrimSuffix(mdsEntry.Name(), ".mds"), a)
+			e, err := New(strings.TrimSuffix(mdsEntry.Name(), ".mds"), a)
 			if err != nil {
-				t.Fatalf("new: %s", err)
+				t.Fatalf("mds new: %s", err)
 			}
 
 			err = e.Load(r)
@@ -264,7 +267,7 @@ func TestGLTFExportSamplesDirectory(t *testing.T) {
 			}
 
 			if len(layEntry) > 0 {
-				l, err := lay.NewEQG(layName, a)
+				l, err := lay.New(layName, a)
 				if err != nil {
 					t.Fatalf("lay.NewEQG: %s", err)
 				}

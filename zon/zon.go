@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/g3n/engine/math32"
 	"github.com/xackery/quail/common"
 )
 
@@ -43,19 +42,11 @@ type Region struct {
 type Light struct {
 	name     string
 	position [3]float32
-	color    math32.Color
+	color    [3]float32
 	radius   float32
 }
 
-func New(name string, path string) (*ZON, error) {
-	z := &ZON{
-		name: name,
-		path: path,
-	}
-	return z, nil
-}
-
-func NewEQG(name string, archive common.Archiver) (*ZON, error) {
+func New(name string, archive common.Archiver) (*ZON, error) {
 	z := &ZON{
 		name: name,
 		eqg:  archive,

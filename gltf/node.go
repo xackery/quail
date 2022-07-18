@@ -6,11 +6,6 @@ import (
 	"github.com/qmuntal/gltf"
 )
 
-type nodeEntry struct {
-	index *uint32
-	node  *gltf.Node
-}
-
 func (e *GLTF) NodeAdd(node *gltf.Node) {
 	e.doc.Nodes = append(e.doc.Nodes, node)
 }

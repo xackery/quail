@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"image/png"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/malashin/dds"
@@ -31,12 +32,15 @@ func (e *GLTF) MaterialAdd(req *common.Material, diffuseData []byte, normalData 
 		return index, nil
 	}
 
+	roughnessFactor := float32(1)
+	metallicFactor := float32(0)
 	if req.Name == "" || strings.HasPrefix(req.Name, "empty_") {
 		e.doc.Materials = append(e.doc.Materials, &gltf.Material{
-			Name:                 req.Name,
+			Name: req.Name,
 			PBRMetallicRoughness: &gltf.PBRMetallicRoughness{
 				//BaseColorFactor: &[4]float32{1.0, 1.0, 1.0, 1},
-				//MetallicFactor: gltf.Float(0),
+				MetallicFactor:  gltf.Float(metallicFactor),
+				RoughnessFactor: gltf.Float(roughnessFactor),
 			},
 		})
 
@@ -47,7 +51,32 @@ func (e *GLTF) MaterialAdd(req *common.Material, diffuseData []byte, normalData 
 
 	textureDiffuseName := ""
 	textureNormalName := ""
+	isMasked := false
+
+	if strings.HasPrefix(strings.ToLower(req.ShaderName), "alpha_") {
+		isMasked = true
+		fmt.Println("masked!")
+	}
 	for _, p := range req.Properties {
+
+		if strings.EqualFold(p.Name, "e_fshininess") {
+			raw, err := strconv.ParseFloat(p.Value, 32)
+			if err != nil {
+				return nil, fmt.Errorf("parsing e_fshininess '%s': %w", p.Value, err)
+			}
+			roughnessFactor = 1 - float32(raw)
+			fmt.Println("has shininess")
+		}
+
+		if strings.EqualFold(p.Name, "e_freflectionamount") {
+			raw, err := strconv.ParseFloat(p.Value, 32)
+			if err != nil {
+				return nil, fmt.Errorf("parsing e_freflectionamount '%s': %w", p.Value, err)
+			}
+			metallicFactor = float32(raw)
+			fmt.Println("has reflection")
+		}
+
 		if p.Category != 2 {
 			continue
 		}
@@ -60,14 +89,16 @@ func (e *GLTF) MaterialAdd(req *common.Material, diffuseData []byte, normalData 
 			textureNormalName = p.Value
 			continue
 		}
+
 	}
 	if len(textureDiffuseName) == 0 {
 		//return material, fmt.Errorf("material '%s' has no texturediffuse value", name)
 		e.doc.Materials = append(e.doc.Materials, &gltf.Material{
-			Name:                 req.Name,
+			Name: req.Name,
 			PBRMetallicRoughness: &gltf.PBRMetallicRoughness{
 				//BaseColorFactor: &[4]float32{1.0, 1.0, 1.0, 1},
-				//MetallicFactor: gltf.Float(0),
+				MetallicFactor:  gltf.Float(metallicFactor),
+				RoughnessFactor: gltf.Float(roughnessFactor),
 			},
 		})
 		index = gltf.Index(uint32(len(e.doc.Materials) - 1))
@@ -127,8 +158,13 @@ func (e *GLTF) MaterialAdd(req *common.Material, diffuseData []byte, normalData 
 
 		PBRMetallicRoughness: &gltf.PBRMetallicRoughness{
 			BaseColorTexture: diffuseTexture,
-			//MetallicFactor:   gltf.Float(0),
+			MetallicFactor:   gltf.Float(metallicFactor),
+			RoughnessFactor:  gltf.Float(roughnessFactor),
 		},
+	}
+
+	if isMasked {
+		newMaterial.AlphaMode = gltf.AlphaMask
 	}
 
 	if normalTexture != nil {

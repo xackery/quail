@@ -237,5 +237,6 @@ func (e *EQG) Load(r io.ReadSeeker) error {
 
 	dump.Hex(dateFooter, "dateFooter=%s", time.Unix(int64(dateFooter), 0).Format(time.RFC3339))
 
+	e.fileCount = len(e.files)
 	return nil
 }

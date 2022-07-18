@@ -20,3 +20,7 @@ func (e *S3D) File(name string) ([]byte, error) {
 func (e *S3D) Files() []common.Filer {
 	return e.files
 }
+
+func (e *S3D) Len() int {
+	return e.fileCount
+}

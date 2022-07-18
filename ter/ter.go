@@ -11,28 +11,18 @@ import (
 
 // TER is a terrain file struct
 type TER struct {
-	name               string
-	path               string
-	materials          []*common.Material
-	vertices           []*common.Vertex
-	faces              []*common.Face
-	files              []common.Filer
-	gltfMaterialBuffer map[string]*uint32
-	eqg                common.Archiver
+	name      string
+	materials []*common.Material
+	vertices  []*common.Vertex
+	faces     []*common.Face
+	files     []common.Filer
+	eqg       common.Archiver
 }
 
-func New(name string, path string) (*TER, error) {
+func New(name string, archive common.Archiver) (*TER, error) {
 	t := &TER{
 		name: name,
-		path: path,
-	}
-	return t, nil
-}
-
-func NewEQG(name string, eqg common.Archiver) (*TER, error) {
-	t := &TER{
-		name: name,
-		eqg:  eqg,
+		eqg:  archive,
 	}
 	return t, nil
 }
@@ -53,8 +43,4 @@ func (e *TER) Data() []byte {
 
 func (e *TER) SetName(value string) {
 	e.name = value
-}
-
-func (e *TER) SetPath(value string) {
-	e.path = value
 }

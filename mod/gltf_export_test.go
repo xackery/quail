@@ -5,30 +5,35 @@ import (
 	"os"
 	"testing"
 
+	"github.com/xackery/quail/common"
 	"github.com/xackery/quail/gltf"
 )
 
 func TestGLTFExportGLTF(t *testing.T) {
 	tests := []struct {
 		category string
-		model    string
 	}{
-		//{category: "animations"},
 		{category: "animation"},
+		//{category: "simple"},
 	}
 	for _, tt := range tests {
 
-		path := "test/"
+		filePath := "test/"
 		gltfInFile := fmt.Sprintf("test/%s.gltf", tt.category)
 		gltfOutFile := fmt.Sprintf("test/%s_out.gltf", tt.category)
-		e, err := New(tt.model, path)
+
+		path, err := common.NewPath(filePath)
+		if err != nil {
+			t.Fatalf("path: %s", err)
+		}
+		e, err := New(tt.category, path)
 		if err != nil {
 			t.Fatalf("new: %s", err)
 		}
 
 		err = e.GLTFImport(gltfInFile)
 		if err != nil {
-			t.Fatalf("gltfiimport %s: %s", tt.model, err)
+			t.Fatalf("gltfimport '%s': %s", tt.category, err)
 		}
 
 		w, err := os.Create(gltfOutFile)
@@ -44,6 +49,7 @@ func TestGLTFExportGLTF(t *testing.T) {
 		if err != nil {
 			t.Fatalf("gltf: %s", err)
 		}
+
 		err = doc.Export(w)
 		if err != nil {
 			t.Fatalf("export: %s", err)

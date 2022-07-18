@@ -3,6 +3,7 @@ package mds
 import (
 	"fmt"
 	"image/color"
+	"strings"
 
 	"github.com/g3n/engine/math32"
 	"github.com/qmuntal/gltf"
@@ -22,11 +23,16 @@ func (e *MDS) GLTFImport(path string) error {
 		if err != nil {
 			return fmt.Errorf("add material %s: %w", m.Name, err)
 		}
-		err = e.MaterialPropertyAdd(m.Name, "e_TextureDiffuse0", 2, m.Name)
+		err = e.MaterialPropertyAdd(m.Name, "e_TextureDiffuse0", 2, strings.ToLower(m.Name))
 		if err != nil {
 			return fmt.Errorf("materialPropertyAdd %s: %w", m.Name, err)
 		}
 	}
+
+	/*for _, m := range doc.Skins {
+
+	}*/
+
 	for _, m := range doc.Meshes {
 		e.name = m.Name
 		for _, p := range m.Primitives {
@@ -66,6 +72,22 @@ func (e *MDS) GLTFImport(path string) error {
 				positions[i][2] = tmp
 
 			}*/
+
+			jointIndex, ok := p.Attributes[gltf.JOINTS_0]
+			if ok {
+				e.joints, err = modeler.ReadJoints(doc, doc.Accessors[jointIndex], [][4]uint16{})
+				if err != nil {
+					return fmt.Errorf("readJoints: %w", err)
+				}
+			}
+
+			weightIndex, ok := p.Attributes[gltf.WEIGHTS_0]
+			if ok {
+				e.weights, err = modeler.ReadWeights(doc, doc.Accessors[weightIndex], [][4]float32{})
+				if err != nil {
+					return fmt.Errorf("readJoints: %w", err)
+				}
+			}
 
 			//fmt.Printf("pos: %+v\n", pos)
 			normals := [][3]float32{}
@@ -122,6 +144,7 @@ func (e *MDS) GLTFImport(path string) error {
 				if err != nil {
 					return fmt.Errorf("add vertex: %w", err)
 				}
+
 			}
 		}
 	}

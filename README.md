@@ -32,6 +32,7 @@ zon|zone metadata (EQG), 50% - Load/Save prototyped, needs attention
 
 
 # Problem Children
+// TODO:
 - b09.eqg mds
 - aam.eqg mds
 - ahf.eqg mds
@@ -41,6 +42,12 @@ zon|zone metadata (EQG), 50% - Load/Save prototyped, needs attention
 - ans.eqg mds
 - arelis.eqg obj_village_rubble_med_lod1.mod residence.dds not found
 - arena.eqg obp_tower.mod grid_standard.dds
+
+# GLTF Extensions
+
+// TODO:
+- [lights](https://github.com/KhronosGroup/glTF/tree/main/extensions/2.0/Khronos/KHR_lights_punctual)
+
 ## External resources
 
 [gltf writer for wld fragments in lantern](https://github.com/vermadas/LanternExtractor/blob/vermadas/multi_inject/LanternExtractor/EQ/Wld/Exporters/GltfWriter.cs)

@@ -318,7 +318,7 @@
             "extensions" : {
                 "KHR_materials_unlit" : {}
             },
-            "name" : "TestImage",
+            "name" : "TestImage.png",
             "pbrMetallicRoughness" : {
                 "metallicFactor" : 0,
                 "roughnessFactor" : 0.9

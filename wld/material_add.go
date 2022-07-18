@@ -9,6 +9,7 @@ import (
 )
 
 func (e *WLD) MaterialAdd(name string, shaderName string) error {
+	name = strings.ToLower(name)
 	if shaderName == "" {
 		shaderName = "Opaque_MaxCB1.fx"
 	}
@@ -21,6 +22,7 @@ func (e *WLD) MaterialAdd(name string, shaderName string) error {
 }
 
 func (e *WLD) MaterialPropertyAdd(materialName string, propertyName string, category uint32, value string) error {
+	materialName = strings.ToLower(materialName)
 	for _, o := range e.materials {
 		if o.Name != materialName {
 			continue

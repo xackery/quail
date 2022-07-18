@@ -6,8 +6,9 @@ import (
 
 // EQG represents a modern everquest zone archive format
 type EQG struct {
-	name  string
-	files []common.Filer
+	name      string
+	files     []common.Filer
+	fileCount int
 }
 
 func New(name string) (*EQG, error) {

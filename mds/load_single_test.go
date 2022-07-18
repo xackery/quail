@@ -6,6 +6,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/xackery/quail/common"
 	"github.com/xackery/quail/dump"
 	"github.com/xackery/quail/eqg"
 	"github.com/xackery/quail/gltf"
@@ -38,9 +39,9 @@ func TestLoad(t *testing.T) {
 	}
 	defer d.Save(fmt.Sprintf("test/eq/%s.png", inFile))
 
-	e, err := NewEQG(inFile, a)
+	e, err := New(inFile, a)
 	if err != nil {
-		t.Fatalf("new: %s", err)
+		t.Fatalf("mds new: %s", err)
 	}
 	data, err := a.File(inFile)
 	if err != nil {
@@ -57,15 +58,21 @@ func TestLoadSaveLoad(t *testing.T) {
 	if os.Getenv("SINGLE_TEST") != "1" {
 		return
 	}
-	path := "test/"
+	filePath := "test/"
 	inFile := "test/obj_gears.mod"
 	outFile := "test/obj_gears_loadsaveload.mod"
+
+	path, err := common.NewPath(filePath)
+	if err != nil {
+		t.Fatalf("newPath: %s", err)
+	}
+
 	f, err := os.Open(inFile)
 	if err != nil {
 		t.Fatalf("%s", err)
 	}
 	defer f.Close()
-	d, err := dump.New(path)
+	d, err := dump.New(filePath)
 	if err != nil {
 		t.Fatalf("dump.new: %s", err)
 	}
@@ -104,9 +111,13 @@ func TestLoadSaveGLTF(t *testing.T) {
 	if os.Getenv("SINGLE_TEST") != "1" {
 		return
 	}
-	path := "test/"
+	filePath := "test/"
 	inFile := "test/obj_gears.mod"
 	outFile := "test/obj_gears_loadsavegtlf.gltf"
+	path, err := common.NewPath(filePath)
+	if err != nil {
+		t.Fatalf("newPath: %s", err)
+	}
 
 	f, err := os.Open(inFile)
 	if err != nil {

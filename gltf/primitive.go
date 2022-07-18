@@ -8,18 +8,13 @@ import (
 	"github.com/qmuntal/gltf"
 )
 
-type primitiveEntry struct {
-	index     *uint32
-	primitive *gltf.Primitive
-}
-
 type Primitive struct {
 	MaterialIndex *uint32
 	Positions     [][3]float32
 	Normals       [][3]float32
 	Uvs           [][2]float32
-	//joints        [][4]uint16
-	//weights       [][4]uint16
+	Joints        [][4]uint16
+	Weights       [][4]float32
 	Indices       []uint16
 	UniqueIndices map[uint32]uint16
 }
@@ -39,8 +34,10 @@ func (e *GLTF) PrimitiveAdd(meshName string, prim *Primitive) error {
 		gltf.POSITION:   modeler.WritePosition(e.doc, prim.Positions),
 		gltf.NORMAL:     modeler.WriteNormal(e.doc, prim.Normals),
 		gltf.TEXCOORD_0: modeler.WriteTextureCoord(e.doc, prim.Uvs),
-		//gltf.JOINTS_0:   modeler.WriteJoints(doc, prim.Joints),
-		//gltf.WEIGHTS_0:  modeler.WriteWeights(doc, prim.Weights),
+	}
+	if len(prim.Joints) > 0 {
+		primitive.Attributes[gltf.JOINTS_0] = modeler.WriteJoints(e.doc, prim.Joints)
+		primitive.Attributes[gltf.WEIGHTS_0] = modeler.WriteWeights(e.doc, prim.Weights)
 	}
 
 	primitive.Indices = gltf.Index(modeler.WriteIndices(e.doc, prim.Indices))

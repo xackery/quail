@@ -5,8 +5,6 @@ import (
 	"strings"
 
 	"regexp"
-
-	"github.com/g3n/engine/math32"
 )
 
 var (
@@ -66,7 +64,7 @@ func (e *ZON) AddRegion(name string, center [3]float32, unknown [3]float32, exte
 	return nil
 }
 
-func (e *ZON) AddLight(name string, position [3]float32, color math32.Color, radius float32) error {
+func (e *ZON) AddLight(name string, position [3]float32, color [3]float32, radius float32) error {
 	name = strings.ToLower(name)
 	e.lights = append(e.lights, &Light{
 		name:     name,

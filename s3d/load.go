@@ -172,5 +172,6 @@ func (e *S3D) Load(r io.ReadSeeker) error {
 		}
 		e.files = append(e.files, fe)
 	}
+	e.fileCount = len(e.files)
 	return nil
 }

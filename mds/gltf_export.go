@@ -2,7 +2,6 @@ package mds
 
 import (
 	"fmt"
-	"os"
 	"strings"
 
 	"github.com/qmuntal/gltf"
@@ -17,10 +16,10 @@ func (e *MDS) GLTFExport(doc *qgltf.GLTF) error {
 		return fmt.Errorf("doc is nil")
 	}
 
-	modelName := strings.TrimSuffix(e.name, ".mds")
+	meshName := strings.TrimSuffix(e.name, ".mds")
 
 	mesh := &gltf.Mesh{
-		Name: modelName,
+		Name: meshName,
 	}
 
 	prims := make(map[*uint32]*qgltf.Primitive)
@@ -52,33 +51,19 @@ func (e *MDS) GLTFExport(doc *qgltf.GLTF) error {
 		}
 		if len(textureDiffuseName) > 0 {
 			lastDiffuseName = textureDiffuseName
-			if e.eqg != nil {
-				diffuseData, err = e.eqg.File(textureDiffuseName)
-				if err != nil {
-					return fmt.Errorf("file %s: %w", textureDiffuseName, err)
-				}
+
+			diffuseData, err = e.archive.File(textureDiffuseName)
+			if err != nil {
+				return fmt.Errorf("diffuse file %s: %w", textureDiffuseName, err)
 			}
-			if len(diffuseData) == 0 && e.path != "" {
-				diffuseData, err = os.ReadFile(fmt.Sprintf("%s/%s", e.path, textureDiffuseName))
-				if err != nil {
-					return fmt.Errorf("file %s: %w", textureDiffuseName, err)
-				}
-			}
+
 		}
 
 		var normalData []byte
 		if len(textureNormalName) > 0 {
-			if e.eqg != nil {
-				normalData, err = e.eqg.File(textureNormalName)
-				if err != nil {
-					return fmt.Errorf("file %s: %w", textureNormalName, err)
-				}
-			}
-			if len(normalData) == 0 && e.path != "" {
-				diffuseData, err = os.ReadFile(fmt.Sprintf("%s/%s", e.path, textureDiffuseName))
-				if err != nil {
-					return fmt.Errorf("file %s: %w", textureDiffuseName, err)
-				}
+			normalData, err = e.archive.File(textureNormalName)
+			if err != nil {
+				return fmt.Errorf("normal file %s: %w", textureNormalName, err)
 			}
 		}
 		_, err = doc.MaterialAdd(material, diffuseData, normalData)
@@ -163,6 +148,8 @@ func (e *MDS) GLTFExport(doc *qgltf.GLTF) error {
 				index = uint16(len(prim.Positions) - 1)
 			}
 			prim.Indices = append(prim.Indices, index)
+			prim.Joints = e.joints
+			prim.Weights = e.weights
 		}
 
 	}
@@ -170,14 +157,14 @@ func (e *MDS) GLTFExport(doc *qgltf.GLTF) error {
 	meshIndex := doc.MeshAdd(mesh)
 
 	for _, prim := range prims {
-		err = doc.PrimitiveAdd(e.name, prim)
+		err = doc.PrimitiveAdd(meshName, prim)
 		if err != nil {
 			return fmt.Errorf("primitiveAdd: %w", err)
 		}
 	}
 
 	doc.NodeAdd(&gltf.Node{
-		Name: modelName,
+		Name: meshName,
 		Mesh: meshIndex,
 		//Skin: skinIndex,
 	})

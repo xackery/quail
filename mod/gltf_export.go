@@ -17,10 +17,10 @@ func (e *MOD) GLTFExport(doc *qgltf.GLTF) error {
 		return fmt.Errorf("doc is nil")
 	}
 
-	modelName := strings.TrimSuffix(e.name, ".mds")
+	meshName := strings.TrimSuffix(e.name, ".mds")
 
 	mesh := &gltf.Mesh{
-		Name: modelName,
+		Name: meshName,
 	}
 
 	prims := make(map[*uint32]*qgltf.Primitive)
@@ -51,8 +51,8 @@ func (e *MOD) GLTFExport(doc *qgltf.GLTF) error {
 		}
 		if len(textureDiffuseName) > 0 {
 			lastDiffuseName = textureDiffuseName
-			if e.eqg != nil {
-				diffuseData, err = e.eqg.File(textureDiffuseName)
+			if e.archive != nil {
+				diffuseData, err = e.archive.File(textureDiffuseName)
 				if err != nil {
 					return fmt.Errorf("file %s: %w", textureDiffuseName, err)
 				}
@@ -67,8 +67,8 @@ func (e *MOD) GLTFExport(doc *qgltf.GLTF) error {
 
 		var normalData []byte
 		if len(textureNormalName) > 0 {
-			if e.eqg != nil {
-				normalData, err = e.eqg.File(textureNormalName)
+			if e.archive != nil {
+				normalData, err = e.archive.File(textureNormalName)
 				if err != nil {
 					return fmt.Errorf("file %s: %w", textureNormalName, err)
 				}
@@ -169,14 +169,14 @@ func (e *MOD) GLTFExport(doc *qgltf.GLTF) error {
 	meshIndex := doc.MeshAdd(mesh)
 
 	for _, prim := range prims {
-		err = doc.PrimitiveAdd(e.name, prim)
+		err = doc.PrimitiveAdd(meshName, prim)
 		if err != nil {
 			return fmt.Errorf("primitiveAdd: %w", err)
 		}
 	}
 
 	doc.NodeAdd(&gltf.Node{
-		Name: modelName,
+		Name: meshName,
 		Mesh: meshIndex,
 		//Skin: skinIndex,
 	})

@@ -3,17 +3,23 @@ package mod
 import (
 	"os"
 	"testing"
+
+	"github.com/xackery/quail/common"
 )
 
 func TestObjImport(t *testing.T) {
 	if os.Getenv("SINGLE_TEST") != "1" {
 		return
 	}
-	path := "test/"
+	filePath := "test/"
 	inFileObj := "test/box/cache/box.obj"
 	inFileMat := "test/box/cache/box.mtl"
 	outFile := "test/box.mod"
 
+	path, err := common.NewPath(filePath)
+	if err != nil {
+		t.Fatalf("path: %s", err)
+	}
 	e, err := New("out", path)
 	if err != nil {
 		t.Fatalf("new: %s", err)

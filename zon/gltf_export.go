@@ -33,7 +33,7 @@ func (e *ZON) GLTFExport(doc *qgltf.GLTF) error {
 		switch filepath.Ext(model.name) {
 		case ".ter":
 			baseName := strings.TrimPrefix(baseName(model.name), "ter_")
-			e, err := ter.NewEQG(baseName, e.eqg)
+			e, err := ter.New(baseName, e.eqg)
 			if err != nil {
 				return fmt.Errorf("ter.NewEQG: %w", err)
 			}
@@ -47,9 +47,9 @@ func (e *ZON) GLTFExport(doc *qgltf.GLTF) error {
 			}
 		case ".mod":
 			baseName := strings.TrimPrefix(baseName(model.name), "ter_")
-			e, err := mod.NewEQG(baseName, e.eqg)
+			e, err := mod.New(baseName, e.eqg)
 			if err != nil {
-				return fmt.Errorf("mod.NewEQG: %w", err)
+				return fmt.Errorf("mod new: %w", err)
 			}
 			err = e.Load(bytes.NewReader(modelData))
 			if err != nil {
@@ -62,9 +62,9 @@ func (e *ZON) GLTFExport(doc *qgltf.GLTF) error {
 			}
 		case ".mds":
 			baseName := strings.TrimPrefix(baseName(model.name), "ter_")
-			e, err := mds.NewEQG(baseName, e.eqg)
+			e, err := mds.New(baseName, e.eqg)
 			if err != nil {
-				return fmt.Errorf("mds.NewEQG: %w", err)
+				return fmt.Errorf("mds new: %w", err)
 			}
 			err = e.Load(bytes.NewReader(modelData))
 			if err != nil {
@@ -108,5 +108,8 @@ func (e *ZON) GLTFExport(doc *qgltf.GLTF) error {
 		})
 	}
 
+	for _, light := range e.lights {
+		doc.LightAdd(light.name, light.color, light.radius, "directional", 0)
+	}
 	return nil
 }

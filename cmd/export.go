@@ -160,33 +160,36 @@ func exportEQG(in string, out string, isDir bool) error {
 	if err != nil {
 		return err
 	}
-	a, err := eqg.New("out")
+	archive, err := eqg.New("out")
 	if err != nil {
 		return fmt.Errorf("eqg.New: %w", err)
 	}
-	err = a.Load(f)
+	err = archive.Load(f)
 	if err != nil {
 		return fmt.Errorf("load %s: %w", in, err)
 	}
 
 	isZone := true
 	zoneName := fmt.Sprintf("%s.zon", strings.TrimSuffix(filepath.Base(in), ".eqg"))
-	zoneData, err := a.File(zoneName)
+
+	zoneData, err := archive.File(zoneName)
 	if err != nil {
 		isZone = false
 	}
 
 	if !isZone {
-		for _, fe := range a.Files() {
-			err = convertFile(a, fe.Name(), fe.Data(), out)
+		for _, fe := range archive.Files() {
+			err = convertFile(archive, fe.Name(), fe.Data(), out)
 			if err != nil {
-				return fmt.Errorf("convert %s: %w", fe.Name(), err)
+				fmt.Println("tmpConvert", fe.Name(), err.Error())
+				//return fmt.Errorf("convert %s: %w", fe.Name(), err)
 			}
 		}
 	} else {
-		err = convertFile(a, zoneName, zoneData, out)
+		err = convertFile(archive, zoneName, zoneData, out)
 		if err != nil {
-			return fmt.Errorf("convert %s: %w", zoneName, err)
+			fmt.Println("tmpConvert", zoneName, err.Error())
+			//return fmt.Errorf("convert %s: %w", zoneName, err)
 		}
 	}
 
@@ -224,9 +227,9 @@ func convertFile(archive common.Archiver, name string, data []byte, out string) 
 	outFile := ""
 	switch strings.ToLower(filepath.Ext(name)) {
 	case ".mds":
-		e, err := mds.NewEQG(name, archive)
+		e, err := mds.New(name, archive)
 		if err != nil {
-			return fmt.Errorf("newEQG: %w", err)
+			return fmt.Errorf("mds new: %w", err)
 		}
 
 		err = e.Load(bytes.NewReader(data))
@@ -240,7 +243,7 @@ func convertFile(archive common.Archiver, name string, data []byte, out string) 
 		}
 
 		outFile = fmt.Sprintf("%s/%s.gltf", out, strings.TrimSuffix(name, ".mds"))
-		fmt.Println("exporting", outFile)
+		fmt.Println("exporting mds", outFile)
 		w, err := os.Create(outFile)
 		if err != nil {
 			return fmt.Errorf("create: %w", err)
@@ -260,9 +263,9 @@ func convertFile(archive common.Archiver, name string, data []byte, out string) 
 		}
 
 	case ".mod":
-		e, err := mod.NewEQG(name, archive)
+		e, err := mod.New(name, archive)
 		if err != nil {
-			return fmt.Errorf("newEQG: %w", err)
+			return fmt.Errorf("mod new: %w", err)
 		}
 
 		err = e.Load(bytes.NewReader(data))
@@ -275,7 +278,7 @@ func convertFile(archive common.Archiver, name string, data []byte, out string) 
 			return fmt.Errorf("layerInject: %w", err)
 		}
 		outFile = fmt.Sprintf("%s/%s.gltf", out, strings.TrimSuffix(name, ".mod"))
-		fmt.Println("exporting", outFile)
+		fmt.Println("exporting mod", outFile)
 		w, err := os.Create(outFile)
 		if err != nil {
 			return fmt.Errorf("create: %w", err)
@@ -297,7 +300,7 @@ func convertFile(archive common.Archiver, name string, data []byte, out string) 
 	case ".ter":
 		// we skip terrain data in archive, and instead load it via .zon
 	case ".zon":
-		z, err := zon.NewEQG(name, archive)
+		z, err := zon.New(name, archive)
 		if err != nil {
 			return fmt.Errorf("new: %w", err)
 		}
@@ -316,7 +319,7 @@ func convertFile(archive common.Archiver, name string, data []byte, out string) 
 			return fmt.Errorf("glts: %w", err)
 		}
 		outFile = fmt.Sprintf("%s/%s.gltf", out, strings.TrimSuffix(name, ".zon"))
-		fmt.Println("exporting", outFile)
+		fmt.Println("exporting zon", outFile)
 		w, err := os.Create(outFile)
 		if err != nil {
 			return fmt.Errorf("create: %w", err)
@@ -345,7 +348,7 @@ func layerInject(archive common.Archiver, modeler common.Modeler, layName string
 		return nil
 	}
 
-	l, err := lay.NewEQG(layName, archive)
+	l, err := lay.New(layName, archive)
 	if err != nil {
 		return fmt.Errorf("lay.NewEQG: %w", err)
 	}

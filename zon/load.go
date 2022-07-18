@@ -6,7 +6,6 @@ import (
 	"io"
 	"strings"
 
-	"github.com/g3n/engine/math32"
 	"github.com/xackery/quail/dump"
 )
 
@@ -250,7 +249,7 @@ func (e *ZON) Load(r io.ReadSeeker) error {
 		}
 		//dump.Hex(pos, "pos=%+v", pos)
 
-		color := math32.Color{}
+		color := [3]float32{}
 		err = binary.Read(r, binary.LittleEndian, &color)
 		if err != nil {
 			return fmt.Errorf("light %d color: %w", i, err)

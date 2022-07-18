@@ -12,6 +12,20 @@ func (e *GLTF) Export(w io.Writer) error {
 		e.doc.Scenes[0].Nodes = append(e.doc.Scenes[0].Nodes, i)
 	}
 
+	if len(e.lights) > 0 {
+		e.doc.ExtensionsUsed = append(e.doc.ExtensionsUsed, "KHR_lights_punctual")
+
+		type lightEntries struct {
+			Lights []*lightEntry `json:"lights"`
+		}
+		ext := lightEntries{}
+		e.doc.Extensions = gltf.Extensions{}
+
+		for _, light := range e.lights {
+			ext.Lights = append(ext.Lights, light)
+		}
+		e.doc.Extensions["KHR_lights_punctual"] = ext
+	}
 	for _, buff := range e.doc.Buffers {
 		buff.EmbeddedResource()
 	}

@@ -9,6 +9,7 @@ import (
 )
 
 func (e *MDS) MaterialAdd(name string, shaderName string) error {
+	name = strings.ToLower(name)
 	if shaderName == "" {
 		shaderName = "Opaque_MaxCB1.fx"
 	}

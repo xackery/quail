@@ -75,7 +75,7 @@ func inspect(path string) error {
 }
 
 func inspectEQG(path string) error {
-	a, err := eqg.New(filepath.Base(path))
+	archive, err := eqg.New(filepath.Base(path))
 	if err != nil {
 		return fmt.Errorf("new: %w", err)
 	}
@@ -84,15 +84,15 @@ func inspectEQG(path string) error {
 		return err
 	}
 	defer r.Close()
-	err = a.Load(r)
+	err = archive.Load(r)
 	if err != nil {
 		return fmt.Errorf("load: %w", err)
 	}
-	fmt.Printf("%s contains %d files:\n", filepath.Base(path), len(a.Files()))
+	fmt.Printf("%s contains %d files:\n", filepath.Base(path), archive.Len())
 
-	filesByName := a.Files()
+	filesByName := archive.Files()
 	sort.Sort(common.FilerByName(filesByName))
-	for _, fe := range a.Files() {
+	for _, fe := range archive.Files() {
 		base := float64(len(fe.Data()))
 		out := ""
 		num := float64(1024)

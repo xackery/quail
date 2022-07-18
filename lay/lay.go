@@ -10,35 +10,21 @@ import (
 type LAY struct {
 	// name is used as an identifier
 	name string
-	// path is used for relative paths when looking for flat file texture references
-	path string
-	// eqg is used as an alternative to path when loading data from a eqg file
-	eqg    common.Archiver
-	layers []*common.Layer
+	// archive is used as an alternative to path when loading data from a archive file
+	archive common.Archiver
+	layers  []*common.Layer
 }
 
-func New(name string, path string) (*LAY, error) {
+func New(name string, archive common.Archiver) (*LAY, error) {
 	e := &LAY{
-		name: name,
-		path: path,
-	}
-	return e, nil
-}
-
-func NewEQG(name string, eqg common.Archiver) (*LAY, error) {
-	e := &LAY{
-		name: name,
-		eqg:  eqg,
+		name:    name,
+		archive: archive,
 	}
 	return e, nil
 }
 
 func (e *LAY) SetName(value string) {
 	e.name = value
-}
-
-func (e *LAY) SetPath(value string) {
-	e.path = value
 }
 
 func (e *LAY) Layers() []*common.Layer {

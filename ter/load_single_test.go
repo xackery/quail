@@ -5,6 +5,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/xackery/quail/common"
 	"github.com/xackery/quail/dump"
 )
 
@@ -12,9 +13,13 @@ func TestLoad(t *testing.T) {
 	if os.Getenv("SINGLE_TEST") != "1" {
 		return
 	}
-	path := "test/"
+	filePath := "test/"
 	inFile := "test/_box.eqg/box.ter"
 
+	path, err := common.NewPath(filePath)
+	if err != nil {
+		t.Fatalf("path: %s", err)
+	}
 	f, err := os.Open(inFile)
 	if err != nil {
 		t.Fatalf("%s", err)
@@ -40,9 +45,14 @@ func TestLoadSaveLoad(t *testing.T) {
 	if os.Getenv("SINGLE_TEST") != "1" {
 		return
 	}
-	path := "test/"
+	filePath := "test/"
 	inFile := "test/ecommons.ter"
 	outFile := "test/ecommons_loadsaveload.ter"
+
+	path, err := common.NewPath(filePath)
+	if err != nil {
+		t.Fatalf("path: %s", err)
+	}
 
 	f, err := os.Open(inFile)
 	if err != nil {

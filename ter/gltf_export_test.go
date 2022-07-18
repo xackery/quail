@@ -7,6 +7,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/xackery/quail/common"
 	"github.com/xackery/quail/dump"
 	"github.com/xackery/quail/eqg"
 	"github.com/xackery/quail/gltf"
@@ -63,7 +64,7 @@ func TestGLTFExportSamples(t *testing.T) {
 			t.Fatalf("load: %s", err)
 		}
 
-		e, err := NewEQG(tt.category, a)
+		e, err := New(tt.category, a)
 		if err != nil {
 			t.Fatalf("new: %s", err)
 		}
@@ -149,7 +150,12 @@ func TestGLTFExportSamplesSanityCheck(t *testing.T) {
 		gltfInFile := fmt.Sprintf("test/%s.gltf", tt.category)
 		gltfOutFile := fmt.Sprintf("test/%s_out.gltf", tt.category)
 
-		e, err := New(tt.category, "test/")
+		filePath := "test/"
+		path, err := common.NewPath(filePath)
+		if err != nil {
+			t.Fatalf("path: %s", err)
+		}
+		e, err := New(tt.category, path)
 		if err != nil {
 			t.Fatalf("new: %s", err)
 		}
@@ -194,7 +200,8 @@ func TestGLTFExportSamplesSanityCheck(t *testing.T) {
 		if err != nil {
 			t.Fatalf("export: %s", err)
 		}
-		e, err = New(tt.category, "test/")
+
+		e, err = New(tt.category, path)
 		if err != nil {
 			t.Fatalf("new: %s", err)
 		}

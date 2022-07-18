@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/xackery/quail/common"
 	"github.com/xackery/quail/dump"
 	"github.com/xackery/quail/eqg"
 	"github.com/xackery/quail/gltf"
@@ -48,7 +49,7 @@ func TestGLTFExportEQGZones(t *testing.T) {
 			t.Fatalf("load: %s", err)
 		}
 
-		e, err := NewEQG(tt.category, a)
+		e, err := New(tt.category, a)
 		if err != nil {
 			t.Fatalf("new: %s", err)
 		}
@@ -98,10 +99,14 @@ func TestGLTFExportBroodlands(t *testing.T) {
 		return
 	}
 	zone := "broodlands"
-	path := fmt.Sprintf("test/eq/_%s.eqg", zone)
+	filePath := fmt.Sprintf("test/eq/_%s.eqg", zone)
 	inFile := fmt.Sprintf("test/eq/_%s.eqg/ter_%s.ter", zone, zone)
 	outFile := fmt.Sprintf("test/eq/%s.gltf", zone)
 
+	path, err := common.NewPath(filePath)
+	if err != nil {
+		t.Fatalf("path: %s", err)
+	}
 	e, err := New("arena", path)
 	if err != nil {
 		t.Fatalf("new: %s", err)
@@ -158,18 +163,23 @@ func TestGLTFExportCityOfBronze(t *testing.T) {
 		return
 	}
 	zone := "cityofbronze"
-	path := fmt.Sprintf("test/eq/_%s.eqg", zone)
+	filePath := fmt.Sprintf("test/eq/_%s.eqg", zone)
 	inFile := fmt.Sprintf("test/eq/_%s.eqg/ter_%s.ter", zone, zone)
 	outFile := fmt.Sprintf("test/eq/%s.gltf", zone)
 	isDumpEnabed := false
 
+	path, err := common.NewPath(filePath)
+	if err != nil {
+		t.Fatalf("path: %s", err)
+	}
 	if isDumpEnabed {
-		d, err := dump.New(path)
+		d, err := dump.New(path.String())
 		if err != nil {
 			t.Fatalf("dump.new: %s", err)
 		}
 		defer d.Save(fmt.Sprintf("%s.png", inFile))
 	}
+
 	e, err := New("cityofbronze", path)
 	if err != nil {
 		t.Fatalf("new: %s", err)

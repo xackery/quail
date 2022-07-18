@@ -6,8 +6,6 @@ import (
 	"os"
 	"strconv"
 	"strings"
-
-	"github.com/g3n/engine/math32"
 )
 
 // Import takes paths for various files and attempts to import them into a zon definition
@@ -65,24 +63,24 @@ func (e *ZON) importLight(lightPath string) error {
 		}
 		position[2] = float32(val)
 
-		color := math32.Color{}
+		color := [3]float32{}
 		val, err = strconv.ParseFloat(records[2], 32)
 		if err != nil {
 			return fmt.Errorf("parse color r: %w", err)
 		}
-		color.R = float32(val)
+		color[0] = float32(val)
 
 		val, err = strconv.ParseFloat(records[2], 32)
 		if err != nil {
 			return fmt.Errorf("parse color g: %w", err)
 		}
-		color.G = float32(val)
+		color[1] = float32(val)
 
 		val, err = strconv.ParseFloat(records[2], 32)
 		if err != nil {
 			return fmt.Errorf("parse color b: %w", err)
 		}
-		color.B = float32(val)
+		color[2] = float32(val)
 
 		val, err = strconv.ParseFloat(records[2], 32)
 		if err != nil {
