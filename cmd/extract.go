@@ -130,6 +130,7 @@ func extractEQG(in string, out string, isDir bool) error {
 func init() {
 	rootCmd.AddCommand(extractCmd)
 	extractCmd.PersistentFlags().String("path", "", "path to compressed eqg")
+	extractCmd.PersistentFlags().String("out", "", "out path to extract to")
 }
 
 func extractS3D(path string, out string, isDir bool) error {

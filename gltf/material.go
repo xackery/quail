@@ -33,10 +33,10 @@ func (e *GLTF) MaterialAdd(req *common.Material, diffuseData []byte, normalData 
 
 	if req.Name == "" || strings.HasPrefix(req.Name, "empty_") {
 		e.doc.Materials = append(e.doc.Materials, &gltf.Material{
-			Name: req.Name,
+			Name:                 req.Name,
 			PBRMetallicRoughness: &gltf.PBRMetallicRoughness{
-				BaseColorFactor: &[4]float32{1.0, 1.0, 1.0, 1},
-				MetallicFactor:  gltf.Float(0),
+				//BaseColorFactor: &[4]float32{1.0, 1.0, 1.0, 1},
+				//MetallicFactor: gltf.Float(0),
 			},
 		})
 
@@ -64,10 +64,10 @@ func (e *GLTF) MaterialAdd(req *common.Material, diffuseData []byte, normalData 
 	if len(textureDiffuseName) == 0 {
 		//return material, fmt.Errorf("material '%s' has no texturediffuse value", name)
 		e.doc.Materials = append(e.doc.Materials, &gltf.Material{
-			Name: req.Name,
+			Name:                 req.Name,
 			PBRMetallicRoughness: &gltf.PBRMetallicRoughness{
-				BaseColorFactor: &[4]float32{1.0, 1.0, 1.0, 1},
-				MetallicFactor:  gltf.Float(0),
+				//BaseColorFactor: &[4]float32{1.0, 1.0, 1.0, 1},
+				//MetallicFactor: gltf.Float(0),
 			},
 		})
 		index = gltf.Index(uint32(len(e.doc.Materials) - 1))
@@ -127,7 +127,7 @@ func (e *GLTF) MaterialAdd(req *common.Material, diffuseData []byte, normalData 
 
 		PBRMetallicRoughness: &gltf.PBRMetallicRoughness{
 			BaseColorTexture: diffuseTexture,
-			MetallicFactor:   gltf.Float(0),
+			//MetallicFactor:   gltf.Float(0),
 		},
 	}
 

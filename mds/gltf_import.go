@@ -113,7 +113,7 @@ func (e *MDS) GLTFImport(path string) error {
 					uvEntry.Y = uvs[i][1]
 				}
 				tint := &common.Tint{R: 128, G: 128, B: 128}
-				fmt.Printf("%d pos: %0.0f %0.0f %0.0f, normal: %+v, uv: %+v\n", i, posEntry.X, posEntry.Y, posEntry.Z, normalEntry, uvEntry)
+				//fmt.Printf("%d pos: %0.0f %0.0f %0.0f, normal: %+v, uv: %+v\n", i, posEntry.X, posEntry.Y, posEntry.Z, normalEntry, uvEntry)
 				err = e.VertexAdd(posEntry, normalEntry, tint, uvEntry, uvEntry)
 				if err != nil {
 					return fmt.Errorf("add vertex: %w", err)

@@ -385,8 +385,6 @@ github.com/sirupsen/logrus v1.6.0/go.mod h1:7uNnSEd1DgxDLC74fIahvMZmmYsHGZGEOFrf
 github.com/solarlune/tetra3d v0.9.0 h1:htLLhLj+ty0de/5g74A5NNZPPdC856SWmO8y6xeRfgE=
 github.com/solarlune/tetra3d v0.9.0/go.mod h1:I+fb95bDRNNL4RSzKD4ShF8Gq54s2PsdG4d3cAk6KHw=
 github.com/spaolacci/murmur3 v0.0.0-20180118202830-f09979ecbc72/go.mod h1:JwIasOWyU6f++ZhiEuf87xNszmSA2myDM2Kzu9HwQUA=
-github.com/spate/glimage v0.0.0-20200505055513-fbdcc60a65e5 h1:i6p4jluRhb5P857lqMZDdpt/KuJxS9CnJU1Nqv8ts5k=
-github.com/spate/glimage v0.0.0-20200505055513-fbdcc60a65e5/go.mod h1:F9YvJg9MlSd+PomE+6peEdsa/VdHFv4DYPXTwtfnHh8=
 github.com/spf13/afero v1.8.2/go.mod h1:CtAatgMJh6bJEIs48Ay/FOnkljP3WeGUG0MC1RfAqwo=
 github.com/spf13/afero v1.9.0 h1:sFSLUHgxdnN32Qy38hK3QkYBFXZj9DKjVjCUCtD7juY=
 github.com/spf13/afero v1.9.0/go.mod h1:iUV7ddyEEZPO5gA3zD4fJt6iStLlL+Lg4m2cihcDf8Y=

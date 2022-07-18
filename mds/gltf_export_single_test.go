@@ -46,7 +46,9 @@ func TestGLTFExportSamplesSingleTest(t *testing.T) {
 		{category: "bnx"},*/
 		//{category: "bny"},
 		//{category: "dv6"},
-		{category: "lth"}, //Morell thule
+		//{category: "lth"}, //Morell thule
+		//{category: "djm"}, //Djinn Male
+		{category: "zmm"}, //Zombie Male
 	}
 	for _, tt := range tests {
 
@@ -90,7 +92,7 @@ func TestGLTFExportSamplesSingleTest(t *testing.T) {
 
 			layName := fmt.Sprintf("%s.lay", strings.TrimSuffix(mdsEntry.Name(), ".mds"))
 			layEntry, err := a.File(layName)
-			if err != nil && !os.IsNotExist(err) {
+			if err != nil && !strings.Contains(err.Error(), "does not exist") {
 				t.Fatalf("file: %s", err)
 			}
 

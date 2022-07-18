@@ -2,6 +2,7 @@ package mod
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/qmuntal/gltf"
@@ -50,17 +51,33 @@ func (e *MOD) GLTFExport(doc *qgltf.GLTF) error {
 		}
 		if len(textureDiffuseName) > 0 {
 			lastDiffuseName = textureDiffuseName
-			diffuseData, err = e.eqg.File(textureDiffuseName)
-			if err != nil {
-				return fmt.Errorf("file %s: %w", textureDiffuseName, err)
+			if e.eqg != nil {
+				diffuseData, err = e.eqg.File(textureDiffuseName)
+				if err != nil {
+					return fmt.Errorf("file %s: %w", textureDiffuseName, err)
+				}
+			}
+			if len(diffuseData) == 0 && e.path != "" {
+				diffuseData, err = os.ReadFile(fmt.Sprintf("%s/%s", e.path, textureDiffuseName))
+				if err != nil {
+					return fmt.Errorf("file %s: %w", textureDiffuseName, err)
+				}
 			}
 		}
 
 		var normalData []byte
 		if len(textureNormalName) > 0 {
-			normalData, err = e.eqg.File(textureNormalName)
-			if err != nil {
-				return fmt.Errorf("file %s: %w", textureNormalName, err)
+			if e.eqg != nil {
+				normalData, err = e.eqg.File(textureNormalName)
+				if err != nil {
+					return fmt.Errorf("file %s: %w", textureNormalName, err)
+				}
+			}
+			if len(normalData) == 0 && e.path != "" {
+				diffuseData, err = os.ReadFile(fmt.Sprintf("%s/%s", e.path, textureDiffuseName))
+				if err != nil {
+					return fmt.Errorf("file %s: %w", textureDiffuseName, err)
+				}
 			}
 		}
 		_, err = doc.MaterialAdd(material, diffuseData, normalData)
@@ -122,6 +139,10 @@ func (e *MOD) GLTFExport(doc *qgltf.GLTF) error {
 		}
 
 		matIndex := doc.Material(matName)
+		if matIndex == nil {
+			val := uint32(0)
+			matIndex = &val
+		}
 
 		prim, ok := prims[matIndex]
 		if !ok {

@@ -11,7 +11,6 @@ require (
 	github.com/malashin/dds v0.0.0-20190511100755-ab62708f5fe5
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/solarlune/tetra3d v0.9.0
-	github.com/spate/glimage v0.0.0-20200505055513-fbdcc60a65e5
 	github.com/spf13/cobra v1.5.0
 	github.com/spf13/viper v1.12.0
 	github.com/xackery/colors v1.0.1

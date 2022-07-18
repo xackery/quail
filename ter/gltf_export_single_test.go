@@ -18,7 +18,7 @@ func TestGLTFExportEQGZones(t *testing.T) {
 	}{
 		{category: "bazaar"},
 		//{category: "steamfontmts"},
-		{category: "broodlands"},
+		//{category: "broodlands"},
 		//{category: "steppes"},
 	}
 	for _, tt := range tests {
@@ -118,7 +118,7 @@ func TestGLTFExportBroodlands(t *testing.T) {
 		t.Fatalf("import %s: %s", inFile, err)
 	}
 
-	fw, err := os.Create(fmt.Sprintf("test/%s.txt", zone))
+	/*fw, err := os.Create(fmt.Sprintf("test/%s.txt", zone))
 	if err != nil {
 		t.Fatalf("%s", err)
 	}
@@ -132,7 +132,7 @@ func TestGLTFExportBroodlands(t *testing.T) {
 	for i, o := range e.vertices {
 		fmt.Fprintf(fw, "%d pos: %+v, normal: %+v, uv: %+v\n", i, o.Position, o.Normal, o.Uv)
 	}
-
+	*/
 	w, err := os.Create(outFile)
 	if err != nil {
 		t.Fatalf("create %s", err)
@@ -186,7 +186,7 @@ func TestGLTFExportCityOfBronze(t *testing.T) {
 		t.Fatalf("import %s: %s", path, err)
 	}
 
-	fw, err := os.Create(fmt.Sprintf("test/%s.txt", zone))
+	/*fw, err := os.Create(fmt.Sprintf("test/%s.txt", zone))
 	if err != nil {
 		t.Fatalf("%s", err)
 	}
@@ -200,7 +200,7 @@ func TestGLTFExportCityOfBronze(t *testing.T) {
 	for i, o := range e.vertices {
 		fmt.Fprintf(fw, "%d pos: %+v, normal: %+v, uv: %+v\n", i, o.Position, o.Normal, o.Uv)
 	}
-
+	*/
 	w, err := os.Create(outFile)
 	if err != nil {
 		t.Fatalf("create %s", err)

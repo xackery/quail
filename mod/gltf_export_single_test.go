@@ -45,8 +45,9 @@ func TestGLTFExportSamplesSingleTest(t *testing.T) {
 		//{category: "i00"},
 		//{category: "inv"},
 		//{category: "arthwall"},
-		{category: "aro"}, //arayane ro
+		//{category: "aro"}, //arayane ro
 		//{category: "aam"},
+		{category: "zmm"},
 		//{category: "voaequip"},
 	}
 	for _, tt := range tests {
