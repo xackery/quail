@@ -14,7 +14,7 @@ func TestGLTFExportGLTF(t *testing.T) {
 		model    string
 	}{
 		//{category: "animations"},
-		//{category: "animation"},
+		{category: "animation"},
 	}
 	for _, tt := range tests {
 

@@ -18,13 +18,17 @@ func (e *MDS) GLTFImport(path string) error {
 	}
 	for _, m := range doc.Materials {
 		//TODO: add _mat.txt parsing
-		fmt.Println("add material", m.Name)
 		err = e.MaterialAdd(m.Name, "Opaque_MaxCB1.fx")
 		if err != nil {
 			return fmt.Errorf("add material %s: %w", m.Name, err)
 		}
+		err = e.MaterialPropertyAdd(m.Name, "e_TextureDiffuse0", 2, m.Name)
+		if err != nil {
+			return fmt.Errorf("materialPropertyAdd %s: %w", m.Name, err)
+		}
 	}
 	for _, m := range doc.Meshes {
+		e.name = m.Name
 		for _, p := range m.Primitives {
 			if p.Mode != gltf.PrimitiveTriangles {
 				return fmt.Errorf("primitive in mesh '%s' is mode %d, unsupported", m.Name, p.Mode)

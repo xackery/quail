@@ -32,7 +32,7 @@ func (e *WLD) MaterialPropertyAdd(materialName string, propertyName string, cate
 		})
 		return nil
 	}
-	return fmt.Errorf("materialName not found: %s", materialName)
+	return fmt.Errorf("materialName not found: '%s' (%d)", materialName, len(e.materials))
 }
 
 func (e *WLD) VertexAdd(position *math32.Vector3, normal *math32.Vector3, tint *common.Tint, uv *math32.Vector2, uv2 *math32.Vector2) error {
@@ -47,6 +47,7 @@ func (e *WLD) VertexAdd(position *math32.Vector3, normal *math32.Vector3, tint *
 }
 
 func (e *WLD) FaceAdd(index [3]uint32, materialName string, flag uint32) error {
+	materialName = strings.ToLower(materialName)
 	if materialName == "" || strings.HasPrefix(materialName, "empty_") {
 		e.faces = append(e.faces, &common.Face{
 			Index:        index,
@@ -69,5 +70,5 @@ func (e *WLD) FaceAdd(index [3]uint32, materialName string, flag uint32) error {
 		return nil
 	}
 
-	return fmt.Errorf("materialName not found: %s", materialName)
+	return fmt.Errorf("materialName not found: '%s' (%d)", materialName, len(e.materials))
 }

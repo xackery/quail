@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/xackery/quail/cmd"
+	"github.com/xackery/quail/common"
 )
 
 var (
@@ -11,8 +12,9 @@ var (
 )
 
 func main() {
-	if Version != "" {
-		fmt.Printf("quail v%s\n", Version)
+	common.Version = Version
+	if common.Version != "" {
+		fmt.Printf("quail v%s\n", common.Version)
 	}
 	cmd.Execute()
 }
