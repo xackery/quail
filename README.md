@@ -1,5 +1,10 @@
 # quail - Ever[Q]uest [U]niversal [A]rchive, [I]mport and [L]oader tool
 
+[![GoDoc](https://godoc.org/github.com/xackery/quail?status.svg)](https://godoc.org/github.com/xackery/quail) [![Go Report Card](https://goreportcard.com/badge/github.com/xackery/quail)](https://goreportcard.com/report/github.com/xackery/quail)
+
+[![Total alerts](https://img.shields.io/lgtm/alerts/g/xackery/quail.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/xackery/quail/alerts/)
+
+
 Quail parses EverQuest files found inside on pfs compressed archives (*.eqg and *.s3d files). The overall goal is to design conversion commands to and from these specialized formats to more common, popular formats.
 
 Extension|Notes
