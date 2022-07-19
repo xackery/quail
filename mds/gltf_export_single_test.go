@@ -50,7 +50,7 @@ func TestGLTFExportSamplesSingleTest(t *testing.T) {
 		{category: "djm"}, //Djinn Male
 		//{category: "zmm"}, //Zombie Male
 		//{category: "wrm"}, //worm
-		//{category: "dgj"}, //jade dragon
+		{category: "dgj"}, //jade dragon
 		//{category: "prt"},
 	}
 	for _, tt := range tests {
@@ -226,6 +226,9 @@ func TestGLTFExportSamplesDirectory(t *testing.T) {
 		if filepath.Ext(fe.Name()) != ".eqg" {
 			continue
 		}
+		if fe.IsDir() {
+			continue
+		}
 		fmt.Println("loading", fe.Name())
 		eqgFile := fmt.Sprintf("test/eq/%s", fe.Name())
 
@@ -246,6 +249,9 @@ func TestGLTFExportSamplesDirectory(t *testing.T) {
 		files := a.Files()
 		for _, mdsEntry := range files {
 			if filepath.Ext(mdsEntry.Name()) != ".mds" {
+				continue
+			}
+			if fe.IsDir() {
 				continue
 			}
 			r := bytes.NewReader(mdsEntry.Data())
@@ -314,6 +320,82 @@ func TestGLTFExportSamplesDirectory(t *testing.T) {
 			err = doc.Export(w)
 			if err != nil {
 				t.Fatalf("export: %s", err)
+			}
+		}
+	}
+}
+
+func TestGLTFExportMaterialDump(t *testing.T) {
+	if os.Getenv("SINGLE_TEST") != "1" {
+		return
+	}
+
+	dirs, err := os.ReadDir("test/eq/")
+	if err != nil {
+		t.Fatalf("read: %s", err)
+	}
+	for _, fe := range dirs {
+		if filepath.Ext(fe.Name()) != ".eqg" {
+			continue
+		}
+		if fe.IsDir() {
+			continue
+		}
+		eqgFile := fmt.Sprintf("test/eq/%s", fe.Name())
+
+		ra, err := os.Open(eqgFile)
+		if err != nil {
+			t.Fatalf("%s", err)
+		}
+		defer ra.Close()
+		archive, err := eqg.New(fe.Name())
+		if err != nil {
+			t.Fatalf("eqg.New: %s", err)
+		}
+		err = archive.Load(ra)
+		if err != nil {
+			t.Fatalf("load eqg: %s", err)
+		}
+
+		files := archive.Files()
+		for _, mdsEntry := range files {
+			if filepath.Ext(mdsEntry.Name()) != ".mds" {
+				continue
+			}
+			r := bytes.NewReader(mdsEntry.Data())
+
+			e, err := New(strings.TrimSuffix(mdsEntry.Name(), ".mds"), archive)
+			if err != nil {
+				t.Fatalf("mds new: %s", err)
+			}
+
+			err = e.Load(r)
+			if err != nil {
+				t.Fatalf("load %s: %s", mdsEntry.Name(), err)
+			}
+
+			layName := fmt.Sprintf("%s.lay", strings.TrimSuffix(mdsEntry.Name(), ".mds"))
+			layEntry, err := archive.File(layName)
+			if err != nil && !strings.Contains(err.Error(), "does not exist") {
+				t.Fatalf("file: %s", err)
+			}
+
+			if len(layEntry) > 0 {
+				l, err := lay.New(layName, archive)
+				if err != nil {
+					t.Fatalf("lay.NewEQG: %s", err)
+				}
+				err = l.Load(bytes.NewReader(layEntry))
+				if err != nil {
+					t.Fatalf("lay.Load: %s", err)
+				}
+				err = e.SetLayers(l.Layers())
+				if err != nil {
+					t.Fatalf("setLayers: %s", err)
+				}
+			}
+			for _, mat := range e.materials {
+				fmt.Println(mdsEntry.Name(), mat.Name)
 			}
 		}
 	}

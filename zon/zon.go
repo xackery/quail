@@ -1,3 +1,4 @@
+// zon is an EverQuest format that places zone terrain, objects, regions and lights
 package zon
 
 import (

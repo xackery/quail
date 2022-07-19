@@ -1,3 +1,4 @@
+// lay is an EverQuest layer file, giving details about layered models
 package lay
 
 // https://github.com/Zaela/EQGModelImporter/blob/master/src/mds.cpp

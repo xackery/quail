@@ -1,3 +1,4 @@
+// eqg is a pfs archive for EverQuest
 package eqg
 
 import (

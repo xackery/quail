@@ -5,7 +5,7 @@ import (
 	"io"
 )
 
-func ParseFixedString(r io.Reader, size uint32) (string, error) {
+func ReadFixedString(r io.Reader, size uint32) (string, error) {
 	in := make([]byte, size)
 	_, err := r.Read(in)
 	if err != nil {

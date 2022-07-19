@@ -1,3 +1,4 @@
+// dump is used to generate png files based on hex data of a file
 package dump
 
 import (

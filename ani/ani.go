@@ -1,3 +1,4 @@
+// ani are animation files, found in EverQuest eqg files
 package ani
 
 import "github.com/g3n/engine/math32"

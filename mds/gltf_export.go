@@ -6,6 +6,7 @@ import (
 
 	"github.com/qmuntal/gltf"
 
+	"github.com/xackery/quail/common"
 	qgltf "github.com/xackery/quail/gltf"
 )
 
@@ -16,16 +17,20 @@ func (e *MDS) GLTFExport(doc *qgltf.GLTF) error {
 		return fmt.Errorf("doc is nil")
 	}
 
-	meshName := strings.TrimSuffix(e.name, ".mds")
+	modelName := strings.TrimSuffix(e.name, ".mds")
 
-	mesh := &gltf.Mesh{
-		Name: meshName,
-	}
+	meshCount := 1
 
 	prims := make(map[*uint32]*qgltf.Primitive)
 
 	lastDiffuseName := ""
 	for _, material := range e.materials {
+		matName := material.Name
+
+		modelIndex := common.NumberEnding(matName)
+		if modelIndex+1 > meshCount {
+			meshCount = modelIndex + 1
+		}
 
 		textureDiffuseName := ""
 		textureNormalName := ""
@@ -70,6 +75,17 @@ func (e *MDS) GLTFExport(doc *qgltf.GLTF) error {
 		if err != nil {
 			return fmt.Errorf("MaterialAdd %s: %w", material.Name, err)
 		}
+	}
+
+	for i := 0; i < meshCount; i++ {
+		meshName := fmt.Sprintf("%s_%02d", modelName, i)
+		fmt.Println("adding mesh", meshName)
+		mesh := &gltf.Mesh{Name: meshName}
+		meshIndex := doc.MeshAdd(mesh)
+		doc.NodeAdd(&gltf.Node{
+			Name: meshName,
+			Mesh: meshIndex,
+		})
 	}
 
 	// ******** MESH SKINNING *******
@@ -117,23 +133,30 @@ func (e *MDS) GLTFExport(doc *qgltf.GLTF) error {
 	}
 	*/
 
+	tmpCache := make(map[string]bool)
+	fmt.Println(len(e.faces), "faces")
 	// ******** PRIM GENERATION *****
 	for _, o := range e.faces {
 		matName := o.MaterialName
-		if strings.HasPrefix(matName, e.name+"_") {
+		/*if strings.HasPrefix(matName, e.name+"_") {
 			matName = fmt.Sprintf("c_%s_s02_m01", e.name)
-		}
+		}*/
 
 		matIndex := doc.Material(matName)
 
+		tmpCache[matName] = true
 		if matIndex == nil {
 			val := uint32(0)
 			matIndex = &val
 		}
+		meshName := modelName + "_00"
+
 		prim, ok := prims[matIndex]
 		if !ok {
 			prim = qgltf.NewPrimitive()
 			prim.MaterialIndex = matIndex
+
+			prim.MeshName = meshName
 			prims[matIndex] = prim
 		}
 
@@ -151,24 +174,29 @@ func (e *MDS) GLTFExport(doc *qgltf.GLTF) error {
 			prim.Joints = e.joints
 			prim.Weights = e.weights
 		}
-
 	}
 
-	meshIndex := doc.MeshAdd(mesh)
+	for matName := range tmpCache {
+		fmt.Println("matCache", matName)
+	}
 
 	for _, prim := range prims {
+		meshName := fmt.Sprintf("%s_00", modelName)
 		err = doc.PrimitiveAdd(meshName, prim)
 		if err != nil {
 			return fmt.Errorf("primitiveAdd: %w", err)
 		}
+
 	}
 
-	doc.NodeAdd(&gltf.Node{
-		Name: meshName,
-		Mesh: meshIndex,
-		//Skin: skinIndex,
-	})
-
+	for i := 0; i < meshCount; i++ {
+		baseMeshName := fmt.Sprintf("%s_00", modelName)
+		meshName := fmt.Sprintf("%s_%02d", modelName, i)
+		err = doc.PrimitiveClone(baseMeshName, meshName, i)
+		if err != nil {
+			return fmt.Errorf("primitive clone %d: %w", i, err)
+		}
+	}
 	return nil
 }
 

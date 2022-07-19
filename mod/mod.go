@@ -1,3 +1,4 @@
+// mod is an EverQuest model file format
 package mod
 
 import (

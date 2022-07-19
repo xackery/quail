@@ -1,3 +1,4 @@
+// tog contains terrain details
 package tog
 
 import "github.com/g3n/engine/math32"

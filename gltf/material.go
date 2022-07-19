@@ -130,7 +130,6 @@ func (e *GLTF) MaterialAdd(req *common.Material, diffuseData []byte, normalData 
 		textureNormalName = strings.ReplaceAll(textureNormalName, ".dds", ".png")
 	}
 
-	meshName := strings.TrimSuffix(textureDiffuseName, ".png")
 	imageIdx, err := modeler.WriteImage(e.doc, textureDiffuseName, "image/png", diffuseBuf)
 	if err != nil {
 		return index, fmt.Errorf("writeImage to gtlf: %w", err)
@@ -154,7 +153,7 @@ func (e *GLTF) MaterialAdd(req *common.Material, diffuseData []byte, normalData 
 	}
 
 	newMaterial := &gltf.Material{
-		Name: meshName,
+		Name: req.Name,
 
 		PBRMetallicRoughness: &gltf.PBRMetallicRoughness{
 			BaseColorTexture: diffuseTexture,

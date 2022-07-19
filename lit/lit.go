@@ -1,3 +1,4 @@
+// lit is an EverQuest file for light data on a zone
 package lit
 
 import (

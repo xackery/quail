@@ -1,3 +1,4 @@
+// log is used for logging
 package log
 
 import (

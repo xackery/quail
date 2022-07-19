@@ -91,7 +91,7 @@ func (e *ZON) GLTFExport(doc *qgltf.GLTF) error {
 
 		baseName := baseName(obj.name)
 
-		index, err := doc.Mesh(baseName)
+		index, err := doc.MeshIndex(baseName)
 		if err != nil {
 			fmt.Println("failed", err)
 			continue

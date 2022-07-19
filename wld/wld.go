@@ -1,3 +1,4 @@
+// wld contains EverQuest fragments for various data
 package wld
 
 import "github.com/xackery/quail/common"

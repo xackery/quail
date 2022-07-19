@@ -140,7 +140,7 @@ func (e *S3D) Load(r io.ReadSeeker) error {
 				if err != nil {
 					return fmt.Errorf("filename length %s: %w", debugInfo, err)
 				}
-				filename, err := helper.ParseFixedString(fr, value)
+				filename, err := helper.ReadFixedString(fr, value)
 				if err != nil {
 					return fmt.Errorf("filename %s: %w", debugInfo, err)
 				}

@@ -1,4 +1,4 @@
-// Ter package
+// ter is an EverQuest terrain model file
 package ter
 
 import (

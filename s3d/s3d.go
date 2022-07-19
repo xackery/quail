@@ -1,3 +1,4 @@
+// s3d is an EverQuest pfs archive
 package s3d
 
 import (

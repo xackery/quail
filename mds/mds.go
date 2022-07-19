@@ -1,3 +1,4 @@
+// mds is an EverQuest model file format
 package mds
 
 // https://github.com/Zaela/EQGModelImporter/blob/master/src/mds.cpp

@@ -1,3 +1,4 @@
+// gltf handles GLTF file format related operations
 package gltf
 
 import (

@@ -1,3 +1,4 @@
+// obj is a 3d model export format
 package obj
 
 import (

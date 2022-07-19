@@ -26,7 +26,7 @@ func (e *GLTF) MeshAdd(mesh *gltf.Mesh) *uint32 {
 	return index
 }
 
-func (e *GLTF) Mesh(name string) (*uint32, error) {
+func (e *GLTF) MeshIndex(name string) (*uint32, error) {
 	entry, ok := e.meshes[name]
 	if ok {
 		return entry.index, nil
