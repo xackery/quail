@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/xackery/quail/common"
 	"github.com/xackery/quail/dump"
 	"github.com/xackery/quail/helper"
 )
@@ -39,57 +40,57 @@ func (e *PRT) Load(r io.ReadSeeker) error {
 	}
 
 	for i := 0; i < int(particleCount); i++ {
-		entry := &particleEntry{}
+		entry := &common.ParticleEntry{}
 
-		err = binary.Read(r, binary.LittleEndian, &entry.id)
+		err = binary.Read(r, binary.LittleEndian, &entry.Id)
 		if err != nil {
 			return fmt.Errorf("%d read id: %w", i, err)
 		}
-		dump.Hex(entry.id, "%did=%d", i, entry.id)
+		dump.Hex(entry.Id, "%did=%d", i, entry.Id)
 
 		if version == 5 {
-			err = binary.Read(r, binary.LittleEndian, &entry.id2)
+			err = binary.Read(r, binary.LittleEndian, &entry.Id2)
 			if err != nil {
 				return fmt.Errorf("%d read id2: %w", i, err)
 			}
-			dump.Hex(entry.id2, "%did2=%d", i, entry.id2)
+			dump.Hex(entry.Id2, "%did2=%d", i, entry.Id2)
 		}
 
-		entry.name, err = helper.ReadFixedString(r, 64)
+		entry.Bone, err = helper.ReadFixedString(r, 64)
 		if err != nil {
 			return fmt.Errorf("%d read name: %w", i, err)
 		}
-		dump.Hex(entry.name, "%dname=%s", i, entry.name)
+		dump.Hex(entry.Bone, "%dbone=%s", i, entry.Bone)
 
-		err = binary.Read(r, binary.LittleEndian, &entry.unknownA)
+		err = binary.Read(r, binary.LittleEndian, &entry.UnknownA)
 		if err != nil {
 			return fmt.Errorf("%d read unknownA: %w", i, err)
 		}
-		dump.Hex(entry.unknownA, "%dunknownA=%d", i, entry.unknownA)
+		dump.Hex(entry.UnknownA, "%dunknownA=%d", i, entry.UnknownA)
 
-		err = binary.Read(r, binary.LittleEndian, &entry.duration)
+		err = binary.Read(r, binary.LittleEndian, &entry.Duration)
 		if err != nil {
 			return fmt.Errorf("%d read duration: %w", i, err)
 		}
-		dump.Hex(entry.duration, "%dduration=%d", i, entry.duration)
+		dump.Hex(entry.Duration, "%dduration=%d", i, entry.Duration)
 
-		err = binary.Read(r, binary.LittleEndian, &entry.unknownB)
+		err = binary.Read(r, binary.LittleEndian, &entry.UnknownB)
 		if err != nil {
 			return fmt.Errorf("%d read unknownB: %w", i, err)
 		}
-		dump.Hex(entry.unknownB, "%dunknownB=%d", i, entry.unknownB)
+		dump.Hex(entry.UnknownB, "%dunknownB=%d", i, entry.UnknownB)
 
-		err = binary.Read(r, binary.LittleEndian, &entry.unknownFFFFFFFF)
+		err = binary.Read(r, binary.LittleEndian, &entry.UnknownFFFFFFFF)
 		if err != nil {
 			return fmt.Errorf("%d read unknownFFFFFFFF: %w", i, err)
 		}
-		dump.Hex(entry.unknownFFFFFFFF, "%dunknownFFFFFFFF=%d", i, entry.unknownFFFFFFFF)
+		dump.Hex(entry.UnknownFFFFFFFF, "%dunknownFFFFFFFF=%d", i, entry.UnknownFFFFFFFF)
 
-		err = binary.Read(r, binary.LittleEndian, &entry.unknownC)
+		err = binary.Read(r, binary.LittleEndian, &entry.UnknownC)
 		if err != nil {
 			return fmt.Errorf("%d read unknownC: %w", i, err)
 		}
-		dump.Hex(entry.unknownC, "%dunknownC=%d", i, entry.unknownC)
+		dump.Hex(entry.UnknownC, "%dunknownC=%d", i, entry.UnknownC)
 		e.particles = append(e.particles, entry)
 	}
 	return nil

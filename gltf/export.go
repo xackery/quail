@@ -5,6 +5,7 @@ import (
 	"io"
 
 	"github.com/qmuntal/gltf"
+	"github.com/xackery/quail/common"
 )
 
 func (e *GLTF) Export(w io.Writer) error {
@@ -12,6 +13,24 @@ func (e *GLTF) Export(w io.Writer) error {
 		e.doc.Scenes[0].Nodes = append(e.doc.Scenes[0].Nodes, i)
 	}
 
+	isEverQuestExtension := false
+
+	if len(e.particles) > 0 {
+		if !isEverQuestExtension {
+			e.doc.ExtensionsUsed = append(e.doc.ExtensionsUsed, "everquest")
+			isEverQuestExtension = true
+		}
+
+		type particleEntries struct {
+			Particles []*common.ParticleEntry `json:"particles"`
+		}
+		ext := particleEntries{}
+		e.doc.Extensions = gltf.Extensions{}
+
+		ext.Particles = e.particles
+
+		e.doc.Extensions["everquest"] = ext
+	}
 	if len(e.lights) > 0 {
 		e.doc.ExtensionsUsed = append(e.doc.ExtensionsUsed, "KHR_lights_punctual")
 

@@ -123,9 +123,9 @@ func (e *MDS) Load(r io.ReadSeeker) error {
 		}
 		dump.Hex(propertyCount, "%dpropertyCount=%d", i, propertyCount)
 
-		if name == fmt.Sprintf("%s_02", e.name) {
+		/*if name == fmt.Sprintf("%s_02", e.name) {
 			name = fmt.Sprintf("c_%s_s02_m01", e.name)
-		}
+		}*/
 
 		err = e.MaterialAdd(name, shaderName)
 		if err != nil {

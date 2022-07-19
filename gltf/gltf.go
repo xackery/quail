@@ -3,6 +3,7 @@ package gltf
 
 import (
 	"github.com/qmuntal/gltf"
+	"github.com/xackery/quail/common"
 )
 
 type GLTF struct {
@@ -10,6 +11,7 @@ type GLTF struct {
 	meshes    map[string]*meshEntry
 	materials map[string]*uint32
 	lights    map[string]*lightEntry
+	particles []*common.ParticleEntry
 	//	gltfBoneBuffer map[int]uint32
 }
 
