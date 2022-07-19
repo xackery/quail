@@ -17,3 +17,7 @@ func New(name string, archive common.Archiver) (*PRT, error) {
 		archive: archive,
 	}, nil
 }
+
+func (e *PRT) Particles() []*common.ParticleEntry {
+	return e.particles
+}

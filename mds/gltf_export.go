@@ -197,6 +197,13 @@ func (e *MDS) GLTFExport(doc *qgltf.GLTF) error {
 			return fmt.Errorf("primitive clone %d: %w", i, err)
 		}
 	}
+
+	for _, particle := range e.particles {
+		err = doc.PaticleAdd(particle)
+		if err != nil {
+			return fmt.Errorf("particleAdd: %w", err)
+		}
+	}
 	return nil
 }
 

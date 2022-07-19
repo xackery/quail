@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/xackery/quail/common"
 )
@@ -17,6 +18,7 @@ type TER struct {
 	faces     []*common.Face
 	files     []common.Filer
 	eqg       common.Archiver
+	particles []*common.ParticleEntry
 }
 
 func New(name string, archive common.Archiver) (*TER, error) {
@@ -43,4 +45,50 @@ func (e *TER) Data() []byte {
 
 func (e *TER) SetName(value string) {
 	e.name = value
+}
+
+func (e *TER) SetLayers(layers []*common.Layer) error {
+	for _, o := range layers {
+		err := e.MaterialAdd(o.Name, "")
+		if err != nil {
+			return fmt.Errorf("materialAdd: %w", err)
+		}
+		entry0Name := strings.ToLower(o.Entry0)
+		entry1Name := strings.ToLower(o.Entry1)
+		diffuseName := ""
+		normalName := ""
+		if strings.Contains(entry0Name, "_c.dds") {
+			diffuseName = entry0Name
+		}
+		if strings.Contains(entry1Name, "_c.dds") {
+			diffuseName = entry1Name
+		}
+
+		if strings.Contains(entry0Name, "_n.dds") {
+			normalName = entry0Name
+		}
+		if strings.Contains(entry1Name, "_n.dds") {
+			normalName = entry1Name
+		}
+
+		if len(diffuseName) > 0 {
+			err = e.MaterialPropertyAdd(o.Name, "e_texturediffuse0", 2, diffuseName)
+			if err != nil {
+				return fmt.Errorf("materialPropertyAdd %s: %w", diffuseName, err)
+			}
+		}
+
+		if len(normalName) > 0 {
+			err = e.MaterialPropertyAdd(o.Name, "e_texturediffuse0", 2, normalName)
+			if err != nil {
+				return fmt.Errorf("materialPropertyAdd %s: %w", normalName, err)
+			}
+		}
+	}
+	return nil
+}
+
+func (e *TER) SetParticles(particles []*common.ParticleEntry) error {
+	e.particles = particles
+	return nil
 }

@@ -181,6 +181,12 @@ func (e *MOD) GLTFExport(doc *qgltf.GLTF) error {
 		//Skin: skinIndex,
 	})
 
+	for _, particle := range e.particles {
+		err = doc.PaticleAdd(particle)
+		if err != nil {
+			return fmt.Errorf("particleAdd: %w", err)
+		}
+	}
 	return nil
 }
 

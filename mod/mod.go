@@ -22,6 +22,7 @@ type MOD struct {
 	faces     []*common.Face
 	bones     []*bone
 	files     []common.Filer
+	particles []*common.ParticleEntry
 }
 
 type bone struct {
@@ -93,4 +94,9 @@ func (e *MOD) SetLayers(layers []*common.Layer) error {
 
 func (e *MOD) AddFile(fe *common.FileEntry) {
 	e.files = append(e.files, fe)
+}
+
+func (e *MOD) SetParticles(particles []*common.ParticleEntry) error {
+	e.particles = particles
+	return nil
 }

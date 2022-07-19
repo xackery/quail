@@ -27,6 +27,7 @@ type MDS struct {
 	files     []common.Filer
 	joints    [][4]uint16
 	weights   [][4]float32
+	particles []*common.ParticleEntry
 }
 
 type bone struct {
@@ -99,4 +100,9 @@ func (e *MDS) SetLayers(layers []*common.Layer) error {
 
 func (e *MDS) AddFile(fe *common.FileEntry) {
 	e.files = append(e.files, fe)
+}
+
+func (e *MDS) SetParticles(particles []*common.ParticleEntry) error {
+	e.particles = particles
+	return nil
 }

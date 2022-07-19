@@ -93,3 +93,13 @@ func (e *ZON) Lights() []*Light {
 func (e *ZON) Objects() []*Object {
 	return e.objects
 }
+
+func (e *ZON) SetLayers(layers []*common.Layer) error {
+	fmt.Println("TODO: set layers via zon")
+	return nil
+}
+
+func (e *ZON) SetParticles(particles []*common.ParticleEntry) error {
+	fmt.Println("TODO: set particles via zon")
+	return nil
+}

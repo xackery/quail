@@ -6,10 +6,10 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"time"
 
 	"github.com/xackery/quail/common"
 	"github.com/xackery/quail/eqg"
+	qexport "github.com/xackery/quail/export"
 	"github.com/xackery/quail/gltf"
 	"github.com/xackery/quail/mds"
 	"github.com/xackery/quail/mod"
@@ -32,10 +32,6 @@ func viewLoad(buf *bytes.Buffer, path string, file string) error {
 	views := []*viewFunc{
 		{name: "eqg", invoke: viewLoadEQG},
 		{name: "gltf", invoke: viewLoadGLTF},
-		{name: "zon", invoke: viewLoadZON},
-		{name: "ter", invoke: viewLoadTER},
-		{name: "mds", invoke: viewLoadMDS},
-		{name: "mod", invoke: viewLoadMOD},
 	}
 
 	for _, v := range views {
@@ -100,87 +96,24 @@ func viewLoadEQG(buf *bytes.Buffer, path string, file string, ext string) error 
 			return fmt.Errorf("buf.Write: %w", err)
 		}
 	} else {
-		isFound := false
-		for _, fe := range archive.Files() {
-			ext := filepath.Ext(fe.Name())
-			switch ext {
-			case ".zon":
-				start := time.Now()
-				fmt.Println(fe.Name(), "loading")
-				e, err := zon.New(fe.Name(), archive)
-				if err != nil {
-					return fmt.Errorf("zon.NewEQG: %w", err)
-				}
-				err = e.Load(bytes.NewReader(fe.Data()))
-				if err != nil {
-					return fmt.Errorf("zon.Load: %w", err)
-				}
-				err = e.GLTFExport(doc)
-				if err != nil {
-					return fmt.Errorf("zon.Export: %w", err)
-				}
-				err = doc.Export(buf)
-				if err != nil {
-					return fmt.Errorf("zon doc.Export: %w", err)
-				}
-				fmt.Printf("%s loaded in %.1fs\n", fe.Name(), time.Since(start).Seconds())
-				isFound = true
-			}
+		e, err := qexport.New(filepath.Base(path), archive)
+		if err != nil {
+			return fmt.Errorf("export new: %w", err)
 		}
-		for _, fe := range archive.Files() {
-			if isFound {
-				break
-			}
-			ext := filepath.Ext(fe.Name())
-			switch ext {
-			case ".mds":
-				start := time.Now()
-				fmt.Println(fe.Name(), "loading")
-				e, err := mds.New(fe.Name(), archive)
-				if err != nil {
-					return fmt.Errorf("mds new: %w", err)
-				}
-				err = e.Load(bytes.NewReader(fe.Data()))
-				if err != nil {
-					return fmt.Errorf("mds load: %w", err)
-				}
-				err = e.GLTFExport(doc)
-				if err != nil {
-					return fmt.Errorf("mds.Export: %w", err)
-				}
-				err = doc.Export(buf)
-				if err != nil {
-					return fmt.Errorf("mds doc.Export: %w", err)
-				}
 
-				fmt.Printf("%s loaded in %.1fs\n", fe.Name(), time.Since(start).Seconds())
-				isFound = true
-			case ".mod":
-				start := time.Now()
-				fmt.Println(fe.Name(), "loading")
-				e, err := mod.New(fe.Name(), archive)
-				if err != nil {
-					return fmt.Errorf("mod new: %w", err)
-				}
-				err = e.Load(bytes.NewReader(fe.Data()))
-				if err != nil {
-					return fmt.Errorf("mod.Load: %w", err)
-				}
-				err = e.GLTFExport(doc)
-				if err != nil {
-					return fmt.Errorf("mod.Export: %w", err)
-				}
-				err = doc.Export(buf)
-				if err != nil {
-					return fmt.Errorf("mod doc.Export: %w", err)
-				}
-				fmt.Printf("%s loaded in %.1fs\n", fe.Name(), time.Since(start).Seconds())
-				isFound = true
-			case ".ter":
-			}
-			if isFound {
-				break
-			}
+		err = e.LoadArchive()
+		if err != nil {
+			return fmt.Errorf("load archive: %w", err)
+		}
+
+		err = e.GLTFExport(doc)
+		if err != nil {
+			return fmt.Errorf("gltfexport: %w", err)
+		}
+
+		err = doc.Export(buf)
+		if err != nil {
+			return fmt.Errorf("gltf export: %w", err)
 		}
 	}
 	return nil

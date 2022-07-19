@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"bytes"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -9,14 +8,10 @@ import (
 	"time"
 
 	"github.com/spf13/cobra"
-	"github.com/xackery/quail/common"
 	"github.com/xackery/quail/eqg"
+	qexport "github.com/xackery/quail/export"
 	"github.com/xackery/quail/gltf"
-	"github.com/xackery/quail/lay"
-	"github.com/xackery/quail/mds"
-	"github.com/xackery/quail/mod"
 	"github.com/xackery/quail/s3d"
-	"github.com/xackery/quail/zon"
 )
 
 // exportCmd represents the export command
@@ -169,28 +164,34 @@ func exportEQG(in string, out string, isDir bool) error {
 		return fmt.Errorf("load %s: %w", in, err)
 	}
 
-	isZone := true
-	zoneName := fmt.Sprintf("%s.zon", strings.TrimSuffix(filepath.Base(in), ".eqg"))
-
-	zoneData, err := archive.File(zoneName)
+	e, err := qexport.New(filepath.Base(in), archive)
 	if err != nil {
-		isZone = false
+		return fmt.Errorf("export new: %w", err)
 	}
 
-	if !isZone {
-		for _, fe := range archive.Files() {
-			err = convertFile(archive, fe.Name(), fe.Data(), out)
-			if err != nil {
-				fmt.Println("tmpConvert", fe.Name(), err.Error())
-				//return fmt.Errorf("convert %s: %w", fe.Name(), err)
-			}
-		}
-	} else {
-		err = convertFile(archive, zoneName, zoneData, out)
-		if err != nil {
-			fmt.Println("tmpConvert", zoneName, err.Error())
-			//return fmt.Errorf("convert %s: %w", zoneName, err)
-		}
+	err = e.LoadArchive()
+	if err != nil {
+		return fmt.Errorf("load archive: %w", err)
+	}
+
+	outFile := fmt.Sprintf("%s/%s.gltf", out, filepath.Base(in))
+	fmt.Println("exporting", outFile)
+	w, err := os.Create(outFile)
+	if err != nil {
+		return fmt.Errorf("create: %w", err)
+	}
+	defer w.Close()
+	doc, err := gltf.New()
+	if err != nil {
+		return fmt.Errorf("gltf.New: %w", err)
+	}
+	err = e.GLTFExport(doc)
+	if err != nil {
+		return fmt.Errorf("gltf: %w", err)
+	}
+	err = doc.Export(w)
+	if err != nil {
+		return fmt.Errorf("export: %w", err)
 	}
 
 	fmt.Printf("%s exported in %.1fs\n", filepath.Base(in), time.Since(start).Seconds())
@@ -219,146 +220,5 @@ func exportS3D(path string, out string, isDir bool) error {
 	}
 
 	fmt.Printf("%s exported in %.1fs\n", filepath.Base(path), time.Since(start).Seconds())
-	return nil
-}
-
-func convertFile(archive common.Archiver, name string, data []byte, out string) error {
-
-	outFile := ""
-	switch strings.ToLower(filepath.Ext(name)) {
-	case ".mds":
-		e, err := mds.New(name, archive)
-		if err != nil {
-			return fmt.Errorf("mds new: %w", err)
-		}
-
-		err = e.Load(bytes.NewReader(data))
-		if err != nil {
-			return fmt.Errorf("load: %w", err)
-		}
-
-		err = layerInject(archive, e, fmt.Sprintf("%s.lay", strings.TrimSuffix(name, ".mds")))
-		if err != nil {
-			return fmt.Errorf("layerInject: %w", err)
-		}
-
-		outFile = fmt.Sprintf("%s/%s.gltf", out, strings.TrimSuffix(name, ".mds"))
-		fmt.Println("exporting mds", outFile)
-		w, err := os.Create(outFile)
-		if err != nil {
-			return fmt.Errorf("create: %w", err)
-		}
-		defer w.Close()
-		doc, err := gltf.New()
-		if err != nil {
-			return fmt.Errorf("gltf.New: %w", err)
-		}
-		err = e.GLTFExport(doc)
-		if err != nil {
-			return fmt.Errorf("gltf: %w", err)
-		}
-		err = doc.Export(w)
-		if err != nil {
-			return fmt.Errorf("export: %w", err)
-		}
-
-	case ".mod":
-		e, err := mod.New(name, archive)
-		if err != nil {
-			return fmt.Errorf("mod new: %w", err)
-		}
-
-		err = e.Load(bytes.NewReader(data))
-		if err != nil {
-			return fmt.Errorf("load: %w", err)
-		}
-
-		err = layerInject(archive, e, fmt.Sprintf("%s.lay", strings.TrimSuffix(name, ".mod")))
-		if err != nil {
-			return fmt.Errorf("layerInject: %w", err)
-		}
-		outFile = fmt.Sprintf("%s/%s.gltf", out, strings.TrimSuffix(name, ".mod"))
-		fmt.Println("exporting mod", outFile)
-		w, err := os.Create(outFile)
-		if err != nil {
-			return fmt.Errorf("create: %w", err)
-		}
-		defer w.Close()
-		doc, err := gltf.New()
-		if err != nil {
-			return fmt.Errorf("gltf.New: %w", err)
-		}
-		err = e.GLTFExport(doc)
-		if err != nil {
-			return fmt.Errorf("gltf: %w", err)
-		}
-		err = doc.Export(w)
-		if err != nil {
-			return fmt.Errorf("export: %w", err)
-		}
-
-	case ".ter":
-		// we skip terrain data in archive, and instead load it via .zon
-	case ".zon":
-		z, err := zon.New(name, archive)
-		if err != nil {
-			return fmt.Errorf("new: %w", err)
-		}
-
-		err = z.Load(bytes.NewReader(data))
-		if err != nil {
-			return fmt.Errorf("load: %w", err)
-		}
-
-		doc, err := gltf.New()
-		if err != nil {
-			return fmt.Errorf("gltf.New: %w", err)
-		}
-		err = z.GLTFExport(doc)
-		if err != nil {
-			return fmt.Errorf("glts: %w", err)
-		}
-		outFile = fmt.Sprintf("%s/%s.gltf", out, strings.TrimSuffix(name, ".zon"))
-		fmt.Println("exporting zon", outFile)
-		w, err := os.Create(outFile)
-		if err != nil {
-			return fmt.Errorf("create: %w", err)
-		}
-		defer w.Close()
-		err = doc.Export(w)
-		if err != nil {
-			return fmt.Errorf("export: %w", err)
-		}
-
-	}
-	return nil
-}
-
-func layerInject(archive common.Archiver, modeler common.Modeler, layName string) error {
-
-	layEntry, err := archive.File(layName)
-	if err != nil {
-		if strings.Contains(err.Error(), "does not exist") {
-			return nil
-		}
-		return fmt.Errorf("file %s: %w", layName, err)
-	}
-
-	if len(layEntry) == 0 {
-		return nil
-	}
-
-	l, err := lay.New(layName, archive)
-	if err != nil {
-		return fmt.Errorf("lay.NewEQG: %w", err)
-	}
-	err = l.Load(bytes.NewReader(layEntry))
-	if err != nil {
-		return fmt.Errorf("lay.Load: %w", err)
-	}
-	err = modeler.SetLayers(l.Layers())
-	if err != nil {
-		return fmt.Errorf("setLayers: %w", err)
-	}
 	return nil
 }
