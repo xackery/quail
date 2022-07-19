@@ -87,7 +87,7 @@ var exportCmd = &cobra.Command{
 
 				//fmt.Println("exporting", inFile, "to", gltfOut)
 				fmt.Println("parsing", inFile)
-				ok, err := export(inFile, fileOut, true)
+				ok, err := export(inFile, fileOut)
 				if err != nil {
 					return err
 				}
@@ -121,7 +121,7 @@ var exportCmd = &cobra.Command{
 			return fmt.Errorf("%s is not a directory", out)
 		}
 		fmt.Println("parsing", path)
-		_, err = export(path, out, false)
+		_, err = export(path, out)
 		if err != nil {
 			return err
 		}
@@ -129,17 +129,17 @@ var exportCmd = &cobra.Command{
 	},
 }
 
-func export(in string, out string, isDir bool) (bool, error) {
+func export(in string, out string) (bool, error) {
 
 	var err error
 	switch strings.ToLower(filepath.Ext(in)) {
 	case ".eqg":
-		err = exportEQG(in, out, isDir)
+		err = exportEQG(in, out)
 		if err != nil {
 			return true, fmt.Errorf("exportEQG: %w", err)
 		}
 	case ".s3d":
-		err = exportS3D(in, out, isDir)
+		err = exportS3D(in, out)
 		if err != nil {
 			return true, fmt.Errorf("exportS3D: %w", err)
 		}
@@ -149,7 +149,7 @@ func export(in string, out string, isDir bool) (bool, error) {
 	return true, nil
 }
 
-func exportEQG(in string, out string, isDir bool) error {
+func exportEQG(in string, out string) error {
 	start := time.Now()
 	f, err := os.Open(in)
 	if err != nil {
@@ -204,7 +204,7 @@ func init() {
 	exportCmd.PersistentFlags().String("out", "", "out folder to export to")
 }
 
-func exportS3D(path string, out string, isDir bool) error {
+func exportS3D(path string, out string) error {
 	start := time.Now()
 	f, err := os.Open(path)
 	if err != nil {
