@@ -8,7 +8,7 @@ import "github.com/xackery/quail/common"
 type PRT struct {
 	name      string
 	archive   common.Archiver
-	particles []*common.ParticleEntry
+	particles []*common.ParticleRender
 }
 
 func New(name string, archive common.Archiver) (*PRT, error) {
@@ -18,6 +18,6 @@ func New(name string, archive common.Archiver) (*PRT, error) {
 	}, nil
 }
 
-func (e *PRT) Particles() []*common.ParticleEntry {
+func (e *PRT) ParticleRenders() []*common.ParticleRender {
 	return e.particles
 }

@@ -16,13 +16,14 @@ type MOD struct {
 	// path is used for relative paths when looking for flat file texture references
 	path string
 	// archive is used as an alternative to path when loading data from a archive file
-	archive   common.Archiver
-	materials []*common.Material
-	vertices  []*common.Vertex
-	faces     []*common.Face
-	bones     []*bone
-	files     []common.Filer
-	particles []*common.ParticleEntry
+	archive         common.Archiver
+	materials       []*common.Material
+	vertices        []*common.Vertex
+	faces           []*common.Face
+	bones           []*bone
+	files           []common.Filer
+	particleRenders []*common.ParticleRender
+	particlePoints  []*common.ParticlePoint
 }
 
 type bone struct {
@@ -96,7 +97,12 @@ func (e *MOD) AddFile(fe *common.FileEntry) {
 	e.files = append(e.files, fe)
 }
 
-func (e *MOD) SetParticles(particles []*common.ParticleEntry) error {
-	e.particles = particles
+func (e *MOD) SetParticleRenders(particles []*common.ParticleRender) error {
+	e.particleRenders = particles
+	return nil
+}
+
+func (e *MOD) SetParticlePoints(particles []*common.ParticlePoint) error {
+	e.particlePoints = particles
 	return nil
 }

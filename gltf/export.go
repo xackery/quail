@@ -15,22 +15,23 @@ func (e *GLTF) Export(w io.Writer) error {
 
 	isEverQuestExtension := false
 
-	if len(e.particles) > 0 {
-		if !isEverQuestExtension {
-			e.doc.ExtensionsUsed = append(e.doc.ExtensionsUsed, "everquest")
-			isEverQuestExtension = true
-		}
-
-		type particleEntries struct {
-			Particles []*common.ParticleEntry `json:"particles"`
-		}
-		ext := particleEntries{}
-		e.doc.Extensions = gltf.Extensions{}
-
-		ext.Particles = e.particles
-
-		e.doc.Extensions["everquest"] = ext
+	type everquestExtensionEntries struct {
+		ParticleRenders []*common.ParticleRender `json:"particleRenders"`
+		ParticlePoints  []*common.ParticlePoint  `json:"particlePoints"`
 	}
+	eqExt := &everquestExtensionEntries{}
+	e.doc.Extensions = gltf.Extensions{}
+
+	if len(e.particleRenders) > 0 {
+		isEverQuestExtension = true
+		eqExt.ParticleRenders = e.particleRenders
+	}
+
+	if len(e.particlePoints) > 0 {
+		isEverQuestExtension = true
+		eqExt.ParticlePoints = e.particlePoints
+	}
+
 	if len(e.lights) > 0 {
 		e.doc.ExtensionsUsed = append(e.doc.ExtensionsUsed, "KHR_lights_punctual")
 
@@ -45,6 +46,12 @@ func (e *GLTF) Export(w io.Writer) error {
 		}
 		e.doc.Extensions["KHR_lights_punctual"] = ext
 	}
+
+	if isEverQuestExtension {
+		e.doc.ExtensionsUsed = append(e.doc.ExtensionsUsed, "everquest")
+		e.doc.Extensions["everquest"] = eqExt
+	}
+
 	for _, buff := range e.doc.Buffers {
 		buff.EmbeddedResource()
 	}

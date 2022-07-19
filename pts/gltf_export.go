@@ -1,4 +1,4 @@
-package prt
+package pts
 
 import (
 	"fmt"
@@ -6,16 +6,16 @@ import (
 	qgltf "github.com/xackery/quail/gltf"
 )
 
-// GLTFExport exports a provided prt file to gltf format
-func (e *PRT) GLTFExport(doc *qgltf.GLTF) error {
+// GLTFExport exports a provided pts file to gltf format
+func (e *PTS) GLTFExport(doc *qgltf.GLTF) error {
 	var err error
 	if doc == nil {
 		return fmt.Errorf("doc is nil")
 	}
 	for _, entry := range e.particles {
-		err = doc.ParticleRenderAdd(entry)
+		err = doc.ParticlePointAdd(entry)
 		if err != nil {
-			return fmt.Errorf("ParticleRenderAdd: %w", err)
+			return fmt.Errorf("ParticlePointAdd: %w", err)
 		}
 	}
 	return nil

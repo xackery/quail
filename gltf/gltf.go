@@ -7,11 +7,12 @@ import (
 )
 
 type GLTF struct {
-	doc       *gltf.Document
-	meshes    map[string]*meshEntry
-	materials map[string]*uint32
-	lights    map[string]*lightEntry
-	particles []*common.ParticleEntry
+	doc             *gltf.Document
+	meshes          map[string]*meshEntry
+	materials       map[string]*uint32
+	lights          map[string]*lightEntry
+	particleRenders []*common.ParticleRender
+	particlePoints  []*common.ParticlePoint
 	//	gltfBoneBuffer map[int]uint32
 }
 

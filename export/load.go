@@ -9,6 +9,7 @@ import (
 	"github.com/xackery/quail/mds"
 	"github.com/xackery/quail/mod"
 	"github.com/xackery/quail/prt"
+	"github.com/xackery/quail/pts"
 	"github.com/xackery/quail/ter"
 	"github.com/xackery/quail/zon"
 )
@@ -66,9 +67,14 @@ func (e *Export) loadZon() error {
 		return fmt.Errorf("zon load: %w", err)
 	}
 
-	err = e.loadParticles()
+	err = e.loadParticlePoints()
 	if err != nil {
-		return fmt.Errorf("zon loadParticles: %w", err)
+		return fmt.Errorf("zon loadParticlePoints: %w", err)
+	}
+
+	err = e.loadParticleRenders()
+	if err != nil {
+		return fmt.Errorf("zon loadParticleRenders: %w", err)
 	}
 	return nil
 }
@@ -105,9 +111,14 @@ func (e *Export) loadMds() error {
 		return fmt.Errorf("mds loadLayer: %w", err)
 	}
 
-	err = e.loadParticles()
+	err = e.loadParticleRenders()
 	if err != nil {
-		return fmt.Errorf("mds loadParticles: %w", err)
+		return fmt.Errorf("mds loadParticleRenders: %w", err)
+	}
+
+	err = e.loadParticlePoints()
+	if err != nil {
+		return fmt.Errorf("mds loadParticlePoints: %w", err)
 	}
 	return nil
 }
@@ -144,9 +155,14 @@ func (e *Export) loadMod() error {
 		return fmt.Errorf("mod loadLayer: %w", err)
 	}
 
-	err = e.loadParticles()
+	err = e.loadParticleRenders()
 	if err != nil {
-		return fmt.Errorf("mod loadParticles: %w", err)
+		return fmt.Errorf("mod loadParticleRenders: %w", err)
+	}
+
+	err = e.loadParticlePoints()
+	if err != nil {
+		return fmt.Errorf("mod loadParticlePoints: %w", err)
 	}
 	return nil
 }
@@ -183,9 +199,14 @@ func (e *Export) loadTer() error {
 		return fmt.Errorf("ter loadLayer: %w", err)
 	}
 
-	err = e.loadParticles()
+	err = e.loadParticleRenders()
 	if err != nil {
-		return fmt.Errorf("ter loadParticles: %w", err)
+		return fmt.Errorf("ter loadParticleRenders: %w", err)
+	}
+
+	err = e.loadParticlePoints()
+	if err != nil {
+		return fmt.Errorf("ter loadParticlePoints: %w", err)
 	}
 	return nil
 }
@@ -217,7 +238,7 @@ func (e *Export) loadLayer() error {
 	return nil
 }
 
-func (e *Export) loadParticles() error {
+func (e *Export) loadParticleRenders() error {
 	prtName := fmt.Sprintf("%s.prt", e.name)
 	prtEntry, err := e.archive.File(prtName)
 	if err != nil && !strings.Contains(err.Error(), "does not exist") {
@@ -237,9 +258,38 @@ func (e *Export) loadParticles() error {
 		return fmt.Errorf("prt load: %w", err)
 	}
 
-	err = e.model.SetParticles(p.Particles())
+	err = e.model.SetParticleRenders(p.ParticleRenders())
 	if err != nil {
 		return fmt.Errorf("prt setparticles: %w", err)
 	}
+
+	return nil
+}
+
+func (e *Export) loadParticlePoints() error {
+	prtName := fmt.Sprintf("%s.pts", e.name)
+	prtEntry, err := e.archive.File(prtName)
+	if err != nil && !strings.Contains(err.Error(), "does not exist") {
+		return fmt.Errorf("file '%s': %w", prtName, err)
+	}
+
+	if len(prtEntry) == 0 {
+		return nil
+	}
+
+	p, err := pts.New(prtName, e.archive)
+	if err != nil {
+		return fmt.Errorf("ts new: %w", err)
+	}
+	err = p.Load(bytes.NewReader(prtEntry))
+	if err != nil {
+		return fmt.Errorf("pts load: %w", err)
+	}
+
+	err = e.model.SetParticlePoints(p.ParticlePoints())
+	if err != nil {
+		return fmt.Errorf("prt setparticles: %w", err)
+	}
+
 	return nil
 }

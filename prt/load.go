@@ -40,7 +40,7 @@ func (e *PRT) Load(r io.ReadSeeker) error {
 	}
 
 	for i := 0; i < int(particleCount); i++ {
-		entry := &common.ParticleEntry{}
+		entry := &common.ParticleRender{}
 
 		err = binary.Read(r, binary.LittleEndian, &entry.Id)
 		if err != nil {
@@ -56,11 +56,11 @@ func (e *PRT) Load(r io.ReadSeeker) error {
 			dump.Hex(entry.Id2, "%did2=%d", i, entry.Id2)
 		}
 
-		entry.Bone, err = helper.ReadFixedString(r, 64)
+		entry.ParticlePoint, err = helper.ReadFixedString(r, 64)
 		if err != nil {
 			return fmt.Errorf("%d read name: %w", i, err)
 		}
-		dump.Hex(entry.Bone, "%dbone=%s", i, entry.Bone)
+		dump.Hex(entry.ParticlePoint, "%dbone=%s", i, entry.ParticlePoint)
 
 		err = binary.Read(r, binary.LittleEndian, &entry.UnknownA)
 		if err != nil {

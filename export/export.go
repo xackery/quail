@@ -18,7 +18,8 @@ type modeler interface {
 	Load(r io.ReadSeeker) error
 	GLTFExport(doc *qgltf.GLTF) error
 	SetLayers(layers []*common.Layer) error
-	SetParticles(particles []*common.ParticleEntry) error
+	SetParticleRenders(particles []*common.ParticleRender) error
+	SetParticlePoints(particles []*common.ParticlePoint) error
 }
 
 func New(name string, archive common.Archiver) (*Export, error) {

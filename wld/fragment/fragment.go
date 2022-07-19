@@ -9,6 +9,8 @@ import (
 	"github.com/xackery/quail/dump"
 )
 
+//ref: https://github.com/SCMcLaughlin/p99-iksar-anim-oneclick/blob/master/src/structs_wld_frag.h
+
 var (
 	fragmentTypes = make(map[int32](func(r io.ReadSeeker) (common.WldFragmenter, error)))
 	names         = make(map[uint32]string)

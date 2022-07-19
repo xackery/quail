@@ -12,13 +12,14 @@ import (
 
 // TER is a terrain file struct
 type TER struct {
-	name      string
-	materials []*common.Material
-	vertices  []*common.Vertex
-	faces     []*common.Face
-	files     []common.Filer
-	eqg       common.Archiver
-	particles []*common.ParticleEntry
+	name            string
+	materials       []*common.Material
+	vertices        []*common.Vertex
+	faces           []*common.Face
+	files           []common.Filer
+	eqg             common.Archiver
+	particleRenders []*common.ParticleRender
+	particlePoints  []*common.ParticlePoint
 }
 
 func New(name string, archive common.Archiver) (*TER, error) {
@@ -88,7 +89,12 @@ func (e *TER) SetLayers(layers []*common.Layer) error {
 	return nil
 }
 
-func (e *TER) SetParticles(particles []*common.ParticleEntry) error {
-	e.particles = particles
+func (e *TER) SetParticleRenders(particles []*common.ParticleRender) error {
+	e.particleRenders = particles
+	return nil
+}
+
+func (e *TER) SetParticlePoints(particles []*common.ParticlePoint) error {
+	e.particlePoints = particles
 	return nil
 }

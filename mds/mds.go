@@ -19,15 +19,16 @@ type MDS struct {
 	// path is used for relative paths when looking for flat file texture references
 	path string
 	// archive is used as an alternative to path when loading data from a archive file
-	archive   common.Archiver
-	materials []*common.Material
-	vertices  []*common.Vertex
-	faces     []*common.Face
-	bones     []*bone
-	files     []common.Filer
-	joints    [][4]uint16
-	weights   [][4]float32
-	particles []*common.ParticleEntry
+	archive         common.Archiver
+	materials       []*common.Material
+	vertices        []*common.Vertex
+	faces           []*common.Face
+	bones           []*bone
+	files           []common.Filer
+	joints          [][4]uint16
+	weights         [][4]float32
+	particleRenders []*common.ParticleRender
+	particlePoints  []*common.ParticlePoint
 }
 
 type bone struct {
@@ -102,7 +103,12 @@ func (e *MDS) AddFile(fe *common.FileEntry) {
 	e.files = append(e.files, fe)
 }
 
-func (e *MDS) SetParticles(particles []*common.ParticleEntry) error {
-	e.particles = particles
+func (e *MDS) SetParticleRenders(particles []*common.ParticleRender) error {
+	e.particleRenders = particles
+	return nil
+}
+
+func (e *MDS) SetParticlePoints(particles []*common.ParticlePoint) error {
+	e.particlePoints = particles
 	return nil
 }

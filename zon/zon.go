@@ -99,7 +99,12 @@ func (e *ZON) SetLayers(layers []*common.Layer) error {
 	return nil
 }
 
-func (e *ZON) SetParticles(particles []*common.ParticleEntry) error {
+func (e *ZON) SetParticleRenders(particles []*common.ParticleRender) error {
+	fmt.Println("TODO: set particles via zon")
+	return nil
+}
+
+func (e *ZON) SetParticlePoints(particles []*common.ParticlePoint) error {
 	fmt.Println("TODO: set particles via zon")
 	return nil
 }
