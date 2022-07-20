@@ -15,9 +15,9 @@ func (e *TER) ArchiveExport(outArchive common.ArchiveWriter) error {
 	}
 
 	buf := bytes.NewBuffer(nil)
-	err := e.Save(buf)
+	err := e.Encode(buf)
 	if err != nil {
-		return fmt.Errorf("ter save: %w", err)
+		return fmt.Errorf("ter encode: %w", err)
 	}
 
 	err = outArchive.WriteFile(e.name+".ter", buf.Bytes())

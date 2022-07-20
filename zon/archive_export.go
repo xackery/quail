@@ -34,9 +34,9 @@ func (e *ZON) ArchiveExport(outArchive common.ArchiveReadWriter) error {
 			if err != nil {
 				return fmt.Errorf("ter.NewEQG: %w", err)
 			}
-			err = e.Load(bytes.NewReader(modelData))
+			err = e.Decode(bytes.NewReader(modelData))
 			if err != nil {
-				return fmt.Errorf("ter load %s: %w", baseName, err)
+				return fmt.Errorf("ter decode %s: %w", baseName, err)
 			}
 
 			err = e.ArchiveExport(outArchive)
@@ -49,10 +49,10 @@ func (e *ZON) ArchiveExport(outArchive common.ArchiveReadWriter) error {
 			if err != nil {
 				return fmt.Errorf("mod new: %w", err)
 			}
-			err = e.Load(bytes.NewReader(modelData))
+			err = e.Decode(bytes.NewReader(modelData))
 			if err != nil {
 				continue
-				//return fmt.Errorf("mod load %s: %w", baseName, err)
+				//return fmt.Errorf("mod decode %s: %w", baseName, err)
 			}
 			err = e.ArchiveExport(outArchive)
 			if err != nil {
@@ -64,9 +64,9 @@ func (e *ZON) ArchiveExport(outArchive common.ArchiveReadWriter) error {
 			if err != nil {
 				return fmt.Errorf("mds new: %w", err)
 			}
-			err = e.Load(bytes.NewReader(modelData))
+			err = e.Decode(bytes.NewReader(modelData))
 			if err != nil {
-				return fmt.Errorf("mds load %s: %w", baseName, err)
+				return fmt.Errorf("mds decode %s: %w", baseName, err)
 			}
 			err = e.ArchiveExport(outArchive)
 			if err != nil {
@@ -80,9 +80,9 @@ func (e *ZON) ArchiveExport(outArchive common.ArchiveReadWriter) error {
 	}
 
 	buf := bytes.NewBuffer(nil)
-	err = e.Save(buf)
+	err = e.Encode(buf)
 	if err != nil {
-		return fmt.Errorf("zon save: %w", err)
+		return fmt.Errorf("zon encode: %w", err)
 	}
 
 	err = outArchive.WriteFile(e.name+".zon", buf.Bytes())

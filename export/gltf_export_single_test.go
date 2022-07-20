@@ -29,7 +29,7 @@ func TestGLTFFlushEQPath(t *testing.T) {
 	}
 }
 
-func TestGLTFExportSamplesSingleTest(t *testing.T) {
+func TestGLTFEncodeSamplesSingleTest(t *testing.T) {
 	if os.Getenv("SINGLE_TEST") != "1" {
 		return
 	}
@@ -59,21 +59,12 @@ func TestGLTFExportSamplesSingleTest(t *testing.T) {
 		//outFile := fmt.Sprintf("test/eq/%s_mod.gltf", tt.category)
 		//txtFile := fmt.Sprintf("test/eq/%s_mod.txt", tt.category)
 
-		ra, err := os.Open(eqgFile)
+		archive, err := eqg.NewFile(eqgFile)
 		if err != nil {
-			t.Fatalf("%s", err)
-		}
-		defer ra.Close()
-		a, err := eqg.New(tt.category)
-		if err != nil {
-			t.Fatalf("eqg.New: %s", err)
-		}
-		err = a.Load(ra)
-		if err != nil {
-			t.Fatalf("load eqg: %s", err)
+			t.Fatalf("eqg new: %s", err)
 		}
 
-		e, err := New(tt.category, a)
+		e, err := New(tt.category, archive)
 		if err != nil {
 			t.Fatalf("export new: %s", err)
 		}
@@ -95,7 +86,7 @@ func TestGLTFExportSamplesSingleTest(t *testing.T) {
 			t.Fatalf("gltf.New: %s", err)
 		}
 
-		err = e.GLTFExport(doc)
+		err = e.GLTFEncode(doc)
 		if err != nil {
 			t.Fatalf("gltf: %s", err)
 		}

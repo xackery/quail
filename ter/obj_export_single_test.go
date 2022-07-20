@@ -27,9 +27,9 @@ func TestObjExport(t *testing.T) {
 	if err != nil {
 		t.Fatalf("open: %s", err)
 	}
-	err = e.Load(r)
+	err = e.Decode(r)
 	if err != nil {
-		t.Fatalf("load: %s", err)
+		t.Fatalf("decode: %s", err)
 	}
 
 	err = e.ObjExport("test/objexport.obj", "test/objexport.mtl", "test/objexport.txt")

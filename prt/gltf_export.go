@@ -6,8 +6,8 @@ import (
 	qgltf "github.com/xackery/quail/gltf"
 )
 
-// GLTFExport exports a provided prt file to gltf format
-func (e *PRT) GLTFExport(doc *qgltf.GLTF) error {
+// GLTFEncode exports a provided prt file to gltf format
+func (e *PRT) GLTFEncode(doc *qgltf.GLTF) error {
 	var err error
 	if doc == nil {
 		return fmt.Errorf("doc is nil")

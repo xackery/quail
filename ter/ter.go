@@ -40,9 +40,9 @@ func NewFile(name string, archive common.ArchiveReadWriter, file string) (*TER, 
 	if err != nil {
 		return nil, fmt.Errorf("file '%s': %w", file, err)
 	}
-	err = e.Load(bytes.NewReader(data))
+	err = e.Decode(bytes.NewReader(data))
 	if err != nil {
-		return nil, fmt.Errorf("load: %w", err)
+		return nil, fmt.Errorf("decode: %w", err)
 	}
 	return e, nil
 }
@@ -53,9 +53,9 @@ func (e *TER) Name() string {
 
 func (e *TER) Data() []byte {
 	w := bytes.NewBuffer(nil)
-	err := e.Save(w)
+	err := e.Encode(w)
 	if err != nil {
-		fmt.Println("failed to save terrain data:", err)
+		fmt.Println("failed to encode terrain data:", err)
 		os.Exit(1)
 	}
 	return w.Bytes()

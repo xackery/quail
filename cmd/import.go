@@ -132,7 +132,7 @@ func importEQG(path string, out string) error {
 			if err != nil {
 				return fmt.Errorf("zon open %s: %w", baseName, err)
 			}
-			err = e.GLTFImport(gdoc)
+			err = e.GLTFDecode(gdoc)
 			if err != nil {
 				return fmt.Errorf("zon import %s: %w", baseName, err)
 			}
@@ -169,7 +169,7 @@ func importEQG(path string, out string) error {
 			if err != nil {
 				return fmt.Errorf("mds open %s: %w", baseName, err)
 			}
-			err = e.GLTFImport(gdoc)
+			err = e.GLTFDecode(gdoc)
 			if err != nil {
 				return fmt.Errorf("mds import %s: %w", baseName, err)
 			}
@@ -192,7 +192,7 @@ func importEQG(path string, out string) error {
 			if err != nil {
 				return fmt.Errorf("mod open %s: %w", baseName, err)
 			}
-			err = e.GLTFImport(gdoc)
+			err = e.GLTFDecode(gdoc)
 			if err != nil {
 				return fmt.Errorf("mod import %s: %w", baseName, err)
 			}
@@ -211,9 +211,9 @@ func importEQG(path string, out string) error {
 		return fmt.Errorf("create %s: %w", out, err)
 	}
 	defer w.Close()
-	err = archive.Save(w)
+	err = archive.Encode(w)
 	if err != nil {
-		return fmt.Errorf("save %s: %w", out, err)
+		return fmt.Errorf("encode %s: %w", out, err)
 	}
 
 	fmt.Printf("%d file%s written to %s\n", archive.Len(), helper.Pluralize(archive.Len()), out)
@@ -268,9 +268,9 @@ func importS3D(path string, out string) error {
 		return fmt.Errorf("create %s: %w", out, err)
 	}
 	defer w.Close()
-	err = a.Save(w)
+	err = a.Encode(w)
 	if err != nil {
-		return fmt.Errorf("save %s: %w", out, err)
+		return fmt.Errorf("encode %s: %w", out, err)
 	}
 
 	fmt.Printf("%d file%s: %s\nwritten to %s\n", fileCount, helper.Pluralize(fileCount), addStdout, out)

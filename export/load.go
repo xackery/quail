@@ -62,9 +62,9 @@ func (e *Export) loadZon() error {
 		return fmt.Errorf("new: %w", err)
 	}
 
-	err = e.model.Load(bytes.NewReader(data))
+	err = e.model.Decode(bytes.NewReader(data))
 	if err != nil {
-		return fmt.Errorf("load: %w", err)
+		return fmt.Errorf("decode: %w", err)
 	}
 
 	err = e.loadParticlePoints()
@@ -102,9 +102,9 @@ func (e *Export) loadMds() error {
 		return fmt.Errorf("%s new: %w", e.name, err)
 	}
 
-	err = e.model.Load(bytes.NewReader(data))
+	err = e.model.Decode(bytes.NewReader(data))
 	if err != nil {
-		return fmt.Errorf("%s load: %w", e.name, err)
+		return fmt.Errorf("%s decode: %w", e.name, err)
 	}
 
 	err = e.loadLayer()
@@ -147,9 +147,9 @@ func (e *Export) loadMod() error {
 		return fmt.Errorf("new: %w", err)
 	}
 
-	err = e.model.Load(bytes.NewReader(data))
+	err = e.model.Decode(bytes.NewReader(data))
 	if err != nil {
-		return fmt.Errorf("load: %w", err)
+		return fmt.Errorf("decode: %w", err)
 	}
 
 	err = e.loadLayer()
@@ -192,9 +192,9 @@ func (e *Export) loadTer() error {
 		return fmt.Errorf("new: %w", err)
 	}
 
-	err = e.model.Load(bytes.NewReader(data))
+	err = e.model.Decode(bytes.NewReader(data))
 	if err != nil {
-		return fmt.Errorf("load: %w", err)
+		return fmt.Errorf("decode: %w", err)
 	}
 
 	err = e.loadLayer()
@@ -230,9 +230,9 @@ func (e *Export) loadLayer() error {
 	if err != nil {
 		return fmt.Errorf("new: %w", err)
 	}
-	err = l.Load(bytes.NewReader(layEntry))
+	err = l.Decode(bytes.NewReader(layEntry))
 	if err != nil {
-		return fmt.Errorf("load: %w", err)
+		return fmt.Errorf("decode: %w", err)
 	}
 
 	err = e.model.SetLayers(l.Layers())
@@ -257,9 +257,9 @@ func (e *Export) loadParticleRenders() error {
 	if err != nil {
 		return fmt.Errorf("new: %w", err)
 	}
-	err = p.Load(bytes.NewReader(prtEntry))
+	err = p.Decode(bytes.NewReader(prtEntry))
 	if err != nil {
-		return fmt.Errorf("load: %w", err)
+		return fmt.Errorf("decode: %w", err)
 	}
 
 	err = e.model.SetParticleRenders(p.ParticleRenders())
@@ -285,9 +285,9 @@ func (e *Export) loadParticlePoints() error {
 	if err != nil {
 		return fmt.Errorf("new: %w", err)
 	}
-	err = p.Load(bytes.NewReader(prtEntry))
+	err = p.Decode(bytes.NewReader(prtEntry))
 	if err != nil {
-		return fmt.Errorf("load: %w", err)
+		return fmt.Errorf("decode: %w", err)
 	}
 
 	err = e.model.SetParticlePoints(p.ParticlePoints())

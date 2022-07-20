@@ -80,9 +80,9 @@ Supported extensions: eqg, zon, ter, ani, mod
 				return err
 			}
 			defer r.Close()
-			err = e.Load(r)
+			err = e.Decode(r)
 			if err != nil {
-				return fmt.Errorf("load: %w", err)
+				return fmt.Errorf("decode: %w", err)
 			}
 
 			archive = e
@@ -103,9 +103,9 @@ Supported extensions: eqg, zon, ter, ani, mod
 				return err
 			}
 			defer r.Close()
-			err = e.Load(r)
+			err = e.Decode(r)
 			if err != nil {
-				return fmt.Errorf("load: %w", err)
+				return fmt.Errorf("decode: %w", err)
 			}
 			archive = e
 		default:
@@ -169,9 +169,9 @@ func inspectEQG(path string) error {
 		return err
 	}
 	defer r.Close()
-	err = archive.Load(r)
+	err = archive.Decode(r)
 	if err != nil {
-		return fmt.Errorf("load: %w", err)
+		return fmt.Errorf("decode: %w", err)
 	}
 
 	fmt.Printf("%s contains %d files:\n", filepath.Base(path), archive.Len())
@@ -222,9 +222,9 @@ func inspectS3D(path string) error {
 		return err
 	}
 	defer r.Close()
-	err = archive.Load(r)
+	err = archive.Decode(r)
 	if err != nil {
-		return fmt.Errorf("load: %w", err)
+		return fmt.Errorf("decode: %w", err)
 	}
 
 	fmt.Printf("%s contains %d files:\n", filepath.Base(path), archive.Len())

@@ -9,21 +9,21 @@ Quail parses EverQuest files found inside on pfs compressed archives (*.eqg and 
 
 Extension|Notes
 ---|---
-ani|animation (EQG), 30% - Load functionality prototyped
+ani|animation (EQG), 30% - Decode functionality prototyped
 blend|Blender 3d modeling, 10% - Needs a lot of work, python dependency to script
-eqg|pfs acrhive (EQG), 80% - Load/Save working, EQ client fails to support saved data
+eqg|pfs acrhive (EQG), 80% - Decode/Encode working, EQ client fails to support Encoded data
 lay|layered material metadata (EQG), 0%
-lit|light data (EQG), 10% - Load prototyped
+lit|light data (EQG), 10% - Decode prototyped
 mds|model data (EQG), 0% - Not yet implemented
-mod|model data (EQG), 60% - Load/Save prototypd, GLTF birectional support prototyped
-obj|lightform model OBJ export, 80% - Load/Save working, bugs need to be sorted out (lightwave obj)
+mod|model data (EQG), 60% - Decode/Encode prototypd, GLTF birectional support prototyped
+obj|lightform model OBJ export, 80% - Decode/Encode working, bugs need to be sorted out (lightwave obj)
 prt|particle rendering (EQG), 0% -
 pts|partical transform (EQG), 0% - 
-s3d|pfs archive (S3D), 50% - Load/Save prototyped, EQ client fails to support saved data, some fragments unsupported
-ter|terrain data (EQG), 60% - Load/Save prototyped, GLTF bidirectional support prototyped
-tog|object meta data (EQG), 10% - Save template prototyped
-wld|terrain/model megapack data (S3D), 20% - Load/Save prototyped, needs attention
-zon|zone metadata (EQG), 50% - Load/Save prototyped, needs attention
+s3d|pfs archive (S3D), 50% - Decode/Encode prototyped, EQ client fails to support Encoded data, some fragments unsupported
+ter|terrain data (EQG), 60% - Decode/Encode prototyped, GLTF bidirectional support prototyped
+tog|object meta data (EQG), 10% - Encode template prototyped
+wld|terrain/model megapack data (S3D), 20% - Decode/Encode prototyped, needs attention
+zon|zone metadata (EQG), 50% - Decode/Encode prototyped, needs attention
 
 # EQG Zone Versions
 

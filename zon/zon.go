@@ -75,9 +75,9 @@ func NewFile(name string, archive common.ArchiveReadWriter, file string) (*ZON, 
 	if err != nil {
 		return nil, fmt.Errorf("file '%s': %w", file, err)
 	}
-	err = e.Load(bytes.NewReader(data))
+	err = e.Decode(bytes.NewReader(data))
 	if err != nil {
-		return nil, fmt.Errorf("load: %w", err)
+		return nil, fmt.Errorf("decode: %w", err)
 	}
 	return e, nil
 }
@@ -88,9 +88,9 @@ func (e *ZON) Name() string {
 
 func (e *ZON) Data() []byte {
 	w := bytes.NewBuffer(nil)
-	err := e.Save(w)
+	err := e.Encode(w)
 	if err != nil {
-		fmt.Println("failed to save zon data:", err)
+		fmt.Println("failed to encode zon data:", err)
 		os.Exit(1)
 	}
 	return w.Bytes()

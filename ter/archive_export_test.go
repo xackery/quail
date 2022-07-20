@@ -36,9 +36,9 @@ func TestArchiveExportSample(t *testing.T) {
 		if err != nil {
 			t.Fatalf("%s", err)
 		}
-		err = a.Load(r)
+		err = a.Decode(r)
 		if err != nil {
-			t.Fatalf("load: %s", err)
+			t.Fatalf("decode: %s", err)
 		}
 
 		e, err := New(tt.category, a)
@@ -56,9 +56,9 @@ func TestArchiveExportSample(t *testing.T) {
 			}
 
 			terBuf := bytes.NewReader(fileEntry.Data())
-			err = e.Load(terBuf)
+			err = e.Decode(terBuf)
 			if err != nil {
-				t.Fatalf("load %s: %s", fileEntry.Name(), err)
+				t.Fatalf("decode %s: %s", fileEntry.Name(), err)
 			}
 
 			w, err := os.Create(outFile)
@@ -67,9 +67,9 @@ func TestArchiveExportSample(t *testing.T) {
 			}
 			defer w.Close()
 
-			err = e.Save(w)
+			err = e.Encode(w)
 			if err != nil {
-				t.Fatalf("save: %s", err)
+				t.Fatalf("encode: %s", err)
 			}
 
 			dump.WriteFileClose(fmt.Sprintf("test/%s_eqg_%s", tt.category, fileEntry.Name()))

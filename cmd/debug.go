@@ -8,11 +8,7 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
-	"github.com/xackery/quail/ani"
 	"github.com/xackery/quail/dump"
-	"github.com/xackery/quail/eqg"
-	"github.com/xackery/quail/mod"
-	"github.com/xackery/quail/ter"
 	"github.com/xackery/quail/zon"
 )
 
@@ -71,29 +67,29 @@ Supported extensions: eqg, zon, ter, ani, mod
 
 		//shortname := filepath.Base(path)
 		//shortname = strings.TrimSuffix(shortname, filepath.Ext(shortname))
-		type loader interface {
-			Load(io.ReadSeeker) error
+		type decoder interface {
+			Decode(io.ReadSeeker) error
 		}
-		type loadTypes struct {
-			instance  loader
+		type decodeTypes struct {
+			instance  decoder
 			extension string
 		}
-		loads := []*loadTypes{
-			{instance: &ani.ANI{}, extension: ".ani"},
-			{instance: &eqg.EQG{}, extension: ".eqg"},
-			{instance: &mod.MOD{}, extension: ".mod"},
-			{instance: &ter.TER{}, extension: ".ter"},
+		decodes := []*decodeTypes{
+			//{instance: &ani.ANI{}, extension: ".ani"},
+			//{instance: &eqg.EQG{}, extension: ".eqg"},
+			//{instance: &mod.MOD{}, extension: ".mod"},
+			//{instance: &ter.TER{}, extension: ".ter"},
 			{instance: &zon.ZON{}, extension: ".zon"},
 		}
 
-		for _, v := range loads {
+		for _, v := range decodes {
 			if ext != v.extension {
 				continue
 			}
 
-			err = v.instance.Load(f)
+			err = v.instance.Decode(f)
 			if err != nil {
-				return fmt.Errorf("failed to load %s: %w", v.extension, err)
+				return fmt.Errorf("failed to decode %s: %w", v.extension, err)
 			}
 			return nil
 		}

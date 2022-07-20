@@ -17,8 +17,8 @@ type Export struct {
 }
 
 type modeler interface {
-	Load(r io.ReadSeeker) error
-	GLTFExport(doc *qgltf.GLTF) error
+	Decode(r io.ReadSeeker) error
+	GLTFEncode(doc *qgltf.GLTF) error
 	SetLayers(layers []*common.Layer) error
 	SetParticleRenders(particles []*common.ParticleRender) error
 	SetParticlePoints(particles []*common.ParticlePoint) error

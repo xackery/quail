@@ -14,9 +14,9 @@ func (e *LAY) ArchiveExport(outArchive common.ArchiveWriter) error {
 	}
 
 	buf := bytes.NewBuffer(nil)
-	err := e.Save(buf)
+	err := e.Encode(buf)
 	if err != nil {
-		return fmt.Errorf("lay save: %w", err)
+		return fmt.Errorf("lay encode: %w", err)
 	}
 
 	err = outArchive.WriteFile(e.name+".lay", buf.Bytes())

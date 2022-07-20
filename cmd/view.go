@@ -72,7 +72,7 @@ Supported extensions: gltf, mod, ter
 
 		err = view.load(buf.Bytes())
 		if err != nil {
-			return fmt.Errorf("load gltf to viewer: %w", err)
+			return fmt.Errorf("decode gltf to viewer: %w", err)
 		}
 		err = ebiten.RunGame(view)
 		if err != nil {

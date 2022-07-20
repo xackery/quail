@@ -96,7 +96,7 @@ func compressEQG(path string, out string) error {
 		return fmt.Errorf("path invalid, must be a directory (%s)", path)
 	}
 
-	a := &eqg.EQG{}
+	archive := &eqg.EQG{}
 	files, err := os.ReadDir(path)
 	if err != nil {
 		return fmt.Errorf("readdir path: %w", err)
@@ -119,7 +119,7 @@ func compressEQG(path string, out string) error {
 		if err != nil {
 			return fmt.Errorf("read %s: %w", file.Name(), err)
 		}
-		err = a.Add(file.Name(), data)
+		err = archive.Add(file.Name(), data)
 		if err != nil {
 			return fmt.Errorf("add %s: %w", file.Name(), err)
 		}
@@ -135,9 +135,9 @@ func compressEQG(path string, out string) error {
 		return fmt.Errorf("create %s: %w", out, err)
 	}
 	defer w.Close()
-	err = a.Save(w)
+	err = archive.Encode(w)
 	if err != nil {
-		return fmt.Errorf("save %s: %w", out, err)
+		return fmt.Errorf("encode %s: %w", out, err)
 	}
 
 	fmt.Printf("%d file%s: %s\nwritten to %s\n", fileCount, helper.Pluralize(fileCount), addStdout, out)
@@ -153,7 +153,7 @@ func compressS3D(path string, out string) error {
 		return fmt.Errorf("path invalid, must be a directory (%s)", path)
 	}
 
-	a := &s3d.S3D{}
+	archive := &s3d.S3D{}
 	files, err := os.ReadDir(path)
 	if err != nil {
 		return fmt.Errorf("readdir path: %w", err)
@@ -176,7 +176,7 @@ func compressS3D(path string, out string) error {
 		if err != nil {
 			return fmt.Errorf("read %s: %w", file.Name(), err)
 		}
-		err = a.Add(file.Name(), data)
+		err = archive.Add(file.Name(), data)
 		if err != nil {
 			return fmt.Errorf("add %s: %w", file.Name(), err)
 		}
@@ -192,9 +192,9 @@ func compressS3D(path string, out string) error {
 		return fmt.Errorf("create %s: %w", out, err)
 	}
 	defer w.Close()
-	err = a.Save(w)
+	err = archive.Encode(w)
 	if err != nil {
-		return fmt.Errorf("save %s: %w", out, err)
+		return fmt.Errorf("encode %s: %w", out, err)
 	}
 
 	fmt.Printf("%d file%s: %s\nwritten to %s\n", fileCount, helper.Pluralize(fileCount), addStdout, out)

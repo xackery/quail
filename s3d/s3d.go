@@ -85,9 +85,9 @@ func NewFile(path string) (*S3D, error) {
 		return nil, err
 	}
 	defer r.Close()
-	err = e.Load(r)
+	err = e.Decode(r)
 	if err != nil {
-		return nil, fmt.Errorf("load: %w", err)
+		return nil, fmt.Errorf("decode: %w", err)
 	}
 	return e, nil
 }

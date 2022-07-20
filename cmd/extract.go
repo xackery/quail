@@ -110,9 +110,9 @@ func extractEQG(in string, out string, isDir bool) error {
 	if err != nil {
 		return fmt.Errorf("eqg.New: %w", err)
 	}
-	err = a.Load(f)
+	err = a.Decode(f)
 	if err != nil {
-		return fmt.Errorf("load %s: %w", in, err)
+		return fmt.Errorf("decode %s: %w", in, err)
 	}
 	results, err := a.Extract(out)
 	if err != nil {
@@ -142,9 +142,9 @@ func extractS3D(path string, out string, isDir bool) error {
 	if err != nil {
 		return fmt.Errorf("eqg.New: %w", err)
 	}
-	err = e.Load(f)
+	err = e.Decode(f)
 	if err != nil {
-		return fmt.Errorf("load %s: %w", path, err)
+		return fmt.Errorf("decode %s: %w", path, err)
 	}
 
 	results, err := e.Extract(out)

@@ -27,14 +27,14 @@ func TestObjImport(t *testing.T) {
 	if err != nil {
 		t.Fatalf("create: %s", err)
 	}
-	err = e.Save(w)
+	err = e.Encode(w)
 	if err != nil {
-		t.Fatalf("save: %s", err)
+		t.Fatalf("encode: %s", err)
 	}
 	fmt.Printf("dump: %+v\n", e)
 }
 
-func TestObjImportSave(t *testing.T) {
+func TestObjImportWrite(t *testing.T) {
 	if os.Getenv("SINGLE_TEST") != "1" {
 		return
 	}
@@ -53,9 +53,9 @@ func TestObjImportSave(t *testing.T) {
 		t.Fatalf("create: %s", err)
 	}
 
-	err = e.Save(w)
+	err = e.Encode(w)
 	if err != nil {
-		t.Fatalf("save: %s", err)
+		t.Fatalf("encode: %s", err)
 	}
 	fmt.Printf("dump: %+v\n", e)
 }

@@ -14,9 +14,9 @@ func (e *PTS) ArchiveExport(outArchive common.ArchiveWriter) error {
 	}
 
 	buf := bytes.NewBuffer(nil)
-	err := e.Save(buf)
+	err := e.Encode(buf)
 	if err != nil {
-		return fmt.Errorf("pts save: %w", err)
+		return fmt.Errorf("pts encode: %w", err)
 	}
 
 	err = outArchive.WriteFile(e.name+".pts", buf.Bytes())

@@ -157,9 +157,9 @@ func exportEQG(in string, out string) error {
 	if err != nil {
 		return fmt.Errorf("eqg.New: %w", err)
 	}
-	err = archive.Load(f)
+	err = archive.Decode(f)
 	if err != nil {
-		return fmt.Errorf("load %s: %w", in, err)
+		return fmt.Errorf("decode %s: %w", in, err)
 	}
 
 	e, err := qexport.New(strings.TrimSuffix(filepath.Base(in), ".eqg"), archive)
@@ -169,7 +169,7 @@ func exportEQG(in string, out string) error {
 
 	err = e.LoadArchive()
 	if err != nil {
-		return fmt.Errorf("load archive: %w", err)
+		return fmt.Errorf("decode archive: %w", err)
 	}
 
 	outFile := fmt.Sprintf("%s/%s.gltf", out, e.Name())
@@ -183,7 +183,7 @@ func exportEQG(in string, out string) error {
 	if err != nil {
 		return fmt.Errorf("gltf.New: %w", err)
 	}
-	err = e.GLTFExport(doc)
+	err = e.GLTFEncode(doc)
 	if err != nil {
 		return fmt.Errorf("gltf: %w", err)
 	}
@@ -212,9 +212,9 @@ func exportS3D(path string, out string) error {
 	if err != nil {
 		return fmt.Errorf("eqg.New: %w", err)
 	}
-	err = e.Load(f)
+	err = e.Decode(f)
 	if err != nil {
-		return fmt.Errorf("load %s: %w", path, err)
+		return fmt.Errorf("decode %s: %w", path, err)
 	}
 
 	fmt.Printf("%s exported in %.1fs\n", filepath.Base(path), time.Since(start).Seconds())

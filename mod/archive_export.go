@@ -14,9 +14,9 @@ func (e *MOD) ArchiveExport(outArchive common.ArchiveWriter) error {
 	}
 
 	buf := bytes.NewBuffer(nil)
-	err := e.Save(buf)
+	err := e.Encode(buf)
 	if err != nil {
-		return fmt.Errorf("mod save: %w", err)
+		return fmt.Errorf("mod encode: %w", err)
 	}
 
 	err = outArchive.WriteFile(e.name+".mod", buf.Bytes())

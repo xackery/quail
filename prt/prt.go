@@ -33,9 +33,9 @@ func NewFile(name string, archive common.ArchiveReadWriter, file string) (*PRT, 
 	if err != nil {
 		return nil, fmt.Errorf("file '%s': %w", file, err)
 	}
-	err = e.Load(bytes.NewReader(data))
+	err = e.Decode(bytes.NewReader(data))
 	if err != nil {
-		return nil, fmt.Errorf("load: %w", err)
+		return nil, fmt.Errorf("decode: %w", err)
 	}
 	return e, nil
 }

@@ -15,9 +15,9 @@ func (e *MDS) ArchiveExport(outArchive common.ArchiveWriter) error {
 	}
 
 	buf := bytes.NewBuffer(nil)
-	err := e.Save(buf)
+	err := e.Encode(buf)
 	if err != nil {
-		return fmt.Errorf("mds save: %w", err)
+		return fmt.Errorf("mds encode: %w", err)
 	}
 
 	err = outArchive.WriteFile(e.name+".mds", buf.Bytes())
