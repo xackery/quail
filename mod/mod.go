@@ -106,3 +106,7 @@ func (e *MOD) SetParticlePoints(particles []*common.ParticlePoint) error {
 	e.particlePoints = particles
 	return nil
 }
+
+func (e *MOD) Name() string {
+	return e.name
+}

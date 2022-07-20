@@ -132,7 +132,7 @@ func (e *ZON) Load(r io.ReadSeeker) error {
 			return fmt.Errorf("modelID 0x%x greater than names", modelID)
 		}
 		modelName := names[int(modelID)].name
-		//dump.Hex(modelID, "%dmodelID=%d(%s)", i, modelID, names[int(modelID)].name)
+		dump.Hex(modelID, "%dmodelID=%d(%s)", i, modelID, names[int(modelID)].name)
 		modelName = strings.ToLower(modelName)
 		objectNameOffset := uint32(0)
 		err = binary.Read(r, binary.LittleEndian, &objectNameOffset)
@@ -149,35 +149,35 @@ func (e *ZON) Load(r io.ReadSeeker) error {
 		if name == "" {
 			return fmt.Errorf("model %d name at offset 0x%x not found", i, objectNameOffset)
 		}
-		//dump.Hex(objectNameOffset, "%dobjectNameOffset=0x%x(%s)", i, objectNameOffset, name)
+		dump.Hex(objectNameOffset, "%dobjectNameOffset=0x%x(%s)", i, objectNameOffset, name)
 		name = strings.ToLower(name)
 		translation := [3]float32{}
 		err = binary.Read(r, binary.LittleEndian, &translation)
 		if err != nil {
 			return fmt.Errorf("object %d translation: %w", i, err)
 		}
-		//dump.Hex(pos, "%dpos=%+v", i, pos)
+		dump.Hex(translation, "%dtranslation=%+v", i, translation)
 
 		rot := [3]float32{}
 		err = binary.Read(r, binary.LittleEndian, &rot)
 		if err != nil {
 			return fmt.Errorf("object %d rotation: %w", i, err)
 		}
-		//dump.Hex(rot, "rot=%+v", rot)
+		dump.Hex(rot, "rot=%+v", rot)
 
 		scale := float32(0)
 		err = binary.Read(r, binary.LittleEndian, &scale)
 		if err != nil {
 			return fmt.Errorf("object %d scale: %w", i, err)
 		}
-		//dump.Hex(scale, "scale=%0.2f", scale)
+		dump.Hex(scale, "scale=%0.2f", scale)
 
 		err = e.AddObject(modelName, name, translation, rot, scale)
 		if err != nil {
 			return fmt.Errorf("addObject %s: %w", name, err)
 		}
 	}
-	dump.HexRange([]byte{1, 2}, int(objectCount*36), "objectChunk=(%d bytes, %d entries)", int(objectCount*36), objectCount)
+	//dump.HexRange([]byte{1, 2}, int(objectCount*36), "objectChunk=(%d bytes, %d entries)", int(objectCount*36), objectCount)
 
 	for i := 0; i < int(regionCount); i++ {
 		regionNameOffset := uint32(0)

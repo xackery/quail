@@ -76,6 +76,7 @@ func (e *Export) loadZon() error {
 	if err != nil {
 		return fmt.Errorf("zon loadParticleRenders: %w", err)
 	}
+	e.name += ".zon"
 	return nil
 }
 
@@ -120,6 +121,7 @@ func (e *Export) loadMds() error {
 	if err != nil {
 		return fmt.Errorf("loadParticlePoints: %w", err)
 	}
+	e.name += ".mds"
 	return nil
 }
 
@@ -164,6 +166,7 @@ func (e *Export) loadMod() error {
 	if err != nil {
 		return fmt.Errorf("loadParticlePoints: %w", err)
 	}
+	e.name += ".mod"
 	return nil
 }
 
@@ -208,6 +211,7 @@ func (e *Export) loadTer() error {
 	if err != nil {
 		return fmt.Errorf("loadParticlePoints: %w", err)
 	}
+	e.name += ".ter"
 	return nil
 }
 

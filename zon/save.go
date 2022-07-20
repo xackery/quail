@@ -53,6 +53,141 @@ func (e *ZON) Save(w io.Writer) error {
 		}
 	}
 
+	for _, o := range e.terrains {
+		modelName := o.Name()
+		name := &nameInfo{
+			name:   modelName,
+			offset: uint32(nameBuf.Len()),
+		}
+
+		isNew := true
+		for _, n := range names {
+			if n.name != name.name {
+				continue
+			}
+			isNew = false
+			name = n
+			break
+		}
+		if isNew {
+			names = append(names, name)
+			err = binary.Write(nameBuf, binary.LittleEndian, []byte(o.Name()))
+			if err != nil {
+				return fmt.Errorf("write name %s: %w", modelName, err)
+			}
+			err = binary.Write(nameBuf, binary.LittleEndian, []byte{0})
+			if err != nil {
+				return fmt.Errorf("write zero %s: %w", modelName, err)
+			}
+		}
+
+		err = binary.Write(dataBuf, binary.LittleEndian, name.offset)
+		if err != nil {
+			return fmt.Errorf("write name offset %s: %w", modelName, err)
+		}
+
+		buf := &bytes.Buffer{}
+		err = o.Save(buf)
+		if err != nil {
+			return fmt.Errorf("save %s: %w", modelName, err)
+		}
+		err = e.archive.WriteFile(modelName, buf.Bytes())
+		if err != nil {
+			return fmt.Errorf("writefile %s: %w", modelName, err)
+		}
+	}
+
+	for _, o := range e.mdses {
+		modelName := o.Name() + ".mds"
+		name := &nameInfo{
+			name:   modelName,
+			offset: uint32(nameBuf.Len()),
+		}
+
+		isNew := true
+		for _, n := range names {
+			if n.name != name.name {
+				continue
+			}
+			isNew = false
+			name = n
+			break
+		}
+		if isNew {
+			names = append(names, name)
+			err = binary.Write(nameBuf, binary.LittleEndian, []byte(o.Name()))
+			if err != nil {
+				return fmt.Errorf("write name %s: %w", modelName, err)
+			}
+			err = binary.Write(nameBuf, binary.LittleEndian, []byte{0})
+			if err != nil {
+				return fmt.Errorf("write zero %s: %w", modelName, err)
+			}
+		}
+
+		err = binary.Write(dataBuf, binary.LittleEndian, name.offset)
+		if err != nil {
+			return fmt.Errorf("write name offset %s: %w", modelName, err)
+		}
+
+		buf := &bytes.Buffer{}
+		err = o.Save(buf)
+		if err != nil {
+			return fmt.Errorf("save %s: %w", modelName, err)
+		}
+		err = e.archive.WriteFile(modelName, buf.Bytes())
+		if err != nil {
+			return fmt.Errorf("writefile %s: %w", modelName, err)
+		}
+	}
+
+	for _, o := range e.mods {
+		modelName := o.Name() + ".mod"
+		name := &nameInfo{
+			name:   modelName,
+			offset: uint32(nameBuf.Len()),
+		}
+
+		isNew := true
+		for _, n := range names {
+			if n.name != name.name {
+				continue
+			}
+			isNew = false
+			name = n
+			break
+		}
+		if isNew {
+			names = append(names, name)
+			err = binary.Write(nameBuf, binary.LittleEndian, []byte(o.Name()))
+			if err != nil {
+				return fmt.Errorf("write name %s: %w", modelName, err)
+			}
+			err = binary.Write(nameBuf, binary.LittleEndian, []byte{0})
+			if err != nil {
+				return fmt.Errorf("write zero %s: %w", modelName, err)
+			}
+		}
+
+		err = binary.Write(dataBuf, binary.LittleEndian, name.offset)
+		if err != nil {
+			return fmt.Errorf("write name offset %s: %w", modelName, err)
+		}
+
+		buf := &bytes.Buffer{}
+		err = o.Save(buf)
+		if err != nil {
+			return fmt.Errorf("save %s: %w", modelName, err)
+		}
+		err = e.archive.WriteFile(modelName, buf.Bytes())
+		if err != nil {
+			return fmt.Errorf("writefile %s: %w", modelName, err)
+		}
+	}
+
+	for _, name := range names {
+		fmt.Println(name.name)
+	}
 	for _, o := range e.objects {
 
 		modelID := uint32(9999)

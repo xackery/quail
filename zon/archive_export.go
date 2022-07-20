@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/xackery/quail/common"
+	"github.com/xackery/quail/helper"
 	"github.com/xackery/quail/mds"
 	"github.com/xackery/quail/mod"
 	"github.com/xackery/quail/ter"
@@ -28,7 +29,7 @@ func (e *ZON) ArchiveExport(outArchive common.ArchiveReadWriter) error {
 
 		switch filepath.Ext(model.name) {
 		case ".ter":
-			baseName := strings.TrimPrefix(baseName(model.name), "ter_")
+			baseName := strings.TrimPrefix(helper.BaseName(model.name), "ter_")
 			e, err := ter.New(baseName, e.archive)
 			if err != nil {
 				return fmt.Errorf("ter.NewEQG: %w", err)
@@ -43,7 +44,7 @@ func (e *ZON) ArchiveExport(outArchive common.ArchiveReadWriter) error {
 				return fmt.Errorf("ter archive export %s: %w", baseName, err)
 			}
 		case ".mod":
-			baseName := strings.TrimPrefix(baseName(model.name), "ter_")
+			baseName := strings.TrimPrefix(helper.BaseName(model.name), "ter_")
 			e, err := mod.New(baseName, e.archive)
 			if err != nil {
 				return fmt.Errorf("mod new: %w", err)
@@ -58,7 +59,7 @@ func (e *ZON) ArchiveExport(outArchive common.ArchiveReadWriter) error {
 				return fmt.Errorf("mod archive export %s: %w", baseName, err)
 			}
 		case ".mds":
-			baseName := strings.TrimPrefix(baseName(model.name), "ter_")
+			baseName := strings.TrimPrefix(helper.BaseName(model.name), "ter_")
 			e, err := mds.New(baseName, e.archive)
 			if err != nil {
 				return fmt.Errorf("mds new: %w", err)

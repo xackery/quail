@@ -70,7 +70,11 @@ func TestGLTFExportSamples(t *testing.T) {
 		}
 
 		if isGLTFSource {
-			err = e.GLTFImport(gltfFile)
+			gdoc, err := gltf.Open(gltfFile)
+			if err != nil {
+				t.Fatalf("gltf open: %s", err)
+			}
+			err = e.GLTFImport(gdoc)
 			if err != nil {
 				t.Fatalf("import %s: %s", gltfFile, err)
 			}
@@ -160,7 +164,11 @@ func TestGLTFExportSamplesSanityCheck(t *testing.T) {
 			t.Fatalf("new: %s", err)
 		}
 
-		err = e.GLTFImport(gltfInFile)
+		gdoc, err := gltf.Open(gltfInFile)
+		if err != nil {
+			t.Fatalf("gltf open: %s", err)
+		}
+		err = e.GLTFImport(gdoc)
 		if err != nil {
 			t.Fatalf("import %s: %s", gltfInFile, err)
 		}
@@ -206,7 +214,11 @@ func TestGLTFExportSamplesSanityCheck(t *testing.T) {
 			t.Fatalf("new: %s", err)
 		}
 
-		err = e.GLTFImport(gltfOutFile)
+		gdoc, err = gltf.Open(gltfOutFile)
+		if err != nil {
+			t.Fatalf("gltf open: %s", err)
+		}
+		err = e.GLTFImport(gdoc)
 		if err != nil {
 			t.Fatalf("import %s: %s", gltfInFile, err)
 		}

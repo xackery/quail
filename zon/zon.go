@@ -7,19 +7,26 @@ import (
 	"os"
 
 	"github.com/xackery/quail/common"
+	"github.com/xackery/quail/mds"
+	"github.com/xackery/quail/mod"
+	"github.com/xackery/quail/ter"
 )
 
 // ZON is a zon file struct
 type ZON struct {
 	name    string
 	archive common.ArchiveReadWriter
-	models  []*model
+	models  []*Model
 	objects []*Object
 	regions []*Region
 	lights  []*Light
+
+	terrains []*ter.TER
+	mdses    []*mds.MDS
+	mods     []*mod.MOD
 }
 
-type model struct {
+type Model struct {
 	name     string
 	baseName string
 }
@@ -91,6 +98,10 @@ func (e *ZON) Lights() []*Light {
 
 func (e *ZON) Objects() []*Object {
 	return e.objects
+}
+
+func (e *ZON) Models() []*Model {
+	return e.models
 }
 
 func (e *ZON) SetLayers(layers []*common.Layer) error {

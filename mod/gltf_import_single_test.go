@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/xackery/quail/common"
+	"github.com/xackery/quail/gltf"
 )
 
 func TestGLTFImport(t *testing.T) {
@@ -25,7 +26,11 @@ func TestGLTFImport(t *testing.T) {
 	if err != nil {
 		t.Fatalf("new: %s", err)
 	}
-	err = e.GLTFImport(inFile)
+	gdoc, err := gltf.Open(inFile)
+	if err != nil {
+		t.Fatalf("gltf open: %s", err)
+	}
+	err = e.GLTFImport(gdoc)
 	if err != nil {
 		t.Fatalf("import %s: %s", path, err)
 	}
@@ -59,7 +64,11 @@ func TestGLTFImportSave(t *testing.T) {
 		t.Fatalf("new: %s", err)
 	}
 
-	err = e.GLTFImport(inFile)
+	gdoc, err := gltf.Open(inFile)
+	if err != nil {
+		t.Fatalf("gltf open: %s", err)
+	}
+	err = e.GLTFImport(gdoc)
 	if err != nil {
 		t.Fatalf("import %s: %s", path, err)
 	}

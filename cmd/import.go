@@ -1,18 +1,3 @@
-/*
-Copyright © 2022 NAME HERE <EMAIL ADDRESS>
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
 package cmd
 
 import (
@@ -21,13 +6,13 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"time"
 
 	"github.com/spf13/cobra"
-	"github.com/xackery/quail/blend"
 	"github.com/xackery/quail/eqg"
+	"github.com/xackery/quail/gltf"
 	"github.com/xackery/quail/helper"
-	"github.com/xackery/quail/mod"
+	"github.com/xackery/quail/mds"
+	"github.com/xackery/quail/s3d"
 	"github.com/xackery/quail/ter"
 	"github.com/xackery/quail/zon"
 )
@@ -35,13 +20,8 @@ import (
 // importCmd represents the import command
 var importCmd = &cobra.Command{
 	Use:   "import",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Short: "Export an eqg or s3d archive to embedded GLTF",
+	Long:  `Export an eqg or s3d archive to embedded GLTF`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		path, err := cmd.Flags().GetString("path")
 		if err != nil {
@@ -63,7 +43,6 @@ to quickly create a Cobra application.`,
 		if err != nil {
 			return fmt.Errorf("parse out: %w", err)
 		}
-
 		absPath, err := filepath.Abs(path)
 		if err != nil {
 			return fmt.Errorf("parse absolute path: %w", err)
@@ -76,11 +55,15 @@ to quickly create a Cobra application.`,
 			}
 		}
 
-		blenderPath, _ := cmd.Flags().GetString("blender")
+		out = strings.ToLower(out)
 
-		err = importExec(path, out, blenderPath)
+		if strings.Contains(out, ".") && !strings.HasSuffix(out, ".eqg") && !strings.HasSuffix(out, ".s3d") {
+			return fmt.Errorf("only eqg and s3d extension out names are supported")
+		}
+		out = strings.TrimPrefix(out, "_")
+		err = importPath(path, out)
 		if err != nil {
-			return fmt.Errorf("importExec: %w", err)
+			return err
 		}
 		return nil
 	},
@@ -89,25 +72,26 @@ to quickly create a Cobra application.`,
 func init() {
 	rootCmd.AddCommand(importCmd)
 	importCmd.PersistentFlags().String("path", "", "path to import")
-	importCmd.PersistentFlags().String("blender", "", "blender path (optional)")
-	importCmd.PersistentFlags().String("out", "", "name of compressed eqg archive output, defaults to path's basename")
-	importCmd.Example = `quail import --path="./_clz.eqg/"`
+	importCmd.PersistentFlags().String("out", "", "name of imported eqg archive output, defaults to path's basename")
+	importCmd.Example = `quail import --path="./_clz.eqg/"
+quail import ./_soldungb.eqg/
+quail import _soldungb.eqg/ foo.eqg
+quail import --path=_soldungb.eqg/ --out=foo.eqg`
 }
 
-func importExec(path string, out string, blenderPath string) error {
-	start := time.Now()
-
-	out = strings.ToLower(out)
-
-	if strings.Contains(out, ".") && !strings.HasSuffix(out, ".eqg") {
-		return fmt.Errorf("only .eqg extension out names are supported")
+func importPath(path string, out string) error {
+	if strings.HasSuffix(out, ".eqg") {
+		return importEQG(path, out)
+	}
+	if strings.HasSuffix(out, ".s3d") {
+		return importS3D(path, out)
 	}
 
-	if !strings.HasSuffix(out, ".eqg") {
-		out = out + ".eqg"
-	}
-	out = strings.TrimPrefix(out, "_")
+	out = out + ".eqg"
+	return importEQG(path, out)
+}
 
+func importEQG(path string, out string) error {
 	fi, err := os.Stat(path)
 	if err != nil {
 		return fmt.Errorf("path check: %w", err)
@@ -116,132 +100,141 @@ func importExec(path string, out string, blenderPath string) error {
 		return fmt.Errorf("path invalid, must be a directory (%s)", path)
 	}
 
-	shortname, err := filepath.Abs(path)
+	archive := &eqg.EQG{}
+	files, err := os.ReadDir(path)
 	if err != nil {
-		return fmt.Errorf("filepath.Abs %s: %w", path, err)
-	}
-	shortname = strings.TrimSuffix(filepath.Base(shortname), ".eqg")
-
-	fmt.Println("shortname", shortname)
-	cachePath := fmt.Sprintf("%s/cache/", path)
-	fi, err = os.Stat(cachePath)
-	if err != nil {
-		err = os.MkdirAll(cachePath, 0766)
-		if err != nil {
-			return fmt.Errorf("cache folder not found for import: %w", err)
-		}
-		fi, err = os.Stat(cachePath)
-		if err != nil {
-			return fmt.Errorf("stat cache folder: %w", err)
-		}
-	}
-	if !fi.IsDir() {
-		return fmt.Errorf("cache file exists, should be folder")
-	}
-
-	err = blend.Convert(path, shortname, blenderPath)
-	if err != nil {
-		return fmt.Errorf("blend.Convert: %w", err)
-	}
-	fi, err = os.Stat(fmt.Sprintf("%s/%s.obj", cachePath, shortname))
-	if err != nil {
-		return fmt.Errorf("import %s.obj: not found in cache", shortname)
-	}
-	if fi.IsDir() {
-		return fmt.Errorf("import %s.obj: is a directory", shortname)
-	}
-
-	ter := &ter.TER{}
-	err = ter.ImportObj(fmt.Sprintf("%s/%s.obj", cachePath, shortname), fmt.Sprintf("%s/%s.mtl", cachePath, shortname), fmt.Sprintf("%s/%s_material.txt", cachePath, shortname))
-	if err != nil {
-		return fmt.Errorf("importObj: %w", err)
-	}
-	terW, err := os.Create(fmt.Sprintf("%s/%s.ter", cachePath, shortname))
-	if err != nil {
-		return fmt.Errorf("create: %w", err)
-	}
-	defer terW.Close()
-	err = ter.Save(terW)
-	if err != nil {
-		return fmt.Errorf("ter.Save: %w", err)
-	}
-
-	zon := &zon.ZON{}
-	err = zon.Import(fmt.Sprintf("%s/%s_light.txt", cachePath, shortname), fmt.Sprintf("%s/%s_mod.txt", cachePath, shortname), fmt.Sprintf("%s/%s_region.txt", cachePath, shortname))
-	if err != nil {
-		return fmt.Errorf("zon.Import: %w", err)
-	}
-
-	zonW, err := os.Create(fmt.Sprintf("%s/%s.zon", cachePath, shortname))
-	if err != nil {
-		return fmt.Errorf("create: %w", err)
-	}
-	defer zonW.Close()
-	err = zon.Save(zonW)
-	if err != nil {
-		return fmt.Errorf("zon.Save: %w", err)
-	}
-
-	modNames := zon.ModelNames()
-	for _, modName := range modNames {
-		mod := &mod.MOD{}
-		modName = strings.TrimSuffix(modName, ".obj")
-		err = mod.ObjImport(fmt.Sprintf("%s/%s.obj", cachePath, modName), fmt.Sprintf("%s/%s.mtl", cachePath, modName), fmt.Sprintf("%s/%s_material.txt", cachePath, modName))
-		if err != nil {
-			return fmt.Errorf("importObj: %w", err)
-		}
-
-		modPath := fmt.Sprintf("%s/%s.mod", cachePath, modName)
-		modW, err := os.Create(modPath)
-		if err != nil {
-			return fmt.Errorf("mod create %s: %w", modPath, err)
-		}
-		err = mod.Save(modW)
-		if err != nil {
-			return fmt.Errorf("save: %w", err)
-		}
-		modW.Close()
-	}
-
-	err = zon.AddModel(fmt.Sprintf("%s.ter", shortname))
-	if err != nil {
-		return fmt.Errorf("addModel %s.ter: %w", shortname, err)
-	}
-
-	e := &eqg.EQG{}
-	files, err := os.ReadDir(cachePath)
-	if err != nil {
-		return fmt.Errorf("readdir cachepath: %w", err)
+		return fmt.Errorf("readdir path: %w", err)
 	}
 	if len(files) == 0 {
-		return fmt.Errorf("no files found in %s to import", cachePath)
+		return fmt.Errorf("no files found in %s to add to archive %s", path, out)
 	}
 
-	suffixes := []string{".py", ".obj", ".mtl", "_material.txt", "_light.txt", "_region.txt", "_doors.txt", "_mod.txt"}
+	for _, file := range files {
+		if file.IsDir() {
+			continue
+		}
+		if file.Name() == ".DS_Store" {
+			continue
+		}
+		fileName := strings.ToLower(file.Name())
+		baseName := filepath.Base(fileName)
+		if strings.Contains(baseName, ".") {
+			baseName = baseName[0:strings.Index(baseName, ".")]
+		}
+
+		if strings.HasSuffix(fileName, ".zon.gltf") {
+			e, err := zon.New(baseName, archive)
+			if err != nil {
+				return fmt.Errorf("zon new %s: %w", baseName, err)
+			}
+
+			gdoc, err := gltf.Open(fmt.Sprintf("%s/%s", path, file.Name()))
+			if err != nil {
+				return fmt.Errorf("zon open %s: %w", baseName, err)
+			}
+			err = e.GLTFImport(gdoc)
+			if err != nil {
+				return fmt.Errorf("zon import %s: %w", baseName, err)
+			}
+
+			err = e.ArchiveExport(archive)
+			if err != nil {
+				return fmt.Errorf("zon archive export %s: %w", baseName, err)
+			}
+
+			continue
+		}
+
+		if strings.HasSuffix(fileName, ".ter.gltf") {
+			e, err := ter.New(baseName, archive)
+			if err != nil {
+				return fmt.Errorf("ter new %s: %w", baseName, err)
+			}
+
+			err = e.ArchiveExport(archive)
+			if err != nil {
+				return fmt.Errorf("ter archive export %s: %w", baseName, err)
+			}
+
+			continue
+		}
+
+		if strings.HasSuffix(fileName, ".mds.gltf") {
+			e, err := mds.New(baseName, archive)
+			if err != nil {
+				return fmt.Errorf("mds new %s: %w", baseName, err)
+			}
+
+			err = e.ArchiveExport(archive)
+			if err != nil {
+				return fmt.Errorf("mds archive export %s: %w", baseName, err)
+			}
+
+			continue
+		}
+
+		if strings.HasSuffix(fileName, ".mod.gltf") {
+			e, err := mds.New(baseName, archive)
+			if err != nil {
+				return fmt.Errorf("mod new %s: %w", baseName, err)
+			}
+
+			err = e.ArchiveExport(archive)
+			if err != nil {
+				return fmt.Errorf("mod archive export %s: %w", baseName, err)
+			}
+
+			continue
+		}
+	}
+
+	w, err := os.Create(out)
+	if err != nil {
+		return fmt.Errorf("create %s: %w", out, err)
+	}
+	defer w.Close()
+	err = archive.Save(w)
+	if err != nil {
+		return fmt.Errorf("save %s: %w", out, err)
+	}
+
+	fmt.Printf("%d file%s written to %s\n", archive.Len(), helper.Pluralize(archive.Len()), out)
+	return nil
+}
+
+func importS3D(path string, out string) error {
+	fi, err := os.Stat(path)
+	if err != nil {
+		return fmt.Errorf("path check: %w", err)
+	}
+	if !fi.IsDir() {
+		return fmt.Errorf("path invalid, must be a directory (%s)", path)
+	}
+
+	a := &s3d.S3D{}
+	files, err := os.ReadDir(path)
+	if err != nil {
+		return fmt.Errorf("readdir path: %w", err)
+	}
+	if len(files) == 0 {
+		return fmt.Errorf("no files found in %s to add to archive %s", path, out)
+	}
+
 	addStdout := ""
 	fileCount := 0
 	for _, file := range files {
 		if file.IsDir() {
 			continue
 		}
-		fileCount++
-		isIgnored := false
-		for _, suffix := range suffixes {
-			if !strings.HasSuffix(file.Name(), suffix) {
-				continue
-			}
-			isIgnored = true
-			break
-		}
-		if isIgnored {
+		if file.Name() == ".DS_Store" {
 			continue
 		}
-
-		data, err := ioutil.ReadFile(fmt.Sprintf("%s/%s", cachePath, file.Name()))
+		fileCount++
+		data, err := ioutil.ReadFile(fmt.Sprintf("%s/%s", path, file.Name()))
 		if err != nil {
 			return fmt.Errorf("read %s: %w", file.Name(), err)
 		}
-		err = e.Add(file.Name(), data)
+		err = a.Add(file.Name(), data)
 		if err != nil {
 			return fmt.Errorf("add %s: %w", file.Name(), err)
 		}
@@ -257,12 +250,11 @@ func importExec(path string, out string, blenderPath string) error {
 		return fmt.Errorf("create %s: %w", out, err)
 	}
 	defer w.Close()
-	err = e.Save(w)
+	err = a.Save(w)
 	if err != nil {
 		return fmt.Errorf("save %s: %w", out, err)
 	}
 
-	fmt.Printf("%s created with %d file%s: %s", out, fileCount, helper.Pluralize(fileCount), addStdout)
-	fmt.Printf("import took %0.2f seconds\n", time.Since(start).Seconds())
+	fmt.Printf("%d file%s: %s\nwritten to %s\n", fileCount, helper.Pluralize(fileCount), addStdout, out)
 	return nil
 }

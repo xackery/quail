@@ -112,3 +112,7 @@ func (e *MDS) SetParticlePoints(particles []*common.ParticlePoint) error {
 	e.particlePoints = particles
 	return nil
 }
+
+func (e *MDS) Name() string {
+	return e.name
+}

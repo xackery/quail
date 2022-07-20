@@ -9,6 +9,7 @@ import (
 
 	"github.com/xackery/quail/common"
 	"github.com/xackery/quail/eqg"
+	"github.com/xackery/quail/gltf"
 )
 
 func TestSave(t *testing.T) {
@@ -63,7 +64,11 @@ func TestSaveEQG(t *testing.T) {
 	if err != nil {
 		t.Fatalf("new: %s", err)
 	}
-	err = e.GLTFImport("test/box.gltf")
+	gdoc, err := gltf.Open("text/box.gltf")
+	if err != nil {
+		t.Fatalf("gltf open: %s", err)
+	}
+	err = e.GLTFImport(gdoc)
 	if err != nil {
 		t.Fatalf("import %s: %s", path, err)
 	}

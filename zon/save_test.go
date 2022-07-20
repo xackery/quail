@@ -6,6 +6,7 @@ import (
 
 	"github.com/xackery/quail/common"
 	"github.com/xackery/quail/eqg"
+	"github.com/xackery/quail/gltf"
 	"github.com/xackery/quail/ter"
 )
 
@@ -31,7 +32,12 @@ func TestSaveEQG(t *testing.T) {
 	if err != nil {
 		t.Fatalf("new: %s", err)
 	}
-	err = e.GLTFImport("test/monkey.gltf")
+
+	gdoc, err := gltf.Open("test/monkey.gltf")
+	if err != nil {
+		t.Fatalf("gltf open: %s", err)
+	}
+	err = e.GLTFImport(gdoc)
 	if err != nil {
 		t.Fatalf("import %s: %s", path, err)
 	}
@@ -46,7 +52,7 @@ func TestSaveEQG(t *testing.T) {
 		t.Fatalf("new: %s", err)
 	}
 
-	zone.models = append(zone.models, &model{
+	zone.models = append(zone.models, &Model{
 		name:     category + ".ter",
 		baseName: category,
 	})

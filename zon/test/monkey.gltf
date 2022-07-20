@@ -15,7 +15,7 @@
     "nodes" : [
         {
             "mesh" : 0,
-            "name" : "Suzanne"
+            "name" : "monkey"
         }
     ],
     "materials" : [
@@ -33,7 +33,7 @@
     ],
     "meshes" : [
         {
-            "name" : "Suzanne",
+            "name" : "monkey",
             "primitives" : [
                 {
                     "attributes" : {

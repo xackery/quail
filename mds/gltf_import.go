@@ -11,12 +11,9 @@ import (
 	"github.com/xackery/quail/common"
 )
 
-// GLTFImport takes a provided GLTF path and loads relative data as a mod
-func (e *MDS) GLTFImport(path string) error {
-	doc, err := gltf.Open(path)
-	if err != nil {
-		return fmt.Errorf("open: %w", err)
-	}
+// GLTFImport imports a GLTF document
+func (e *MDS) GLTFImport(doc *gltf.Document) error {
+	var err error
 	for _, m := range doc.Materials {
 		//TODO: add _mat.txt parsing
 		err = e.MaterialAdd(m.Name, "Opaque_MaxCB1.fx")

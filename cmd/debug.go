@@ -98,7 +98,6 @@ Supported extensions: eqg, zon, ter, ani, mod
 			if err != nil {
 				return fmt.Errorf("failed to load %s: %w", v.extension, err)
 			}
-			fmt.Println("generated", out)
 			return nil
 		}
 		return fmt.Errorf("failed to debug: unknown extension %s on file %s", ext, filepath.Base(path))

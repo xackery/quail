@@ -4,17 +4,13 @@ import (
 	"fmt"
 	"strings"
 
-	"regexp"
-)
-
-var (
-	numEndingRegex = regexp.MustCompile("[0-9]+$")
+	"github.com/xackery/quail/helper"
 )
 
 func (e *ZON) AddObject(modelName string, name string, position [3]float32, rotation [3]float32, scale float32) error {
 	modelName = strings.ToLower(modelName)
 	name = strings.ToLower(name)
-	baseName := baseName(name)
+	baseName := helper.BaseName(name)
 	isModelFound := false
 	for _, m := range e.models {
 		if m.name == modelName {
@@ -27,7 +23,8 @@ func (e *ZON) AddObject(modelName string, name string, position [3]float32, rota
 		}
 	}
 	if !isModelFound {
-		return fmt.Errorf("modelName %s not found", modelName)
+		e.models = append(e.models, &Model{name: name, baseName: name})
+		fmt.Println("warning: model", modelName, "not found, added")
 	}
 	e.objects = append(e.objects, &Object{
 		name:        name,
@@ -46,9 +43,9 @@ func (e *ZON) AddModel(name string) error {
 			return nil
 		}
 	}
-	e.models = append(e.models, &model{
+	e.models = append(e.models, &Model{
 		name:     name,
-		baseName: baseName(name),
+		baseName: helper.BaseName(name),
 	})
 	return nil
 }
@@ -73,14 +70,4 @@ func (e *ZON) AddLight(name string, position [3]float32, color [3]float32, radiu
 		radius:   radius,
 	})
 	return nil
-}
-
-func baseName(in string) string {
-	if strings.Contains(in, ".") {
-		in = in[0:strings.Index(in, ".")]
-	}
-
-	in = numEndingRegex.ReplaceAllString(in, "")
-	in = strings.TrimSuffix(in, "_")
-	return in
 }

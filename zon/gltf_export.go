@@ -10,6 +10,7 @@ import (
 	"github.com/qmuntal/gltf"
 
 	qgltf "github.com/xackery/quail/gltf"
+	"github.com/xackery/quail/helper"
 	"github.com/xackery/quail/mds"
 	"github.com/xackery/quail/mod"
 	"github.com/xackery/quail/ter"
@@ -32,7 +33,7 @@ func (e *ZON) GLTFExport(doc *qgltf.GLTF) error {
 
 		switch filepath.Ext(model.name) {
 		case ".ter":
-			baseName := strings.TrimPrefix(baseName(model.name), "ter_")
+			baseName := strings.TrimPrefix(helper.BaseName(model.name), "ter_")
 			e, err := ter.New(baseName, e.archive)
 			if err != nil {
 				return fmt.Errorf("ter.NewEQG: %w", err)
@@ -46,7 +47,7 @@ func (e *ZON) GLTFExport(doc *qgltf.GLTF) error {
 				return fmt.Errorf("ter gltf %s: %w", baseName, err)
 			}
 		case ".mod":
-			baseName := strings.TrimPrefix(baseName(model.name), "ter_")
+			baseName := strings.TrimPrefix(helper.BaseName(model.name), "ter_")
 			e, err := mod.New(baseName, e.archive)
 			if err != nil {
 				return fmt.Errorf("mod new: %w", err)
@@ -61,7 +62,7 @@ func (e *ZON) GLTFExport(doc *qgltf.GLTF) error {
 				return fmt.Errorf("mod gltf %s: %w", baseName, err)
 			}
 		case ".mds":
-			baseName := strings.TrimPrefix(baseName(model.name), "ter_")
+			baseName := strings.TrimPrefix(helper.BaseName(model.name), "ter_")
 			e, err := mds.New(baseName, e.archive)
 			if err != nil {
 				return fmt.Errorf("mds new: %w", err)
@@ -89,7 +90,7 @@ func (e *ZON) GLTFExport(doc *qgltf.GLTF) error {
 			continue
 		}
 
-		baseName := baseName(obj.name)
+		baseName := helper.BaseName(obj.name)
 
 		index, err := doc.MeshIndex(baseName)
 		if err != nil {

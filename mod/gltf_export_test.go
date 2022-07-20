@@ -31,7 +31,11 @@ func TestGLTFExportGLTF(t *testing.T) {
 			t.Fatalf("new: %s", err)
 		}
 
-		err = e.GLTFImport(gltfInFile)
+		gdoc, err := gltf.Open(gltfInFile)
+		if err != nil {
+			t.Fatalf("gltf open: %s", err)
+		}
+		err = e.GLTFImport(gdoc)
 		if err != nil {
 			t.Fatalf("gltfimport '%s': %s", tt.category, err)
 		}

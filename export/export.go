@@ -28,3 +28,7 @@ func New(name string, archive common.ArchiveReadWriter) (*Export, error) {
 		archive: archive,
 	}, nil
 }
+
+func (e *Export) Name() string {
+	return e.name
+}

@@ -83,9 +83,7 @@ var exportCmd = &cobra.Command{
 				}
 
 				inFile := fmt.Sprintf("%s/%s", path, file.Name())
-				//gltfOut := fmt.Sprintf("%s/_%s/%s", path, file.Name(), strings.TrimPrefix(strings.TrimSuffix(strings.TrimSuffix(filepath.Base(fileOut), ".eqg"), ".s3d"), "_")+".gltf")
 
-				//fmt.Println("exporting", inFile, "to", gltfOut)
 				fmt.Println("parsing", inFile)
 				ok, err := export(inFile, fileOut)
 				if err != nil {
@@ -164,7 +162,7 @@ func exportEQG(in string, out string) error {
 		return fmt.Errorf("load %s: %w", in, err)
 	}
 
-	e, err := qexport.New(filepath.Base(in), archive)
+	e, err := qexport.New(strings.TrimSuffix(filepath.Base(in), ".eqg"), archive)
 	if err != nil {
 		return fmt.Errorf("export new: %w", err)
 	}
@@ -174,7 +172,7 @@ func exportEQG(in string, out string) error {
 		return fmt.Errorf("load archive: %w", err)
 	}
 
-	outFile := fmt.Sprintf("%s/%s.gltf", out, filepath.Base(in))
+	outFile := fmt.Sprintf("%s/%s.gltf", out, e.Name())
 	fmt.Println("exporting", outFile)
 	w, err := os.Create(outFile)
 	if err != nil {
