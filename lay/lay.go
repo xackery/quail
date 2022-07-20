@@ -19,6 +19,7 @@ type LAY struct {
 	layers  []*common.Layer
 }
 
+// New creates a new empty instance. Use NewFile to load an archive file on creation
 func New(name string, archive common.ArchiveReader) (*LAY, error) {
 	e := &LAY{
 		name:    name,

@@ -16,6 +16,7 @@ type PTS struct {
 	particles []*common.ParticlePoint
 }
 
+// New creates a new empty instance. Use NewFile to load an archive file on creation
 func New(name string, archive common.ArchiveReader) (*PTS, error) {
 	return &PTS{
 		name:    name,

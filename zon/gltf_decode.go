@@ -37,7 +37,7 @@ func (e *ZON) GLTFDecode(doc *gltf.Document) error {
 			}
 			e.archive.WriteFile(meshName, buf.Bytes())
 			e.terrains = append(e.terrains, ml)
-			e.models = append(e.models, &Model{
+			e.models = append(e.models, &model{
 				baseName: helper.BaseName(meshName),
 				name:     meshName,
 			})
@@ -54,7 +54,7 @@ func (e *ZON) GLTFDecode(doc *gltf.Document) error {
 				return fmt.Errorf("mod import: %w", err)
 			}
 			e.mods = append(e.mods, ml)
-			e.objects = append(e.objects, &Object{
+			e.objects = append(e.objects, &object{
 				modelName: meshName,
 				name:      meshName,
 			})
@@ -71,7 +71,7 @@ func (e *ZON) GLTFDecode(doc *gltf.Document) error {
 			return fmt.Errorf("mds import: %w", err)
 		}
 		e.mdses = append(e.mdses, ml)
-		e.objects = append(e.objects, &Object{
+		e.objects = append(e.objects, &object{
 			modelName: meshName,
 			name:      meshName,
 		})

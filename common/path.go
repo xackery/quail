@@ -13,6 +13,7 @@ type Path struct {
 	fileCount int
 }
 
+// NewPath creates a new version of a path
 func NewPath(path string) (*Path, error) {
 
 	path = filepath.Dir(path)

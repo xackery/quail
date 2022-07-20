@@ -24,6 +24,7 @@ type modeler interface {
 	SetParticlePoints(particles []*common.ParticlePoint) error
 }
 
+// New creates a new empty instance. Use NewFile to load the archive on creation
 func New(name string, archive common.ArchiveReadWriter) (*Export, error) {
 	return &Export{
 		name:    name,

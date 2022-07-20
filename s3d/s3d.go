@@ -68,6 +68,7 @@ func (s ByCRC) Less(i, j int) bool {
 	return s[i].CRC < s[j].CRC
 }
 
+// New creates a new empty instance. Use NewFile to load an archive on creation
 func New(name string) (*S3D, error) {
 	e := &S3D{
 		name: name,

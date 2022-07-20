@@ -16,22 +16,22 @@ import (
 type ZON struct {
 	name    string
 	archive common.ArchiveReadWriter
-	models  []*Model
-	objects []*Object
-	regions []*Region
-	lights  []*Light
+	models  []*model
+	objects []*object
+	regions []*region
+	lights  []*light
 
 	terrains []*ter.TER
 	mdses    []*mds.MDS
 	mods     []*mod.MOD
 }
 
-type Model struct {
+type model struct {
 	name     string
 	baseName string
 }
 
-type Object struct {
+type object struct {
 	modelName   string
 	name        string
 	translation [3]float32
@@ -39,20 +39,21 @@ type Object struct {
 	scale       float32
 }
 
-type Region struct {
+type region struct {
 	name    string
 	center  [3]float32
 	unknown [3]float32
 	extent  [3]float32
 }
 
-type Light struct {
+type light struct {
 	name     string
 	position [3]float32
 	color    [3]float32
 	radius   float32
 }
 
+// New creates a new empty instance. Use NewFile to load an archive file on creation
 func New(name string, archive common.ArchiveReadWriter) (*ZON, error) {
 	if archive == nil {
 		return nil, fmt.Errorf("archive cannot be nil")
@@ -105,19 +106,19 @@ func (e *ZON) ModelNames() []string {
 	return names
 }
 
-func (e *ZON) Regions() []*Region {
+func (e *ZON) Regions() []*region {
 	return e.regions
 }
 
-func (e *ZON) Lights() []*Light {
+func (e *ZON) Lights() []*light {
 	return e.lights
 }
 
-func (e *ZON) Objects() []*Object {
+func (e *ZON) Objects() []*object {
 	return e.objects
 }
 
-func (e *ZON) Models() []*Model {
+func (e *ZON) Models() []*model {
 	return e.models
 }
 

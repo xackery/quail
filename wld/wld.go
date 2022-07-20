@@ -28,6 +28,7 @@ type fragmentInfo struct {
 	data common.WldFragmenter
 }
 
+// New creates a new empty instance. Use NewFile to load an archive file on creation
 func New(name string, archive common.ArchiveReadWriter) (*WLD, error) {
 	e := &WLD{
 		name:    name,

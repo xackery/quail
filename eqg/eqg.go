@@ -16,7 +16,7 @@ type EQG struct {
 	fileCount int
 }
 
-// New creates an empty eqg archive
+// New creates a new empty instance. Use NewFile to load an archive on creation
 func New(name string) (*EQG, error) {
 	e := &EQG{
 		name: name,

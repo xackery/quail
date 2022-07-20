@@ -23,10 +23,10 @@ func (e *ZON) AddObject(modelName string, name string, position [3]float32, rota
 		}
 	}
 	if !isModelFound {
-		e.models = append(e.models, &Model{name: name, baseName: name})
+		e.models = append(e.models, &model{name: name, baseName: name})
 		fmt.Println("warning: model", modelName, "not found, added")
 	}
-	e.objects = append(e.objects, &Object{
+	e.objects = append(e.objects, &object{
 		name:        name,
 		modelName:   modelName,
 		translation: position,
@@ -43,7 +43,7 @@ func (e *ZON) AddModel(name string) error {
 			return nil
 		}
 	}
-	e.models = append(e.models, &Model{
+	e.models = append(e.models, &model{
 		name:     name,
 		baseName: helper.BaseName(name),
 	})
@@ -52,7 +52,7 @@ func (e *ZON) AddModel(name string) error {
 
 func (e *ZON) AddRegion(name string, center [3]float32, unknown [3]float32, extent [3]float32) error {
 	name = strings.ToLower(name)
-	e.regions = append(e.regions, &Region{
+	e.regions = append(e.regions, &region{
 		name:    name,
 		center:  center,
 		unknown: unknown,
@@ -63,7 +63,7 @@ func (e *ZON) AddRegion(name string, center [3]float32, unknown [3]float32, exte
 
 func (e *ZON) AddLight(name string, position [3]float32, color [3]float32, radius float32) error {
 	name = strings.ToLower(name)
-	e.lights = append(e.lights, &Light{
+	e.lights = append(e.lights, &light{
 		name:     name,
 		position: position,
 		color:    color,

@@ -52,7 +52,7 @@ func TestEncodeEQG(t *testing.T) {
 		t.Fatalf("new: %s", err)
 	}
 
-	zone.models = append(zone.models, &Model{
+	zone.models = append(zone.models, &model{
 		name:     category + ".ter",
 		baseName: category,
 	})

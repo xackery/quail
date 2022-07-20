@@ -24,6 +24,7 @@ type Object struct {
 	FileName string
 }
 
+// New creates a new empty instance. Use NewFile to load an archive file on creation
 func New(name string, archive common.ArchiveReadWriter) (*TOG, error) {
 	e := &TOG{
 		name:    name,
