@@ -3,6 +3,7 @@ package common
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -13,6 +14,8 @@ type Path struct {
 }
 
 func NewPath(path string) (*Path, error) {
+
+	path = filepath.Dir(path)
 	entries, err := os.ReadDir(path)
 	if err != nil {
 		return nil, fmt.Errorf("readdir: %w", err)

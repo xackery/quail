@@ -62,7 +62,6 @@ Supported extensions: eqg, zon, ter, ani, mod
 		ext := filepath.Ext(path)
 		switch ext {
 		case ".eqg":
-
 			e, err := eqg.New(filepath.Base(path))
 			if err != nil {
 				return fmt.Errorf("eqg new: %w", err)
@@ -109,6 +108,7 @@ Supported extensions: eqg, zon, ter, ani, mod
 			}
 			archive = e
 		default:
+			file = filepath.Base(path)
 			archive, err = common.NewPath(path)
 			if err != nil {
 				return fmt.Errorf("path new: %w", err)
@@ -117,7 +117,7 @@ Supported extensions: eqg, zon, ter, ani, mod
 
 		err = inspect(archive, file)
 		if err != nil {
-			return err
+			return fmt.Errorf("inspect: %w", err)
 		}
 		return nil
 	},
