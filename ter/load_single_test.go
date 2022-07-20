@@ -1,7 +1,6 @@
 package ter
 
 import (
-	"fmt"
 	"os"
 	"testing"
 
@@ -25,11 +24,8 @@ func TestLoad(t *testing.T) {
 		t.Fatalf("%s", err)
 	}
 	defer f.Close()
-	d, err := dump.New(inFile)
-	if err != nil {
-		t.Fatalf("dump.new: %s", err)
-	}
-	defer d.Save(fmt.Sprintf("%s_load.png", inFile))
+	dump.New(inFile)
+	defer dump.WriteFileClose(inFile)
 
 	e, err := New("out", path)
 	if err != nil {
@@ -59,11 +55,8 @@ func TestLoadSaveLoad(t *testing.T) {
 		t.Fatalf("%s", err)
 	}
 	defer f.Close()
-	d, err := dump.New(inFile)
-	if err != nil {
-		t.Fatalf("dump.new: %s", err)
-	}
-	defer d.Save(fmt.Sprintf("%s_loadsaveload.png", outFile))
+	dump.New(inFile)
+	defer dump.WriteFileClose(inFile)
 
 	e, err := New("out", path)
 	if err != nil {

@@ -165,6 +165,15 @@ func importEQG(path string, out string) error {
 				return fmt.Errorf("mds new %s: %w", baseName, err)
 			}
 
+			gdoc, err := gltf.Open(fmt.Sprintf("%s/%s", path, file.Name()))
+			if err != nil {
+				return fmt.Errorf("mds open %s: %w", baseName, err)
+			}
+			err = e.GLTFImport(gdoc)
+			if err != nil {
+				return fmt.Errorf("mds import %s: %w", baseName, err)
+			}
+
 			err = e.ArchiveExport(archive)
 			if err != nil {
 				return fmt.Errorf("mds archive export %s: %w", baseName, err)
@@ -177,6 +186,15 @@ func importEQG(path string, out string) error {
 			e, err := mds.New(baseName, archive)
 			if err != nil {
 				return fmt.Errorf("mod new %s: %w", baseName, err)
+			}
+
+			gdoc, err := gltf.Open(fmt.Sprintf("%s/%s", path, file.Name()))
+			if err != nil {
+				return fmt.Errorf("mod open %s: %w", baseName, err)
+			}
+			err = e.GLTFImport(gdoc)
+			if err != nil {
+				return fmt.Errorf("mod import %s: %w", baseName, err)
 			}
 
 			err = e.ArchiveExport(archive)

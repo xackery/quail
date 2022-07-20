@@ -5,18 +5,39 @@ import (
 	"bytes"
 	"fmt"
 	"os"
+
+	"github.com/xackery/quail/common"
 )
 
-// LIT is a litrain file struct
+// LIT are light sources
 type LIT struct {
-	name string
+	name    string
+	archive common.ArchiveReader
+	lights  []float32
 }
 
-func New(name string) (*LIT, error) {
+func New(name string, archive common.ArchiveReader) (*LIT, error) {
 	t := &LIT{
 		name: name,
 	}
 	return t, nil
+}
+
+// NewFile creates a new instance and loads provided file
+func NewFile(name string, archive common.ArchiveReader, file string) (*LIT, error) {
+	e := &LIT{
+		name:    name,
+		archive: archive,
+	}
+	data, err := archive.File(file)
+	if err != nil {
+		return nil, fmt.Errorf("file '%s': %w", file, err)
+	}
+	err = e.Load(bytes.NewReader(data))
+	if err != nil {
+		return nil, fmt.Errorf("load: %w", err)
+	}
+	return e, nil
 }
 
 func (e *LIT) Name() string {

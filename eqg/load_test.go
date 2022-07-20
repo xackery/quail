@@ -1,7 +1,6 @@
 package eqg
 
 import (
-	"fmt"
 	"os"
 	"testing"
 
@@ -16,11 +15,9 @@ func TestEQGLoad(t *testing.T) {
 		t.Fatalf("%s", err)
 	}
 	defer f.Close()
-	d, err := dump.New(inFile)
-	if err != nil {
-		t.Fatalf("dump.new: %s", err)
-	}
-	defer d.Save(fmt.Sprintf("%s.png", inFile))
+
+	dump.New(inFile)
+	defer dump.WriteFileClose(inFile)
 
 	e, err := New("out")
 	if err != nil {
@@ -42,10 +39,9 @@ func TestLoadSaveLoad(t *testing.T) {
 		t.Fatalf("%s", err)
 	}
 	defer f.Close()
-	d, err := dump.New(inFile1)
-	if err != nil {
-		t.Fatalf("dump.new: %s", err)
-	}
+
+	dump.New(inFile1)
+	defer dump.WriteFileClose(inFile1)
 
 	archive, err := New(inFile1)
 	if err != nil {
@@ -65,16 +61,10 @@ func TestLoadSaveLoad(t *testing.T) {
 	if err != nil {
 		t.Fatalf("save: %s", err)
 	}
-	err = d.Save(inFile1 + ".png")
-	if err != nil {
-		t.Fatalf("dump save: %s", err)
-	}
-	dump.Close()
 
-	d, err = dump.New(inFile2)
-	if err != nil {
-		t.Fatalf("dump.new: %s", err)
-	}
+	dump.WriteFileClose(inFile1)
+	dump.New(inFile2)
+	defer dump.WriteFileClose(inFile2)
 
 	r, err := os.Open(inFile2)
 	if err != nil {
@@ -84,9 +74,4 @@ func TestLoadSaveLoad(t *testing.T) {
 	if err != nil {
 		t.Fatalf("load: %s", err)
 	}
-	err = d.Save(inFile2 + ".png")
-	if err != nil {
-		t.Fatalf("dump save2: %s", err)
-	}
-	dump.Close()
 }

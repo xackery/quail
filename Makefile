@@ -1,4 +1,4 @@
-VERSION ?= 1.0.6
+VERSION ?= 1.0.7
 EQPATH := ~/Documents/games/EverQuest.app/drive_c/rebuildeq/
 
 build: build-docker build-osx

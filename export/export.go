@@ -2,7 +2,9 @@
 package export
 
 import (
+	"fmt"
 	"io"
+	"path/filepath"
 
 	"github.com/xackery/quail/common"
 	qgltf "github.com/xackery/quail/gltf"
@@ -27,6 +29,24 @@ func New(name string, archive common.ArchiveReadWriter) (*Export, error) {
 		name:    name,
 		archive: archive,
 	}, nil
+}
+
+func NewFile(path string, archive common.ArchiveReadWriter) (*Export, error) {
+	e := &Export{
+		name:    filepath.Base(path),
+		archive: archive,
+	}
+
+	/*data, err := archive.File(file)
+	if err != nil {
+		return nil, fmt.Errorf("file '%s': %s", file, err)
+	}*/
+	err := e.LoadArchive()
+	if err != nil {
+		return nil, fmt.Errorf("loadArchive: %w", err)
+	}
+
+	return e, nil
 }
 
 func (e *Export) Name() string {

@@ -77,6 +77,7 @@ func init() {
 	//0x28 PointLight aka LightInstance
 	fragmentTypes[40] = fragment.LoadLightInstance
 	//0x29 Zone aka BspRegionType
+	fragmentTypes[41] = fragment.LoadRegionType
 	//0x2A AmbientLight
 	fragmentTypes[42] = fragment.LoadAmbientLight
 	//0x2B DirectionalLight

@@ -1,12 +1,13 @@
 package mod
 
 import (
-	"fmt"
+	"bytes"
 	"os"
 	"testing"
 
 	"github.com/xackery/quail/common"
 	"github.com/xackery/quail/dump"
+	"github.com/xackery/quail/eqg"
 	"github.com/xackery/quail/gltf"
 )
 
@@ -15,27 +16,26 @@ func TestLoad(t *testing.T) {
 		return
 	}
 	filePath := "test/eq/_steamfontmts.eqg/"
-	inFile := "test/eq/_steamfontmts.eqg/obj_gears.mod"
-	f, err := os.Open(inFile)
-	if err != nil {
-		t.Fatalf("%s", err)
-	}
-	defer f.Close()
-	d, err := dump.New("obj_gears.mod")
-	if err != nil {
-		t.Fatalf("dump.new: %s", err)
-	}
-	defer d.Save(fmt.Sprintf("%s.png", inFile))
+	inFile := "obj_gears.mod"
 
-	path, err := common.NewPath(filePath)
+	archive, err := eqg.NewFile(filePath)
 	if err != nil {
-		t.Fatalf("path: %s", err)
+		t.Fatalf("eqg new: %s", err)
 	}
-	e, err := New("out", path)
+
+	data, err := archive.File(inFile)
+	if err != nil {
+		t.Fatalf("eqg load: %s", err)
+	}
+
+	dump.New(inFile)
+	defer dump.WriteFileClose(filePath + "_" + inFile + ".png")
+
+	e, err := New("out", archive)
 	if err != nil {
 		t.Fatalf("new: %s", err)
 	}
-	err = e.Load(f)
+	err = e.Load(bytes.NewReader(data))
 	if err != nil {
 		t.Fatalf("load: %s", err)
 	}
@@ -46,7 +46,7 @@ func TestLoadSaveLoad(t *testing.T) {
 		return
 	}
 	filePath := "test/"
-	inFile := "test/obj_gears.mod"
+	inFile := "obj_gears.mod"
 	outFile := "test/obj_gears_loadsaveload.mod"
 	f, err := os.Open(inFile)
 	if err != nil {
@@ -54,23 +54,19 @@ func TestLoadSaveLoad(t *testing.T) {
 	}
 	defer f.Close()
 
-	path, err := common.NewPath(filePath)
+	archive, err := common.NewPath(filePath)
 	if err != nil {
 		t.Fatalf("path: %s", err)
 	}
-	d, err := dump.New(path.String())
-	if err != nil {
-		t.Fatalf("dump.new: %s", err)
-	}
 
-	e, err := New("out", path)
+	dump.New(archive.String())
+	defer dump.WriteFileClose(filePath + inFile + ".png")
+
+	e, err := NewFile("out", archive, "obj_gears.mod")
 	if err != nil {
 		t.Fatalf("new: %s", err)
 	}
-	err = e.Load(f)
-	if err != nil {
-		t.Fatalf("load: %s", err)
-	}
+
 	w, err := os.Create(outFile)
 	if err != nil {
 		t.Fatalf("create: %s", err)
@@ -80,8 +76,6 @@ func TestLoadSaveLoad(t *testing.T) {
 	if err != nil {
 		t.Fatalf("save: %s", err)
 	}
-	d.Save(fmt.Sprintf("%s.png", outFile))
-	dump.Close()
 
 	r, err := os.Open(outFile)
 	if err != nil {
@@ -106,10 +100,10 @@ func TestLoadSaveGLTF(t *testing.T) {
 		t.Fatalf("%s", err)
 	}
 	defer f.Close()
-	d, err := dump.New(inFile)
-	if err != nil {
-		t.Fatalf("dump.new: %s", err)
-	}
+
+	dump.New(inFile)
+	defer dump.WriteFileClose(inFile)
+
 	path, err := common.NewPath(filePath)
 	if err != nil {
 		t.Fatalf("path: %s", err)
@@ -141,6 +135,4 @@ func TestLoadSaveGLTF(t *testing.T) {
 	if err != nil {
 		t.Fatalf("export: %s", err)
 	}
-	d.Save(fmt.Sprintf("%s.png", outFile))
-	dump.Close()
 }

@@ -46,13 +46,10 @@ func TestLoadSingleTest(t *testing.T) {
 				continue
 			}
 
-			var d *dump.Dump
 			if isDump {
-				d, err = dump.New(aniEntry.Name())
-				if err != nil {
-					t.Fatalf("dump.New: %s", err)
-				}
+				dump.New(aniEntry.Name())
 			}
+			defer dump.Close()
 			r := bytes.NewReader(aniEntry.Data())
 
 			e, err := New(aniEntry.Name())
@@ -72,12 +69,7 @@ func TestLoadSingleTest(t *testing.T) {
 					bone.rotation.X, bone.rotation.Y, bone.rotation.Z, bone.rotation.W,
 					bone.scale.X, bone.scale.Y, bone.scale.Z)
 			}
-			if isDump {
-				err = d.Save(fmt.Sprintf("test/eq/%s_eqg_%s.png", tt.category, aniEntry.Name()))
-				if err != nil {
-					t.Fatalf("save: %s", err)
-				}
-			}
+
 		}
 	}
 }

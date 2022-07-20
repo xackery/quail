@@ -166,7 +166,7 @@ func (e *S3D) Load(r io.ReadSeeker) error {
 			return fmt.Errorf("entry %d has no name", i)
 		}
 		entry.Name = filenames[i]
-		fe, err := common.NewFileEntry(entry.Name[0:len(entry.Name)-1], entry.Data)
+		fe, err := common.NewFileEntry(entry.Name, entry.Data)
 		if err != nil {
 			return fmt.Errorf("entry %d newFileEntry: %w", i, err)
 		}

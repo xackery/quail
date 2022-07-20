@@ -139,7 +139,7 @@ func (e *MDS) Load(r io.ReadSeeker) error {
 			}
 			propertyName, ok := names[propertyNameOffset]
 			if !ok {
-				return fmt.Errorf("%d%d read name offset: %w", i, j, err)
+				return fmt.Errorf("%d%d material %s property offset %d not found", i, j, name, propertyNameOffset)
 			}
 			dump.Hex(propertyNameOffset, "%d%dpropertyNameOffset=0x%x(%s)", i, j, propertyNameOffset, propertyName)
 

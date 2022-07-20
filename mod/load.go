@@ -175,7 +175,7 @@ func (e *MOD) Load(r io.ReadSeeker) error {
 				if propertyType == 2 {
 					propertyValueName, ok = names[propertyValue]
 					if !ok {
-						return fmt.Errorf("property %d names offset %d not found", j, propertyValue)
+						return fmt.Errorf("%d%d material %s property offset %d not found", i, j, name, propertyNameOffset)
 					}
 
 					var data []byte

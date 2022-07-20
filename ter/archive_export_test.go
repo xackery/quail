@@ -27,13 +27,6 @@ func TestArchiveExportSample(t *testing.T) {
 		outFile := fmt.Sprintf("test/%s_out.ter", tt.category)
 
 		var err error
-		var d *dump.Dump
-		if isDumpEnabled {
-			d, err = dump.New(tt.category)
-			if err != nil {
-				t.Fatalf("dump.New: %s", err)
-			}
-		}
 
 		a, err := eqg.New(tt.category)
 		if err != nil {
@@ -57,6 +50,10 @@ func TestArchiveExportSample(t *testing.T) {
 			if filepath.Ext(fileEntry.Name()) != ".ter" {
 				continue
 			}
+			if isDumpEnabled {
+				dump.New(tt.category)
+				defer dump.WriteFileClose(fmt.Sprintf("test/%s_eqg_%s", tt.category, fileEntry.Name()))
+			}
 
 			terBuf := bytes.NewReader(fileEntry.Data())
 			err = e.Load(terBuf)
@@ -75,12 +72,7 @@ func TestArchiveExportSample(t *testing.T) {
 				t.Fatalf("save: %s", err)
 			}
 
-			if d != nil {
-				err = d.Save(fileEntry.Name() + ".png")
-				if err != nil {
-					t.Fatalf("save png: %s", err)
-				}
-			}
+			dump.WriteFileClose(fmt.Sprintf("test/%s_eqg_%s", tt.category, fileEntry.Name()))
 		}
 	}
 }

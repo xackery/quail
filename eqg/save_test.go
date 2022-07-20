@@ -1,7 +1,6 @@
 package eqg
 
 import (
-	"bytes"
 	"fmt"
 	"os"
 	"testing"
@@ -44,18 +43,9 @@ func TestArchiveExportSample(t *testing.T) {
 			t.Fatalf("new out eqg: %s", err)
 		}
 
-		e, err := zon.New(tt.outCategory, archive)
+		e, err := zon.NewFile(tt.outCategory, archive, fmt.Sprintf("%s.zon", tt.category))
 		if err != nil {
 			t.Fatalf("new: %s", err)
-		}
-
-		data, err := archive.File(fmt.Sprintf("%s.zon", tt.category))
-		if err != nil {
-			t.Fatalf("archive.file: %s", err)
-		}
-		err = e.Load(bytes.NewReader(data))
-		if err != nil {
-			t.Fatalf("load: %s", err)
 		}
 
 		err = e.ArchiveExport(outArchive)

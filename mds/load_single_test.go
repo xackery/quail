@@ -2,7 +2,6 @@ package mds
 
 import (
 	"bytes"
-	"fmt"
 	"os"
 	"testing"
 
@@ -16,8 +15,8 @@ func TestLoad(t *testing.T) {
 	if os.Getenv("SINGLE_TEST") != "1" {
 		return
 	}
-	path := "test/eq/bxi.eqg"
-	inFile := "bxi.mds"
+	path := "test/eq/lth.eqg"
+	inFile := "lth.mds"
 
 	a, err := eqg.New(path)
 	if err != nil {
@@ -33,11 +32,8 @@ func TestLoad(t *testing.T) {
 		t.Fatalf("archive load: %s", err)
 	}
 
-	d, err := dump.New(inFile)
-	if err != nil {
-		t.Fatalf("dump.new: %s", err)
-	}
-	defer d.Save(fmt.Sprintf("test/eq/%s.png", inFile))
+	dump.New(inFile)
+	defer dump.WriteFileClose(path + "_" + inFile + ".png")
 
 	e, err := New(inFile, a)
 	if err != nil {
@@ -72,10 +68,9 @@ func TestLoadSaveLoad(t *testing.T) {
 		t.Fatalf("%s", err)
 	}
 	defer f.Close()
-	d, err := dump.New(filePath)
-	if err != nil {
-		t.Fatalf("dump.new: %s", err)
-	}
+
+	dump.New(inFile)
+	defer dump.WriteFileClose(inFile + ".png")
 
 	e, err := New("out", path)
 	if err != nil {
@@ -94,8 +89,6 @@ func TestLoadSaveLoad(t *testing.T) {
 	if err != nil {
 		t.Fatalf("save: %s", err)
 	}
-	d.Save(fmt.Sprintf("%s.png", outFile))
-	dump.Close()
 
 	r, err := os.Open(outFile)
 	if err != nil {
@@ -124,10 +117,9 @@ func TestLoadSaveGLTF(t *testing.T) {
 		t.Fatalf("%s", err)
 	}
 	defer f.Close()
-	d, err := dump.New(inFile)
-	if err != nil {
-		t.Fatalf("dump.new: %s", err)
-	}
+
+	dump.New(inFile)
+	defer dump.WriteFileClose(inFile + ".png")
 
 	e, err := New("out", path)
 	if err != nil {
@@ -157,6 +149,4 @@ func TestLoadSaveGLTF(t *testing.T) {
 	if err != nil {
 		t.Fatalf("export: %s", err)
 	}
-	d.Save(fmt.Sprintf("%s.png", outFile))
-	dump.Close()
 }

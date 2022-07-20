@@ -257,20 +257,13 @@ func viewLoadZON(buf *bytes.Buffer, path string, file string, ext string) error 
 		return fmt.Errorf("path new: %w", err)
 	}
 
-	e, err := zon.New(filepath.Base(path), archive)
+	if file == "" {
+		file = filepath.Base(path)
+	}
+
+	e, err := zon.NewFile(filepath.Base(path), archive, file)
 	if err != nil {
 		return fmt.Errorf("zon new: %w", err)
-	}
-
-	r, err := os.Open(path)
-	if err != nil {
-		return err
-	}
-	defer r.Close()
-
-	err = e.Load(r)
-	if err != nil {
-		return fmt.Errorf("zon load: %w", err)
 	}
 
 	doc, err := gltf.New()

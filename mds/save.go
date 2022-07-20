@@ -34,33 +34,29 @@ func (e *MDS) Save(w io.Writer) error {
 	if err != nil {
 		return fmt.Errorf("write material count: %w", err)
 	}
-	err = binary.Write(w, binary.LittleEndian, uint32(len(e.vertices)))
-	if err != nil {
-		return fmt.Errorf("write vertices count: %w", err)
-	}
-
-	err = binary.Write(w, binary.LittleEndian, uint32(len(e.faces)))
-	if err != nil {
-		return fmt.Errorf("write face count: %w", err)
-	}
 
 	err = binary.Write(w, binary.LittleEndian, uint32(len(e.bones)))
 	if err != nil {
 		return fmt.Errorf("write bone count: %w", err)
 	}
 
-	/*err = binary.Write(w, binary.LittleEndian, uint32(len(e.boneAssignments)))
+	//TODO: mds save sub count
+	err = binary.Write(w, binary.LittleEndian, uint32(0))
 	if err != nil {
-		return fmt.Errorf("write bone assignemt count: %w", err)
-	}*/
+		return fmt.Errorf("write sub count: %w", err)
+	}
 
 	err = binary.Write(w, binary.LittleEndian, nameData)
 	if err != nil {
 		return fmt.Errorf("write nameBuf: %w", err)
 	}
+
 	err = binary.Write(w, binary.LittleEndian, data)
 	if err != nil {
 		return fmt.Errorf("write dataBuf: %w", err)
 	}
+
+	//TODO: bone data
+
 	return nil
 }

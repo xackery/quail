@@ -11,6 +11,7 @@ import (
 	"image/png"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/xackery/colors"
 	"golang.org/x/image/font"
@@ -54,9 +55,9 @@ type group struct {
 	mask *image.RGBA
 }
 
-func New(name string) (*Dump, error) {
+func New(path string) {
 	e := &Dump{
-		name:   filepath.Base(name),
+		name:   filepath.Base(path),
 		img:    image.NewRGBA(image.Rect(0, 0, width, height)),
 		groups: make(map[string]*group),
 	}
@@ -77,10 +78,7 @@ func New(name string) (*Dump, error) {
 	e.lastPos.Y += 16
 	e.lastPos.X = 0
 	e.addLabel(e.grayImage, "00 ")
-	if instance == nil {
-		instance = e
-	}
-	return e, nil
+	instance = e
 }
 
 func Hex(data interface{}, format string, a ...interface{}) {
@@ -162,7 +160,12 @@ func (e *Dump) addLabel(mask image.Image, text string) {
 	}
 }
 
-func (e *Dump) Save(path string) error {
+// WriteFileClose writes to the provided path and closes the dump. It will also append .png if not found
+func WriteFileClose(path string) error {
+	if instance == nil {
+		return nil
+	}
+	e := instance
 	out := image.NewRGBA(e.img.Bounds())
 	draw.Draw(out, e.img.Bounds(), e.img, e.img.Bounds().Min, draw.Src)
 	d := font.Drawer{
@@ -197,6 +200,9 @@ func (e *Dump) Save(path string) error {
 		out = newOut
 	}
 
+	if !strings.HasSuffix(path, ".png") {
+		path += ".png"
+	}
 	f, err := os.Create(path)
 	if err != nil {
 		return fmt.Errorf("create: %w", err)
@@ -207,6 +213,7 @@ func (e *Dump) Save(path string) error {
 		return fmt.Errorf("encode: %w", err)
 	}
 	fmt.Println("saved dump", path)
+	Close()
 	return nil
 }
 

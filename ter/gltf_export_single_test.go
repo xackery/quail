@@ -28,13 +28,6 @@ func TestGLTFExportEQGZones(t *testing.T) {
 		eqgFile := fmt.Sprintf("test/eq/%s.eqg", tt.category)
 
 		var err error
-		var d *dump.Dump
-		if isDumpEnabled {
-			d, err = dump.New(tt.category)
-			if err != nil {
-				t.Fatalf("dump.New: %s", err)
-			}
-		}
 
 		a, err := eqg.New(tt.category)
 		if err != nil {
@@ -58,7 +51,10 @@ func TestGLTFExportEQGZones(t *testing.T) {
 			if filepath.Ext(fileEntry.Name()) != ".ter" {
 				continue
 			}
-
+			if isDumpEnabled {
+				dump.New(fmt.Sprintf("%s_%s", eqgFile, fileEntry.Name()))
+				dump.WriteFileClose(fmt.Sprintf("test/%s_eqg_%s", tt.category, fileEntry.Name()))
+			}
 			terBuf := bytes.NewReader(fileEntry.Data())
 			err = e.Load(terBuf)
 			if err != nil {
@@ -84,12 +80,7 @@ func TestGLTFExportEQGZones(t *testing.T) {
 			if err != nil {
 				t.Fatalf("export: %s", err)
 			}
-			if d != nil {
-				err = d.Save(fileEntry.Name() + ".png")
-				if err != nil {
-					t.Fatalf("save png: %s", err)
-				}
-			}
+			dump.WriteFileClose(fmt.Sprintf("test/%s_eqg_%s", tt.category, fileEntry.Name()))
 		}
 	}
 }
@@ -173,11 +164,8 @@ func TestGLTFExportCityOfBronze(t *testing.T) {
 		t.Fatalf("path: %s", err)
 	}
 	if isDumpEnabed {
-		d, err := dump.New(path.String())
-		if err != nil {
-			t.Fatalf("dump.new: %s", err)
-		}
-		defer d.Save(fmt.Sprintf("%s.png", inFile))
+		dump.New(path.String())
+		defer dump.WriteFileClose(inFile)
 	}
 
 	e, err := New("cityofbronze", path)

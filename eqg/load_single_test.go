@@ -53,11 +53,8 @@ func TestLoadSampleCompare(t *testing.T) {
 		t.Fatalf("%s", err)
 	}
 	defer f.Close()
-	d, err := dump.New(inFile)
-	if err != nil {
-		t.Fatalf("dump.new: %s", err)
-	}
-
+	dump.New(inFile)
+	defer dump.WriteFileClose(inFile + ".png")
 	archive, err := New(inFile)
 	if err != nil {
 		t.Fatalf("new: %s", err)
@@ -77,5 +74,4 @@ func TestLoadSampleCompare(t *testing.T) {
 	if err != nil {
 		t.Fatalf("save: %s", err)
 	}
-	d.Save(inFile + ".png")
 }

@@ -65,6 +65,23 @@ func New(name string, archive common.ArchiveReadWriter) (*ZON, error) {
 	return z, nil
 }
 
+// NewFile creates a new instance and loads provided file
+func NewFile(name string, archive common.ArchiveReadWriter, file string) (*ZON, error) {
+	e := &ZON{
+		name:    name,
+		archive: archive,
+	}
+	data, err := archive.File(file)
+	if err != nil {
+		return nil, fmt.Errorf("file '%s': %w", file, err)
+	}
+	err = e.Load(bytes.NewReader(data))
+	if err != nil {
+		return nil, fmt.Errorf("load: %w", err)
+	}
+	return e, nil
+}
+
 func (e *ZON) Name() string {
 	return e.name
 }

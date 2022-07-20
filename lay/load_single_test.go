@@ -51,13 +51,12 @@ func TestLoadSingleTest(t *testing.T) {
 			}
 			fmt.Println(layEntry.Name())
 
-			var d *dump.Dump
+			dump.New(layEntry.Name())
+
 			if isDump {
-				d, err = dump.New(layEntry.Name())
-				if err != nil {
-					t.Fatalf("dump.New: %s", err)
-				}
+				dump.New(layEntry.Name())
 			}
+			defer dump.WriteFileClose(fmt.Sprintf("test/eq/%s_%s", tt.category, layEntry.Name()))
 			r := bytes.NewReader(layEntry.Data())
 
 			e, err := New(layEntry.Name(), a)
@@ -69,13 +68,7 @@ func TestLoadSingleTest(t *testing.T) {
 			if err != nil {
 				t.Fatalf("load %s: %s", layEntry.Name(), err)
 			}
-
-			if isDump {
-				err = d.Save(fmt.Sprintf("test/eq/%s_eqg_%s.png", tt.category, layEntry.Name()))
-				if err != nil {
-					t.Fatalf("save: %s", err)
-				}
-			}
+			dump.WriteFileClose(fmt.Sprintf("test/eq/%s_%s", tt.category, layEntry.Name()))
 		}
 	}
 }

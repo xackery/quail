@@ -36,11 +36,8 @@ func TestLoadBox(t *testing.T) {
 		t.Fatalf("eqg.file: %s", err)
 	}
 
-	d, err := dump.New(path)
-	if err != nil {
-		t.Fatalf("dump.new: %s", err)
-	}
-	defer d.Save(fmt.Sprintf("%s.png", path))
+	dump.New(path)
+	defer dump.WriteFileClose(path)
 
 	e, err := New("out", archive)
 	if err != nil {

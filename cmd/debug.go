@@ -60,11 +60,8 @@ Supported extensions: eqg, zon, ter, ani, mod
 			return fmt.Errorf("debug requires a target file, directory provided")
 		}
 
-		d, err := dump.New(filepath.Base(path))
-		if err != nil {
-			return fmt.Errorf("dump.New: %w", err)
-		}
-		defer d.Save(out)
+		dump.New(path)
+		defer dump.Close()
 		f, err := os.Open(path)
 		if err != nil {
 			return fmt.Errorf("open debug path: %s", err)

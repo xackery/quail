@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"bytes"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -11,6 +10,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/xackery/quail/common"
 	"github.com/xackery/quail/eqg"
+	"github.com/xackery/quail/lit"
 	"github.com/xackery/quail/mds"
 	"github.com/xackery/quail/mod"
 	"github.com/xackery/quail/s3d"
@@ -142,6 +142,7 @@ func inspect(archive common.ArchiveReadWriter, file string) error {
 		{invoke: inspectZON, name: "zon"},
 		{invoke: inspectMOD, name: "mod"},
 		{invoke: inspectTER, name: "ter"},
+		{invoke: inspectLIT, name: "lit"},
 	}
 
 	for _, evt := range callbacks {
@@ -176,11 +177,22 @@ func inspectEQG(path string) error {
 	fmt.Printf("%s contains %d files:\n", filepath.Base(path), archive.Len())
 
 	filesByName := archive.Files()
+	noteworthyFile := "file.ext"
+
 	sort.Sort(common.FilerByName(filesByName))
 	for _, fe := range archive.Files() {
 		base := float64(len(fe.Data()))
 		out := ""
 		num := float64(1024)
+		if strings.HasSuffix(fe.Name(), ".zon") {
+			noteworthyFile = fe.Name()
+		}
+		if strings.HasSuffix(fe.Name(), ".mds") && noteworthyFile == "file.ext" {
+			noteworthyFile = fe.Name()
+		}
+		if strings.HasSuffix(fe.Name(), ".mod") && noteworthyFile == "file.ext" {
+			noteworthyFile = fe.Name()
+		}
 		if base < num*num*num*num {
 			out = fmt.Sprintf("%0.0fG", base/num/num/num)
 		}
@@ -196,6 +208,7 @@ func inspectEQG(path string) error {
 		fmt.Printf("%s\t%s\n", out, fe.Name())
 	}
 
+	fmt.Printf("you can inspect files, e.g.: quail inspect %s %s\n", path, noteworthyFile)
 	return nil
 }
 
@@ -241,92 +254,51 @@ func inspectS3D(path string) error {
 }
 
 func inspectMDS(file string, archive common.ArchiveReadWriter) error {
-	e, err := mds.New(filepath.Base(file), archive)
+	e, err := mds.NewFile(filepath.Base(file), archive, file)
 	if err != nil {
 		return fmt.Errorf("mds new: %w", err)
 	}
 
-	data, err := archive.File(file)
-	if err != nil {
-		return fmt.Errorf("mds file: %w", err)
-	}
-
-	err = e.Load(bytes.NewReader(data))
-	if err != nil {
-		return fmt.Errorf("mds load: %w", err)
-	}
-
+	e.Inspect()
 	return nil
 }
 
 func inspectZON(file string, archive common.ArchiveReadWriter) error {
-	e, err := zon.New(filepath.Base(file), archive)
+	e, err := zon.NewFile(filepath.Base(file), archive, file)
 	if err != nil {
 		return fmt.Errorf("zon new: %w", err)
 	}
 
-	data, err := archive.File(file)
-	if err != nil {
-		return fmt.Errorf("zon file: %w", err)
-	}
-
-	err = e.Load(bytes.NewReader(data))
-	if err != nil {
-		return fmt.Errorf("zon load: %w", err)
-	}
-
-	fmt.Printf("%d objects\n", len(e.Objects()))
-	for i, object := range e.Objects() {
-		fmt.Printf("	%d %+v\n", i, object)
-	}
-
-	fmt.Printf("%d models\n", len(e.Models()))
-	for i, model := range e.Models() {
-		fmt.Printf("	%d %+v\n", i, model)
-	}
-
-	fmt.Printf("%d lights\n", len(e.Lights()))
-	for i, light := range e.Lights() {
-		fmt.Printf("	%d %+v\n", i, light)
-	}
-
+	e.Inspect()
 	return nil
 }
 
 func inspectMOD(file string, archive common.ArchiveReadWriter) error {
-	e, err := mod.New(filepath.Base(file), archive)
+	e, err := mod.NewFile(filepath.Base(file), archive, file)
 	if err != nil {
 		return fmt.Errorf("mod new: %w", err)
 	}
 
-	data, err := archive.File(file)
-	if err != nil {
-		return fmt.Errorf("mod file: %w", err)
-	}
-
-	err = e.Load(bytes.NewReader(data))
-	if err != nil {
-		return fmt.Errorf("mod load: %w", err)
-	}
-
+	e.Inspect()
 	return nil
 }
 
 func inspectTER(file string, archive common.ArchiveReadWriter) error {
-	e, err := ter.New(filepath.Base(file), archive)
+	e, err := ter.NewFile(filepath.Base(file), archive, file)
 	if err != nil {
 		return fmt.Errorf("ter new: %w", err)
 	}
+	e.Inspect()
 
-	data, err := archive.File(file)
-	if err != nil {
-		return fmt.Errorf("ter file: %w", err)
-	}
+	return nil
+}
 
-	err = e.Load(bytes.NewReader(data))
+func inspectLIT(file string, archive common.ArchiveReadWriter) error {
+	e, err := lit.NewFile(filepath.Base(file), archive, file)
 	if err != nil {
-		return fmt.Errorf("ter load: %w", err)
+		return fmt.Errorf("lit new: %w", err)
 	}
+	e.Inspect()
 
 	return nil
 }

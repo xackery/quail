@@ -2,6 +2,7 @@
 package mod
 
 import (
+	"bytes"
 	"fmt"
 	"strings"
 
@@ -40,6 +41,23 @@ func New(name string, archive common.ArchiveReader) (*MOD, error) {
 	e := &MOD{
 		name:    name,
 		archive: archive,
+	}
+	return e, nil
+}
+
+// NewFile creates a new instance and loads provided file
+func NewFile(name string, archive common.ArchiveReadWriter, file string) (*MOD, error) {
+	e := &MOD{
+		name:    name,
+		archive: archive,
+	}
+	data, err := archive.File(file)
+	if err != nil {
+		return nil, fmt.Errorf("file '%s': %w", file, err)
+	}
+	err = e.Load(bytes.NewReader(data))
+	if err != nil {
+		return nil, fmt.Errorf("load: %w", err)
 	}
 	return e, nil
 }

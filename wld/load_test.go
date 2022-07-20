@@ -1,7 +1,7 @@
 package wld
 
 import (
-	"bytes"
+	"fmt"
 	"os"
 	"testing"
 
@@ -14,37 +14,30 @@ func TestLoad(t *testing.T) {
 		return
 	}
 	path := "test/eq/crushbone.s3d"
+	file := "crushbone.wld"
 
 	f, err := os.Open(path)
 	if err != nil {
 		t.Fatalf("open: %s", err)
 	}
 	defer f.Close()
-	a, err := s3d.New("crushbone.s3d")
+
+	archive, err := s3d.NewFile(path)
 	if err != nil {
-		t.Fatalf("new: %s", err)
-	}
-	err = a.Load(f)
-	if err != nil {
-		t.Fatalf("load: %s", err)
+		t.Fatalf("s3d new: %s", err)
 	}
 
-	d, err := dump.New(path)
-	if err != nil {
-		t.Fatalf("dump.New: %s", err)
+	for _, fe := range archive.Files() {
+		fmt.Println(fe.Name())
 	}
-	defer d.Save("test/eq/crushbone.wld.png")
-	e, err := NewS3D("out", a)
+
+	dump.New(path)
+	defer dump.WriteFileClose(path)
+	e, err := NewFile("crushbone", archive, file)
 	if err != nil {
 		t.Fatalf("new: %s", err)
 	}
-	data, err := a.File("crushbone.wld")
-	if err != nil {
-		t.Fatalf("file: %s", err)
-	}
-	r := bytes.NewReader(data)
-	err = e.Load(r)
-	if err != nil {
-		t.Fatalf("load wld: %s", err)
-	}
+
+	fmt.Println(e.name)
+
 }

@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"os"
-	"strings"
 	"testing"
 
 	"github.com/xackery/quail/common"
@@ -37,18 +36,12 @@ func TestGLTFExportSamples(t *testing.T) {
 		terFile := fmt.Sprintf("%s.ter", tt.category)
 		gltfFile := fmt.Sprintf("test/%s.gltf", tt.category)
 		gltfOutFile := fmt.Sprintf("test/%s_out.gltf", tt.category)
-		txtFile := fmt.Sprintf("test/%s_ter.txt", tt.category)
-		var err error
-		if isGLTFSource {
-			txtFile = fmt.Sprintf("test/%s_gltf.txt", tt.category)
 
-		}
-		var d *dump.Dump
+		var err error
+
 		if isDumpEnabled {
-			d, err = dump.New(tt.category)
-			if err != nil {
-				t.Fatalf("dump.New: %s", err)
-			}
+			dump.New(tt.category)
+			dump.WriteFileClose(fmt.Sprintf("test/%s_eqg_%s", tt.category, tt.category))
 		}
 
 		a, err := eqg.New(tt.category)
@@ -124,12 +117,7 @@ func TestGLTFExportSamples(t *testing.T) {
 		if err != nil {
 			t.Fatalf("export: %s", err)
 		}
-		if d != nil {
-			err = d.Save(strings.ReplaceAll(txtFile, ".txt", ".png"))
-			if err != nil {
-				t.Fatalf("save png: %s", err)
-			}
-		}
+		dump.WriteFileClose(fmt.Sprintf("test/%s_eqg_%s", tt.category, tt.category))
 	}
 }
 

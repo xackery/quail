@@ -25,6 +25,7 @@ func (e *LIT) Load(r io.ReadSeeker) error {
 			return fmt.Errorf("read entry: %w", err)
 		}
 		dump.Hex(entry, "%dentry=%0.10f", i, entry)
+		e.lights = append(e.lights, entry)
 	}
 
 	return nil

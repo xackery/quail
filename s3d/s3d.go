@@ -3,6 +3,8 @@ package s3d
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 
 	"github.com/xackery/quail/common"
 )
@@ -69,6 +71,23 @@ func (s ByCRC) Less(i, j int) bool {
 func New(name string) (*S3D, error) {
 	e := &S3D{
 		name: name,
+	}
+	return e, nil
+}
+
+// NewFile takes path and loads it as an eqg archive
+func NewFile(path string) (*S3D, error) {
+	e := &S3D{
+		name: filepath.Base(path),
+	}
+	r, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer r.Close()
+	err = e.Load(r)
+	if err != nil {
+		return nil, fmt.Errorf("load: %w", err)
 	}
 	return e, nil
 }

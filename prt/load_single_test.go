@@ -31,11 +31,8 @@ func TestLoad(t *testing.T) {
 		t.Fatalf("archive load: %s", err)
 	}
 
-	d, err := dump.New(inFile)
-	if err != nil {
-		t.Fatalf("dump.new: %s", err)
-	}
-	defer d.Save(fmt.Sprintf("test/eq/%s.png", inFile))
+	dump.New(inFile)
+	defer dump.WriteFileClose(fmt.Sprintf("test/eq/%s.png", inFile))
 
 	e, err := New(inFile, archive)
 	if err != nil {
