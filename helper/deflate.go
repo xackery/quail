@@ -8,6 +8,7 @@ import (
 	"github.com/xackery/go-zlib"
 )
 
+// Deflate takes a byte slice and compresses it down
 func Deflate(in []byte) ([]byte, error) {
 	out := bytes.NewBuffer(nil)
 	pos := 0

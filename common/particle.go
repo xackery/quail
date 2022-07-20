@@ -4,7 +4,7 @@ package common
 type ParticleRender struct {
 	Id              uint32    `json:"id"` //id is actorsemittersnew.edd
 	Id2             uint32    `json:"id2"`
-	ParticlePoint   string    `json:"paraticle_point"`
+	ParticlePoint   string    `json:"particlePoint"`
 	UnknownA        [5]uint32 `json:"unknowna"` //Pretty sure last 3 have something to do with durations
 	Duration        uint32    `json:"duration"`
 	UnknownB        uint32    `json:"unknownb"`

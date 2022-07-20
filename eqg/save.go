@@ -116,6 +116,7 @@ func (e *EQG) Save(w io.WriteSeeker) error {
 	}
 
 	for i, file := range dirEntries {
+
 		err = binary.Write(w, binary.LittleEndian, file.crc)
 		if err != nil {
 			return fmt.Errorf("write direntry %d crc: %w", i, err)
@@ -130,7 +131,7 @@ func (e *EQG) Save(w io.WriteSeeker) error {
 		}
 	}
 
-	err = binary.Write(w, binary.LittleEndian, uint32(0xFFFFFFFF))
+	err = binary.Write(w, binary.LittleEndian, uint32(0x61580AC9))
 	if err != nil {
 		return fmt.Errorf("crc direntry: %w", err)
 	}

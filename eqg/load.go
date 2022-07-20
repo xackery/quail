@@ -146,11 +146,12 @@ func (e *EQG) Load(r io.ReadSeeker) error {
 			data = append(data, chunkData...)
 			lastByte = deflateData[len(deflateData)-1]
 			if entry.size < 16 {
-				dump.Hex(deflateData, "%dchunk", i)
+				dump.Hex(deflateData, "%dchunk=(%d bytes)", i, len(data))
 			}
 		}
+
 		if entry.size >= 16 {
-			dump.Hex([]byte{firstByte, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, lastByte}, "%dchunk", i)
+			dump.Hex([]byte{firstByte, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, lastByte}, "%dchunk=(%d bytes)", i, len(data))
 		}
 
 		//fmt.Println(entry.crc)
@@ -207,7 +208,11 @@ func (e *EQG) Load(r io.ReadSeeker) error {
 
 	dump.Hex(fileCount, "fileCount=%d", fileCount)
 	for i, entry := range dirEntries {
-		dump.Hex(entry.crc, "%dcrc=%d", i, entry.crc)
+		name := dirNameByCRCs[entry.crc]
+		if entry.crc == 0x61580AC9 {
+			name = "dir list"
+		}
+		dump.Hex(entry.crc, "%dcrc=%d (%s)", i, entry.crc, name)
 		dump.Hex(entry.offset, "%doffset=0x%x", i, entry.offset)
 		dump.Hex(entry.size, "%dsize=%d", i, entry.size)
 	}

@@ -13,6 +13,8 @@ func TestLoadSaveCompareNoDebug(t *testing.T) {
 	}
 	in := "/Users/xackery/Documents/games/EverQuest.app/drive_c/rebuildeq/arena.eqg"
 	out := "/Users/xackery/Documents/games/EverTest.app/drive_c/rebuildeq/arena.eqg"
+	//in := "test/oasis.eqg"
+	//out := "/Users/xackery/Documents/games/EverTest.app/drive_c/rebuildeq/oasis.eqg"
 	f, err := os.Open(in)
 	if err != nil {
 		t.Fatalf("%s", err)
@@ -39,55 +41,41 @@ func TestLoadSaveCompareNoDebug(t *testing.T) {
 	}
 }
 
-func TestLoadSaveLoad(t *testing.T) {
+func TestLoadSampleCompare(t *testing.T) {
 	if os.Getenv("SINGLE_TEST") != "1" {
 		return
 	}
-	path := "../eq/arena.eqg"
-	f, err := os.Open(path)
+	inFile := "test/oasis.eqg"
+	outFile := "test/oasis_out.eqg"
+
+	f, err := os.Open(inFile)
 	if err != nil {
 		t.Fatalf("%s", err)
 	}
 	defer f.Close()
-	d, err := dump.New(path)
+	d, err := dump.New(inFile)
 	if err != nil {
 		t.Fatalf("dump.new: %s", err)
 	}
 
-	e, err := New("out")
+	archive, err := New(inFile)
 	if err != nil {
 		t.Fatalf("new: %s", err)
 	}
-	err = e.Load(f)
+	err = archive.Load(f)
 	if err != nil {
 		t.Fatalf("load: %s", err)
 	}
-	w, err := os.Create("../eq/tmp/arena.eqg")
+
+	w, err := os.Create(outFile)
 	if err != nil {
 		t.Fatalf("create: %s", err)
 	}
 	defer w.Close()
-	err = e.Save(w)
+
+	err = archive.Save(w)
 	if err != nil {
 		t.Fatalf("save: %s", err)
 	}
-	d.Save("../eq/tmp/arena_original.png")
-	dump.Close()
-
-	path = "../eq/tmp/arena.eqg"
-	d, err = dump.New(path)
-	if err != nil {
-		t.Fatalf("dump.new: %s", err)
-	}
-
-	r, err := os.Open(path)
-	if err != nil {
-		t.Fatalf("open: %s", err)
-	}
-	err = e.Load(r)
-	if err != nil {
-		t.Fatalf("load: %s", err)
-	}
-	d.Save("../eq/tmp/arena_new.png")
-
+	d.Save(inFile + ".png")
 }
