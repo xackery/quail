@@ -37,7 +37,7 @@ func TestEncodeEQG(t *testing.T) {
 	if err != nil {
 		t.Fatalf("gltf open: %s", err)
 	}
-	err = e.GLTFImport(gdoc)
+	err = e.GLTFDecode(gdoc)
 	if err != nil {
 		t.Fatalf("import %s: %s", path, err)
 	}

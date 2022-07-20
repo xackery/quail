@@ -9,7 +9,7 @@ import (
 	"github.com/xackery/quail/gltf"
 )
 
-func TestGLTFImport(t *testing.T) {
+func TestGLTFDecode(t *testing.T) {
 	if os.Getenv("SINGLE_TEST") != "1" {
 		return
 	}
@@ -46,7 +46,7 @@ func TestGLTFImport(t *testing.T) {
 	fmt.Printf("dump: %+v\n", e)
 }
 
-func TestGLTFImportWrite(t *testing.T) {
+func TestGLTFDecodeEncode(t *testing.T) {
 	if os.Getenv("SINGLE_TEST") != "1" {
 		return
 	}

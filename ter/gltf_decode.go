@@ -11,8 +11,8 @@ import (
 	"github.com/xackery/quail/common"
 )
 
-// GLTFImport imports a GLTF document
-func (e *TER) GLTFImport(doc *gltf.Document) error {
+// GLTFDecode imports a GLTF document
+func (e *TER) GLTFDecode(doc *gltf.Document) error {
 	var err error
 	for _, m := range doc.Materials {
 
@@ -96,11 +96,12 @@ func (e *TER) GLTFImport(doc *gltf.Document) error {
 				return fmt.Errorf("readPosition: %w", err)
 			}
 
-			/*for i, _ := range positions {
-				tmp := positions[i][1]
-				positions[i][1] = -positions[i][2]
-				positions[i][2] = tmp
-
+			// fiddle locations
+			// x [0] y [1] z [2]
+			/*for i := range positions {
+				tmp := positions[i][2]
+				positions[i][2] = positions[i][0]
+				positions[i][0] = tmp
 			}*/
 
 			//fmt.Printf("pos: %+v\n", pos)

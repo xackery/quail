@@ -9,7 +9,7 @@ import (
 	"github.com/xackery/quail/gltf"
 )
 
-func TestGLTFImport(t *testing.T) {
+func TestGLTFDecode(t *testing.T) {
 	if os.Getenv("SINGLE_TEST") != "1" {
 		return
 	}
@@ -29,7 +29,7 @@ func TestGLTFImport(t *testing.T) {
 	if err != nil {
 		t.Fatalf("gltf open: %s", err)
 	}
-	err = e.GLTFImport(gdoc)
+	err = e.GLTFDecode(gdoc)
 	if err != nil {
 		t.Fatalf("import %s: %s", path, err)
 	}
@@ -66,7 +66,7 @@ func TestGLTFImportWrite(t *testing.T) {
 	if err != nil {
 		t.Fatalf("gltf open: %s", err)
 	}
-	err = e.GLTFImport(gdoc)
+	err = e.GLTFDecode(gdoc)
 	if err != nil {
 		t.Fatalf("import %s: %s", path, err)
 	}

@@ -67,7 +67,7 @@ func TestGLTFEncodeSamples(t *testing.T) {
 			if err != nil {
 				t.Fatalf("gltf open: %s", err)
 			}
-			err = e.GLTFImport(gdoc)
+			err = e.GLTFDecode(gdoc)
 			if err != nil {
 				t.Fatalf("import %s: %s", gltfFile, err)
 			}
@@ -156,7 +156,7 @@ func TestGLTFEncodeSamplesSanityCheck(t *testing.T) {
 		if err != nil {
 			t.Fatalf("gltf open: %s", err)
 		}
-		err = e.GLTFImport(gdoc)
+		err = e.GLTFDecode(gdoc)
 		if err != nil {
 			t.Fatalf("import %s: %s", gltfInFile, err)
 		}
@@ -206,7 +206,7 @@ func TestGLTFEncodeSamplesSanityCheck(t *testing.T) {
 		if err != nil {
 			t.Fatalf("gltf open: %s", err)
 		}
-		err = e.GLTFImport(gdoc)
+		err = e.GLTFDecode(gdoc)
 		if err != nil {
 			t.Fatalf("import %s: %s", gltfInFile, err)
 		}

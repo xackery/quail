@@ -25,7 +25,7 @@ func (e *ZON) GLTFDecode(doc *gltf.Document) error {
 			if err != nil {
 				return fmt.Errorf("ter new: %w", err)
 			}
-			err = ml.GLTFImport(doc)
+			err = ml.GLTFDecode(doc)
 			if err != nil {
 				return fmt.Errorf("ter import: %w", err)
 			}

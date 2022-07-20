@@ -59,12 +59,13 @@ func (e *MOD) GLTFDecode(doc *gltf.Document) error {
 				return fmt.Errorf("readPosition: %w", err)
 			}
 
-			/*for i, _ := range positions {
-				tmp := positions[i][1]
-				positions[i][1] = -positions[i][2]
-				positions[i][2] = tmp
-
-			}*/
+			// fiddle locations
+			// x [0] y [1] z [2]
+			/*			for i := range positions {
+						tmp := positions[i][2]
+						positions[i][2] = positions[i][0]
+						positions[i][0] = tmp
+					}*/
 
 			//fmt.Printf("pos: %+v\n", pos)
 			normals := [][3]float32{}

@@ -7,7 +7,7 @@ import (
 	"github.com/xackery/quail/gltf"
 )
 
-func TestGLTFImportExportBoxGLTF(t *testing.T) {
+func TestGLTFDecodeEncodeBoxGLTF(t *testing.T) {
 	filePath := "test/box.eqg"
 	inFile := "test/box_out.gltf"
 
@@ -24,7 +24,7 @@ func TestGLTFImportExportBoxGLTF(t *testing.T) {
 	if err != nil {
 		t.Fatalf("gltf open: %s", err)
 	}
-	err = e.GLTFImport(gdoc)
+	err = e.GLTFDecode(gdoc)
 	if err != nil {
 		t.Fatalf("import %s: %s", filePath, err)
 	}
