@@ -6,7 +6,7 @@ import "github.com/xackery/quail/common"
 // WLD is a wld file struct
 type WLD struct {
 	path               string
-	s3d                common.Archiver
+	s3d                common.ArchiveReader
 	name               string
 	BspRegionCount     uint32
 	Hash               map[int]string
@@ -32,7 +32,7 @@ func New(name string, path string) (*WLD, error) {
 	return e, nil
 }
 
-func NewS3D(name string, s3d common.Archiver) (*WLD, error) {
+func NewS3D(name string, s3d common.ArchiveReader) (*WLD, error) {
 	e := &WLD{
 		name: name,
 		s3d:  s3d,

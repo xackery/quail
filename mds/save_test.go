@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/xackery/quail/common"
+	"github.com/xackery/quail/eqg"
 )
 
 func TestSave(t *testing.T) {
@@ -40,4 +41,47 @@ func TestSave(t *testing.T) {
 		t.Fatalf("save: %s", err.Error())
 	}
 	fmt.Println(hex.Dump(buf.Bytes()))
+}
+
+func TestSaveEQG(t *testing.T) {
+	if os.Getenv("SINGLE_TEST") != "1" {
+		return
+	}
+	var err error
+
+	path, err := common.NewPath("test/")
+	if err != nil {
+		t.Fatalf("newPath: %s", err)
+	}
+
+	archive, err := eqg.New("gbm")
+	if err != nil {
+		t.Fatalf("new: %s", err)
+	}
+
+	e, err := New("gbm", path)
+	if err != nil {
+		t.Fatalf("new: %s", err)
+	}
+	err = e.GLTFImport("test/box.gltf")
+	if err != nil {
+		t.Fatalf("import %s: %s", path, err)
+	}
+
+	err = e.ArchiveExport(archive)
+	if err != nil {
+		t.Fatalf("archive export: %s", err)
+	}
+
+	w, err := os.Create("test/gbm.eqg")
+	if err != nil {
+		t.Fatalf("create: %s", err)
+	}
+	defer w.Close()
+
+	err = archive.Save(w)
+	if err != nil {
+		t.Fatalf("save: %s", err)
+	}
+
 }

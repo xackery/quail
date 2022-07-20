@@ -17,15 +17,15 @@ type TER struct {
 	vertices        []*common.Vertex
 	faces           []*common.Face
 	files           []common.Filer
-	eqg             common.Archiver
+	archive         common.ArchiveReadWriter
 	particleRenders []*common.ParticleRender
 	particlePoints  []*common.ParticlePoint
 }
 
-func New(name string, archive common.Archiver) (*TER, error) {
+func New(name string, archive common.ArchiveReadWriter) (*TER, error) {
 	t := &TER{
-		name: name,
-		eqg:  archive,
+		name:    name,
+		archive: archive,
 	}
 	return t, nil
 }

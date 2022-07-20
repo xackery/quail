@@ -177,7 +177,7 @@ func (e *MDS) Load(r io.ReadSeeker) error {
 
 				data, err := e.archive.File(propertyValueName)
 				if err != nil {
-					fmt.Printf("warning: read material via eqg %s: %s\n", propertyName, err)
+					fmt.Printf("warning: read material '%s' property %s: %s\n", name, propertyName, err)
 					//	return fmt.Errorf("read material via eqg %s: %w", propertyName, err)
 				}
 				fe, err := common.NewFileEntry(propertyValueName, data)

@@ -1,113 +1,70 @@
 package zon
 
 import (
-	"encoding/hex"
-	"fmt"
-	"io"
 	"os"
 	"testing"
 
 	"github.com/xackery/quail/common"
+	"github.com/xackery/quail/eqg"
+	"github.com/xackery/quail/ter"
 )
 
-func TestSave(t *testing.T) {
+func TestSaveEQG(t *testing.T) {
 	if os.Getenv("SINGLE_TEST") != "1" {
 		return
 	}
 	var err error
-	filePath := "test/"
 
-	path, err := common.NewPath(filePath)
+	category := "arena"
+
+	path, err := common.NewPath("test/")
 	if err != nil {
-		t.Fatalf("new path: %s", err)
+		t.Fatalf("newPath: %s", err)
 	}
-	e, err := New("out", path)
+
+	archive, err := eqg.New(category)
 	if err != nil {
 		t.Fatalf("new: %s", err)
 	}
-	err = e.AddModel("ecommons.ter")
+
+	e, err := ter.New(category, path)
 	if err != nil {
-		t.Fatalf("addModel: %s", err)
+		t.Fatalf("new: %s", err)
 	}
-	/*err = z.AddObject("test", "test01", math32.Vector3{X: 1, Y: 2, Z: 3}, math32.Vector3{}, 0)
+	err = e.GLTFImport("test/monkey.gltf")
 	if err != nil {
-		t.Fatalf("addObject: %s", err)
+		t.Fatalf("import %s: %s", path, err)
 	}
 
-	//buf := bytes.NewBuffer(nil)*/
-	w, err := os.Create("../eq/tmp/ecommons.zon")
+	err = e.ArchiveExport(archive)
+	if err != nil {
+		t.Fatalf("archive export: %s", err)
+	}
+
+	zone, err := New(category, archive)
+	if err != nil {
+		t.Fatalf("new: %s", err)
+	}
+
+	zone.models = append(zone.models, &model{
+		name:     category + ".ter",
+		baseName: category,
+	})
+
+	err = zone.ArchiveExport(archive)
+	if err != nil {
+		t.Fatalf("zon archive export: %s", err)
+	}
+
+	w, err := os.Create("test/" + category + ".eqg")
 	if err != nil {
 		t.Fatalf("create: %s", err)
 	}
 	defer w.Close()
 
-	err = e.Save(w)
+	err = archive.Save(w)
 	if err != nil {
-		t.Fatalf("save: %s", err.Error())
+		t.Fatalf("save: %s", err)
 	}
-	//	fmt.Println(hex.Dump(buf.Bytes()))
-}
 
-func TestCompare(t *testing.T) {
-	if os.Getenv("SINGLE_TEST") != "1" {
-		return
-	}
-	compareFile(t, "../eq/tmp/out.zon", "../eq/tmp/soldungb.zon")
-}
-
-func compareFile(t *testing.T, path1 string, path2 string) {
-
-	f1, err := os.Open(path1)
-	if err != nil {
-		t.Fatalf("%s", err)
-	}
-	defer f1.Close()
-	f2, err := os.Open(path2)
-	if err != nil {
-		t.Fatalf("%s", err)
-	}
-	defer f2.Close()
-	offset := 0
-
-	fails := 0
-	f1Data := []byte{}
-	f2Data := []byte{}
-	for {
-
-		buf1 := make([]byte, 1)
-		buf2 := make([]byte, 1)
-		_, err1 := f1.Read(buf1)
-
-		if err1 != nil {
-			if err1 == io.EOF {
-				break
-			}
-			buf1[0] = 0
-		}
-
-		_, err2 := f2.Read(buf2)
-		if err2 != nil {
-			if err2 == io.EOF {
-				break
-			}
-			buf2[0] = 0
-		}
-		f1Data = append(f1Data, buf1[0])
-		f2Data = append(f2Data, buf2[0])
-
-		if offset == 0 {
-			offset++
-			continue
-		}
-		if buf1[0] != buf2[0] {
-			fmt.Println(path1, "\n", hex.Dump([]byte(f1Data)))
-			fmt.Println(path2, "\n", hex.Dump([]byte(f2Data)))
-			if fails > 0 {
-				t.Fatalf("mismatched at position %d (0x%02x) %s has value %d, wanted %d", offset, offset, path1, buf1[0], buf2[0])
-			}
-			fails++
-		}
-
-		offset++
-	}
 }

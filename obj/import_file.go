@@ -37,7 +37,7 @@ func importFile(req *ObjRequest) error {
 					Name: line,
 				}
 				req.Data.Materials = append(req.Data.Materials, lastMaterial)
-				fmt.Printf("warning: obj line %d refers to material %s, which isn't declared\n", lineNumber, line)
+				fmt.Printf("warning: obj line %d refers to material '%s', which is not declared\n", lineNumber, line)
 			}
 			continue
 		}

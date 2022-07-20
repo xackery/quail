@@ -12,8 +12,7 @@ import (
 // ZON is a zon file struct
 type ZON struct {
 	name    string
-	path    string
-	eqg     common.Archiver
+	archive common.ArchiveReadWriter
 	models  []*model
 	objects []*Object
 	regions []*Region
@@ -47,16 +46,16 @@ type Light struct {
 	radius   float32
 }
 
-func New(name string, archive common.Archiver) (*ZON, error) {
+func New(name string, archive common.ArchiveReadWriter) (*ZON, error) {
+	if archive == nil {
+		return nil, fmt.Errorf("archive cannot be nil")
+	}
+
 	z := &ZON{
-		name: name,
-		eqg:  archive,
+		name:    name,
+		archive: archive,
 	}
 	return z, nil
-}
-
-func (e *ZON) SetPath(path string) {
-	e.path = path
 }
 
 func (e *ZON) Name() string {

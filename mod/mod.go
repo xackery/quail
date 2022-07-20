@@ -16,7 +16,7 @@ type MOD struct {
 	// path is used for relative paths when looking for flat file texture references
 	path string
 	// archive is used as an alternative to path when loading data from a archive file
-	archive         common.Archiver
+	archive         common.ArchiveReader
 	materials       []*common.Material
 	vertices        []*common.Vertex
 	faces           []*common.Face
@@ -36,7 +36,7 @@ type bone struct {
 	scale         *math32.Vector3
 }
 
-func New(name string, archive common.Archiver) (*MOD, error) {
+func New(name string, archive common.ArchiveReader) (*MOD, error) {
 	e := &MOD{
 		name:    name,
 		archive: archive,

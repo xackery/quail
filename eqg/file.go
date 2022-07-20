@@ -30,3 +30,18 @@ func (e *EQG) Len() int {
 func (e *EQG) Files() []common.Filer {
 	return e.files
 }
+
+func (e *EQG) WriteFile(name string, data []byte) error {
+	name = strings.ToLower(name)
+	for _, file := range e.files {
+		if file.Name() == name {
+			return file.SetData(data)
+		}
+	}
+	fe, err := common.NewFileEntry(name, data)
+	if err != nil {
+		return fmt.Errorf("newFileEntry: %w", err)
+	}
+	e.files = append(e.files, fe)
+	return nil
+}

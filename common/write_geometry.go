@@ -162,8 +162,9 @@ func WriteGeometry(materials []*Material, vertices []*Vertex, faces []*Face) ([]
 				break
 			}
 		}
+
 		if nameID == -1 {
-			return nil, nil, fmt.Errorf("face %d refers to material %s, which is not declared", i, o.MaterialName)
+			return nil, nil, fmt.Errorf("face %d refers to material '%s', which is not declared", i, o.MaterialName)
 		}
 
 		err = binary.Write(dataBuf, binary.LittleEndian, o.Index)

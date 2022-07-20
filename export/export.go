@@ -10,7 +10,7 @@ import (
 
 type Export struct {
 	name    string
-	archive common.Archiver
+	archive common.ArchiveReadWriter
 	model   modeler
 }
 
@@ -22,7 +22,7 @@ type modeler interface {
 	SetParticlePoints(particles []*common.ParticlePoint) error
 }
 
-func New(name string, archive common.Archiver) (*Export, error) {
+func New(name string, archive common.ArchiveReadWriter) (*Export, error) {
 	return &Export{
 		name:    name,
 		archive: archive,

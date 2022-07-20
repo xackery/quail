@@ -3,6 +3,7 @@ package ter
 import (
 	"fmt"
 	"image/color"
+	"strings"
 
 	"github.com/g3n/engine/math32"
 	"github.com/qmuntal/gltf"
@@ -17,12 +18,54 @@ func (e *TER) GLTFImport(path string) error {
 		return fmt.Errorf("open: %w", err)
 	}
 	for _, m := range doc.Materials {
-		//TODO: add _mat.txt parsing
-		fmt.Println("add material", m.Name)
+
 		err = e.MaterialAdd(m.Name, "Opaque_MaxCB1.fx")
 		if err != nil {
 			return fmt.Errorf("add material %s: %w", m.Name, err)
 		}
+
+		if m.PBRMetallicRoughness.BaseColorTexture != nil {
+
+			image := doc.Images[int(m.PBRMetallicRoughness.BaseColorTexture.Index)]
+			if image == nil {
+				return fmt.Errorf("expected image for '%s', but not found", m.Name)
+			}
+
+			bv := doc.BufferViews[int(*image.BufferView)]
+			if bv == nil {
+				return fmt.Errorf("texture '%s' expected buffer view %d, but not found", image.Name, *image.BufferView)
+			}
+
+			ext := ""
+			if strings.ToLower(image.MimeType) == "image/png" {
+				ext = ".png"
+			}
+
+			if ext == "" {
+				return fmt.Errorf("unsupported mimetype in gltf image '%s'", image.Name)
+			}
+
+			imageName := strings.ToLower(image.Name)
+			if !strings.HasSuffix(imageName, ext) {
+				imageName += ext
+			}
+
+			data, err := modeler.ReadBufferView(doc, bv)
+			if err != nil {
+				return fmt.Errorf("readBufferView %d: %w", *image.BufferView, err)
+			}
+
+			err = e.archive.WriteFile(imageName, data)
+			if err != nil {
+				return fmt.Errorf("writeFile: %w", err)
+			}
+
+			err = e.MaterialPropertyAdd(m.Name, "e_TextureDiffuse0", 2, imageName)
+			if err != nil {
+				return fmt.Errorf("materialPropertyAdd %s: %w", imageName, err)
+			}
+		}
+
 	}
 	for _, m := range doc.Meshes {
 		for _, p := range m.Primitives {

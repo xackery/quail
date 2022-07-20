@@ -2,6 +2,7 @@ package s3d
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/xackery/quail/common"
 )
@@ -23,4 +24,19 @@ func (e *S3D) Files() []common.Filer {
 
 func (e *S3D) Len() int {
 	return e.fileCount
+}
+
+func (e *S3D) WriteFile(name string, data []byte) error {
+	name = strings.ToLower(name)
+	for _, file := range e.files {
+		if file.Name() == name {
+			return file.SetData(data)
+		}
+	}
+	fe, err := common.NewFileEntry(name, data)
+	if err != nil {
+		return fmt.Errorf("newFileEntry: %w", err)
+	}
+	e.files = append(e.files, fe)
+	return nil
 }

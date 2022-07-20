@@ -6,23 +6,19 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/g3n/engine/math32"
-	"github.com/qmuntal/gltf"
-
-	qgltf "github.com/xackery/quail/gltf"
+	"github.com/xackery/quail/common"
 	"github.com/xackery/quail/mds"
 	"github.com/xackery/quail/mod"
 	"github.com/xackery/quail/ter"
 )
 
-func (e *ZON) GLTFExport(doc *qgltf.GLTF) error {
-	var err error
-	if doc == nil {
-		doc, err = qgltf.New()
-		if err != nil {
-			return fmt.Errorf("new: %w", err)
-		}
+// ArchiveExport writes contents to outArchive
+func (e *ZON) ArchiveExport(outArchive common.ArchiveReadWriter) error {
+	if outArchive == nil {
+		return fmt.Errorf("no archive loaded")
 	}
+
+	var err error
 
 	for _, model := range e.models {
 		modelData, err := e.archive.File(model.name)
@@ -41,9 +37,10 @@ func (e *ZON) GLTFExport(doc *qgltf.GLTF) error {
 			if err != nil {
 				return fmt.Errorf("ter load %s: %w", baseName, err)
 			}
-			err = e.GLTFExport(doc)
+
+			err = e.ArchiveExport(outArchive)
 			if err != nil {
-				return fmt.Errorf("ter gltf %s: %w", baseName, err)
+				return fmt.Errorf("ter archive export %s: %w", baseName, err)
 			}
 		case ".mod":
 			baseName := strings.TrimPrefix(baseName(model.name), "ter_")
@@ -56,9 +53,9 @@ func (e *ZON) GLTFExport(doc *qgltf.GLTF) error {
 				continue
 				//return fmt.Errorf("mod load %s: %w", baseName, err)
 			}
-			err = e.GLTFExport(doc)
+			err = e.ArchiveExport(outArchive)
 			if err != nil {
-				return fmt.Errorf("mod gltf %s: %w", baseName, err)
+				return fmt.Errorf("mod archive export %s: %w", baseName, err)
 			}
 		case ".mds":
 			baseName := strings.TrimPrefix(baseName(model.name), "ter_")
@@ -70,9 +67,9 @@ func (e *ZON) GLTFExport(doc *qgltf.GLTF) error {
 			if err != nil {
 				return fmt.Errorf("mds load %s: %w", baseName, err)
 			}
-			err = e.GLTFExport(doc)
+			err = e.ArchiveExport(outArchive)
 			if err != nil {
-				return fmt.Errorf("mds gltf %s: %w", baseName, err)
+				return fmt.Errorf("mds archive export %s: %w", baseName, err)
 			}
 
 		default:
@@ -81,35 +78,16 @@ func (e *ZON) GLTFExport(doc *qgltf.GLTF) error {
 
 	}
 
-	//math32.NewVec3().ApplyQuaternion(q *math32.Quaternion)
-
-	for _, obj := range e.objects {
-		if strings.HasPrefix(obj.name, "ter_") {
-			//fmt.Println("skipping",obj.name)
-			continue
-		}
-
-		baseName := baseName(obj.name)
-
-		index, err := doc.MeshIndex(baseName)
-		if err != nil {
-			fmt.Println("failed", err)
-			continue
-			//TODO: fix
-			//return fmt.Errorf("mesh: %w", err)
-		}
-		qRot := math32.NewQuaternion(0, 0, 0, 0).SetFromEuler(&math32.Vector3{X: obj.rotation[0], Y: obj.rotation[1], Z: obj.rotation[2]})
-		doc.NodeAdd(&gltf.Node{
-			Name:        obj.name,
-			Mesh:        index,
-			Translation: obj.translation,
-			Rotation:    [4]float32{qRot.X, qRot.Y, qRot.Z, qRot.W},
-			Scale:       [3]float32{obj.scale, obj.scale, obj.scale},
-		})
+	buf := bytes.NewBuffer(nil)
+	err = e.Save(buf)
+	if err != nil {
+		return fmt.Errorf("zon save: %w", err)
 	}
 
-	for _, light := range e.lights {
-		doc.LightAdd(light.name, light.color, light.radius, "directional", 0)
+	err = outArchive.WriteFile(e.name+".zon", buf.Bytes())
+	if err != nil {
+		return fmt.Errorf("write %s.zon: %w", e.name, err)
 	}
+
 	return nil
 }

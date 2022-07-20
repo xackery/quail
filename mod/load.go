@@ -184,7 +184,7 @@ func (e *MOD) Load(r io.ReadSeeker) error {
 						if err != nil {
 							data, err = e.archive.File(strings.ToLower(propertyValueName))
 							if err != nil {
-								fmt.Printf("warning: read material via eqg %s: %s\n", propertyName, err)
+								fmt.Printf("warning: read material '%s' property '%s': %s\n", name, propertyName, err)
 								//	return fmt.Errorf("read material via eqg %s: %w", propertyName, err)
 							}
 						}

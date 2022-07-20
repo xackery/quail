@@ -7,11 +7,11 @@ import "github.com/xackery/quail/common"
 
 type PRT struct {
 	name      string
-	archive   common.Archiver
+	archive   common.ArchiveReader
 	particles []*common.ParticleRender
 }
 
-func New(name string, archive common.Archiver) (*PRT, error) {
+func New(name string, archive common.ArchiveReader) (*PRT, error) {
 	return &PRT{
 		name:    name,
 		archive: archive,

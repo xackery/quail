@@ -34,7 +34,6 @@ func (e *MDS) GLTFImport(path string) error {
 	}*/
 
 	for _, m := range doc.Meshes {
-		e.name = m.Name
 		for _, p := range m.Primitives {
 			if p.Mode != gltf.PrimitiveTriangles {
 				return fmt.Errorf("primitive in mesh '%s' is mode %d, unsupported", m.Name, p.Mode)

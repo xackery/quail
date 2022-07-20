@@ -63,3 +63,16 @@ func (e *Path) Len() int {
 func (e *Path) String() string {
 	return e.path
 }
+
+func (e *Path) WriteFile(name string, data []byte) error {
+	w, err := os.Create(fmt.Sprintf("%s/%s", e.path, name))
+	if err != nil {
+		return err
+	}
+	defer w.Close()
+	_, err = w.Write(data)
+	if err != nil {
+		return fmt.Errorf("write: %w", err)
+	}
+	return nil
+}

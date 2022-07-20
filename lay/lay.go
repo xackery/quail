@@ -12,11 +12,11 @@ type LAY struct {
 	// name is used as an identifier
 	name string
 	// archive is used as an alternative to path when loading data from a archive file
-	archive common.Archiver
+	archive common.ArchiveReader
 	layers  []*common.Layer
 }
 
-func New(name string, archive common.Archiver) (*LAY, error) {
+func New(name string, archive common.ArchiveReader) (*LAY, error) {
 	e := &LAY{
 		name:    name,
 		archive: archive,

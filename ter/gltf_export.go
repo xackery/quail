@@ -50,7 +50,7 @@ func (e *TER) GLTFExport(doc *qgltf.GLTF) error {
 		}
 		if len(textureDiffuseName) > 0 {
 			lastDiffuseName = textureDiffuseName
-			diffuseData, err = e.eqg.File(textureDiffuseName)
+			diffuseData, err = e.archive.File(textureDiffuseName)
 			if err != nil {
 				return fmt.Errorf("file %s: %w", textureDiffuseName, err)
 			}
@@ -58,7 +58,7 @@ func (e *TER) GLTFExport(doc *qgltf.GLTF) error {
 
 		var normalData []byte
 		if len(textureNormalName) > 0 {
-			normalData, err = e.eqg.File(textureNormalName)
+			normalData, err = e.archive.File(textureNormalName)
 			if err != nil {
 				return fmt.Errorf("file %s: %w", textureNormalName, err)
 			}

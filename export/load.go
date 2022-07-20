@@ -30,7 +30,7 @@ func (e *Export) LoadArchive() error {
 	for _, evt := range events {
 		err = evt.invoke()
 		if err != nil {
-			return fmt.Errorf("load %s: %w", evt.name, err)
+			return fmt.Errorf("%s load: %w", evt.name, err)
 		}
 		if e.model != nil {
 			return nil
@@ -59,17 +59,17 @@ func (e *Export) loadZon() error {
 
 	e.model, err = zon.New(e.name, e.archive)
 	if err != nil {
-		return fmt.Errorf("zon new: %w", err)
+		return fmt.Errorf("new: %w", err)
 	}
 
 	err = e.model.Load(bytes.NewReader(data))
 	if err != nil {
-		return fmt.Errorf("zon load: %w", err)
+		return fmt.Errorf("load: %w", err)
 	}
 
 	err = e.loadParticlePoints()
 	if err != nil {
-		return fmt.Errorf("zon loadParticlePoints: %w", err)
+		return fmt.Errorf("loadParticlePoints: %w", err)
 	}
 
 	err = e.loadParticleRenders()
@@ -98,27 +98,27 @@ func (e *Export) loadMds() error {
 
 	e.model, err = mds.New(e.name, e.archive)
 	if err != nil {
-		return fmt.Errorf("mds new: %w", err)
+		return fmt.Errorf("%s new: %w", e.name, err)
 	}
 
 	err = e.model.Load(bytes.NewReader(data))
 	if err != nil {
-		return fmt.Errorf("mds load: %w", err)
+		return fmt.Errorf("%s load: %w", e.name, err)
 	}
 
 	err = e.loadLayer()
 	if err != nil {
-		return fmt.Errorf("mds loadLayer: %w", err)
+		return fmt.Errorf("loadLayer: %w", err)
 	}
 
 	err = e.loadParticleRenders()
 	if err != nil {
-		return fmt.Errorf("mds loadParticleRenders: %w", err)
+		return fmt.Errorf("loadParticleRenders: %w", err)
 	}
 
 	err = e.loadParticlePoints()
 	if err != nil {
-		return fmt.Errorf("mds loadParticlePoints: %w", err)
+		return fmt.Errorf("loadParticlePoints: %w", err)
 	}
 	return nil
 }
@@ -142,27 +142,27 @@ func (e *Export) loadMod() error {
 
 	e.model, err = mod.New(e.name, e.archive)
 	if err != nil {
-		return fmt.Errorf("mod new: %w", err)
+		return fmt.Errorf("new: %w", err)
 	}
 
 	err = e.model.Load(bytes.NewReader(data))
 	if err != nil {
-		return fmt.Errorf("mod load: %w", err)
+		return fmt.Errorf("load: %w", err)
 	}
 
 	err = e.loadLayer()
 	if err != nil {
-		return fmt.Errorf("mod loadLayer: %w", err)
+		return fmt.Errorf("loadLayer: %w", err)
 	}
 
 	err = e.loadParticleRenders()
 	if err != nil {
-		return fmt.Errorf("mod loadParticleRenders: %w", err)
+		return fmt.Errorf("loadParticleRenders: %w", err)
 	}
 
 	err = e.loadParticlePoints()
 	if err != nil {
-		return fmt.Errorf("mod loadParticlePoints: %w", err)
+		return fmt.Errorf("loadParticlePoints: %w", err)
 	}
 	return nil
 }
@@ -186,27 +186,27 @@ func (e *Export) loadTer() error {
 
 	e.model, err = ter.New(e.name, e.archive)
 	if err != nil {
-		return fmt.Errorf("ter new: %w", err)
+		return fmt.Errorf("new: %w", err)
 	}
 
 	err = e.model.Load(bytes.NewReader(data))
 	if err != nil {
-		return fmt.Errorf("ter load: %w", err)
+		return fmt.Errorf("load: %w", err)
 	}
 
 	err = e.loadLayer()
 	if err != nil {
-		return fmt.Errorf("ter loadLayer: %w", err)
+		return fmt.Errorf("loadLayer: %w", err)
 	}
 
 	err = e.loadParticleRenders()
 	if err != nil {
-		return fmt.Errorf("ter loadParticleRenders: %w", err)
+		return fmt.Errorf("loadParticleRenders: %w", err)
 	}
 
 	err = e.loadParticlePoints()
 	if err != nil {
-		return fmt.Errorf("ter loadParticlePoints: %w", err)
+		return fmt.Errorf("loadParticlePoints: %w", err)
 	}
 	return nil
 }
@@ -224,16 +224,16 @@ func (e *Export) loadLayer() error {
 
 	l, err := lay.New(layName, e.archive)
 	if err != nil {
-		return fmt.Errorf("lay new: %w", err)
+		return fmt.Errorf("new: %w", err)
 	}
 	err = l.Load(bytes.NewReader(layEntry))
 	if err != nil {
-		return fmt.Errorf("lay load: %w", err)
+		return fmt.Errorf("load: %w", err)
 	}
 
 	err = e.model.SetLayers(l.Layers())
 	if err != nil {
-		return fmt.Errorf("lay setlayers: %w", err)
+		return fmt.Errorf("setlayers: %w", err)
 	}
 	return nil
 }
@@ -251,16 +251,16 @@ func (e *Export) loadParticleRenders() error {
 
 	p, err := prt.New(prtName, e.archive)
 	if err != nil {
-		return fmt.Errorf("prt new: %w", err)
+		return fmt.Errorf("new: %w", err)
 	}
 	err = p.Load(bytes.NewReader(prtEntry))
 	if err != nil {
-		return fmt.Errorf("prt load: %w", err)
+		return fmt.Errorf("load: %w", err)
 	}
 
 	err = e.model.SetParticleRenders(p.ParticleRenders())
 	if err != nil {
-		return fmt.Errorf("prt setparticles: %w", err)
+		return fmt.Errorf("setparticles: %w", err)
 	}
 
 	return nil
@@ -279,16 +279,16 @@ func (e *Export) loadParticlePoints() error {
 
 	p, err := pts.New(prtName, e.archive)
 	if err != nil {
-		return fmt.Errorf("ts new: %w", err)
+		return fmt.Errorf("new: %w", err)
 	}
 	err = p.Load(bytes.NewReader(prtEntry))
 	if err != nil {
-		return fmt.Errorf("pts load: %w", err)
+		return fmt.Errorf("load: %w", err)
 	}
 
 	err = e.model.SetParticlePoints(p.ParticlePoints())
 	if err != nil {
-		return fmt.Errorf("prt setparticles: %w", err)
+		return fmt.Errorf("setparticles: %w", err)
 	}
 
 	return nil

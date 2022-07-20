@@ -7,11 +7,11 @@ import "github.com/xackery/quail/common"
 
 type PTS struct {
 	name      string
-	archive   common.Archiver
+	archive   common.ArchiveReader
 	particles []*common.ParticlePoint
 }
 
-func New(name string, archive common.Archiver) (*PTS, error) {
+func New(name string, archive common.ArchiveReader) (*PTS, error) {
 	return &PTS{
 		name:    name,
 		archive: archive,

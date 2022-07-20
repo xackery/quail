@@ -10,6 +10,7 @@ import (
 type Filer interface {
 	Name() string
 	Data() []byte
+	SetData([]byte) error
 }
 
 type FilerByCRC []Filer

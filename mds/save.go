@@ -18,7 +18,7 @@ func (e *MDS) Save(w io.Writer) error {
 	}
 
 	// Start writing
-	err = binary.Write(w, binary.LittleEndian, []byte("EQGM"))
+	err = binary.Write(w, binary.LittleEndian, []byte("EQGS"))
 	if err != nil {
 		return fmt.Errorf("write header: %w", err)
 	}

@@ -193,11 +193,11 @@ func (e *TER) loadVersion2(r io.Reader) error {
 					}
 
 					var data []byte
-					data, err = e.eqg.File(propertyValueName)
+					data, err = e.archive.File(propertyValueName)
 					if err != nil {
-						data, err = e.eqg.File(strings.ToLower(propertyValueName))
+						data, err = e.archive.File(strings.ToLower(propertyValueName))
 						if err != nil {
-							fmt.Printf("warning: read material '%s': %s\n", propertyName, err)
+							fmt.Printf("warning: read material '%s' property '%s': %s\n", name, propertyName, err)
 							//	return fmt.Errorf("read material via eqg %s: %w", propertyName, err)
 						}
 					}
@@ -435,11 +435,11 @@ func (e *TER) loadVersion3(r io.Reader) error {
 						return fmt.Errorf("property %d names offset %d not found", j, propertyValue)
 					}
 
-					data, err := e.eqg.File(propertyValueName)
+					data, err := e.archive.File(propertyValueName)
 					if err != nil {
-						data, err = e.eqg.File(strings.ToLower(propertyValueName))
+						data, err = e.archive.File(strings.ToLower(propertyValueName))
 						if err != nil {
-							fmt.Printf("warning: read material %s: %s\n", propertyName, err)
+							fmt.Printf("warning: read material '%s' property '%s': %s\n", name, propertyName, err)
 							//	return fmt.Errorf("read material via eqg %s: %w", propertyName, err)
 						}
 					}
