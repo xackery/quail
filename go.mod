@@ -10,11 +10,11 @@ require (
 	github.com/kvartborg/vector v0.0.0-20210122071920-91df40ba4054
 	github.com/malashin/dds v0.0.0-20190511100755-ab62708f5fe5
 	github.com/mitchellh/go-homedir v1.1.0
-	github.com/solarlune/tetra3d v0.9.0
 	github.com/spf13/cobra v1.5.0
 	github.com/spf13/viper v1.12.0
 	github.com/xackery/colors v1.0.1
 	github.com/xackery/go-zlib v1.1.2-0.20220114180313-3fb65525737c
+	github.com/xackery/tetra3d v0.9.2
 	golang.org/x/image v0.0.0-20220321031419-a8550c1d254a
 )
 

@@ -382,8 +382,6 @@ github.com/sean-/seed v0.0.0-20170313163322-e2103e2c3529/go.mod h1:DxrIzT+xaE7yg
 github.com/sirupsen/logrus v1.2.0/go.mod h1:LxeOpSwHxABJmUn/MG1IvRgCAasNZTLOkJPxbbu5VWo=
 github.com/sirupsen/logrus v1.4.2/go.mod h1:tLMulIdttU9McNUspp0xgXVQah82FyeX6MwdIuYE2rE=
 github.com/sirupsen/logrus v1.6.0/go.mod h1:7uNnSEd1DgxDLC74fIahvMZmmYsHGZGEOFrfsX/uA88=
-github.com/solarlune/tetra3d v0.9.0 h1:htLLhLj+ty0de/5g74A5NNZPPdC856SWmO8y6xeRfgE=
-github.com/solarlune/tetra3d v0.9.0/go.mod h1:I+fb95bDRNNL4RSzKD4ShF8Gq54s2PsdG4d3cAk6KHw=
 github.com/spaolacci/murmur3 v0.0.0-20180118202830-f09979ecbc72/go.mod h1:JwIasOWyU6f++ZhiEuf87xNszmSA2myDM2Kzu9HwQUA=
 github.com/spf13/afero v1.8.2/go.mod h1:CtAatgMJh6bJEIs48Ay/FOnkljP3WeGUG0MC1RfAqwo=
 github.com/spf13/afero v1.9.0 h1:sFSLUHgxdnN32Qy38hK3QkYBFXZj9DKjVjCUCtD7juY=
@@ -417,6 +415,8 @@ github.com/xackery/colors v1.0.1 h1:RR2dQ32ArZPxONWEWd8o9okyuXRbli7S/jkqDVn0K8M=
 github.com/xackery/colors v1.0.1/go.mod h1:uCBeFbEpvD33k6H/+iGuw2vUNpm66amp+EWDg13b5oM=
 github.com/xackery/go-zlib v1.1.2-0.20220114180313-3fb65525737c h1:K/R+h+g19bcQRIinRqfsfSvUk86f59BYqXE1VanhVzU=
 github.com/xackery/go-zlib v1.1.2-0.20220114180313-3fb65525737c/go.mod h1:wZURpSzVLjuviF1NUM2sycenZfzrb1AahSci0Q0r42Y=
+github.com/xackery/tetra3d v0.9.2 h1:7/WnBQ07uGbTmXdSw4w6DVFKZwCf03LbU7FWB0O25FU=
+github.com/xackery/tetra3d v0.9.2/go.mod h1:MzMt742Wvk1AwbSrbR0/J65mx8NRtNfQE/G37koPM7Y=
 github.com/yuin/goldmark v1.1.25/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
 github.com/yuin/goldmark v1.1.27/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
 github.com/yuin/goldmark v1.1.32/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=

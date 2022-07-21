@@ -185,9 +185,6 @@ func (e *ZON) Encode(w io.Writer) error {
 		}
 	}
 
-	for _, name := range names {
-		fmt.Println(name.name)
-	}
 	for _, o := range e.objects {
 
 		modelID := uint32(9999)

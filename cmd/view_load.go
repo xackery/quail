@@ -32,6 +32,10 @@ func viewLoad(buf *bytes.Buffer, path string, file string) error {
 	views := []*viewFunc{
 		{name: "eqg", invoke: viewLoadEQG},
 		{name: "gltf", invoke: viewLoadGLTF},
+		{name: "mds", invoke: viewLoadMDS},
+		{name: "mod", invoke: viewLoadMOD},
+		{name: "ter", invoke: viewLoadTER},
+		{name: "zon", invoke: viewLoadZON},
 	}
 
 	for _, v := range views {

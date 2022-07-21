@@ -15,9 +15,21 @@ import (
 // GLTFDecode imports a GLTF document
 func (e *ZON) GLTFDecode(doc *gltf.Document) error {
 
-	for _, m := range doc.Meshes {
+	for _, n := range doc.Nodes {
+
+		m := doc.Meshes[*n.Mesh]
+		if m == nil {
+			return fmt.Errorf("node %s refers to mesh %d and it was not found", n.Name, *n.Mesh)
+		}
+
+		nodeName := strings.ToLower(n.Name)
 		meshName := strings.ToLower(m.Name)
-		if strings.Contains(meshName, "ter_") || strings.Contains(meshName, ".ter") || meshName == e.name {
+		if strings.Contains(meshName, "ter_") ||
+			strings.Contains(meshName, ".ter") ||
+			meshName == e.name ||
+			strings.Contains(nodeName, "ter_") ||
+			strings.Contains(nodeName, ".ter") ||
+			nodeName == e.name {
 			if !strings.HasSuffix(meshName, ".ter") {
 				meshName += ".ter"
 			}

@@ -9,23 +9,24 @@ import (
 	"github.com/qmuntal/gltf"
 	"github.com/qmuntal/gltf/modeler"
 	"github.com/xackery/quail/common"
+	"github.com/xackery/quail/helper"
 )
 
 // GLTFDecode imports a GLTF document
 func (e *TER) GLTFDecode(doc *gltf.Document) error {
 	var err error
 	for _, m := range doc.Materials {
-
-		err = e.MaterialAdd(m.Name, "Opaque_MaxCB1.fx")
+		materialName := m.Name
+		err = e.MaterialAdd(materialName, "Opaque_MaxCB1.fx")
 		if err != nil {
-			return fmt.Errorf("add material %s: %w", m.Name, err)
+			return fmt.Errorf("add material %s: %w", materialName, err)
 		}
 
 		if m.PBRMetallicRoughness.BaseColorTexture != nil {
 
 			image := doc.Images[int(m.PBRMetallicRoughness.BaseColorTexture.Index)]
 			if image == nil {
-				return fmt.Errorf("expected image for '%s', but not found", m.Name)
+				return fmt.Errorf("expected image for '%s', but not found", materialName)
 			}
 
 			bv := doc.BufferViews[int(*image.BufferView)]
@@ -57,7 +58,7 @@ func (e *TER) GLTFDecode(doc *gltf.Document) error {
 				return fmt.Errorf("writeFile: %w", err)
 			}
 
-			err = e.MaterialPropertyAdd(m.Name, "e_TextureDiffuse0", 2, imageName)
+			err = e.MaterialPropertyAdd(materialName, "e_TextureDiffuse0", 2, imageName)
 			if err != nil {
 				return fmt.Errorf("materialPropertyAdd %s: %w", imageName, err)
 			}
@@ -80,6 +81,9 @@ func (e *TER) GLTFDecode(doc *gltf.Document) error {
 		}
 
 		m := doc.Meshes[*n.Mesh]
+		if m == nil {
+			return fmt.Errorf("mesh %d not found", *n.Mesh)
+		}
 		meshName := strings.ToLower(m.Name)
 		if meshName == e.name {
 			isTer = true
@@ -95,9 +99,11 @@ func (e *TER) GLTFDecode(doc *gltf.Document) error {
 			continue
 		}
 
+		meshName = helper.BaseName(e.name) + ".ter"
+
 		for _, p := range m.Primitives {
 			if p.Mode != gltf.PrimitiveTriangles {
-				return fmt.Errorf("primitive in mesh '%s' is mode %d, unsupported", m.Name, p.Mode)
+				return fmt.Errorf("primitive in mesh '%s' is mode %d, unsupported", meshName, p.Mode)
 			}
 
 			materialName := ""
@@ -119,7 +125,7 @@ func (e *TER) GLTFDecode(doc *gltf.Document) error {
 
 			posIndex, ok := p.Attributes[gltf.POSITION]
 			if !ok {
-				return fmt.Errorf("primitive in mesh '%s' has no position", m.Name)
+				return fmt.Errorf("primitive in mesh '%s' has no position", meshName)
 			}
 			positions, err := modeler.ReadPosition(doc, doc.Accessors[posIndex], [][3]float32{})
 			if err != nil {
@@ -143,7 +149,7 @@ func (e *TER) GLTFDecode(doc *gltf.Document) error {
 				if err != nil {
 					return fmt.Errorf("readNormal: %w", err)
 				}
-			} //return fmt.Errorf("primitive in mesh '%s' has no normal", m.Name)
+			} //return fmt.Errorf("primitive in mesh '%s' has no normal", meshName)
 
 			tints := &color.RGBA{255, 255, 255, 255}
 			tintIndex, ok := p.Attributes[gltf.COLOR_0]
@@ -156,7 +162,7 @@ func (e *TER) GLTFDecode(doc *gltf.Document) error {
 				tints.G = tintRaw[0][1]
 				tints.B = tintRaw[0][2]
 				tints.A = tintRaw[0][3]
-			} //return fmt.Errorf("primitive in mesh '%s' has no normal", m.Name)
+			} //return fmt.Errorf("primitive in mesh '%s' has no normal", meshName)
 
 			//fmt.Printf("normal: %+v\n", normal)
 
@@ -168,7 +174,7 @@ func (e *TER) GLTFDecode(doc *gltf.Document) error {
 					return fmt.Errorf("readTextureCoord: %w", err)
 				}
 			}
-			//return fmt.Errorf("primitive in mesh '%s' has no texcoord", m.Name)
+			//return fmt.Errorf("primitive in mesh '%s' has no texcoord", meshName)
 			//fmt.Printf("uv: %+v\n", uv)
 
 			for i := 0; i < len(positions); i++ {
@@ -184,8 +190,8 @@ func (e *TER) GLTFDecode(doc *gltf.Document) error {
 				}
 				uvEntry := math32.NewVec2()
 				if len(uvs) > i {
-					uvEntry.X = uvs[i][0] * n.Scale[0] * 2
-					uvEntry.Y = uvs[i][1] * n.Scale[1] * 2
+					uvEntry.X = uvs[i][0] * n.Scale[0]
+					uvEntry.Y = uvs[i][1] * n.Scale[1]
 				}
 				tint := &common.Tint{R: 128, G: 128, B: 128}
 				//fmt.Printf("%d pos: %0.0f %0.0f %0.0f, normal: %+v, uv: %+v\n", i, posEntry.X, posEntry.Y, posEntry.Z, normalEntry, uvEntry)
