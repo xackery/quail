@@ -134,9 +134,9 @@ func (e *MDS) GLTFEncode(doc *qgltf.GLTF) error {
 	*/
 
 	tmpCache := make(map[string]bool)
-	fmt.Println(len(e.faces), "faces")
+	fmt.Println(len(e.triangles), "faces")
 	// ******** PRIM GENERATION *****
-	for _, o := range e.faces {
+	for _, o := range e.triangles {
 		matName := o.MaterialName
 		/*if strings.HasPrefix(matName, e.name+"_") {
 			matName = fmt.Sprintf("c_%s_s02_m01", e.name)

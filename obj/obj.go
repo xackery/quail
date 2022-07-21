@@ -12,7 +12,7 @@ type ObjData struct {
 	Name      string
 	Materials []*common.Material
 	Vertices  []*common.Vertex
-	Triangles []*common.Face
+	Triangles []*common.Triangle
 }
 
 type ObjRequest struct {

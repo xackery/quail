@@ -66,7 +66,9 @@ func (e *MDS) GLTFDecode(doc *gltf.Document) error {
 
 	}
 
-	for _, m := range doc.Meshes {
+	for _, n := range doc.Nodes {
+
+		m := doc.Meshes[*n.Mesh]
 		for _, p := range m.Primitives {
 			if p.Mode != gltf.PrimitiveTriangles {
 				return fmt.Errorf("primitive in mesh '%s' is mode %d, unsupported", m.Name, p.Mode)
@@ -158,7 +160,7 @@ func (e *MDS) GLTFDecode(doc *gltf.Document) error {
 			//fmt.Printf("uv: %+v\n", uv)
 
 			for i := 0; i < len(positions); i++ {
-				posEntry := math32.NewVector3(positions[i][0], positions[i][1], positions[i][2])
+				posEntry := math32.NewVector3(positions[i][0]*n.Scale[0], positions[i][1]*n.Scale[1], positions[i][2]*n.Scale[2])
 				normalEntry := math32.NewVec3()
 				if len(normals) > i {
 					normalEntry.X = normals[i][0]
@@ -167,8 +169,8 @@ func (e *MDS) GLTFDecode(doc *gltf.Document) error {
 				}
 				uvEntry := math32.NewVec2()
 				if len(uvs) > i {
-					uvEntry.X = uvs[i][0]
-					uvEntry.Y = uvs[i][1]
+					uvEntry.X = uvs[i][0] * n.Scale[0]
+					uvEntry.Y = uvs[i][1] * n.Scale[1]
 				}
 				tint := &common.Tint{R: 128, G: 128, B: 128}
 				//fmt.Printf("%d pos: %0.0f %0.0f %0.0f, normal: %+v, uv: %+v\n", i, posEntry.X, posEntry.Y, posEntry.Z, normalEntry, uvEntry)

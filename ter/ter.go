@@ -15,7 +15,7 @@ type TER struct {
 	name            string
 	materials       []*common.Material
 	vertices        []*common.Vertex
-	faces           []*common.Face
+	triangles       []*common.Triangle
 	files           []common.Filer
 	archive         common.ArchiveReadWriter
 	particleRenders []*common.ParticleRender

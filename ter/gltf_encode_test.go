@@ -83,21 +83,6 @@ func TestGLTFEncodeSamples(t *testing.T) {
 			}
 		}
 
-		/*fw, err := os.Create(txtFile)
-		if err != nil {
-			t.Fatalf("%s", err)
-		}
-		defer fw.Close()
-		fmt.Fprintf(fw, "faces:\n")
-		for i, o := range e.faces {
-			fmt.Fprintf(fw, "%d %+v\n", i, o)
-		}
-
-		fmt.Fprintf(fw, "vertices:\n")
-		for i, o := range e.vertices {
-			fmt.Fprintf(fw, "%d pos: %0.0f %0.0f %0.0f, normal: %+v, uv: %+v\n", i, o.Position.X, o.Position.Y, o.Position.Z, o.Normal, o.Uv)
-		}
-		*/
 		w, err := os.Create(gltfOutFile)
 		if err != nil {
 			t.Fatalf("create %s", err)
@@ -160,22 +145,6 @@ func TestGLTFEncodeSamplesSanityCheck(t *testing.T) {
 		if err != nil {
 			t.Fatalf("import %s: %s", gltfInFile, err)
 		}
-		/*
-			fw, err := os.Create(fmt.Sprintf("%s.txt", gltfInFile))
-			if err != nil {
-				t.Fatalf("%s", err)
-			}
-			defer fw.Close()
-			fmt.Fprintf(fw, "faces:\n")
-			for i, o := range e.faces {
-				fmt.Fprintf(fw, "%d %+v\n", i, o)
-			}
-
-			fmt.Fprintf(fw, "vertices:\n")
-			for i, o := range e.vertices {
-				fmt.Fprintf(fw, "%d pos: %0.0f %0.0f %0.0f, normal: %+v, uv: %+v\n", i, o.Position.X, o.Position.Y, o.Position.Z, o.Normal, o.Uv)
-			}
-		*/
 
 		w, err := os.Create(gltfOutFile)
 		if err != nil {
@@ -210,21 +179,6 @@ func TestGLTFEncodeSamplesSanityCheck(t *testing.T) {
 		if err != nil {
 			t.Fatalf("import %s: %s", gltfInFile, err)
 		}
-		/*
-			fw2, err := os.Create(fmt.Sprintf("%s.txt", gltfOutFile))
-			if err != nil {
-				t.Fatalf("%s", err)
-			}
-			defer fw2.Close()
-			fmt.Fprintf(fw2, "faces:\n")
-			for i, o := range e.faces {
-				fmt.Fprintf(fw2, "%d %+v\n", i, o)
-			}
 
-			fmt.Fprintf(fw2, "vertices:\n")
-			for i, o := range e.vertices {
-				fmt.Fprintf(fw2, "%d pos: %0.0f %0.0f %0.0f, normal: %+v, uv: %+v\n", i, o.Position.X, o.Position.Y, o.Position.Z, o.Normal, o.Uv)
-			}
-		*/
 	}
 }

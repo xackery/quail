@@ -48,7 +48,7 @@ func importFile(req *ObjRequest) error {
 			if len(records) != 3 {
 				return fmt.Errorf("line %d has %d records, expected 3", lineNumber, len(records))
 			}
-			faces := []int{}
+			triangles := []int{}
 			for i, record := range records {
 				entries := strings.Split(record, "/")
 				if len(entries) != 3 {
@@ -57,24 +57,24 @@ func importFile(req *ObjRequest) error {
 				for j, entry := range entries {
 					val, err := strconv.Atoi(entry)
 					if err != nil {
-						return fmt.Errorf("line %d parse face index %d %d %s: %w", lineNumber, i, j, entry, err)
+						return fmt.Errorf("line %d parse triangle index %d %d %s: %w", lineNumber, i, j, entry, err)
 					}
-					faces = append(faces, val)
+					triangles = append(triangles, val)
 				}
 			}
-			index1, err := face(faces[0], faces[1], faces[2], objCache, req.Data)
+			index1, err := triangle(triangles[0], triangles[1], triangles[2], objCache, req.Data)
 			if err != nil {
-				return fmt.Errorf("face 1: line %d: %w", lineNumber, err)
+				return fmt.Errorf("triangle 1: line %d: %w", lineNumber, err)
 			}
-			index2, err := face(faces[3], faces[4], faces[5], objCache, req.Data)
+			index2, err := triangle(triangles[3], triangles[4], triangles[5], objCache, req.Data)
 			if err != nil {
-				return fmt.Errorf("face 2: line %d: %w", lineNumber, err)
+				return fmt.Errorf("triangle 2: line %d: %w", lineNumber, err)
 			}
-			index3, err := face(faces[6], faces[7], faces[8], objCache, req.Data)
+			index3, err := triangle(triangles[6], triangles[7], triangles[8], objCache, req.Data)
 			if err != nil {
-				return fmt.Errorf("face 3: line %d: %w", lineNumber, err)
+				return fmt.Errorf("triangle 3: line %d: %w", lineNumber, err)
 			}
-			req.Data.Triangles = append(req.Data.Triangles, &common.Face{
+			req.Data.Triangles = append(req.Data.Triangles, &common.Triangle{
 				Index:        [3]uint32{uint32(index1), uint32(index2), uint32(index3)},
 				MaterialName: lastMaterial.Name,
 				Flag:         lastMaterial.Flag,
@@ -160,7 +160,7 @@ func importFile(req *ObjRequest) error {
 	return nil
 }
 
-func face(v, t, n int, objCache *objCache, obj *ObjData) (int, error) {
+func triangle(v, t, n int, objCache *objCache, obj *ObjData) (int, error) {
 
 	index, ok := objCache.vertexLookup[fmt.Sprintf("%d/%d/%d", v, t, n)]
 	if ok {

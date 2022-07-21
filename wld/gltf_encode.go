@@ -88,7 +88,7 @@ func (e *WLD) GLTFEncode(w io.Writer) error {
 	*/
 
 	// ******** PRIM GENERATION *****
-	for _, o := range e.faces {
+	for _, o := range e.triangles {
 		matIndex, err := e.gltfAddCacheMaterial(doc, o.MaterialName)
 		if err != nil {
 			return fmt.Errorf("addMaterial: %w", err)

@@ -20,7 +20,7 @@ type MOD struct {
 	archive         common.ArchiveReader
 	materials       []*common.Material
 	vertices        []*common.Vertex
-	faces           []*common.Face
+	triangles       []*common.Triangle
 	bones           []*bone
 	files           []common.Filer
 	particleRenders []*common.ParticleRender

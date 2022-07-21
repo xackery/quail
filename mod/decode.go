@@ -56,12 +56,12 @@ func (e *MOD) Decode(r io.ReadSeeker) error {
 	}
 	dump.Hex(verticesCount, "verticesCount=%d", verticesCount)
 
-	faceCount := uint32(0)
-	err = binary.Read(r, binary.LittleEndian, &faceCount)
+	triangleCount := uint32(0)
+	err = binary.Read(r, binary.LittleEndian, &triangleCount)
 	if err != nil {
-		return fmt.Errorf("read face count: %w", err)
+		return fmt.Errorf("read triangle count: %w", err)
 	}
-	dump.Hex(faceCount, "faceCount=%d", faceCount)
+	dump.Hex(triangleCount, "triangleCount=%d", triangleCount)
 
 	boneCount := uint32(0)
 	err = binary.Read(r, binary.LittleEndian, &boneCount)
@@ -255,40 +255,40 @@ func (e *MOD) Decode(r io.ReadSeeker) error {
 	}
 	dump.HexRange([]byte{0x01, 0x02}, int(verticesCount)*32, "vertData=(%d bytes)", int(verticesCount)*32)
 
-	for i := 0; i < int(faceCount); i++ {
+	for i := 0; i < int(triangleCount); i++ {
 		pos := [3]uint32{}
 		//pos := math32.Vector3{}
 		err = binary.Read(r, binary.LittleEndian, &pos)
 		if err != nil {
-			return fmt.Errorf("read face %d pos: %w", i, err)
+			return fmt.Errorf("read triangle %d pos: %w", i, err)
 		}
 
 		materialID := int32(0)
 		err = binary.Read(r, binary.LittleEndian, &materialID)
 		if err != nil {
-			return fmt.Errorf("read face %d materialID: %w", i, err)
+			return fmt.Errorf("read triangle %d materialID: %w", i, err)
 		}
 
 		materialName, err := e.MaterialByID(int(materialID))
 		if err != nil {
-			return fmt.Errorf("material by id for face %d: %w", i, err)
+			return fmt.Errorf("material by id for triangle %d: %w", i, err)
 		}
 
 		flag := uint32(0)
 		err = binary.Read(r, binary.LittleEndian, &flag)
 		if err != nil {
-			return fmt.Errorf("read face %d flag: %w", i, err)
+			return fmt.Errorf("read triangle %d flag: %w", i, err)
 		}
 
 		if materialName == "" {
 			materialName = fmt.Sprintf("empty_%d", flag)
 		}
-		err = e.FaceAdd(pos, materialName, flag)
+		err = e.TriangleAdd(pos, materialName, flag)
 		if err != nil {
-			return fmt.Errorf("faceAdd %d: %w", i, err)
+			return fmt.Errorf("triangleAdd %d: %w", i, err)
 		}
 	}
-	dump.HexRange([]byte{0x03, 0x04}, int(faceCount)*20, "faceData=(%d bytes)", int(faceCount)*20)
+	dump.HexRange([]byte{0x03, 0x04}, int(triangleCount)*20, "triangleData=(%d bytes)", int(triangleCount)*20)
 
 	//64bytes worth
 	for i := 0; i < int(boneCount); i++ {

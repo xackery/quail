@@ -12,7 +12,7 @@ import (
 func (e *MDS) Encode(w io.Writer) error {
 	var err error
 
-	nameData, data, err := common.WriteGeometry(e.materials, e.vertices, e.faces)
+	nameData, data, err := common.WriteGeometry(e.materials, e.vertices, e.triangles)
 	if err != nil {
 		return fmt.Errorf("writeGeometry: %w", err)
 	}

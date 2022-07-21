@@ -17,7 +17,7 @@ type WLD struct {
 	fragments          []*fragmentInfo
 	materials          []*common.Material
 	vertices           []*common.Vertex
-	faces              []*common.Face
+	triangles          []*common.Triangle
 	files              []common.Filer
 	gltfMaterialBuffer map[string]*uint32
 	gltfBoneBuffer     map[int]uint32

@@ -23,7 +23,7 @@ type MDS struct {
 	archive         common.ArchiveReadWriter
 	materials       []*common.Material
 	vertices        []*common.Vertex
-	faces           []*common.Face
+	triangles       []*common.Triangle
 	bones           []*bone
 	files           []common.Filer
 	joints          [][4]uint16

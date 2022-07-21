@@ -25,7 +25,7 @@ func (e *TER) ImportObj(objPath string, mtlPath string, matPath string) error {
 		return fmt.Errorf("import: %w", err)
 	}
 	e.materials = req.Data.Materials
-	e.faces = req.Data.Triangles
+	e.triangles = req.Data.Triangles
 	e.vertices = req.Data.Vertices
 	if e.name == "" {
 		e.name = filepath.Base(objPath)

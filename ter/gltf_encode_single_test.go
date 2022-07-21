@@ -114,21 +114,6 @@ func TestGLTFEncodeBroodlands(t *testing.T) {
 		t.Fatalf("import %s: %s", inFile, err)
 	}
 
-	/*fw, err := os.Create(fmt.Sprintf("test/%s.txt", zone))
-	if err != nil {
-		t.Fatalf("%s", err)
-	}
-	defer fw.Close()
-	fmt.Fprintf(fw, "faces:\n")
-	for i, o := range e.faces {
-		fmt.Fprintf(fw, "%d %+v\n", i, o)
-	}
-
-	fmt.Fprintf(fw, "vertices:\n")
-	for i, o := range e.vertices {
-		fmt.Fprintf(fw, "%d pos: %+v, normal: %+v, uv: %+v\n", i, o.Position, o.Normal, o.Uv)
-	}
-	*/
 	w, err := os.Create(outFile)
 	if err != nil {
 		t.Fatalf("create %s", err)
@@ -184,21 +169,6 @@ func TestGLTFEncodeCityOfBronze(t *testing.T) {
 		t.Fatalf("import %s: %s", path, err)
 	}
 
-	/*fw, err := os.Create(fmt.Sprintf("test/%s.txt", zone))
-	if err != nil {
-		t.Fatalf("%s", err)
-	}
-	defer fw.Close()
-	fmt.Fprintf(fw, "faces:\n")
-	for i, o := range e.faces {
-		fmt.Fprintf(fw, "%d %+v\n", i, o)
-	}
-
-	fmt.Fprintf(fw, "vertices:\n")
-	for i, o := range e.vertices {
-		fmt.Fprintf(fw, "%d pos: %+v, normal: %+v, uv: %+v\n", i, o.Position, o.Normal, o.Uv)
-	}
-	*/
 	w, err := os.Create(outFile)
 	if err != nil {
 		t.Fatalf("create %s", err)

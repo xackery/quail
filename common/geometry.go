@@ -33,7 +33,7 @@ type Vertex struct {
 	Uv2      *math32.Vector2
 }
 
-type Face struct {
+type Triangle struct {
 	Index        [3]uint32
 	MaterialName string
 	Flag         uint32

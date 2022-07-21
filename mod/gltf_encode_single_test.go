@@ -91,22 +91,6 @@ func TestGLTFEncodeSamplesSingleTest(t *testing.T) {
 				t.Fatalf("decode %s: %s", modEntry.Name(), err)
 			}
 
-			/*			fw, err := os.Create(txtFile)
-						if err != nil {
-							t.Fatalf("%s", err)
-						}
-						defer fw.Close()
-						fmt.Fprintf(fw, "faces:\n")
-						for i, o := range e.faces {
-							fmt.Fprintf(fw, "%d %+v\n", i, o)
-						}
-
-						fmt.Fprintf(fw, "vertices:\n")
-						for i, o := range e.vertices {
-							fmt.Fprintf(fw, "%d pos: %0.0f %0.0f %0.0f, normal: %+v, uv: %+v\n", i, o.Position.X, o.Position.Y, o.Position.Z, o.Normal, o.Uv)
-						}
-			*/
-
 			layName := fmt.Sprintf("%s.lay", strings.TrimSuffix(modEntry.Name(), ".mod"))
 			layEntry, err := archive.File(layName)
 			if err != nil && !strings.Contains(err.Error(), "does not exist") {

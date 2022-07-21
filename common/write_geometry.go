@@ -12,7 +12,7 @@ type nameInfo struct {
 	name   string
 }
 
-func WriteGeometry(materials []*Material, vertices []*Vertex, faces []*Face) ([]byte, []byte, error) {
+func WriteGeometry(materials []*Material, vertices []*Vertex, triangles []*Triangle) ([]byte, []byte, error) {
 	var err error
 
 	names := []*nameInfo{}
@@ -153,8 +153,8 @@ func WriteGeometry(materials []*Material, vertices []*Vertex, faces []*Face) ([]
 		}
 	}
 
-	// faces
-	for i, o := range faces {
+	// triangles
+	for i, o := range triangles {
 		nameID := -1
 		for i, val := range materials {
 			if val.Name == o.MaterialName {
@@ -164,7 +164,7 @@ func WriteGeometry(materials []*Material, vertices []*Vertex, faces []*Face) ([]
 		}
 
 		if nameID == -1 {
-			return nil, nil, fmt.Errorf("face %d refers to material '%s', which is not declared", i, o.MaterialName)
+			return nil, nil, fmt.Errorf("triangle %d refers to material '%s', which is not declared", i, o.MaterialName)
 		}
 
 		err = binary.Write(dataBuf, binary.LittleEndian, o.Index)

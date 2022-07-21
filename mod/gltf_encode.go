@@ -132,7 +132,7 @@ func (e *MOD) GLTFEncode(doc *qgltf.GLTF) error {
 	*/
 
 	// ******** PRIM GENERATION *****
-	for _, o := range e.faces {
+	for _, o := range e.triangles {
 		matName := o.MaterialName
 		if strings.HasPrefix(matName, e.name+"_") {
 			matName = fmt.Sprintf("c_%s_s02_m01", e.name)
