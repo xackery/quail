@@ -66,8 +66,13 @@ func (e *MDS) GLTFDecode(doc *gltf.Document) error {
 	}
 
 	for _, n := range doc.Nodes {
-
+		if n.Mesh == nil {
+			continue
+		}
 		m := doc.Meshes[*n.Mesh]
+		if m == nil {
+			continue
+		}
 		for _, p := range m.Primitives {
 			if p.Mode != gltf.PrimitiveTriangles {
 				return fmt.Errorf("primitive in mesh '%s' is mode %d, unsupported", m.Name, p.Mode)

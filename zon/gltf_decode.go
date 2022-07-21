@@ -17,6 +17,9 @@ func (e *ZON) GLTFDecode(doc *gltf.Document) error {
 
 	for _, n := range doc.Nodes {
 
+		if n.Mesh == nil {
+			return fmt.Errorf("no mesh was referred to on node %s", n.Name)
+		}
 		m := doc.Meshes[*n.Mesh]
 		if m == nil {
 			return fmt.Errorf("node %s refers to mesh %d and it was not found", n.Name, *n.Mesh)

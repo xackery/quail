@@ -79,9 +79,12 @@ func (e *TER) GLTFDecode(doc *gltf.Document) error {
 			isTer = true
 		}
 
+		if n.Mesh == nil {
+			return fmt.Errorf("no mesh on node '%s' found", n.Name)
+		}
 		m := doc.Meshes[*n.Mesh]
 		if m == nil {
-			return fmt.Errorf("mesh %d not found", *n.Mesh)
+			return fmt.Errorf("accesing node '%s' mesh '%d' failed", n.Name, *n.Mesh)
 		}
 		meshName := strings.ToLower(m.Name)
 		if meshName == e.name {
