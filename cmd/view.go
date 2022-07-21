@@ -145,7 +145,9 @@ func (v *viewer) Update() error {
 	if inpututil.IsKeyJustPressed(ebiten.KeyN) {
 		v.drawDebugNormals = !v.drawDebugNormals
 	}
-	if ebiten.IsKeyPressed(ebiten.KeyW) || ebiten.IsKeyPressed(ebiten.KeyArrowUp) {
+	if ebiten.IsKeyPressed(ebiten.KeyW) ||
+		ebiten.IsKeyPressed(ebiten.KeyArrowUp) ||
+		(ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) && ebiten.IsMouseButtonPressed(ebiten.MouseButtonRight)) {
 		pos = pos.Add(forward.Scale(moveSpd))
 	}
 	if ebiten.IsKeyPressed(ebiten.KeyD) || ebiten.IsKeyPressed(ebiten.KeyArrowRight) {
