@@ -1,163 +1,173 @@
 package s3d
 
 import (
+	"bytes"
+	"encoding/binary"
 	"fmt"
 	"io"
+	"time"
+
+	"github.com/xackery/quail/common"
+	"github.com/xackery/quail/helper"
 )
 
-// Encode writes a s3d file to provided writer
-func (e *S3D) Encode(w io.Writer) error {
-	/*
-		var directoryIndex uint32
-		var magicNumber uint32 = 0x20534650
-		var versionNumber uint32 = 2 // TODO: verify
+// Encode will write a S3D to writer
+func (e *S3D) Encode(w io.WriteSeeker) error {
+	var err error
 
-		var value uint32
+	type dirEntry struct {
+		crc    uint32
+		offset uint32
+		size   uint32
+	}
+	dirEntries := []*dirEntry{}
 
-		//this is just placeholder we need to write it after we know position
-		err := binary.Write(w, binary.LittleEndian, &directoryIndex)
+	pos := int64(0)
+
+	err = binary.Write(w, binary.LittleEndian, uint32(0))
+	if err != nil {
+		return fmt.Errorf("write header prefix primer: %w", err)
+	}
+
+	err = binary.Write(w, binary.LittleEndian, [4]byte{'P', 'F', 'S', ' '})
+	if err != nil {
+		return fmt.Errorf("write header magic: %w", err)
+	}
+
+	err = binary.Write(w, binary.LittleEndian, uint32(0x00020000))
+	if err != nil {
+		return fmt.Errorf("write header version: %w", err)
+	}
+
+	fileBuffer := bytes.NewBuffer(nil)
+	err = binary.Write(fileBuffer, binary.LittleEndian, uint32(len(e.files)))
+	if err != nil {
+		return fmt.Errorf("write file count: %w", err)
+	}
+
+	e.files = common.FilerByCRC(e.files)
+	for _, file := range e.files {
+		pos, err = w.Seek(0, io.SeekCurrent)
 		if err != nil {
-			return fmt.Errorf("write directory index: %w", err)
+			return fmt.Errorf("%s seek: %w", file.Name(), err)
 		}
 
-		err = binary.Write(w, binary.LittleEndian, &magicNumber)
+		dirEntries = append(dirEntries, &dirEntry{
+			crc:    helper.FilenameCRC32(file.Name()),
+			size:   uint32(len(file.Data())),
+			offset: uint32(pos),
+		})
+
+		//write compressed data
+		cData, err := helper.Deflate(file.Data())
 		if err != nil {
-			return fmt.Errorf("write magic number: %w", err)
+			return fmt.Errorf("deflate %s: %w", file.Name(), err)
 		}
 
-		err = binary.Write(w, binary.LittleEndian, &versionNumber)
+		err = binary.Write(w, binary.LittleEndian, cData)
 		if err != nil {
-			return fmt.Errorf("write version number: %w", err)
+			return fmt.Errorf("%s write data: %w", file.Name(), err)
 		}
 
-		var fileCount uint32 = uint32(len(e.files))
-		err = binary.Write(w, binary.LittleEndian, &fileCount)
+		// prep filebuffer
+		err = binary.Write(fileBuffer, binary.LittleEndian, uint32(len(file.Name())+1))
 		if err != nil {
-			return fmt.Errorf("write file count: %w", err)
+			return fmt.Errorf("%s write name length: %w", file.Name(), err)
 		}
 
-		filenames := []string{}
-
-		for i, fe := range e.fileEntries {
-
-			crc, err := helper.GenerateCRC32(fe.Data)
-			if err != nil {
-				return fmt.Errorf("generate crc for %s: %w", fe.Name, err)
-			}
-			err = binary.Write(w, binary.LittleEndian, &crc)
-			if err != nil {
-				return fmt.Errorf("write crc %d/%d: %w", i, fileCount, err)
-			}
-
-			err = binary.Write(w, binary.LittleEndian, &entry.Offset)
-			if err != nil {
-				return fmt.Errorf("write offset %d/%d: %w", i, fileCount, err)
-			}
-			debugInfo := fmt.Sprintf("%d/%d 0x%x", i, fileCount, entry.Offset)
-			// size is the uncompressed size of the file
-			var size uint32
-			err = binary.Write(w, binary.LittleEndian, &size)
-			if err != nil {
-				return fmt.Errorf("write size %s: %w", debugInfo, err)
-			}
-
-			buf := bytes.NewBuffer(nil)
-
-			cachedOffset, err := r.Seek(0, io.SeekCurrent)
-			if err != nil {
-				return fmt.Errorf("seek cached offset %s: %w", debugInfo, err)
-			}
-			_, err = r.Seek(int64(entry.Offset), io.SeekStart)
-			if err != nil {
-				return fmt.Errorf("seek offset %s: %w", debugInfo, err)
-			}
-
-			for uint32(buf.Len()) != size {
-				var deflatedLength uint32
-				var inflatedLength uint32
-				err = binary.Write(w, binary.LittleEndian, &deflatedLength)
-				if err != nil {
-					return fmt.Errorf("write deflated length %s: %w", debugInfo, err)
-				}
-
-				err = binary.Write(w, binary.LittleEndian, &inflatedLength)
-				if err != nil {
-					return fmt.Errorf("write inflated length %s: %w", debugInfo, err)
-				}
-
-				//if inflatedLength < deflatedLength {
-				//	return fmt.Errorf("inflated < deflated, offset misaligned? %d/%d", i, fileCount)
-				//}
-
-				compressedData := make([]byte, deflatedLength)
-				err = binary.Write(w, binary.LittleEndian, compressedData)
-				if err != nil {
-					return fmt.Errorf("write compressed data: %s: %w", debugInfo, err)
-				}
-
-				fr, err := zlib.NewReaderDict(bytes.NewReader(compressedData), nil)
-				if err != nil {
-					return fmt.Errorf("zlib new reader dict %s: %w", debugInfo, err)
-				}
-
-				inflatedWritten, err := io.Copy(buf, fr)
-				if err != nil {
-					return fmt.Errorf("copy: %s: %w", debugInfo, err)
-				}
-
-				if inflatedWritten != int64(inflatedLength) {
-					return fmt.Errorf("inflate mismatch %s: %w", debugInfo, err)
-				}
-			}
-			if buf.Len() < int(size) {
-				return fmt.Errorf("size mismatch %s: %w", debugInfo, err)
-			}
-			entry.Data = buf.Bytes()
-
-			if entry.CRC == 0x61580AC9 {
-				fr := bytes.NewReader(buf.Bytes())
-				var filenameCount uint32
-				err = binary.Write(wr, binary.LittleEndian, &filenameCount)
-				if err != nil {
-					return fmt.Errorf("filename count %s: %w", debugInfo, err)
-				}
-
-				for j := uint32(0); j < filenameCount; j++ {
-					err = binary.Write(wr, binary.LittleEndian, &value)
-					if err != nil {
-						return fmt.Errorf("filename length %s: %w", debugInfo, err)
-					}
-					filename, err := helper.ParseFixedString(fr, value)
-					if err != nil {
-						return fmt.Errorf("filename %s: %w", debugInfo, err)
-					}
-					filenames = append(filenames, filename)
-				}
-
-				_, err = r.Seek(cachedOffset, io.SeekStart)
-				if err != nil {
-					return fmt.Errorf("seek cached offset %s: %w", debugInfo, err)
-				}
-				continue
-			}
-			e.fileEntries = append(e.fileEntries, entry)
-			_, err = r.Seek(cachedOffset, io.SeekStart)
-			if err != nil {
-				return fmt.Errorf("seek cached offset %s: %w", debugInfo, err)
-			}
+		err = helper.WriteString(fileBuffer, file.Name())
+		//_, err = fileBuffer.Write([]byte(file.Name()))
+		if err != nil {
+			return fmt.Errorf("write name %s: %w", file.Name(), err)
 		}
+		//fmt.Println(len(file.Name)+1, hex.Dump([]byte(file.Name)))
 
-		sort.Sort(ByOffset(e.fileEntries))
-		for i, entry := range e.fileEntries {
-			if len(filenames) < i {
-				return fmt.Errorf("entry %d has no name", i)
-			}
-			entry.Name = filenames[i]
-			fe, err := common.NewFileEntry(entry.Name[0:len(entry.Name)-1], entry.Data)
-			if err != nil {
-				return fmt.Errorf("entry %d newFileEntry: %w", i, err)
-			}
-			e.files = append(e.files, fe)
+		/*err = binary.Write(fileBuffer, binary.LittleEndian, uint8(fileBuffer.Len()))
+		if err != nil {
+			return fmt.Errorf("%s write file pos: %w", file.Name(), err)
 		}*/
-	return fmt.Errorf("encode is not yet supported")
+	}
+
+	fileOffset, err := w.Seek(0, io.SeekCurrent)
+	if err != nil {
+		return fmt.Errorf("seek fileOffset: %w", err)
+	}
+
+	//fmt.Println("filebuffer deflate\n", hex.Dump(fileBuffer.Bytes()))
+	cData, err := helper.Deflate(fileBuffer.Bytes())
+	if err != nil {
+		return fmt.Errorf("deflate fileBuffer: %w", err)
+	}
+	//fmt.Println("after", hex.Dump(cData))
+
+	err = binary.Write(w, binary.LittleEndian, cData)
+	if err != nil {
+		return fmt.Errorf("write fileBuffer: %w", err)
+	}
+
+	dirOffset, err := w.Seek(0, io.SeekCurrent)
+	if err != nil {
+		return fmt.Errorf("seek dirOffset: %w", err)
+	}
+
+	err = binary.Write(w, binary.LittleEndian, uint32(len(dirEntries)+1))
+	if err != nil {
+		return fmt.Errorf("write dir count: %w", err)
+	}
+
+	for i, file := range dirEntries {
+
+		err = binary.Write(w, binary.LittleEndian, file.crc)
+		if err != nil {
+			return fmt.Errorf("write direntry %d crc: %w", i, err)
+		}
+		err = binary.Write(w, binary.LittleEndian, file.offset)
+		if err != nil {
+			return fmt.Errorf("write direntry %d offset: %w", i, err)
+		}
+		err = binary.Write(w, binary.LittleEndian, file.size)
+		if err != nil {
+			return fmt.Errorf("write direntry %d size: %w", i, err)
+		}
+	}
+
+	err = binary.Write(w, binary.LittleEndian, uint32(0x61580AC9))
+	if err != nil {
+		return fmt.Errorf("crc direntry: %w", err)
+	}
+
+	err = binary.Write(w, binary.LittleEndian, uint32(fileOffset))
+	if err != nil {
+		return fmt.Errorf("fileOffset: %w", err)
+	}
+	pos += 4
+
+	err = binary.Write(w, binary.LittleEndian, uint32(len(fileBuffer.Bytes())))
+	if err != nil {
+		return fmt.Errorf("fileBuffer count: %w", err)
+	}
+	pos += int64(len(fileBuffer.Bytes()))
+
+	err = binary.Write(w, binary.LittleEndian, [5]byte{'S', 'T', 'E', 'V', 'E'})
+	if err != nil {
+		return fmt.Errorf("write header magic: %w", err)
+	}
+
+	err = binary.Write(w, binary.LittleEndian, uint32(time.Now().Unix()))
+	if err != nil {
+		return fmt.Errorf("write header magic: %w", err)
+	}
+
+	_, err = w.Seek(0, io.SeekStart)
+	if err != nil {
+		return fmt.Errorf("seek start: %w", err)
+	}
+
+	// err = binary.Write(w, binary.LittleEndian, uint32(pos))
+	err = binary.Write(w, binary.LittleEndian, uint32(dirOffset))
+	if err != nil {
+		return fmt.Errorf("write header prefix proper: %w", err)
+	}
+
+	return nil
 }

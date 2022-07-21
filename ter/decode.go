@@ -248,10 +248,14 @@ func (e *TER) loadVersion2(r io.Reader) error {
 			return fmt.Errorf("read vertex %d uv: %w", i, err)
 		}
 
-		err = e.VertexAdd(pos, normal, tint, uv, uv)
-		if err != nil {
-			return fmt.Errorf("addVertex %d: %w", i, err)
-		}
+		e.vertices = append(e.vertices, &common.Vertex{
+			Position: pos,
+			Normal:   normal,
+			Tint:     tint,
+			Uv:       uv,
+			Uv2:      uv,
+		})
+
 	}
 	dump.HexRange([]byte{0x01, 0x02}, int(verticesCount)*32, "vertData=(%d bytes)", int(verticesCount)*32)
 
@@ -283,7 +287,7 @@ func (e *TER) loadVersion2(r io.Reader) error {
 		if materialName == "" {
 			materialName = fmt.Sprintf("empty_%d", flag)
 		}
-		err = e.TriangleAdd(pos, materialName, flag)
+		err = e.triangleAdd(pos, materialName, flag)
 		if err != nil {
 			return fmt.Errorf("triangleAdd %d: %w", i, err)
 		}
@@ -489,10 +493,14 @@ func (e *TER) loadVersion3(r io.Reader) error {
 			return fmt.Errorf("read vertex %d uv2: %w", i, err)
 		}
 
-		err = e.VertexAdd(pos, normal, tint, uv, uv2)
-		if err != nil {
-			return fmt.Errorf("addVertex %d: %w", i, err)
-		}
+		e.vertices = append(e.vertices, &common.Vertex{
+			Position: pos,
+			Normal:   normal,
+			Tint:     tint,
+			Uv:       uv,
+			Uv2:      uv2,
+		})
+
 	}
 	dump.HexRange([]byte{0x01, 0x02}, int(verticesCount)*32, "vertData=(%d bytes)", int(verticesCount)*32)
 
@@ -520,7 +528,7 @@ func (e *TER) loadVersion3(r io.Reader) error {
 		if err != nil {
 			return fmt.Errorf("read triangle %d flag: %w", i, err)
 		}
-		err = e.TriangleAdd(pos, materialName, flag)
+		err = e.triangleAdd(pos, materialName, flag)
 		if err != nil {
 			return fmt.Errorf("addTriangle %d: %w", i, err)
 		}

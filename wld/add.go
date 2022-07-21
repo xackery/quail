@@ -36,21 +36,22 @@ func (e *WLD) MaterialPropertyAdd(materialName string, propertyName string, cate
 	return fmt.Errorf("materialName not found: '%s' (%d)", materialName, len(e.materials))
 }
 
-func (e *WLD) VertexAdd(position [3]float32, normal [3]float32, tint *common.Tint, uv [2]float32, uv2 [2]float32) error {
-	e.vertices = append(e.vertices, &common.Vertex{
-		Position: position,
-		Normal:   normal,
-		Tint:     tint,
-		Uv:       uv,
-		Uv2:      uv2,
-	})
-	return nil
-}
+func (e *WLD) TriangleAdd(meshName string, index [3]uint32, materialName string, flag uint32) error {
 
-func (e *WLD) TriangleAdd(index [3]uint32, materialName string, flag uint32) error {
 	materialName = strings.ToLower(materialName)
+
+	var mesh *mesh
+	for i := 0; i < len(e.meshes); i++ {
+		if e.meshes[i].name == meshName {
+			mesh = e.meshes[i]
+			break
+		}
+	}
+	if mesh == nil {
+		return fmt.Errorf("mesh %s not found", meshName)
+	}
 	if materialName == "" || strings.HasPrefix(materialName, "empty_") {
-		e.triangles = append(e.triangles, &common.Triangle{
+		mesh.triangles = append(mesh.triangles, &common.Triangle{
 			Index:        index,
 			MaterialName: materialName,
 			Flag:         flag,
@@ -63,7 +64,7 @@ func (e *WLD) TriangleAdd(index [3]uint32, materialName string, flag uint32) err
 			continue
 		}
 
-		e.triangles = append(e.triangles, &common.Triangle{
+		mesh.triangles = append(mesh.triangles, &common.Triangle{
 			Index:        index,
 			MaterialName: materialName,
 			Flag:         flag,

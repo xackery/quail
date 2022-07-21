@@ -12,25 +12,15 @@ import (
 
 // Mesh information
 type Mesh struct {
-	name                 string
-	MaterialReference    uint32
-	AnimationReference   uint32
-	Center               [3]float32
-	MaxDistance          float32
-	MinPosition          [3]float32
-	MaxPosition          [3]float32
-	Verticies            [][3]float32
-	TextureUVCoordinates [][2]float32
-	Normals              [][3]float32
-	Colors               []color.RGBA
-	Indices              []*Polygon
-}
-
-type Polygon struct {
-	IsSolid bool
-	Vertex1 int16
-	Vertex2 int16
-	Vertex3 int16
+	name               string
+	MaterialReference  uint32
+	AnimationReference uint32
+	Center             [3]float32
+	MaxDistance        float32
+	MinPosition        [3]float32
+	MaxPosition        [3]float32
+	verticies          []*common.Vertex
+	triangles          []*common.Triangle
 }
 
 func LoadMesh(r io.ReadSeeker) (common.WldFragmenter, error) {
@@ -44,6 +34,10 @@ func LoadMesh(r io.ReadSeeker) (common.WldFragmenter, error) {
 
 func parseMesh(r io.ReadSeeker, v *Mesh, isNewWorldFormat bool) error {
 	var err error
+	var val8 int8
+	var val16 int16
+	var val32 int32
+
 	if v == nil {
 		return fmt.Errorf("mesh is nil")
 	}
@@ -58,9 +52,10 @@ func parseMesh(r io.ReadSeeker, v *Mesh, isNewWorldFormat bool) error {
 		return fmt.Errorf("read flags: %w", err)
 	}
 
-	//if value != 0x00018003 && value != 0x00014003 {
-	//	return fmt.Errorf("unknown mesh type, got 0x%x", value)
-	//}//
+	if value != 0x00018003 && // Zone
+		value != 0x00014003 { // Object
+		return fmt.Errorf("unknown mesh type, got 0x%x", value)
+	}
 
 	err = binary.Read(r, binary.LittleEndian, &v.MaterialReference)
 	if err != nil {
@@ -71,6 +66,7 @@ func parseMesh(r io.ReadSeeker, v *Mesh, isNewWorldFormat bool) error {
 	if err != nil {
 		return fmt.Errorf("read animation reference: %w", err)
 	}
+	//TODO: find fragment referred to here (MeshAnimation)
 
 	err = binary.Read(r, binary.LittleEndian, &value)
 	if err != nil {
@@ -82,24 +78,25 @@ func parseMesh(r io.ReadSeeker, v *Mesh, isNewWorldFormat bool) error {
 		return fmt.Errorf("read unknown2: %w", err)
 	}
 
-	err = binary.Read(r, binary.LittleEndian, v.Center)
+	err = binary.Read(r, binary.LittleEndian, &v.Center)
 	if err != nil {
 		return fmt.Errorf("read center: %w", err)
 	}
 
+	// dword1-3 Seems to be related to lighting models? (torches, etc.)
 	err = binary.Read(r, binary.LittleEndian, &value)
 	if err != nil {
-		return fmt.Errorf("read unknown1: %w", err)
+		return fmt.Errorf("read unknowndword1: %w", err)
 	}
 
 	err = binary.Read(r, binary.LittleEndian, &value)
 	if err != nil {
-		return fmt.Errorf("read unknown2: %w", err)
+		return fmt.Errorf("read unknowndword2: %w", err)
 	}
 
 	err = binary.Read(r, binary.LittleEndian, &value)
 	if err != nil {
-		return fmt.Errorf("read unknown3: %w", err)
+		return fmt.Errorf("read unknowndword3: %w", err)
 	}
 
 	err = binary.Read(r, binary.LittleEndian, &v.MaxDistance)
@@ -107,49 +104,14 @@ func parseMesh(r io.ReadSeeker, v *Mesh, isNewWorldFormat bool) error {
 		return fmt.Errorf("read max distance: %w", err)
 	}
 
-	err = binary.Read(r, binary.LittleEndian, &v.Center[0])
+	err = binary.Read(r, binary.LittleEndian, &v.MinPosition)
 	if err != nil {
-		return fmt.Errorf("read center x: %w", err)
+		return fmt.Errorf("read min position: %w", err)
 	}
 
-	err = binary.Read(r, binary.LittleEndian, &v.Center[1])
+	err = binary.Read(r, binary.LittleEndian, &v.MaxPosition)
 	if err != nil {
-		return fmt.Errorf("read center y: %w", err)
-	}
-
-	err = binary.Read(r, binary.LittleEndian, &v.Center[2])
-	if err != nil {
-		return fmt.Errorf("read center z: %w", err)
-	}
-
-	err = binary.Read(r, binary.LittleEndian, &v.MinPosition[0])
-	if err != nil {
-		return fmt.Errorf("read min position x: %w", err)
-	}
-
-	err = binary.Read(r, binary.LittleEndian, &v.MinPosition[1])
-	if err != nil {
-		return fmt.Errorf("read min position y: %w", err)
-	}
-
-	err = binary.Read(r, binary.LittleEndian, &v.MinPosition[2])
-	if err != nil {
-		return fmt.Errorf("read min position z: %w", err)
-	}
-
-	err = binary.Read(r, binary.LittleEndian, &v.MaxPosition[0])
-	if err != nil {
-		return fmt.Errorf("read max position x: %w", err)
-	}
-
-	err = binary.Read(r, binary.LittleEndian, &v.MaxPosition[1])
-	if err != nil {
-		return fmt.Errorf("read max position y: %w", err)
-	}
-
-	err = binary.Read(r, binary.LittleEndian, &v.MaxPosition[2])
-	if err != nil {
-		return fmt.Errorf("read max position z: %w", err)
+		return fmt.Errorf("read max position: %w", err)
 	}
 
 	var vertexCount uint16
@@ -176,10 +138,10 @@ func parseMesh(r io.ReadSeeker, v *Mesh, isNewWorldFormat bool) error {
 		return fmt.Errorf("read colors count: %w", err)
 	}
 
-	var polygonCount uint16
-	err = binary.Read(r, binary.LittleEndian, &polygonCount)
+	var triangleCount uint16
+	err = binary.Read(r, binary.LittleEndian, &triangleCount)
 	if err != nil {
-		return fmt.Errorf("read polygon count: %w", err)
+		return fmt.Errorf("read triangle count: %w", err)
 	}
 
 	var vertexPieceCount uint16
@@ -188,10 +150,10 @@ func parseMesh(r io.ReadSeeker, v *Mesh, isNewWorldFormat bool) error {
 		return fmt.Errorf("read vertex piece count: %w", err)
 	}
 
-	var polygonTextureCount uint16
-	err = binary.Read(r, binary.LittleEndian, &polygonTextureCount)
+	var triangleTextureCount uint16
+	err = binary.Read(r, binary.LittleEndian, &triangleTextureCount)
 	if err != nil {
-		return fmt.Errorf("read polygon texture count: %w", err)
+		return fmt.Errorf("read triangle texture count: %w", err)
 	}
 
 	var vertexTextureCount uint16
@@ -205,80 +167,99 @@ func parseMesh(r io.ReadSeeker, v *Mesh, isNewWorldFormat bool) error {
 	if err != nil {
 		return fmt.Errorf("read size9: %w", err)
 	}
-
-	err = binary.Read(r, binary.LittleEndian, &value)
-	if err != nil {
-		return fmt.Errorf("read unknown2: %w", err)
-	}
-
 	scale := float32(1 / float32(int(1)<<value))
 
+	vPositions := [][3]float32{}
 	for i := 0; i < int(vertexCount); i++ {
+
 		pos := [3]float32{}
-		err = binary.Read(r, binary.LittleEndian, &pos)
+		err = binary.Read(r, binary.LittleEndian, &val16)
 		if err != nil {
-			return fmt.Errorf("read vertex %d: %w", i, err)
+			return fmt.Errorf("read vertex x %d: %w", i, err)
 		}
 
-		pos[0] *= scale
-		pos[1] *= scale
-		pos[2] *= scale
+		pos[0] = float32(val16) * scale
 
-		v.Verticies = append(v.Verticies, pos)
+		err = binary.Read(r, binary.LittleEndian, &val16)
+		if err != nil {
+			return fmt.Errorf("read vertex y %d: %w", i, err)
+		}
+
+		pos[1] = float32(val16) * scale
+
+		err = binary.Read(r, binary.LittleEndian, &val16)
+		if err != nil {
+			return fmt.Errorf("read vertex z %d: %w", i, err)
+		}
+		pos[2] = float32(val16) * scale
+
+		vPositions = append(vPositions, pos)
 	}
 
+	vUvs := [][2]float32{}
 	for i := 0; i < int(textureCoordinateCount); i++ {
+
+		uv := [2]float32{}
 		if isNewWorldFormat {
-			pos := [2]float32{}
-			err = binary.Read(r, binary.LittleEndian, &pos)
+			err = binary.Read(r, binary.LittleEndian, &val32)
 			if err != nil {
 				return fmt.Errorf("read texture coordinate 32 %d: %w", i, err)
 			}
+			uv[0] = float32(val32 / 256)
+			err = binary.Read(r, binary.LittleEndian, &val32)
+			if err != nil {
+				return fmt.Errorf("read texture coordinate 32 %d: %w", i, err)
+			}
+			uv[1] = float32(val32 / 256)
 
-			pos[0] /= 256
-			pos[1] /= 256
-			v.TextureUVCoordinates = append(v.TextureUVCoordinates, pos)
-
+			vUvs = append(vUvs, uv)
 			continue
 		}
 
-		pos := [2]float32{}
-		err = binary.Read(r, binary.LittleEndian, &pos)
+		err = binary.Read(r, binary.LittleEndian, &val16)
 		if err != nil {
-			return fmt.Errorf("read texture coordinate 16 %d: %w", i, err)
+			return fmt.Errorf("read texture coordinate 32 %d: %w", i, err)
 		}
+		uv[0] = float32(val16 / 256)
+		err = binary.Read(r, binary.LittleEndian, &val16)
+		if err != nil {
+			return fmt.Errorf("read texture coordinate 32 %d: %w", i, err)
+		}
+		uv[1] = float32(val16 / 256)
 
-		pos[0] /= 256
-		pos[1] /= 256
-		v.TextureUVCoordinates = append(v.TextureUVCoordinates, pos)
+		vUvs = append(vUvs, uv)
+
 	}
 
+	vNormals := [][3]float32{}
 	for i := 0; i < int(normalsCount); i++ {
-		var val uint8
+
 		pos := [3]float32{}
-		err = binary.Read(r, binary.LittleEndian, &val)
+		err = binary.Read(r, binary.LittleEndian, &val8)
 		if err != nil {
 			return fmt.Errorf("read normals x %d: %w", i, err)
 		}
-		pos[0] = float32(val / 128)
+		pos[0] = float32(val8) / 128
 
-		err = binary.Read(r, binary.LittleEndian, &val)
+		err = binary.Read(r, binary.LittleEndian, &val8)
 		if err != nil {
 			return fmt.Errorf("read normals y %d: %w", i, err)
 		}
-		pos[1] = float32(val / 128)
+		pos[1] = float32(val8) / 128
 
-		err = binary.Read(r, binary.LittleEndian, &val)
+		err = binary.Read(r, binary.LittleEndian, &val8)
 		if err != nil {
 			return fmt.Errorf("read normals z %d: %w", i, err)
 		}
-		pos[2] = float32(val / 128)
+		pos[2] = float32(val8) / 128
 
-		v.Normals = append(v.Normals, pos)
+		vNormals = append(vNormals, pos)
 	}
 
+	vTints := []color.RGBA{}
 	for i := 0; i < int(colorsCount); i++ {
 		c := color.RGBA{}
+
 		err = binary.Read(r, binary.LittleEndian, &c.R)
 		if err != nil {
 			return fmt.Errorf("read color r %d: %w", i, err)
@@ -295,96 +276,83 @@ func parseMesh(r io.ReadSeeker, v *Mesh, isNewWorldFormat bool) error {
 		if err != nil {
 			return fmt.Errorf("read color a %d: %w", i, err)
 		}
-		v.Colors = append(v.Colors, c)
+		vTints = append(vTints, c)
 	}
 
-	for i := 0; i < int(polygonCount); i++ {
+	for i := range vPositions {
+		v.verticies = append(v.verticies, &common.Vertex{
+			Position: vPositions[i],
+			Normal:   vNormals[i],
+			Tint:     &common.Tint{R: vTints[i].R, G: vTints[i].G, B: vTints[i].B},
+			Uv:       vUvs[i],
+			Uv2:      vUvs[i],
+		})
+	}
+
+	for i := 0; i < int(triangleCount); i++ {
 		var notSolidFlag int16
 		err = binary.Read(r, binary.LittleEndian, &notSolidFlag)
 		if err != nil {
 			return fmt.Errorf("read notSolidFlag %d: %w", i, err)
 		}
-		p := &Polygon{}
+
+		triangle := &common.Triangle{}
 		if notSolidFlag == 0 {
 			//TODO: export separate collision flag
-			p.IsSolid = true
+			//p.IsSolid = true
+			triangle.Flag = 1
 		}
-		err = binary.Read(r, binary.LittleEndian, &p.Vertex1)
+		err = binary.Read(r, binary.LittleEndian, &val16)
 		if err != nil {
 			return fmt.Errorf("read vertex1 %d: %w", i, err)
 		}
+		triangle.Index[0] = uint32(val16)
 
-		err = binary.Read(r, binary.LittleEndian, &p.Vertex2)
+		err = binary.Read(r, binary.LittleEndian, &val16)
 		if err != nil {
 			return fmt.Errorf("read vertex2 %d: %w", i, err)
 		}
+		triangle.Index[1] = uint32(val16)
 
-		err = binary.Read(r, binary.LittleEndian, &p.Vertex3)
+		err = binary.Read(r, binary.LittleEndian, &val16)
 		if err != nil {
 			return fmt.Errorf("read vertex3 %d: %w", i, err)
 		}
+		triangle.Index[2] = uint32(val16)
 
-		v.Indices = append(v.Indices, p)
-
+		v.triangles = append(v.triangles, triangle)
 	}
 
-	/*
-	   MobPieces = new Dictionary<int, MobVertexPiece>();
-	   int mobStart = 0;
+	for i := 0; i < int(vertexPieceCount); i++ {
+		triangleIndex := int16(0)
+		err = binary.Read(r, binary.LittleEndian, &triangleIndex)
+		if err != nil {
+			return fmt.Errorf("read triangleIndex %d: %w", i, err)
+		}
 
-	   for (int i = 0; i < vertexPieceCount; ++i)
-	   {
-	       int count = Reader.ReadInt16();
-	       int index1 = Reader.ReadInt16();
-	       var mobVertexPiece = new MobVertexPiece
-	       {
-	           Count = count,
-	           Start = mobStart
-	       };
+		err = binary.Read(r, binary.LittleEndian, &val16)
+		if err != nil {
+			return fmt.Errorf("read materialID %d: %w", i, err)
+		}
 
-	       mobStart += count;
+		//v.triangles[triangleIndex].MaterialName = fmt.Sprintf("%d", val16)
+	}
 
-	       MobPieces[index1] = mobVertexPiece;
-	   }
+	for i := 0; i < int(triangleTextureCount); i++ {
+		triangleIndex := int16(0)
+		err = binary.Read(r, binary.LittleEndian, &triangleIndex)
+		if err != nil {
+			return fmt.Errorf("read triangleIndex %d: %w", i, err)
+		}
 
-	   MaterialGroups = new List<RenderGroup>();
+		err = binary.Read(r, binary.LittleEndian, &val16)
+		if err != nil {
+			return fmt.Errorf("read materialID %d: %w", i, err)
+		}
+		//fmt.Println("TODO, fix materials?", triangleIndex)
+		//v.triangles[triangleIndex-1].MaterialName = fmt.Sprintf("%d", val16)
+	}
 
-	   StartTextureIndex = Int32.MaxValue;
-
-	   for (int i = 0; i < polygonTextureCount; ++i)
-	   {
-	       var group = new RenderGroup();
-	       group.PolygonCount = Reader.ReadUInt16();
-	       group.MaterialIndex = Reader.ReadUInt16();
-	       MaterialGroups.Add(group);
-
-	       if (group.MaterialIndex < StartTextureIndex)
-	       {
-	           StartTextureIndex = group.MaterialIndex;
-	       }
-	   }
-
-	   for (int i = 0; i < vertexTextureCount; ++i)
-	   {
-	       Reader.BaseStream.Position += 4;
-	   }
-
-	   for (int i = 0; i < size9; ++i)
-	   {
-	       Reader.BaseStream.Position += 12;
-	   }
-
-	   // In some rare cases, the number of uvs does not match the number of vertices
-	   if (Vertices.Count != TextureUvCoordinates.Count)
-	   {
-	       int difference = Vertices.Count - TextureUvCoordinates.Count;
-
-	       for (int i = 0; i < difference; ++i)
-	       {
-	           TextureUvCoordinates.Add(new vec2(0.0f, 0.0f));
-	       }
-	   }
-	*/
 	return nil
 }
 
@@ -394,4 +362,12 @@ func (v *Mesh) FragmentType() string {
 func (e *Mesh) Data() []byte {
 	buf := bytes.NewBuffer(nil)
 	return buf.Bytes()
+}
+
+func (e *Mesh) Vertices() []*common.Vertex {
+	return e.verticies
+}
+
+func (e *Mesh) Triangles() []*common.Triangle {
+	return e.triangles
 }

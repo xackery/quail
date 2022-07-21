@@ -53,7 +53,7 @@ func TestGLTFEncodeGLTF(t *testing.T) {
 
 		err = e.GLTFEncode(doc)
 		if err != nil {
-			t.Fatalf("gltfExport: %s", err)
+			t.Fatalf("gltfEncode: %s", err)
 		}
 
 		err = doc.Export(w)

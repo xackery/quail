@@ -11,6 +11,7 @@ import (
 	"github.com/xackery/quail/prt"
 	"github.com/xackery/quail/pts"
 	"github.com/xackery/quail/ter"
+	"github.com/xackery/quail/wld"
 	"github.com/xackery/quail/zon"
 )
 
@@ -25,6 +26,7 @@ func (e *Export) LoadArchive() error {
 		{invoke: e.loadMds, name: "mds"},
 		{invoke: e.loadMod, name: "mod"},
 		{invoke: e.loadTer, name: "ter"},
+		{invoke: e.loadWld, name: "wld"},
 	}
 
 	for _, evt := range events {
@@ -295,5 +297,36 @@ func (e *Export) loadParticlePoints() error {
 		return fmt.Errorf("setparticles: %w", err)
 	}
 
+	return nil
+}
+
+func (e *Export) loadWld() error {
+	var err error
+	var data []byte
+	for _, entry := range e.archive.Files() {
+		if !strings.HasSuffix(entry.Name(), ".wld") {
+			continue
+		}
+
+		data, err = e.archive.File(entry.Name())
+		if err != nil {
+			return fmt.Errorf("file %s: %w", entry.Name(), err)
+		}
+	}
+	if len(data) == 0 {
+		return nil
+	}
+
+	e.model, err = wld.New(e.name, e.archive)
+	if err != nil {
+		return fmt.Errorf("new: %w", err)
+	}
+
+	err = e.model.Decode(bytes.NewReader(data))
+	if err != nil {
+		return fmt.Errorf("decode: %w", err)
+	}
+
+	e.name += ".wld"
 	return nil
 }

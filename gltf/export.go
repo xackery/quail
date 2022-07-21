@@ -11,6 +11,7 @@ import (
 func (e *GLTF) Export(w io.Writer) error {
 	for i := uint32(0); i < uint32(len(e.doc.Nodes)); i++ {
 		e.doc.Scenes[0].Nodes = append(e.doc.Scenes[0].Nodes, i)
+		break
 	}
 
 	isEverQuestExtension := false

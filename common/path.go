@@ -17,6 +17,7 @@ type Path struct {
 func NewPath(path string) (*Path, error) {
 
 	path = filepath.Dir(path)
+
 	entries, err := os.ReadDir(path)
 	if err != nil {
 		return nil, fmt.Errorf("readdir: %w", err)
@@ -48,6 +49,7 @@ func NewPath(path string) (*Path, error) {
 }
 
 func (e *Path) File(name string) ([]byte, error) {
+	name = strings.ToLower(name)
 	for _, e := range e.files {
 		if e.Name() == name {
 			return e.Data(), nil

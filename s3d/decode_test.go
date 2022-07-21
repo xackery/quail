@@ -4,24 +4,21 @@ import (
 	"fmt"
 	"os"
 	"testing"
+
+	"github.com/xackery/quail/dump"
 )
 
 func TestS3DDecode(t *testing.T) {
 	if os.Getenv("SINGLE_TEST") != "1" {
 		return
 	}
+
 	eqgFile := "test/eq/crushbone.s3d"
-	e, err := New("out")
+	dump.New(eqgFile)
+	defer dump.WriteFileClose(eqgFile)
+	e, err := NewFile(eqgFile)
 	if err != nil {
 		t.Fatalf("new: %s", err)
-	}
-	f, err := os.Open(eqgFile)
-	if err != nil {
-		t.Fatalf("open: %v", err)
-	}
-	err = e.Decode(f)
-	if err != nil {
-		t.Fatalf("decode: %v", err)
 	}
 
 	for _, file := range e.Files() {

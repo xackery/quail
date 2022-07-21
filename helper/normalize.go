@@ -1,5 +1,6 @@
 package helper
 
+// Normalize a quaternion
 func Normalize(q [4]float32) [4]float32 {
 	l := q[0]*q[0] + q[1]*q[1] + q[2]*q[2] + q[3]*q[3]
 	if l == 0 {

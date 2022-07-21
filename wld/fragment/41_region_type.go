@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/xackery/quail/common"
-	"github.com/xackery/quail/dump"
 	"github.com/xackery/quail/helper"
 )
 
@@ -30,9 +29,10 @@ func LoadRegionType(r io.ReadSeeker) (common.WldFragmenter, error) {
 // based on https://github.com/danwilkins/LanternExtractor/blob/development/0.2.0/LanternExtractor/EQ/Wld/Fragments/BspRegionType.cs
 func parseRegionType(r io.ReadSeeker, v *RegionType) error {
 	var err error
+
 	v.name, err = nameFromHashIndex(r)
 	if err != nil {
-		return fmt.Errorf("nameFromHasIndex: %w", err)
+		return fmt.Errorf("nameFromHashIndex: %w", err)
 	}
 
 	flags := int32(0)
@@ -40,14 +40,14 @@ func parseRegionType(r io.ReadSeeker, v *RegionType) error {
 	if err != nil {
 		return fmt.Errorf("read flags: %w", err)
 	}
-	dump.Hex(flags, "flags=%d", flags)
+	//dump.Hex(flags, "flags=%d", flags)
 
 	regionCount := int32(0)
 	err = binary.Read(r, binary.LittleEndian, &regionCount)
 	if err != nil {
 		return fmt.Errorf("read regionCount: %w", err)
 	}
-	dump.Hex(regionCount, "regionCount=%d", regionCount)
+	//dump.Hex(regionCount, "regionCount=%d", regionCount)
 
 	for i := 0; i < int(regionCount); i++ {
 		index := int32(0)
@@ -55,7 +55,7 @@ func parseRegionType(r io.ReadSeeker, v *RegionType) error {
 		if err != nil {
 			return fmt.Errorf("read index: %w", err)
 		}
-		dump.Hex(index, "index=%d", index)
+		//dump.Hex(index, "index=%d", index)
 		v.indices = append(v.indices, index)
 	}
 

@@ -8,6 +8,7 @@ import (
 	"github.com/qmuntal/gltf"
 	"github.com/qmuntal/gltf/modeler"
 	"github.com/xackery/quail/common"
+	"github.com/xackery/quail/helper"
 )
 
 // GLTFDecode imports a GLTF document
@@ -29,11 +30,11 @@ func (e *MOD) GLTFDecode(doc *gltf.Document) error {
 	for _, n := range doc.Nodes {
 
 		if n.Mesh == nil {
-			continue
+			return fmt.Errorf("no mesh on node '%s' found", n.Name)
 		}
 		m := doc.Meshes[*n.Mesh]
 		if m == nil {
-			continue
+			return fmt.Errorf("accesing node '%s' mesh '%d' failed", n.Name, *n.Mesh)
 		}
 		for _, p := range m.Primitives {
 			if p.Mode != gltf.PrimitiveTriangles {
@@ -79,12 +80,14 @@ func (e *MOD) GLTFDecode(doc *gltf.Document) error {
 			*/
 
 			// fiddle locations
-			/*for i := range positions {
-				tmpPos := [3]float32{positions[i][0], positions[i][1], positions[i][2]}
+			for i := range positions {
+				// x90 y270
+				positions[i] = helper.ApplyQuaternion(positions[i], [4]float32{-0.5, 0.5, 0.5, -0.5})
+				/*tmpPos := [3]float32{positions[i][0], positions[i][1], positions[i][2]}
 				positions[i][0] = tmpPos[2]
 				positions[i][1] = tmpPos[0]
-				positions[i][2] = -tmpPos[1]
-			}*/
+				positions[i][2] = -tmpPos[1]*/
+			}
 
 			//fmt.Printf("pos: %+v\n", pos)
 			normals := [][3]float32{}

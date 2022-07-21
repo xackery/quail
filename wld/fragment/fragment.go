@@ -2,18 +2,18 @@ package fragment
 
 import (
 	"encoding/binary"
+	"encoding/hex"
 	"fmt"
 	"io"
 
 	"github.com/xackery/quail/common"
-	"github.com/xackery/quail/dump"
 )
 
 //ref: https://github.com/SCMcLaughlin/p99-iksar-anim-oneclick/blob/master/src/structs_wld_frag.h
 
 var (
 	fragmentTypes = make(map[int32](func(r io.ReadSeeker) (common.WldFragmenter, error)))
-	names         = make(map[uint32]string)
+	names         = make(map[int32]string)
 )
 
 func New(fragIndex int32, r io.ReadSeeker) (common.WldFragmenter, error) {
@@ -25,7 +25,7 @@ func New(fragIndex int32, r io.ReadSeeker) (common.WldFragmenter, error) {
 }
 
 // SetNames set a global names prop each fragment can look up from to get name based on hash index
-func SetNames(in map[uint32]string) {
+func SetNames(in map[int32]string) {
 	names = in
 }
 
@@ -119,15 +119,26 @@ func init() {
 
 func nameFromHashIndex(r io.ReadSeeker) (string, error) {
 	name := ""
-	var value uint32
+	var value int32
 	err := binary.Read(r, binary.LittleEndian, &value)
 	if err != nil {
 		return "", fmt.Errorf("read hash index: %w", err)
 	}
-	name, ok := names[value]
+
+	name, ok := names[-value]
 	if !ok {
-		return "", fmt.Errorf("hash 0x%x not found in names (%d)", value, len(names))
+		return "", fmt.Errorf("hash 0x%x not found in names (len %d)", -value, len(names))
 	}
-	dump.Hex(value, "name=(%s)", name)
+	//dump.Hex(value, "name=(%s)", name)
 	return name, nil
+}
+
+func dumpFragment(r io.ReadSeeker) {
+	data := []byte{}
+	for i := 0; i < 24; i++ {
+		data = append(data, byte(0))
+	}
+	binary.Read(r, binary.LittleEndian, &data)
+	fmt.Println(hex.Dump(data))
+	r.Seek(0, io.SeekStart)
 }

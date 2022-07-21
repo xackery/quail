@@ -2,176 +2,246 @@ package s3d
 
 import (
 	"bytes"
-	"compress/zlib"
 	"encoding/binary"
 	"fmt"
 	"io"
-	"sort"
+	"strings"
+	"time"
 
 	"github.com/xackery/quail/common"
+	"github.com/xackery/quail/dump"
 	"github.com/xackery/quail/helper"
 )
 
 // Decode will decode a s3d file
 func (e *S3D) Decode(r io.ReadSeeker) error {
 
-	var directoryIndex uint32
-	var magicNumber uint32
-	var versionNumber uint32
+	type dirEntry struct {
+		crc    uint32
+		offset uint32
+		size   uint32
+	}
+	dirEntries := []*dirEntry{}
 
-	var value uint32
-	err := binary.Read(r, binary.LittleEndian, &directoryIndex)
+	dirOffset := uint32(0)
+	err := binary.Read(r, binary.LittleEndian, &dirOffset)
 	if err != nil {
 		return fmt.Errorf("read directory index: %w", err)
 	}
 
-	err = binary.Read(r, binary.LittleEndian, &magicNumber)
+	// jump to dir entries
+	_, err = r.Seek(int64(dirOffset), io.SeekStart)
 	if err != nil {
-		return fmt.Errorf("read magic number: %w", err)
+		return fmt.Errorf("seek dirOffset: %w", err)
 	}
 
-	if magicNumber != 0x20534650 {
-		return fmt.Errorf("invalid magic number, got 0x%x, want 0x20534650", magicNumber)
-	}
-
-	err = binary.Read(r, binary.LittleEndian, &versionNumber)
-	if err != nil {
-		return fmt.Errorf("read version number: %w", err)
-	}
-
-	_, err = r.Seek(int64(directoryIndex), io.SeekStart)
-	if err != nil {
-		return fmt.Errorf("seek directory index: %w", err)
-	}
-	var fileCount uint32
+	fileCount := uint32(0)
 	err = binary.Read(r, binary.LittleEndian, &fileCount)
 	if err != nil {
-		return fmt.Errorf("read file count: %w", err)
+		return fmt.Errorf("read fileCount: %w", err)
 	}
-	if fileCount == 0 {
-		return fmt.Errorf("empty file")
-	}
-
-	filenames := []string{}
 
 	for i := 0; i < int(fileCount); i++ {
-		entry := &FileEntry{}
-
-		err = binary.Read(r, binary.LittleEndian, &entry.CRC)
+		entry := &dirEntry{}
+		err = binary.Read(r, binary.LittleEndian, &entry.crc)
 		if err != nil {
-			return fmt.Errorf("read crc %d/%d: %w", i, fileCount, err)
+			return fmt.Errorf("read %d crc: %w", i, err)
 		}
-
-		err = binary.Read(r, binary.LittleEndian, &entry.Offset)
+		err = binary.Read(r, binary.LittleEndian, &entry.offset)
 		if err != nil {
-			return fmt.Errorf("read offset %d/%d: %w", i, fileCount, err)
+			return fmt.Errorf("read %d offset: %w", i, err)
 		}
-		debugInfo := fmt.Sprintf("%d/%d 0x%x", i, fileCount, entry.Offset)
-		// size is the uncompressed size of the file
-		var size uint32
-		err = binary.Read(r, binary.LittleEndian, &size)
+		err = binary.Read(r, binary.LittleEndian, &entry.size)
 		if err != nil {
-			return fmt.Errorf("read size %s: %w", debugInfo, err)
+			return fmt.Errorf("read %d size: %w", i, err)
 		}
+		dirEntries = append(dirEntries, entry)
+		//fmt.Println(entry.crc, entry.offset, entry.size)
+	}
 
-		buf := bytes.NewBuffer(nil)
+	// reset back to start of file
+	_, err = r.Seek(4, io.SeekStart)
+	if err != nil {
+		return fmt.Errorf("seek start: %w", err)
+	}
 
-		cachedOffset, err := r.Seek(0, io.SeekCurrent)
+	dump.Hex(dirOffset, fmt.Sprintf("dirOffset=0x%x", dirOffset))
+
+	pfsHeader := [4]byte{}
+	err = binary.Read(r, binary.LittleEndian, &pfsHeader)
+	if err != nil {
+		return fmt.Errorf("write header magic: %w", err)
+	}
+	dump.Hex(pfsHeader, "header=%s", string(pfsHeader[0:]))
+	if pfsHeader != [4]byte{'P', 'F', 'S', ' '} {
+		return fmt.Errorf("header mismatch")
+	}
+	version := uint32(0)
+	err = binary.Read(r, binary.LittleEndian, &version)
+	if err != nil {
+		return fmt.Errorf("write header version: %w", err)
+	}
+	dump.Hex(version, "version=%d", version)
+	if uint32(0x00020000) != version {
+		return fmt.Errorf("unknown version")
+	}
+	e.files = []common.Filer{}
+	fileByCRCs := make(map[uint32][]byte)
+	dirNameByCRCs := make(map[uint32]string)
+
+	var deflateSize uint32
+	var inflateSize uint32
+
+	//fmt.Println("found", fileCount, "files")
+	for i := 0; i < int(fileCount); i++ {
+		pos, err := r.Seek(0, io.SeekCurrent)
 		if err != nil {
-			return fmt.Errorf("seek cached offset %s: %w", debugInfo, err)
+			return fmt.Errorf("seek current %d: %w", i, err)
 		}
-		_, err = r.Seek(int64(entry.Offset), io.SeekStart)
+
+		entryIndex := -1
+		for j, entry := range dirEntries {
+			if entry.offset != uint32(pos) {
+				continue
+			}
+			entryIndex = j
+		}
+		if entryIndex == -1 {
+			return fmt.Errorf("data chunk %d has malformed offset %x", i, pos)
+		}
+		entry := dirEntries[entryIndex]
+
+		var firstByte byte
+		var lastByte byte
+
+		data := []byte{}
+		currentSize := 0
+		for entry.size > uint32(currentSize) {
+			err = binary.Read(r, binary.LittleEndian, &deflateSize)
+			if err != nil {
+				return fmt.Errorf("read deflate size %d: %w", i, err)
+			}
+
+			err = binary.Read(r, binary.LittleEndian, &inflateSize)
+			if err != nil {
+				return fmt.Errorf("read inflate size %d: %w", i, err)
+			}
+
+			deflateData := make([]byte, deflateSize)
+			err = binary.Read(r, binary.LittleEndian, &deflateData)
+			if err != nil {
+				return fmt.Errorf("read inflate size %d: %w", i, err)
+			}
+			if currentSize == 0 {
+				firstByte = deflateData[0]
+			}
+
+			//fmt.Println("inflating", deflateSize, inflateSize)
+			chunkData, err := helper.Inflate(deflateData, int(inflateSize))
+			if err != nil {
+				return fmt.Errorf("inflate %d: %w", i, err)
+			}
+			currentSize += int(inflateSize)
+			data = append(data, chunkData...)
+			lastByte = deflateData[len(deflateData)-1]
+			if entry.size < 16 {
+				dump.Hex(deflateData, "%dchunk=(%d bytes)", i, len(data))
+			}
+		}
+
+		if entry.size >= 16 {
+			dump.Hex([]byte{firstByte, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, lastByte}, "%dchunk=(%d bytes)", i, len(data))
+		}
+
+		//fmt.Println(entry.crc)
+		/*if entry.crc != 4294967295 {
+			fileByCRCs[entry.crc] = data
+			continue
+		}*/
+
+		nameBuf := bytes.NewBuffer(data)
+		var fileNameCount uint32
+		err = binary.Read(nameBuf, binary.LittleEndian, &fileNameCount)
 		if err != nil {
-			return fmt.Errorf("seek offset %s: %w", debugInfo, err)
+			return fmt.Errorf("read fileNameCount %w", err)
 		}
 
-		for uint32(buf.Len()) != size {
-			var deflatedLength uint32
-			var inflatedLength uint32
-			err = binary.Read(r, binary.LittleEndian, &deflatedLength)
-			if err != nil {
-				return fmt.Errorf("read deflated length %s: %w", debugInfo, err)
-			}
-
-			err = binary.Read(r, binary.LittleEndian, &inflatedLength)
-			if err != nil {
-				return fmt.Errorf("read inflated length %s: %w", debugInfo, err)
-			}
-
-			//if inflatedLength < deflatedLength {
-			//	return fmt.Errorf("inflated < deflated, offset misaligned? %d/%d", i, fileCount)
-			//}
-
-			compressedData := make([]byte, deflatedLength)
-			err = binary.Read(r, binary.LittleEndian, compressedData)
-			if err != nil {
-				return fmt.Errorf("read compressed data: %s: %w", debugInfo, err)
-			}
-
-			fr, err := zlib.NewReaderDict(bytes.NewReader(compressedData), nil)
-			if err != nil {
-				return fmt.Errorf("zlib new reader dict %s: %w", debugInfo, err)
-			}
-
-			inflatedWritten, err := io.Copy(buf, fr)
-			if err != nil {
-				return fmt.Errorf("copy: %s: %w", debugInfo, err)
-			}
-
-			if inflatedWritten != int64(inflatedLength) {
-				return fmt.Errorf("inflate mismatch %s: %w", debugInfo, err)
-			}
-		}
-		if buf.Len() < int(size) {
-			return fmt.Errorf("size mismatch %s: %w", debugInfo, err)
-		}
-		entry.Data = buf.Bytes()
-
-		if entry.CRC == 0x61580AC9 {
-			fr := bytes.NewReader(buf.Bytes())
-			var filenameCount uint32
-			err = binary.Read(fr, binary.LittleEndian, &filenameCount)
-			if err != nil {
-				return fmt.Errorf("filename count %s: %w", debugInfo, err)
-			}
-
-			for j := uint32(0); j < filenameCount; j++ {
-				err = binary.Read(fr, binary.LittleEndian, &value)
-				if err != nil {
-					return fmt.Errorf("filename length %s: %w", debugInfo, err)
-				}
-				filename, err := helper.ReadFixedString(fr, value)
-				if err != nil {
-					return fmt.Errorf("filename %s: %w", debugInfo, err)
-				}
-				filenames = append(filenames, filename)
-			}
-
-			_, err = r.Seek(cachedOffset, io.SeekStart)
-			if err != nil {
-				return fmt.Errorf("seek cached offset %s: %w", debugInfo, err)
-			}
+		if fileNameCount != fileCount-1 {
+			fileByCRCs[entry.crc] = data
 			continue
 		}
-		e.fileEntries = append(e.fileEntries, entry)
-		_, err = r.Seek(cachedOffset, io.SeekStart)
-		if err != nil {
-			return fmt.Errorf("seek cached offset %s: %w", debugInfo, err)
+
+		for j := 0; j < int(fileNameCount); j++ {
+			var fileNameLength uint32
+			err = binary.Read(nameBuf, binary.LittleEndian, &fileNameLength)
+			if err != nil {
+				return fmt.Errorf("read fileNameCount %w", err)
+			}
+
+			nameData := make([]byte, fileNameLength)
+			err = binary.Read(nameBuf, binary.LittleEndian, &nameData)
+			if err != nil {
+				return fmt.Errorf("read nameData %w", err)
+			}
+			name := string(nameData[0 : len(nameData)-1])
+			dirNameByCRCs[helper.FilenameCRC32(name)] = name
 		}
+
 	}
 
-	sort.Sort(ByOffset(e.fileEntries))
-	for i, entry := range e.fileEntries {
-		if len(filenames) < i {
-			return fmt.Errorf("entry %d has no name", i)
+	for crc, data := range fileByCRCs {
+		dirName, ok := dirNameByCRCs[crc]
+		if !ok {
+			return fmt.Errorf("dirName for crc %d not found", crc)
 		}
-		entry.Name = filenames[i]
-		fe, err := common.NewFileEntry(entry.Name, entry.Data)
+
+		//force spaces in pfs archives to _
+		dirName = strings.ReplaceAll(dirName, " ", "_")
+		file, err := common.NewFileEntry(dirName, data)
 		if err != nil {
-			return fmt.Errorf("entry %d newFileEntry: %w", i, err)
+			return fmt.Errorf("new file entry %s: %w", dirName, err)
 		}
-		e.files = append(e.files, fe)
+
+		e.files = append(e.files, file)
 	}
+
+	dump.Hex(fileCount, "fileCount=%d", fileCount)
+
+	for i, entry := range dirEntries {
+		name := dirNameByCRCs[entry.crc]
+		if entry.crc == 0x61580AC9 {
+			name = "dir list"
+		}
+		dump.Hex(entry.crc, "%dcrc=%d (%s)", i, entry.crc, name)
+		dump.Hex(entry.offset, "%doffset=0x%x", i, entry.offset)
+		dump.Hex(entry.size, "%dsize=%d", i, entry.size)
+	}
+	r.Seek(int64(4+(len(dirEntries)*12)), io.SeekCurrent)
+
+	steveFooter := [5]byte{}
+	err = binary.Read(r, binary.LittleEndian, &steveFooter)
+	if err != nil {
+		if err != io.EOF {
+			return fmt.Errorf("read steveFooter: %w", err)
+		}
+		if dump.IsActive() {
+			fmt.Println("inspect: warning: STEVE footer missing, can be ignored")
+			return nil
+		}
+		return nil
+	}
+	dump.Hex(steveFooter, "steveFooter")
+	if steveFooter != [5]byte{'S', 'T', 'E', 'V', 'E'} {
+		return fmt.Errorf("steve footer not STEVE")
+	}
+	var dateFooter uint32
+	err = binary.Read(r, binary.LittleEndian, &dateFooter)
+	if err != nil {
+		return fmt.Errorf("read dateFooter: %w", err)
+	}
+
+	dump.Hex(dateFooter, "dateFooter=%s", time.Unix(int64(dateFooter), 0).Format(time.RFC3339))
+
 	e.fileCount = len(e.files)
 	return nil
 }

@@ -33,7 +33,7 @@ func (e *GLTF) LightAdd(name string, color [3]float32, intensity float32, emissi
 	type lightNode struct {
 		Light *uint32 `json:"light"`
 	}
-
+	e.lights[name] = le
 	index := gltf.Index(uint32(len(e.lights)) - 1)
 	le.index = index
 
@@ -45,7 +45,6 @@ func (e *GLTF) LightAdd(name string, color [3]float32, intensity float32, emissi
 		Extensions: ext,
 	})
 
-	e.lights[name] = le
 	return index
 }
 

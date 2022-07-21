@@ -8,6 +8,7 @@ import (
 
 	"github.com/xackery/quail/common"
 	qgltf "github.com/xackery/quail/gltf"
+	"github.com/xackery/quail/helper"
 )
 
 // GLTFEncode exports a provided mod file to gltf format
@@ -173,6 +174,10 @@ func (e *MDS) GLTFEncode(doc *qgltf.GLTF) error {
 			index, ok := prim.UniqueIndices[o.Index[i]]
 			if !ok {
 				v := e.vertices[int(o.Index[i])]
+				// x-90 y-270
+				//v.Position = helper.ApplyQuaternion(v.Position, [4]float32{0.5, -0.5, 0.5, -0.5})
+				// x90
+				v.Position = helper.ApplyQuaternion(v.Position, [4]float32{0.7071068, 0, 0, 0.7071068})
 				prim.Positions = append(prim.Positions, v.Position)
 				prim.Normals = append(prim.Normals, [3]float32{v.Normal[0], v.Normal[1], v.Normal[2]})
 				prim.Uvs = append(prim.Uvs, [2]float32{v.Uv[0], v.Uv[1]})

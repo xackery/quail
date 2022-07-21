@@ -66,6 +66,7 @@ Supported extensions: gltf, mod, ter
 		if err != nil {
 			return fmt.Errorf("decode gltf to viewer: %w", err)
 		}
+
 		err = ebiten.RunGame(view)
 		if err != nil {
 			return fmt.Errorf("run viewer: %w", err)

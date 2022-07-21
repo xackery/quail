@@ -1,4 +1,4 @@
-package ter
+package wld
 
 import (
 	"fmt"
@@ -12,7 +12,7 @@ import (
 )
 
 // GLTFDecode imports a GLTF document
-func (e *TER) GLTFDecode(doc *gltf.Document) error {
+func (e *WLD) GLTFDecode(doc *gltf.Document) error {
 	var err error
 	for _, m := range doc.Materials {
 		materialName := m.Name
@@ -102,6 +102,10 @@ func (e *TER) GLTFDecode(doc *gltf.Document) error {
 		}
 
 		meshName = helper.BaseName(e.name) + ".ter"
+		mesh := &mesh{
+			name: meshName,
+		}
+		e.meshes = append(e.meshes, mesh)
 
 		for _, p := range m.Primitives {
 			if p.Mode != gltf.PrimitiveTriangles {
@@ -119,7 +123,7 @@ func (e *TER) GLTFDecode(doc *gltf.Document) error {
 			}
 
 			for i := 0; i < len(indices); i += 3 {
-				err = e.triangleAdd([3]uint32{uint32(indices[i]), uint32(indices[i+1]), uint32(indices[i+2])}, materialName, 0)
+				err = e.TriangleAdd(meshName, [3]uint32{uint32(indices[i]), uint32(indices[i+1]), uint32(indices[i+2])}, materialName, 0)
 				if err != nil {
 					return fmt.Errorf("triangleAdd: %w", err)
 				}
@@ -227,14 +231,13 @@ func (e *TER) GLTFDecode(doc *gltf.Document) error {
 				tint := &common.Tint{R: 128, G: 128, B: 128}
 				//fmt.Printf("%d pos: %0.0f %0.0f %0.0f, normal: %+v, uv: %+v\n", i, posEntry[0], posEntry[1], posEntry[2], normalEntry, uvEntry)
 
-				e.vertices = append(e.vertices, &common.Vertex{
+				mesh.vertices = append(mesh.vertices, &common.Vertex{
 					Position: positions[i],
 					Normal:   normalEntry,
 					Tint:     tint,
 					Uv:       uvEntry,
 					Uv2:      uvEntry,
 				})
-
 			}
 		}
 	}

@@ -10,17 +10,23 @@ import (
 
 // WLD is a wld file struct
 type WLD struct {
-	archive            common.ArchiveReadWriter
-	name               string
-	BspRegionCount     uint32
-	Hash               map[int]string
-	fragments          []*fragmentInfo
-	materials          []*common.Material
-	vertices           []*common.Vertex
-	triangles          []*common.Triangle
-	files              []common.Filer
-	gltfMaterialBuffer map[string]*uint32
-	gltfBoneBuffer     map[int]uint32
+	archive        common.ArchiveReadWriter
+	name           string
+	BspRegionCount uint32
+	Hash           map[int]string
+	fragments      []*fragmentInfo
+	materials      []*common.Material
+
+	files           []common.Filer
+	particleRenders []*common.ParticleRender
+	particlePoints  []*common.ParticlePoint
+	meshes          []*mesh
+}
+
+type mesh struct {
+	name      string
+	vertices  []*common.Vertex
+	triangles []*common.Triangle
 }
 
 type fragmentInfo struct {
@@ -52,4 +58,16 @@ func NewFile(name string, archive common.ArchiveReadWriter, file string) (*WLD, 
 		return nil, fmt.Errorf("decode: %w", err)
 	}
 	return e, nil
+}
+
+func (e *WLD) SetLayers(layers []*common.Layer) error {
+	return nil
+}
+
+func (e *WLD) SetParticleRenders(particles []*common.ParticleRender) error {
+	return nil
+}
+
+func (e *WLD) SetParticlePoints(particles []*common.ParticlePoint) error {
+	return nil
 }

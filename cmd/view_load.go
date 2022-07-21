@@ -31,6 +31,7 @@ func viewLoad(buf *bytes.Buffer, path string, file string) error {
 	}
 	views := []*viewFunc{
 		{name: "eqg", invoke: viewLoadEQG},
+		{name: "s3d", invoke: viewLoadS3D},
 		{name: "gltf", invoke: viewLoadGLTF},
 		{name: "mds", invoke: viewLoadMDS},
 		{name: "mod", invoke: viewLoadMOD},
@@ -112,7 +113,59 @@ func viewLoadEQG(buf *bytes.Buffer, path string, file string, ext string) error 
 
 		err = e.GLTFEncode(doc)
 		if err != nil {
-			return fmt.Errorf("gltfexport: %w", err)
+			return fmt.Errorf("gltfEncode: %w", err)
+		}
+
+		err = doc.Export(buf)
+		if err != nil {
+			return fmt.Errorf("gltf export: %w", err)
+		}
+	}
+	return nil
+}
+
+func viewLoadS3D(buf *bytes.Buffer, path string, file string, ext string) error {
+	if ext != ".s3d" {
+		return nil
+	}
+	r, err := os.Open(path)
+	if err != nil {
+		return err
+	}
+	defer r.Close()
+
+	archive, err := eqg.New(path)
+	if err != nil {
+		return fmt.Errorf("s3d new: %w", err)
+	}
+	err = archive.Decode(r)
+	if err != nil {
+		return fmt.Errorf("s3d decode: %w", err)
+	}
+
+	doc, err := gltf.New()
+	if err != nil {
+		return fmt.Errorf("gltf new: %w", err)
+	}
+
+	if file != "" {
+		data, err := archive.File(file)
+		if err != nil {
+			return fmt.Errorf("eqg file: %w", err)
+		}
+		_, err = buf.Write(data)
+		if err != nil {
+			return fmt.Errorf("buf.Write: %w", err)
+		}
+	} else {
+		e, err := qexport.NewFile(filepath.Base(path), archive)
+		if err != nil {
+			return fmt.Errorf("export new: %w", err)
+		}
+
+		err = e.GLTFEncode(doc)
+		if err != nil {
+			return fmt.Errorf("gltfEncode: %w", err)
 		}
 
 		err = doc.Export(buf)
@@ -155,7 +208,7 @@ func viewLoadMDS(buf *bytes.Buffer, path string, file string, ext string) error 
 
 	err = e.GLTFEncode(doc)
 	if err != nil {
-		return fmt.Errorf("gltfexport: %w", err)
+		return fmt.Errorf("gltfEncode: %w", err)
 	}
 
 	err = doc.Export(buf)
@@ -170,25 +223,19 @@ func viewLoadMOD(buf *bytes.Buffer, path string, file string, ext string) error 
 	if ext != ".mod" {
 		return nil
 	}
-	archive, err := common.NewPath(filepath.Dir(path))
+
+	archive, err := common.NewPath(filepath.Dir(path + "/"))
 	if err != nil {
 		return fmt.Errorf("path new: %w", err)
 	}
 
-	e, err := mod.New(filepath.Base(path), archive)
+	if file == "" {
+		file = filepath.Base(path)
+	}
+
+	e, err := mod.NewFile(filepath.Base(path), archive, file)
 	if err != nil {
 		return fmt.Errorf("mod new: %w", err)
-	}
-
-	r, err := os.Open(path)
-	if err != nil {
-		return err
-	}
-	defer r.Close()
-
-	err = e.Decode(r)
-	if err != nil {
-		return fmt.Errorf("mod decode: %w", err)
 	}
 
 	doc, err := gltf.New()
@@ -198,7 +245,7 @@ func viewLoadMOD(buf *bytes.Buffer, path string, file string, ext string) error 
 
 	err = e.GLTFEncode(doc)
 	if err != nil {
-		return fmt.Errorf("gltfexport: %w", err)
+		return fmt.Errorf("gltfEncode: %w", err)
 	}
 
 	err = doc.Export(buf)
@@ -241,7 +288,7 @@ func viewLoadTER(buf *bytes.Buffer, path string, file string, ext string) error 
 
 	err = e.GLTFEncode(doc)
 	if err != nil {
-		return fmt.Errorf("gltfexport: %w", err)
+		return fmt.Errorf("gltfEncode: %w", err)
 	}
 
 	err = doc.Export(buf)
@@ -277,7 +324,7 @@ func viewLoadZON(buf *bytes.Buffer, path string, file string, ext string) error 
 
 	err = e.GLTFEncode(doc)
 	if err != nil {
-		return fmt.Errorf("gltfexport: %w", err)
+		return fmt.Errorf("gltfEncode: %w", err)
 	}
 
 	err = doc.Export(buf)

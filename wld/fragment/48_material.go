@@ -14,10 +14,10 @@ import (
 type Material struct {
 	name string
 	//BitmapInfoReference
-	// ShaderType is the way to render the material
-	ShaderType int
-	// MaterialType is also part of rendering material
-	MaterialType int
+	// shaderType is the way to render the material
+	shaderType int
+	// materialType is also part of rendering material
+	materialType int
 	// IsHandled is used when an alternative character skin is needed
 	IsHandled bool
 }
@@ -107,32 +107,32 @@ func parseMaterial(r io.ReadSeeker, v *Material) error {
 	//BitmapInfoReference = fragments[fragmentReference - 1] as BitmapInfoReference;
 	//}
 
-	v.MaterialType = int(int64(params) & ^0x80000000)
-	switch v.MaterialType {
+	v.materialType = int(int64(params) & ^0x80000000)
+	switch v.materialType {
 	case MaterialTypeBoundary:
-		v.ShaderType = ShaderTypeBoundary
+		v.shaderType = ShaderTypeBoundary
 	case MaterialTypeInvisibleUnknown, MaterialTypeInvisibleUnknown2, MaterialTypeInvisibleUnknown3:
-		v.ShaderType = ShaderTypeInvisible
+		v.shaderType = ShaderTypeInvisible
 	case MaterialTypeDiffuse, MaterialTypeDiffuse2, MaterialTypeDiffuse3, MaterialTypeDiffuse4, MaterialTypeDiffuse6, MaterialTypeDiffuse7, MaterialTypeDiffuse8, MaterialTypeCompleteUnknown, MaterialTypeTransparentMaskedPassable:
-		v.ShaderType = ShaderTypeDiffuse
+		v.shaderType = ShaderTypeDiffuse
 	case MaterialTypeTransparent25:
-		v.ShaderType = ShaderTypeTransparent25
+		v.shaderType = ShaderTypeTransparent25
 	case MaterialTypeTransparent50:
-		v.ShaderType = ShaderTypeTransparent50
+		v.shaderType = ShaderTypeTransparent50
 	case MaterialTypeTransparent75:
-		v.ShaderType = ShaderTypeTransparent75
+		v.shaderType = ShaderTypeTransparent75
 	case MaterialTypeTransparentAdditive:
-		v.ShaderType = ShaderTypeTransparentAdditive
+		v.shaderType = ShaderTypeTransparentAdditive
 	case MaterialTypeTransparentAdditiveUnlit:
-		v.ShaderType = ShaderTypeTransparentAdditiveUnlit
+		v.shaderType = ShaderTypeTransparentAdditiveUnlit
 	case MaterialTypeTransparentMasked, MaterialTypeDiffuse5:
-		v.ShaderType = ShaderTypeTransparentMasked
+		v.shaderType = ShaderTypeTransparentMasked
 	case MaterialTypeDiffuseSkydome:
-		v.ShaderType = ShaderTypeDiffuseSkydome
+		v.shaderType = ShaderTypeDiffuseSkydome
 	case MaterialTypeTransparentSkydome:
-		v.ShaderType = ShaderTypeTransparentSkydome
+		v.shaderType = ShaderTypeTransparentSkydome
 	case MaterialTypeTransparentAdditiveUnlitSkydome:
-		v.ShaderType = ShaderTypeTransparentAdditiveUnlitSkydome
+		v.shaderType = ShaderTypeTransparentAdditiveUnlitSkydome
 	default:
 		//m.ShaderType = BitmapInfoReference == null ? ShaderTypeInvisible : ShaderTypeDiffuse;
 	}
@@ -146,4 +146,16 @@ func (m *Material) FragmentType() string {
 func (e *Material) Data() []byte {
 	buf := bytes.NewBuffer(nil)
 	return buf.Bytes()
+}
+
+func (e *Material) Name() string {
+	return e.name
+}
+
+func (e *Material) ShaderType() int {
+	return e.shaderType
+}
+
+func (e *Material) MaterialType() int {
+	return e.materialType
 }

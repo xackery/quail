@@ -91,19 +91,21 @@ func (e *WLD) Decode(r io.ReadSeeker) error {
 
 	nameData := decodeStringHash(hashRaw)
 
-	names := make(map[uint32]string)
+	names := make(map[int32]string)
 
 	chunk := []rune{}
 	lastOffset := 0
 	for i, b := range nameData {
 		if b == 0 {
-			names[uint32(lastOffset)] = string(chunk)
+			names[int32(lastOffset)] = string(chunk)
 			chunk = []rune{}
 			lastOffset = i + 1
 			continue
 		}
 		chunk = append(chunk, b)
 	}
+
+	fragment.SetNames(names)
 
 	dump.HexRange(hashRaw, int(hashSize), "nameData=(%d bytes, %d names)", hashSize, len(names))
 
@@ -112,7 +114,7 @@ func (e *WLD) Decode(r io.ReadSeeker) error {
 		var fragSize uint32
 		var fragIndex int32
 
-		name := names[uint32(i)]
+		name := names[int32(i)]
 		err = binary.Read(r, binary.LittleEndian, &fragSize)
 		if err != nil {
 			return fmt.Errorf("read fragment size %d/%d: %w", i, fragmentCount, err)
@@ -151,10 +153,27 @@ func (e *WLD) Decode(r io.ReadSeeker) error {
 	}
 	//dump.HexRange([]byte{byte(i), byte(i) + 1}, int(fragSize), "%dfrag=%s", i, frag.FragmentType())
 	dump.HexRange([]byte{0, 1}, int(totalFragSize), "fragChunk=(%d bytes, %d entries)", int(totalFragSize), len(e.fragments))
-	err = e.convertFragments()
-	if err != nil {
-		return fmt.Errorf("convertFragments: %w", err)
+
+	// Now convert fragments to data
+
+	parsers := []struct {
+		invoke func(frag *fragmentInfo) error
+		name   string
+	}{
+		{invoke: e.parseMesh, name: "mesh"},
+		{invoke: e.parseMaterial, name: "material"},
 	}
+
+	for _, frag := range e.fragments {
+		for _, parser := range parsers {
+			err = parser.invoke(frag)
+			if err != nil {
+				return fmt.Errorf("parse %s: %w", parser.name, err)
+			}
+		}
+
+	}
+
 	return nil
 }
 
@@ -165,46 +184,4 @@ func decodeStringHash(hash []byte) string {
 		out += string(hash[i] ^ hashKey[i%8])
 	}
 	return out
-}
-
-func (e *WLD) convertFragments() error {
-	type mesher interface {
-		Indices() [][3]float32
-		Normals() [][3]float32
-		Vertices() [][3]float32
-		Uvs() [][2]float32
-	}
-
-	type materialer interface {
-		Name() string
-		ShaderType() int
-		MaterialType() int
-	}
-
-	for _, frag := range e.fragments {
-		material, ok := frag.data.(materialer)
-		if !ok {
-			continue
-		}
-		err := e.MaterialAdd(material.Name(), fmt.Sprintf("%d", material.ShaderType()))
-		if err != nil {
-			return fmt.Errorf("materialadd: %w", err)
-		}
-	}
-
-	for _, frag := range e.fragments {
-		mesh, ok := frag.data.(mesher)
-		if !ok {
-			continue
-		}
-		fmt.Println(mesh)
-
-		/*for _, index := range mesh.Indices() {
-			name, err := e.MaterialByID(index.)
-			e.faces = append(e.faces, &common.Face{
-				Index: [3]uint32{uint32(index.X), uint32(index.Y), uint32(index.Z)},
-			})
-		}*/
-	}
-	return nil
 }
