@@ -156,8 +156,8 @@ func WriteGeometry(materials []*Material, vertices []*Vertex, faces []*Face) ([]
 	// faces
 	for i, o := range faces {
 		nameID := -1
-		for i, val := range names {
-			if val.name == o.MaterialName {
+		for i, val := range materials {
+			if val.Name == o.MaterialName {
 				nameID = i
 				break
 			}
