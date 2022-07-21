@@ -7,7 +7,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/g3n/engine/math32"
 	"github.com/xackery/quail/common"
 )
 
@@ -83,7 +82,7 @@ func importFile(req *ObjRequest) error {
 
 		if strings.HasPrefix(line, "v ") {
 			fmt.Println(line)
-			position := math32.Vector3{}
+			position := [3]float32{}
 			records := strings.Split(line, " ")
 			if len(records) != 4 {
 				return fmt.Errorf("line %d split v expected 4, got %d", lineNumber, len(records))
@@ -92,21 +91,21 @@ func importFile(req *ObjRequest) error {
 			if err != nil {
 				return fmt.Errorf("line %d parse x %s failed: %w", lineNumber, records[1], err)
 			}
-			position.X = float32(val)
+			position[0] = float32(val)
 			val, err = strconv.ParseFloat(records[2], 32)
 			if err != nil {
 				return fmt.Errorf("line %d parse y %s failed: %w", lineNumber, records[2], err)
 			}
-			position.Y = float32(val)
+			position[1] = float32(val)
 			val, err = strconv.ParseFloat(records[3], 32)
 			if err != nil {
 				return fmt.Errorf("line %d parse z %s failed: %w", lineNumber, records[3], err)
 			}
-			position.Z = float32(val)
+			position[2] = float32(val)
 			objCache.vertices = append(objCache.vertices, position)
 		}
 		if strings.HasPrefix(line, "vn ") {
-			normal := math32.Vector3{}
+			normal := [3]float32{}
 			records := strings.Split(line, " ")
 			if len(records) != 4 {
 				return fmt.Errorf("line %d split v expected 4, got %d", lineNumber, len(records))
@@ -115,21 +114,21 @@ func importFile(req *ObjRequest) error {
 			if err != nil {
 				return fmt.Errorf("line %d parse normal x %s failed: %w", lineNumber, records[1], err)
 			}
-			normal.X = float32(val)
+			normal[0] = float32(val)
 			val, err = strconv.ParseFloat(records[2], 32)
 			if err != nil {
 				return fmt.Errorf("line %d parse normal y %s failed: %w", lineNumber, records[2], err)
 			}
-			normal.Y = float32(val)
+			normal[1] = float32(val)
 			val, err = strconv.ParseFloat(records[3], 32)
 			if err != nil {
 				return fmt.Errorf("line %d parse normal z %s failed: %w", lineNumber, records[3], err)
 			}
-			normal.Z = float32(val)
+			normal[2] = float32(val)
 			objCache.normals = append(objCache.normals, normal)
 		}
 		if strings.HasPrefix(line, "vt ") {
-			uv := math32.Vector2{}
+			uv := [2]float32{}
 			records := strings.Split(line, " ")
 			if len(records) != 3 {
 				return fmt.Errorf("line %d split vt expected 3, got %d", lineNumber, len(records))
@@ -138,12 +137,12 @@ func importFile(req *ObjRequest) error {
 			if err != nil {
 				return fmt.Errorf("line %d parse x %s failed: %w", lineNumber, records[1], err)
 			}
-			uv.X = float32(val)
+			uv[0] = float32(val)
 			val, err = strconv.ParseFloat(records[2], 32)
 			if err != nil {
 				return fmt.Errorf("line %d parse y %s failed: %w", lineNumber, records[2], err)
 			}
-			uv.Y = float32(val)
+			uv[1] = float32(val)
 			objCache.uvs = append(objCache.uvs, uv)
 		}
 	}
@@ -181,15 +180,15 @@ func triangle(v, t, n int, objCache *objCache, obj *ObjData) (int, error) {
 	}
 	norm := objCache.normals[n]
 
-	uv := math32.Vector2{}
+	uv := [2]float32{}
 	if t != 0 && len(objCache.uvs) >= t {
 		uv = objCache.uvs[t]
 	}
 
 	obj.Vertices = append(obj.Vertices, &common.Vertex{
-		Position: math32.NewVector3(vert.X, vert.Y, vert.Z),
-		Normal:   math32.NewVector3(norm.X, norm.Y, norm.Z),
-		Uv:       math32.NewVector2(uv.X, uv.Y),
+		Position: vert,
+		Normal:   norm,
+		Uv:       uv,
 	})
 
 	index = len(obj.Vertices) - 1

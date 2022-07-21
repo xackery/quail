@@ -2,12 +2,16 @@ package cmd
 
 import (
 	"bytes"
+	"os"
 	"testing"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
 func TestView(t *testing.T) {
+	if os.Getenv("SINGLE_TEST") != "1" {
+		return
+	}
 
 	path := "test/eq/arena.eqg"
 	file := ""

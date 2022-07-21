@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/g3n/engine/math32"
 	"github.com/xackery/quail/dump"
 	"github.com/xackery/quail/wld/fragment"
 )
@@ -170,10 +169,10 @@ func decodeStringHash(hash []byte) string {
 
 func (e *WLD) convertFragments() error {
 	type mesher interface {
-		Indices() []*math32.Vector3
-		Normals() []*math32.Vector3
-		Vertices() []*math32.Vector3
-		Uvs() []*math32.Vector2
+		Indices() [][3]float32
+		Normals() [][3]float32
+		Vertices() [][3]float32
+		Uvs() [][2]float32
 	}
 
 	type materialer interface {

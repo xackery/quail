@@ -47,9 +47,9 @@ func (e *WLD) GLTFEncode(w io.Writer) error {
 	for i, b := range e.bones {
 		doc.Nodes = append(doc.Nodes, &gltf.Node{
 			Name: b.name,
-			//Translation: [3]float32{b.pivot.X, b.pivot.Y, b.pivot.Z},
-			Rotation: [4]float32{b.rot.X, b.rot.Y, b.rot.Z, b.rot.W},
-			Scale:    [3]float32{b.scale.X, b.scale.Y, b.scale.Z},
+			//Translation: [3]float32{b.pivot[0], b.pivot[1], b.pivot[2]},
+			Rotation: [4]float32{b.rot[0], b.rot[1], b.rot[2], b.rot.W},
+			Scale:    [3]float32{b.scale[0], b.scale[1], b.scale[2]},
 		})
 		//if strings.EqualFold(b.name, "ROOT_BONE") {
 		//		rootNode = uint32(len(doc.Nodes) - 1)
@@ -107,9 +107,9 @@ func (e *WLD) GLTFEncode(w io.Writer) error {
 			index, ok := prim.uniqueIndices[o.Index[i]]
 			if !ok {
 				v := e.vertices[int(o.Index[i])]
-				prim.positions = append(prim.positions, [3]float32{v.Position.X, v.Position.Y, v.Position.Z})
-				prim.normals = append(prim.normals, [3]float32{v.Normal.X, v.Normal.Y, v.Normal.Z})
-				prim.uvs = append(prim.uvs, [2]float32{v.Uv.X, v.Uv.Y})
+				prim.positions = append(prim.positions, v.Position)
+				prim.normals = append(prim.normals, [3]float32{v.Normal[0], v.Normal[1], v.Normal[2]})
+				prim.uvs = append(prim.uvs, [2]float32{v.Uv[0], v.Uv[1]})
 				prim.uniqueIndices[o.Index[i]] = uint16(len(prim.positions) - 1)
 				index = uint16(len(prim.positions) - 1)
 			}
@@ -133,16 +133,16 @@ func (e *WLD) GLTFEncode(w io.Writer) error {
 		/*for _, pos := range prim.positions {
 			x, y, z := pos[0], pos[1], pos[2]
 			for _, b := range e.bones {
-				if b.pivot.X != x {
+				if b.pivot[0] != x {
 					continue
 				}
-				if b.pivot.Y != y {
+				if b.pivot[1] != y {
 					continue
 				}
-				if b.pivot.Z != z {
+				if b.pivot[2] != z {
 					continue
 				}
-				prim.joints = append(prim.joints, [4]uint16{uint16(b.pivot.X), uint16(b.pivot.Y), uint16(b.pivot.Z)})
+				prim.joints = append(prim.joints, [4]uint16{uint16(b.pivot[0]), uint16(b.pivot[1]), uint16(b.pivot[2])})
 				prim.weights = append(prim.weights, [4]uint16{1, 1, 1, 1})
 			}
 		}*/

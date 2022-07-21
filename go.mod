@@ -5,7 +5,6 @@ go 1.17
 require github.com/qmuntal/gltf v0.22.1
 
 require (
-	github.com/g3n/engine v0.2.0
 	github.com/hajimehoshi/ebiten/v2 v2.3.5
 	github.com/kvartborg/vector v0.0.0-20210122071920-91df40ba4054
 	github.com/malashin/dds v0.0.0-20190511100755-ab62708f5fe5

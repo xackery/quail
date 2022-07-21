@@ -1,10 +1,6 @@
 package mod
 
-import (
-	"github.com/g3n/engine/math32"
-)
-
-func (e *MOD) BoneAdd(name string, next int32, childrenCount uint32, childIndex int32, pivot *math32.Vector3, rot *math32.Vector4, scale *math32.Vector3) error {
+func (e *MOD) BoneAdd(name string, next int32, childrenCount uint32, childIndex int32, pivot [3]float32, rot [4]float32, scale [3]float32) error {
 	bone := &bone{
 		name:          name,
 		next:          next,

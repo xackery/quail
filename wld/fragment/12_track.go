@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/g3n/engine/math32"
 	"github.com/xackery/quail/common"
+	"github.com/xackery/quail/helper"
 )
 
 // Track information
@@ -18,10 +18,10 @@ type Track struct {
 
 // BoneTransform coordinate data
 type BoneTransform struct {
-	Translation math32.Vector3
-	Rotation    math32.Quaternion
+	Translation [3]float32
+	Rotation    [4]float32
 	Scale       float32
-	ModelMatrix math32.Matrix4
+	ModelMatrix [16]float32
 }
 
 func LoadTrack(r io.ReadSeeker) (common.WldFragmenter, error) {
@@ -110,15 +110,15 @@ func parseTrack(r io.ReadSeeker, v *Track) error {
 
 		if shiftDenominator != 0 {
 			ft.Scale = float32(shiftDenominator) / 256
-			ft.Translation.X = float32(shiftX / 256)
-			ft.Translation.Y = float32(shiftY / 256)
-			ft.Translation.Z = float32(shiftZ / 256)
+			ft.Translation[0] = float32(shiftX / 256)
+			ft.Translation[1] = float32(shiftY / 256)
+			ft.Translation[2] = float32(shiftZ / 256)
 		}
-		ft.Rotation.X = float32(rotX)
-		ft.Rotation.Y = float32(rotY)
-		ft.Rotation.Z = float32(rotZ)
-		ft.Rotation.W = float32(rotDenominator)
-		ft.Rotation.Normalize()
+		ft.Rotation[0] = float32(rotX)
+		ft.Rotation[1] = float32(rotY)
+		ft.Rotation[2] = float32(rotZ)
+		ft.Rotation[3] = float32(rotDenominator)
+		ft.Rotation = helper.Normalize(ft.Rotation)
 		v.Frames = append(v.Frames, ft)
 	}
 

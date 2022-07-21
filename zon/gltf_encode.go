@@ -6,7 +6,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/g3n/engine/math32"
 	"github.com/qmuntal/gltf"
 
 	qgltf "github.com/xackery/quail/gltf"
@@ -82,8 +81,6 @@ func (e *ZON) GLTFEncode(doc *qgltf.GLTF) error {
 
 	}
 
-	//math32.NewVec3().ApplyQuaternion(q *math32.Quaternion)
-
 	for _, obj := range e.objects {
 		if strings.HasPrefix(obj.name, "ter_") {
 			//fmt.Println("skipping",obj.name)
@@ -99,12 +96,12 @@ func (e *ZON) GLTFEncode(doc *qgltf.GLTF) error {
 			//TODO: fix
 			//return fmt.Errorf("mesh: %w", err)
 		}
-		qRot := math32.NewQuaternion(0, 0, 0, 0).SetFromEuler(&math32.Vector3{X: obj.rotation[0], Y: obj.rotation[1], Z: obj.rotation[2]})
+		qRot := helper.EulerToQuaternion(obj.rotation)
 		doc.NodeAdd(&gltf.Node{
 			Name:        obj.name,
 			Mesh:        index,
 			Translation: obj.translation,
-			Rotation:    [4]float32{qRot.X, qRot.Y, qRot.Z, qRot.W},
+			Rotation:    qRot,
 			Scale:       [3]float32{obj.scale, obj.scale, obj.scale},
 		})
 	}

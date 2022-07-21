@@ -2,8 +2,6 @@ package common
 
 import (
 	"fmt"
-
-	"github.com/g3n/engine/math32"
 )
 
 type Properties []*Property
@@ -26,11 +24,11 @@ type Property struct {
 }
 
 type Vertex struct {
-	Position *math32.Vector3
-	Normal   *math32.Vector3
+	Position [3]float32
+	Normal   [3]float32
 	Tint     *Tint
-	Uv       *math32.Vector2
-	Uv2      *math32.Vector2
+	Uv       [2]float32
+	Uv2      [2]float32
 }
 
 type Triangle struct {

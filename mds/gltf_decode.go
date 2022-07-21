@@ -5,7 +5,6 @@ import (
 	"image/color"
 	"strings"
 
-	"github.com/g3n/engine/math32"
 	"github.com/qmuntal/gltf"
 	"github.com/qmuntal/gltf/modeler"
 	"github.com/xackery/quail/common"
@@ -160,21 +159,24 @@ func (e *MDS) GLTFDecode(doc *gltf.Document) error {
 			//fmt.Printf("uv: %+v\n", uv)
 
 			for i := 0; i < len(positions); i++ {
-				posEntry := math32.NewVector3(positions[i][0]*n.Scale[0], positions[i][1]*n.Scale[1], positions[i][2]*n.Scale[2])
-				normalEntry := math32.NewVec3()
+				positions[i][0] *= n.Scale[0]
+				positions[i][1] *= n.Scale[1]
+				positions[i][2] *= n.Scale[2]
+
+				normalEntry := [3]float32{}
 				if len(normals) > i {
-					normalEntry.X = normals[i][0]
-					normalEntry.Y = normals[i][1]
-					normalEntry.Z = normals[i][2]
+					normalEntry[0] = normals[i][0]
+					normalEntry[1] = normals[i][1]
+					normalEntry[2] = normals[i][2]
 				}
-				uvEntry := math32.NewVec2()
+				uvEntry := [2]float32{}
 				if len(uvs) > i {
-					uvEntry.X = uvs[i][0] * n.Scale[0]
-					uvEntry.Y = uvs[i][1] * n.Scale[1]
+					uvEntry[0] = uvs[i][0] * n.Scale[0]
+					uvEntry[1] = uvs[i][1] * n.Scale[1]
 				}
 				tint := &common.Tint{R: 128, G: 128, B: 128}
-				//fmt.Printf("%d pos: %0.0f %0.0f %0.0f, normal: %+v, uv: %+v\n", i, posEntry.X, posEntry.Y, posEntry.Z, normalEntry, uvEntry)
-				err = e.VertexAdd(posEntry, normalEntry, tint, uvEntry, uvEntry)
+				//fmt.Printf("%d pos: %0.0f %0.0f %0.0f, normal: %+v, uv: %+v\n", i, posEntry[0], posEntry[1], posEntry[2], normalEntry, uvEntry)
+				err = e.VertexAdd(positions[i], normalEntry, tint, uvEntry, uvEntry)
 				if err != nil {
 					return fmt.Errorf("add vertex: %w", err)
 				}

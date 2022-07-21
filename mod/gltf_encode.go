@@ -91,9 +91,9 @@ func (e *MOD) GLTFEncode(doc *qgltf.GLTF) error {
 	for i, b := range e.bones {
 		doc.Nodes = append(doc.Nodes, &gltf.Node{
 			Name: b.name,
-			//Translation: [3]float32{b.pivot.X, b.pivot.Y, b.pivot.Z},
-			Rotation: [4]float32{b.rot.X, b.rot.Y, b.rot.Z, b.rot.W},
-			Scale:    [3]float32{b.scale.X, b.scale.Y, b.scale.Z},
+			//Translation: [3]float32{b.pivot[0], b.pivot[1], b.pivot[2]},
+			Rotation: [4]float32{b.rot[0], b.rot[1], b.rot[2], b.rot[3]},
+			Scale:    [3]float32{b.scale[0], b.scale[1], b.scale[2]},
 		})
 		//if strings.EqualFold(b.name, "ROOT_BONE") {
 		//		rootNode = uint32(len(doc.Nodes) - 1)
@@ -155,9 +155,9 @@ func (e *MOD) GLTFEncode(doc *qgltf.GLTF) error {
 			index, ok := prim.UniqueIndices[o.Index[i]]
 			if !ok {
 				v := e.vertices[int(o.Index[i])]
-				prim.Positions = append(prim.Positions, [3]float32{v.Position.X, v.Position.Y, v.Position.Z})
-				prim.Normals = append(prim.Normals, [3]float32{v.Normal.X, v.Normal.Y, v.Normal.Z})
-				prim.Uvs = append(prim.Uvs, [2]float32{v.Uv.X, v.Uv.Y})
+				prim.Positions = append(prim.Positions, v.Position)
+				prim.Normals = append(prim.Normals, [3]float32{v.Normal[0], v.Normal[1], v.Normal[2]})
+				prim.Uvs = append(prim.Uvs, [2]float32{v.Uv[0], v.Uv[1]})
 				prim.UniqueIndices[o.Index[i]] = uint16(len(prim.Positions) - 1)
 				index = uint16(len(prim.Positions) - 1)
 			}

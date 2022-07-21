@@ -6,16 +6,15 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/g3n/engine/math32"
 	"github.com/xackery/quail/common"
 )
 
 // ActorInstance information
 type ActorInstance struct {
 	name     string
-	Position math32.Vector3
-	Rotation math32.Vector3
-	Scale    math32.Vector3
+	Position [3]float32
+	Rotation [3]float32
+	Scale    [3]float32
 }
 
 func LoadActorInstance(r io.ReadSeeker) (common.WldFragmenter, error) {
@@ -61,15 +60,15 @@ func parseActorInstance(r io.ReadSeeker, v *ActorInstance) error {
 		return fmt.Errorf("expected unknown2 to be 0, got 0x%x", value)
 	}
 
-	err = binary.Read(r, binary.LittleEndian, &v.Position.X)
+	err = binary.Read(r, binary.LittleEndian, &v.Position[0])
 	if err != nil {
 		return fmt.Errorf("read x: %w", err)
 	}
-	err = binary.Read(r, binary.LittleEndian, &v.Position.Y)
+	err = binary.Read(r, binary.LittleEndian, &v.Position[1])
 	if err != nil {
 		return fmt.Errorf("read y: %w", err)
 	}
-	err = binary.Read(r, binary.LittleEndian, &v.Position.Z)
+	err = binary.Read(r, binary.LittleEndian, &v.Position[2])
 	if err != nil {
 		return fmt.Errorf("read z: %w", err)
 	}
@@ -91,9 +90,9 @@ func parseActorInstance(r io.ReadSeeker, v *ActorInstance) error {
 	}
 
 	modifier := float32(float32(1) / float32(512) * 360)
-	v.Rotation.X = 0
-	v.Rotation.Y = rotY * modifier
-	v.Rotation.Z = -(rotX * modifier)
+	v.Rotation[0] = 0
+	v.Rotation[1] = rotY * modifier
+	v.Rotation[2] = -(rotX * modifier)
 
 	err = binary.Read(r, binary.LittleEndian, &rotX)
 	if err != nil {
@@ -110,7 +109,7 @@ func parseActorInstance(r io.ReadSeeker, v *ActorInstance) error {
 		return fmt.Errorf("read scaleZ: %w", err)
 	}
 
-	v.Scale.X, v.Scale.Y, v.Scale.Z = rotY, rotY, rotY
+	v.Scale[0], v.Scale[1], v.Scale[2] = rotY, rotY, rotY
 
 	err = binary.Read(r, binary.LittleEndian, &value)
 	if err != nil {

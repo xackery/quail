@@ -8,7 +8,6 @@ import (
 	"io/ioutil"
 	"strings"
 
-	"github.com/g3n/engine/math32"
 	"github.com/xackery/quail/common"
 	"github.com/xackery/quail/dump"
 )
@@ -212,14 +211,14 @@ func (e *MOD) Decode(r io.ReadSeeker) error {
 
 	for i := 0; i < int(verticesCount); i++ {
 
-		pos := math32.NewVec3()
-		err = binary.Read(r, binary.LittleEndian, pos)
+		pos := [3]float32{}
+		err = binary.Read(r, binary.LittleEndian, &pos)
 		if err != nil {
 			return fmt.Errorf("read vertex %d position: %w", i, err)
 		}
 
-		normal := math32.NewVec3()
-		err = binary.Read(r, binary.LittleEndian, normal)
+		normal := [3]float32{}
+		err = binary.Read(r, binary.LittleEndian, &normal)
 		if err != nil {
 			return fmt.Errorf("read vertex %d normal: %w", i, err)
 		}
@@ -231,19 +230,20 @@ func (e *MOD) Decode(r io.ReadSeeker) error {
 				return fmt.Errorf("read vertex %d color: %w", i, err)
 			}
 
-			unkUV := math32.Vector2{}
+			unkUV := [2]float32{}
 			err = binary.Read(r, binary.LittleEndian, &unkUV)
 			if err != nil {
 				return fmt.Errorf("read vertex %d unkUV: %w", i, err)
 			}
 		}
 
-		uv := math32.NewVec2()
-		err = binary.Read(r, binary.LittleEndian, uv)
+		uv := [2]float32{}
+		err = binary.Read(r, binary.LittleEndian, &uv)
 		if err != nil {
 			return fmt.Errorf("read vertex %d uv: %w", i, err)
 		}
 		tint := &common.Tint{R: 128, G: 128, B: 128}
+
 		err = e.VertexAdd(pos, normal, tint, uv, uv)
 		if err != nil {
 			return fmt.Errorf("addVertex %d: %w", i, err)
@@ -257,7 +257,7 @@ func (e *MOD) Decode(r io.ReadSeeker) error {
 
 	for i := 0; i < int(triangleCount); i++ {
 		pos := [3]uint32{}
-		//pos := math32.Vector3{}
+		//pos := [3]float32{}
 		err = binary.Read(r, binary.LittleEndian, &pos)
 		if err != nil {
 			return fmt.Errorf("read triangle %d pos: %w", i, err)
@@ -323,22 +323,22 @@ func (e *MOD) Decode(r io.ReadSeeker) error {
 		}
 		dump.Hex(childIndex, "%dchildIndex=%d", i, childIndex)
 
-		pivot := math32.NewVec3()
-		err = binary.Read(r, binary.LittleEndian, pivot)
+		pivot := [3]float32{}
+		err = binary.Read(r, binary.LittleEndian, &pivot)
 		if err != nil {
 			return fmt.Errorf("read bone %d pivot: %w", i, err)
 		}
 		dump.Hex(pivot, "%dpivot=%+v", i, pivot)
 
-		rot := math32.NewVec4()
-		err = binary.Read(r, binary.LittleEndian, rot)
+		rot := [4]float32{}
+		err = binary.Read(r, binary.LittleEndian, &rot)
 		if err != nil {
 			return fmt.Errorf("read bone %d rot: %w", i, err)
 		}
 		dump.Hex(rot, "%drot=%+v", i, rot)
 
-		scale := math32.NewVec3()
-		err = binary.Read(r, binary.LittleEndian, scale)
+		scale := [3]float32{}
+		err = binary.Read(r, binary.LittleEndian, &scale)
 		if err != nil {
 			return fmt.Errorf("read bone %d scale: %w", i, err)
 		}

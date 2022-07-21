@@ -27,8 +27,8 @@ func (e *TOG) Encode(w io.Writer) error {
 var togTemplate = `*BEGIN_OBJECTGROUP{{range .Objects}}
 	*BEGIN_OBJECT
 		*NAME     	{{.Name}}
-		*POSITION 	{{.Position.X}} 	{{.Position.Y}}	 	{{.Position.Z}}	
-		*ROTATION 	{{.Rotation.X}}	 	{{.Rotation.Y}}	 	{{.Rotation.Z}}
+		*POSITION 	{{index .Position 0}} 	{{index .Position 1}}	 	{{index .Position 2}}
+		*ROTATION 	{{index .Rotation 0}}	 	{{index .Rotation 1}}	 	{{index .Rotation 2}}
 		*SCALE    	{{.Scale}}	
 		*FILE     	{{.FileType}}     	{{.FileName}}
 	*END_OBJECT{{end}}

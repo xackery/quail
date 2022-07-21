@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/g3n/engine/math32"
 	"github.com/xackery/quail/common"
 )
 
@@ -15,9 +14,9 @@ type MeshReference struct {
 	name      string
 	Reference uint32
 	Name      string
-	Position  math32.Vector3
-	Rotation  math32.Vector3
-	Scale     math32.Vector3
+	Position  [3]float32
+	Rotation  [3]float32
+	Scale     [3]float32
 }
 
 func LoadMeshReference(r io.ReadSeeker) (common.WldFragmenter, error) {

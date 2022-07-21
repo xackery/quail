@@ -7,7 +7,6 @@ import (
 	"image/color"
 	"io"
 
-	"github.com/g3n/engine/math32"
 	"github.com/xackery/quail/common"
 )
 
@@ -16,13 +15,13 @@ type Mesh struct {
 	name                 string
 	MaterialReference    uint32
 	AnimationReference   uint32
-	Center               math32.Vector3
+	Center               [3]float32
 	MaxDistance          float32
-	MinPosition          math32.Vector3
-	MaxPosition          math32.Vector3
-	Verticies            []math32.Vector3
-	TextureUVCoordinates []math32.Vector2
-	Normals              []math32.Vector3
+	MinPosition          [3]float32
+	MaxPosition          [3]float32
+	Verticies            [][3]float32
+	TextureUVCoordinates [][2]float32
+	Normals              [][3]float32
 	Colors               []color.RGBA
 	Indices              []*Polygon
 }
@@ -83,19 +82,9 @@ func parseMesh(r io.ReadSeeker, v *Mesh, isNewWorldFormat bool) error {
 		return fmt.Errorf("read unknown2: %w", err)
 	}
 
-	err = binary.Read(r, binary.LittleEndian, &v.Center.X)
+	err = binary.Read(r, binary.LittleEndian, v.Center)
 	if err != nil {
-		return fmt.Errorf("read center x: %w", err)
-	}
-
-	err = binary.Read(r, binary.LittleEndian, &v.Center.Y)
-	if err != nil {
-		return fmt.Errorf("read center y: %w", err)
-	}
-
-	err = binary.Read(r, binary.LittleEndian, &v.Center.Z)
-	if err != nil {
-		return fmt.Errorf("read center z: %w", err)
+		return fmt.Errorf("read center: %w", err)
 	}
 
 	err = binary.Read(r, binary.LittleEndian, &value)
@@ -118,47 +107,47 @@ func parseMesh(r io.ReadSeeker, v *Mesh, isNewWorldFormat bool) error {
 		return fmt.Errorf("read max distance: %w", err)
 	}
 
-	err = binary.Read(r, binary.LittleEndian, &v.Center.X)
+	err = binary.Read(r, binary.LittleEndian, &v.Center[0])
 	if err != nil {
 		return fmt.Errorf("read center x: %w", err)
 	}
 
-	err = binary.Read(r, binary.LittleEndian, &v.Center.Y)
+	err = binary.Read(r, binary.LittleEndian, &v.Center[1])
 	if err != nil {
 		return fmt.Errorf("read center y: %w", err)
 	}
 
-	err = binary.Read(r, binary.LittleEndian, &v.Center.Z)
+	err = binary.Read(r, binary.LittleEndian, &v.Center[2])
 	if err != nil {
 		return fmt.Errorf("read center z: %w", err)
 	}
 
-	err = binary.Read(r, binary.LittleEndian, &v.MinPosition.X)
+	err = binary.Read(r, binary.LittleEndian, &v.MinPosition[0])
 	if err != nil {
 		return fmt.Errorf("read min position x: %w", err)
 	}
 
-	err = binary.Read(r, binary.LittleEndian, &v.MinPosition.Y)
+	err = binary.Read(r, binary.LittleEndian, &v.MinPosition[1])
 	if err != nil {
 		return fmt.Errorf("read min position y: %w", err)
 	}
 
-	err = binary.Read(r, binary.LittleEndian, &v.MinPosition.Z)
+	err = binary.Read(r, binary.LittleEndian, &v.MinPosition[2])
 	if err != nil {
 		return fmt.Errorf("read min position z: %w", err)
 	}
 
-	err = binary.Read(r, binary.LittleEndian, &v.MaxPosition.X)
+	err = binary.Read(r, binary.LittleEndian, &v.MaxPosition[0])
 	if err != nil {
 		return fmt.Errorf("read max position x: %w", err)
 	}
 
-	err = binary.Read(r, binary.LittleEndian, &v.MaxPosition.Y)
+	err = binary.Read(r, binary.LittleEndian, &v.MaxPosition[1])
 	if err != nil {
 		return fmt.Errorf("read max position y: %w", err)
 	}
 
-	err = binary.Read(r, binary.LittleEndian, &v.MaxPosition.Z)
+	err = binary.Read(r, binary.LittleEndian, &v.MaxPosition[2])
 	if err != nil {
 		return fmt.Errorf("read max position z: %w", err)
 	}
@@ -225,86 +214,65 @@ func parseMesh(r io.ReadSeeker, v *Mesh, isNewWorldFormat bool) error {
 	scale := float32(1 / float32(int(1)<<value))
 
 	for i := 0; i < int(vertexCount); i++ {
-		pos := math32.Vector3{}
-		err = binary.Read(r, binary.LittleEndian, &pos.X)
+		pos := [3]float32{}
+		err = binary.Read(r, binary.LittleEndian, &pos)
 		if err != nil {
-			return fmt.Errorf("read vertex x %d: %w", i, err)
+			return fmt.Errorf("read vertex %d: %w", i, err)
 		}
 
-		err = binary.Read(r, binary.LittleEndian, &pos.Y)
-		if err != nil {
-			return fmt.Errorf("read vertex y %d: %w", i, err)
-		}
-
-		err = binary.Read(r, binary.LittleEndian, &pos.Z)
-		if err != nil {
-			return fmt.Errorf("read vertex z %d: %w", i, err)
-		}
-		pos.X *= scale
-		pos.Y *= scale
-		pos.Z *= scale
+		pos[0] *= scale
+		pos[1] *= scale
+		pos[2] *= scale
 
 		v.Verticies = append(v.Verticies, pos)
 	}
 
 	for i := 0; i < int(textureCoordinateCount); i++ {
 		if isNewWorldFormat {
-			pos := math32.Vector2{}
-			err = binary.Read(r, binary.LittleEndian, &pos.X)
+			pos := [2]float32{}
+			err = binary.Read(r, binary.LittleEndian, &pos)
 			if err != nil {
-				return fmt.Errorf("read texture coordinate 32 x %d: %w", i, err)
+				return fmt.Errorf("read texture coordinate 32 %d: %w", i, err)
 			}
 
-			err = binary.Read(r, binary.LittleEndian, &pos.Y)
-			if err != nil {
-				return fmt.Errorf("read texture coordinate 32 y %d: %w", i, err)
-			}
-			pos.X /= 256
-			pos.Y /= 256
+			pos[0] /= 256
+			pos[1] /= 256
 			v.TextureUVCoordinates = append(v.TextureUVCoordinates, pos)
 
 			continue
 		}
 
-		var tmpPos int16
-		pos := math32.Vector2{}
-		err = binary.Read(r, binary.LittleEndian, &tmpPos)
+		pos := [2]float32{}
+		err = binary.Read(r, binary.LittleEndian, &pos)
 		if err != nil {
-			return fmt.Errorf("read texture coordinate 16 x %d: %w", i, err)
+			return fmt.Errorf("read texture coordinate 16 %d: %w", i, err)
 		}
 
-		pos.X = float32(tmpPos)
-
-		err = binary.Read(r, binary.LittleEndian, &tmpPos)
-		if err != nil {
-			return fmt.Errorf("read texture coordinate 16 y %d: %w", i, err)
-		}
-		pos.Y = float32(tmpPos)
-		pos.X /= 256
-		pos.Y /= 256
+		pos[0] /= 256
+		pos[1] /= 256
 		v.TextureUVCoordinates = append(v.TextureUVCoordinates, pos)
 	}
 
 	for i := 0; i < int(normalsCount); i++ {
 		var val uint8
-		pos := math32.Vector3{}
+		pos := [3]float32{}
 		err = binary.Read(r, binary.LittleEndian, &val)
 		if err != nil {
 			return fmt.Errorf("read normals x %d: %w", i, err)
 		}
-		pos.X = float32(val / 128)
+		pos[0] = float32(val / 128)
 
 		err = binary.Read(r, binary.LittleEndian, &val)
 		if err != nil {
 			return fmt.Errorf("read normals y %d: %w", i, err)
 		}
-		pos.Y = float32(val / 128)
+		pos[1] = float32(val / 128)
 
 		err = binary.Read(r, binary.LittleEndian, &val)
 		if err != nil {
 			return fmt.Errorf("read normals z %d: %w", i, err)
 		}
-		pos.Z = float32(val / 128)
+		pos[2] = float32(val / 128)
 
 		v.Normals = append(v.Normals, pos)
 	}

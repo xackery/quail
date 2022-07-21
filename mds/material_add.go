@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/g3n/engine/math32"
 	"github.com/xackery/quail/common"
 )
 
@@ -46,7 +45,7 @@ func (e *MDS) MaterialPropertyAdd(materialName string, propertyName string, cate
 	return fmt.Errorf("materialName not found: '%s' (%d)", materialName, len(e.materials))
 }
 
-func (e *MDS) VertexAdd(position *math32.Vector3, normal *math32.Vector3, tint *common.Tint, uv *math32.Vector2, uv2 *math32.Vector2) error {
+func (e *MDS) VertexAdd(position [3]float32, normal [3]float32, tint *common.Tint, uv [2]float32, uv2 [2]float32) error {
 	e.vertices = append(e.vertices, &common.Vertex{
 		Position: position,
 		Normal:   normal,

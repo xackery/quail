@@ -6,7 +6,6 @@ import (
 	"io"
 	"strings"
 
-	"github.com/g3n/engine/math32"
 	"github.com/xackery/quail/common"
 	"github.com/xackery/quail/dump"
 )
@@ -219,32 +218,32 @@ func (e *TER) loadVersion2(r io.Reader) error {
 
 	for i := 0; i < int(verticesCount); i++ {
 
-		pos := math32.NewVec3()
-		err = binary.Read(r, binary.LittleEndian, pos)
+		pos := [3]float32{}
+		err = binary.Read(r, binary.LittleEndian, &pos)
 		if err != nil {
 			return fmt.Errorf("read vertex %d position: %w", i, err)
 		}
 
-		/*newPos := math32.NewVec3()
-		newPos.X = pos.Y
-		newPos.Y = -pos.X
-		newPos.Z = pos.Z
+		/*newPos := [3]float32{}
+		newPos[0] = pos[1]
+		newPos[1] = -pos[0]
+		newPos[2] = pos[2]
 		pos = newPos*/
 
-		normal := math32.NewVec3()
-		err = binary.Read(r, binary.LittleEndian, normal)
+		normal := [3]float32{}
+		err = binary.Read(r, binary.LittleEndian, &normal)
 		if err != nil {
 			return fmt.Errorf("read vertex %d normal: %w", i, err)
 		}
 
-		z := normal.Z
-		normal.Z = normal.Y
-		normal.Y = z
+		z := normal[2]
+		normal[2] = normal[1]
+		normal[1] = z
 
 		tint := &common.Tint{R: 128, G: 128, B: 128}
 
-		uv := math32.NewVec2()
-		err = binary.Read(r, binary.LittleEndian, uv)
+		uv := [2]float32{}
+		err = binary.Read(r, binary.LittleEndian, &uv)
 		if err != nil {
 			return fmt.Errorf("read vertex %d uv: %w", i, err)
 		}
@@ -460,14 +459,14 @@ func (e *TER) loadVersion3(r io.Reader) error {
 
 	for i := 0; i < int(verticesCount); i++ {
 
-		pos := math32.NewVec3()
-		err = binary.Read(r, binary.LittleEndian, pos)
+		pos := [3]float32{}
+		err = binary.Read(r, binary.LittleEndian, &pos)
 		if err != nil {
 			return fmt.Errorf("read vertex %d position: %w", i, err)
 		}
 
-		normal := math32.NewVec3()
-		err = binary.Read(r, binary.LittleEndian, normal)
+		normal := [3]float32{}
+		err = binary.Read(r, binary.LittleEndian, &normal)
 		if err != nil {
 			return fmt.Errorf("read vertex %d normal: %w", i, err)
 		}
@@ -478,14 +477,14 @@ func (e *TER) loadVersion3(r io.Reader) error {
 			return fmt.Errorf("read vertex %d tint: %w", i, err)
 		}
 
-		uv := math32.NewVec2()
-		err = binary.Read(r, binary.LittleEndian, uv)
+		uv := [2]float32{}
+		err = binary.Read(r, binary.LittleEndian, &uv)
 		if err != nil {
 			return fmt.Errorf("read vertex %d uv: %w", i, err)
 		}
 
-		uv2 := math32.NewVec2()
-		err = binary.Read(r, binary.LittleEndian, uv2)
+		uv2 := [2]float32{}
+		err = binary.Read(r, binary.LittleEndian, &uv2)
 		if err != nil {
 			return fmt.Errorf("read vertex %d uv2: %w", i, err)
 		}

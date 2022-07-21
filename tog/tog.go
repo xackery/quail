@@ -5,7 +5,6 @@ import (
 	"bytes"
 	"fmt"
 
-	"github.com/g3n/engine/math32"
 	"github.com/xackery/quail/common"
 )
 
@@ -17,8 +16,8 @@ type TOG struct {
 
 type Object struct {
 	Name     string
-	Position math32.Vector3
-	Rotation math32.Vector3
+	Position [3]float32
+	Rotation [3]float32
 	Scale    float32
 	FileType string
 	FileName string

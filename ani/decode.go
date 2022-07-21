@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/g3n/engine/math32"
 	"github.com/xackery/quail/dump"
 )
 
@@ -95,22 +94,22 @@ func (e *ANI) Decode(r io.ReadSeeker) error {
 		if err != nil {
 			return fmt.Errorf("read %d bone.delay: %w", i, err)
 		}
-		translation := math32.NewVec3()
-		err = binary.Read(r, binary.LittleEndian, translation)
+		translation := [3]float32{}
+		err = binary.Read(r, binary.LittleEndian, &translation)
 		if err != nil {
 			return fmt.Errorf("read %d bone.translation: %w", i, err)
 		}
 		bone.translation = translation
 
-		rotation := math32.NewVec4()
-		err = binary.Read(r, binary.LittleEndian, rotation)
+		rotation := [4]float32{}
+		err = binary.Read(r, binary.LittleEndian, &rotation)
 		if err != nil {
 			return fmt.Errorf("read %d bone.rotation: %w", i, err)
 		}
 		bone.rotation = rotation
 
-		scale := math32.NewVec3()
-		err = binary.Read(r, binary.LittleEndian, scale)
+		scale := [3]float32{}
+		err = binary.Read(r, binary.LittleEndian, &scale)
 		if err != nil {
 			return fmt.Errorf("read %d bone.scale: %w", i, err)
 		}

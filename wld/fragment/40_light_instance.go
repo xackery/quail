@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/g3n/engine/math32"
 	"github.com/xackery/quail/common"
 )
 
@@ -14,7 +13,7 @@ import (
 type LightInstance struct {
 	name      string
 	Reference uint32
-	Position  math32.Vector3
+	Position  [3]float32
 	Radius    float32
 }
 
@@ -48,17 +47,17 @@ func parseLightInstance(r io.ReadSeeker, v *LightInstance) error {
 		return fmt.Errorf("read flags: %w", err)
 	}
 
-	err = binary.Read(r, binary.LittleEndian, &v.Position.X)
+	err = binary.Read(r, binary.LittleEndian, &v.Position[0])
 	if err != nil {
 		return fmt.Errorf("read x: %w", err)
 	}
 
-	err = binary.Read(r, binary.LittleEndian, &v.Position.Y)
+	err = binary.Read(r, binary.LittleEndian, &v.Position[1])
 	if err != nil {
 		return fmt.Errorf("read y: %w", err)
 	}
 
-	err = binary.Read(r, binary.LittleEndian, &v.Position.Z)
+	err = binary.Read(r, binary.LittleEndian, &v.Position[2])
 	if err != nil {
 		return fmt.Errorf("read z: %w", err)
 	}

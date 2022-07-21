@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/g3n/engine/math32"
 	"github.com/xackery/quail/common"
 )
 
@@ -24,13 +23,13 @@ type LegacyMesh struct {
 	VertexPieceCount  uint32
 	MaterialReference uint32
 	Fragment3         uint32
-	CenterPosition    math32.Vector3
+	CenterPosition    [3]float32
 	Params2           uint32
 	Something2        uint32
 	Something3        uint32
-	verticies         []math32.Vector3
-	texCoords         []math32.Vector3
-	normals           []math32.Vector3
+	verticies         [][3]float32
+	texCoords         [][3]float32
+	normals           [][3]float32
 	colors            []int32
 	polygons          []*LegacyPolygon
 	vertexPieces      []*LegacyVertexPiece

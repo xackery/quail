@@ -33,20 +33,19 @@ func objExport(req *ObjRequest) error {
 	}
 
 	for _, e := range req.Data.Vertices {
-		fmt.Println(e)
-		_, err = w.WriteString(fmt.Sprintf("v %0.6f %0.6f %0.6f\n", e.Position.X, e.Position.Y, e.Position.Z))
+		_, err = w.WriteString(fmt.Sprintf("v %+v\n", e.Position))
 		if err != nil {
 			return fmt.Errorf("export pos: %w", err)
 		}
 	}
 	for _, e := range req.Data.Vertices {
-		_, err = w.WriteString(fmt.Sprintf("vt %0.6f %0.6f\n", e.Uv.X, e.Uv.Y))
+		_, err = w.WriteString(fmt.Sprintf("vt %0.6f %0.6f\n", e.Uv[0], e.Uv[1]))
 		if err != nil {
 			return fmt.Errorf("export uv: %w", err)
 		}
 	}
 	for _, e := range req.Data.Vertices {
-		_, err = w.WriteString(fmt.Sprintf("vn %0.6f %0.6f %0.6f\n", e.Normal.X, e.Normal.Y, e.Normal.Z))
+		_, err = w.WriteString(fmt.Sprintf("vn %0.6f %0.6f %0.6f\n", e.Normal[0], e.Normal[1], e.Normal[2]))
 		if err != nil {
 			return fmt.Errorf("export normal: %w", err)
 		}

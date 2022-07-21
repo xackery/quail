@@ -9,7 +9,6 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/g3n/engine/math32"
 	"github.com/xackery/quail/common"
 )
 
@@ -30,6 +29,7 @@ type MDS struct {
 	weights         [][4]float32
 	particleRenders []*common.ParticleRender
 	particlePoints  []*common.ParticlePoint
+	isDecoded       bool
 }
 
 type bone struct {
@@ -37,9 +37,9 @@ type bone struct {
 	next          int32
 	childrenCount uint32
 	childIndex    int32
-	pivot         *math32.Vector3
-	rot           *math32.Vector4
-	scale         *math32.Vector3
+	pivot         [3]float32
+	rot           [4]float32
+	scale         [3]float32
 }
 
 // New creates a new empty instance. Use NewFile to load an archive file on creation

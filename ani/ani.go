@@ -1,8 +1,6 @@
 // ani are animation files, found in EverQuest eqg files
 package ani
 
-import "github.com/g3n/engine/math32"
-
 type ANI struct {
 	name     string
 	bones    []*Bone
@@ -13,9 +11,9 @@ type Bone struct {
 	frameCount  uint32
 	name        string
 	delay       int32
-	translation *math32.Vector3
-	rotation    *math32.Vector4
-	scale       *math32.Vector3
+	translation [3]float32
+	rotation    [4]float32
+	scale       [3]float32
 }
 
 // New creates a new empty instance. Use NewFile to load an archive file on creation

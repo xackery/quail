@@ -4,7 +4,6 @@ package obj
 import (
 	"fmt"
 
-	"github.com/g3n/engine/math32"
 	"github.com/xackery/quail/common"
 )
 
@@ -28,8 +27,8 @@ func (e *ObjData) String() string {
 
 // objCache contains temporary data needed to convert obj to eq mesh format
 type objCache struct {
-	vertices     []math32.Vector3
-	normals      []math32.Vector3
-	uvs          []math32.Vector2
+	vertices     [][3]float32
+	normals      [][3]float32
+	uvs          [][2]float32
 	vertexLookup map[string]int
 }

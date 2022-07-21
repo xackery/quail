@@ -30,10 +30,10 @@ func (e *ZON) GLTFDecode(doc *gltf.Document) error {
 			strings.Contains(nodeName, "ter_") ||
 			strings.Contains(nodeName, ".ter") ||
 			nodeName == e.name {
-			if !strings.HasSuffix(meshName, ".ter") {
-				meshName += ".ter"
+			if !strings.HasSuffix(nodeName, ".ter") {
+				nodeName += ".ter"
 			}
-			ml, err := ter.New(meshName, e.archive)
+			ml, err := ter.New(nodeName, e.archive)
 			if err != nil {
 				return fmt.Errorf("ter new: %w", err)
 			}
@@ -47,11 +47,11 @@ func (e *ZON) GLTFDecode(doc *gltf.Document) error {
 			if err != nil {
 				return fmt.Errorf("ter encode: %w", err)
 			}
-			e.archive.WriteFile(meshName, buf.Bytes())
+			e.archive.WriteFile(nodeName, buf.Bytes())
 			e.terrains = append(e.terrains, ml)
 			e.models = append(e.models, &model{
-				baseName: helper.BaseName(meshName),
-				name:     meshName,
+				baseName: helper.BaseName(nodeName),
+				name:     nodeName,
 			})
 			continue
 		}

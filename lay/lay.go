@@ -10,7 +10,7 @@ import (
 	"github.com/xackery/quail/common"
 )
 
-// LAY is a zon file struct
+// LAY is a layer definition
 type LAY struct {
 	// name is used as an identifier
 	name string
