@@ -92,27 +92,24 @@ func (v *viewEngine) Update() error {
 		v.drawDebugDepth = !v.drawDebugDepth
 	}
 
+	boost := float64(1)
+	if ebiten.IsKeyPressed(ebiten.KeyShift) {
+		boost = 3
+	}
 	if ebiten.IsKeyPressed(ebiten.KeyW) ||
 		ebiten.IsKeyPressed(ebiten.KeyArrowUp) ||
 		(ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) && ebiten.IsMouseButtonPressed(ebiten.MouseButtonRight)) {
-		pos = pos.Add(forward.Scale(moveSpd))
+		pos = pos.Add(forward.Scale(moveSpd * boost))
 	}
 	if ebiten.IsKeyPressed(ebiten.KeyD) || ebiten.IsKeyPressed(ebiten.KeyArrowRight) {
-		pos = pos.Add(right.Scale(moveSpd))
+		pos = pos.Add(right.Scale(moveSpd * boost))
 	}
 
 	if ebiten.IsKeyPressed(ebiten.KeyS) || ebiten.IsKeyPressed(ebiten.KeyArrowDown) {
-		pos = pos.Add(forward.Scale(-moveSpd))
+		pos = pos.Add(forward.Scale(-moveSpd * boost))
 	}
 	if ebiten.IsKeyPressed(ebiten.KeyA) || ebiten.IsKeyPressed(ebiten.KeyArrowLeft) {
-		pos = pos.Add(right.Scale(-moveSpd))
-	}
-
-	if ebiten.IsKeyPressed(ebiten.KeySpace) {
-		pos[1] += moveSpd
-	}
-	if ebiten.IsKeyPressed(ebiten.KeyControl) {
-		pos[1] -= moveSpd
+		pos = pos.Add(right.Scale(-moveSpd * boost))
 	}
 
 	v.camera.SetLocalPosition(pos)
@@ -194,18 +191,20 @@ func (v *viewEngine) Draw(screen *ebiten.Image) {
 	}
 
 	if v.drawDebugText {
-		v.camera.DrawDebugText(screen, 1, colors.White())
+
+		v.camera.DrawDebugRenderInfo(screen, 1, colors.White())
 		//1 Key: Play [SmoothRoll] Animation On Table
 		//2 Key: Play [StepRoll] Animation on Table Note the animations can blend\n
 		//F Key: Play Animation on Skinned Mesh\n Note that the nodes move as well
 
-		txt := `WASD/Arrows: Move, Mouse: Look
+		txt := fmt.Sprintf(`WASD/Arrows: Move, Mouse: Look
 C: Center
 T: DebugText
 V: Wireframe
 Y: Depth
 N: Normals
-Q: Quit`
+Q: Quit
+Pos: %0.2f %0.2f %0.2f`, v.camera.LocalPosition()[0], v.camera.LocalPosition()[1], v.camera.LocalPosition()[2])
 		text.Draw(screen, txt, basicfont.Face7x13, 0, 140, color.RGBA{255, 0, 0, 255})
 	}
 }
