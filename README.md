@@ -9,16 +9,16 @@ Quail parses EverQuest files found inside on pfs compressed archives (*.eqg and 
 
 Extension|Notes
 ---|---
-ani|animation (EQG), 30% - Decode functionality prototyped
+ani|animation (EQG), 0% - Decode functionality prototyped
 blend|Blender 3d modeling, 10% - Needs a lot of work, python dependency to script
-eqg|pfs acrhive (EQG), 80% - Decode/Encode working, EQ client fails to support Encoded data
-lay|layered material metadata (EQG), 0%
+eqg|pfs acrhive (EQG), 95% - Decode/Encode working, EQ client fails to support Encoded data
+lay|layered material metadata (EQG), 40%
 lit|light data (EQG), 10% - Decode prototyped
-mds|model data (EQG), 0% - Not yet implemented
+mds|model data (EQG), 60% - Not yet implemented
 mod|model data (EQG), 60% - Decode/Encode prototypd, GLTF birectional support prototyped
 obj|lightform model OBJ export, 80% - Decode/Encode working, bugs need to be sorted out (lightwave obj)
-prt|particle rendering (EQG), 0% -
-pts|partical transform (EQG), 0% - 
+prt|particle rendering (EQG), 30% -
+pts|partical transform (EQG), 30% - 
 s3d|pfs archive (S3D), 50% - Decode/Encode prototyped, EQ client fails to support Encoded data, some fragments unsupported
 ter|terrain data (EQG), 60% - Decode/Encode prototyped, GLTF bidirectional support prototyped
 tog|object meta data (EQG), 10% - Encode template prototyped
