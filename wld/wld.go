@@ -68,6 +68,7 @@ func (e *WLD) SetParticleRenders(particles []*common.ParticleRender) error {
 	return nil
 }
 
+// SetParticlePoints sets particle points for a world file
 func (e *WLD) SetParticlePoints(particles []*common.ParticlePoint) error {
 	return nil
 }
