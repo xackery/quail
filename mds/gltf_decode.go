@@ -2,7 +2,6 @@ package mds
 
 import (
 	"fmt"
-	"image/color"
 	"strings"
 
 	"github.com/qmuntal/gltf"
@@ -100,31 +99,25 @@ func (e *MDS) GLTFDecode(doc *gltf.Document) error {
 			if !ok {
 				return fmt.Errorf("primitive in mesh '%s' has no position", m.Name)
 			}
+
 			positions, err := modeler.ReadPosition(doc, doc.Accessors[posIndex], [][3]float32{})
 			if err != nil {
 				return fmt.Errorf("readPosition: %w", err)
 			}
 
-			for i := range positions {
-				positions[i] = helper.ApplyQuaternion(positions[i], [4]float32{-0.5, 0.5, 0.5, -0.5})
-				/*	tmp := positions[i][1]
-					positions[i][1] = -positions[i][2]
-					positions[i][2] = tmp*/
-				// x90 y270
-
-			}
-
+			bones := [][4]uint16{}
 			jointIndex, ok := p.Attributes[gltf.JOINTS_0]
 			if ok {
-				e.joints, err = modeler.ReadJoints(doc, doc.Accessors[jointIndex], [][4]uint16{})
+				bones, err = modeler.ReadJoints(doc, doc.Accessors[jointIndex], [][4]uint16{})
 				if err != nil {
 					return fmt.Errorf("readJoints: %w", err)
 				}
 			}
 
+			weights := [][4]float32{}
 			weightIndex, ok := p.Attributes[gltf.WEIGHTS_0]
 			if ok {
-				e.weights, err = modeler.ReadWeights(doc, doc.Accessors[weightIndex], [][4]float32{})
+				weights, err = modeler.ReadWeights(doc, doc.Accessors[weightIndex], [][4]float32{})
 				if err != nil {
 					return fmt.Errorf("readJoints: %w", err)
 				}
@@ -140,18 +133,10 @@ func (e *MDS) GLTFDecode(doc *gltf.Document) error {
 				}
 			} //return fmt.Errorf("primitive in mesh '%s' has no normal", m.Name)
 
-			tints := &color.RGBA{255, 255, 255, 255}
-			tintIndex, ok := p.Attributes[gltf.COLOR_0]
-			if ok {
-				tintRaw, err := modeler.ReadColor(doc, doc.Accessors[tintIndex], [][4]uint8{})
-				if err != nil {
-					return fmt.Errorf("readTint: %w", err)
-				}
-				tints.R = tintRaw[0][0]
-				tints.G = tintRaw[0][1]
-				tints.B = tintRaw[0][2]
-				tints.A = tintRaw[0][3]
-			} //return fmt.Errorf("primitive in mesh '%s' has no normal", m.Name)
+			tints, err := modeler.ReadColor(doc, doc.Accessors[p.Attributes[gltf.COLOR_0]], [][4]uint8{})
+			if err != nil {
+				return fmt.Errorf("readTint: %w", err)
+			}
 
 			//fmt.Printf("normal: %+v\n", normal)
 
@@ -167,28 +152,34 @@ func (e *MDS) GLTFDecode(doc *gltf.Document) error {
 			//fmt.Printf("uv: %+v\n", uv)
 
 			for i := 0; i < len(positions); i++ {
+				vertex := &common.Vertex{}
+				positions[i] = helper.ApplyQuaternion(positions[i], [4]float32{-0.5, 0.5, 0.5, -0.5})
 				positions[i][0] *= n.Scale[0]
 				positions[i][1] *= n.Scale[1]
 				positions[i][2] *= n.Scale[2]
+				vertex.Position = positions[i]
 
-				normalEntry := [3]float32{}
-				if len(normals) > i {
-					normalEntry[0] = normals[i][0]
-					normalEntry[1] = normals[i][1]
-					normalEntry[2] = normals[i][2]
-				}
-				uvEntry := [2]float32{}
-				if len(uvs) > i {
-					uvEntry[0] = uvs[i][0] * n.Scale[0]
-					uvEntry[1] = uvs[i][1] * n.Scale[1]
-				}
-				tint := &common.Tint{R: 128, G: 128, B: 128}
-				//fmt.Printf("%d pos: %0.0f %0.0f %0.0f, normal: %+v, uv: %+v\n", i, posEntry[0], posEntry[1], posEntry[2], normalEntry, uvEntry)
-				err = e.VertexAdd(positions[i], normalEntry, tint, uvEntry, uvEntry)
-				if err != nil {
-					return fmt.Errorf("add vertex: %w", err)
+				vertex.Normal = normals[i]
+
+				uvs[i][0] = uvs[i][0] * n.Scale[0]
+				uvs[i][1] = uvs[i][1] * n.Scale[1]
+				vertex.Uv = uvs[i]
+
+				vertex.Tint = tints[i]
+
+				if len(bones) > i {
+					vertex.Bone = bones[i]
+				} else {
+					vertex.Bone = [4]uint16{}
 				}
 
+				if len(weights) > i {
+					vertex.Weight = weights[i]
+				} else {
+					vertex.Weight = [4]float32{}
+				}
+
+				e.vertices = append(e.vertices, vertex)
 			}
 		}
 	}

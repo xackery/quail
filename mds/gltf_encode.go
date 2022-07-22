@@ -183,10 +183,10 @@ func (e *MDS) GLTFEncode(doc *qgltf.GLTF) error {
 				prim.Uvs = append(prim.Uvs, [2]float32{v.Uv[0], v.Uv[1]})
 				prim.UniqueIndices[o.Index[i]] = uint16(len(prim.Positions) - 1)
 				index = uint16(len(prim.Positions) - 1)
+				prim.Joints = append(prim.Joints, v.Bone)
+				prim.Weights = append(prim.Weights, v.Weight)
 			}
 			prim.Indices = append(prim.Indices, index)
-			prim.Joints = e.joints
-			prim.Weights = e.weights
 		}
 	}
 

@@ -3,7 +3,6 @@ package mds
 import (
 	"encoding/binary"
 	"fmt"
-	"image/color"
 	"io"
 	"sort"
 	"strings"
@@ -290,44 +289,48 @@ func (e *MDS) Decode(r io.ReadSeeker) error {
 
 	for i := 0; i < int(verticesCount); i++ {
 
-		pos := [3]float32{}
-		err = binary.Read(r, binary.LittleEndian, &pos)
+		vertex := &common.Vertex{}
+
+		err = binary.Read(r, binary.LittleEndian, &vertex.Position)
 		if err != nil {
 			return fmt.Errorf("read vertex %d position: %w", i, err)
 		}
 
-		normal := [3]float32{}
-		err = binary.Read(r, binary.LittleEndian, &normal)
+		err = binary.Read(r, binary.LittleEndian, &vertex.Normal)
 		if err != nil {
 			return fmt.Errorf("read vertex %d normal: %w", i, err)
 		}
 
-		color := color.RGBA{}
-		if version >= 3 {
-			err = binary.Read(r, binary.LittleEndian, &color)
+		if version < 3 {
+
+			err = binary.Read(r, binary.LittleEndian, &vertex.Uv)
 			if err != nil {
-				return fmt.Errorf("read vertex %d color: %w", i, err)
+				return fmt.Errorf("read vertex %d uv: %w", i, err)
 			}
 
-			unkUV := [2]float32{}
-			err = binary.Read(r, binary.LittleEndian, &unkUV)
+			vertex.Tint = [4]uint8{128, 128, 128, 1}
+		} else {
+			// TODO: may be misaligned (RGB vs RGBA)
+			err = binary.Read(r, binary.LittleEndian, &vertex.Tint)
 			if err != nil {
-				return fmt.Errorf("read vertex %d unkUV: %w", i, err)
+				return fmt.Errorf("read vertex %d tint: %w", i, err)
+			}
+
+			err = binary.Read(r, binary.LittleEndian, &vertex.Uv)
+			if err != nil {
+				return fmt.Errorf("read vertex %d uv: %w", i, err)
+			}
+
+			err = binary.Read(r, binary.LittleEndian, &vertex.Uv2)
+			if err != nil {
+				return fmt.Errorf("read vertex %d uv2: %w", i, err)
 			}
 		}
 
-		uv := [2]float32{}
-		err = binary.Read(r, binary.LittleEndian, &uv)
-		if err != nil {
-			return fmt.Errorf("read vertex %d uv: %w", i, err)
-		}
 		// fiddle uv coord
-		uv[1] = -uv[1]
-		tint := &common.Tint{R: 128, G: 128, B: 128}
-		err = e.VertexAdd(pos, normal, tint, uv, uv)
-		if err != nil {
-			return fmt.Errorf("addVertex %d: %w", i, err)
-		}
+		vertex.Uv[1] = -vertex.Uv[1]
+
+		e.vertices = append(e.vertices, vertex)
 	}
 	vSize := 32
 	if version >= 3 {

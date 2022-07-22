@@ -20,7 +20,6 @@ type MOD struct {
 	materials       []*common.Material
 	vertices        []*common.Vertex
 	triangles       []*common.Triangle
-	bones           []*bone
 	files           []common.Filer
 	particleRenders []*common.ParticleRender
 	particlePoints  []*common.ParticlePoint

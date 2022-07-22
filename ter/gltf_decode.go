@@ -224,7 +224,7 @@ func (e *TER) GLTFDecode(doc *gltf.Document) error {
 					uvEntry[0] = uvs[i][0] * n.Scale[0]
 					uvEntry[1] = uvs[i][1] * n.Scale[1]
 				}
-				tint := &common.Tint{R: 128, G: 128, B: 128}
+				tint := [4]uint8{128, 128, 128, 1}
 				//fmt.Printf("%d pos: %0.0f %0.0f %0.0f, normal: %+v, uv: %+v\n", i, posEntry[0], posEntry[1], posEntry[2], normalEntry, uvEntry)
 
 				e.vertices = append(e.vertices, &common.Vertex{

@@ -240,7 +240,7 @@ func (e *TER) loadVersion2(r io.Reader) error {
 		normal[2] = normal[1]
 		normal[1] = z
 
-		tint := &common.Tint{R: 128, G: 128, B: 128}
+		tint := [4]uint8{128, 128, 128, 1}
 
 		uv := [2]float32{}
 		err = binary.Read(r, binary.LittleEndian, &uv)
@@ -475,7 +475,7 @@ func (e *TER) loadVersion3(r io.Reader) error {
 			return fmt.Errorf("read vertex %d normal: %w", i, err)
 		}
 
-		tint := &common.Tint{R: 128, G: 128, B: 128}
+		tint := [4]uint8{128, 128, 128, 1}
 		err = binary.Read(r, binary.LittleEndian, tint)
 		if err != nil {
 			return fmt.Errorf("read vertex %d tint: %w", i, err)

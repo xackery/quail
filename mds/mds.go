@@ -25,8 +25,6 @@ type MDS struct {
 	triangles       []*common.Triangle
 	bones           []*bone
 	files           []common.Filer
-	joints          [][4]uint16
-	weights         [][4]float32
 	particleRenders []*common.ParticleRender
 	particlePoints  []*common.ParticlePoint
 	isDecoded       bool

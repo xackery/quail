@@ -44,11 +44,12 @@ func (e *MOD) Encode(w io.Writer) error {
 		return fmt.Errorf("write triangle count: %w", err)
 	}
 
-	err = binary.Write(w, binary.LittleEndian, uint32(len(e.bones)))
-	if err != nil {
-		return fmt.Errorf("write bone count: %w", err)
-	}
-
+	/*
+		err = binary.Write(w, binary.LittleEndian, uint32(len(e.bones)))
+		if err != nil {
+			return fmt.Errorf("write bone count: %w", err)
+		}
+	*/
 	/*err = binary.Write(w, binary.LittleEndian, uint32(len(e.boneAssignments)))
 	if err != nil {
 		return fmt.Errorf("write bone assignemt count: %w", err)

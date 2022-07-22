@@ -45,17 +45,6 @@ func (e *MDS) MaterialPropertyAdd(materialName string, propertyName string, cate
 	return fmt.Errorf("materialName not found: '%s' (%d)", materialName, len(e.materials))
 }
 
-func (e *MDS) VertexAdd(position [3]float32, normal [3]float32, tint *common.Tint, uv [2]float32, uv2 [2]float32) error {
-	e.vertices = append(e.vertices, &common.Vertex{
-		Position: position,
-		Normal:   normal,
-		Tint:     tint,
-		Uv:       uv,
-		Uv2:      uv2,
-	})
-	return nil
-}
-
 func (e *MDS) FaceAdd(index [3]uint32, materialName string, flag uint32) error {
 	materialName = strings.ToLower(materialName)
 	if materialName == "" || strings.HasPrefix(materialName, "empty_") {

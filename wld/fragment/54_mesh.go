@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
-	"image/color"
 	"io"
 
 	"github.com/xackery/quail/common"
@@ -256,34 +255,23 @@ func parseMesh(r io.ReadSeeker, v *Mesh, isNewWorldFormat bool) error {
 		vNormals = append(vNormals, pos)
 	}
 
-	vTints := []color.RGBA{}
+	vTints := [][4]uint8{}
 	for i := 0; i < int(colorsCount); i++ {
-		c := color.RGBA{}
 
-		err = binary.Read(r, binary.LittleEndian, &c.R)
+		tint := [4]uint8{}
+
+		err = binary.Read(r, binary.LittleEndian, &tint)
 		if err != nil {
-			return fmt.Errorf("read color r %d: %w", i, err)
+			return fmt.Errorf("read color %d: %w", i, err)
 		}
-		err = binary.Read(r, binary.LittleEndian, &c.G)
-		if err != nil {
-			return fmt.Errorf("read color g %d: %w", i, err)
-		}
-		err = binary.Read(r, binary.LittleEndian, &c.B)
-		if err != nil {
-			return fmt.Errorf("read color b %d: %w", i, err)
-		}
-		err = binary.Read(r, binary.LittleEndian, &c.A)
-		if err != nil {
-			return fmt.Errorf("read color a %d: %w", i, err)
-		}
-		vTints = append(vTints, c)
+		vTints = append(vTints, tint)
 	}
 
 	for i := range vPositions {
 		v.verticies = append(v.verticies, &common.Vertex{
 			Position: vPositions[i],
 			Normal:   vNormals[i],
-			Tint:     &common.Tint{R: vTints[i].R, G: vTints[i].G, B: vTints[i].B},
+			Tint:     vTints[i],
 			Uv:       vUvs[i],
 			Uv2:      vUvs[i],
 		})

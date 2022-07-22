@@ -26,9 +26,11 @@ type Property struct {
 type Vertex struct {
 	Position [3]float32
 	Normal   [3]float32
-	Tint     *Tint
+	Tint     [4]uint8
 	Uv       [2]float32
 	Uv2      [2]float32
+	Bone     [4]uint16
+	Weight   [4]float32
 }
 
 type Triangle struct {

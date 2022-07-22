@@ -3,7 +3,6 @@ package mod
 import (
 	"encoding/binary"
 	"fmt"
-	"image/color"
 	"io"
 	"io/ioutil"
 	"strings"
@@ -211,43 +210,46 @@ func (e *MOD) Decode(r io.ReadSeeker) error {
 
 	for i := 0; i < int(verticesCount); i++ {
 
-		pos := [3]float32{}
-		err = binary.Read(r, binary.LittleEndian, &pos)
+		vertex := &common.Vertex{}
+
+		err = binary.Read(r, binary.LittleEndian, &vertex.Position)
 		if err != nil {
 			return fmt.Errorf("read vertex %d position: %w", i, err)
 		}
 
-		normal := [3]float32{}
-		err = binary.Read(r, binary.LittleEndian, &normal)
+		err = binary.Read(r, binary.LittleEndian, &vertex.Normal)
 		if err != nil {
 			return fmt.Errorf("read vertex %d normal: %w", i, err)
 		}
 
-		color := color.RGBA{}
-		if version >= 3 {
-			err = binary.Read(r, binary.LittleEndian, &color)
+		if version < 3 {
+
+			uv := [2]float32{}
+			err = binary.Read(r, binary.LittleEndian, &uv)
 			if err != nil {
-				return fmt.Errorf("read vertex %d color: %w", i, err)
+				return fmt.Errorf("read vertex %d uv: %w", i, err)
 			}
 
-			unkUV := [2]float32{}
-			err = binary.Read(r, binary.LittleEndian, &unkUV)
+			vertex.Tint = [4]uint8{128, 128, 128, 0}
+		} else {
+			// TODO: may be misaligned (RGB vs RGBA)
+			err = binary.Read(r, binary.LittleEndian, &vertex.Tint)
 			if err != nil {
-				return fmt.Errorf("read vertex %d unkUV: %w", i, err)
+				return fmt.Errorf("read vertex %d tint: %w", i, err)
+			}
+
+			err = binary.Read(r, binary.LittleEndian, &vertex.Uv)
+			if err != nil {
+				return fmt.Errorf("read vertex %d uv: %w", i, err)
+			}
+
+			err = binary.Read(r, binary.LittleEndian, &vertex.Uv2)
+			if err != nil {
+				return fmt.Errorf("read vertex %d uv2: %w", i, err)
 			}
 		}
 
-		uv := [2]float32{}
-		err = binary.Read(r, binary.LittleEndian, &uv)
-		if err != nil {
-			return fmt.Errorf("read vertex %d uv: %w", i, err)
-		}
-		tint := &common.Tint{R: 128, G: 128, B: 128}
-
-		err = e.VertexAdd(pos, normal, tint, uv, uv)
-		if err != nil {
-			return fmt.Errorf("addVertex %d: %w", i, err)
-		}
+		e.vertices = append(e.vertices, vertex)
 	}
 	vSize := 32
 	if version >= 3 {
@@ -293,6 +295,9 @@ func (e *MOD) Decode(r io.ReadSeeker) error {
 	//64bytes worth
 	for i := 0; i < int(boneCount); i++ {
 		//52?
+
+		//	vertex := e.vertices[i]
+
 		materialID := uint32(0)
 		err = binary.Read(r, binary.LittleEndian, &materialID)
 		if err != nil {
@@ -343,10 +348,12 @@ func (e *MOD) Decode(r io.ReadSeeker) error {
 			return fmt.Errorf("read bone %d scale: %w", i, err)
 		}
 		dump.Hex(scale, "%dscale=%+v", i, scale)
-		err = e.BoneAdd(name, next, childrenCount, childIndex, pivot, rot, scale)
+		if name != "" {
+		}
+		/*err = e.BoneAdd(name, next, childrenCount, childIndex, pivot, rot, scale)
 		if err != nil {
 			return fmt.Errorf("BoneAdd %d: %w", i, err)
-		}
+		}*/
 	}
 	return nil
 }

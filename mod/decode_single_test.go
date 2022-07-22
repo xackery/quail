@@ -1,7 +1,6 @@
 package mod
 
 import (
-	"bytes"
 	"os"
 	"testing"
 
@@ -15,29 +14,37 @@ func TestDecode(t *testing.T) {
 	if os.Getenv("SINGLE_TEST") != "1" {
 		return
 	}
-	filePath := "test/eq/_steamfontmts.eqg/"
+	eqgFile := "test/eq/steamfontmts.eqg"
 	inFile := "obj_gears.mod"
 
-	archive, err := eqg.NewFile(filePath)
+	archive, err := eqg.NewFile(eqgFile)
 	if err != nil {
 		t.Fatalf("eqg new: %s", err)
 	}
 
-	data, err := archive.File(inFile)
-	if err != nil {
-		t.Fatalf("decode eqg: %s", err)
-	}
-
 	dump.New(inFile)
-	defer dump.WriteFileClose(filePath + "_" + inFile + ".png")
+	defer dump.WriteFileClose(eqgFile + "_" + inFile + ".png")
 
-	e, err := New("out", archive)
+	e, err := NewFile(inFile, archive, inFile)
 	if err != nil {
 		t.Fatalf("new: %s", err)
 	}
-	err = e.Decode(bytes.NewReader(data))
+	doc, err := gltf.New()
 	if err != nil {
-		t.Fatalf("decode: %s", err)
+		t.Fatalf("gltf new: %s", err)
+	}
+	err = e.GLTFEncode(doc)
+	if err != nil {
+		t.Fatalf("gltf encode: %s", err)
+	}
+	w, err := os.Create("test/obj_gears.gltf")
+	if err != nil {
+		t.Fatalf("create: %s", err)
+	}
+	defer w.Close()
+	err = doc.Export(w)
+	if err != nil {
+		t.Fatalf("export: %s", err)
 	}
 }
 
