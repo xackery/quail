@@ -66,8 +66,11 @@ func (e *MDS) GLTFDecode(doc *gltf.Document) error {
 	}
 
 	for _, n := range doc.Nodes {
+
 		if n.Mesh == nil {
-			return fmt.Errorf("no mesh on node '%s' found", n.Name)
+			continue
+			//TODO: add skin mesh detection/bone node
+			//return fmt.Errorf("no mesh on node '%s' found", n.Name)
 		}
 		m := doc.Meshes[*n.Mesh]
 		if m == nil {

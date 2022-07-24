@@ -4,16 +4,17 @@ import (
 	"fmt"
 	"os"
 	"testing"
-
-	"github.com/xackery/quail/zon"
 )
 
 func TestArchiveExportSample(t *testing.T) {
+	if os.Getenv("SINGLE_TEST") != "1" {
+		return
+	}
 	tests := []struct {
 		category    string
 		outCategory string
 	}{
-		{category: "crushbone", outCategory: "arena"},
+		{category: "crushbone", outCategory: "crushbone"},
 		//{category: "steamfontmts"},
 		//{category: "broodlands"},
 		//{category: "steppes"},
@@ -41,16 +42,6 @@ func TestArchiveExportSample(t *testing.T) {
 		outArchive, err := New(tt.category)
 		if err != nil {
 			t.Fatalf("new out eqg: %s", err)
-		}
-
-		e, err := zon.NewFile(tt.outCategory, archive, fmt.Sprintf("%s.zon", tt.category))
-		if err != nil {
-			t.Fatalf("new: %s", err)
-		}
-
-		err = e.ArchiveExport(outArchive)
-		if err != nil {
-			t.Fatalf("archive export: %s", err)
 		}
 
 		w, err := os.Create(outFile)

@@ -80,7 +80,9 @@ func (e *WLD) GLTFDecode(doc *gltf.Document) error {
 		}
 
 		if n.Mesh == nil {
-			return fmt.Errorf("no mesh on node '%s' found", n.Name)
+			//TODO: add skin mesh detection/bone node
+			continue
+			//return fmt.Errorf("no mesh on node '%s' found", n.Name)
 		}
 		m := doc.Meshes[*n.Mesh]
 		if m == nil {

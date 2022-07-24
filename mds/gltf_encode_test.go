@@ -35,6 +35,7 @@ func TestGLTFEncodeGLTF(t *testing.T) {
 		if err != nil {
 			t.Fatalf("gltf open: %s", err)
 		}
+
 		err = e.GLTFDecode(gdoc)
 		if err != nil {
 			t.Fatalf("gltfimport '%s': %s", tt.category, err)

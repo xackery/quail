@@ -7,7 +7,6 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/xackery/quail/common"
 	"github.com/xackery/quail/dump"
 	"github.com/xackery/quail/eqg"
 	"github.com/xackery/quail/gltf"
@@ -82,110 +81,5 @@ func TestGLTFEncodeES3Dones(t *testing.T) {
 			}
 			dump.WriteFileClose(fmt.Sprintf("test/%s_eqg_%s", tt.category, fileEntry.Name()))
 		}
-	}
-}
-
-func TestGLTFEncodeBroodlands(t *testing.T) {
-	if os.Getenv("SINGLE_TEST") != "1" {
-		return
-	}
-	zone := "broodlands"
-	filePath := fmt.Sprintf("test/eq/_%s.eqg", zone)
-	inFile := fmt.Sprintf("test/eq/_%s.eqg/ter_%s.ter", zone, zone)
-	outFile := fmt.Sprintf("test/eq/%s.gltf", zone)
-
-	path, err := common.NewPath(filePath)
-	if err != nil {
-		t.Fatalf("path: %s", err)
-	}
-	e, err := New("arena", path)
-	if err != nil {
-		t.Fatalf("new: %s", err)
-	}
-
-	r, err := os.Open(inFile)
-	if err != nil {
-		t.Fatalf("open %s: %s", path, err)
-	}
-	defer r.Close()
-
-	err = e.Decode(r)
-	if err != nil {
-		t.Fatalf("import %s: %s", inFile, err)
-	}
-
-	w, err := os.Create(outFile)
-	if err != nil {
-		t.Fatalf("create %s", err)
-	}
-	defer w.Close()
-	doc, err := gltf.New()
-	if err != nil {
-		t.Fatalf("gltf.New: %s", err)
-	}
-	err = e.GLTFEncode(doc)
-	if err != nil {
-		t.Fatalf("gltf: %s", err)
-	}
-
-	err = doc.Export(w)
-	if err != nil {
-		t.Fatalf("export: %s", err)
-	}
-}
-
-func TestGLTFEncodeCityOfBronze(t *testing.T) {
-	if os.Getenv("SINGLE_TEST") != "1" {
-		return
-	}
-	zone := "cityofbronze"
-	filePath := fmt.Sprintf("test/eq/_%s.eqg", zone)
-	inFile := fmt.Sprintf("test/eq/_%s.eqg/ter_%s.ter", zone, zone)
-	outFile := fmt.Sprintf("test/eq/%s.gltf", zone)
-	isDumpEnabed := false
-
-	path, err := common.NewPath(filePath)
-	if err != nil {
-		t.Fatalf("path: %s", err)
-	}
-	if isDumpEnabed {
-		dump.New(path.String())
-		defer dump.WriteFileClose(inFile)
-	}
-
-	e, err := New("cityofbronze", path)
-	if err != nil {
-		t.Fatalf("new: %s", err)
-	}
-
-	r, err := os.Open(inFile)
-	if err != nil {
-		t.Fatalf("open %s: %s", path, err)
-	}
-	defer r.Close()
-
-	err = e.Decode(r)
-	if err != nil {
-		t.Fatalf("import %s: %s", path, err)
-	}
-
-	w, err := os.Create(outFile)
-	if err != nil {
-		t.Fatalf("create %s", err)
-	}
-	defer w.Close()
-
-	doc, err := gltf.New()
-	if err != nil {
-		t.Fatalf("gltf.New: %s", err)
-	}
-	err = e.GLTFEncode(doc)
-	if err != nil {
-		t.Fatalf("gltf: %s", err)
-	}
-
-	err = doc.Export(w)
-	if err != nil {
-		t.Fatalf("export: %s", err)
 	}
 }
