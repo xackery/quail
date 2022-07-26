@@ -13,6 +13,8 @@ import (
 
 func (e *MOD) Decode(r io.ReadSeeker) error {
 	var err error
+	e.isSkinned = false
+
 	header := [4]byte{}
 	err = binary.Read(r, binary.LittleEndian, &header)
 	if err != nil {
@@ -298,6 +300,8 @@ func (e *MOD) Decode(r io.ReadSeeker) error {
 
 		//	vertex := e.vertices[i]
 
+		bone := &common.Bone{}
+
 		materialID := uint32(0)
 		err = binary.Read(r, binary.LittleEndian, &materialID)
 		if err != nil {
@@ -305,55 +309,45 @@ func (e *MOD) Decode(r io.ReadSeeker) error {
 		}
 		dump.Hex(materialID, "%dmaterialid=%d(%s)", i, materialID, names[materialID])
 
-		name := names[materialID]
+		bone.Name = names[materialID]
 
-		next := int32(0)
-		err = binary.Read(r, binary.LittleEndian, &next)
+		err = binary.Read(r, binary.LittleEndian, &bone.Next)
 		if err != nil {
 			return fmt.Errorf("read bone %d next: %w", i, err)
 		}
-		dump.Hex(next, "%dnext=%d", i, next)
+		dump.Hex(bone.Next, "%dnext=%d", i, bone.Next)
 
-		childrenCount := uint32(0)
-		err = binary.Read(r, binary.LittleEndian, &childrenCount)
+		err = binary.Read(r, binary.LittleEndian, &bone.ChildrenCount)
 		if err != nil {
 			return fmt.Errorf("read bone %d childrenCount: %w", i, err)
 		}
-		dump.Hex(childrenCount, "%dchildrenCount=%d", i, childrenCount)
+		dump.Hex(bone.ChildrenCount, "%dchildrenCount=%d", i, bone.ChildrenCount)
 
-		childIndex := int32(0)
-		err = binary.Read(r, binary.LittleEndian, &childIndex)
+		err = binary.Read(r, binary.LittleEndian, &bone.ChildIndex)
 		if err != nil {
 			return fmt.Errorf("read bone %d childIndex: %w", i, err)
 		}
-		dump.Hex(childIndex, "%dchildIndex=%d", i, childIndex)
+		dump.Hex(bone.ChildIndex, "%dchildIndex=%d", i, bone.ChildIndex)
 
-		pivot := [3]float32{}
-		err = binary.Read(r, binary.LittleEndian, &pivot)
+		err = binary.Read(r, binary.LittleEndian, &bone.Pivot)
 		if err != nil {
 			return fmt.Errorf("read bone %d pivot: %w", i, err)
 		}
-		dump.Hex(pivot, "%dpivot=%+v", i, pivot)
+		dump.Hex(bone.Pivot, "%dpivot=%+v", i, bone.Pivot)
 
-		rot := [4]float32{}
-		err = binary.Read(r, binary.LittleEndian, &rot)
+		err = binary.Read(r, binary.LittleEndian, &bone.Rotation)
 		if err != nil {
 			return fmt.Errorf("read bone %d rot: %w", i, err)
 		}
-		dump.Hex(rot, "%drot=%+v", i, rot)
+		dump.Hex(bone.Rotation, "%drot=%+v", i, bone.Rotation)
 
-		scale := [3]float32{}
-		err = binary.Read(r, binary.LittleEndian, &scale)
+		err = binary.Read(r, binary.LittleEndian, &bone.Scale)
 		if err != nil {
 			return fmt.Errorf("read bone %d scale: %w", i, err)
 		}
-		dump.Hex(scale, "%dscale=%+v", i, scale)
-		if name != "" {
-		}
-		/*err = e.BoneAdd(name, next, childrenCount, childIndex, pivot, rot, scale)
-		if err != nil {
-			return fmt.Errorf("BoneAdd %d: %w", i, err)
-		}*/
+		dump.Hex(bone.Scale, "%dscale=%+v", i, bone.Scale)
+
+		e.bones = append(e.bones, bone)
 	}
 	return nil
 }

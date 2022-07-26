@@ -87,49 +87,28 @@ func (e *MOD) GLTFEncode(doc *qgltf.GLTF) error {
 	}
 
 	// ******** MESH SKINNING *******
-	/*var skinIndex *uint32
-	for i, b := range e.bones {
-		doc.Nodes = append(doc.Nodes, &gltf.Node{
-			Name: b.name,
-			//Translation: [3]float32{b.pivot[0], b.pivot[1], b.pivot[2]},
-			Rotation: [4]float32{b.rot[0], b.rot[1], b.rot[2], b.rot[3]},
-			Scale:    [3]float32{b.scale[0], b.scale[1], b.scale[2]},
+	var skinIndex *uint32
+	joints := []uint32{}
+	for _, b := range e.bones {
+		node := &gltf.Node{
+			Name:        b.Name,
+			Children:    []uint32{}, // TODO: traverse and get children
+			Translation: b.Pivot,
+			Rotation:    b.Rotation,
+			Scale:       b.Scale,
+		}
+
+		nodeIndex := doc.NodeAdd(node)
+		joints = append(joints, nodeIndex)
+	}
+
+	if len(e.bones) > 0 {
+		tmp := doc.SkinAdd(&gltf.Skin{
+			Name:   "ROOT",
+			Joints: joints,
 		})
-		//if strings.EqualFold(b.name, "ROOT_BONE") {
-		//		rootNode = uint32(len(doc.Nodes) - 1)
-		//}
-		e.gltfBoneBuffer[i] = uint32(len(doc.Nodes) - 1)
+		skinIndex = &tmp
 	}
-
-	for i, b := range e.bones {
-		children := &[]uint32{}
-		if b.childIndex > -1 {
-			err = e.gltfBoneChildren(doc, children, int(b.childIndex))
-			if err != nil {
-				return fmt.Errorf("gltfBoneChildren: %w", err)
-			}
-		}
-
-		fmt.Printf("%d %d %d %d children for %s: %d\n", i, b.next, b.childIndex, b.childrenCount, b.name, len(*children))
-		if strings.EqualFold(b.name, "ROOT_BONE") {
-			//*children = append(*children, rootNode)
-			skin := &gltf.Skin{
-				Name:   e.bones[0].name,
-				Joints: *children,
-			}
-			doc.Skins = append(doc.Skins, skin)
-			tmp := uint32(len(doc.Skins) - 1)
-			skinIndex = &tmp
-		} else {
-			nodeIndex, ok := e.gltfBoneBuffer[i]
-			if !ok {
-				return fmt.Errorf("bone for %d not found", i)
-			}
-			node := doc.Nodes[int(nodeIndex)]
-			node.Children = *children
-		}
-	}
-	*/
 
 	// ******** PRIM GENERATION *****
 	for _, o := range e.triangles {
@@ -182,7 +161,7 @@ func (e *MOD) GLTFEncode(doc *qgltf.GLTF) error {
 	doc.NodeAdd(&gltf.Node{
 		Name: meshName,
 		Mesh: meshIndex,
-		//Skin: skinIndex,
+		Skin: skinIndex,
 	})
 
 	for _, particle := range e.particleRenders {

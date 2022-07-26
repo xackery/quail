@@ -12,8 +12,9 @@ import (
 
 // GLTFDecode imports a GLTF document
 func (e *MOD) GLTFDecode(doc *gltf.Document) error {
-
 	var err error
+	e.isSkinned = false
+
 	for _, m := range doc.Materials {
 		name := strings.ToLower(m.Name)
 		//TODO: add _mat.txt parsing
@@ -27,7 +28,10 @@ func (e *MOD) GLTFDecode(doc *gltf.Document) error {
 		}
 	}
 
+	joints := [][4]uint16{}
+
 	for _, n := range doc.Nodes {
+
 		if n.Mesh == nil {
 			// This can happen for bone rigging data, ignore safely
 			//return fmt.Errorf("no mesh on node '%s' found", n.Name)
@@ -69,10 +73,9 @@ func (e *MOD) GLTFDecode(doc *gltf.Document) error {
 				return fmt.Errorf("readPosition: %w", err)
 			}
 
-			bones := [][4]uint16{}
 			jointIndex, ok := p.Attributes[gltf.JOINTS_0]
 			if ok {
-				bones, err = modeler.ReadJoints(doc, doc.Accessors[jointIndex], [][4]uint16{})
+				joints, err = modeler.ReadJoints(doc, doc.Accessors[jointIndex], [][4]uint16{})
 				if err != nil {
 					return fmt.Errorf("readJoints: %w", err)
 				}
@@ -83,7 +86,7 @@ func (e *MOD) GLTFDecode(doc *gltf.Document) error {
 			if ok {
 				weights, err = modeler.ReadWeights(doc, doc.Accessors[weightIndex], [][4]float32{})
 				if err != nil {
-					return fmt.Errorf("readJoints: %w", err)
+					return fmt.Errorf("readWeights: %w", err)
 				}
 			}
 
@@ -131,8 +134,8 @@ func (e *MOD) GLTFDecode(doc *gltf.Document) error {
 
 				vertex.Tint = tints[i]
 
-				if len(bones) > i {
-					vertex.Bone = bones[i]
+				if len(joints) > i {
+					vertex.Bone = joints[i]
 				} else {
 					vertex.Bone = [4]uint16{}
 				}
@@ -148,10 +151,69 @@ func (e *MOD) GLTFDecode(doc *gltf.Document) error {
 		}
 	}
 
+	// boneMap correlates old node indexes to the new bone index map
+	boneMap := make(map[int]int)
+	for _, n := range doc.Nodes {
+		if n.Skin == nil {
+			continue
+		}
+		e.isSkinned = true
+		s := doc.Skins[*n.Skin]
+
+		for _, jointIndex := range s.Joints {
+			e.boneMapTraverse(doc, boneMap, int(jointIndex))
+		}
+		/*
+			matrices, err := modeler.ReadAccessor(doc, doc.Accessors[*s.InverseBindMatrices], nil)
+			if err != nil {
+				return fmt.Errorf("read inversebindmatrices: %w", err)
+			}
+			for matIndex, matrix := range matrices.([][4][4]float32) {
+				boneIndex := boneMap[matIndex]
+				bone := e.bones[boneIndex]
+				bone.Pivot = matrix?
+			}
+		*/
+	}
+	fmt.Println("bones", len(e.bones))
+
 	//https://github.com/KhronosGroup/glTF-Tutorials/blob/master/gltfTutorial/gltfTutorial_007_Animations.md
 	for _, a := range doc.Animations {
 
 		fmt.Println("animation", a.Name)
 	}
+
 	return nil
+}
+
+func (e *MOD) boneMapTraverse(doc *gltf.Document, boneMap map[int]int, nodeIndex int) {
+	_, ok := boneMap[int(nodeIndex)]
+	if ok {
+		return
+	}
+
+	// bone has yet to be created, add it
+	jointNode := doc.Nodes[nodeIndex]
+	bone := &common.Bone{
+		Name:          jointNode.Name,
+		Next:          -1,
+		ChildIndex:    -1,
+		ChildrenCount: uint32(len(jointNode.Children)),
+		Pivot:         jointNode.Translation,
+		Rotation:      jointNode.Rotation,
+		Scale:         jointNode.Scale,
+	}
+
+	// map entry so we know it's been covered
+	boneMap[int(nodeIndex)] = len(e.bones)
+	e.bones = append(e.bones, bone)
+
+	for jointChildIndex := range jointNode.Children {
+		e.boneMapTraverse(doc, boneMap, jointChildIndex)
+	}
+
+	if len(jointNode.Children) > 0 {
+		bone.ChildIndex = int32(boneMap[int(jointNode.Children[0])])
+		bone.Next = bone.ChildIndex
+	}
 }

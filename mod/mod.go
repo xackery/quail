@@ -23,16 +23,8 @@ type MOD struct {
 	files           []common.Filer
 	particleRenders []*common.ParticleRender
 	particlePoints  []*common.ParticlePoint
-}
-
-type bone struct {
-	name          string
-	next          int32
-	childrenCount uint32
-	childIndex    int32
-	pivot         [3]float32
-	rot           [4]float32
-	scale         [3]float32
+	isSkinned       bool
+	bones           []*common.Bone
 }
 
 // New creates a new empty instance. Use NewFile to load an archive file on creation
