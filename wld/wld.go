@@ -10,13 +10,11 @@ import (
 
 // WLD is a wld file struct
 type WLD struct {
-	archive        common.ArchiveReadWriter
-	name           string
-	BspRegionCount uint32
-	Hash           map[int]string
-	fragments      []*fragmentInfo
-	materials      []*common.Material
-
+	archive         common.ArchiveReadWriter
+	name            string
+	BspRegionCount  uint32
+	Hash            map[int]string
+	materials       []*common.Material
 	files           []common.Filer
 	particleRenders []*common.ParticleRender
 	particlePoints  []*common.ParticlePoint

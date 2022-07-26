@@ -109,6 +109,14 @@ func (e *WLD) Decode(r io.ReadSeeker) error {
 
 	dump.HexRange(hashRaw, int(hashSize), "nameData=(%d bytes, %d names)", hashSize, len(names))
 
+	parsers := []struct {
+		invoke func(frag *fragmentInfo) error
+		name   string
+	}{
+		{invoke: e.parseMesh, name: "mesh"},
+		{invoke: e.parseMaterial, name: "material"},
+	}
+
 	totalFragSize := uint32(0)
 	for i := 0; i < int(fragmentCount); i++ {
 		var fragSize uint32
@@ -143,7 +151,12 @@ func (e *WLD) Decode(r io.ReadSeeker) error {
 			fmt.Printf("warning: fragment decode 0x%x (%d): %s\n", fragIndex, fragIndex, err)
 			//return fmt.Errorf("fragment load: %w", err)
 		} else {
-			e.fragments = append(e.fragments, &fragmentInfo{name: name, data: frag})
+			for _, parser := range parsers {
+				err = parser.invoke(&fragmentInfo{name: name, data: frag})
+				if err != nil {
+					return fmt.Errorf("parse %s: %w", parser.name, err)
+				}
+			}
 		}
 
 		_, err = r.Seek(fragPosition+int64(fragSize), io.SeekStart)
@@ -152,27 +165,9 @@ func (e *WLD) Decode(r io.ReadSeeker) error {
 		}
 	}
 	//dump.HexRange([]byte{byte(i), byte(i) + 1}, int(fragSize), "%dfrag=%s", i, frag.FragmentType())
-	dump.HexRange([]byte{0, 1}, int(totalFragSize), "fragChunk=(%d bytes, %d entries)", int(totalFragSize), len(e.fragments))
+	dump.HexRange([]byte{0, 1}, int(totalFragSize), "fragChunk=(%d bytes, %d entries)", int(totalFragSize), fragmentCount)
 
 	// Now convert fragments to data
-
-	parsers := []struct {
-		invoke func(frag *fragmentInfo) error
-		name   string
-	}{
-		{invoke: e.parseMesh, name: "mesh"},
-		{invoke: e.parseMaterial, name: "material"},
-	}
-
-	for _, frag := range e.fragments {
-		for _, parser := range parsers {
-			err = parser.invoke(frag)
-			if err != nil {
-				return fmt.Errorf("parse %s: %w", parser.name, err)
-			}
-		}
-
-	}
 
 	return nil
 }

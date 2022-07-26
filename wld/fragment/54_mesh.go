@@ -52,7 +52,8 @@ func parseMesh(r io.ReadSeeker, v *Mesh, isNewWorldFormat bool) error {
 	}
 
 	if value != 0x00018003 && // Zone
-		value != 0x00014003 { // Object
+		value != 0x00014003 && // Object
+		value != 0x3 { // NPC
 		return fmt.Errorf("unknown mesh type, got 0x%x", value)
 	}
 
@@ -265,6 +266,9 @@ func parseMesh(r io.ReadSeeker, v *Mesh, isNewWorldFormat bool) error {
 			return fmt.Errorf("read color %d: %w", i, err)
 		}
 		vTints = append(vTints, tint)
+	}
+	for len(vPositions) > len(vTints) {
+		vTints = append(vTints, [4]uint8{})
 	}
 
 	for i := range vPositions {

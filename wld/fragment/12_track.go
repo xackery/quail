@@ -56,15 +56,15 @@ func parseTrack(r io.ReadSeeker, v *Track) error {
 		return fmt.Errorf("unknown track type: expected 8, got %d", value)
 	}
 
-	var frameCount int
+	var frameCount int16
 	err = binary.Read(r, binary.LittleEndian, &frameCount)
 	if err != nil {
-		return fmt.Errorf("read flag: %w", err)
+		return fmt.Errorf("read frameCount: %w", err)
 	}
-	for i := 0; i < frameCount; i++ {
-		var rotDenominator, shiftDenominator int
-		var rotX, rotY, rotZ int
-		var shiftX, shiftY, shiftZ int
+	for i := 0; i < int(frameCount); i++ {
+		var rotDenominator, shiftDenominator int16
+		var rotX, rotY, rotZ int16
+		var shiftX, shiftY, shiftZ int16
 
 		err = binary.Read(r, binary.LittleEndian, &rotDenominator)
 		if err != nil {

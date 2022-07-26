@@ -1,7 +1,6 @@
 package wld
 
 import (
-	"fmt"
 	"os"
 	"testing"
 
@@ -13,8 +12,9 @@ func TestDecode(t *testing.T) {
 	if os.Getenv("SINGLE_TEST") != "1" {
 		return
 	}
-	path := "test/eq/crushbone.s3d"
-	file := "crushbone.wld"
+	category := "goo_chr"
+	path := "test/eq/" + category + ".s3d"
+	file := category + ".wld"
 
 	archive, err := s3d.NewFile(path)
 	if err != nil {
@@ -23,11 +23,16 @@ func TestDecode(t *testing.T) {
 
 	dump.New(file)
 	defer dump.WriteFileClose(path + "_" + file)
-	e, err := NewFile("crushbone", archive, file)
+	e, err := NewFile(category, archive, file)
 	if err != nil {
 		t.Fatalf("new: %s", err)
 	}
+	if len(e.materials) != 42 {
+		t.Fatalf("wanted 42 materials, got %d", len(e.materials))
+	}
 
-	fmt.Println(e.name)
+	if len(e.meshes) != 2694 {
+		t.Fatalf("wanted 2694 meshes, got %d", len(e.meshes))
+	}
 
 }

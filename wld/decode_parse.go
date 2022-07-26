@@ -41,13 +41,14 @@ func (e *WLD) parseMaterial(frag *fragmentInfo) error {
 		return nil
 	}
 
-	inImageName := strings.TrimSuffix(strings.ToLower(material.Name()), "_mdf")
-	if strings.HasPrefix(inImageName, "m000") {
-		fmt.Println("skipping model material", inImageName)
+	baseName := strings.TrimSuffix(strings.ToLower(material.Name()), "_mdf")
+	if strings.HasPrefix(baseName, "m000") {
+		fmt.Println("skipping model material", baseName)
 		return nil
 	}
-	outImageName := inImageName + ".png"
-	inImageName += ".bmp"
+	baseName = strings.TrimSuffix(baseName, ".bmp")
+	outImageName := baseName + ".png"
+	inExt := ".bmp"
 
 	err := e.MaterialAdd(material.Name(), fmt.Sprintf("%d", material.ShaderType()))
 	if err != nil {
@@ -58,22 +59,26 @@ func (e *WLD) parseMaterial(frag *fragmentInfo) error {
 		return fmt.Errorf("materialPropertyAdd %s: %w", outImageName, err)
 	}
 
-	data, err := e.archive.File(inImageName)
+	data, err := e.archive.File(baseName + inExt)
 	if err != nil {
-		//return fmt.Errorf("material '%s' not found in archive", inImageName)
-		fmt.Printf("material '%s' not found in archive\n", inImageName)
-		return nil
+		inExt = ".dds"
+		data, err = e.archive.File(baseName + inExt)
+		if err != nil {
+			//return fmt.Errorf("material '%s' not found in archive", inImageName)
+			fmt.Printf("material '%s' with .dds and .bmp ext not found in archive\n", baseName)
+			return nil
+		}
 	}
 
 	buf := bytes.NewBuffer(data)
 	img, err := dds.Decode(buf)
 	if err != nil {
-		return fmt.Errorf("bmp (dds) decode %s: %w", inImageName, err)
+		return fmt.Errorf("bmp (dds) decode %s: %w", baseName+inExt, err)
 	}
 
 	err = png.Encode(buf, img)
 	if err != nil {
-		return fmt.Errorf("png encode %s: %w", inImageName, err)
+		return fmt.Errorf("png encode %s: %w", baseName+inExt, err)
 	}
 
 	err = e.archive.WriteFile(outImageName, data)

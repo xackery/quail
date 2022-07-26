@@ -25,9 +25,12 @@ func (e *WLD) Encode(w io.Writer) error {
 		return fmt.Errorf("write identifier: %w", err)
 	}
 
-	err = binary.Write(w, binary.LittleEndian, uint32(len(e.fragments)))
+	//TODO: fragment count?
+	fragmentCount := uint32(0)
+	fragmentCount += uint32(len(e.meshes))
+	err = binary.Write(w, binary.LittleEndian, fragmentCount)
 	if err != nil {
-		return fmt.Errorf("write fragment count: %w", err)
+		return fmt.Errorf("write fragmentCount: %w", err)
 	}
 
 	err = binary.Write(w, binary.LittleEndian, &e.BspRegionCount)

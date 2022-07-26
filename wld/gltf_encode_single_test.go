@@ -17,6 +17,7 @@ func TestGLTFEncodeES3Dones(t *testing.T) {
 		category string
 	}{
 		{category: "crushbone"},
+		{category: "goo_chr"},
 		//{category: "steamfontmts"},
 		//{category: "broodlands"},
 		//{category: "steppes"},
