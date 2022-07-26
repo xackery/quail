@@ -20,3 +20,4 @@ quail.log
 eq/
 tmp.*
 *.blend1
+!quail.png
