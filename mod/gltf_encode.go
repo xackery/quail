@@ -139,9 +139,12 @@ func (e *MOD) GLTFEncode(doc *qgltf.GLTF) error {
 				//v.Position = helper.ApplyQuaternion(v.Position, [4]float32{0.7071068, 0, 0, 0.7071068})
 
 				prim.Positions = append(prim.Positions, v.Position)
-				prim.Normals = append(prim.Normals, [3]float32{v.Normal[0], v.Normal[1], v.Normal[2]})
-				prim.Uvs = append(prim.Uvs, [2]float32{v.Uv[0], v.Uv[1]})
+				prim.Normals = append(prim.Normals, v.Normal)
+				prim.Uvs = append(prim.Uvs, v.Uv)
+				prim.Joints = append(prim.Joints, v.Joint)
+				prim.Weights = append(prim.Weights, v.Weight)
 				prim.UniqueIndices[o.Index[i]] = uint16(len(prim.Positions) - 1)
+
 				index = uint16(len(prim.Positions) - 1)
 			}
 			prim.Indices = append(prim.Indices, index)
@@ -179,20 +182,3 @@ func (e *MOD) GLTFEncode(doc *qgltf.GLTF) error {
 	}
 	return nil
 }
-
-/*
-func (e *MOD) gltfBoneChildren(doc *gltf.Document, children *[]uint32, boneIndex int) error {
-
-	nodeIndex, ok := e.gltfBoneBuffer[boneIndex]
-	if !ok {
-		return fmt.Errorf("bone %d node not found", boneIndex)
-	}
-	*children = append(*children, nodeIndex)
-
-	bone := e.bones[boneIndex]
-	if bone.next == -1 {
-		return nil
-	}
-
-	return e.gltfBoneChildren(doc, children, int(bone.next))
-}*/

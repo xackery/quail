@@ -135,9 +135,9 @@ func (e *MOD) GLTFDecode(doc *gltf.Document) error {
 				vertex.Tint = tints[i]
 
 				if len(joints) > i {
-					vertex.Bone = joints[i]
+					vertex.Joint = joints[i]
 				} else {
-					vertex.Bone = [4]uint16{}
+					vertex.Joint = [4]uint16{}
 				}
 
 				if len(weights) > i {

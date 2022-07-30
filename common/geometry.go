@@ -29,7 +29,7 @@ type Vertex struct {
 	Tint     [4]uint8
 	Uv       [2]float32
 	Uv2      [2]float32
-	Bone     [4]uint16
+	Joint    [4]uint16
 	Weight   [4]float32
 }
 
