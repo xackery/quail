@@ -9,6 +9,7 @@ import (
 
 	"github.com/xackery/quail/common"
 	"github.com/xackery/quail/dump"
+	"github.com/xackery/quail/helper"
 )
 
 func (e *MDS) Decode(r io.ReadSeeker) error {
@@ -330,6 +331,7 @@ func (e *MDS) Decode(r io.ReadSeeker) error {
 		// fiddle uv coord
 		vertex.Uv[1] = -vertex.Uv[1]
 
+		vertex.Position = helper.ApplyQuaternion(vertex.Position, [4]float32{1, 0, 0, 0})
 		e.vertices = append(e.vertices, vertex)
 	}
 	vSize := 32
@@ -373,5 +375,6 @@ func (e *MDS) Decode(r io.ReadSeeker) error {
 	}
 	dump.HexRange([]byte{0x03, 0x04}, int(faceCount)*20, "faceData=(%d bytes)", int(faceCount)*20)
 	sort.Sort(common.MaterialByName(e.materials))
+
 	return nil
 }
