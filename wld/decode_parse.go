@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/malashin/dds"
+	"github.com/sergeymakinen/go-bmp"
 	"github.com/xackery/quail/common"
 )
 
@@ -73,7 +74,11 @@ func (e *WLD) parseMaterial(frag *fragmentInfo) error {
 	buf := bytes.NewBuffer(data)
 	img, err := dds.Decode(buf)
 	if err != nil {
-		return fmt.Errorf("bmp (dds) decode %s: %w", baseName+inExt, err)
+		var err2 error
+		img, err2 = bmp.Decode(buf)
+		if err2 != nil {
+			return fmt.Errorf("bmp (dds) decode %s: %s, (bmp) decode: %w", baseName+inExt, err.Error(), err2)
+		}
 	}
 
 	err = png.Encode(buf, img)

@@ -12,12 +12,15 @@ import (
 	"github.com/xackery/quail/gltf"
 )
 
-func TestGLTFEncodeES3Dones(t *testing.T) {
+func TestGLTFEncodeS3D(t *testing.T) {
 	tests := []struct {
 		category string
 	}{
-		{category: "crushbone"},
-		{category: "goo_chr"},
+		//{category: "crushbone"},
+		{category: "brv_chr"}, //blood raven from ponightmare
+		//{category: "globalbam_chr"}, //dark elf luclin
+		//{category: "global_chr"}, //classic global chars
+		//{category: "goo_chr"},
 		//{category: "steamfontmts"},
 		//{category: "broodlands"},
 		//{category: "steppes"},
