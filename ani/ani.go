@@ -8,12 +8,16 @@ type ANI struct {
 }
 
 type Bone struct {
-	frameCount  uint32
-	name        string
-	delay       int32
-	translation [3]float32
-	rotation    [4]float32
-	scale       [3]float32
+	frameCount uint32
+	name       string
+	frames     []*Frame
+}
+
+type Frame struct {
+	milliseconds uint32
+	translation  [3]float32
+	rotation     [4]float32
+	scale        [3]float32
 }
 
 // New creates a new empty instance. Use NewFile to load an archive file on creation

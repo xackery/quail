@@ -34,15 +34,15 @@ func (e *ANI) Decode(r io.ReadSeeker) error {
 	}
 	dump.Hex(nameLength, "nameLength=%d", nameLength)
 
-	animationCount := uint32(0)
-	err = binary.Read(r, binary.LittleEndian, &animationCount)
+	boneCount := uint32(0)
+	err = binary.Read(r, binary.LittleEndian, &boneCount)
 	if err != nil {
-		return fmt.Errorf("read animationCount: %w", err)
+		return fmt.Errorf("read boneCount: %w", err)
 	}
-	dump.Hex(animationCount, "animationCount=%d", animationCount)
+	dump.Hex(boneCount, "boneCount=%d", boneCount)
 
 	e.isStrict = false
-	if version == 1 {
+	if version > 1 {
 		isStrict := uint32(0)
 		err = binary.Read(r, binary.LittleEndian, &isStrict)
 		if err != nil {
@@ -70,52 +70,60 @@ func (e *ANI) Decode(r io.ReadSeeker) error {
 			names[uint32(lastOffset)] = string(chunk)
 			chunk = []byte{}
 			lastOffset = i + 1
+			continue
 		}
 		chunk = append(chunk, b)
 	}
 
-	for i := 0; i < int(animationCount); i++ {
+	for i := 0; i < int(boneCount); i++ {
 		bone := &Bone{}
 
 		err = binary.Read(r, binary.LittleEndian, &bone.frameCount)
 		if err != nil {
 			return fmt.Errorf("read bone %d frameCount: %w", i, err)
 		}
+		dump.Hex(bone.frameCount, "%dframeCount %d", i, bone.frameCount)
 
 		nameOffset := uint32(0)
 		err = binary.Read(r, binary.LittleEndian, &nameOffset)
 		if err != nil {
 			return fmt.Errorf("read bone %d nameOffset: %w", i, err)
 		}
-
 		bone.name = names[nameOffset]
+		dump.Hex(nameOffset, "%dnameOffset 0x%x (%s)", i, nameOffset, bone.name)
 
-		err = binary.Read(r, binary.LittleEndian, &bone.delay)
-		if err != nil {
-			return fmt.Errorf("read %d bone.delay: %w", i, err)
-		}
-		translation := [3]float32{}
-		err = binary.Read(r, binary.LittleEndian, &translation)
-		if err != nil {
-			return fmt.Errorf("read %d bone.translation: %w", i, err)
-		}
-		bone.translation = translation
+		for j := 0; j < int(bone.frameCount); j++ {
+			frame := &Frame{}
 
-		rotation := [4]float32{}
-		err = binary.Read(r, binary.LittleEndian, &rotation)
-		if err != nil {
-			return fmt.Errorf("read %d bone.rotation: %w", i, err)
-		}
-		bone.rotation = rotation
+			err = binary.Read(r, binary.LittleEndian, &frame.milliseconds)
+			if err != nil {
+				return fmt.Errorf("read bone%d frame%d frame.milliseconds: %w", i, j, err)
+			}
 
-		scale := [3]float32{}
-		err = binary.Read(r, binary.LittleEndian, &scale)
-		if err != nil {
-			return fmt.Errorf("read %d bone.scale: %w", i, err)
-		}
-		bone.scale = scale
+			translation := [3]float32{}
+			err = binary.Read(r, binary.LittleEndian, &translation)
+			if err != nil {
+				return fmt.Errorf("read bone%d frame%d frame.translation: %w", i, j, err)
+			}
+			frame.translation = translation
 
-		dump.Hex(chunk, "%dbone(%d %+v)", i, bone.delay, bone.translation)
+			rotation := [4]float32{}
+			err = binary.Read(r, binary.LittleEndian, &rotation)
+			if err != nil {
+				return fmt.Errorf("read bone%d frame%d frame.rotation: %w", i, j, err)
+			}
+			frame.rotation = rotation
+
+			scale := [3]float32{}
+			err = binary.Read(r, binary.LittleEndian, &scale)
+			if err != nil {
+				return fmt.Errorf("read bone%d frame%d frame.scale: %w", i, j, err)
+			}
+			frame.scale = scale
+			bone.frames = append(bone.frames, frame)
+		}
+
+		dump.HexRange([]byte{0x01, 0x02}, int(bone.frameCount*44), "%dbone frames(%d bytes)", i, bone.frameCount*44)
 		e.bones = append(e.bones, bone)
 	}
 
