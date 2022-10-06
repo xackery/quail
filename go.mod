@@ -9,6 +9,7 @@ require (
 	github.com/kvartborg/vector v0.0.0-20210122071920-91df40ba4054
 	github.com/malashin/dds v0.0.0-20190511100755-ab62708f5fe5
 	github.com/mitchellh/go-homedir v1.1.0
+	github.com/sergeymakinen/go-bmp v1.0.0-beta.1
 	github.com/spf13/cobra v1.5.0
 	github.com/spf13/viper v1.12.0
 	github.com/xackery/colors v1.0.1
@@ -28,7 +29,6 @@ require (
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/pelletier/go-toml v1.9.5 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.2 // indirect
-	github.com/sergeymakinen/go-bmp v1.0.0-beta.1 // indirect
 	github.com/spf13/afero v1.9.0 // indirect
 	github.com/spf13/cast v1.5.0 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect

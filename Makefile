@@ -1,7 +1,7 @@
-VERSION ?= 1.0.8
+VERSION ?= 1.0.9
 EQPATH := ~/Documents/games/EverQuest.app/drive_c/rebuildeq/
 
-build: build-docker build-osx
+build: build-docker build-darwin
 	@docker run \
 	--rm \
 	-w /src \
@@ -15,7 +15,7 @@ build-local:
 	@echo "Building Linux..."
 	GOOS=linux GOARCH=amd64 go build -ldflags "-X main.Version=${VERSION}" -o bin/quail-linux-${VERSION} 
 	@echo "Building Windows..."
-	GOOS=windows GOARCH=amd64 CC=x86_64-w64-mingw32-gcc CXX=x86_64-w64-mingw32-g++ go build -ldflags "-X main.Version=${VERSION}" -o bin/quail-windows-${VERSION}.exe
+	cd scripts/itdump && GOOS=windows GOARCH=amd64 CC=x86_64-w64-mingw32-gcc CXX=x86_64-w64-mingw32-g++ go build -ldflags "-X main.Version=${VERSION}" -o bin/quail-windows-${VERSION}.exe
 build-darwin:
 	@echo "Building Darwin..."
 	GOOS=darwin GOARCH=amd64 go build -ldflags "-X main.Version=${VERSION}" -o bin/quail-darwin-${VERSION}

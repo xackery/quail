@@ -280,6 +280,12 @@ func parseMesh(r io.ReadSeeker, v *Mesh, isNewWorldFormat bool) error {
 		vTints = append(vTints, [4]uint8{})
 	}
 
+	if len(vPositions) != len(vNormals) ||
+		len(vNormals) != len(vTints) ||
+		len(vTints) != len(vUvs) {
+		return fmt.Errorf("mismatch on length of verticies")
+	}
+
 	for i := range vPositions {
 		v.verticies = append(v.verticies, &common.Vertex{
 			Position: vPositions[i],

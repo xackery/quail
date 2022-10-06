@@ -39,3 +39,38 @@ func TestDecodeSingle(t *testing.T) {
 	}
 	fmt.Println(e.ModelNames())
 }
+
+func TestDecodeSingleZonePoints(t *testing.T) {
+	if os.Getenv("SINGLE_TEST") != "1" {
+		return
+	}
+	category := "broodlands"
+	path := "test/eq/" + category + ".eqg"
+	archive, err := eqg.NewFile(path)
+	if err != nil {
+		t.Fatalf("eqg new: %s", err)
+	}
+
+	data, err := archive.File(category + ".zon")
+	if err != nil {
+		t.Fatalf("eqg.file: %s", err)
+	}
+
+	//dump.New(path)
+	//defer dump.WriteFileClose(path)
+
+	e, err := New("out", archive)
+	if err != nil {
+		t.Fatalf("new: %s", err)
+	}
+	err = e.Decode(bytes.NewReader(data))
+	if err != nil {
+		t.Fatalf("decode: %s", err)
+	}
+
+	fmt.Println(category, "points:")
+	for _, region := range e.regions {
+		fmt.Println(region.name, region.center)
+	}
+
+}

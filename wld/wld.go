@@ -19,6 +19,7 @@ type WLD struct {
 	particleRenders []*common.ParticleRender
 	particlePoints  []*common.ParticlePoint
 	meshes          []*mesh
+	NameCache       map[int32]string
 }
 
 type mesh struct {

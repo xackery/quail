@@ -78,6 +78,40 @@ func (e *MDS) GLTFEncode(doc *qgltf.GLTF) error {
 		}
 	}
 
+	var skinIndex *uint32
+	if e.skin != nil {
+		matrixIndex := doc.WriteMatrix(e.skin.InverseBindMatrices)
+
+		skin := &gltf.Skin{
+			Name:                e.skin.Name,
+			InverseBindMatrices: &matrixIndex,
+		}
+
+		nodes := make(map[int]uint32)
+
+		for i, joint := range e.skin.Joints {
+			nodeIndex, ok := nodes[i]
+			if !ok {
+				node := &gltf.Node{
+					Name:        joint.Name,
+					Translation: joint.Translation,
+				}
+				nodeIndex = doc.NodeAdd(node)
+				nodes[i] = nodeIndex
+			}
+
+			if i == 0 {
+				skin.Skeleton = &nodeIndex
+			} else {
+				skin.Joints = append(skin.Joints, nodeIndex)
+			}
+
+		}
+
+		tmpSkinIndex := doc.SkinAdd(skin)
+		skinIndex = &tmpSkinIndex
+	}
+
 	for i := 0; i < meshCount; i++ {
 		meshName := fmt.Sprintf("%s_%02d", modelName, i)
 		fmt.Println("adding mesh", meshName)
@@ -86,6 +120,7 @@ func (e *MDS) GLTFEncode(doc *qgltf.GLTF) error {
 		node := &gltf.Node{
 			Name: meshName,
 			Mesh: meshIndex,
+			Skin: skinIndex,
 		}
 
 		if e.isDecoded {
@@ -97,51 +132,6 @@ func (e *MDS) GLTFEncode(doc *qgltf.GLTF) error {
 		doc.NodeAdd(node)
 
 	}
-
-	// ******** MESH SKINNING *******
-	/*var skinIndex *uint32
-	for i, b := range e.bones {
-		doc.Nodes = append(doc.Nodes, &gltf.Node{
-			Name: b.name,
-			//Translation: [3]float32{b.pivot[0], b.pivot[1], b.pivot[2]},
-			Rotation: [4]float32{b.rot[0], b.rot[1], b.rot[2], b.rot[3]},
-			Scale:    [3]float32{b.scale[0], b.scale[1], b.scale[2]},
-		})
-		//if strings.EqualFold(b.name, "ROOT_BONE") {
-		//		rootNode = uint32(len(doc.Nodes) - 1)
-		//}
-		e.gltfBoneBuffer[i] = uint32(len(doc.Nodes) - 1)
-	}
-
-	for i, b := range e.bones {
-		children := &[]uint32{}
-		if b.childIndex > -1 {
-			err = e.gltfBoneChildren(doc, children, int(b.childIndex))
-			if err != nil {
-				return fmt.Errorf("gltfBoneChildren: %w", err)
-			}
-		}
-
-		fmt.Printf("%d %d %d %d children for %s: %d\n", i, b.next, b.childIndex, b.childrenCount, b.name, len(*children))
-		if strings.EqualFold(b.name, "ROOT_BONE") {
-			//*children = append(*children, rootNode)
-			skin := &gltf.Skin{
-				Name:   e.bones[0].name,
-				Joints: *children,
-			}
-			doc.Skins = append(doc.Skins, skin)
-			tmp := uint32(len(doc.Skins) - 1)
-			skinIndex = &tmp
-		} else {
-			nodeIndex, ok := e.gltfBoneBuffer[i]
-			if !ok {
-				return fmt.Errorf("bone for %d not found", i)
-			}
-			node := doc.Nodes[int(nodeIndex)]
-			node.Children = *children
-		}
-	}
-	*/
 
 	tmpCache := make(map[string]bool)
 	fmt.Println(len(e.triangles), "faces")
@@ -225,22 +215,6 @@ func (e *MDS) GLTFEncode(doc *qgltf.GLTF) error {
 			return fmt.Errorf("ParticlePointAdd: %w", err)
 		}
 	}
+
 	return nil
 }
-
-/*
-func (e *MOD) gltfBoneChildren(doc *gltf.Document, children *[]uint32, boneIndex int) error {
-
-	nodeIndex, ok := e.gltfBoneBuffer[boneIndex]
-	if !ok {
-		return fmt.Errorf("bone %d node not found", boneIndex)
-	}
-	*children = append(*children, nodeIndex)
-
-	bone := e.bones[boneIndex]
-	if bone.next == -1 {
-		return nil
-	}
-
-	return e.gltfBoneChildren(doc, children, int(bone.next))
-}*/

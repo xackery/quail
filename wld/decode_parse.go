@@ -65,8 +65,9 @@ func (e *WLD) parseMaterial(frag *fragmentInfo) error {
 		inExt = ".dds"
 		data, err = e.archive.File(baseName + inExt)
 		if err != nil {
+			//TODO: dds bmp fix
 			//return fmt.Errorf("material '%s' not found in archive", inImageName)
-			fmt.Printf("material '%s' with .dds and .bmp ext not found in archive\n", baseName)
+			//fmt.Printf("material '%s' with .dds and .bmp ext not found in archive\n", baseName)
 			return nil
 		}
 	}

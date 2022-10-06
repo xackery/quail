@@ -247,10 +247,15 @@ func (e *MDS) Decode(r io.ReadSeeker) error {
 			return fmt.Errorf("read bone %d scale: %w", i, err)
 		}
 		dump.Hex(scale, "%dscale=%+v", i, scale)
-		err = e.BoneAdd(name, next, childrenCount, childIndex, pivot, rot, scale)
+
+		if name != "" {
+
+		}
+		//TODO: BoneAdd
+		/*err = e.BoneAdd(name, next, childrenCount, childIndex, pivot, rot, scale)
 		if err != nil {
 			return fmt.Errorf("BoneAdd %d: %w", i, err)
-		}
+		}*/
 	}
 
 	mainNameIndex := uint32(0)

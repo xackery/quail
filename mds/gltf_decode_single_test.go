@@ -14,8 +14,8 @@ func TestGLTFDecode(t *testing.T) {
 		return
 	}
 	filePath := "test/"
-	inFile := "test/ecommons.gltf"
-	outFile := "test/ecommons_gltfimport.mod"
+	inFile := "test/box.gltf"
+	outFile := "test/box.mds"
 	path, err := common.NewPath(filePath)
 	if err != nil {
 		t.Fatalf("newPath: %s", err)

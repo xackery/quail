@@ -107,6 +107,8 @@ func (e *WLD) Decode(r io.ReadSeeker) error {
 
 	fragment.SetNames(names)
 
+	e.NameCache = names
+
 	dump.HexRange(hashRaw, int(hashSize), "nameData=(%d bytes, %d names)", hashSize, len(names))
 
 	parsers := []struct {
@@ -139,6 +141,9 @@ func (e *WLD) Decode(r io.ReadSeeker) error {
 		if err != nil {
 			return fmt.Errorf("frag position seek %d/%d: %w", i, fragmentCount, err)
 		}
+		if fragIndex == 0x03 {
+			fmt.Println("fragPos for 0x03:", fragPosition)
+		}
 
 		buf := make([]byte, fragSize)
 		_, err = r.Read(buf)
@@ -148,13 +153,15 @@ func (e *WLD) Decode(r io.ReadSeeker) error {
 
 		frag, err := fragment.New(fragIndex, bytes.NewReader(buf))
 		if err != nil {
-			fmt.Printf("warning: fragment decode 0x%x (%d): %s\n", fragIndex, fragIndex, err)
+			//TODO: fix error
+			//fmt.Printf("warning: fragment decode 0x%x (%d): %s\n", fragIndex, fragIndex, err)
 			//return fmt.Errorf("fragment load: %w", err)
 		} else {
 			for _, parser := range parsers {
 				err = parser.invoke(&fragmentInfo{name: name, data: frag})
 				if err != nil {
-					return fmt.Errorf("parse %s: %w", parser.name, err)
+					//fmt.Printf("warning: parse %s: %s\n", parser.name, err)
+					//return fmt.Errorf("parse %s: %w", parser.name, err)
 				}
 			}
 		}

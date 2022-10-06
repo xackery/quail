@@ -9,6 +9,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/qmuntal/gltf"
 	"github.com/xackery/quail/common"
 )
 
@@ -23,21 +24,12 @@ type MDS struct {
 	materials       []*common.Material
 	vertices        []*common.Vertex
 	triangles       []*common.Triangle
-	bones           []*bone
 	files           []common.Filer
 	particleRenders []*common.ParticleRender
 	particlePoints  []*common.ParticlePoint
 	isDecoded       bool
-}
-
-type bone struct {
-	name          string
-	next          int32
-	childrenCount uint32
-	childIndex    int32
-	pivot         [3]float32
-	rot           [4]float32
-	scale         [3]float32
+	animations      []*gltf.Animation
+	skin            *common.Skin
 }
 
 // New creates a new empty instance. Use NewFile to load an archive file on creation
