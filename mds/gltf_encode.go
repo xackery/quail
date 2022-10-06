@@ -2,6 +2,7 @@ package mds
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/qmuntal/gltf"
@@ -18,7 +19,10 @@ func (e *MDS) GLTFEncode(doc *qgltf.GLTF) error {
 		return fmt.Errorf("doc is nil")
 	}
 
+	prefix := ""
+
 	modelName := strings.TrimSuffix(e.name, ".mds")
+	modelName = strings.TrimSuffix(modelName, ".eqg")
 
 	meshCount := 1
 
@@ -114,7 +118,11 @@ func (e *MDS) GLTFEncode(doc *qgltf.GLTF) error {
 
 	for i := 0; i < meshCount; i++ {
 		meshName := fmt.Sprintf("%s_%02d", modelName, i)
+
 		fmt.Println("adding mesh", meshName)
+		if strings.Contains(meshName, "_") {
+			prefix = meshName[0:strings.Index(meshName, "_")]
+		}
 		mesh := &gltf.Mesh{Name: meshName}
 		meshIndex := doc.MeshAdd(mesh)
 		node := &gltf.Node{
@@ -130,8 +138,11 @@ func (e *MDS) GLTFEncode(doc *qgltf.GLTF) error {
 			//node.Rotation = [4]float32{-0.5, 0.5, -0.5, 0.5}
 		}
 		doc.NodeAdd(node)
-
 	}
+
+	fmt.Println("prefix", prefix)
+
+	context := ""
 
 	tmpCache := make(map[string]bool)
 	fmt.Println(len(e.triangles), "faces")
@@ -141,6 +152,20 @@ func (e *MDS) GLTFEncode(doc *qgltf.GLTF) error {
 		/*if strings.HasPrefix(matName, e.name+"_") {
 			matName = fmt.Sprintf("c_%s_s02_m01", e.name)
 		}*/
+
+		var suffix int
+		context = matName
+		parts := strings.Split(matName, "_")
+		if len(parts) == 3 {
+			prefix = parts[0]
+			context = parts[1]
+			suffix, err = strconv.Atoi(parts[2])
+			if err == nil {
+				suffix = 1
+
+				matName = fmt.Sprintf("%s_%s_%02d", prefix, context, suffix)
+			}
+		}
 
 		matIndex := doc.Material(matName)
 
@@ -190,7 +215,6 @@ func (e *MDS) GLTFEncode(doc *qgltf.GLTF) error {
 		if err != nil {
 			return fmt.Errorf("primitiveAdd: %w", err)
 		}
-
 	}
 
 	for i := 0; i < meshCount; i++ {
