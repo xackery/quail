@@ -40,11 +40,11 @@ jobs:
       working-directory: .
       run: |
         make build-linux
-        #make build-windows
+        make build-windows
       if: ${{runner.os == 'Linux'}}
 
     - uses: "marvinpinto/action-automatic-releases@latest"
-      if: github.ref == 'refs/heads/master'
+      if: github.ref == 'refs/heads/main'
       with:
         repo_token: "${{ secrets.GITHUB_TOKEN }}"
         automatic_release_tag: "${{ env.VERSION }}.${{ github.run_number }}"

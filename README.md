@@ -1,6 +1,6 @@
 # quail - Ever[Q]uest [U]niversal [A]rchive, [I]mport and [L]oader tool
 
-[![GoDoc](https://godoc.org/github.com/xackery/quail?status.svg)](https://godoc.org/github.com/xackery/quail) [![Go Report Card](https://goreportcard.com/badge/github.com/xackery/quail)](https://goreportcard.com/report/github.com/xackery/quail) [![Total alerts](https://img.shields.io/lgtm/alerts/g/xackery/quail.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/xackery/quail/alerts/)
+[![GoDoc](https://godoc.org/github.com/xackery/quail?status.svg)](https://godoc.org/github.com/xackery/quail) [![Go Report Card](https://goreportcard.com/badge/github.com/xackery/quail)](https://goreportcard.com/report/github.com/xackery/quail) [![Platform Tests & Build](https://github.com/xackery/quail/actions/workflows/build_workflow.yml/badge.svg)](https://github.com/xackery/quail/actions/workflows/build_workflow.yml)
 
 ![quail](quail.png)
 
@@ -10,50 +10,50 @@ File extensions are broken into the following categories:
 ## Pfs
 
 Pfs represents packaged files
-Extension|Notes
----|---
-eqg|pfs acrhive (EQG), 95% - Decode/Encode working, EQ client fails to support Encoded data
-s3d|pfs archive (S3D), 50% - Decode/Encode prototyped, EQ client fails to support Encoded data, some fragments unsupported
+
+Extension|%|Ver|Notes
+---|---|---|---
+eqg|80%|EQG|Version 1 - Contains most assets of modern EQ files
+eqg|80%|EQG|Version 2 - Contains most assets of modern EQ files
+eqg|80%|EQG|Version 3 - Contains most assets of modern EQ files
+eqg|30%|EQG|Version 4 - Contains most assets of modern EQ files
+s3d|40%|S3D|Version 1 - Decode/Encode prototyped, EQ client fails to support Encoded data, some fragments unsupported
+s3d|40%|S3D|Version 2 - Decode/Encode prototyped, EQ client fails to support Encoded data, some fragments unsupported
 
 ## Model/Mesh
 
 Model meshes represents geometry data, and some times metadata
 
-Extension|Notes
----|---
-ter|terrain data (EQG), 60% - Decode/Encode prototyped, GLTF bidirectional support prototyped
-mds|model data (EQG), 60% - Not yet implemented
-mod|model data (EQG), 60% - Decode/Encode prototypd, GLTF birectional support prototyped
-wld|terrain/model megapack data (S3D), 20% - Decode/Encode prototyped, needs attention
+Extension|%|Ver|Notes
+---|---|---|---
+ter|40%|EQG|terrain data, Decode/Encode prototyped, GLTF bidirectional support prototyped
+mds|20%|EQG|model data, early prototyping
+mod|20%|EQG|model data, Decode/Encode prototypd, GLTF birectional support prototyped
+wld|20%|S3D|terrain/model megapack data, Decode/Encode prototyped, needs attention
 
 ## Model/Metadata
 
 Model metadata tells additional details or variations of a mesh
 
-Extension|Notes
----|---
-tog|object meta data (EQG), 10% - Encode template prototyped
-zon|zone metadata (EQG), 50% - Decode/Encode prototyped, needs attention
-pts|partical meta data (EQG), 30% - 
-ani|animation nodes and positions (EQG), 0% - Decode functionality prototyped
-lit|light data (EQG), 10% - Decode prototyped
-lay|layered material metadata (EQG), 40%
-prt|particle rendering (EQG), 30% -
+Extension|%|Ver|Notes
+---|---|---|---
+tog|10%|EQG|object meta data - Encode template prototyped
+zon|50%|EQG|zone metadata - Decode/Encode prototyped, needs attention
+pts|30%|EQG|partical meta data, early prototype
+ani|10%|EQG|animation nodes and positions, missing features
+lit|10%|EQG|light data, decode prototyped
+lay|40%|EQG|layered material metadata - prototype in
+prt|30%|EQG|particle rendering - early prototype
 
 ## Model/Plugin
 
 Model plugins are 3rd party export/import file types
 
-Extension|Notes
----|---
-blend|Blender 3d modeling, 10% - Needs a lot of work, python dependency to script
-obj|lightform model OBJ export, 80% - Decode/Encode working, bugs need to be sorted out (lightwave obj)
-gltf|GLTF 3d modeling, 10% - needs a lot of work
-
-# EQG Zone Versions
-
-- 1 e.g.: .zon will define
-- 4 e.g. shardslanding: .zon 
+Extension|%|Ver|Notes
+---|---|---|---
+blend|10%|EQG|Blender 3d modeling, python required still
+obj|80%|EQG|lightform model OBJ export, - Decode/Encode working, bugs need to be sorted out (lightwave obj)
+gltf|10%|EQG|GLTF 3d modeling - needs a lot of work
 
 # Problem Children
 // TODO:
