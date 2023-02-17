@@ -14,6 +14,10 @@ build: build-docker build-darwin
 set-version:
 	@echo "VERSION=${VERSION}" >> $$GITHUB_ENV
 
+#go install github.com/tc-hib/go-winres@latest
+bundle:
+	go-winres simply --icon quail.png
+
 build-docker:
 	docker build -t quail-builder .github -f .github/build.dockerfile
 build-local:
@@ -36,5 +40,5 @@ build-linux:
 .PHONY: build-windows
 build-windows:
 	@echo "build-windows: ${VERSION}"
-	@GOOS=windows GOARCH=amd64 CC=x86_64-w64-mingw32-gcc CXX=x86_64-w64-mingw32-g++ go build -buildmode=pie -ldflags="-X main.Version=${VERSION} -s -w" -o bin/${NAME}-win-x64.exe main.go
-	@#GOOS=windows GOARCH=386 CC=i686-w64-mingw32-gcc CXX=i686-w64-mingw32-g++ go build -buildmode=pie -ldflags="-X main.Version=${VERSION} -s -w" -o bin/${NAME}-win.exe main.go
+	@GOOS=windows GOARCH=amd64 CGO_ENABLED=1 CC=x86_64-w64-mingw32-gcc CXX=x86_64-w64-mingw32-g++ go build -buildmode=pie -ldflags="-X main.Version=${VERSION} -s -w" -o bin/${NAME}-win-x64.exe main.go
+	@#GOOS=windows GOARCH=386 CGO_ENABLED=1 CC=i686-w64-mingw32-gcc CXX=i686-w64-mingw32-g++ go build -buildmode=pie -ldflags="-X main.Version=${VERSION} -s -w" -o bin/${NAME}-win.exe main.go

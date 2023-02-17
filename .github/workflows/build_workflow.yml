@@ -23,7 +23,7 @@ jobs:
         go-version: ${{ matrix.go-version }}
 
     - name: Get dependencies
-      run: sudo apt-get update && sudo apt install -y bc make libgl1-mesa-dev xorg-dev gcc-multilib gcc-mingw-w64
+      run: sudo apt-get update && sudo apt install -y bc make libgl1-mesa-dev xorg-dev gcc-multilib gcc-mingw-w64 mesa-common-dev libgl1-mesa-dev libglu1-mesa-dev libc6-dev libglu1-mesa-dev libgl1-mesa-dev libxcursor-dev libxi-dev libxinerama-dev libxrandr-dev libxxf86vm-dev libasound2-dev pkg-config
       if: ${{ runner.os == 'Linux' }}
 
     #- name: Tests
@@ -53,4 +53,3 @@ jobs:
         files: |
           bin/quail-linux-x64
           bin/quail-win-x64.exe
-          bin/quail-darwin-x64
