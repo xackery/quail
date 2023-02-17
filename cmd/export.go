@@ -8,10 +8,10 @@ import (
 	"time"
 
 	"github.com/spf13/cobra"
-	"github.com/xackery/quail/eqg"
-	qexport "github.com/xackery/quail/export"
-	"github.com/xackery/quail/gltf"
-	"github.com/xackery/quail/s3d"
+	qexport "github.com/xackery/quail/model/plugin/export"
+	"github.com/xackery/quail/model/plugin/gltf"
+	"github.com/xackery/quail/pfs/eqg"
+	"github.com/xackery/quail/pfs/s3d"
 )
 
 // exportCmd represents the export command

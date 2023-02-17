@@ -8,9 +8,9 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
-	"github.com/xackery/quail/eqg"
 	"github.com/xackery/quail/helper"
-	"github.com/xackery/quail/s3d"
+	"github.com/xackery/quail/pfs/eqg"
+	"github.com/xackery/quail/pfs/s3d"
 )
 
 // compressCmd represents the compress command

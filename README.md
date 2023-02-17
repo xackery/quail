@@ -6,29 +6,54 @@
 
 Quail parses EverQuest files found inside on pfs compressed archives (*.eqg and *.s3d files). The overall goal is to design conversion commands to and from these specialized formats to more common, popular formats.
 
+File extensions are broken into the following categories:
+## Pfs
+
+Pfs represents packaged files
 Extension|Notes
 ---|---
-ani|animation (EQG), 0% - Decode functionality prototyped
-blend|Blender 3d modeling, 10% - Needs a lot of work, python dependency to script
 eqg|pfs acrhive (EQG), 95% - Decode/Encode working, EQ client fails to support Encoded data
-lay|layered material metadata (EQG), 40%
-lit|light data (EQG), 10% - Decode prototyped
+s3d|pfs archive (S3D), 50% - Decode/Encode prototyped, EQ client fails to support Encoded data, some fragments unsupported
+
+## Model/Mesh
+
+Model meshes represents geometry data, and some times metadata
+
+Extension|Notes
+---|---
+ter|terrain data (EQG), 60% - Decode/Encode prototyped, GLTF bidirectional support prototyped
 mds|model data (EQG), 60% - Not yet implemented
 mod|model data (EQG), 60% - Decode/Encode prototypd, GLTF birectional support prototyped
-obj|lightform model OBJ export, 80% - Decode/Encode working, bugs need to be sorted out (lightwave obj)
-prt|particle rendering (EQG), 30% -
-pts|partical transform (EQG), 30% - 
-s3d|pfs archive (S3D), 50% - Decode/Encode prototyped, EQ client fails to support Encoded data, some fragments unsupported
-ter|terrain data (EQG), 60% - Decode/Encode prototyped, GLTF bidirectional support prototyped
-tog|object meta data (EQG), 10% - Encode template prototyped
 wld|terrain/model megapack data (S3D), 20% - Decode/Encode prototyped, needs attention
+
+## Model/Metadata
+
+Model metadata tells additional details or variations of a mesh
+
+Extension|Notes
+---|---
+tog|object meta data (EQG), 10% - Encode template prototyped
 zon|zone metadata (EQG), 50% - Decode/Encode prototyped, needs attention
+pts|partical meta data (EQG), 30% - 
+ani|animation nodes and positions (EQG), 0% - Decode functionality prototyped
+lit|light data (EQG), 10% - Decode prototyped
+lay|layered material metadata (EQG), 40%
+prt|particle rendering (EQG), 30% -
+
+## Model/Plugin
+
+Model plugins are 3rd party export/import file types
+
+Extension|Notes
+---|---
+blend|Blender 3d modeling, 10% - Needs a lot of work, python dependency to script
+obj|lightform model OBJ export, 80% - Decode/Encode working, bugs need to be sorted out (lightwave obj)
+gltf|GLTF 3d modeling, 10% - needs a lot of work
 
 # EQG Zone Versions
 
 - 1 e.g.: .zon will define
 - 4 e.g. shardslanding: .zon 
-
 
 # Problem Children
 // TODO:

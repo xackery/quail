@@ -7,8 +7,8 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
-	"github.com/xackery/quail/eqg"
-	"github.com/xackery/quail/s3d"
+	"github.com/xackery/quail/pfs/eqg"
+	"github.com/xackery/quail/pfs/s3d"
 )
 
 // extractCmd represents the extract command

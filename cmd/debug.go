@@ -9,7 +9,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/xackery/quail/dump"
-	"github.com/xackery/quail/zon"
+	"github.com/xackery/quail/model/metadata/zon"
 )
 
 // debugCmd represents the debug command

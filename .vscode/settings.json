@@ -6,5 +6,13 @@
     },
     "go.testEnvVars": {
         "SINGLE_TEST": "1"
-    }
+    },
+    "workbench.editorAssociations": {
+        "*.hex": "hexEditor.hexedit",
+        "*.eqg": "hexEditor.hexedit",
+        "*.s3d": "hexEditor.hexedit",
+        "*.mod": "hexEditor.hexedit",
+        "*.mds": "hexEditor.hexedit",
+        "*.ter": "hexEditor.hexedit",
+    },
 }

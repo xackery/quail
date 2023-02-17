@@ -9,13 +9,13 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/xackery/quail/common"
-	"github.com/xackery/quail/eqg"
-	"github.com/xackery/quail/lit"
-	"github.com/xackery/quail/mds"
-	"github.com/xackery/quail/mod"
-	"github.com/xackery/quail/s3d"
-	"github.com/xackery/quail/ter"
-	"github.com/xackery/quail/zon"
+	"github.com/xackery/quail/model/mesh/mds"
+	"github.com/xackery/quail/model/mesh/mod"
+	"github.com/xackery/quail/model/mesh/ter"
+	"github.com/xackery/quail/model/metadata/lit"
+	"github.com/xackery/quail/model/metadata/zon"
+	"github.com/xackery/quail/pfs/eqg"
+	"github.com/xackery/quail/pfs/s3d"
 )
 
 // inspectCmd represents the inspect command

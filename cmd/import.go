@@ -8,13 +8,13 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
-	"github.com/xackery/quail/eqg"
-	"github.com/xackery/quail/gltf"
 	"github.com/xackery/quail/helper"
-	"github.com/xackery/quail/mds"
-	"github.com/xackery/quail/s3d"
-	"github.com/xackery/quail/ter"
-	"github.com/xackery/quail/zon"
+	"github.com/xackery/quail/model/mesh/mds"
+	"github.com/xackery/quail/model/mesh/ter"
+	"github.com/xackery/quail/model/metadata/zon"
+	"github.com/xackery/quail/model/plugin/gltf"
+	"github.com/xackery/quail/pfs/eqg"
+	"github.com/xackery/quail/pfs/s3d"
 )
 
 // importCmd represents the import command

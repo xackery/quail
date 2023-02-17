@@ -8,9 +8,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/xackery/quail/eqg"
-	"github.com/xackery/quail/s3d"
-	"github.com/xackery/quail/wld"
+	"github.com/xackery/quail/model/mesh/wld"
+	"github.com/xackery/quail/pfs/eqg"
+	"github.com/xackery/quail/pfs/s3d"
 )
 
 var (

@@ -8,13 +8,13 @@ import (
 	"strings"
 
 	"github.com/xackery/quail/common"
-	"github.com/xackery/quail/eqg"
-	qexport "github.com/xackery/quail/export"
-	"github.com/xackery/quail/gltf"
-	"github.com/xackery/quail/mds"
-	"github.com/xackery/quail/mod"
-	"github.com/xackery/quail/ter"
-	"github.com/xackery/quail/zon"
+	"github.com/xackery/quail/model/mesh/mds"
+	"github.com/xackery/quail/model/mesh/mod"
+	"github.com/xackery/quail/model/mesh/ter"
+	"github.com/xackery/quail/model/metadata/zon"
+	qexport "github.com/xackery/quail/model/plugin/export"
+	"github.com/xackery/quail/model/plugin/gltf"
+	"github.com/xackery/quail/pfs/eqg"
 )
 
 func viewLoad(buf *bytes.Buffer, path string, file string) error {
