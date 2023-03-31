@@ -1,15 +1,24 @@
 package cmd
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	"github.com/spf13/cobra"
+	"github.com/xackery/quail/common"
 	"github.com/xackery/quail/dump"
+	"github.com/xackery/quail/model/mesh/mds"
+	"github.com/xackery/quail/model/mesh/mod"
+	"github.com/xackery/quail/model/mesh/ter"
+	"github.com/xackery/quail/model/metadata/ani"
 	"github.com/xackery/quail/model/metadata/zon"
+	"github.com/xackery/quail/pfs/eqg"
+	"github.com/xackery/quail/pfs/s3d"
 )
 
 // debugCmd represents the debug command
@@ -37,11 +46,12 @@ Supported extensions: eqg, zon, ter, ani, mod
 		}
 		if out == "" {
 			if len(args) < 2 {
-				out = fmt.Sprintf("debug_%s.png", filepath.Base(path))
+				out = fmt.Sprintf("debug_%s", filepath.Base(path))
 			} else {
 				out = args[1]
 			}
 		}
+		out = strings.TrimSuffix(out, ".png")
 		defer func() {
 			if err != nil {
 				fmt.Println("Error:", err)
@@ -56,8 +66,6 @@ Supported extensions: eqg, zon, ter, ani, mod
 			return fmt.Errorf("debug requires a target file, directory provided")
 		}
 
-		dump.New(path)
-		defer dump.Close()
 		f, err := os.Open(path)
 		if err != nil {
 			return fmt.Errorf("open debug path: %s", err)
@@ -75,24 +83,35 @@ Supported extensions: eqg, zon, ter, ani, mod
 			extension string
 		}
 		decodes := []*decodeTypes{
-			//{instance: &ani.ANI{}, extension: ".ani"},
-			//{instance: &eqg.EQG{}, extension: ".eqg"},
-			//{instance: &mod.MOD{}, extension: ".mod"},
-			//{instance: &ter.TER{}, extension: ".ter"},
+			{instance: &ani.ANI{}, extension: ".ani"},
+			{instance: &eqg.EQG{}, extension: ".eqg"},
+			{instance: &s3d.S3D{}, extension: ".s3d"},
+			{instance: &mod.MOD{}, extension: ".mod"},
+			{instance: &mds.MDS{}, extension: ".mds"},
+			{instance: &ter.TER{}, extension: ".ter"},
 			{instance: &zon.ZON{}, extension: ".zon"},
 		}
 
+		fmt.Println("debugging file", path, "and dumping results to", out)
 		for _, v := range decodes {
 			if ext != v.extension {
 				continue
 			}
 
-			err = v.instance.Decode(f)
+			if ext == ".eqg" {
+				err = debugEQG(path, out)
+				if err != nil {
+					return fmt.Errorf("debugEQG: %w", err)
+				}
+			}
+
+			err = dumpDecode(f, v.extension, path, fmt.Sprintf("%s%s", out, filepath.Base(path)))
 			if err != nil {
-				return fmt.Errorf("failed to decode %s: %w", v.extension, err)
+				return fmt.Errorf("dumpDecode: %w", err)
 			}
 			return nil
 		}
+
 		return fmt.Errorf("failed to debug: unknown extension %s on file %s", ext, filepath.Base(path))
 	},
 }
@@ -101,5 +120,89 @@ func init() {
 	rootCmd.AddCommand(debugCmd)
 	debugCmd.PersistentFlags().String("path", "", "path to debug")
 	debugCmd.PersistentFlags().String("out", "", "out file of debug")
+}
 
+func debugEQG(path string, out string) error {
+	archive, err := eqg.New(filepath.Base(path))
+	if err != nil {
+		return fmt.Errorf("new: %w", err)
+	}
+	r, err := os.Open(path)
+	if err != nil {
+		return err
+	}
+	defer r.Close()
+	err = archive.Decode(r)
+	if err != nil {
+		return fmt.Errorf("decode: %w", err)
+	}
+
+	fmt.Printf("%s contains %d files:\n", filepath.Base(path), archive.Len())
+
+	filesByName := archive.Files()
+	sort.Sort(common.FilerByName(filesByName))
+	for i, fe := range archive.Files() {
+		base := float64(len(fe.Data()))
+		strSize := ""
+		num := float64(1024)
+		if base < num*num*num*num {
+			strSize = fmt.Sprintf("%0.0fG", base/num/num/num)
+		}
+		if base < num*num*num {
+			strSize = fmt.Sprintf("%0.0fM", base/num/num)
+		}
+		if base < num*num {
+			strSize = fmt.Sprintf("%0.0fK", base/num)
+		}
+		if base < num {
+			strSize = fmt.Sprintf("%0.0fB", base)
+		}
+
+		fmt.Printf("%d: %s %s\n", i, fe.Name(), strSize)
+		ext := strings.ToLower(filepath.Ext(fe.Name()))
+		r := bytes.NewReader(fe.Data())
+		err = dumpDecode(r, ext, fe.Name(), fmt.Sprintf("%s.%s", out, fe.Name()))
+		if err != nil {
+			return fmt.Errorf("dumpDecode %s: %w", fe.Name(), err)
+		}
+		fmt.Printf("%s\t%s\n", out, fe.Name())
+	}
+
+	return nil
+}
+
+func dumpDecode(r io.ReadSeeker, ext string, path string, out string) error {
+	var err error
+	type decoder interface {
+		Decode(io.ReadSeeker) error
+	}
+	type decodeTypes struct {
+		instance  decoder
+		extension string
+	}
+	decodes := []*decodeTypes{
+		{instance: &ani.ANI{}, extension: ".ani"},
+		{instance: &eqg.EQG{}, extension: ".eqg"},
+		{instance: &s3d.S3D{}, extension: ".s3d"},
+		{instance: &mod.MOD{}, extension: ".mod"},
+		{instance: &mds.MDS{}, extension: ".mds"},
+		{instance: &ter.TER{}, extension: ".ter"},
+		{instance: &zon.ZON{}, extension: ".zon"},
+	}
+
+	for _, v := range decodes {
+		if ext != v.extension {
+			continue
+		}
+
+		fmt.Println("dumping", path)
+		dump.New(path)
+		err = v.instance.Decode(r)
+		if err != nil {
+			return fmt.Errorf("failed to decode %s: %w", v.extension, err)
+		}
+		dump.WriteFileClose(fmt.Sprintf("%s.png", out))
+		return nil
+	}
+	return nil
 }

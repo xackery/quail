@@ -1,5 +1,5 @@
 NAME := quail
-VERSION ?= 1.0.11
+VERSION ?= 1.0.12
 EQPATH := ~/Documents/games/EverQuest.app/drive_c/rebuildeq/
 
 build: build-docker build-darwin
