@@ -6,6 +6,24 @@
 
 Quail manages EverQuest files. [Find downloads in releases](https://github.com/xackery/quail/releases/latest)
 
+
+## Usage
+
+Quail has a number of commands that are displayed when the program is ran on it's own with no arguments:
+```
+Available Commands:
+  completion  Generate the autocompletion script for the specified shell
+  compress    Create an eqg archive by compressing a directory
+  debug       Debug a file
+  export      Export an eqg or s3d archive to embedded GLTF
+  extract     Extract an eqg or s3d archive
+  help        Help about any command
+  import      Export an eqg or s3d archive to embedded GLTF
+  inspect     Inspect a file
+  view        View a model or image
+```
+
+
 File extensions are broken into the following categories:
 
 ## Pfs

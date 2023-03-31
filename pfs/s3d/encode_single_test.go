@@ -24,6 +24,8 @@ func TestArchiveExportSample(t *testing.T) {
 		eqgFile := fmt.Sprintf("test/eq/%s.s3d", tt.category)
 		outFile := fmt.Sprintf("test/eq/%s_out.s3d", tt.outCategory)
 
+		//dump.New(eqgFile)
+		//defer dump.WriteFileClose(eqgFile)
 		var err error
 
 		archive, err := New(tt.category)

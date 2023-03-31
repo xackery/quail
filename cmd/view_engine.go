@@ -10,8 +10,8 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/hajimehoshi/ebiten/v2/text"
 	"github.com/kvartborg/vector"
-	"github.com/xackery/tetra3d"
-	"github.com/xackery/tetra3d/colors"
+	"github.com/solarlune/tetra3d"
+	"github.com/solarlune/tetra3d/colors"
 	"golang.org/x/image/font/basicfont"
 )
 
@@ -45,7 +45,7 @@ func (v *viewEngine) load(gltfData []byte) error {
 	v.camera = tetra3d.NewCamera(v.width, v.height)
 	v.camera.Move(0, 0, 12)
 	v.scene.Root.AddChildren(v.camera)
-	v.scene.LightingOn = false
+	v.scene.World.LightingOn = false
 
 	fmt.Println(v.scene.Root.HierarchyAsString())
 	return nil
@@ -112,7 +112,7 @@ func (v *viewEngine) Update() error {
 		pos = pos.Add(right.Scale(-moveSpd * boost))
 	}
 
-	v.camera.SetLocalPosition(pos)
+	v.camera.SetLocalPosition(pos.X, pos.Y, pos.Z)
 
 	// Rotating the camera with the mouse
 
@@ -204,7 +204,7 @@ V: Wireframe
 Y: Depth
 N: Normals
 Q: Quit
-Pos: %0.2f %0.2f %0.2f`, v.camera.LocalPosition()[0], v.camera.LocalPosition()[1], v.camera.LocalPosition()[2])
+Pos: %0.2f %0.2f %0.2f`, v.camera.LocalPosition().X, v.camera.LocalPosition().Y, v.camera.LocalPosition().Z)
 		text.Draw(screen, txt, basicfont.Face7x13, 0, 140, color.RGBA{255, 0, 0, 255})
 	}
 }

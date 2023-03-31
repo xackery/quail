@@ -10,6 +10,10 @@ build: build-docker build-darwin
 	-v ${PWD}:/src \
 	-it quail-builder bash -c 'time make build-local'
 
+run:
+	@echo "run: running..."
+	go run main.go
+
 # CICD triggers this
 .PHONY: set-variable
 set-version:
@@ -29,7 +33,7 @@ build-local:
 	@#go test ./...
 	@#go test -cover ./...
 	@echo "Building Linux..."
-	GOOS=linux GOARCH=amd64 go build -ldflags "-X main.Version=${VERSION}" -o bin/quail-linux-${VERSION} 
+	GOOS=linux GOARCH=amd64 go build -ldflags "-X main.Version=${VERSION}" -o bin/quail-linux-${VERSION}
 	@echo "Building Windows..."
 	cd scripts/itdump && GOOS=windows GOARCH=amd64 CC=x86_64-w64-mingw32-gcc CXX=x86_64-w64-mingw32-g++ go build -ldflags "-X main.Version=${VERSION}" -o bin/quail-windows-${VERSION}.exe
 test:
@@ -45,9 +49,9 @@ build-darwin:
 .PHONY: build-linux
 build-linux:
 	@echo "build-linux: ${VERSION}"
-	@GOOS=linux GOARCH=amd64 go build -buildmode=pie -ldflags="-X main.Version=${VERSION} -w" -o bin/${NAME}-linux-x64 main.go		
+	@GOOS=linux GOARCH=amd64 go build -buildmode=pie -ldflags="-X main.Version=${VERSION} -w" -o bin/${NAME}-linux-x64 main.go
 .PHONY: build-windows
 build-windows:
 	@echo "build-windows: ${VERSION}"
 	@GOOS=windows GOARCH=amd64 CGO_ENABLED=1 CC=x86_64-w64-mingw32-gcc CXX=x86_64-w64-mingw32-g++ go build -buildmode=pie -ldflags="-X main.Version=${VERSION} -s -w" -o bin/${NAME}-win-x64.exe main.go
-	@#GOOS=windows GOARCH=386 CGO_ENABLED=1 CC=i686-w64-mingw32-gcc CXX=i686-w64-mingw32-g++ go build -buildmode=pie -ldflags="-X main.Version=${VERSION} -s -w" -o bin/${NAME}-win.exe main.go	
+	@#GOOS=windows GOARCH=386 CGO_ENABLED=1 CC=i686-w64-mingw32-gcc CXX=i686-w64-mingw32-g++ go build -buildmode=pie -ldflags="-X main.Version=${VERSION} -s -w" -o bin/${NAME}-win.exe main.go

@@ -191,7 +191,8 @@ func (e *MOD) Decode(r io.ReadSeeker) error {
 					} else {
 						data, err = ioutil.ReadFile(fmt.Sprintf("%s/%s", e.path, propertyValueName))
 						if err != nil {
-							return fmt.Errorf("read material via path %s: %w", propertyName, err)
+							fmt.Printf("warning: read material via %s: %s\n", propertyName, err.Error())
+							//return fmt.Errorf("read material via path %s: %w", propertyName, err)
 						}
 					}
 					fe, err := common.NewFileEntry(propertyValueName, data)
