@@ -40,15 +40,29 @@ Supported extensions: eqg, zon, ter, ani, mod
 			}
 			path = args[0]
 		}
+
+		filter, err := cmd.Flags().GetString("filter")
+		if err != nil {
+			return fmt.Errorf("parse filter: %w", err)
+		}
+		if filter == "" {
+			if len(args) < 2 {
+				filter = "all"
+			} else {
+				filter = args[1]
+			}
+		}
+
 		out, err := cmd.Flags().GetString("out")
 		if err != nil {
 			return fmt.Errorf("parse out: %w", err)
 		}
+
 		if out == "" {
-			if len(args) < 2 {
+			if len(args) < 3 {
 				out = fmt.Sprintf("debug_%s", filepath.Base(path))
 			} else {
-				out = args[1]
+				out = args[2]
 			}
 		}
 		out = strings.TrimSuffix(out, ".png")
@@ -58,6 +72,7 @@ Supported extensions: eqg, zon, ter, ani, mod
 				os.Exit(1)
 			}
 		}()
+
 		fi, err := os.Stat(path)
 		if err != nil {
 			return fmt.Errorf("path check: %w", err)
@@ -93,16 +108,23 @@ Supported extensions: eqg, zon, ter, ani, mod
 		}
 
 		fmt.Println("debugging file", path, "and dumping results to", out)
+		if filter != "all" {
+			fmt.Println("filtering by", filter)
+		}
 		for _, v := range decodes {
 			if ext != v.extension {
 				continue
 			}
 
 			if ext == ".eqg" {
-				err = debugEQG(path, out)
+				err = debugEQG(path, out, filter)
 				if err != nil {
 					return fmt.Errorf("debugEQG: %w", err)
 				}
+			}
+
+			if filter != "all" && !strings.Contains(path, filter) {
+				continue
 			}
 
 			err = dumpDecode(f, v.extension, path, fmt.Sprintf("%s%s", out, filepath.Base(path)))
@@ -122,7 +144,7 @@ func init() {
 	debugCmd.PersistentFlags().String("out", "", "out file of debug")
 }
 
-func debugEQG(path string, out string) error {
+func debugEQG(path string, out string, filter string) error {
 	archive, err := eqg.New(filepath.Base(path))
 	if err != nil {
 		return fmt.Errorf("new: %w", err)
@@ -142,6 +164,9 @@ func debugEQG(path string, out string) error {
 	filesByName := archive.Files()
 	sort.Sort(common.FilerByName(filesByName))
 	for i, fe := range archive.Files() {
+		if filter != "all" && !strings.Contains(fe.Name(), filter) {
+			continue
+		}
 		base := float64(len(fe.Data()))
 		strSize := ""
 		num := float64(1024)
