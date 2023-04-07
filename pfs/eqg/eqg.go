@@ -6,13 +6,13 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/xackery/quail/common"
+	"github.com/xackery/quail/pfs/archive"
 )
 
 // EQG represents a modern everquest zone archive format
 type EQG struct {
 	name      string
-	files     []common.Filer
+	files     []archive.Filer
 	fileCount int
 }
 

@@ -1,29 +1,27 @@
 // ani are animation files, found in EverQuest eqg files
 package ani
 
+import (
+	"github.com/xackery/quail/model/geo"
+	"github.com/xackery/quail/pfs/archive"
+)
+
 type ANI struct {
 	name     string
-	bones    []*Bone
+	bones    []*geo.BoneAnimation
 	isStrict bool
-}
-
-type Bone struct {
-	frameCount uint32
-	name       string
-	frames     []*Frame
-}
-
-type Frame struct {
-	milliseconds uint32
-	translation  [3]float32
-	rotation     [4]float32
-	scale        [3]float32
+	pfs      archive.ReadWriter
 }
 
 // New creates a new empty instance. Use NewFile to load an archive file on creation
-func New(name string) (*ANI, error) {
+func New(name string, pfs archive.ReadWriter) (*ANI, error) {
 	e := &ANI{
 		name: name,
 	}
 	return e, nil
+}
+
+// Name returns the name of the model
+func (e *ANI) Name() string {
+	return e.name
 }

@@ -5,14 +5,14 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/xackery/quail/common"
+	"github.com/xackery/quail/pfs/archive"
 )
 
 // MeshAnimatedVertices information
 type MeshAnimatedVertices struct {
 }
 
-func LoadMeshAnimatedVertices(r io.ReadSeeker) (common.WldFragmenter, error) {
+func LoadMeshAnimatedVertices(r io.ReadSeeker) (archive.WldFragmenter, error) {
 	e := &MeshAnimatedVertices{}
 	err := parseMeshAnimatedVertices(r, e)
 	if err != nil {

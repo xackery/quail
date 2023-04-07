@@ -5,14 +5,14 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/xackery/quail/common"
+	"github.com/xackery/quail/pfs/archive"
 )
 
 // SimpleSpriteInstance information
 type SimpleSpriteInstance struct {
 }
 
-func LoadSimpleSpriteInstance(r io.ReadSeeker) (common.WldFragmenter, error) {
+func LoadSimpleSpriteInstance(r io.ReadSeeker) (archive.WldFragmenter, error) {
 	e := &SimpleSpriteInstance{}
 	err := parseSimpleSpriteInstance(r, e)
 	if err != nil {

@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/xackery/quail/common"
+	"github.com/xackery/quail/pfs/archive"
 )
 
 // ActorInstance information
@@ -17,7 +17,7 @@ type ActorInstance struct {
 	Scale    [3]float32
 }
 
-func LoadActorInstance(r io.ReadSeeker) (common.WldFragmenter, error) {
+func LoadActorInstance(r io.ReadSeeker) (archive.WldFragmenter, error) {
 	v := &ActorInstance{}
 	err := parseActorInstance(r, v)
 	if err != nil {

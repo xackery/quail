@@ -7,33 +7,34 @@ import (
 	"bytes"
 	"fmt"
 
-	"github.com/xackery/quail/common"
+	"github.com/xackery/quail/model/geo"
+	"github.com/xackery/quail/pfs/archive"
 )
 
 // LAY is a layer definition
 type LAY struct {
 	// name is used as an identifier
 	name string
-	// archive is used as an alternative to path when loading data from a archive file
-	archive common.ArchiveReader
-	layers  []*common.Layer
+	// pfs is used as an alternative to path when loading data from a pfs file
+	pfs    archive.Reader
+	layers []*geo.Layer
 }
 
 // New creates a new empty instance. Use NewFile to load an archive file on creation
-func New(name string, archive common.ArchiveReader) (*LAY, error) {
+func New(name string, pfs archive.Reader) (*LAY, error) {
 	e := &LAY{
-		name:    name,
-		archive: archive,
+		name: name,
+		pfs:  pfs,
 	}
 	return e, nil
 }
 
-func NewFile(name string, archive common.ArchiveReader, file string) (*LAY, error) {
+func NewFile(name string, pfs archive.Reader, file string) (*LAY, error) {
 	e := &LAY{
-		name:    name,
-		archive: archive,
+		name: name,
+		pfs:  pfs,
 	}
-	data, err := archive.File(file)
+	data, err := pfs.File(file)
 	if err != nil {
 		return nil, fmt.Errorf("file '%s': %w", file, err)
 	}
@@ -48,11 +49,11 @@ func (e *LAY) SetName(value string) {
 	e.name = value
 }
 
-func (e *LAY) Layers() []*common.Layer {
+func (e *LAY) Layers() []*geo.Layer {
 	return e.layers
 }
 
-func (e *LAY) LayerByIndex(index int) *common.Layer {
+func (e *LAY) LayerByIndex(index int) *geo.Layer {
 	if len(e.layers) <= index {
 		return nil
 	}

@@ -6,16 +6,17 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/xackery/quail/common"
+	"github.com/xackery/quail/model/geo"
 	"github.com/xackery/quail/model/mesh/mds"
 	"github.com/xackery/quail/model/mesh/mod"
 	"github.com/xackery/quail/model/mesh/ter"
+	"github.com/xackery/quail/pfs/archive"
 )
 
 // ZON is a zon file struct
 type ZON struct {
 	name    string
-	archive common.ArchiveReadWriter
+	pfs     archive.ReadWriter
 	models  []*model
 	objects []*object
 	regions []*region
@@ -54,25 +55,25 @@ type light struct {
 }
 
 // New creates a new empty instance. Use NewFile to load an archive file on creation
-func New(name string, archive common.ArchiveReadWriter) (*ZON, error) {
-	if archive == nil {
+func New(name string, pfs archive.ReadWriter) (*ZON, error) {
+	if pfs == nil {
 		return nil, fmt.Errorf("archive cannot be nil")
 	}
 
 	z := &ZON{
-		name:    name,
-		archive: archive,
+		name: name,
+		pfs:  pfs,
 	}
 	return z, nil
 }
 
 // NewFile creates a new instance and loads provided file
-func NewFile(name string, archive common.ArchiveReadWriter, file string) (*ZON, error) {
+func NewFile(name string, pfs archive.ReadWriter, file string) (*ZON, error) {
 	e := &ZON{
-		name:    name,
-		archive: archive,
+		name: name,
+		pfs:  pfs,
 	}
-	data, err := archive.File(file)
+	data, err := pfs.File(file)
 	if err != nil {
 		return nil, fmt.Errorf("file '%s': %w", file, err)
 	}
@@ -122,17 +123,17 @@ func (e *ZON) Models() []*model {
 	return e.models
 }
 
-func (e *ZON) SetLayers(layers []*common.Layer) error {
+func (e *ZON) SetLayers(layers []*geo.Layer) error {
 	fmt.Println("TODO: set layers via zon")
 	return nil
 }
 
-func (e *ZON) SetParticleRenders(particles []*common.ParticleRender) error {
+func (e *ZON) SetParticleRenders(particles []*geo.ParticleRender) error {
 	fmt.Println("TODO: set particles via zon")
 	return nil
 }
 
-func (e *ZON) SetParticlePoints(particles []*common.ParticlePoint) error {
+func (e *ZON) SetParticlePoints(particles []*geo.ParticlePoint) error {
 	fmt.Println("TODO: set particles via zon")
 	return nil
 }

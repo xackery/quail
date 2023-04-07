@@ -21,3 +21,6 @@ eq/
 tmp.*
 *.blend1
 !quail.png
+.env
+test/
+test/*

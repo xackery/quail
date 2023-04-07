@@ -12,18 +12,23 @@ import (
 )
 
 func TestArchiveExportSample(t *testing.T) {
+	eqPath := os.Getenv("EQ_PATH")
+	if eqPath == "" {
+		t.Skip("EQ_PATH not set")
+	}
+
 	tests := []struct {
 		category string
 	}{
-		{category: "box"},
-		//{category: "steamfontmts"},
+		//{category: "box"},
+		{category: "steamfontmts"},
 		//{category: "broodlands"},
 		//{category: "steppes"},
 	}
 	for _, tt := range tests {
 		isDumpEnabled := false
 
-		eqgFile := fmt.Sprintf("test/%s.eqg", tt.category)
+		eqgFile := fmt.Sprintf("%s/%s.eqg", eqPath, tt.category)
 		outFile := fmt.Sprintf("test/%s_out.ter", tt.category)
 
 		var err error

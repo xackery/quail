@@ -5,14 +5,14 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/xackery/quail/common"
+	"github.com/xackery/quail/pfs/archive"
 )
 
 // WorldTree information
 type WorldTree struct {
 }
 
-func LoadWorldTree(r io.ReadSeeker) (common.WldFragmenter, error) {
+func LoadWorldTree(r io.ReadSeeker) (archive.WldFragmenter, error) {
 	e := &WorldTree{}
 	err := parseWorldTree(r, e)
 	if err != nil {

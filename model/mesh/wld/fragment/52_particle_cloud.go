@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/xackery/quail/common"
+	"github.com/xackery/quail/pfs/archive"
 )
 
 // ParticleCloud information
@@ -14,7 +14,7 @@ type ParticleCloud struct {
 	name string
 }
 
-func LoadParticleCloud(r io.ReadSeeker) (common.WldFragmenter, error) {
+func LoadParticleCloud(r io.ReadSeeker) (archive.WldFragmenter, error) {
 	v := &ParticleCloud{}
 	err := parseParticleCloud(r, v)
 	if err != nil {

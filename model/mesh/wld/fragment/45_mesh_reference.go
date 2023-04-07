@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/xackery/quail/common"
+	"github.com/xackery/quail/pfs/archive"
 )
 
 // MeshReference information
@@ -19,7 +19,7 @@ type MeshReference struct {
 	Scale     [3]float32
 }
 
-func LoadMeshReference(r io.ReadSeeker) (common.WldFragmenter, error) {
+func LoadMeshReference(r io.ReadSeeker) (archive.WldFragmenter, error) {
 	v := &MeshReference{}
 	err := parseMeshReference(r, v)
 	if err != nil {

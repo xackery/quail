@@ -1,1 +1,0 @@
-https://github.com/529124368/golang_3D_Game/blob/master/engine/asset/man.gltf

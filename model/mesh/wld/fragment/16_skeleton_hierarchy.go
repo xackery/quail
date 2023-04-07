@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/xackery/quail/common"
 	"github.com/xackery/quail/dump"
+	"github.com/xackery/quail/pfs/archive"
 )
 
 // SkeletonHierarchy information
@@ -15,7 +15,7 @@ type SkeletonHierarchy struct {
 	name string
 }
 
-func LoadSkeletonHierarchy(r io.ReadSeeker) (common.WldFragmenter, error) {
+func LoadSkeletonHierarchy(r io.ReadSeeker) (archive.WldFragmenter, error) {
 	v := &SkeletonHierarchy{}
 	err := parseSkeletonHierarchy(r, v)
 	if err != nil {

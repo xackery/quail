@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/xackery/quail/common"
+	"github.com/xackery/quail/pfs/archive"
 )
 
 // LegacyMesh information
@@ -63,7 +63,7 @@ type LegacyVertexTex struct {
 	Y int16
 }
 
-func LoadLegacyMesh(r io.ReadSeeker) (common.WldFragmenter, error) {
+func LoadLegacyMesh(r io.ReadSeeker) (archive.WldFragmenter, error) {
 	e := &LegacyMesh{}
 	err := parseLegacyMesh(r, e)
 	if err != nil {

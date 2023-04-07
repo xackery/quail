@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/xackery/quail/common"
+	"github.com/xackery/quail/pfs/archive"
 )
 
 // ArchiveExport writes contents to outArchive
-func (e *MDS) ArchiveExport(outArchive common.ArchiveWriter) error {
+func (e *MDS) ArchiveExport(outArchive archive.Writer) error {
 	if outArchive == nil {
 		return fmt.Errorf("no archive loaded")
 	}
@@ -35,7 +35,7 @@ func (e *MDS) ArchiveExport(outArchive common.ArchiveWriter) error {
 				continue
 			}
 
-			data, err := e.archive.File(p.Value)
+			data, err := e.pfs.File(p.Value)
 			if err != nil {
 				return fmt.Errorf("file: %w", err)
 			}

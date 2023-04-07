@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/xackery/quail/common"
 	"github.com/xackery/quail/dump"
 	"github.com/xackery/quail/helper"
+	"github.com/xackery/quail/model/geo"
 )
 
 func (e *PRT) Decode(r io.ReadSeeker) error {
@@ -40,20 +40,20 @@ func (e *PRT) Decode(r io.ReadSeeker) error {
 	}
 
 	for i := 0; i < int(particleCount); i++ {
-		entry := &common.ParticleRender{}
+		entry := &geo.ParticleRender{}
 
-		err = binary.Read(r, binary.LittleEndian, &entry.Id)
+		err = binary.Read(r, binary.LittleEndian, &entry.ID)
 		if err != nil {
 			return fmt.Errorf("%d read id: %w", i, err)
 		}
-		dump.Hex(entry.Id, "%did=%d", i, entry.Id)
+		dump.Hex(entry.ID, "%did=%d", i, entry.ID)
 
 		if version == 5 {
-			err = binary.Read(r, binary.LittleEndian, &entry.Id2)
+			err = binary.Read(r, binary.LittleEndian, &entry.ID2)
 			if err != nil {
 				return fmt.Errorf("%d read id2: %w", i, err)
 			}
-			dump.Hex(entry.Id2, "%did2=%d", i, entry.Id2)
+			dump.Hex(entry.ID2, "%did2=%d", i, entry.ID2)
 		}
 
 		entry.ParticlePoint, err = helper.ReadFixedString(r, 64)

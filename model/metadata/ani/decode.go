@@ -6,6 +6,7 @@ import (
 	"io"
 
 	"github.com/xackery/quail/dump"
+	"github.com/xackery/quail/model/geo"
 )
 
 func (e *ANI) Decode(r io.ReadSeeker) error {
@@ -76,54 +77,54 @@ func (e *ANI) Decode(r io.ReadSeeker) error {
 	}
 
 	for i := 0; i < int(boneCount); i++ {
-		bone := &Bone{}
+		bone := &geo.BoneAnimation{}
 
-		err = binary.Read(r, binary.LittleEndian, &bone.frameCount)
+		err = binary.Read(r, binary.LittleEndian, &bone.FrameCount)
 		if err != nil {
 			return fmt.Errorf("read bone %d frameCount: %w", i, err)
 		}
-		dump.Hex(bone.frameCount, "%dframeCount %d", i, bone.frameCount)
+		dump.Hex(bone.FrameCount, "%dframeCount %d", i, bone.FrameCount)
 
 		nameOffset := uint32(0)
 		err = binary.Read(r, binary.LittleEndian, &nameOffset)
 		if err != nil {
 			return fmt.Errorf("read bone %d nameOffset: %w", i, err)
 		}
-		bone.name = names[nameOffset]
-		dump.Hex(nameOffset, "%dnameOffset 0x%x (%s)", i, nameOffset, bone.name)
+		bone.Name = names[nameOffset]
+		dump.Hex(nameOffset, "%dnameOffset 0x%x (%s)", i, nameOffset, bone.Name)
 
-		for j := 0; j < int(bone.frameCount); j++ {
-			frame := &Frame{}
+		for j := 0; j < int(bone.FrameCount); j++ {
+			frame := &geo.BoneAnimationFrame{}
 
-			err = binary.Read(r, binary.LittleEndian, &frame.milliseconds)
+			err = binary.Read(r, binary.LittleEndian, &frame.Milliseconds)
 			if err != nil {
 				return fmt.Errorf("read bone%d frame%d frame.milliseconds: %w", i, j, err)
 			}
 
-			translation := [3]float32{}
-			err = binary.Read(r, binary.LittleEndian, &translation)
+			translation := &geo.Vector3{}
+			err = binary.Read(r, binary.LittleEndian, translation)
 			if err != nil {
 				return fmt.Errorf("read bone%d frame%d frame.translation: %w", i, j, err)
 			}
-			frame.translation = translation
+			frame.Translation = translation
 
-			rotation := [4]float32{}
-			err = binary.Read(r, binary.LittleEndian, &rotation)
+			rotation := &geo.Quad4{}
+			err = binary.Read(r, binary.LittleEndian, rotation)
 			if err != nil {
 				return fmt.Errorf("read bone%d frame%d frame.rotation: %w", i, j, err)
 			}
-			frame.rotation = rotation
+			frame.Rotation = rotation
 
-			scale := [3]float32{}
-			err = binary.Read(r, binary.LittleEndian, &scale)
+			scale := &geo.Vector3{}
+			err = binary.Read(r, binary.LittleEndian, scale)
 			if err != nil {
 				return fmt.Errorf("read bone%d frame%d frame.scale: %w", i, j, err)
 			}
-			frame.scale = scale
-			bone.frames = append(bone.frames, frame)
+			frame.Scale = scale
+			bone.Frames = append(bone.Frames, frame)
 		}
 
-		dump.HexRange([]byte{0x01, 0x02}, int(bone.frameCount*44), "%dbone frames(%d bytes)", i, bone.frameCount*44)
+		dump.HexRange([]byte{0x01, 0x02}, int(bone.FrameCount*44), "%dbone frames(%d bytes)", i, bone.FrameCount*44)
 		e.bones = append(e.bones, bone)
 	}
 

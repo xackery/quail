@@ -9,8 +9,8 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/qmuntal/gltf"
-	"github.com/xackery/quail/common"
+	"github.com/xackery/quail/model/geo"
+	"github.com/xackery/quail/pfs/archive"
 )
 
 // MDS is a zon file struct
@@ -19,35 +19,36 @@ type MDS struct {
 	name string
 	// path is used for relative paths when looking for flat file texture references
 	path string
-	// archive is used as an alternative to path when loading data from a archive file
-	archive         common.ArchiveReadWriter
-	materials       []*common.Material
-	vertices        []*common.Vertex
-	triangles       []*common.Triangle
-	files           []common.Filer
-	particleRenders []*common.ParticleRender
-	particlePoints  []*common.ParticlePoint
+	// pfs is used as an alternative to path when loading data from a pfs file
+	pfs             archive.ReadWriter
+	materials       []*geo.Material
+	vertices        []*geo.Vertex
+	triangles       []*geo.Triangle
+	files           []archive.Filer
+	particleRenders []*geo.ParticleRender
+	particlePoints  []*geo.ParticlePoint
 	isDecoded       bool
-	animations      []*gltf.Animation
-	skin            *common.Skin
+	animations      []*geo.BoneAnimation
+	skin            *geo.Skin
+	bones           []*geo.Bone
 }
 
 // New creates a new empty instance. Use NewFile to load an archive file on creation
-func New(name string, archive common.ArchiveReadWriter) (*MDS, error) {
+func New(name string, pfs archive.ReadWriter) (*MDS, error) {
 	e := &MDS{
-		name:    name,
-		archive: archive,
+		name: name,
+		pfs:  pfs,
 	}
 	return e, nil
 }
 
 // NewFile creates a new instance and loads provided file
-func NewFile(name string, archive common.ArchiveReadWriter, file string) (*MDS, error) {
+func NewFile(name string, pfs archive.ReadWriter, file string) (*MDS, error) {
 	e := &MDS{
-		name:    name,
-		archive: archive,
+		name: name,
+		pfs:  pfs,
 	}
-	data, err := archive.File(file)
+	data, err := pfs.File(file)
 	if err != nil {
 		return nil, fmt.Errorf("file '%s': %w", file, err)
 	}
@@ -66,7 +67,7 @@ func (e *MDS) SetPath(value string) {
 	e.path = value
 }
 
-func (e *MDS) SetLayers(layers []*common.Layer) error {
+func (e *MDS) SetLayers(layers []*geo.Layer) error {
 	for _, o := range layers {
 		err := e.MaterialAdd(o.Name, "")
 		if err != nil {
@@ -104,20 +105,20 @@ func (e *MDS) SetLayers(layers []*common.Layer) error {
 			}
 		}
 	}
-	sort.Sort(common.MaterialByName(e.materials))
+	sort.Sort(geo.MaterialByName(e.materials))
 	return nil
 }
 
-func (e *MDS) AddFile(fe *common.FileEntry) {
+func (e *MDS) AddFile(fe *archive.FileEntry) {
 	e.files = append(e.files, fe)
 }
 
-func (e *MDS) SetParticleRenders(particles []*common.ParticleRender) error {
+func (e *MDS) SetParticleRenders(particles []*geo.ParticleRender) error {
 	e.particleRenders = particles
 	return nil
 }
 
-func (e *MDS) SetParticlePoints(particles []*common.ParticlePoint) error {
+func (e *MDS) SetParticlePoints(particles []*geo.ParticlePoint) error {
 	e.particlePoints = particles
 	return nil
 }

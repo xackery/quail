@@ -7,9 +7,9 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/xackery/quail/common"
 	"github.com/xackery/quail/dump"
-	"github.com/xackery/quail/helper"
+	"github.com/xackery/quail/model/geo"
+	"github.com/xackery/quail/pfs/archive"
 )
 
 func (e *MDS) Decode(r io.ReadSeeker) error {
@@ -175,12 +175,12 @@ func (e *MDS) Decode(r io.ReadSeeker) error {
 					return fmt.Errorf("property %d names offset %d not found", j, propertyValue)
 				}
 
-				data, err := e.archive.File(propertyValueName)
+				data, err := e.pfs.File(propertyValueName)
 				if err != nil {
 					fmt.Printf("warning: read material '%s' property %s: %s\n", name, propertyName, err)
 					//	return fmt.Errorf("read material via eqg %s: %w", propertyName, err)
 				}
-				fe, err := common.NewFileEntry(propertyValueName, data)
+				fe, err := archive.NewFileEntry(propertyValueName, data)
 				if err != nil {
 					return fmt.Errorf("new fileentry material %s: %w", propertyName, err)
 				}
@@ -227,22 +227,22 @@ func (e *MDS) Decode(r io.ReadSeeker) error {
 		}
 		dump.Hex(childIndex, "%dchildIndex=%d", i, childIndex)
 
-		pivot := [3]float32{}
-		err = binary.Read(r, binary.LittleEndian, &pivot)
+		pivot := &geo.Vector3{}
+		err = binary.Read(r, binary.LittleEndian, pivot)
 		if err != nil {
 			return fmt.Errorf("read bone %d pivot: %w", i, err)
 		}
 		dump.Hex(pivot, "%dpivot=%+v", i, pivot)
 
-		rot := [4]float32{}
-		err = binary.Read(r, binary.LittleEndian, &rot)
+		rot := &geo.Quad4{}
+		err = binary.Read(r, binary.LittleEndian, rot)
 		if err != nil {
 			return fmt.Errorf("read bone %d rot: %w", i, err)
 		}
 		dump.Hex(rot, "%drot=%+v", i, rot)
 
-		scale := [3]float32{}
-		err = binary.Read(r, binary.LittleEndian, &scale)
+		scale := &geo.Vector3{}
+		err = binary.Read(r, binary.LittleEndian, scale)
 		if err != nil {
 			return fmt.Errorf("read bone %d scale: %w", i, err)
 		}
@@ -251,11 +251,17 @@ func (e *MDS) Decode(r io.ReadSeeker) error {
 		if name != "" {
 
 		}
-		//TODO: BoneAdd
-		/*err = e.BoneAdd(name, next, childrenCount, childIndex, pivot, rot, scale)
-		if err != nil {
-			return fmt.Errorf("BoneAdd %d: %w", i, err)
-		}*/
+
+		e.bones = append(e.bones, &geo.Bone{
+			Name:          name,
+			Next:          next,
+			ChildrenCount: childrenCount,
+			ChildIndex:    childIndex,
+			Pivot:         pivot,
+			Rotation:      rot,
+			Scale:         scale,
+		})
+
 	}
 
 	mainNameIndex := uint32(0)
@@ -295,48 +301,48 @@ func (e *MDS) Decode(r io.ReadSeeker) error {
 
 	for i := 0; i < int(verticesCount); i++ {
 
-		vertex := &common.Vertex{}
+		vertex := geo.NewVertex()
 
-		err = binary.Read(r, binary.LittleEndian, &vertex.Position)
+		err = binary.Read(r, binary.LittleEndian, vertex.Position)
 		if err != nil {
 			return fmt.Errorf("read vertex %d position: %w", i, err)
 		}
 
-		err = binary.Read(r, binary.LittleEndian, &vertex.Normal)
+		err = binary.Read(r, binary.LittleEndian, vertex.Normal)
 		if err != nil {
 			return fmt.Errorf("read vertex %d normal: %w", i, err)
 		}
 
 		if version < 3 {
 
-			err = binary.Read(r, binary.LittleEndian, &vertex.Uv)
+			err = binary.Read(r, binary.LittleEndian, vertex.Uv)
 			if err != nil {
 				return fmt.Errorf("read vertex %d uv: %w", i, err)
 			}
 
-			vertex.Tint = [4]uint8{128, 128, 128, 1}
+			vertex.Tint = &geo.RGBA{R: 128, G: 128, B: 128, A: 1}
 		} else {
 			// TODO: may be misaligned (RGB vs RGBA)
-			err = binary.Read(r, binary.LittleEndian, &vertex.Tint)
+			err = binary.Read(r, binary.LittleEndian, vertex.Tint)
 			if err != nil {
 				return fmt.Errorf("read vertex %d tint: %w", i, err)
 			}
 
-			err = binary.Read(r, binary.LittleEndian, &vertex.Uv)
+			err = binary.Read(r, binary.LittleEndian, vertex.Uv)
 			if err != nil {
 				return fmt.Errorf("read vertex %d uv: %w", i, err)
 			}
 
-			err = binary.Read(r, binary.LittleEndian, &vertex.Uv2)
+			err = binary.Read(r, binary.LittleEndian, vertex.Uv2)
 			if err != nil {
 				return fmt.Errorf("read vertex %d uv2: %w", i, err)
 			}
 		}
 
 		// fiddle uv coord
-		vertex.Uv[1] = -vertex.Uv[1]
+		vertex.Uv.Y = -vertex.Uv.Y
 
-		vertex.Position = helper.ApplyQuaternion(vertex.Position, [4]float32{1, 0, 0, 0})
+		vertex.Position = geo.ApplyQuaternion(vertex.Position, &geo.Quad4{X: 1, Y: 0, Z: 0, W: 0})
 		e.vertices = append(e.vertices, vertex)
 	}
 	vSize := 32
@@ -346,9 +352,9 @@ func (e *MDS) Decode(r io.ReadSeeker) error {
 	dump.HexRange([]byte{0x01, 0x02}, int(verticesCount)*32, "vertData=(%d bytes)", int(verticesCount)*32)
 
 	for i := 0; i < int(faceCount); i++ {
-		pos := [3]uint32{}
+		pos := &geo.UIndex3{}
 		//pos := [3]float32{}
-		err = binary.Read(r, binary.LittleEndian, &pos)
+		err = binary.Read(r, binary.LittleEndian, pos)
 		if err != nil {
 			return fmt.Errorf("read face %d pos: %w", i, err)
 		}
@@ -379,7 +385,7 @@ func (e *MDS) Decode(r io.ReadSeeker) error {
 		}
 	}
 	dump.HexRange([]byte{0x03, 0x04}, int(faceCount)*20, "faceData=(%d bytes)", int(faceCount)*20)
-	sort.Sort(common.MaterialByName(e.materials))
+	sort.Sort(geo.MaterialByName(e.materials))
 
 	return nil
 }

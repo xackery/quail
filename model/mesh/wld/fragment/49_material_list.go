@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/xackery/quail/common"
+	"github.com/xackery/quail/pfs/archive"
 )
 
 // MaterialList information
@@ -15,7 +15,7 @@ type MaterialList struct {
 	MaterialReferences []uint32
 }
 
-func LoadMaterialList(r io.ReadSeeker) (common.WldFragmenter, error) {
+func LoadMaterialList(r io.ReadSeeker) (archive.WldFragmenter, error) {
 	m := &MaterialList{}
 	err := parseMaterialList(r, m)
 	if err != nil {

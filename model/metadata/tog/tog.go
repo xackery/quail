@@ -5,40 +5,32 @@ import (
 	"bytes"
 	"fmt"
 
-	"github.com/xackery/quail/common"
+	"github.com/xackery/quail/model/geo"
+	"github.com/xackery/quail/pfs/archive"
 )
 
 type TOG struct {
 	name    string
-	archive common.ArchiveReadWriter
-	objects []*Object
-}
-
-type Object struct {
-	Name     string
-	Position [3]float32
-	Rotation [3]float32
-	Scale    float32
-	FileType string
-	FileName string
+	pfs     archive.ReadWriter
+	objects []*geo.Object
 }
 
 // New creates a new empty instance. Use NewFile to load an archive file on creation
-func New(name string, archive common.ArchiveReadWriter) (*TOG, error) {
+func New(name string, pfs archive.ReadWriter) (*TOG, error) {
 	e := &TOG{
-		name:    name,
-		archive: archive,
+		name: name,
+		pfs:  pfs,
 	}
 	return e, nil
 }
 
 // NewFile creates a new instance and loads provided file
-func NewFile(name string, archive common.ArchiveReadWriter, file string) (*TOG, error) {
+func NewFile(name string, pfs archive.ReadWriter, file string) (*TOG, error) {
 	e := &TOG{
-		name:    name,
-		archive: archive,
+		name: name,
+		pfs:  pfs,
 	}
-	data, err := archive.File(file)
+	data, err := pfs.File(file)
 	if err != nil {
 		return nil, fmt.Errorf("file '%s': %w", file, err)
 	}
@@ -47,4 +39,9 @@ func NewFile(name string, archive common.ArchiveReadWriter, file string) (*TOG, 
 		return nil, fmt.Errorf("decode: %w", err)
 	}
 	return e, nil
+}
+
+// Name returns the name of the file
+func (e *TOG) Name() string {
+	return e.name
 }

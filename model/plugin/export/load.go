@@ -45,12 +45,12 @@ func (e *Export) LoadArchive() error {
 func (e *Export) loadZon() error {
 	var err error
 	var data []byte
-	for _, entry := range e.archive.Files() {
+	for _, entry := range e.pfs.Files() {
 		if !strings.HasSuffix(entry.Name(), ".zon") {
 			continue
 		}
 
-		data, err = e.archive.File(entry.Name())
+		data, err = e.pfs.File(entry.Name())
 		if err != nil {
 			return fmt.Errorf("file %s: %w", entry.Name(), err)
 		}
@@ -59,7 +59,7 @@ func (e *Export) loadZon() error {
 		return nil
 	}
 
-	e.model, err = zon.New(e.name, e.archive)
+	e.model, err = zon.New(e.name, e.pfs)
 	if err != nil {
 		return fmt.Errorf("new: %w", err)
 	}
@@ -85,12 +85,12 @@ func (e *Export) loadZon() error {
 func (e *Export) loadMds() error {
 	var err error
 	var data []byte
-	for _, entry := range e.archive.Files() {
+	for _, entry := range e.pfs.Files() {
 		if !strings.HasSuffix(entry.Name(), ".mds") {
 			continue
 		}
 
-		data, err = e.archive.File(entry.Name())
+		data, err = e.pfs.File(entry.Name())
 		if err != nil {
 			return fmt.Errorf("file %s: %w", entry.Name(), err)
 		}
@@ -99,7 +99,7 @@ func (e *Export) loadMds() error {
 		return nil
 	}
 
-	e.model, err = mds.New(e.name, e.archive)
+	e.model, err = mds.New(e.name, e.pfs)
 	if err != nil {
 		return fmt.Errorf("%s new: %w", e.name, err)
 	}
@@ -130,12 +130,12 @@ func (e *Export) loadMds() error {
 func (e *Export) loadMod() error {
 	var err error
 	var data []byte
-	for _, entry := range e.archive.Files() {
+	for _, entry := range e.pfs.Files() {
 		if !strings.HasSuffix(entry.Name(), ".mod") {
 			continue
 		}
 
-		data, err = e.archive.File(entry.Name())
+		data, err = e.pfs.File(entry.Name())
 		if err != nil {
 			return fmt.Errorf("file %s: %w", entry.Name(), err)
 		}
@@ -144,7 +144,7 @@ func (e *Export) loadMod() error {
 		return nil
 	}
 
-	e.model, err = mod.New(e.name, e.archive)
+	e.model, err = mod.New(e.name, e.pfs)
 	if err != nil {
 		return fmt.Errorf("new: %w", err)
 	}
@@ -175,12 +175,12 @@ func (e *Export) loadMod() error {
 func (e *Export) loadTer() error {
 	var err error
 	var data []byte
-	for _, entry := range e.archive.Files() {
+	for _, entry := range e.pfs.Files() {
 		if !strings.HasSuffix(entry.Name(), ".ter") {
 			continue
 		}
 
-		data, err = e.archive.File(entry.Name())
+		data, err = e.pfs.File(entry.Name())
 		if err != nil {
 			return fmt.Errorf("file %s: %w", entry.Name(), err)
 		}
@@ -189,7 +189,7 @@ func (e *Export) loadTer() error {
 		return nil
 	}
 
-	e.model, err = ter.New(e.name, e.archive)
+	e.model, err = ter.New(e.name, e.pfs)
 	if err != nil {
 		return fmt.Errorf("new: %w", err)
 	}
@@ -219,7 +219,7 @@ func (e *Export) loadTer() error {
 
 func (e *Export) loadLayer() error {
 	layName := fmt.Sprintf("%s.lay", e.name)
-	layEntry, err := e.archive.File(layName)
+	layEntry, err := e.pfs.File(layName)
 	if err != nil && !strings.Contains(err.Error(), "does not exist") {
 		return fmt.Errorf("file '%s': %w", layName, err)
 	}
@@ -228,7 +228,7 @@ func (e *Export) loadLayer() error {
 		return nil
 	}
 
-	l, err := lay.New(layName, e.archive)
+	l, err := lay.New(layName, e.pfs)
 	if err != nil {
 		return fmt.Errorf("new: %w", err)
 	}
@@ -246,7 +246,7 @@ func (e *Export) loadLayer() error {
 
 func (e *Export) loadParticleRenders() error {
 	prtName := fmt.Sprintf("%s.prt", e.name)
-	prtEntry, err := e.archive.File(prtName)
+	prtEntry, err := e.pfs.File(prtName)
 	if err != nil && !strings.Contains(err.Error(), "does not exist") {
 		return fmt.Errorf("file '%s': %w", prtName, err)
 	}
@@ -255,7 +255,7 @@ func (e *Export) loadParticleRenders() error {
 		return nil
 	}
 
-	p, err := prt.New(prtName, e.archive)
+	p, err := prt.New(prtName, e.pfs)
 	if err != nil {
 		return fmt.Errorf("new: %w", err)
 	}
@@ -274,7 +274,7 @@ func (e *Export) loadParticleRenders() error {
 
 func (e *Export) loadParticlePoints() error {
 	prtName := fmt.Sprintf("%s.pts", e.name)
-	prtEntry, err := e.archive.File(prtName)
+	prtEntry, err := e.pfs.File(prtName)
 	if err != nil && !strings.Contains(err.Error(), "does not exist") {
 		return fmt.Errorf("file '%s': %w", prtName, err)
 	}
@@ -283,7 +283,7 @@ func (e *Export) loadParticlePoints() error {
 		return nil
 	}
 
-	p, err := pts.New(prtName, e.archive)
+	p, err := pts.New(prtName, e.pfs)
 	if err != nil {
 		return fmt.Errorf("new: %w", err)
 	}
@@ -303,12 +303,12 @@ func (e *Export) loadParticlePoints() error {
 func (e *Export) loadWld() error {
 	var err error
 	var data []byte
-	for _, entry := range e.archive.Files() {
+	for _, entry := range e.pfs.Files() {
 		if !strings.HasSuffix(entry.Name(), ".wld") {
 			continue
 		}
 
-		data, err = e.archive.File(entry.Name())
+		data, err = e.pfs.File(entry.Name())
 		if err != nil {
 			return fmt.Errorf("file %s: %w", entry.Name(), err)
 		}
@@ -317,7 +317,7 @@ func (e *Export) loadWld() error {
 		return nil
 	}
 
-	e.model, err = wld.New(e.name, e.archive)
+	e.model, err = wld.New(e.name, e.pfs)
 	if err != nil {
 		return fmt.Errorf("new: %w", err)
 	}

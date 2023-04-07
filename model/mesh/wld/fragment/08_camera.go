@@ -5,14 +5,14 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/xackery/quail/common"
+	"github.com/xackery/quail/pfs/archive"
 )
 
 // Camera information
 type Camera struct {
 }
 
-func LoadCamera(r io.ReadSeeker) (common.WldFragmenter, error) {
+func LoadCamera(r io.ReadSeeker) (archive.WldFragmenter, error) {
 	e := &Camera{}
 	err := parseCamera(r, e)
 	if err != nil {

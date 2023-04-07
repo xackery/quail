@@ -6,14 +6,14 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/xackery/quail/common"
+	"github.com/xackery/quail/pfs/archive"
 )
 
 // S3D represents a classic everquest zone archive format
 type S3D struct {
 	name      string
 	ShortName string
-	files     []common.Filer
+	files     []archive.Filer
 	fileCount int
 }
 

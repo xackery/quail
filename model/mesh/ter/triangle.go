@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/xackery/quail/common"
+	"github.com/xackery/quail/model/geo"
 )
 
-func (e *TER) triangleAdd(index [3]uint32, materialName string, flag uint32) error {
+func (e *TER) triangleAdd(index *geo.UIndex3, materialName string, flag uint32) error {
 	materialName = strings.ToLower(materialName)
 	if materialName == "" || strings.HasPrefix(materialName, "empty_") {
-		e.triangles = append(e.triangles, &common.Triangle{
+		e.triangles = append(e.triangles, &geo.Triangle{
 			Index:        index,
 			MaterialName: materialName,
 			Flag:         flag,
@@ -23,7 +23,7 @@ func (e *TER) triangleAdd(index [3]uint32, materialName string, flag uint32) err
 			continue
 		}
 
-		e.triangles = append(e.triangles, &common.Triangle{
+		e.triangles = append(e.triangles, &geo.Triangle{
 			Index:        index,
 			MaterialName: materialName,
 			Flag:         flag,

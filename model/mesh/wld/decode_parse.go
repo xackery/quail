@@ -8,13 +8,13 @@ import (
 
 	"github.com/malashin/dds"
 	"github.com/sergeymakinen/go-bmp"
-	"github.com/xackery/quail/common"
+	"github.com/xackery/quail/model/geo"
 )
 
 func (e *WLD) parseMesh(frag *fragmentInfo) error {
 	type mesher interface {
-		Vertices() []*common.Vertex
-		Triangles() []*common.Triangle
+		Vertices() []*geo.Vertex
+		Triangles() []*geo.Triangle
 	}
 
 	meshFragment, ok := frag.data.(mesher)

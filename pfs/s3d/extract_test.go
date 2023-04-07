@@ -3,14 +3,14 @@ package s3d
 import (
 	"testing"
 
-	"github.com/xackery/quail/common"
+	"github.com/xackery/quail/pfs/archive"
 )
 
 func TestS3D_Extract(t *testing.T) {
 	type fields struct {
 		name      string
 		ShortName string
-		files     []common.Filer
+		files     []archive.Filer
 		fileCount int
 	}
 	type args struct {

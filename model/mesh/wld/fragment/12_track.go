@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/xackery/quail/common"
 	"github.com/xackery/quail/helper"
+	"github.com/xackery/quail/pfs/archive"
 )
 
 // Track information
@@ -24,7 +24,7 @@ type BoneTransform struct {
 	ModelMatrix [16]float32
 }
 
-func LoadTrack(r io.ReadSeeker) (common.WldFragmenter, error) {
+func LoadTrack(r io.ReadSeeker) (archive.WldFragmenter, error) {
 	v := &Track{}
 	err := parseTrack(r, v)
 	if err != nil {

@@ -6,36 +6,36 @@ import (
 	"io"
 	"path/filepath"
 
-	"github.com/xackery/quail/common"
-	qgltf "github.com/xackery/quail/model/plugin/gltf"
+	"github.com/xackery/quail/model/geo"
+	"github.com/xackery/quail/pfs/archive"
 )
 
 type Export struct {
-	name    string
-	archive common.ArchiveReadWriter
-	model   modeler
+	name  string
+	pfs   archive.ReadWriter
+	model modeler
 }
 
 type modeler interface {
 	Decode(r io.ReadSeeker) error
-	GLTFEncode(doc *qgltf.GLTF) error
-	SetLayers(layers []*common.Layer) error
-	SetParticleRenders(particles []*common.ParticleRender) error
-	SetParticlePoints(particles []*common.ParticlePoint) error
+	BlenderExport(dir string) error
+	SetLayers(layers []*geo.Layer) error
+	SetParticleRenders(particles []*geo.ParticleRender) error
+	SetParticlePoints(particles []*geo.ParticlePoint) error
 }
 
 // New creates a new empty instance. Use NewFile to load the archive on creation
-func New(name string, archive common.ArchiveReadWriter) (*Export, error) {
+func New(name string, pfs archive.ReadWriter) (*Export, error) {
 	return &Export{
-		name:    name,
-		archive: archive,
+		name: name,
+		pfs:  pfs,
 	}, nil
 }
 
-func NewFile(path string, archive common.ArchiveReadWriter) (*Export, error) {
+func NewFile(path string, pfs archive.ReadWriter) (*Export, error) {
 	e := &Export{
-		name:    filepath.Base(path),
-		archive: archive,
+		name: filepath.Base(path),
+		pfs:  pfs,
 	}
 
 	/*data, err := archive.File(file)

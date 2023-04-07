@@ -5,14 +5,14 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/xackery/quail/common"
+	"github.com/xackery/quail/pfs/archive"
 )
 
 // Actor information
 type Actor struct {
 }
 
-func LoadActor(r io.ReadSeeker) (common.WldFragmenter, error) {
+func LoadActor(r io.ReadSeeker) (archive.WldFragmenter, error) {
 	e := &Actor{}
 	err := parseActor(r, e)
 	if err != nil {

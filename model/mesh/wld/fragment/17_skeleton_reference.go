@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/xackery/quail/common"
+	"github.com/xackery/quail/pfs/archive"
 )
 
 // SkeletonReference information
@@ -16,7 +16,7 @@ type SkeletonReference struct {
 	FrameMs   uint32
 }
 
-func LoadSkeletonReference(r io.ReadSeeker) (common.WldFragmenter, error) {
+func LoadSkeletonReference(r io.ReadSeeker) (archive.WldFragmenter, error) {
 	v := &SkeletonReference{}
 	err := parseSkeletonReference(r, v)
 	if err != nil {

@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/xackery/quail/common"
 	"github.com/xackery/quail/dump"
+	"github.com/xackery/quail/pfs/archive"
 )
 
 // PolygonAnimationReference information
@@ -15,7 +15,7 @@ type PolygonAnimationReference struct {
 	name string
 }
 
-func LoadPolygonAnimationReference(r io.ReadSeeker) (common.WldFragmenter, error) {
+func LoadPolygonAnimationReference(r io.ReadSeeker) (archive.WldFragmenter, error) {
 	v := &PolygonAnimationReference{}
 	err := parsePolygonAnimationReference(r, v)
 	if err != nil {

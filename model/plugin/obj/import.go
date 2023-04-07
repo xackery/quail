@@ -3,7 +3,7 @@ package obj
 import (
 	"fmt"
 
-	"github.com/xackery/quail/common"
+	"github.com/xackery/quail/model/geo"
 )
 
 func Import(req *ObjRequest) error {
@@ -28,7 +28,7 @@ func Import(req *ObjRequest) error {
 	return nil
 }
 
-func materialByName(name string, obj *ObjData) *common.Material {
+func materialByName(name string, obj *ObjData) *geo.Material {
 	for _, mat := range obj.Materials {
 		if name == mat.Name {
 			return mat

@@ -7,8 +7,8 @@ import (
 	"io"
 	"strings"
 
-	"github.com/xackery/quail/common"
 	"github.com/xackery/quail/helper"
+	"github.com/xackery/quail/pfs/archive"
 )
 
 // RegionType information
@@ -17,7 +17,7 @@ type RegionType struct {
 	indices []int32
 }
 
-func LoadRegionType(r io.ReadSeeker) (common.WldFragmenter, error) {
+func LoadRegionType(r io.ReadSeeker) (archive.WldFragmenter, error) {
 	v := &RegionType{}
 	err := parseRegionType(r, v)
 	if err != nil {

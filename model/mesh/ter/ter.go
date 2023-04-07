@@ -7,37 +7,38 @@ import (
 	"os"
 	"strings"
 
-	"github.com/xackery/quail/common"
+	"github.com/xackery/quail/model/geo"
+	"github.com/xackery/quail/pfs/archive"
 )
 
 // TER is a terrain file struct
 type TER struct {
 	name            string
-	materials       []*common.Material
-	vertices        []*common.Vertex
-	triangles       []*common.Triangle
-	files           []common.Filer
-	archive         common.ArchiveReadWriter
-	particleRenders []*common.ParticleRender
-	particlePoints  []*common.ParticlePoint
+	materials       []*geo.Material
+	vertices        []*geo.Vertex
+	triangles       []*geo.Triangle
+	files           []archive.Filer
+	archive         archive.ReadWriter
+	particleRenders []*geo.ParticleRender
+	particlePoints  []*geo.ParticlePoint
 }
 
 // New creates a new empty instance. Use NewFile to load an archive file on creation
-func New(name string, archive common.ArchiveReadWriter) (*TER, error) {
+func New(name string, pfs archive.ReadWriter) (*TER, error) {
 	t := &TER{
 		name:    name,
-		archive: archive,
+		archive: pfs,
 	}
 	return t, nil
 }
 
 // NewFile creates a new instance and loads provided file
-func NewFile(name string, archive common.ArchiveReadWriter, file string) (*TER, error) {
+func NewFile(name string, pfs archive.ReadWriter, file string) (*TER, error) {
 	e := &TER{
 		name:    name,
-		archive: archive,
+		archive: pfs,
 	}
-	data, err := archive.File(file)
+	data, err := pfs.File(file)
 	if err != nil {
 		return nil, fmt.Errorf("file '%s': %w", file, err)
 	}
@@ -66,7 +67,7 @@ func (e *TER) SetName(value string) {
 	e.name = value
 }
 
-func (e *TER) SetLayers(layers []*common.Layer) error {
+func (e *TER) SetLayers(layers []*geo.Layer) error {
 	for _, o := range layers {
 		err := e.MaterialAdd(o.Name, "")
 		if err != nil {
@@ -107,12 +108,12 @@ func (e *TER) SetLayers(layers []*common.Layer) error {
 	return nil
 }
 
-func (e *TER) SetParticleRenders(particles []*common.ParticleRender) error {
+func (e *TER) SetParticleRenders(particles []*geo.ParticleRender) error {
 	e.particleRenders = particles
 	return nil
 }
 
-func (e *TER) SetParticlePoints(particles []*common.ParticlePoint) error {
+func (e *TER) SetParticlePoints(particles []*geo.ParticlePoint) error {
 	e.particlePoints = particles
 	return nil
 }

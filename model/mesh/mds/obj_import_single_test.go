@@ -4,7 +4,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/xackery/quail/common"
+	"github.com/xackery/quail/pfs/archive"
 )
 
 func TestObjImport(t *testing.T) {
@@ -16,7 +16,7 @@ func TestObjImport(t *testing.T) {
 	inFileMat := "test/box/cache/box.mtl"
 	outFile := "test/box.mod"
 
-	path, err := common.NewPath(filePath)
+	path, err := archive.NewPath(filePath)
 	if err != nil {
 		t.Fatalf("newPath: %s", err)
 	}

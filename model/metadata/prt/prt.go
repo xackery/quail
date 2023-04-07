@@ -5,32 +5,34 @@ import (
 	"bytes"
 	"fmt"
 
-	"github.com/xackery/quail/common"
+	"github.com/xackery/quail/model/geo"
+	"github.com/xackery/quail/pfs/archive"
 )
 
 //https://github.com/Zaela/EQGWeaponModelImporter/blob/master/src/prt.cpp
 
+// PRT contains particle rendering settings
 type PRT struct {
 	name      string
-	archive   common.ArchiveReader
-	particles []*common.ParticleRender
+	archive   archive.Reader
+	particles []*geo.ParticleRender
 }
 
 // New creates a new empty instance. Use NewFile to load an archive file on creation
-func New(name string, archive common.ArchiveReader) (*PRT, error) {
+func New(name string, pfs archive.Reader) (*PRT, error) {
 	return &PRT{
 		name:    name,
-		archive: archive,
+		archive: pfs,
 	}, nil
 }
 
 // NewFile creates a new instance and loads provided file
-func NewFile(name string, archive common.ArchiveReadWriter, file string) (*PRT, error) {
+func NewFile(name string, pfs archive.ReadWriter, file string) (*PRT, error) {
 	e := &PRT{
 		name:    name,
-		archive: archive,
+		archive: pfs,
 	}
-	data, err := archive.File(file)
+	data, err := pfs.File(file)
 	if err != nil {
 		return nil, fmt.Errorf("file '%s': %w", file, err)
 	}
@@ -41,6 +43,12 @@ func NewFile(name string, archive common.ArchiveReadWriter, file string) (*PRT, 
 	return e, nil
 }
 
-func (e *PRT) ParticleRenders() []*common.ParticleRender {
+// ParticleRenders returns a list of particle renders
+func (e *PRT) ParticleRenders() []*geo.ParticleRender {
 	return e.particles
+}
+
+// Name returns the name of the prt
+func (e *PRT) Name() string {
+	return e.name
 }

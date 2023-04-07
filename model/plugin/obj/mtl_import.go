@@ -6,7 +6,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/xackery/quail/common"
+	"github.com/xackery/quail/model/geo"
 )
 
 func mtlImport(req *ObjRequest) error {
@@ -18,7 +18,7 @@ func mtlImport(req *ObjRequest) error {
 
 	scanner := bufio.NewScanner(rm)
 	lineNumber := 0
-	var lastMaterial *common.Material
+	var lastMaterial *geo.Material
 	for scanner.Scan() {
 		lineNumber++
 		line := scanner.Text()
@@ -28,7 +28,7 @@ func mtlImport(req *ObjRequest) error {
 			}
 			lastMaterial = materialByName(line[7:], req.Data)
 			if lastMaterial == nil {
-				lastMaterial = &common.Material{Name: line[7:], ShaderName: "Opaque_MaxCB1.fx"}
+				lastMaterial = &geo.Material{Name: line[7:], ShaderName: "Opaque_MaxCB1.fx"}
 				req.Data.Materials = append(req.Data.Materials, lastMaterial)
 			}
 			continue
@@ -37,14 +37,14 @@ func mtlImport(req *ObjRequest) error {
 			if lastMaterial == nil {
 				return fmt.Errorf("map_kd line %d found before material definition", lineNumber)
 			}
-			lastMaterial.Properties = append(lastMaterial.Properties, &common.Property{Name: "e_TextureDiffuse0", Value: line[7:]})
+			lastMaterial.Properties = append(lastMaterial.Properties, &geo.Property{Name: "e_TextureDiffuse0", Value: line[7:]})
 			continue
 		}
 		if strings.HasPrefix(line, "map_Bump") {
 			if lastMaterial == nil {
 				return fmt.Errorf("map_Bump line %d found before material definition", lineNumber)
 			}
-			lastMaterial.Properties = append(lastMaterial.Properties, &common.Property{Name: "e_TextureNormal0", Value: line[9:]})
+			lastMaterial.Properties = append(lastMaterial.Properties, &geo.Property{Name: "e_TextureNormal0", Value: line[9:]})
 			continue
 		}
 	}

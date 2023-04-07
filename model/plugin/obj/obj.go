@@ -4,14 +4,14 @@ package obj
 import (
 	"fmt"
 
-	"github.com/xackery/quail/common"
+	"github.com/xackery/quail/model/geo"
 )
 
 type ObjData struct {
 	Name      string
-	Materials []*common.Material
-	Vertices  []*common.Vertex
-	Triangles []*common.Triangle
+	Materials []*geo.Material
+	Vertices  []*geo.Vertex
+	Triangles []*geo.Triangle
 }
 
 type ObjRequest struct {
@@ -27,8 +27,8 @@ func (e *ObjData) String() string {
 
 // objCache contains temporary data needed to convert obj to eq mesh format
 type objCache struct {
-	vertices     [][3]float32
-	normals      [][3]float32
-	uvs          [][2]float32
+	vertices     []*geo.Vector3
+	normals      []*geo.Vector3
+	uvs          []*geo.Vector2
 	vertexLookup map[string]int
 }

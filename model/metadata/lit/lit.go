@@ -6,18 +6,19 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/xackery/quail/common"
+	"github.com/xackery/quail/model/geo"
+	"github.com/xackery/quail/pfs/archive"
 )
 
 // LIT are light sources
 type LIT struct {
-	name    string
-	archive common.ArchiveReader
-	lights  []float32
+	name   string
+	pfs    archive.Reader
+	lights []*geo.RGBA
 }
 
 // New creates a new empty instance. Use NewFile to load an archive file on creation
-func New(name string, archive common.ArchiveReader) (*LIT, error) {
+func New(name string, pfs archive.Reader) (*LIT, error) {
 	t := &LIT{
 		name: name,
 	}
@@ -25,12 +26,12 @@ func New(name string, archive common.ArchiveReader) (*LIT, error) {
 }
 
 // NewFile creates a new instance and loads provided file
-func NewFile(name string, archive common.ArchiveReader, file string) (*LIT, error) {
+func NewFile(name string, pfs archive.Reader, file string) (*LIT, error) {
 	e := &LIT{
-		name:    name,
-		archive: archive,
+		name: name,
+		pfs:  pfs,
 	}
-	data, err := archive.File(file)
+	data, err := pfs.File(file)
 	if err != nil {
 		return nil, fmt.Errorf("file '%s': %w", file, err)
 	}

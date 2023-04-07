@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/xackery/quail/common"
+	"github.com/xackery/quail/pfs/archive"
 )
 
 // LightInstance information
@@ -17,7 +17,7 @@ type LightInstance struct {
 	Radius    float32
 }
 
-func LoadLightInstance(r io.ReadSeeker) (common.WldFragmenter, error) {
+func LoadLightInstance(r io.ReadSeeker) (archive.WldFragmenter, error) {
 	e := &LightInstance{}
 	err := parseLightInstance(r, e)
 	if err != nil {

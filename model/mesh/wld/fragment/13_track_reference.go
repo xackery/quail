@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/xackery/quail/common"
+	"github.com/xackery/quail/pfs/archive"
 )
 
 // TrackReference information
@@ -16,7 +16,7 @@ type TrackReference struct {
 	FrameMs   uint32
 }
 
-func LoadTrackReference(r io.ReadSeeker) (common.WldFragmenter, error) {
+func LoadTrackReference(r io.ReadSeeker) (archive.WldFragmenter, error) {
 	v := &TrackReference{}
 	err := parseTrackReference(r, v)
 	if err != nil {

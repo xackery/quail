@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/xackery/quail/common"
 	"github.com/xackery/quail/dump"
 	"github.com/xackery/quail/helper"
+	"github.com/xackery/quail/model/geo"
 )
 
 func (e *PTS) Decode(r io.ReadSeeker) error {
@@ -19,7 +19,7 @@ func (e *PTS) Decode(r io.ReadSeeker) error {
 	}
 	dump.Hex(header, "header=%s", header)
 	if header != [4]byte{'E', 'Q', 'P', 'T'} {
-		return fmt.Errorf("header does not match EQPT")
+		return fmt.Errorf("header does not match EQPT, got %s", header)
 	}
 
 	particleCount := uint32(0)
@@ -40,7 +40,7 @@ func (e *PTS) Decode(r io.ReadSeeker) error {
 	}
 
 	for i := 0; i < int(particleCount); i++ {
-		entry := &common.ParticlePoint{}
+		entry := geo.NewParticlePoint()
 
 		entry.Name, err = helper.ReadFixedString(r, 64)
 		if err != nil {
@@ -54,19 +54,19 @@ func (e *PTS) Decode(r io.ReadSeeker) error {
 		}
 		dump.Hex(entry.Bone, "%dbone=%s", i, entry.Bone)
 
-		err = binary.Read(r, binary.LittleEndian, &entry.Translation)
+		err = binary.Read(r, binary.LittleEndian, entry.Translation)
 		if err != nil {
 			return fmt.Errorf("%d read translation: %w", i, err)
 		}
 		dump.Hex(entry.Translation, "%dtranslation=%0.0f", i, entry.Translation)
 
-		err = binary.Read(r, binary.LittleEndian, &entry.Rotation)
+		err = binary.Read(r, binary.LittleEndian, entry.Rotation)
 		if err != nil {
 			return fmt.Errorf("%d read rotation: %w", i, err)
 		}
 		dump.Hex(entry.Rotation, "%drotation=%0.0f", i, entry.Rotation)
 
-		err = binary.Read(r, binary.LittleEndian, &entry.Scale)
+		err = binary.Read(r, binary.LittleEndian, entry.Scale)
 		if err != nil {
 			return fmt.Errorf("%d read scale: %w", i, err)
 		}

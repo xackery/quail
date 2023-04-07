@@ -6,15 +6,15 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/xackery/quail/common"
 	"github.com/xackery/quail/helper"
 	"github.com/xackery/quail/model/mesh/mds"
 	"github.com/xackery/quail/model/mesh/mod"
 	"github.com/xackery/quail/model/mesh/ter"
+	"github.com/xackery/quail/pfs/archive"
 )
 
 // ArchiveExport writes contents to outArchive
-func (e *ZON) ArchiveExport(outArchive common.ArchiveReadWriter) error {
+func (e *ZON) ArchiveExport(outArchive archive.ReadWriter) error {
 	if outArchive == nil {
 		return fmt.Errorf("no archive loaded")
 	}
@@ -22,7 +22,7 @@ func (e *ZON) ArchiveExport(outArchive common.ArchiveReadWriter) error {
 	var err error
 
 	for _, model := range e.models {
-		modelData, err := e.archive.File(model.name)
+		modelData, err := e.pfs.File(model.name)
 		if err != nil {
 			return fmt.Errorf("model file %s: %w", model.name, err)
 		}
@@ -30,7 +30,7 @@ func (e *ZON) ArchiveExport(outArchive common.ArchiveReadWriter) error {
 		switch filepath.Ext(model.name) {
 		case ".ter":
 			baseName := strings.TrimPrefix(helper.BaseName(model.name), "ter_")
-			e, err := ter.New(baseName, e.archive)
+			e, err := ter.New(baseName, e.pfs)
 			if err != nil {
 				return fmt.Errorf("ter.NewEQG: %w", err)
 			}
@@ -45,7 +45,7 @@ func (e *ZON) ArchiveExport(outArchive common.ArchiveReadWriter) error {
 			}
 		case ".mod":
 			baseName := strings.TrimPrefix(helper.BaseName(model.name), "ter_")
-			e, err := mod.New(baseName, e.archive)
+			e, err := mod.New(baseName, e.pfs)
 			if err != nil {
 				return fmt.Errorf("mod new: %w", err)
 			}
@@ -60,7 +60,7 @@ func (e *ZON) ArchiveExport(outArchive common.ArchiveReadWriter) error {
 			}
 		case ".mds":
 			baseName := strings.TrimPrefix(helper.BaseName(model.name), "ter_")
-			e, err := mds.New(baseName, e.archive)
+			e, err := mds.New(baseName, e.pfs)
 			if err != nil {
 				return fmt.Errorf("mds new: %w", err)
 			}

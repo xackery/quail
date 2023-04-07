@@ -6,17 +6,17 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/xackery/quail/common"
+	"github.com/xackery/quail/pfs/archive"
 )
 
 //ref: https://github.com/SCMcLaughlin/p99-iksar-anim-oneclick/blob/master/src/structs_wld_frag.h
 
 var (
-	fragmentTypes = make(map[int32](func(r io.ReadSeeker) (common.WldFragmenter, error)))
+	fragmentTypes = make(map[int32](func(r io.ReadSeeker) (archive.WldFragmenter, error)))
 	names         = make(map[int32]string)
 )
 
-func New(fragIndex int32, r io.ReadSeeker) (common.WldFragmenter, error) {
+func New(fragIndex int32, r io.ReadSeeker) (archive.WldFragmenter, error) {
 	loadFunc, ok := fragmentTypes[fragIndex]
 	if !ok {
 		return nil, fmt.Errorf("unknown frag index: %d 0x%x", fragIndex, fragIndex)

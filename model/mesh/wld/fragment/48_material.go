@@ -7,7 +7,7 @@ import (
 	"image/color"
 	"io"
 
-	"github.com/xackery/quail/common"
+	"github.com/xackery/quail/pfs/archive"
 )
 
 // Material information
@@ -37,7 +37,7 @@ const (
 	ShaderTypeBoundary                        = 11
 )
 
-func LoadMaterial(r io.ReadSeeker) (common.WldFragmenter, error) {
+func LoadMaterial(r io.ReadSeeker) (archive.WldFragmenter, error) {
 	m := &Material{}
 	err := parseMaterial(r, m)
 	if err != nil {

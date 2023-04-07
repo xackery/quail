@@ -3,7 +3,7 @@ package eqg
 import (
 	"fmt"
 
-	"github.com/xackery/quail/common"
+	"github.com/xackery/quail/pfs/archive"
 )
 
 // Add adds a new entry to a eqg
@@ -13,7 +13,7 @@ func (e *EQG) Add(name string, data []byte) error {
 			return fmt.Errorf("entry %s already exists", name)
 		}
 	}
-	fe := &common.FileEntry{}
+	fe := &archive.FileEntry{}
 	err := fe.SetName(name)
 	if err != nil {
 		return fmt.Errorf("setname: %w", err)

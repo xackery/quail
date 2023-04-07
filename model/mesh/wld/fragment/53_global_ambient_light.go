@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/xackery/quail/common"
+	"github.com/xackery/quail/pfs/archive"
 )
 
 // GlobalAmbientLight information
@@ -14,7 +14,7 @@ type GlobalAmbientLight struct {
 	Unk1 uint32
 }
 
-func LoadGlobalAmbientLight(r io.ReadSeeker) (common.WldFragmenter, error) {
+func LoadGlobalAmbientLight(r io.ReadSeeker) (archive.WldFragmenter, error) {
 	e := &GlobalAmbientLight{}
 	err := parseGlobalAmbientLight(r, e)
 	if err != nil {

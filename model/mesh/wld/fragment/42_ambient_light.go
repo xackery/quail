@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/xackery/quail/common"
+	"github.com/xackery/quail/pfs/archive"
 )
 
 // AmbientLight information
@@ -14,7 +14,7 @@ type AmbientLight struct {
 	Unk1 uint32
 }
 
-func LoadAmbientLight(r io.ReadSeeker) (common.WldFragmenter, error) {
+func LoadAmbientLight(r io.ReadSeeker) (archive.WldFragmenter, error) {
 	e := &AmbientLight{}
 	err := parseAmbientLight(r, e)
 	if err != nil {

@@ -5,14 +5,14 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/xackery/quail/common"
+	"github.com/xackery/quail/model/geo"
 )
 
 // Encode writes a zon file to location
 func (e *MDS) Encode(w io.Writer) error {
 	var err error
 
-	nameData, data, err := common.WriteGeometry(e.materials, e.vertices, e.triangles)
+	nameData, data, err := geo.WriteGeometry(e.materials, e.vertices, e.triangles)
 	if err != nil {
 		return fmt.Errorf("writeGeometry: %w", err)
 	}

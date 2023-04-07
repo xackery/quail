@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/xackery/quail/model/geo"
 	"github.com/xackery/quail/pfs/eqg"
 )
 
@@ -17,7 +18,7 @@ func TestEncode(t *testing.T) {
 	if err != nil {
 		t.Fatalf("new: %s", err)
 	}
-	e.objects = []*Object{
+	e.objects = []*geo.Object{
 		{
 			Name: "test",
 		},

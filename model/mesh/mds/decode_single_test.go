@@ -5,9 +5,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/xackery/quail/common"
 	"github.com/xackery/quail/dump"
-	"github.com/xackery/quail/model/plugin/gltf"
+	"github.com/xackery/quail/pfs/archive"
 	"github.com/xackery/quail/pfs/eqg"
 )
 
@@ -58,7 +57,7 @@ func TestDecodeEncodeDecode(t *testing.T) {
 	inFile := "test/obj_gears.mod"
 	outFile := "test/obj_gears_loadsaveload.mod"
 
-	path, err := common.NewPath(filePath)
+	path, err := archive.NewPath(filePath)
 	if err != nil {
 		t.Fatalf("newPath: %s", err)
 	}
@@ -97,56 +96,5 @@ func TestDecodeEncodeDecode(t *testing.T) {
 	err = e.Decode(r)
 	if err != nil {
 		t.Fatalf("decode: %s", err)
-	}
-}
-
-func TestDecodeEncodeGLTF(t *testing.T) {
-	if os.Getenv("SINGLE_TEST") != "1" {
-		return
-	}
-	filePath := "test/"
-	inFile := "test/obj_gears.mod"
-	outFile := "test/obj_gears_loadsavegtlf.gltf"
-	path, err := common.NewPath(filePath)
-	if err != nil {
-		t.Fatalf("newPath: %s", err)
-	}
-
-	f, err := os.Open(inFile)
-	if err != nil {
-		t.Fatalf("%s", err)
-	}
-	defer f.Close()
-
-	dump.New(inFile)
-	defer dump.WriteFileClose(inFile + ".png")
-
-	e, err := New("out", path)
-	if err != nil {
-		t.Fatalf("new: %s", err)
-	}
-	err = e.Decode(f)
-	if err != nil {
-		t.Fatalf("decode: %s", err)
-	}
-
-	w, err := os.Create(outFile)
-	if err != nil {
-		t.Fatalf("create gltf: %s", err)
-	}
-	defer w.Close()
-
-	doc, err := gltf.New()
-	if err != nil {
-		t.Fatalf("gltf.New: %s", err)
-	}
-	err = e.GLTFEncode(doc)
-	if err != nil {
-		t.Fatalf("gltf: %s", err)
-	}
-
-	err = doc.Export(w)
-	if err != nil {
-		t.Fatalf("export: %s", err)
 	}
 }

@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/xackery/quail/common"
+	"github.com/xackery/quail/model/geo"
 )
 
 var (
@@ -40,7 +40,7 @@ func mattxtImport(req *ObjRequest) error {
 		case "m":
 			material := materialByName(records[1], req.Data)
 			if material == nil {
-				material = &common.Material{
+				material = &geo.Material{
 					Name: records[1],
 				}
 				req.Data.Materials = append(req.Data.Materials, material)
@@ -54,7 +54,7 @@ func mattxtImport(req *ObjRequest) error {
 		case "e":
 			material := materialByName(records[1], req.Data)
 			if material == nil {
-				material = &common.Material{
+				material = &geo.Material{
 					Name: records[1],
 				}
 				req.Data.Materials = append(req.Data.Materials, material)
@@ -65,7 +65,7 @@ func mattxtImport(req *ObjRequest) error {
 				return fmt.Errorf("line %d parse material type %s: %w", lineNumber, records[3], err)
 			}
 
-			prop := &common.Property{
+			prop := &geo.Property{
 				Name:     records[2],
 				Category: uint32(val),
 				Value:    records[4],

@@ -15,10 +15,10 @@ Available Commands:
   completion  Generate the autocompletion script for the specified shell
   compress    Create an eqg archive by compressing a directory
   debug       Debug a file
-  export      Export an eqg or s3d archive to embedded GLTF
+  export      Export an eqg or s3d archive to quail-addon
   extract     Extract an eqg or s3d archive
   help        Help about any command
-  import      Export an eqg or s3d archive to embedded GLTF
+  import      Export an eqg or s3d archive to quail-addon
   inspect     Inspect a file
   view        View a model or image
 ```

@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/xackery/quail/common"
+	"github.com/xackery/quail/pfs/archive"
 )
 
 // ParticleSpriteReference information
@@ -15,7 +15,7 @@ type ParticleSpriteReference struct {
 	Reference uint32
 }
 
-func LoadParticleSpriteReference(r io.ReadSeeker) (common.WldFragmenter, error) {
+func LoadParticleSpriteReference(r io.ReadSeeker) (archive.WldFragmenter, error) {
 	v := &ParticleSpriteReference{}
 	err := parseParticleSpriteReference(r, v)
 	if err != nil {

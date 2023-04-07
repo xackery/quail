@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/xackery/quail/common"
+	"github.com/xackery/quail/pfs/archive"
 )
 
 // LightSourceReference information
@@ -15,7 +15,7 @@ type LightSourceReference struct {
 	Reference uint32
 }
 
-func LoadLightSourceReference(r io.ReadSeeker) (common.WldFragmenter, error) {
+func LoadLightSourceReference(r io.ReadSeeker) (archive.WldFragmenter, error) {
 	e := &LightSourceReference{}
 	err := parseLightSourceReference(r, e)
 	if err != nil {

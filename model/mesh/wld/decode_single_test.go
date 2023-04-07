@@ -9,8 +9,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/xackery/quail/common"
 	"github.com/xackery/quail/dump"
+	"github.com/xackery/quail/pfs/archive"
 	"github.com/xackery/quail/pfs/eqg"
 	"github.com/xackery/quail/pfs/s3d"
 )
@@ -83,7 +83,7 @@ func TestDecodeITModels(t *testing.T) {
 		return
 	}
 
-	var archive common.ArchiveReadWriter
+	var pfs archive.ReadWriter
 
 	names := make(map[string]bool)
 
@@ -112,11 +112,11 @@ func TestDecodeITModels(t *testing.T) {
 
 		fmt.Println("parsing", entry.Name())
 		if ext == ".s3d" {
-			archive, err = s3d.NewFile(path + entry.Name())
+			pfs, err = s3d.NewFile(path + entry.Name())
 			if err != nil {
 				t.Fatalf("s3d newFile: %s", err)
 			}
-			e, err := NewFile(noExtName, archive, noExtName+".wld")
+			e, err := NewFile(noExtName, pfs, noExtName+".wld")
 			if err != nil {
 				t.Fatalf("newfile wld: %s", err)
 			}
@@ -141,11 +141,11 @@ func TestDecodeITModels(t *testing.T) {
 			continue
 		}
 		if ext == ".eqg" {
-			archive, err = eqg.NewFile(path + entry.Name())
+			pfs, err = eqg.NewFile(path + entry.Name())
 			if err != nil {
 				t.Fatalf("eqg newFile: %s", err)
 			}
-			for _, entry := range archive.Files() {
+			for _, entry := range pfs.Files() {
 				name := strings.ToLower(entry.Name())
 				if !strings.HasPrefix(name, "it") {
 					continue

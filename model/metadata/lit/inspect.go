@@ -1,11 +1,15 @@
 package lit
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/xackery/quail/dump"
+)
 
 // Inspect prints out details
 func (e *LIT) Inspect() {
 	fmt.Println(len(e.lights), "lights:")
 	for i, light := range e.lights {
-		fmt.Printf("	%d %0.2f\n", i, light)
+		fmt.Printf("	%d %s\n", i, dump.Str(light))
 	}
 }

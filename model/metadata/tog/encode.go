@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"io"
 	"text/template"
+
+	"github.com/xackery/quail/model/geo"
 )
 
 func (e *TOG) Encode(w io.Writer) error {
@@ -12,7 +14,7 @@ func (e *TOG) Encode(w io.Writer) error {
 		return fmt.Errorf("parse togTemplate: %w", err)
 	}
 	type foo struct {
-		Objects []*Object
+		Objects []*geo.Object
 	}
 	o := &foo{
 		Objects: e.objects,
@@ -29,7 +31,7 @@ var togTemplate = `*BEGIN_OBJECTGROUP{{range .Objects}}
 		*NAME     	{{.Name}}
 		*POSITION 	{{index .Position 0}} 	{{index .Position 1}}	 	{{index .Position 2}}
 		*ROTATION 	{{index .Rotation 0}}	 	{{index .Rotation 1}}	 	{{index .Rotation 2}}
-		*SCALE    	{{.Scale}}	
+		*SCALE    	{{.Scale}}
 		*FILE     	{{.FileType}}     	{{.FileName}}
 	*END_OBJECT{{end}}
 *END_OBJECTGROUP

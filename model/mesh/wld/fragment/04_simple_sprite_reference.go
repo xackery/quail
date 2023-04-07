@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/xackery/quail/common"
+	"github.com/xackery/quail/pfs/archive"
 )
 
 // SimpleSpriteReference information
@@ -15,7 +15,7 @@ type SimpleSpriteReference struct {
 	textureCount uint32
 }
 
-func LoadSimpleSpriteReference(r io.ReadSeeker) (common.WldFragmenter, error) {
+func LoadSimpleSpriteReference(r io.ReadSeeker) (archive.WldFragmenter, error) {
 	e := &SimpleSpriteReference{}
 	err := parseSimpleSpriteReference(r, e)
 	if err != nil {

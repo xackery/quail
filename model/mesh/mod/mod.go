@@ -6,7 +6,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/xackery/quail/common"
+	"github.com/xackery/quail/model/geo"
+	"github.com/xackery/quail/pfs/archive"
 )
 
 // MOD is a zon file struct
@@ -15,34 +16,34 @@ type MOD struct {
 	name string
 	// path is used for relative paths when looking for flat file texture references
 	path string
-	// archive is used as an alternative to path when loading data from a archive file
-	archive         common.ArchiveReader
-	materials       []*common.Material
-	vertices        []*common.Vertex
-	triangles       []*common.Triangle
-	files           []common.Filer
-	particleRenders []*common.ParticleRender
-	particlePoints  []*common.ParticlePoint
+	// pfs is used as an alternative to path when loading data from a pfs file
+	pfs             archive.Reader
+	materials       []*geo.Material
+	vertices        []*geo.Vertex
+	triangles       []*geo.Triangle
+	files           []archive.Filer // list of files known to be linked in this mod
+	particleRenders []*geo.ParticleRender
+	particlePoints  []*geo.ParticlePoint
 	isSkinned       bool
-	bones           []*common.Bone
+	bones           []*geo.Bone
 }
 
 // New creates a new empty instance. Use NewFile to load an archive file on creation
-func New(name string, archive common.ArchiveReader) (*MOD, error) {
+func New(name string, pfs archive.Reader) (*MOD, error) {
 	e := &MOD{
-		name:    name,
-		archive: archive,
+		name: name,
+		pfs:  pfs,
 	}
 	return e, nil
 }
 
 // NewFile creates a new instance and loads provided file
-func NewFile(name string, archive common.ArchiveReadWriter, file string) (*MOD, error) {
+func NewFile(name string, pfs archive.ReadWriter, file string) (*MOD, error) {
 	e := &MOD{
-		name:    name,
-		archive: archive,
+		name: name,
+		pfs:  pfs,
 	}
-	data, err := archive.File(file)
+	data, err := pfs.File(file)
 	if err != nil {
 		return nil, fmt.Errorf("file '%s': %w", file, err)
 	}
@@ -61,7 +62,7 @@ func (e *MOD) SetPath(value string) {
 	e.path = value
 }
 
-func (e *MOD) SetLayers(layers []*common.Layer) error {
+func (e *MOD) SetLayers(layers []*geo.Layer) error {
 	for _, o := range layers {
 		err := e.MaterialAdd(o.Name, "")
 		if err != nil {
@@ -102,16 +103,16 @@ func (e *MOD) SetLayers(layers []*common.Layer) error {
 	return nil
 }
 
-func (e *MOD) AddFile(fe *common.FileEntry) {
+func (e *MOD) AddFile(fe *archive.FileEntry) {
 	e.files = append(e.files, fe)
 }
 
-func (e *MOD) SetParticleRenders(particles []*common.ParticleRender) error {
+func (e *MOD) SetParticleRenders(particles []*geo.ParticleRender) error {
 	e.particleRenders = particles
 	return nil
 }
 
-func (e *MOD) SetParticlePoints(particles []*common.ParticlePoint) error {
+func (e *MOD) SetParticlePoints(particles []*geo.ParticlePoint) error {
 	e.particlePoints = particles
 	return nil
 }

@@ -7,7 +7,7 @@ import (
 	"image/color"
 	"io"
 
-	"github.com/xackery/quail/common"
+	"github.com/xackery/quail/pfs/archive"
 )
 
 // VertexColor information
@@ -17,7 +17,7 @@ type VertexColor struct {
 	name   string
 }
 
-func LoadVertexColor(r io.ReadSeeker) (common.WldFragmenter, error) {
+func LoadVertexColor(r io.ReadSeeker) (archive.WldFragmenter, error) {
 	v := &VertexColor{}
 	err := parseVertexColor(r, v)
 	if err != nil {

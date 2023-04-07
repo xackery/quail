@@ -91,7 +91,7 @@ func (e *ZON) Encode(w io.Writer) error {
 		if err != nil {
 			return fmt.Errorf("encode %s: %w", modelName, err)
 		}
-		err = e.archive.WriteFile(modelName, buf.Bytes())
+		err = e.pfs.WriteFile(modelName, buf.Bytes())
 		if err != nil {
 			return fmt.Errorf("writefile %s: %w", modelName, err)
 		}
@@ -135,7 +135,7 @@ func (e *ZON) Encode(w io.Writer) error {
 		if err != nil {
 			return fmt.Errorf("encode %s: %w", modelName, err)
 		}
-		err = e.archive.WriteFile(modelName, buf.Bytes())
+		err = e.pfs.WriteFile(modelName, buf.Bytes())
 		if err != nil {
 			return fmt.Errorf("writefile %s: %w", modelName, err)
 		}
@@ -179,7 +179,7 @@ func (e *ZON) Encode(w io.Writer) error {
 		if err != nil {
 			return fmt.Errorf("encode %s: %w", modelName, err)
 		}
-		err = e.archive.WriteFile(modelName, buf.Bytes())
+		err = e.pfs.WriteFile(modelName, buf.Bytes())
 		if err != nil {
 			return fmt.Errorf("writefile %s: %w", modelName, err)
 		}

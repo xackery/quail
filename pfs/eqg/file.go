@@ -5,7 +5,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/xackery/quail/common"
+	"github.com/xackery/quail/pfs/archive"
 )
 
 // File returns data of a file
@@ -27,7 +27,7 @@ func (e *EQG) Len() int {
 }
 
 // Files returns a string array of every file inside an EQG
-func (e *EQG) Files() []common.Filer {
+func (e *EQG) Files() []archive.Filer {
 	return e.files
 }
 
@@ -38,7 +38,7 @@ func (e *EQG) WriteFile(name string, data []byte) error {
 			return file.SetData(data)
 		}
 	}
-	fe, err := common.NewFileEntry(name, data)
+	fe, err := archive.NewFileEntry(name, data)
 	if err != nil {
 		return fmt.Errorf("newFileEntry: %w", err)
 	}

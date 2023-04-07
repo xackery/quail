@@ -6,7 +6,8 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/xackery/quail/common"
+	"github.com/xackery/quail/model/geo"
+	"github.com/xackery/quail/pfs/archive"
 )
 
 // Mesh information
@@ -15,15 +16,15 @@ type Mesh struct {
 	flags              uint32
 	MaterialReference  uint32
 	AnimationReference uint32
-	Center             [3]float32
+	Center             *geo.Vector3
 	MaxDistance        float32
-	MinPosition        [3]float32
-	MaxPosition        [3]float32
-	verticies          []*common.Vertex
-	triangles          []*common.Triangle
+	MinPosition        *geo.Vector3
+	MaxPosition        *geo.Vector3
+	verticies          []*geo.Vertex
+	triangles          []*geo.Triangle
 }
 
-func LoadMesh(r io.ReadSeeker) (common.WldFragmenter, error) {
+func LoadMesh(r io.ReadSeeker) (archive.WldFragmenter, error) {
 	v := &Mesh{}
 	err := parseMesh(r, v, false)
 	if err != nil {
@@ -178,48 +179,48 @@ func parseMesh(r io.ReadSeeker, v *Mesh, isNewWorldFormat bool) error {
 	}
 	scale := float32(1 / float32(int(scaleRaw)<<value))
 
-	vPositions := [][3]float32{}
+	vPositions := []*geo.Vector3{}
 	for i := 0; i < int(vertexCount); i++ {
 
-		pos := [3]float32{}
+		pos := &geo.Vector3{}
 		err = binary.Read(r, binary.LittleEndian, &val16)
 		if err != nil {
 			return fmt.Errorf("read vertex x %d: %w", i, err)
 		}
 
-		pos[0] = float32(v.Center[0]) + float32(val16)*scale
+		pos.X = float32(v.Center.X) + float32(val16)*scale
 
 		err = binary.Read(r, binary.LittleEndian, &val16)
 		if err != nil {
 			return fmt.Errorf("read vertex y %d: %w", i, err)
 		}
 
-		pos[1] = float32(v.Center[1]) + float32(val16)*scale
+		pos.Y = float32(v.Center.Y) + float32(val16)*scale
 
 		err = binary.Read(r, binary.LittleEndian, &val16)
 		if err != nil {
 			return fmt.Errorf("read vertex z %d: %w", i, err)
 		}
-		pos[2] = float32(v.Center[2]) + float32(val16)*scale
+		pos.Z = float32(v.Center.Z) + float32(val16)*scale
 
 		vPositions = append(vPositions, pos)
 	}
 
-	vUvs := [][2]float32{}
+	vUvs := []*geo.Vector2{}
 	for i := 0; i < int(textureCoordinateCount); i++ {
 
-		uv := [2]float32{}
+		uv := &geo.Vector2{}
 		if isNewWorldFormat {
 			err = binary.Read(r, binary.LittleEndian, &val32)
 			if err != nil {
 				return fmt.Errorf("read texture coordinate 32 %d: %w", i, err)
 			}
-			uv[0] = float32(val32 / 256)
+			uv.X = float32(val32 / 256)
 			err = binary.Read(r, binary.LittleEndian, &val32)
 			if err != nil {
 				return fmt.Errorf("read texture coordinate 32 %d: %w", i, err)
 			}
-			uv[1] = float32(val32 / 256)
+			uv.Y = float32(val32 / 256)
 
 			vUvs = append(vUvs, uv)
 			continue
@@ -229,46 +230,46 @@ func parseMesh(r io.ReadSeeker, v *Mesh, isNewWorldFormat bool) error {
 		if err != nil {
 			return fmt.Errorf("read texture coordinate 32 %d: %w", i, err)
 		}
-		uv[0] = float32(val16 / 256)
+		uv.X = float32(val16 / 256)
 		err = binary.Read(r, binary.LittleEndian, &val16)
 		if err != nil {
 			return fmt.Errorf("read texture coordinate 32 %d: %w", i, err)
 		}
-		uv[1] = float32(val16 / 256)
+		uv.Y = float32(val16 / 256)
 
 		vUvs = append(vUvs, uv)
 
 	}
 
-	vNormals := [][3]float32{}
+	vNormals := []*geo.Vector3{}
 	for i := 0; i < int(normalsCount); i++ {
 
-		pos := [3]float32{}
+		pos := &geo.Vector3{}
 		err = binary.Read(r, binary.LittleEndian, &val8)
 		if err != nil {
 			return fmt.Errorf("read normals x %d: %w", i, err)
 		}
-		pos[0] = float32(val8) / float32(128)
+		pos.X = float32(val8) / float32(128)
 
 		err = binary.Read(r, binary.LittleEndian, &val8)
 		if err != nil {
 			return fmt.Errorf("read normals y %d: %w", i, err)
 		}
-		pos[1] = float32(val8) / float32(128)
+		pos.Y = float32(val8) / float32(128)
 
 		err = binary.Read(r, binary.LittleEndian, &val8)
 		if err != nil {
 			return fmt.Errorf("read normals z %d: %w", i, err)
 		}
-		pos[2] = float32(val8) / float32(128)
+		pos.Z = float32(val8) / float32(128)
 
 		vNormals = append(vNormals, pos)
 	}
 
-	vTints := [][4]uint8{}
+	vTints := []*geo.RGBA{}
 	for i := 0; i < int(colorsCount); i++ {
 
-		tint := [4]uint8{}
+		tint := &geo.RGBA{}
 
 		err = binary.Read(r, binary.LittleEndian, &tint)
 		if err != nil {
@@ -277,7 +278,7 @@ func parseMesh(r io.ReadSeeker, v *Mesh, isNewWorldFormat bool) error {
 		vTints = append(vTints, tint)
 	}
 	for len(vPositions) > len(vTints) {
-		vTints = append(vTints, [4]uint8{})
+		vTints = append(vTints, &geo.RGBA{})
 	}
 
 	if len(vPositions) != len(vNormals) ||
@@ -287,7 +288,7 @@ func parseMesh(r io.ReadSeeker, v *Mesh, isNewWorldFormat bool) error {
 	}
 
 	for i := range vPositions {
-		v.verticies = append(v.verticies, &common.Vertex{
+		v.verticies = append(v.verticies, &geo.Vertex{
 			Position: vPositions[i],
 			Normal:   vNormals[i],
 			Tint:     vTints[i],
@@ -303,7 +304,7 @@ func parseMesh(r io.ReadSeeker, v *Mesh, isNewWorldFormat bool) error {
 			return fmt.Errorf("read notSolidFlag %d: %w", i, err)
 		}
 
-		triangle := &common.Triangle{}
+		triangle := &geo.Triangle{}
 		if notSolidFlag == 0 {
 			//TODO: export separate collision flag
 			//p.IsSolid = true
@@ -313,19 +314,19 @@ func parseMesh(r io.ReadSeeker, v *Mesh, isNewWorldFormat bool) error {
 		if err != nil {
 			return fmt.Errorf("read vertex1 %d: %w", i, err)
 		}
-		triangle.Index[0] = uint32(val16)
+		triangle.Index.X = uint32(val16)
 
 		err = binary.Read(r, binary.LittleEndian, &val16)
 		if err != nil {
 			return fmt.Errorf("read vertex2 %d: %w", i, err)
 		}
-		triangle.Index[1] = uint32(val16)
+		triangle.Index.Y = uint32(val16)
 
 		err = binary.Read(r, binary.LittleEndian, &val16)
 		if err != nil {
 			return fmt.Errorf("read vertex3 %d: %w", i, err)
 		}
-		triangle.Index[2] = uint32(val16)
+		triangle.Index.Z = uint32(val16)
 
 		v.triangles = append(v.triangles, triangle)
 	}
@@ -370,10 +371,10 @@ func (e *Mesh) Data() []byte {
 	return buf.Bytes()
 }
 
-func (e *Mesh) Vertices() []*common.Vertex {
+func (e *Mesh) Vertices() []*geo.Vertex {
 	return e.verticies
 }
 
-func (e *Mesh) Triangles() []*common.Triangle {
+func (e *Mesh) Triangles() []*geo.Triangle {
 	return e.triangles
 }

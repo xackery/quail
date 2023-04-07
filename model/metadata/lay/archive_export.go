@@ -4,11 +4,11 @@ import (
 	"bytes"
 	"fmt"
 
-	"github.com/xackery/quail/common"
+	"github.com/xackery/quail/pfs/archive"
 )
 
 // ArchiveExport writes contents to outArchive
-func (e *LAY) ArchiveExport(outArchive common.ArchiveWriter) error {
+func (e *LAY) ArchiveExport(outArchive archive.Writer) error {
 	if outArchive == nil {
 		return fmt.Errorf("no archive loaded")
 	}

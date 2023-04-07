@@ -7,8 +7,8 @@ import (
 	"io"
 	"time"
 
-	"github.com/xackery/quail/common"
 	"github.com/xackery/quail/helper"
+	"github.com/xackery/quail/pfs/archive"
 )
 
 // Encode will write a S3D to writer
@@ -45,7 +45,7 @@ func (e *S3D) Encode(w io.WriteSeeker) error {
 		return fmt.Errorf("write file count: %w", err)
 	}
 
-	e.files = common.FilerByCRC(e.files)
+	e.files = archive.FilerByCRC(e.files)
 	for _, file := range e.files {
 		pos, err = w.Seek(0, io.SeekCurrent)
 		if err != nil {

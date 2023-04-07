@@ -10,13 +10,13 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
-	"github.com/xackery/quail/common"
 	"github.com/xackery/quail/dump"
 	"github.com/xackery/quail/model/mesh/mds"
 	"github.com/xackery/quail/model/mesh/mod"
 	"github.com/xackery/quail/model/mesh/ter"
 	"github.com/xackery/quail/model/metadata/ani"
 	"github.com/xackery/quail/model/metadata/zon"
+	"github.com/xackery/quail/pfs/archive"
 	"github.com/xackery/quail/pfs/eqg"
 	"github.com/xackery/quail/pfs/s3d"
 )
@@ -145,7 +145,7 @@ func init() {
 }
 
 func debugEQG(path string, out string, filter string) error {
-	archive, err := eqg.New(filepath.Base(path))
+	pfs, err := eqg.New(filepath.Base(path))
 	if err != nil {
 		return fmt.Errorf("new: %w", err)
 	}
@@ -154,16 +154,16 @@ func debugEQG(path string, out string, filter string) error {
 		return err
 	}
 	defer r.Close()
-	err = archive.Decode(r)
+	err = pfs.Decode(r)
 	if err != nil {
 		return fmt.Errorf("decode: %w", err)
 	}
 
-	fmt.Printf("%s contains %d files:\n", filepath.Base(path), archive.Len())
+	fmt.Printf("%s contains %d files:\n", filepath.Base(path), pfs.Len())
 
-	filesByName := archive.Files()
-	sort.Sort(common.FilerByName(filesByName))
-	for i, fe := range archive.Files() {
+	filesByName := pfs.Files()
+	sort.Sort(archive.FilerByName(filesByName))
+	for i, fe := range pfs.Files() {
 		if filter != "all" && !strings.Contains(fe.Name(), filter) {
 			continue
 		}

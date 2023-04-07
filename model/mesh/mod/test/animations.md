@@ -1,1 +1,0 @@
-animations is sourced from [github.com/SolarLune/Tetra3d](https://github.com/SolarLune/Tetra3d/blob/main/examples/animations/animations.gltf) which has a MIT license

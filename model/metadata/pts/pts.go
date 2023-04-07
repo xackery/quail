@@ -5,32 +5,34 @@ import (
 	"bytes"
 	"fmt"
 
-	"github.com/xackery/quail/common"
+	"github.com/xackery/quail/model/geo"
+	"github.com/xackery/quail/pfs/archive"
 )
 
 // https://github.com/Zaela/EQGWeaponModelImporter/blob/master/src/pts.cpp
 
+// PTS contains particle location and attachment data
 type PTS struct {
 	name      string
-	archive   common.ArchiveReader
-	particles []*common.ParticlePoint
+	archive   archive.Reader
+	particles []*geo.ParticlePoint
 }
 
 // New creates a new empty instance. Use NewFile to load an archive file on creation
-func New(name string, archive common.ArchiveReader) (*PTS, error) {
+func New(name string, pfs archive.Reader) (*PTS, error) {
 	return &PTS{
 		name:    name,
-		archive: archive,
+		archive: pfs,
 	}, nil
 }
 
 // NewFile creates a new instance and loads provided file
-func NewFile(name string, archive common.ArchiveReadWriter, file string) (*PTS, error) {
+func NewFile(name string, pfs archive.ReadWriter, file string) (*PTS, error) {
 	e := &PTS{
 		name:    name,
-		archive: archive,
+		archive: pfs,
 	}
-	data, err := archive.File(file)
+	data, err := pfs.File(file)
 	if err != nil {
 		return nil, fmt.Errorf("file '%s': %w", file, err)
 	}
@@ -41,6 +43,12 @@ func NewFile(name string, archive common.ArchiveReadWriter, file string) (*PTS, 
 	return e, nil
 }
 
-func (e *PTS) ParticlePoints() []*common.ParticlePoint {
+// ParticlePoints returns a list of particle points
+func (e *PTS) ParticlePoints() []*geo.ParticlePoint {
 	return e.particles
+}
+
+// Name returns the name of the file
+func (e *PTS) Name() string {
+	return e.name
 }

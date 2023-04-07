@@ -9,10 +9,6 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/xackery/quail/helper"
-	"github.com/xackery/quail/model/mesh/mds"
-	"github.com/xackery/quail/model/mesh/ter"
-	"github.com/xackery/quail/model/metadata/zon"
-	"github.com/xackery/quail/model/plugin/gltf"
 	"github.com/xackery/quail/pfs/eqg"
 	"github.com/xackery/quail/pfs/s3d"
 )
@@ -20,8 +16,8 @@ import (
 // importCmd represents the import command
 var importCmd = &cobra.Command{
 	Use:   "import",
-	Short: "Export an eqg or s3d archive to embedded GLTF",
-	Long:  `Export an eqg or s3d archive to embedded GLTF`,
+	Short: "Import ",
+	Long:  `Export an eqg or s3d archive to quail-addon`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		path, err := cmd.Flags().GetString("path")
 		if err != nil {
@@ -122,88 +118,6 @@ func importEQG(path string, out string) error {
 			baseName = baseName[0:strings.Index(baseName, ".")]
 		}
 
-		if strings.HasSuffix(fileName, ".zon.gltf") {
-			e, err := zon.New(baseName, archive)
-			if err != nil {
-				return fmt.Errorf("zon new %s: %w", baseName, err)
-			}
-
-			gdoc, err := gltf.Open(fmt.Sprintf("%s/%s", path, file.Name()))
-			if err != nil {
-				return fmt.Errorf("zon open %s: %w", baseName, err)
-			}
-			err = e.GLTFDecode(gdoc)
-			if err != nil {
-				return fmt.Errorf("zon import %s: %w", baseName, err)
-			}
-
-			err = e.ArchiveExport(archive)
-			if err != nil {
-				return fmt.Errorf("zon archive export %s: %w", baseName, err)
-			}
-
-			continue
-		}
-
-		if strings.HasSuffix(fileName, ".ter.gltf") {
-			e, err := ter.New(baseName, archive)
-			if err != nil {
-				return fmt.Errorf("ter new %s: %w", baseName, err)
-			}
-
-			err = e.ArchiveExport(archive)
-			if err != nil {
-				return fmt.Errorf("ter archive export %s: %w", baseName, err)
-			}
-
-			continue
-		}
-
-		if strings.HasSuffix(fileName, ".mds.gltf") {
-			e, err := mds.New(baseName, archive)
-			if err != nil {
-				return fmt.Errorf("mds new %s: %w", baseName, err)
-			}
-
-			gdoc, err := gltf.Open(fmt.Sprintf("%s/%s", path, file.Name()))
-			if err != nil {
-				return fmt.Errorf("mds open %s: %w", baseName, err)
-			}
-			err = e.GLTFDecode(gdoc)
-			if err != nil {
-				return fmt.Errorf("mds import %s: %w", baseName, err)
-			}
-
-			err = e.ArchiveExport(archive)
-			if err != nil {
-				return fmt.Errorf("mds archive export %s: %w", baseName, err)
-			}
-
-			continue
-		}
-
-		if strings.HasSuffix(fileName, ".mod.gltf") {
-			e, err := mds.New(baseName, archive)
-			if err != nil {
-				return fmt.Errorf("mod new %s: %w", baseName, err)
-			}
-
-			gdoc, err := gltf.Open(fmt.Sprintf("%s/%s", path, file.Name()))
-			if err != nil {
-				return fmt.Errorf("mod open %s: %w", baseName, err)
-			}
-			err = e.GLTFDecode(gdoc)
-			if err != nil {
-				return fmt.Errorf("mod import %s: %w", baseName, err)
-			}
-
-			err = e.ArchiveExport(archive)
-			if err != nil {
-				return fmt.Errorf("mod archive export %s: %w", baseName, err)
-			}
-
-			continue
-		}
 	}
 
 	w, err := os.Create(out)

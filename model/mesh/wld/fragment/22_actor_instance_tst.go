@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/xackery/quail/common"
+	"github.com/xackery/quail/pfs/archive"
 )
 
 // ActorInstanceTest information
@@ -14,7 +14,7 @@ type ActorInstanceTest struct {
 	Parameter float32
 }
 
-func LoadActorInstanceTest(r io.ReadSeeker) (common.WldFragmenter, error) {
+func LoadActorInstanceTest(r io.ReadSeeker) (archive.WldFragmenter, error) {
 	e := &ActorInstanceTest{}
 	err := parseActorInstanceTest(r, e)
 	if err != nil {

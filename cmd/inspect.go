@@ -8,12 +8,12 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
-	"github.com/xackery/quail/common"
 	"github.com/xackery/quail/model/mesh/mds"
 	"github.com/xackery/quail/model/mesh/mod"
 	"github.com/xackery/quail/model/mesh/ter"
 	"github.com/xackery/quail/model/metadata/lit"
 	"github.com/xackery/quail/model/metadata/zon"
+	"github.com/xackery/quail/pfs/archive"
 	"github.com/xackery/quail/pfs/eqg"
 	"github.com/xackery/quail/pfs/s3d"
 )
@@ -58,7 +58,7 @@ Supported extensions: eqg, zon, ter, ani, mod
 			return fmt.Errorf("inspect requires a target file, directory provided")
 		}
 
-		var archive common.ArchiveReadWriter
+		var pfs archive.ReadWriter
 		ext := filepath.Ext(path)
 		switch ext {
 		case ".eqg":
@@ -84,7 +84,7 @@ Supported extensions: eqg, zon, ter, ani, mod
 				return fmt.Errorf("decode: %w", err)
 			}
 
-			archive = e
+			pfs = e
 		case ".s3d":
 			e, err := s3d.New(filepath.Base(path))
 			if err != nil {
@@ -106,16 +106,16 @@ Supported extensions: eqg, zon, ter, ani, mod
 			if err != nil {
 				return fmt.Errorf("decode: %w", err)
 			}
-			archive = e
+			pfs = e
 		default:
 			file = filepath.Base(path)
-			archive, err = common.NewPath(path)
+			pfs, err = archive.NewPath(path)
 			if err != nil {
 				return fmt.Errorf("path new: %w", err)
 			}
 		}
 
-		err = inspect(archive, file)
+		err = inspect(pfs, file)
 		if err != nil {
 			return fmt.Errorf("inspect: %w", err)
 		}
@@ -126,16 +126,16 @@ Supported extensions: eqg, zon, ter, ani, mod
 func init() {
 	rootCmd.AddCommand(inspectCmd)
 	inspectCmd.PersistentFlags().String("path", "", "path to inspect")
-	inspectCmd.PersistentFlags().String("file", "", "file to inspect inside archive")
+	inspectCmd.PersistentFlags().String("file", "", "file to inspect inside pfs")
 }
 
-func inspect(archive common.ArchiveReadWriter, file string) error {
+func inspect(pfs archive.ReadWriter, file string) error {
 
 	var err error
 	ext := strings.ToLower(filepath.Ext(file))
 
 	callbacks := []struct {
-		invoke func(file string, archive common.ArchiveReadWriter) error
+		invoke func(file string, pfs archive.ReadWriter) error
 		name   string
 	}{
 		{invoke: inspectMDS, name: "mds"},
@@ -149,7 +149,7 @@ func inspect(archive common.ArchiveReadWriter, file string) error {
 		if ext != "."+evt.name {
 			continue
 		}
-		err = evt.invoke(file, archive)
+		err = evt.invoke(file, pfs)
 		if err != nil {
 			return fmt.Errorf("inspect %s: %w", evt.name, err)
 		}
@@ -160,7 +160,7 @@ func inspect(archive common.ArchiveReadWriter, file string) error {
 }
 
 func inspectEQG(path string) error {
-	archive, err := eqg.New(filepath.Base(path))
+	pfs, err := eqg.New(filepath.Base(path))
 	if err != nil {
 		return fmt.Errorf("new: %w", err)
 	}
@@ -169,18 +169,18 @@ func inspectEQG(path string) error {
 		return err
 	}
 	defer r.Close()
-	err = archive.Decode(r)
+	err = pfs.Decode(r)
 	if err != nil {
 		return fmt.Errorf("decode: %w", err)
 	}
 
-	fmt.Printf("%s contains %d files:\n", filepath.Base(path), archive.Len())
+	fmt.Printf("%s contains %d files:\n", filepath.Base(path), pfs.Len())
 
-	filesByName := archive.Files()
+	filesByName := pfs.Files()
 	noteworthyFile := "file.ext"
 
-	sort.Sort(common.FilerByName(filesByName))
-	for _, fe := range archive.Files() {
+	sort.Sort(archive.FilerByName(filesByName))
+	for _, fe := range pfs.Files() {
 		base := float64(len(fe.Data()))
 		out := ""
 		num := float64(1024)
@@ -213,7 +213,7 @@ func inspectEQG(path string) error {
 }
 
 func inspectS3D(path string) error {
-	archive, err := s3d.New(filepath.Base(path))
+	pfs, err := s3d.New(filepath.Base(path))
 	if err != nil {
 		return fmt.Errorf("new: %w", err)
 	}
@@ -222,16 +222,16 @@ func inspectS3D(path string) error {
 		return err
 	}
 	defer r.Close()
-	err = archive.Decode(r)
+	err = pfs.Decode(r)
 	if err != nil {
 		return fmt.Errorf("decode: %w", err)
 	}
 
-	fmt.Printf("%s contains %d files:\n", filepath.Base(path), archive.Len())
+	fmt.Printf("%s contains %d files:\n", filepath.Base(path), pfs.Len())
 
-	filesByName := archive.Files()
-	sort.Sort(common.FilerByName(filesByName))
-	for _, fe := range archive.Files() {
+	filesByName := pfs.Files()
+	sort.Sort(archive.FilerByName(filesByName))
+	for _, fe := range pfs.Files() {
 		base := float64(len(fe.Data()))
 		out := ""
 		num := float64(1024)
@@ -253,8 +253,8 @@ func inspectS3D(path string) error {
 	return nil
 }
 
-func inspectMDS(file string, archive common.ArchiveReadWriter) error {
-	e, err := mds.NewFile(filepath.Base(file), archive, file)
+func inspectMDS(file string, pfs archive.ReadWriter) error {
+	e, err := mds.NewFile(filepath.Base(file), pfs, file)
 	if err != nil {
 		return fmt.Errorf("mds new: %w", err)
 	}
@@ -263,8 +263,8 @@ func inspectMDS(file string, archive common.ArchiveReadWriter) error {
 	return nil
 }
 
-func inspectZON(file string, archive common.ArchiveReadWriter) error {
-	e, err := zon.NewFile(filepath.Base(file), archive, file)
+func inspectZON(file string, pfs archive.ReadWriter) error {
+	e, err := zon.NewFile(filepath.Base(file), pfs, file)
 	if err != nil {
 		return fmt.Errorf("zon new: %w", err)
 	}
@@ -273,8 +273,8 @@ func inspectZON(file string, archive common.ArchiveReadWriter) error {
 	return nil
 }
 
-func inspectMOD(file string, archive common.ArchiveReadWriter) error {
-	e, err := mod.NewFile(filepath.Base(file), archive, file)
+func inspectMOD(file string, pfs archive.ReadWriter) error {
+	e, err := mod.NewFile(filepath.Base(file), pfs, file)
 	if err != nil {
 		return fmt.Errorf("mod new: %w", err)
 	}
@@ -283,8 +283,8 @@ func inspectMOD(file string, archive common.ArchiveReadWriter) error {
 	return nil
 }
 
-func inspectTER(file string, archive common.ArchiveReadWriter) error {
-	e, err := ter.NewFile(filepath.Base(file), archive, file)
+func inspectTER(file string, pfs archive.ReadWriter) error {
+	e, err := ter.NewFile(filepath.Base(file), pfs, file)
 	if err != nil {
 		return fmt.Errorf("ter new: %w", err)
 	}
@@ -293,8 +293,8 @@ func inspectTER(file string, archive common.ArchiveReadWriter) error {
 	return nil
 }
 
-func inspectLIT(file string, archive common.ArchiveReadWriter) error {
-	e, err := lit.NewFile(filepath.Base(file), archive, file)
+func inspectLIT(file string, pfs archive.ReadWriter) error {
+	e, err := lit.NewFile(filepath.Base(file), pfs, file)
 	if err != nil {
 		return fmt.Errorf("lit new: %w", err)
 	}

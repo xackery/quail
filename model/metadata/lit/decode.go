@@ -5,27 +5,27 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/xackery/quail/dump"
+	"github.com/xackery/quail/model/geo"
 )
 
 func (e *LIT) Decode(r io.ReadSeeker) error {
 	var err error
 
-	lightCount := uint32(0)
-	err = binary.Read(r, binary.LittleEndian, &lightCount)
+	fileCount := uint32(0)
+	err = binary.Read(r, binary.LittleEndian, &fileCount)
 	if err != nil {
-		return fmt.Errorf("read lightCount: %w", err)
+		return fmt.Errorf("read fileCount: %w", err)
 	}
-	dump.Hex(lightCount, "lightCount=%d", lightCount)
+
+	lightCount := fileCount
 
 	for i := 0; i < int(lightCount); i++ {
-		entry := float32(0)
-		err = binary.Read(r, binary.LittleEndian, &entry)
+		color := &geo.RGBA{}
+		err = binary.Read(r, binary.LittleEndian, color)
 		if err != nil {
-			return fmt.Errorf("read entry: %w", err)
+			return fmt.Errorf("read %d: %w", i, err)
 		}
-		dump.Hex(entry, "%dentry=%0.10f", i, entry)
-		e.lights = append(e.lights, entry)
+		e.lights = append(e.lights, color)
 	}
 
 	return nil

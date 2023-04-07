@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/xackery/quail/common"
+	"github.com/xackery/quail/model/geo"
 )
 
 func (e *MOD) MaterialAdd(name string, shaderName string) error {
@@ -12,10 +12,10 @@ func (e *MOD) MaterialAdd(name string, shaderName string) error {
 	if shaderName == "" {
 		shaderName = "Opaque_MaxCB1.fx"
 	}
-	e.materials = append(e.materials, &common.Material{
+	e.materials = append(e.materials, &geo.Material{
 		Name:       name,
 		ShaderName: shaderName,
-		Properties: []*common.Property{},
+		Properties: []*geo.Property{},
 	})
 	return nil
 }
@@ -26,7 +26,7 @@ func (e *MOD) MaterialPropertyAdd(materialName string, propertyName string, cate
 		if o.Name != materialName {
 			continue
 		}
-		o.Properties = append(o.Properties, &common.Property{
+		o.Properties = append(o.Properties, &geo.Property{
 			Name:     propertyName,
 			Category: category,
 			Value:    value,
@@ -36,10 +36,10 @@ func (e *MOD) MaterialPropertyAdd(materialName string, propertyName string, cate
 	return fmt.Errorf("materialName not found: '%s' (%d)", materialName, len(e.materials))
 }
 
-func (e *MOD) FaceAdd(index [3]uint32, materialName string, flag uint32) error {
+func (e *MOD) FaceAdd(index *geo.UIndex3, materialName string, flag uint32) error {
 	materialName = strings.ToLower(materialName)
 	if materialName == "" || strings.HasPrefix(materialName, "empty_") {
-		e.triangles = append(e.triangles, &common.Triangle{
+		e.triangles = append(e.triangles, &geo.Triangle{
 			Index:        index,
 			MaterialName: materialName,
 			Flag:         flag,
@@ -52,7 +52,7 @@ func (e *MOD) FaceAdd(index [3]uint32, materialName string, flag uint32) error {
 			continue
 		}
 
-		e.triangles = append(e.triangles, &common.Triangle{
+		e.triangles = append(e.triangles, &geo.Triangle{
 			Index:        index,
 			MaterialName: materialName,
 			Flag:         flag,
@@ -63,10 +63,10 @@ func (e *MOD) FaceAdd(index [3]uint32, materialName string, flag uint32) error {
 	return fmt.Errorf("materialName not found: '%s' (%d)", materialName, len(e.materials))
 }
 
-func (e *MOD) TriangleAdd(index [3]uint32, materialName string, flag uint32) error {
+func (e *MOD) TriangleAdd(index *geo.UIndex3, materialName string, flag uint32) error {
 	materialName = strings.ToLower(materialName)
 	if materialName == "" || strings.HasPrefix(materialName, "empty_") {
-		e.triangles = append(e.triangles, &common.Triangle{
+		e.triangles = append(e.triangles, &geo.Triangle{
 			Index:        index,
 			MaterialName: materialName,
 			Flag:         flag,
@@ -79,7 +79,7 @@ func (e *MOD) TriangleAdd(index [3]uint32, materialName string, flag uint32) err
 			continue
 		}
 
-		e.triangles = append(e.triangles, &common.Triangle{
+		e.triangles = append(e.triangles, &geo.Triangle{
 			Index:        index,
 			MaterialName: materialName,
 			Flag:         flag,

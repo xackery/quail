@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/xackery/quail/common"
+	"github.com/xackery/quail/model/geo"
 )
 
 func (e *TER) MaterialByID(id int32) (string, error) {
@@ -22,10 +22,10 @@ func (e *TER) MaterialAdd(name string, shaderName string) error {
 	if shaderName == "" {
 		shaderName = "Opaque_MaxCB1.fx"
 	}
-	e.materials = append(e.materials, &common.Material{
+	e.materials = append(e.materials, &geo.Material{
 		Name:       name,
 		ShaderName: shaderName,
-		Properties: []*common.Property{},
+		Properties: []*geo.Property{},
 	})
 	return nil
 }
@@ -36,7 +36,7 @@ func (e *TER) MaterialPropertyAdd(materialName string, propertyName string, cate
 		if o.Name != materialName {
 			continue
 		}
-		o.Properties = append(o.Properties, &common.Property{
+		o.Properties = append(o.Properties, &geo.Property{
 			Name:     propertyName,
 			Category: category,
 			Value:    value,

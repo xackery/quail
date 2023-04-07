@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/xackery/quail/common"
+	"github.com/xackery/quail/pfs/archive"
 )
 
 // File returns data of a file
@@ -18,7 +18,7 @@ func (e *S3D) File(name string) ([]byte, error) {
 }
 
 // Files returns a string array of every file inside an EQG
-func (e *S3D) Files() []common.Filer {
+func (e *S3D) Files() []archive.Filer {
 	return e.files
 }
 
@@ -33,7 +33,7 @@ func (e *S3D) WriteFile(name string, data []byte) error {
 			return file.SetData(data)
 		}
 	}
-	fe, err := common.NewFileEntry(name, data)
+	fe, err := archive.NewFileEntry(name, data)
 	if err != nil {
 		return fmt.Errorf("newFileEntry: %w", err)
 	}

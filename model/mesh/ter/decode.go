@@ -6,8 +6,9 @@ import (
 	"io"
 	"strings"
 
-	"github.com/xackery/quail/common"
 	"github.com/xackery/quail/dump"
+	"github.com/xackery/quail/model/geo"
+	"github.com/xackery/quail/pfs/archive"
 )
 
 func (e *TER) Decode(r io.ReadSeeker) error {
@@ -201,7 +202,7 @@ func (e *TER) loadVersion2(r io.Reader) error {
 						}
 					}
 
-					fe, err := common.NewFileEntry(propertyValueName, data)
+					fe, err := archive.NewFileEntry(propertyValueName, data)
 					if err != nil {
 						return fmt.Errorf("new fileentry material %s: %w", propertyName, err)
 					}
@@ -218,8 +219,8 @@ func (e *TER) loadVersion2(r io.Reader) error {
 
 	for i := 0; i < int(verticesCount); i++ {
 
-		pos := [3]float32{}
-		err = binary.Read(r, binary.LittleEndian, &pos)
+		pos := &geo.Vector3{}
+		err = binary.Read(r, binary.LittleEndian, pos)
 		if err != nil {
 			return fmt.Errorf("read vertex %d position: %w", i, err)
 		}
@@ -230,25 +231,25 @@ func (e *TER) loadVersion2(r io.Reader) error {
 		newPos[2] = pos[2]
 		pos = newPos*/
 
-		normal := [3]float32{}
-		err = binary.Read(r, binary.LittleEndian, &normal)
+		normal := &geo.Vector3{}
+		err = binary.Read(r, binary.LittleEndian, normal)
 		if err != nil {
 			return fmt.Errorf("read vertex %d normal: %w", i, err)
 		}
 
-		z := normal[2]
-		normal[2] = normal[1]
-		normal[1] = z
+		z := normal.Z
+		normal.Z = normal.Y
+		normal.Y = z
 
-		tint := [4]uint8{128, 128, 128, 1}
+		tint := &geo.RGBA{R: 128, G: 128, B: 128, A: 1}
 
-		uv := [2]float32{}
-		err = binary.Read(r, binary.LittleEndian, &uv)
+		uv := &geo.Vector2{}
+		err = binary.Read(r, binary.LittleEndian, uv)
 		if err != nil {
 			return fmt.Errorf("read vertex %d uv: %w", i, err)
 		}
 
-		e.vertices = append(e.vertices, &common.Vertex{
+		e.vertices = append(e.vertices, &geo.Vertex{
 			Position: pos,
 			Normal:   normal,
 			Tint:     tint,
@@ -260,8 +261,8 @@ func (e *TER) loadVersion2(r io.Reader) error {
 	dump.HexRange([]byte{0x01, 0x02}, int(verticesCount)*32, "vertData=(%d bytes)", int(verticesCount)*32)
 
 	for i := 0; i < int(triangleCount); i++ {
-		pos := [3]uint32{}
-		err = binary.Read(r, binary.LittleEndian, &pos)
+		pos := &geo.UIndex3{}
+		err = binary.Read(r, binary.LittleEndian, pos)
 		if err != nil {
 			return fmt.Errorf("read triangle %d pos: %w", i, err)
 		}
@@ -438,15 +439,18 @@ func (e *TER) loadVersion3(r io.Reader) error {
 						return fmt.Errorf("property %d names offset %d not found", j, propertyValue)
 					}
 
-					data, err := e.archive.File(propertyValueName)
-					if err != nil {
-						data, err = e.archive.File(strings.ToLower(propertyValueName))
+					var data []byte
+					if e.archive != nil {
+						data, err = e.archive.File(propertyValueName)
 						if err != nil {
-							fmt.Printf("warning: read material '%s' property '%s': %s\n", name, propertyName, err)
-							//	return fmt.Errorf("read material via eqg %s: %w", propertyName, err)
+							data, err = e.archive.File(strings.ToLower(propertyValueName))
+							if err != nil {
+								fmt.Printf("warning: read material '%s' property '%s': %s\n", name, propertyName, err)
+								//	return fmt.Errorf("read material via eqg %s: %w", propertyName, err)
+							}
 						}
 					}
-					fe, err := common.NewFileEntry(propertyValueName, data)
+					fe, err := archive.NewFileEntry(propertyValueName, data)
 					if err != nil {
 						return fmt.Errorf("new fileentry material %s: %w", propertyName, err)
 					}
@@ -462,38 +466,37 @@ func (e *TER) loadVersion3(r io.Reader) error {
 	}
 
 	for i := 0; i < int(verticesCount); i++ {
-
-		pos := [3]float32{}
-		err = binary.Read(r, binary.LittleEndian, &pos)
+		pos := &geo.Vector3{}
+		err = binary.Read(r, binary.LittleEndian, pos)
 		if err != nil {
 			return fmt.Errorf("read vertex %d position: %w", i, err)
 		}
 
-		normal := [3]float32{}
-		err = binary.Read(r, binary.LittleEndian, &normal)
+		normal := &geo.Vector3{}
+		err = binary.Read(r, binary.LittleEndian, normal)
 		if err != nil {
 			return fmt.Errorf("read vertex %d normal: %w", i, err)
 		}
 
-		tint := [4]uint8{128, 128, 128, 1}
+		tint := &geo.RGBA{}
 		err = binary.Read(r, binary.LittleEndian, tint)
 		if err != nil {
 			return fmt.Errorf("read vertex %d tint: %w", i, err)
 		}
 
-		uv := [2]float32{}
-		err = binary.Read(r, binary.LittleEndian, &uv)
+		uv := &geo.Vector2{}
+		err = binary.Read(r, binary.LittleEndian, uv)
 		if err != nil {
 			return fmt.Errorf("read vertex %d uv: %w", i, err)
 		}
 
-		uv2 := [2]float32{}
-		err = binary.Read(r, binary.LittleEndian, &uv2)
+		uv2 := &geo.Vector2{}
+		err = binary.Read(r, binary.LittleEndian, uv2)
 		if err != nil {
 			return fmt.Errorf("read vertex %d uv2: %w", i, err)
 		}
 
-		e.vertices = append(e.vertices, &common.Vertex{
+		e.vertices = append(e.vertices, &geo.Vertex{
 			Position: pos,
 			Normal:   normal,
 			Tint:     tint,
@@ -505,8 +508,8 @@ func (e *TER) loadVersion3(r io.Reader) error {
 	dump.HexRange([]byte{0x01, 0x02}, int(verticesCount)*32, "vertData=(%d bytes)", int(verticesCount)*32)
 
 	for i := 0; i < int(triangleCount); i++ {
-		pos := [3]uint32{}
-		err = binary.Read(r, binary.LittleEndian, &pos)
+		pos := &geo.UIndex3{}
+		err = binary.Read(r, binary.LittleEndian, pos)
 		if err != nil {
 			return fmt.Errorf("read triangle %d pos: %w", i, err)
 		}

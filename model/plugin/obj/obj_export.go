@@ -39,13 +39,13 @@ func objExport(req *ObjRequest) error {
 		}
 	}
 	for _, e := range req.Data.Vertices {
-		_, err = w.WriteString(fmt.Sprintf("vt %0.6f %0.6f\n", e.Uv[0], e.Uv[1]))
+		_, err = w.WriteString(fmt.Sprintf("vt %0.6f %0.6f\n", e.Uv.X, e.Uv.Y))
 		if err != nil {
 			return fmt.Errorf("export uv: %w", err)
 		}
 	}
 	for _, e := range req.Data.Vertices {
-		_, err = w.WriteString(fmt.Sprintf("vn %0.6f %0.6f %0.6f\n", e.Normal[0], e.Normal[1], e.Normal[2]))
+		_, err = w.WriteString(fmt.Sprintf("vn %0.6f %0.6f %0.6f\n", e.Normal.X, e.Normal.Y, e.Normal.Z))
 		if err != nil {
 			return fmt.Errorf("export normal: %w", err)
 		}
@@ -62,7 +62,7 @@ func objExport(req *ObjRequest) error {
 			}
 			group++
 		}
-		_, err = w.WriteString(fmt.Sprintf("f %d/%d/%d %d/%d/%d %d/%d/%d\n", int(e.Index[0]+1), int(e.Index[0]+1), int(e.Index[0]+1), int(e.Index[1]+1), int(e.Index[1]+1), int(e.Index[1]+1), int(e.Index[2]+1), int(e.Index[2]+1), int(e.Index[2]+1)))
+		_, err = w.WriteString(fmt.Sprintf("f %d/%d/%d %d/%d/%d %d/%d/%d\n", int(e.Index.X+1), int(e.Index.X+1), int(e.Index.X+1), int(e.Index.Y+1), int(e.Index.Y+1), int(e.Index.Y+1), int(e.Index.Z+1), int(e.Index.Z+1), int(e.Index.Z+1)))
 		if err != nil {
 			return fmt.Errorf("f: %w", err)
 		}
