@@ -22,12 +22,12 @@ func (e *PTS) BlenderExport(dir string) error {
 		}
 
 		defer pw.Close()
-		pw.WriteString("name bone translation rotation scale\n")
+		pw.WriteString("name|bone|translation|rotation|scale\n")
 		for _, p := range e.particles {
-			pw.WriteString(dump.Str(p.Name) + " ")
-			pw.WriteString(dump.Str(p.Bone) + " ")
-			pw.WriteString(dump.Str(p.Translation) + " ")
-			pw.WriteString(dump.Str(p.Rotation) + " ")
+			pw.WriteString(dump.Str(p.Name) + "|")
+			pw.WriteString(dump.Str(p.Bone) + "|")
+			pw.WriteString(dump.Str(p.Translation) + "|")
+			pw.WriteString(dump.Str(p.Rotation) + "|")
 			pw.WriteString(dump.Str(p.Scale) + "\n")
 		}
 	}

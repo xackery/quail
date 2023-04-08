@@ -13,8 +13,9 @@ func (e *ZON) BlenderExport(dir string) error {
 		return fmt.Errorf("zon_%s_model.txt: %w", e.Name(), err)
 	}
 	defer mw.Close()
+	mw.WriteString("base_name|name\n")
 	for _, model := range e.models {
-		mw.WriteString(model.baseName + " ")
+		mw.WriteString(model.baseName + "|")
 		mw.WriteString(model.name + "\n")
 	}
 
@@ -23,11 +24,12 @@ func (e *ZON) BlenderExport(dir string) error {
 		return fmt.Errorf("zon_%s_object.txt: %w", e.Name(), err)
 	}
 	defer ow.Close()
+	ow.WriteString("model_name|name|rotation|translation|scale\n")
 	for _, obj := range e.objects {
-		mw.WriteString(obj.modelName + " ")
-		mw.WriteString(obj.name + " ")
-		mw.WriteString(dump.Str(obj.rotation) + " ")
-		mw.WriteString(dump.Str(obj.translation) + " ")
+		mw.WriteString(obj.modelName + "|")
+		mw.WriteString(obj.name + "|")
+		mw.WriteString(dump.Str(obj.rotation) + "|")
+		mw.WriteString(dump.Str(obj.translation) + "|")
 		mw.WriteString(dump.Str(obj.scale) + "\n")
 	}
 
@@ -36,10 +38,11 @@ func (e *ZON) BlenderExport(dir string) error {
 		return fmt.Errorf("zon_%s_light.txt: %w", e.Name(), err)
 	}
 	defer lw.Close()
+	lw.WriteString("name|color|position|radius\n")
 	for _, light := range e.lights {
-		mw.WriteString(light.name + " ")
-		mw.WriteString(dump.Str(light.color) + " ")
-		mw.WriteString(dump.Str(light.position) + " ")
+		mw.WriteString(light.name + "|")
+		mw.WriteString(dump.Str(light.color) + "|")
+		mw.WriteString(dump.Str(light.position) + "|")
 		mw.WriteString(dump.Str(light.radius) + "\n")
 	}
 	return nil

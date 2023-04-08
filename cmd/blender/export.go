@@ -12,6 +12,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/xackery/quail/model/mesh/mds"
 	"github.com/xackery/quail/model/mesh/mod"
+	"github.com/xackery/quail/model/mesh/ter"
 	"github.com/xackery/quail/model/metadata/ani"
 	"github.com/xackery/quail/model/metadata/lit"
 	"github.com/xackery/quail/model/metadata/pts"
@@ -99,6 +100,8 @@ func export(cmd *cobra.Command, args []string) error {
 			e, err = lit.New(fe.Name(), pfs)
 		case ".tog":
 			e, err = tog.New(fe.Name(), pfs)
+		case ".ter":
+			e, err = ter.New(fe.Name(), pfs)
 		//case ".lod":
 		//	e, err = lod.New(fe.Name(), pfs)
 		case ".prt":

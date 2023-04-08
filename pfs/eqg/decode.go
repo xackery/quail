@@ -185,6 +185,8 @@ func (e *EQG) Decode(r io.ReadSeeker) error {
 				return fmt.Errorf("read nameData %w", err)
 			}
 			name := string(nameData[0 : len(nameData)-1])
+			// TODO: stop forcing lowercase
+			name = strings.ToLower(name)
 			dirNameByCRCs[helper.FilenameCRC32(name)] = name
 		}
 

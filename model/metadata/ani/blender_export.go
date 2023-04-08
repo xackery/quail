@@ -18,18 +18,18 @@ func (e *ANI) BlenderExport(dir string) error {
 		return fmt.Errorf("create animation.txt: %w", err)
 	}
 	defer bw.Close()
-	bw.WriteString("name frame_count\n")
+	bw.WriteString("name|frame_count\n")
 
 	for _, b := range e.bones {
-		bw.WriteString(fmt.Sprintf("%s %d\n", b.Name, b.FrameCount))
+		bw.WriteString(fmt.Sprintf("%s|%d\n", b.Name, b.FrameCount))
 
 		bfw, err := os.Create(fmt.Sprintf("%s/frame_%s.txt", path, b.Name))
 		if err != nil {
 			return fmt.Errorf("create frame_%s.txt: %w", b.Name, err)
 		}
-		bfw.WriteString("bone_name frame translation rotation scale\n")
+		bfw.WriteString("bone_name|frame|translation|rotation|scale\n")
 		for _, bf := range b.Frames {
-			bfw.WriteString(fmt.Sprintf("%s %d %s %s %s\n", b.Name, bf.Milliseconds, bf.Translation, bf.Rotation, bf.Scale))
+			bfw.WriteString(fmt.Sprintf("%s|%d|%s|%s|%s\n", b.Name, bf.Milliseconds, bf.Translation, bf.Rotation, bf.Scale))
 		}
 		bfw.Close()
 	}

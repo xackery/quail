@@ -300,7 +300,7 @@ func (e *MOD) Decode(r io.ReadSeeker) error {
 
 		//	vertex := e.vertices[i]
 
-		bone := &geo.Bone{}
+		bone := geo.NewBone()
 
 		materialID := uint32(0)
 		err = binary.Read(r, binary.LittleEndian, &materialID)
@@ -335,13 +335,13 @@ func (e *MOD) Decode(r io.ReadSeeker) error {
 		}
 		dump.Hex(bone.Pivot, "%dpivot=%+v", i, bone.Pivot)
 
-		err = binary.Read(r, binary.LittleEndian, &bone.Rotation)
+		err = binary.Read(r, binary.LittleEndian, bone.Rotation)
 		if err != nil {
 			return fmt.Errorf("read bone %d rot: %w", i, err)
 		}
 		dump.Hex(bone.Rotation, "%drot=%+v", i, bone.Rotation)
 
-		err = binary.Read(r, binary.LittleEndian, &bone.Scale)
+		err = binary.Read(r, binary.LittleEndian, bone.Scale)
 		if err != nil {
 			return fmt.Errorf("read bone %d scale: %w", i, err)
 		}

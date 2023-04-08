@@ -21,15 +21,15 @@ func (e *PRT) BlenderExport(dir string) error {
 			return fmt.Errorf("create particle_render.txt: %w", err)
 		}
 		defer pw.Close()
-		pw.WriteString("duration id id2 particle_point unknowna unknownb unknownc unknownffffffff\n")
+		pw.WriteString("duration|id|id2|particle_point|unknowna|unknownb|unknownc|unknownffffffff\n")
 		for _, p := range e.particles {
-			pw.WriteString(dump.Str(p.Duration) + " ")
-			pw.WriteString(dump.Str(p.ID) + " ")
-			pw.WriteString(dump.Str(p.ID2) + " ")
-			pw.WriteString(dump.Str(p.ParticlePoint) + " ")
-			pw.WriteString(dump.Str(p.UnknownA) + " ")
-			pw.WriteString(dump.Str(p.UnknownB) + " ")
-			pw.WriteString(dump.Str(p.UnknownC) + " ")
+			pw.WriteString(dump.Str(p.Duration) + "|")
+			pw.WriteString(dump.Str(p.ID) + "|")
+			pw.WriteString(dump.Str(p.ID2) + "|")
+			pw.WriteString(dump.Str(p.ParticlePoint) + "|")
+			pw.WriteString(dump.Str(p.UnknownA) + "|")
+			pw.WriteString(dump.Str(p.UnknownB) + "|")
+			pw.WriteString(dump.Str(p.UnknownC) + "|")
 			pw.WriteString(dump.Str(p.UnknownFFFFFFFF) + "\n")
 		}
 	}

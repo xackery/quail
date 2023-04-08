@@ -21,10 +21,10 @@ func (e *LOD) BlenderExport(dir string) error {
 			return fmt.Errorf("create lod.txt: %w", err)
 		}
 		defer lw.Close()
-		lw.WriteString("category model_name distance\n")
+		lw.WriteString("category|model_name|distance\n")
 		for _, le := range e.lods {
-			lw.WriteString(dump.Str(le.Category) + " ")
-			lw.WriteString(dump.Str(le.ObjectName) + " ")
+			lw.WriteString(dump.Str(le.Category) + "|")
+			lw.WriteString(dump.Str(le.ObjectName) + "|")
 			lw.WriteString(dump.Str(le.Distance) + "\n")
 		}
 	}

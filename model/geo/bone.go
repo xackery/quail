@@ -10,3 +10,11 @@ type Bone struct {
 	Rotation      *Quad4
 	Scale         *Vector3
 }
+
+func NewBone() *Bone {
+	return &Bone{
+		Pivot:    NewVector3(),
+		Rotation: NewQuad4(),
+		Scale:    NewVector3(),
+	}
+}

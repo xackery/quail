@@ -466,44 +466,33 @@ func (e *TER) loadVersion3(r io.Reader) error {
 	}
 
 	for i := 0; i < int(verticesCount); i++ {
-		pos := &geo.Vector3{}
-		err = binary.Read(r, binary.LittleEndian, pos)
+		vert := geo.NewVertex()
+		err = binary.Read(r, binary.LittleEndian, vert.Position)
 		if err != nil {
 			return fmt.Errorf("read vertex %d position: %w", i, err)
 		}
 
-		normal := &geo.Vector3{}
-		err = binary.Read(r, binary.LittleEndian, normal)
+		err = binary.Read(r, binary.LittleEndian, vert.Normal)
 		if err != nil {
 			return fmt.Errorf("read vertex %d normal: %w", i, err)
 		}
 
-		tint := &geo.RGBA{}
-		err = binary.Read(r, binary.LittleEndian, tint)
+		err = binary.Read(r, binary.LittleEndian, vert.Tint)
 		if err != nil {
 			return fmt.Errorf("read vertex %d tint: %w", i, err)
 		}
 
-		uv := &geo.Vector2{}
-		err = binary.Read(r, binary.LittleEndian, uv)
+		err = binary.Read(r, binary.LittleEndian, vert.Uv)
 		if err != nil {
 			return fmt.Errorf("read vertex %d uv: %w", i, err)
 		}
 
-		uv2 := &geo.Vector2{}
-		err = binary.Read(r, binary.LittleEndian, uv2)
+		err = binary.Read(r, binary.LittleEndian, vert.Uv2)
 		if err != nil {
 			return fmt.Errorf("read vertex %d uv2: %w", i, err)
 		}
 
-		e.vertices = append(e.vertices, &geo.Vertex{
-			Position: pos,
-			Normal:   normal,
-			Tint:     tint,
-			Uv:       uv,
-			Uv2:      uv2,
-		})
-
+		e.vertices = append(e.vertices, vert)
 	}
 	dump.HexRange([]byte{0x01, 0x02}, int(verticesCount)*32, "vertData=(%d bytes)", int(verticesCount)*32)
 

@@ -8,6 +8,10 @@ type Vector2 struct {
 	Y float32
 }
 
+func NewVector2() *Vector2 {
+	return &Vector2{}
+}
+
 // String returns a string version of vector2
 func (v *Vector2) String() string {
 	return fmt.Sprintf("%0.2f,%0.2f", v.X, v.Y)
@@ -18,6 +22,10 @@ type Vector3 struct {
 	X float32
 	Y float32
 	Z float32
+}
+
+func NewVector3() *Vector3 {
+	return &Vector3{}
 }
 
 // String returns a string version of vector3
@@ -33,6 +41,10 @@ type Quad4 struct {
 	W float32
 }
 
+func NewQuad4() *Quad4 {
+	return &Quad4{}
+}
+
 // String returns a string version of quad4
 func (q *Quad4) String() string {
 	return fmt.Sprintf("%0.2f,%0.2f,%0.2f,%0.2f", q.X, q.Y, q.Z, q.W)
@@ -45,6 +57,10 @@ type Index3 struct {
 	Z int32
 }
 
+func NewIndex3() *Index3 {
+	return &Index3{}
+}
+
 // String returns a string version of index3
 func (i *Index3) String() string {
 	return fmt.Sprintf("%d,%d,%d", i.X, i.Y, i.Z)
@@ -55,6 +71,10 @@ type UIndex3 struct {
 	X uint32
 	Y uint32
 	Z uint32
+}
+
+func NewUIndex3() *UIndex3 {
+	return &UIndex3{}
 }
 
 // String returns a string version of uindex3
@@ -70,6 +90,10 @@ type Index4 struct {
 	W int16
 }
 
+func NewIndex4() *Index4 {
+	return &Index4{}
+}
+
 // String returns a string version of index4
 func (i *Index4) String() string {
 	return fmt.Sprintf("%d,%d,%d,%d", i.X, i.Y, i.Z, i.W)
@@ -80,6 +104,10 @@ type Property struct {
 	Name     string
 	Category uint32
 	Value    string
+}
+
+func NewProperty() *Property {
+	return &Property{}
 }
 
 // Vertex stores information related to a mesh
@@ -116,6 +144,12 @@ type Triangle struct {
 	Index        *UIndex3
 	MaterialName string
 	Flag         uint32
+}
+
+func NewTriangle() *Triangle {
+	return &Triangle{
+		Index: &UIndex3{},
+	}
 }
 
 // String returns a string version of triangle

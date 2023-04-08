@@ -6,6 +6,10 @@
 
 Quail manages EverQuest files. [Find downloads in releases](https://github.com/xackery/quail/releases/latest)
 
+## Goals
+- EQG weapon bidirectional support via blender with V2
+
+## TODO
 
 ## Usage
 

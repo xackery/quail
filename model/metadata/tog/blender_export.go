@@ -22,13 +22,13 @@ func (e *TOG) BlenderExport(dir string) error {
 		}
 
 		defer lw.Close()
-		lw.WriteString("name position rotation scale file_type file_name\n")
+		lw.WriteString("name|position|rotation|scale|file_type|file_name\n")
 		for _, obj := range e.objects {
-			lw.WriteString(dump.Str(obj.Name) + " ")
-			lw.WriteString(dump.Str(obj.Position) + " ")
-			lw.WriteString(dump.Str(obj.Rotation) + " ")
-			lw.WriteString(dump.Str(obj.Scale) + " ")
-			lw.WriteString(dump.Str(obj.FileType) + " ")
+			lw.WriteString(dump.Str(obj.Name) + "|")
+			lw.WriteString(dump.Str(obj.Position) + "|")
+			lw.WriteString(dump.Str(obj.Rotation) + "|")
+			lw.WriteString(dump.Str(obj.Scale) + "|")
+			lw.WriteString(dump.Str(obj.FileType) + "|")
 			lw.WriteString(dump.Str(obj.FileName) + "\n")
 		}
 	}
