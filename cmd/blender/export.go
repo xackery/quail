@@ -114,6 +114,12 @@ func export(cmd *cobra.Command, args []string) error {
 				return fmt.Errorf("dds.WriteFile %s: %w", fe.Name(), err)
 			}
 			continue
+		case ".txt":
+			err = os.WriteFile(out+"/"+fe.Name(), fe.Data(), 0644)
+			if err != nil {
+				return fmt.Errorf("txt.WriteFile %s: %w", fe.Name(), err)
+			}
+			continue
 		default:
 			fmt.Println("TODO:", fe.Name(), "support")
 			continue
