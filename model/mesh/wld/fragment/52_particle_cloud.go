@@ -31,7 +31,7 @@ func parseParticleCloud(r io.ReadSeeker, v *ParticleCloud) error {
 	var value uint32
 	v.name, err = nameFromHashIndex(r)
 	if err != nil {
-		return fmt.Errorf("nameFromHasIndex: %w", err)
+		return fmt.Errorf("nameFromHashIndex: %w", err)
 	}
 
 	err = binary.Read(r, binary.LittleEndian, &value)

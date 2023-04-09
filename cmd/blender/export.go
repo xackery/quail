@@ -13,6 +13,7 @@ import (
 	"github.com/xackery/quail/model/mesh/mds"
 	"github.com/xackery/quail/model/mesh/mod"
 	"github.com/xackery/quail/model/mesh/ter"
+	"github.com/xackery/quail/model/mesh/wld"
 	"github.com/xackery/quail/model/metadata/ani"
 	"github.com/xackery/quail/model/metadata/lit"
 	"github.com/xackery/quail/model/metadata/pts"
@@ -102,6 +103,8 @@ func export(cmd *cobra.Command, args []string) error {
 			e, err = tog.New(fe.Name(), pfs)
 		case ".ter":
 			e, err = ter.New(fe.Name(), pfs)
+		case ".wld":
+			e, err = wld.New(fe.Name(), pfs)
 		//case ".lod":
 		//	e, err = lod.New(fe.Name(), pfs)
 		case ".prt":
@@ -112,6 +115,18 @@ func export(cmd *cobra.Command, args []string) error {
 			err = os.WriteFile(out+"/"+fe.Name(), fe.Data(), 0644)
 			if err != nil {
 				return fmt.Errorf("dds.WriteFile %s: %w", fe.Name(), err)
+			}
+			continue
+		case ".bmp":
+			err = os.WriteFile(out+"/"+fe.Name(), fe.Data(), 0644)
+			if err != nil {
+				return fmt.Errorf("bmp.WriteFile %s: %w", fe.Name(), err)
+			}
+			continue
+		case ".png":
+			err = os.WriteFile(out+"/"+fe.Name(), fe.Data(), 0644)
+			if err != nil {
+				return fmt.Errorf("png.WriteFile %s: %w", fe.Name(), err)
 			}
 			continue
 		case ".txt":

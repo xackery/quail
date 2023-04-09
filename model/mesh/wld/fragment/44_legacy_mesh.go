@@ -79,7 +79,7 @@ func parseLegacyMesh(r io.ReadSeeker, v *LegacyMesh) error {
 	var err error
 	v.name, err = nameFromHashIndex(r)
 	if err != nil {
-		return fmt.Errorf("nameFromHasIndex: %w", err)
+		return fmt.Errorf("nameFromHashIndex: %w", err)
 	}
 
 	err = binary.Read(r, binary.LittleEndian, v)

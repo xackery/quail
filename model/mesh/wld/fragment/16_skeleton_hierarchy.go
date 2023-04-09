@@ -29,7 +29,7 @@ func parseSkeletonHierarchy(r io.ReadSeeker, v *SkeletonHierarchy) error {
 	var err error
 	v.name, err = nameFromHashIndex(r)
 	if err != nil {
-		return fmt.Errorf("nameFromHasIndex: %w", err)
+		return fmt.Errorf("nameFromHashIndex: %w", err)
 	}
 
 	// Always 2 when used in main zone, and object files.
@@ -92,7 +92,7 @@ func parseSkeletonHierarchy(r io.ReadSeeker, v *SkeletonHierarchy) error {
 	for i := 0; i < int(boneCount); i++ {
 		_, err = nameFromHashIndex(r)
 		if err != nil {
-			return fmt.Errorf("%d boneNameFromHasIndex: %w", i, err)
+			return fmt.Errorf("%d bonenameFromHashIndex: %w", i, err)
 		}
 
 		boneFlags := int32(0)

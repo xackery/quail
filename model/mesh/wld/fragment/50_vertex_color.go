@@ -35,7 +35,7 @@ func parseVertexColor(r io.ReadSeeker, v *VertexColor) error {
 
 	v.name, err = nameFromHashIndex(r)
 	if err != nil {
-		return fmt.Errorf("nameFromHasIndex: %w", err)
+		return fmt.Errorf("nameFromHashIndex: %w", err)
 	}
 
 	//unknown

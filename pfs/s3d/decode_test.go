@@ -9,11 +9,12 @@ import (
 )
 
 func TestS3DDecode(t *testing.T) {
-	if os.Getenv("SINGLE_TEST") != "1" {
-		return
+	eqPath := os.Getenv("EQ_PATH")
+	if eqPath == "" {
+		t.Skip("EQ_PATH not set")
 	}
 
-	eqgFile := "test/eq/crushbone.s3d"
+	eqgFile := fmt.Sprintf("%s/shp_chr.s3d", eqPath)
 	dump.New(eqgFile)
 	defer dump.WriteFileClose(eqgFile)
 	e, err := NewFile(eqgFile)

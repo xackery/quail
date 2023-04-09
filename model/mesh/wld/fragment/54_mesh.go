@@ -24,8 +24,16 @@ type Mesh struct {
 	triangles          []*geo.Triangle
 }
 
+func NewMesh() *Mesh {
+	return &Mesh{
+		Center:      &geo.Vector3{},
+		MinPosition: &geo.Vector3{},
+		MaxPosition: &geo.Vector3{},
+	}
+}
+
 func LoadMesh(r io.ReadSeeker) (archive.WldFragmenter, error) {
-	v := &Mesh{}
+	v := NewMesh()
 	err := parseMesh(r, v, false)
 	if err != nil {
 		return nil, fmt.Errorf("parse Mesh: %w", err)
@@ -46,7 +54,7 @@ func parseMesh(r io.ReadSeeker, v *Mesh, isNewWorldFormat bool) error {
 	var value uint32
 	v.name, err = nameFromHashIndex(r)
 	if err != nil {
-		return fmt.Errorf("nameFromHasIndex: %w", err)
+		return fmt.Errorf("nameFromHashIndex: %w", err)
 	}
 
 	err = binary.Read(r, binary.LittleEndian, &v.flags)
@@ -82,7 +90,7 @@ func parseMesh(r io.ReadSeeker, v *Mesh, isNewWorldFormat bool) error {
 		return fmt.Errorf("read unknown2: %w", err)
 	}
 
-	err = binary.Read(r, binary.LittleEndian, &v.Center)
+	err = binary.Read(r, binary.LittleEndian, v.Center)
 	if err != nil {
 		return fmt.Errorf("read center: %w", err)
 	}
@@ -108,12 +116,12 @@ func parseMesh(r io.ReadSeeker, v *Mesh, isNewWorldFormat bool) error {
 		return fmt.Errorf("read max distance: %w", err)
 	}
 
-	err = binary.Read(r, binary.LittleEndian, &v.MinPosition)
+	err = binary.Read(r, binary.LittleEndian, v.MinPosition)
 	if err != nil {
 		return fmt.Errorf("read min position: %w", err)
 	}
 
-	err = binary.Read(r, binary.LittleEndian, &v.MaxPosition)
+	err = binary.Read(r, binary.LittleEndian, v.MaxPosition)
 	if err != nil {
 		return fmt.Errorf("read max position: %w", err)
 	}
@@ -271,7 +279,7 @@ func parseMesh(r io.ReadSeeker, v *Mesh, isNewWorldFormat bool) error {
 
 		tint := &geo.RGBA{}
 
-		err = binary.Read(r, binary.LittleEndian, &tint)
+		err = binary.Read(r, binary.LittleEndian, tint)
 		if err != nil {
 			return fmt.Errorf("read color %d: %w", i, err)
 		}
@@ -288,13 +296,14 @@ func parseMesh(r io.ReadSeeker, v *Mesh, isNewWorldFormat bool) error {
 	}
 
 	for i := range vPositions {
-		v.verticies = append(v.verticies, &geo.Vertex{
-			Position: vPositions[i],
-			Normal:   vNormals[i],
-			Tint:     vTints[i],
-			Uv:       vUvs[i],
-			Uv2:      vUvs[i],
-		})
+		vert := geo.NewVertex()
+		vert.Position = vPositions[i]
+		vert.Normal = vNormals[i]
+		vert.Tint = vTints[i]
+		vert.Uv = vUvs[i]
+		vert.Uv2 = vUvs[i]
+
+		v.verticies = append(v.verticies, vert)
 	}
 
 	for i := 0; i < int(triangleCount); i++ {
@@ -304,7 +313,7 @@ func parseMesh(r io.ReadSeeker, v *Mesh, isNewWorldFormat bool) error {
 			return fmt.Errorf("read notSolidFlag %d: %w", i, err)
 		}
 
-		triangle := &geo.Triangle{}
+		triangle := geo.NewTriangle()
 		if notSolidFlag == 0 {
 			//TODO: export separate collision flag
 			//p.IsSolid = true
@@ -357,7 +366,8 @@ func parseMesh(r io.ReadSeeker, v *Mesh, isNewWorldFormat bool) error {
 			return fmt.Errorf("read materialID %d: %w", i, err)
 		}
 		//fmt.Println("TODO, fix materials?", triangleIndex)
-		//v.triangles[triangleIndex-1].MaterialName = fmt.Sprintf("%d", val16)
+
+		v.triangles[triangleIndex-1].MaterialName = fmt.Sprintf("%d", val16)
 	}
 
 	return nil

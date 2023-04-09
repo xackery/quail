@@ -30,6 +30,7 @@ func (e *MDS) Decode(r io.ReadSeeker) error {
 	if err != nil {
 		return fmt.Errorf("read header version: %w", err)
 	}
+	print("version: ", version)
 	dump.Hex(version, "version=%d", version)
 	if version != 1 && version != 3 {
 		return fmt.Errorf("version is %d, wanted 1 or 3", version)
@@ -340,7 +341,7 @@ func (e *MDS) Decode(r io.ReadSeeker) error {
 		}
 
 		// fiddle uv coord
-		vertex.Uv.Y = -vertex.Uv.Y
+		//vertex.Uv.Y = -vertex.Uv.Y
 
 		vertex.Position = geo.ApplyQuaternion(vertex.Position, &geo.Quad4{X: 1, Y: 0, Z: 0, W: 0})
 		e.vertices = append(e.vertices, vertex)

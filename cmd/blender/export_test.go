@@ -23,15 +23,18 @@ func Test_export(t *testing.T) {
 		args    args
 		wantErr bool
 	}{
+		//{name: "shp_chr.s3d", args: args{cmd: &cobra.Command{}, args: []string{fmt.Sprintf("%s/shp_chr.s3d", eqPath), "test/"}}, wantErr: false},
+		{name: "crushbone.s3d", args: args{cmd: &cobra.Command{}, args: []string{fmt.Sprintf("%s/crushbone.s3d", eqPath), "test/"}}, wantErr: false},
+		//{name: "gequip.s3d", args: args{cmd: &cobra.Command{}, args: []string{fmt.Sprintf("%s/gequip.s3d", eqPath), "test/"}}, wantErr: false},
+		//{name: "arena.s3d", args: args{cmd: &cobra.Command{}, args: []string{fmt.Sprintf("%s/arena.s3d", eqPath), "test/"}}, wantErr: false},
 		//{name: "arena", args: args{cmd: &cobra.Command{}, args: []string{fmt.Sprintf("%s/arena.eqg", eqPath), "test/"}}, wantErr: false},
 		//{name: "steamfontmts", args: args{cmd: &cobra.Command{}, args: []string{fmt.Sprintf("%s/steamfontmts.eqg", eqPath), "test/"}}, wantErr: false},
-		{name: "it13900", args: args{cmd: &cobra.Command{}, args: []string{fmt.Sprintf("%s/it13900.eqg", eqPath), "test/"}}, wantErr: false},
-		{name: "xhf", args: args{cmd: &cobra.Command{}, args: []string{fmt.Sprintf("%s/xhf.eqg", eqPath), "test/"}}, wantErr: false},
+		//{name: "it13900", args: args{cmd: &cobra.Command{}, args: []string{fmt.Sprintf("%s/it13900.eqg", eqPath), "test/"}}, wantErr: false},
+		//{name: "xhf", args: args{cmd: &cobra.Command{}, args: []string{fmt.Sprintf("%s/xhf.eqg", eqPath), "test/"}}, wantErr: false},
 		//{name: "zmf", args: args{cmd: &cobra.Command{}, args: []string{fmt.Sprintf("%s/zmf.eqg", eqPath), "test/"}}, wantErr: false},
 		//{name: "it12043.eqg", args: args{cmd: &cobra.Command{}, args: []string{fmt.Sprintf("%s/it12043.eqg", eqPath), "test/"}}, wantErr: false},
 		{name: "gnome-wave-it12095.eqg", args: args{cmd: &cobra.Command{}, args: []string{fmt.Sprintf("%s/it12095.eqg", eqPath), "test/"}}, wantErr: false},
-		{name: "omensequip.eqg", args: args{cmd: &cobra.Command{}, args: []string{fmt.Sprintf("%s/omensequip.eqg", eqPath), "test/"}}, wantErr: false},
-
+		//{name: "omensequip.eqg", args: args{cmd: &cobra.Command{}, args: []string{fmt.Sprintf("%s/omensequip.eqg", eqPath), "test/"}}, wantErr: false},
 		/*{name: "it12312.eqg", args: args{cmd: &cobra.Command{}, args: []string{fmt.Sprintf("%s/it12312.eqg", eqPath), "test/"}}, wantErr: false},
 		{name: "it13900.eqg", args: args{cmd: &cobra.Command{}, args: []string{fmt.Sprintf("%s/it13900.eqg", eqPath), "test/"}}, wantErr: false},
 		{name: "it13901.eqg", args: args{cmd: &cobra.Command{}, args: []string{fmt.Sprintf("%s/it13901.eqg", eqPath), "test/"}}, wantErr: false},

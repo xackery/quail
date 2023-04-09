@@ -40,9 +40,9 @@ func (e *WLD) TriangleAdd(meshName string, index *geo.UIndex3, materialName stri
 
 	materialName = strings.ToLower(materialName)
 
-	var mesh *mesh
+	var mesh *geo.Mesh
 	for i := 0; i < len(e.meshes); i++ {
-		if e.meshes[i].name == meshName {
+		if e.meshes[i].Name == meshName {
 			mesh = e.meshes[i]
 			break
 		}
@@ -51,7 +51,7 @@ func (e *WLD) TriangleAdd(meshName string, index *geo.UIndex3, materialName stri
 		return fmt.Errorf("mesh %s not found", meshName)
 	}
 	if materialName == "" || strings.HasPrefix(materialName, "empty_") {
-		mesh.triangles = append(mesh.triangles, &geo.Triangle{
+		mesh.Triangles = append(mesh.Triangles, &geo.Triangle{
 			Index:        index,
 			MaterialName: materialName,
 			Flag:         flag,
@@ -64,7 +64,7 @@ func (e *WLD) TriangleAdd(meshName string, index *geo.UIndex3, materialName stri
 			continue
 		}
 
-		mesh.triangles = append(mesh.triangles, &geo.Triangle{
+		mesh.Triangles = append(mesh.Triangles, &geo.Triangle{
 			Index:        index,
 			MaterialName: materialName,
 			Flag:         flag,

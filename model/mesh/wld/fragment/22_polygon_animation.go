@@ -28,7 +28,7 @@ func parsePolygonAnimation(r io.ReadSeeker, v *PolygonAnimation) error {
 	var err error
 	v.name, err = nameFromHashIndex(r)
 	if err != nil {
-		return fmt.Errorf("nameFromHasIndex: %w", err)
+		return fmt.Errorf("nameFromHashIndex: %w", err)
 	}
 
 	// Always 2 when used in main zone, and object files.

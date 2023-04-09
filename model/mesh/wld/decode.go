@@ -5,6 +5,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"io"
+	"strconv"
 
 	"github.com/xackery/quail/dump"
 	"github.com/xackery/quail/model/mesh/wld/fragment"
@@ -141,9 +142,6 @@ func (e *WLD) Decode(r io.ReadSeeker) error {
 		if err != nil {
 			return fmt.Errorf("frag position seek %d/%d: %w", i, fragmentCount, err)
 		}
-		if fragIndex == 0x03 {
-			fmt.Println("fragPos for 0x03:", fragPosition)
-		}
 
 		buf := make([]byte, fragSize)
 		_, err = r.Read(buf)
@@ -154,13 +152,13 @@ func (e *WLD) Decode(r io.ReadSeeker) error {
 		frag, err := fragment.New(fragIndex, bytes.NewReader(buf))
 		if err != nil {
 			//TODO: fix error
-			//fmt.Printf("warning: fragment decode 0x%x (%d): %s\n", fragIndex, fragIndex, err)
+			fmt.Printf("warning: fragment decode 0x%x (%d): %s\n", fragIndex, fragIndex, err)
 			//return fmt.Errorf("fragment load: %w", err)
 		} else {
 			for _, parser := range parsers {
 				err = parser.invoke(&fragmentInfo{name: name, data: frag})
 				if err != nil {
-					//fmt.Printf("warning: parse %s: %s\n", parser.name, err)
+					fmt.Printf("warning: parse %s: %s\n", parser.name, err)
 					//return fmt.Errorf("parse %s: %w", parser.name, err)
 				}
 			}
@@ -174,7 +172,21 @@ func (e *WLD) Decode(r io.ReadSeeker) error {
 	//dump.HexRange([]byte{byte(i), byte(i) + 1}, int(fragSize), "%dfrag=%s", i, frag.FragmentType())
 	dump.HexRange([]byte{0, 1}, int(totalFragSize), "fragChunk=(%d bytes, %d entries)", int(totalFragSize), fragmentCount)
 
-	// Now convert fragments to data
+	for _, mesh := range e.meshes {
+		for i, triangle := range mesh.Triangles {
+			index, err := strconv.Atoi(triangle.MaterialName)
+			if err != nil {
+				fmt.Printf("mesh %s triangle %d has materialName %s, should be a number: %s\n", mesh.Name, i, triangle.MaterialName, err)
+				index = 0
+				//return fmt.Errorf("mesh %s triangle %d has materialName %s, should be a number: %w", mesh.Name, i, triangle.MaterialName, err)
+			}
+			if len(e.materials) <= index {
+				fmt.Printf("mesh %s triangle %d has materialName %s, but only %d materials\n", mesh.Name, i, triangle.MaterialName, len(e.materials))
+				index = len(e.materials) - 1
+			}
+			triangle.MaterialName = e.materials[index].Name
+		}
+	}
 
 	return nil
 }

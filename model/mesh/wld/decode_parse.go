@@ -22,10 +22,11 @@ func (e *WLD) parseMesh(frag *fragmentInfo) error {
 		return nil
 	}
 
-	mesh := &mesh{
-		triangles: meshFragment.Triangles(),
-		vertices:  meshFragment.Vertices(),
+	mesh := &geo.Mesh{
+		Triangles: meshFragment.Triangles(),
+		Vertices:  meshFragment.Vertices(),
 	}
+	fmt.Println("added mesh")
 	e.meshes = append(e.meshes, mesh)
 	return nil
 }

@@ -16,14 +16,8 @@ type WLD struct {
 	BspRegionCount uint32
 	Hash           map[int]string
 	materials      []*geo.Material
-	meshes         []*mesh
+	meshes         []*geo.Mesh
 	NameCache      map[int32]string
-}
-
-type mesh struct {
-	name      string
-	vertices  []*geo.Vertex
-	triangles []*geo.Triangle
 }
 
 type fragmentInfo struct {
@@ -68,4 +62,9 @@ func (e *WLD) SetParticleRenders(particles []*geo.ParticleRender) error {
 // SetParticlePoints sets particle points for a world file
 func (e *WLD) SetParticlePoints(particles []*geo.ParticlePoint) error {
 	return nil
+}
+
+// Name returns the name of the archive
+func (e *WLD) Name() string {
+	return e.name
 }

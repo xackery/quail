@@ -31,9 +31,11 @@ func SetNames(in map[int32]string) {
 
 func init() {
 	//0x01 DEFAULTPALETTEFILE
+	fragmentTypes[1] = LoadDefaultPalette
 	//0x02 USERDATA
-	//0x03 SimpleSprite aka BitmapName
-	fragmentTypes[3] = LoadSimpleSprite
+	fragmentTypes[2] = LoadUserData
+	//0x03 TextureImage aka BitmapName aka TextureImage
+	fragmentTypes[3] = LoadTextureImage
 	//0x04 SimpleSpriteReference aka SimpleSpriteDef AKA BitmapInfo
 	fragmentTypes[4] = LoadSimpleSpriteReference
 	//0x05 BitmapInfoReference aka SIMPLESPRITEINST
