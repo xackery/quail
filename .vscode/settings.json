@@ -10,9 +10,14 @@
         "*.hex": "hexEditor.hexedit",
         "*.eqg": "hexEditor.hexedit",
         "*.s3d": "hexEditor.hexedit",
-        "*.mod": "hexEditor.hexedit",
-        "*.mds": "hexEditor.hexedit",
-        "*.ter": "hexEditor.hexedit",
+        "*.mod": "binary-file-viewer.viewer",
+        "*.mds": "binary-file-viewer.viewer",
+        "*.ter": "binary-file-viewer.viewer",
+        "*.zon": "binary-file-viewer.viewer",
+
     },
-    "files.trimTrailingWhitespace": true
+    "files.trimTrailingWhitespace": true,
+    "binary-file-viewer.parserFolders": [
+        "/src/quail/.vscode/parsers/"
+    ]
 }
