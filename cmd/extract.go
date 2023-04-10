@@ -14,7 +14,7 @@ import (
 // extractCmd represents the extract command
 var extractCmd = &cobra.Command{
 	Use:   "extract",
-	Short: "Extract an eqg or s3d archive",
+	Short: "Extract an eqg or s3d archive to a _file.ext/ folder",
 	Long:  `Extract an eqg or s3d archive`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		path, err := cmd.Flags().GetString("path")

@@ -117,8 +117,6 @@ type Vertex struct {
 	Tint     *RGBA
 	Uv       *Vector2
 	Uv2      *Vector2
-	Joint    *Index4
-	Weight   *Quad4
 }
 
 // NewVertex returns a new vertex
@@ -129,14 +127,12 @@ func NewVertex() *Vertex {
 		Tint:     &RGBA{},
 		Uv:       &Vector2{},
 		Uv2:      &Vector2{},
-		Joint:    &Index4{},
-		Weight:   &Quad4{},
 	}
 }
 
 // String returns a string version of vertex
 func (v *Vertex) String() string {
-	return fmt.Sprintf("%s %s %s %s %s %s %s", v.Position, v.Normal, v.Tint, v.Uv, v.Uv2, v.Joint, v.Weight)
+	return fmt.Sprintf("%s %s %s %s %s", v.Position, v.Normal, v.Tint, v.Uv, v.Uv2)
 }
 
 // Triangle refers to the index of 3 vertices and maps it to a flag and material

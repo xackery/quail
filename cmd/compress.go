@@ -16,8 +16,8 @@ import (
 // compressCmd represents the compress command
 var compressCmd = &cobra.Command{
 	Use:   "compress",
-	Short: "Create an eqg archive by compressing a directory",
-	Long:  `Compress is used to compress an eqg archive based on provided arguments`,
+	Short: "Compress an eqg/s3d folder named _file.ext/ to a pfs archive",
+	Long:  `Compress is used to take a provided _file.eqg or _file.s3d and compress it based on a folder structure`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		path, err := cmd.Flags().GetString("path")
 		if err != nil {

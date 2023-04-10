@@ -12,6 +12,7 @@ import (
 	"github.com/xackery/quail/pfs/archive"
 )
 
+// Decode decodes a MOD file
 func (e *MOD) Decode(r io.ReadSeeker) error {
 	var err error
 	e.isSkinned = false
@@ -26,14 +27,13 @@ func (e *MOD) Decode(r io.ReadSeeker) error {
 		return fmt.Errorf("header does not match EQGM")
 	}
 
-	version := uint32(0)
-	err = binary.Read(r, binary.LittleEndian, &version)
+	err = binary.Read(r, binary.LittleEndian, &e.version)
 	if err != nil {
 		return fmt.Errorf("read header version: %w", err)
 	}
-	dump.Hex(version, "version=%d", version)
-	if version > 3 {
-		return fmt.Errorf("version is %d, wanted < 4", version)
+	dump.Hex(e.version, "version=%d", e.version)
+	if e.version > 3 {
+		return fmt.Errorf("version is %d, wanted < 4", e.version)
 	}
 
 	nameLength := uint32(0)
@@ -225,7 +225,7 @@ func (e *MOD) Decode(r io.ReadSeeker) error {
 			return fmt.Errorf("read vertex %d normal: %w", i, err)
 		}
 
-		if version < 3 {
+		if e.version < 3 {
 			uv := &geo.Vector2{}
 			err = binary.Read(r, binary.LittleEndian, uv)
 			if err != nil {
@@ -254,7 +254,7 @@ func (e *MOD) Decode(r io.ReadSeeker) error {
 		e.vertices = append(e.vertices, vertex)
 	}
 	vSize := 32
-	if version >= 3 {
+	if e.version >= 3 {
 		vSize += 12
 	}
 	dump.HexRange([]byte{0x01, 0x02}, int(verticesCount)*32, "vertData=(%d bytes)", int(verticesCount)*32)

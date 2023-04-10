@@ -12,7 +12,7 @@ import (
 func (e *MOD) Encode(w io.Writer) error {
 	var err error
 
-	nameData, data, err := geo.WriteGeometry(e.materials, e.vertices, e.triangles)
+	nameData, data, err := geo.WriteGeometry(e.materials, e.vertices, e.triangles, e.bones)
 	if err != nil {
 		return fmt.Errorf("writeGeometry: %w", err)
 	}
@@ -22,7 +22,7 @@ func (e *MOD) Encode(w io.Writer) error {
 	if err != nil {
 		return fmt.Errorf("write header: %w", err)
 	}
-	err = binary.Write(w, binary.LittleEndian, uint32(1))
+	err = binary.Write(w, binary.LittleEndian, e.version)
 	if err != nil {
 		return fmt.Errorf("write header version: %w", err)
 	}
@@ -44,16 +44,10 @@ func (e *MOD) Encode(w io.Writer) error {
 		return fmt.Errorf("write triangle count: %w", err)
 	}
 
-	/*
-		err = binary.Write(w, binary.LittleEndian, uint32(len(e.bones)))
-		if err != nil {
-			return fmt.Errorf("write bone count: %w", err)
-		}
-	*/
-	/*err = binary.Write(w, binary.LittleEndian, uint32(len(e.boneAssignments)))
+	err = binary.Write(w, binary.LittleEndian, uint32(len(e.bones)))
 	if err != nil {
-		return fmt.Errorf("write bone assignemt count: %w", err)
-	}*/
+		return fmt.Errorf("write bone count: %w", err)
+	}
 
 	err = binary.Write(w, binary.LittleEndian, nameData)
 	if err != nil {

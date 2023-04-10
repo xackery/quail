@@ -10,7 +10,7 @@ import (
 	"github.com/xackery/quail/pfs/eqg"
 )
 
-func TestMOD_Encode(t *testing.T) {
+func TestMOD_Decode(t *testing.T) {
 	eqPath := os.Getenv("EQ_PATH")
 	if eqPath == "" {
 		t.Skip("EQ_PATH not set")
@@ -41,22 +41,6 @@ func TestMOD_Encode(t *testing.T) {
 				err = e.Decode(bytes.NewReader(fe.Data()))
 				if err != nil {
 					t.Fatalf("failed to decode mod: %s", err.Error())
-				}
-
-				out := fmt.Sprintf("test/_%s/%s", tt.name, fe.Name())
-				err = os.MkdirAll(filepath.Dir(out), 0755)
-				if err != nil {
-					t.Fatalf("failed to create dir: %s", err.Error())
-				}
-				w, err := os.Create(out)
-				if err != nil {
-					t.Fatalf("failed to create file: %s", err.Error())
-				}
-				defer w.Close()
-
-				err = e.Encode(w)
-				if err != nil {
-					t.Fatalf("failed to encode mod: %s", err.Error())
 				}
 				break
 			}

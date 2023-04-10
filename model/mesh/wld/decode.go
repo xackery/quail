@@ -149,6 +149,10 @@ func (e *WLD) Decode(r io.ReadSeeker) error {
 			return fmt.Errorf("read: %w", err)
 		}
 
+		if i == 37 {
+			fmt.Println("breakpoint")
+		}
+
 		frag, err := fragment.New(fragIndex, bytes.NewReader(buf))
 		if err != nil {
 			//TODO: fix error

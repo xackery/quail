@@ -12,6 +12,7 @@ import (
 	"github.com/xackery/quail/pfs/archive"
 )
 
+// Decode decodes a MDS file
 func (e *MDS) Decode(r io.ReadSeeker) error {
 	var err error
 	e.isDecoded = true

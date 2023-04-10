@@ -11,8 +11,9 @@ import (
 
 // BlenderExport exports WLD to a blender dir
 func (e *WLD) BlenderExport(dir string) error {
-	path := fmt.Sprintf("%s/_%s", dir, e.Name())
-	err := os.MkdirAll(path, 0755)
+	var err error
+	/*path := fmt.Sprintf("%s/_%s", dir, e.Name())
+	err = os.MkdirAll(path, 0755)
 	if err != nil {
 		return fmt.Errorf("create dir %s: %w", path, err)
 	}
@@ -47,9 +48,8 @@ func (e *WLD) BlenderExport(dir string) error {
 			}
 		}
 	}
-
+	*/
 	if len(e.meshes) > 0 {
-
 		for i, mesh := range e.meshes {
 			fmt.Println("exporting mesh", mesh.Name)
 			if mesh.Name == "" {
@@ -69,7 +69,6 @@ func (e *WLD) blenderExportMesh(dir string, mesh *geo.Mesh) error {
 	if len(e.meshes) == 0 {
 		return nil
 	}
-
 	path := fmt.Sprintf("%s/_%s.mds", dir, mesh.Name)
 	err := os.MkdirAll(path, 0755)
 	if err != nil {
@@ -124,15 +123,13 @@ func (e *WLD) blenderExportMesh(dir string, mesh *geo.Mesh) error {
 		return fmt.Errorf("create vertex.txt: %w", err)
 	}
 	defer vw.Close()
-	vw.WriteString("joint|position|normal|uv|uv2|tint|weight\n")
+	vw.WriteString("position|normal|uv|uv2|tint\n")
 	for _, v := range mesh.Vertices {
-		vw.WriteString(dump.Str(v.Joint) + "|")
 		vw.WriteString(dump.Str(v.Position) + "|")
 		vw.WriteString(dump.Str(v.Normal) + "|")
 		vw.WriteString(dump.Str(v.Uv) + "|")
 		vw.WriteString(dump.Str(v.Uv2) + "|")
-		vw.WriteString(dump.Str(v.Tint) + "|")
-		vw.WriteString(dump.Str(v.Weight) + "\n")
+		vw.WriteString(dump.Str(v.Tint) + "\n")
 	}
 	return nil
 }

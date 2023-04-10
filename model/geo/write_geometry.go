@@ -13,7 +13,7 @@ type nameInfo struct {
 }
 
 // WriteGeometry writes the geometry to a buffer
-func WriteGeometry(materials []*Material, vertices []*Vertex, triangles []*Triangle) ([]byte, []byte, error) {
+func WriteGeometry(materials []*Material, vertices []*Vertex, triangles []*Triangle, bones []*Bone) ([]byte, []byte, error) {
 	var err error
 
 	names := []*nameInfo{}
@@ -179,6 +179,45 @@ func WriteGeometry(materials []*Material, vertices []*Vertex, triangles []*Trian
 		err = binary.Write(dataBuf, binary.LittleEndian, o.Flag)
 		if err != nil {
 			return nil, nil, fmt.Errorf("write vertex %d flag: %w", i, err)
+		}
+	}
+
+	for i, b := range bones {
+		nameID := -1
+		for i, val := range materials {
+			if val.Name == b.Name {
+				nameID = i
+				break
+			}
+		}
+
+		if nameID == -1 {
+			return nil, nil, fmt.Errorf("bone %d refers to name '%s', which is not declared", i, b.Name)
+		}
+
+		err = binary.Write(dataBuf, binary.LittleEndian, b.Next)
+		if err != nil {
+			return nil, nil, fmt.Errorf("write bone %d next: %w", i, err)
+		}
+		err = binary.Write(dataBuf, binary.LittleEndian, b.ChildrenCount)
+		if err != nil {
+			return nil, nil, fmt.Errorf("write bone %d children count: %w", i, err)
+		}
+		err = binary.Write(dataBuf, binary.LittleEndian, b.ChildIndex)
+		if err != nil {
+			return nil, nil, fmt.Errorf("write bone %d child index: %w", i, err)
+		}
+		err = binary.Write(dataBuf, binary.LittleEndian, b.Pivot)
+		if err != nil {
+			return nil, nil, fmt.Errorf("write bone %d pivot: %w", i, err)
+		}
+		err = binary.Write(dataBuf, binary.LittleEndian, b.Rotation)
+		if err != nil {
+			return nil, nil, fmt.Errorf("write bone %d rotation: %w", i, err)
+		}
+		err = binary.Write(dataBuf, binary.LittleEndian, b.Scale)
+		if err != nil {
+			return nil, nil, fmt.Errorf("write bone %d scale: %w", i, err)
 		}
 	}
 	return nameBuf.Bytes(), dataBuf.Bytes(), nil

@@ -1,4 +1,4 @@
-package mod
+package ter
 
 import (
 	"bytes"
@@ -10,7 +10,7 @@ import (
 	"github.com/xackery/quail/pfs/eqg"
 )
 
-func TestMOD_Encode(t *testing.T) {
+func TestTER_Encode(t *testing.T) {
 	eqPath := os.Getenv("EQ_PATH")
 	if eqPath == "" {
 		t.Skip("EQ_PATH not set")
@@ -19,7 +19,7 @@ func TestMOD_Encode(t *testing.T) {
 		name    string
 		wantErr bool
 	}{
-		{name: "it13926.eqg", wantErr: false},
+		{name: "arena.eqg", wantErr: false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -30,17 +30,17 @@ func TestMOD_Encode(t *testing.T) {
 			}
 
 			for _, fe := range pfs.Files() {
-				if filepath.Ext(fe.Name()) != ".mod" {
+				if filepath.Ext(fe.Name()) != ".ter" {
 					continue
 				}
 				e, err := New(fe.Name(), pfs)
 				if err != nil {
-					t.Fatalf("failed to new mod: %s", err.Error())
+					t.Fatalf("failed to new ter: %s", err.Error())
 				}
 
 				err = e.Decode(bytes.NewReader(fe.Data()))
 				if err != nil {
-					t.Fatalf("failed to decode mod: %s", err.Error())
+					t.Fatalf("failed to decode ter: %s", err.Error())
 				}
 
 				out := fmt.Sprintf("test/_%s/%s", tt.name, fe.Name())
@@ -56,7 +56,7 @@ func TestMOD_Encode(t *testing.T) {
 
 				err = e.Encode(w)
 				if err != nil {
-					t.Fatalf("failed to encode mod: %s", err.Error())
+					t.Fatalf("failed to encode ter: %s", err.Error())
 				}
 				break
 			}

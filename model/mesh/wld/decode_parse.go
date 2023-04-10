@@ -15,6 +15,7 @@ func (e *WLD) parseMesh(frag *fragmentInfo) error {
 	type mesher interface {
 		Vertices() []*geo.Vertex
 		Triangles() []*geo.Triangle
+		Name() string
 	}
 
 	meshFragment, ok := frag.data.(mesher)
@@ -25,6 +26,7 @@ func (e *WLD) parseMesh(frag *fragmentInfo) error {
 	mesh := &geo.Mesh{
 		Triangles: meshFragment.Triangles(),
 		Vertices:  meshFragment.Vertices(),
+		Name:      meshFragment.Name(),
 	}
 	fmt.Println("added mesh")
 	e.meshes = append(e.meshes, mesh)

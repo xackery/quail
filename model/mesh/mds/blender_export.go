@@ -142,15 +142,13 @@ func (e *MDS) BlenderExport(dir string) error {
 			return fmt.Errorf("create vertex.txt: %w", err)
 		}
 		defer vw.Close()
-		vw.WriteString("joint|position|normal|uv|uv2|tint|weight\n")
+		vw.WriteString("position|normal|uv|uv2|tint\n")
 		for _, v := range e.vertices {
-			vw.WriteString(dump.Str(v.Joint) + "|")
 			vw.WriteString(dump.Str(v.Position) + "|")
 			vw.WriteString(dump.Str(v.Normal) + "|")
 			vw.WriteString(dump.Str(v.Uv) + "|")
 			vw.WriteString(dump.Str(v.Uv2) + "|")
-			vw.WriteString(dump.Str(v.Tint) + "|")
-			vw.WriteString(dump.Str(v.Weight) + "\n")
+			vw.WriteString(dump.Str(v.Tint) + "\n")
 		}
 	}
 	return nil

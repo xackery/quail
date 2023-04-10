@@ -13,13 +13,13 @@ import (
 // DmSpriteDef2 information
 type DmSpriteDef2 struct {
 	name               string
-	flags              uint32
-	MaterialReference  uint32
+	flags              uint32 // 0x00018003 = Zone, 0x00014003 = Object, 0x3 = NPC, 0x0 = ?
+	MaterialReference  uint32 // ref to material
 	AnimationReference uint32
-	Center             *geo.Vector3
-	MaxDistance        float32
-	MinPosition        *geo.Vector3
-	MaxPosition        *geo.Vector3
+	Center             *geo.Vector3 // zone meshes x coordinate of center of mesh, for placeholder objects, local origin
+	MaxDistance        float32      // based on center max distance between any vertex an that position, a radius
+	MinPosition        *geo.Vector3 // min x,y,z coords in absolute coords of any vertex in mesh
+	MaxPosition        *geo.Vector3 // max x,y,z coords in absolute coords of any vertex in mesh
 	verticies          []*geo.Vertex
 	triangles          []*geo.Triangle
 }
@@ -78,13 +78,14 @@ func parseDmSpriteDef2(r io.ReadSeeker, v *DmSpriteDef2, isNewWorldFormat bool) 
 	if err != nil {
 		return fmt.Errorf("read animation reference: %w", err)
 	}
-	//TODO: find fragment referred to here (DmSpriteDef2Animation)
 
+	// fragment3, usually empty
 	err = binary.Read(r, binary.LittleEndian, &value)
 	if err != nil {
 		return fmt.Errorf("read unknown: %w", err)
 	}
 
+	// fragment4, usually first ref in textureimagefragments
 	err = binary.Read(r, binary.LittleEndian, &value)
 	if err != nil {
 		return fmt.Errorf("read unknown2: %w", err)
@@ -95,17 +96,20 @@ func parseDmSpriteDef2(r io.ReadSeeker, v *DmSpriteDef2, isNewWorldFormat bool) 
 		return fmt.Errorf("read center: %w", err)
 	}
 
+	// typically 0
 	// dword1-3 Seems to be related to lighting models? (torches, etc.)
 	err = binary.Read(r, binary.LittleEndian, &value)
 	if err != nil {
 		return fmt.Errorf("read unknowndword1: %w", err)
 	}
 
+	// typically 0
 	err = binary.Read(r, binary.LittleEndian, &value)
 	if err != nil {
 		return fmt.Errorf("read unknowndword2: %w", err)
 	}
 
+	// typically 0
 	err = binary.Read(r, binary.LittleEndian, &value)
 	if err != nil {
 		return fmt.Errorf("read unknowndword3: %w", err)
@@ -156,10 +160,10 @@ func parseDmSpriteDef2(r io.ReadSeeker, v *DmSpriteDef2, isNewWorldFormat bool) 
 		return fmt.Errorf("read triangle count: %w", err)
 	}
 
-	var vertexPieceCount uint16
-	err = binary.Read(r, binary.LittleEndian, &vertexPieceCount)
+	skinAssignmentGroupCount := uint16(0)
+	err = binary.Read(r, binary.LittleEndian, &skinAssignmentGroupCount)
 	if err != nil {
-		return fmt.Errorf("read vertex piece count: %w", err)
+		return fmt.Errorf("read skin assignment group count: %w", err)
 	}
 
 	var triangleTextureCount uint16
@@ -174,18 +178,25 @@ func parseDmSpriteDef2(r io.ReadSeeker, v *DmSpriteDef2, isNewWorldFormat bool) 
 		return fmt.Errorf("read vertex texture count: %w", err)
 	}
 
-	var size9 uint16
-	err = binary.Read(r, binary.LittleEndian, &size9)
+	var meshopCount uint16
+	err = binary.Read(r, binary.LittleEndian, &meshopCount)
 	if err != nil {
-		return fmt.Errorf("read size9: %w", err)
+		return fmt.Errorf("read meshop count: %w", err)
 	}
 
+	/// This allows vertex coordinates to be stored as integral values instead of
+	/// floating-point values, without losing precision based on mesh size. Vertex
+	/// values are multiplied by (1 shl `scale`) and stored in the vertex entries.
+	/// FPSCALE is the internal name.
 	var scaleRaw int16
 	err = binary.Read(r, binary.LittleEndian, &scaleRaw)
 	if err != nil {
 		return fmt.Errorf("read scaleRaw: %w", err)
 	}
 	scale := float32(1 / float32(int(scaleRaw)<<value))
+
+	// TODO: hacky scale fix for mesh
+	//scale /= 100
 
 	vPositions := []*geo.Vector3{}
 	for i := 0; i < int(vertexCount); i++ {
@@ -216,7 +227,6 @@ func parseDmSpriteDef2(r io.ReadSeeker, v *DmSpriteDef2, isNewWorldFormat bool) 
 
 	vUvs := []*geo.Vector2{}
 	for i := 0; i < int(textureCoordinateCount); i++ {
-
 		uv := &geo.Vector2{}
 		if isNewWorldFormat {
 			err = binary.Read(r, binary.LittleEndian, &val32)
@@ -230,9 +240,15 @@ func parseDmSpriteDef2(r io.ReadSeeker, v *DmSpriteDef2, isNewWorldFormat bool) 
 			}
 			uv.Y = float32(val32 / 256)
 
+			//TODO: fix scale
+			//uv.X *= scale
+			//uv.Y *= scale
+
 			vUvs = append(vUvs, uv)
 			continue
 		}
+
+		// old world format
 
 		err = binary.Read(r, binary.LittleEndian, &val16)
 		if err != nil {
@@ -244,6 +260,10 @@ func parseDmSpriteDef2(r io.ReadSeeker, v *DmSpriteDef2, isNewWorldFormat bool) 
 			return fmt.Errorf("read texture coordinate 32 %d: %w", i, err)
 		}
 		uv.Y = float32(val16 / 256)
+
+		//TODO: fix scale
+		//uv.X *= scale
+		//uv.Y *= scale
 
 		vUvs = append(vUvs, uv)
 
@@ -257,6 +277,7 @@ func parseDmSpriteDef2(r io.ReadSeeker, v *DmSpriteDef2, isNewWorldFormat bool) 
 		if err != nil {
 			return fmt.Errorf("read normals x %d: %w", i, err)
 		}
+		fmt.Println(float32(val8))
 		pos.X = float32(val8) / float32(128)
 
 		err = binary.Read(r, binary.LittleEndian, &val8)
@@ -340,12 +361,21 @@ func parseDmSpriteDef2(r io.ReadSeeker, v *DmSpriteDef2, isNewWorldFormat bool) 
 		v.triangles = append(v.triangles, triangle)
 	}
 
-	for i := 0; i < int(vertexPieceCount); i++ {
+	for i := 0; i < int(skinAssignmentGroupCount); i++ {
+		/// The first element of the tuple is the number of vertices in a skeleton piece.
+		///
+		/// The second element of the tuple is the index of the piece according to the
+		/// [SkeletonTrackSet] fragment. The very first piece (index 0) is usually not referenced here
+		/// as it is usually jsut a "stem" starting point for the skeleton. Only those pieces
+		/// referenced here in the mesh should actually be rendered. Any other pieces in the skeleton
+		/// contain no vertices or faces And have other purposes.
+
+		// number of verts in a skelton piece
 		err = binary.Read(r, binary.LittleEndian, &val16)
 		if err != nil {
 			return fmt.Errorf("read count %d: %w", i, err)
 		}
-
+		// index of the piece according to skeletontrackset fragment
 		err = binary.Read(r, binary.LittleEndian, &val16)
 		if err != nil {
 			return fmt.Errorf("read index1 %d: %w", i, err)
@@ -355,6 +385,14 @@ func parseDmSpriteDef2(r io.ReadSeeker, v *DmSpriteDef2, isNewWorldFormat bool) 
 	}
 
 	for i := 0; i < int(triangleTextureCount); i++ {
+		//TODO: resort
+		/// The first element of the tuple is the number of faces that use the same material. All
+		/// polygon entries are sorted by material index so that faces use the same material are
+		/// grouped together.
+		///
+		/// The second element of the tuple is the index of the material that the faces use according
+		/// to the [MaterialListFragment] that this fragment references.
+
 		triangleIndex := int16(0)
 		err = binary.Read(r, binary.LittleEndian, &triangleIndex)
 		if err != nil {
@@ -387,4 +425,9 @@ func (e *DmSpriteDef2) Vertices() []*geo.Vertex {
 
 func (e *DmSpriteDef2) Triangles() []*geo.Triangle {
 	return e.triangles
+}
+
+// Name returns the name of the fragment as specified in the header.
+func (e *DmSpriteDef2) Name() string {
+	return e.name
 }

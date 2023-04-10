@@ -16,15 +16,12 @@ Quail manages EverQuest files. [Find downloads in releases](https://github.com/x
 Quail has a number of commands that are displayed when the program is ran on it's own with no arguments:
 ```
 Available Commands:
-  completion  Generate the autocompletion script for the specified shell
+  blender     Export/Import special blender-friendly quail-addon formats
   compress    Create an eqg archive by compressing a directory
   debug       Debug a file
-  export      Export an eqg or s3d archive to quail-addon
   extract     Extract an eqg or s3d archive
   help        Help about any command
-  import      Export an eqg or s3d archive to quail-addon
   inspect     Inspect a file
-  view        View a model or image
 ```
 
 
@@ -90,6 +87,9 @@ gltf|10%|EQG|GLTF 3d modeling - needs a lot of work
 - arelis.eqg obj_village_rubble_med_lod1.mod residence.dds not found
 - arena.eqg obp_tower.mod grid_standard.dds
 
+## Simple examples
+Frozen Crusader Ornament, item id 81466, is it13926
+
 # GLTF Extensions
 
 // TODO:
@@ -98,3 +98,4 @@ gltf|10%|EQG|GLTF 3d modeling - needs a lot of work
 ## External resources
 
 [gltf writer for wld fragments in lantern](https://github.com/vermadas/LanternExtractor/blob/vermadas/multi_inject/LanternExtractor/EQ/Wld/Exporters/GltfWriter.cs)
+[fragment overview ref](https://github.com/cjab/libeq/blob/0aff154702fe122fa726fb7fbb43a079d8f3a138/crates/libeq_wld/docs/README.md)

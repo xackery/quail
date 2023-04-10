@@ -24,10 +24,8 @@ import (
 // debugCmd represents the debug command
 var debugCmd = &cobra.Command{
 	Use:   "debug",
-	Short: "Debug a file",
+	Short: "Create a debug image of an asset",
 	Long: `Debug an EverQuest asset to discover contents within
-
-Supported extensions: eqg, zon, ter, ani, mod
 `,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		path, err := cmd.Flags().GetString("path")
@@ -142,6 +140,7 @@ func init() {
 	rootCmd.AddCommand(debugCmd)
 	debugCmd.PersistentFlags().String("path", "", "path to debug")
 	debugCmd.PersistentFlags().String("out", "", "out file of debug")
+	debugCmd.PersistentFlags().String("filter", "", "filter by name")
 }
 
 func debugEQG(path string, out string, filter string) error {
