@@ -1,6 +1,6 @@
 module github.com/xackery/quail
 
-go 1.17
+go 1.20
 
 require (
 	github.com/malashin/dds v0.0.0-20190511100755-ab62708f5fe5

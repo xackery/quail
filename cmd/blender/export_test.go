@@ -24,7 +24,8 @@ func Test_export(t *testing.T) {
 		wantErr bool
 	}{
 		//{name: "shp_chr.s3d", args: args{cmd: &cobra.Command{}, args: []string{fmt.Sprintf("%s/shp_chr.s3d", eqPath), "test/"}}, wantErr: false},
-		{name: "crushbone.s3d", args: args{cmd: &cobra.Command{}, args: []string{fmt.Sprintf("%s/crushbone.s3d", eqPath), "test/"}}, wantErr: false},
+		{name: "ecommons_chr.s3d", args: args{cmd: &cobra.Command{}, args: []string{fmt.Sprintf("%s/ecommons_chr.s3d", eqPath), "test/"}}, wantErr: false},
+		//{name: "crushbone.s3d", args: args{cmd: &cobra.Command{}, args: []string{fmt.Sprintf("%s/crushbone.s3d", eqPath), "test/"}}, wantErr: false},
 		//{name: "gequip.s3d", args: args{cmd: &cobra.Command{}, args: []string{fmt.Sprintf("%s/gequip.s3d", eqPath), "test/"}}, wantErr: false},
 		//{name: "arena.s3d", args: args{cmd: &cobra.Command{}, args: []string{fmt.Sprintf("%s/arena.s3d", eqPath), "test/"}}, wantErr: false},
 		//{name: "arena", args: args{cmd: &cobra.Command{}, args: []string{fmt.Sprintf("%s/arena.eqg", eqPath), "test/"}}, wantErr: false},

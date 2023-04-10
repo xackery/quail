@@ -36,7 +36,7 @@ func parseAmbientLight(r io.ReadSeeker, e *AmbientLight) error {
 }
 
 func (e *AmbientLight) FragmentType() string {
-	return "Ambient Light"
+	return "AmbientLight"
 }
 
 func (e *AmbientLight) Data() []byte {

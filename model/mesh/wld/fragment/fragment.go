@@ -30,93 +30,114 @@ func SetNames(in map[int32]string) {
 }
 
 func init() {
-	//0x01 DEFAULTPALETTEFILE
+	// 0x01 DEFAULTPALETTEFILE
 	fragmentTypes[1] = LoadDefaultPalette
-	//0x02 USERDATA
+	// 0x02 USERDATA
 	fragmentTypes[2] = LoadUserData
-	//0x03 TextureImage aka BitmapName aka TextureImage
-	fragmentTypes[3] = LoadTextureImage
-	//0x04 SimpleSpriteReference aka SimpleSpriteDef AKA BitmapInfo
-	fragmentTypes[4] = LoadSimpleSpriteReference
-	//0x05 BitmapInfoReference aka SIMPLESPRITEINST
-	fragmentTypes[5] = LoadSimpleSpriteInstance
-	//0x06 Only found in gequip files. Seems to represent 2d sprites in the world (coins). 2DSPRITEDEF 0x06 Only found in gequip files. Seems to represent 2d sprites in the world (coins).
-	//0x07, only found in gequip files. This fragment can be referenced by an actor fragment. Fragment7
-	//0x08 3DSPRITEDEF Camera
-	fragmentTypes[8] = LoadCamera
-	//0x09 Related to 3DSPRITEDEF, Maybe the 3DSPRITETAG to map the string. When I added a second ACTION to ACTORINST test, a second 0x09 was added. maybe from the 3DSPRITE %s. bodies are both compressed to 0 1 0 CameraReference
-	fragmentTypes[9] = LoadCameraReference
-	//0xa 4DSPRITEDEF
-	//0xb FUN_004079a0
-	//0xc PARTICLESPRITEDEF
-	//0xd Unknown
-	//0xe COMPOSITESPRITEDEF
-	//0xf Unknown
-	//0x10 SkeletonHierarchy aka HIERARCHICALSPRITEDEF
-	fragmentTypes[16] = LoadSkeletonHierarchy
-	//0x11 SkeletonHierarchyReference
-	fragmentTypes[17] = LoadSkeletonReference
-	//0x12 TrackDefinition
-	fragmentTypes[18] = LoadTrack
-	//0x13 TrackInstance
-	fragmentTypes[19] = LoadTrackReference
-	//0x14 Actor aka ActorDef
-	fragmentTypes[20] = LoadActor
-	//0x15 ActorInstance aka ObjectInstance
-	fragmentTypes[21] = LoadActorInstance
-	//0x16 ACTORINSTANCETEST
-	fragmentTypes[22] = LoadActorInstanceTest
-	//0x17 POLYHEDRONDEFINITION
-	fragmentTypes[23] = LoadPolygonAnimation
-	//0x18 POLYHEDRONDEFINITIONREF
-	fragmentTypes[24] = LoadPolygonAnimationReference
-	//0x19 SPHERELISTDEFINITION
-	//0x1A unknown
-	//0x1B LightDefinition aka LightSource
-	fragmentTypes[27] = LoadLightSource
-	//0x1C LightDefinitionReference
-	fragmentTypes[28] = LoadLightSourceReference
-	//0x1D Pointlight
-	//0x1E unknown 0x1E
-	//0x1F SoundDefinition
-	//0x20 SoundInstance
-	//0x21 BspTree aka WorldTree
+	// 0x03 TextureImage aka BitmapName aka TextureImage
+	fragmentTypes[3] = LoadBitmapInfo
+	// 0x04 SimpleSpriteDef aka SimpleSpriteDef AKA BitmapInfo
+	fragmentTypes[4] = LoadSimpleSpriteDef
+	// 0x05 SimpleSprite aka BitmapInfoReference aka SIMPLESPRITEINST
+	fragmentTypes[5] = LoadSimpleSprite
+	// 0x06 TwoDSpriteDef aka 2DSpriteDef aka TwoDimensionalObject - Only found in gequip files. Seems to represent 2d sprites in the world (coins). 2DSPRITEDEF 0x06 Only found in gequip files. Seems to represent 2d sprites in the world (coins).
+	fragmentTypes[6] = LoadTwoDSpriteDef
+	// 0x07, TwoDSprite only found in gequip files. This fragment can be referenced by an actor fragment. Fragment7
+	fragmentTypes[7] = LoadTwoDSprite
+	// 0x08 3DSPRITEDEF Camera
+	fragmentTypes[8] = LoadThreeDSpriteDef
+	// 0x09 3DSprite Related to 3DSPRITEDEF, Maybe the 3DSPRITETAG to map the string. When I added a second ACTION to ACTORINST test, a second 0x09 was added. maybe from the 3DSPRITE %s. bodies are both compressed to 0 1 0 CameraReference
+	fragmentTypes[9] = LoadThreeDSprite
+	// 0xa 4DSPRITEDEF
+	fragmentTypes[10] = LoadFourDSpriteDef
+	// 0xb FUN_004079a0
+	fragmentTypes[11] = LoadFourDSprite
+	// 0xc PARTICLESPRITEDEF
+	fragmentTypes[12] = LoadParticleSpriteDef
+	// 0xd Unknown
+	fragmentTypes[13] = LoadParticleSprite
+	// 0xe COMPOSITESPRITEDEF
+	fragmentTypes[14] = LoadCompositeSpriteDef
+	// 0xf Unknown
+	fragmentTypes[15] = LoadCompositeSprite
+	// 0x10 SkeletonHierarchy aka HIERARCHICALSPRITEDEF
+	fragmentTypes[16] = LoadHierarchialSpriteDef
+	// 0x11 SkeletonHierarchyReference
+	fragmentTypes[17] = LoadHierarchialSprite
+	// 0x12 TrackDefinition
+	fragmentTypes[18] = LoadTrackDef
+	// 0x13 TrackInstance
+	fragmentTypes[19] = LoadTrack
+	// 0x14 Model aka Static or Animated Model aka ActorDef
+	fragmentTypes[20] = LoadActorDef
+	// 0x15 Actor aka ActorInstance aka ObjectLocation
+	fragmentTypes[21] = LoadActor
+	// 0x16 Sphere
+	fragmentTypes[22] = LoadSphere
+	// 0x17 POLYHEDRONDEFINITION aka PolyhedronDef
+	fragmentTypes[23] = LoadPolyhedronDef
+	// 0x18 POLYHEDRONDEFINITIONREF
+	fragmentTypes[24] = LoadPolyhedron
+	// 0x19 SPHERELISTDEFINITION
+	fragmentTypes[25] = LoadSphereListDef
+	// 0x1A SPHERELIST
+	fragmentTypes[26] = LoadSphereList
+	// 0x1B LightDefinition aka LightSource
+	fragmentTypes[27] = LoadLightDef
+	// 0x1C LightDefinitionReference
+	fragmentTypes[28] = LoadLight
+	// 0x1D Pointlight aka PointLightOld
+	fragmentTypes[29] = LoadPointLightOld
+	// 0x1E unknown 0x1E
+	// 0x1F SoundDefinition
+	fragmentTypes[31] = LoadSoundDef
+	// 0x20 SoundInstance
+	fragmentTypes[32] = LoadSound
+	// 0x21 BspTree aka WorldTree
 	fragmentTypes[33] = LoadWorldTree
-	//0x22 BspRegion aka Region
+	// 0x22 BspRegion aka Region
 	fragmentTypes[34] = LoadRegion
-	//0x23 ACTIVEGEOMETRYREGION
-	//0x24 SKYREGION
-	//0x25 DIRECTIONALLIGHT
-	//0x26 BLITSPRITEDEFINITION
-	fragmentTypes[38] = LoadParticleSprite
-	fragmentTypes[39] = LoadParticleSpriteReference
-	//0x28 PointLight aka LightInstance
-	fragmentTypes[40] = LoadLightInstance
-	//0x29 Zone aka BspRegionType
-	fragmentTypes[41] = LoadRegionType
-	//0x2A AmbientLight
+	// 0x23 ACTIVEGEOMETRYREGION
+	fragmentTypes[35] = LoadActiveGeoRegion
+	// 0x24 SKYREGION
+	fragmentTypes[36] = LoadSkyRegion
+	// 0x25 DIRECTIONALLIGHT
+	fragmentTypes[37] = LoadDirectionalLightOld
+	// 0x26 BLITSPRITEDEFINITION
+	fragmentTypes[38] = LoadBlitSpriteDef
+	// 0x27 BLITSPRITEDEFINITIONREF
+	fragmentTypes[39] = LoadBlitSprite
+	// 0x28 PointLight aka LightInstance
+	fragmentTypes[40] = LoadPointLight
+	// 0x29 Zone aka BspRegionType
+	fragmentTypes[41] = LoadZone
+	// 0x2A AmbientLight
 	fragmentTypes[42] = LoadAmbientLight
-	//0x2B DirectionalLight
-	//0x2C LegacyMesh
-	fragmentTypes[44] = LoadLegacyMesh
-	//0x2D MeshReference
-	fragmentTypes[45] = LoadMeshReference
-	//0x30 Material
-	fragmentTypes[48] = LoadMaterial
-	//0x31 MaterialList
-	fragmentTypes[49] = LoadMaterialList
-	//0x32 VertexColors
-	fragmentTypes[50] = LoadVertexColor
-	//0x33 VertexColorsReference
-	fragmentTypes[51] = LoadVertexColorReference
-	//0x34 ParticleCloud
-	fragmentTypes[52] = LoadParticleCloud
-	//0x35 GlobalAmbientLight
-	fragmentTypes[53] = LoadGlobalAmbientLight
-	//0x36 Mesh
-	fragmentTypes[54] = LoadMesh
-	//0x37 MeshAnimatedVertices
-	fragmentTypes[55] = LoadMeshAnimatedVertices
+	// 0x2B DirectionalLight
+	// 0x2C LegacyMesh ak DmSpriteDef
+	fragmentTypes[44] = LoadDmSpriteDef
+	// 0x2D MeshReference aka DmSprite
+	fragmentTypes[45] = LoadDmSprite
+	// 0x2E DmTrackDef aka Unknown0x2E
+	fragmentTypes[46] = LoadDmTrackDef
+	// 0x2F DmTrack aka MeshAnimatedVerticesReference
+	fragmentTypes[47] = LoadDmTrack
+	// 0x30 Material aka MaterialDef
+	fragmentTypes[48] = LoadMaterialDef
+	// 0x31 MaterialList aka MaterialPalette
+	fragmentTypes[49] = LoadMaterialPalette
+	// 0x32 VertexColor aka DmRGBTrackDef
+	fragmentTypes[50] = LoadDmRGBTrackDef
+	// 0x33 VertexColorsReference aka DmRGBTrack
+	fragmentTypes[51] = LoadDmRGBTrack
+	// 0x34 ParticleCloud aka ParticleCloudDef
+	fragmentTypes[52] = LoadParticleCloudDef
+	// 0x35 GlobalAmbientLight
+	fragmentTypes[53] = LoadGlobalAmbientLightDef
+	// 0x36 Mesh
+	fragmentTypes[54] = LoadDmSpriteDef2
+	// 0x37 MeshAnimatedVertices
+	fragmentTypes[55] = LoadDmTrackDef2
 }
 
 func nameFromHashIndex(r io.ReadSeeker) (string, error) {

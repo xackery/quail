@@ -7,6 +7,7 @@ import (
 	"github.com/xackery/quail/model/geo"
 )
 
+// MaterialAdd adds a material to the world file
 func (e *WLD) MaterialAdd(name string, shaderName string) error {
 	name = strings.ToLower(name)
 	if shaderName == "" {

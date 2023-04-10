@@ -51,10 +51,12 @@ func NewFile(name string, pfs archive.ReadWriter, file string) (*WLD, error) {
 	return e, nil
 }
 
+// SetLayers sets layers for a world file
 func (e *WLD) SetLayers(layers []*geo.Layer) error {
 	return nil
 }
 
+// SetParticleRenders sets particle renders for a world file
 func (e *WLD) SetParticleRenders(particles []*geo.ParticleRender) error {
 	return nil
 }
