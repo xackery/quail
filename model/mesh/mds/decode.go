@@ -26,15 +26,9 @@ func (e *MDS) Decode(r io.ReadSeeker) error {
 		return fmt.Errorf("header does not match EQGS")
 	}
 
-	version := uint32(0)
-	err = binary.Read(r, binary.LittleEndian, &version)
+	err = binary.Read(r, binary.LittleEndian, &e.version)
 	if err != nil {
 		return fmt.Errorf("read header version: %w", err)
-	}
-	print("version: ", version)
-	dump.Hex(version, "version=%d", version)
-	if version != 1 && version != 3 {
-		return fmt.Errorf("version is %d, wanted 1 or 3", version)
 	}
 
 	nameLength := uint32(0)
@@ -315,7 +309,7 @@ func (e *MDS) Decode(r io.ReadSeeker) error {
 			return fmt.Errorf("read vertex %d normal: %w", i, err)
 		}
 
-		if version < 3 {
+		if e.version < 3 {
 
 			err = binary.Read(r, binary.LittleEndian, vertex.Uv)
 			if err != nil {
@@ -348,7 +342,7 @@ func (e *MDS) Decode(r io.ReadSeeker) error {
 		e.vertices = append(e.vertices, vertex)
 	}
 	vSize := 32
-	if version >= 3 {
+	if e.version >= 3 {
 		vSize += 12
 	}
 	dump.HexRange([]byte{0x01, 0x02}, int(verticesCount)*32, "vertData=(%d bytes)", int(verticesCount)*32)

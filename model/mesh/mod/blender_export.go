@@ -3,8 +3,11 @@ package mod
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/xackery/quail/dump"
+	"github.com/xackery/quail/helper"
+	"github.com/xackery/quail/model/geo"
 )
 
 // BlenderExport exports the MOD to a directory for use in Blender.
@@ -15,8 +18,14 @@ func (e *MOD) BlenderExport(dir string) error {
 		return fmt.Errorf("create dir %s: %w", path, err)
 	}
 
-	if len(e.materials) > 0 {
+	vw, err := os.Create(fmt.Sprintf("%s/info.txt", path))
+	if err != nil {
+		return fmt.Errorf("create info.txt: %w", err)
+	}
+	defer vw.Close()
+	vw.WriteString(fmt.Sprintf("version=%d\n", e.version))
 
+	if len(e.materials) > 0 {
 		pw, err := os.Create(fmt.Sprintf("%s/material_property.txt", path))
 		if err != nil {
 			return fmt.Errorf("create material_property.txt: %w", err)
@@ -37,7 +46,18 @@ func (e *MOD) BlenderExport(dir string) error {
 			for _, property := range m.Properties {
 				pw.WriteString(m.Name + "|")
 				pw.WriteString(property.Name + "|")
-				pw.WriteString(dump.Str(property.Value) + "|")
+				if strings.ToLower(property.Name) == "e_fshininess0" {
+					val := helper.AtoF32(property.Value)
+					if val > 100 {
+						fmt.Println("e_fshininess0 on material", m.Name, "is", property.Value, "which is too high. Setting to 100")
+						val = 1.0
+					} else {
+						val /= 100
+					}
+					pw.WriteString(dump.Str(val) + "|")
+				} else {
+					pw.WriteString(dump.Str(strings.ToLower(property.Value)) + "|")
+				}
 				pw.WriteString(dump.Str(property.Category) + "\n")
 			}
 		}
@@ -105,8 +125,8 @@ func (e *MOD) BlenderExport(dir string) error {
 		defer vw.Close()
 		vw.WriteString("position|normal|uv|uv2|tint\n")
 		for _, v := range e.vertices {
-			vw.WriteString(dump.Str(v.Position) + "|")
-			vw.WriteString(dump.Str(v.Normal) + "|")
+			vw.WriteString(dump.Str(&geo.Vector3{X: v.Position.Y, Y: -v.Position.X, Z: v.Position.Z}) + "|")
+			vw.WriteString(dump.Str(&geo.Vector3{X: v.Normal.Y, Y: -v.Normal.X, Z: v.Normal.Z}) + "|")
 			vw.WriteString(dump.Str(v.Uv) + "|")
 			vw.WriteString(dump.Str(v.Uv2) + "|")
 			vw.WriteString(dump.Str(v.Tint) + "\n")

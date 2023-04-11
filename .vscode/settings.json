@@ -8,7 +8,7 @@
     "go.testEnvFile": "${workspaceFolder}/.env",
     "workbench.editorAssociations": {
         "*.hex": "hexEditor.hexedit",
-        "*.eqg": "hexEditor.hexedit",
+        "*.eqg": "binary-file-viewer.viewer",
         "*.s3d": "hexEditor.hexedit",
         "*.mod": "binary-file-viewer.viewer",
         "*.mds": "binary-file-viewer.viewer",

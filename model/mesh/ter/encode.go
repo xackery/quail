@@ -12,7 +12,7 @@ import (
 func (e *TER) Encode(w io.Writer) error {
 	var err error
 
-	nameData, data, err := geo.WriteGeometry(e.materials, e.vertices, e.triangles, nil)
+	nameData, data, err := geo.WriteGeometry(e.version, e.materials, e.vertices, e.triangles, nil)
 	if err != nil {
 		return fmt.Errorf("writeGeometry: %w", err)
 	}

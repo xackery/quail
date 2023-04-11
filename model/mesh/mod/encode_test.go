@@ -17,9 +17,10 @@ func TestMOD_Encode(t *testing.T) {
 	}
 	tests := []struct {
 		name    string
+		version uint32
 		wantErr bool
 	}{
-		{name: "it13926.eqg", wantErr: false},
+		{name: "it13926.eqg", version: 3, wantErr: false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -37,6 +38,7 @@ func TestMOD_Encode(t *testing.T) {
 				if err != nil {
 					t.Fatalf("failed to new mod: %s", err.Error())
 				}
+				e.version = tt.version
 
 				err = e.Decode(bytes.NewReader(fe.Data()))
 				if err != nil {

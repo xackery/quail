@@ -15,6 +15,7 @@ import (
 type TER struct {
 	name            string
 	materials       []*geo.Material
+	version         uint32
 	vertices        []*geo.Vertex
 	triangles       []*geo.Triangle
 	files           []archive.Filer

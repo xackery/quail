@@ -13,7 +13,7 @@ type nameInfo struct {
 }
 
 // WriteGeometry writes the geometry to a buffer
-func WriteGeometry(materials []*Material, vertices []*Vertex, triangles []*Triangle, bones []*Bone) ([]byte, []byte, error) {
+func WriteGeometry(version uint32, materials []*Material, vertices []*Vertex, triangles []*Triangle, bones []*Bone) ([]byte, []byte, error) {
 	var err error
 
 	names := []*nameInfo{}
@@ -148,10 +148,28 @@ func WriteGeometry(materials []*Material, vertices []*Vertex, triangles []*Trian
 		if err != nil {
 			return nil, nil, fmt.Errorf("write vertex %d normal: %w", i, err)
 		}
-		err = binary.Write(dataBuf, binary.LittleEndian, o.Uv)
-		if err != nil {
-			return nil, nil, fmt.Errorf("write vertex %d uv: %w", i, err)
+		if version < 3 {
+			err = binary.Write(dataBuf, binary.LittleEndian, o.Uv)
+			if err != nil {
+				return nil, nil, fmt.Errorf("write vertex %d uv: %w", i, err)
+			}
+
+		} else {
+			err = binary.Write(dataBuf, binary.LittleEndian, o.Tint)
+			if err != nil {
+				return nil, nil, fmt.Errorf("write vertex %d tint: %w", i, err)
+			}
+			err = binary.Write(dataBuf, binary.LittleEndian, o.Uv)
+			if err != nil {
+				return nil, nil, fmt.Errorf("write vertex %d uv: %w", i, err)
+			}
+			err = binary.Write(dataBuf, binary.LittleEndian, o.Uv2)
+			if err != nil {
+				return nil, nil, fmt.Errorf("write vertex %d uv2: %w", i, err)
+			}
+
 		}
+
 	}
 
 	// triangles

@@ -24,14 +24,13 @@ func (e *TER) Decode(r io.ReadSeeker) error {
 		return fmt.Errorf("header does not match EQGM")
 	}
 
-	version := uint32(0)
-	err = binary.Read(r, binary.LittleEndian, &version)
+	err = binary.Read(r, binary.LittleEndian, &e.version)
 	if err != nil {
 		return fmt.Errorf("read header version: %w", err)
 	}
-	dump.Hex(version, "version=%d", version)
+	dump.Hex(e.version, "version=%d", e.version)
 
-	switch version {
+	switch e.version {
 	case 2:
 		err = e.loadVersion2(r)
 		if err != nil {
@@ -43,7 +42,7 @@ func (e *TER) Decode(r io.ReadSeeker) error {
 			return fmt.Errorf("loadVersion3: %w", err)
 		}
 	default:
-		return fmt.Errorf("unsupported *.zon version %d", version)
+		return fmt.Errorf("unsupported *.zon version %d", e.version)
 	}
 
 	return nil

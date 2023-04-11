@@ -1,5 +1,4 @@
 registerFileType((fileExt, filePath, fileData) => {
-	// Check for wav extension
 	if (fileExt == 'mds') {
 		const headerArray = fileData.getBytesAt(0, 4);
 		const header = String.fromCharCode(...headerArray)
@@ -10,24 +9,23 @@ registerFileType((fileExt, filePath, fileData) => {
 });
 
 registerParser(() => {
-	// Parse
 	read(4);
-	addRow('Header', getStringValue(), 'header (EQGS)');
+	addRow('header', getStringValue(), 'header (EQGS)');
 	read(4);
-	addRow('Version', getNumberValue(), 'version (1, 2, 3)');
+	addRow('version', getNumberValue(), 'version (1, 2, 3)');
 	read(4);
 	const nameLength = getNumberValue();
-	addRow('Name', nameLength, 'name length');
+	addRow('name', nameLength, 'name chunk length');
 	read(4);
 	const materialCount = getNumberValue();
-	addRow('Material Count', materialCount, 'material count');
+	addRow('material count', materialCount, 'number of materials');
 	read(4);
 	const verticesCount = getNumberValue();
-	addRow('Vertices Count', verticesCount, 'vertices count');
+	addRow('vertices count', verticesCount, 'nunmber of vertices');
 	read(4);
 	const trianglesCount = getNumberValue();
-	addRow('Triangles Count', trianglesCount, 'triangles count');
+	addRow('triangles count', trianglesCount, 'number of triangles');
 	read(4);
 	const bonesCount = getNumberValue();
-	addRow('Bones Count', bonesCount, 'bones count');
+	addRow('bones count', bonesCount, 'number of bones');
 });

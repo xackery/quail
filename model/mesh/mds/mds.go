@@ -20,6 +20,7 @@ type MDS struct {
 	// path is used for relative paths when looking for flat file texture references
 	path string
 	// pfs is used as an alternative to path when loading data from a pfs file
+	version         uint32
 	pfs             archive.ReadWriter
 	materials       []*geo.Material
 	vertices        []*geo.Vertex

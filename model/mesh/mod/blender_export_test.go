@@ -22,7 +22,8 @@ func TestMOD_BlenderExport(t *testing.T) {
 		dstDir  string
 		wantErr bool
 	}{
-		{name: "test", eqgPath: fmt.Sprintf("%s/it13900.eqg", eqPath), dstDir: "test/", wantErr: false},
+		{name: "test", eqgPath: fmt.Sprintf("%s/it13926.eqg", eqPath), dstDir: "test/", wantErr: false},
+		//{name: "test", eqgPath: fmt.Sprintf("%s/it13900.eqg", eqPath), dstDir: "test/", wantErr: false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

@@ -1,5 +1,7 @@
 package archive
 
+import "io"
+
 // ReadWriter implements both reader and writer operations to a writer
 type ReadWriter interface {
 	Reader
@@ -16,4 +18,5 @@ type Reader interface {
 // Writer is used to write data to an archive (or flat file)
 type Writer interface {
 	WriteFile(name string, data []byte) error
+	Encode(w io.WriteSeeker) error
 }

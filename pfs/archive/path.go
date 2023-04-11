@@ -2,6 +2,7 @@ package archive
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -81,4 +82,9 @@ func (e *Path) WriteFile(name string, data []byte) error {
 		return fmt.Errorf("write: %w", err)
 	}
 	return nil
+}
+
+// Encode writes the archive to a writer
+func (e *Path) Encode(w io.WriteSeeker) error {
+	return fmt.Errorf("not implemented")
 }

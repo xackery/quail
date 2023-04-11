@@ -4,7 +4,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"io"
-	"io/ioutil"
+	"os"
 	"strings"
 
 	"github.com/xackery/quail/dump"
@@ -16,6 +16,12 @@ import (
 func (e *MOD) Decode(r io.ReadSeeker) error {
 	var err error
 	e.isSkinned = false
+	e.materials = []*geo.Material{}
+	e.vertices = []*geo.Vertex{}
+	e.triangles = []*geo.Triangle{}
+	e.bones = []*geo.Bone{}
+	e.particleRenders = []*geo.ParticleRender{}
+	e.particlePoints = []*geo.ParticlePoint{}
 
 	header := [4]byte{}
 	err = binary.Read(r, binary.LittleEndian, &header)
@@ -97,7 +103,7 @@ func (e *MOD) Decode(r io.ReadSeeker) error {
 		materialID := uint32(0)
 		err = binary.Read(r, binary.LittleEndian, &materialID)
 		if err != nil {
-			return fmt.Errorf("read materialID: %w", err)
+			return fmt.Errorf("read %d materialID: %w", i, err)
 		}
 		dump.Hex(materialID, "%dmaterialID=%d", i, materialID)
 
@@ -108,7 +114,7 @@ func (e *MOD) Decode(r io.ReadSeeker) error {
 		}
 		name, ok := names[nameOffset]
 		if !ok {
-			return fmt.Errorf("%dnames offset 0x%x not found", i, nameOffset)
+			return fmt.Errorf("%d names offset 0x%x not found", i, nameOffset)
 		}
 		dump.Hex(nameOffset, "%dnameOffset=0x%x(%s)", i, nameOffset, name)
 
@@ -119,14 +125,14 @@ func (e *MOD) Decode(r io.ReadSeeker) error {
 		}
 		shaderName, ok := names[shaderOffset]
 		if !ok {
-			return fmt.Errorf("%d names offset 0x%x not found", i, nameOffset)
+			return fmt.Errorf("%d shaderNames offset 0x%x not found", i, nameOffset)
 		}
 		dump.Hex(shaderOffset, "%dshaderOffset=0x%x(%s)", i, shaderOffset, shaderName)
 
 		propertyCount := uint32(0)
 		err = binary.Read(r, binary.LittleEndian, &propertyCount)
 		if err != nil {
-			return fmt.Errorf("read propertyCount: %w", err)
+			return fmt.Errorf("read %d propertyCount: %w", i, err)
 		}
 		dump.Hex(propertyCount, "%dpropertyCount=%d", i, propertyCount)
 
@@ -190,7 +196,7 @@ func (e *MOD) Decode(r io.ReadSeeker) error {
 							}
 						}
 					} else {
-						data, err = ioutil.ReadFile(fmt.Sprintf("%s/%s", e.path, propertyValueName))
+						data, err = os.ReadFile(fmt.Sprintf("%s/%s", e.path, propertyValueName))
 						if err != nil {
 							fmt.Printf("warning: read material via %s: %s\n", propertyName, err.Error())
 							//return fmt.Errorf("read material via path %s: %w", propertyName, err)

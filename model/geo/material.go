@@ -3,6 +3,8 @@ package geo
 import (
 	"fmt"
 	"strings"
+
+	"github.com/xackery/quail/helper"
 )
 
 // Property contains data about a property
@@ -27,6 +29,19 @@ type RGB struct {
 	B uint8
 }
 
+// AToRGB converts a string to a RGB
+func AToRGB(s string) *RGB {
+	parts := strings.Split(s, ",")
+	if len(parts) < 3 {
+		return nil
+	}
+	return &RGB{
+		R: helper.AtoU8(parts[0]),
+		G: helper.AtoU8(parts[1]),
+		B: helper.AtoU8(parts[2]),
+	}
+}
+
 // String returns a string representation of the RGB
 func (e *RGB) String() string {
 	return fmt.Sprintf("%d,%d,%d", e.R, e.G, e.B)
@@ -38,6 +53,20 @@ type RGBA struct {
 	G uint8
 	B uint8
 	A uint8
+}
+
+// AtoRGBA converts a string to a RGBA
+func AtoRGBA(s string) *RGBA {
+	parts := strings.Split(s, ",")
+	if len(parts) < 4 {
+		return nil
+	}
+	return &RGBA{
+		R: helper.AtoU8(parts[0]),
+		G: helper.AtoU8(parts[1]),
+		B: helper.AtoU8(parts[2]),
+		A: helper.AtoU8(parts[3]),
+	}
 }
 
 // String returns a string representation of the RGBA
