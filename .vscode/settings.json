@@ -14,7 +14,7 @@
         "*.mds": "binary-file-viewer.viewer",
         "*.ter": "binary-file-viewer.viewer",
         "*.zon": "binary-file-viewer.viewer",
-
+        "*.pprof": "easyview.view",
     },
     "files.trimTrailingWhitespace": true,
     "binary-file-viewer.parserFolders": [
