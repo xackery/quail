@@ -3,7 +3,6 @@ package mds
 import (
 	"bytes"
 	"fmt"
-	"strings"
 
 	"github.com/xackery/quail/pfs/archive"
 )
@@ -23,27 +22,6 @@ func (e *MDS) ArchiveExport(outArchive archive.Writer) error {
 	err = outArchive.WriteFile(e.name+".mds", buf.Bytes())
 	if err != nil {
 		return fmt.Errorf("write %s.mds: %w", e.name, err)
-	}
-
-	for _, material := range e.materials {
-		for _, p := range material.Properties {
-			if p.Category != 2 {
-				continue
-			}
-			if !strings.EqualFold(p.Name, "e_texturediffuse0") &&
-				!strings.EqualFold(p.Name, "e_texturenormal0") {
-				continue
-			}
-
-			data, err := e.pfs.File(p.Value)
-			if err != nil {
-				return fmt.Errorf("file: %w", err)
-			}
-			err = outArchive.WriteFile(p.Value, data)
-			if err != nil {
-				return fmt.Errorf("writeFile: %w", err)
-			}
-		}
 	}
 
 	return nil

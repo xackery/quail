@@ -13,7 +13,7 @@ type nameInfo struct {
 }
 
 // WriteGeometry writes the geometry to a buffer
-func WriteGeometry(version uint32, materials []*Material, vertices []*Vertex, triangles []*Triangle, bones []*Bone) ([]byte, []byte, error) {
+func WriteGeometry(version uint32, matManager *MaterialManager, meshManager *MeshManager) ([]byte, []byte, error) {
 	var err error
 
 	names := []*nameInfo{}
@@ -23,7 +23,7 @@ func WriteGeometry(version uint32, materials []*Material, vertices []*Vertex, tr
 	// materials
 
 	tmpNames := []string{}
-	for _, o := range materials {
+	for _, o := range matManager.materials {
 		tmpNames = append(tmpNames, o.Name)
 		tmpNames = append(tmpNames, o.ShaderName)
 		for _, p := range o.Properties {
@@ -64,7 +64,7 @@ func WriteGeometry(version uint32, materials []*Material, vertices []*Vertex, tr
 	}
 
 	//fmt.Println(hex.Dump(nameBuf.Bytes()))
-	for materialID, o := range materials {
+	for materialID, o := range matManager.materials {
 		err = binary.Write(dataBuf, binary.LittleEndian, uint32(materialID))
 		if err != nil {
 			return nil, nil, fmt.Errorf("write material id %s: %w", o.Name, err)
@@ -138,8 +138,13 @@ func WriteGeometry(version uint32, materials []*Material, vertices []*Vertex, tr
 		}
 	}
 
+	if len(meshManager.meshes) < 1 {
+		return nil, nil, fmt.Errorf("no meshes")
+	}
+
+	mesh := meshManager.meshes[0]
 	// verts
-	for i, o := range vertices {
+	for i, o := range mesh.Vertices {
 		err = binary.Write(dataBuf, binary.LittleEndian, o.Position)
 		if err != nil {
 			return nil, nil, fmt.Errorf("write vertex %d position: %w", i, err)
@@ -173,9 +178,9 @@ func WriteGeometry(version uint32, materials []*Material, vertices []*Vertex, tr
 	}
 
 	// triangles
-	for i, o := range triangles {
+	for i, o := range mesh.Triangles {
 		nameID := -1
-		for i, val := range materials {
+		for i, val := range matManager.materials {
 			if val.Name == o.MaterialName {
 				nameID = i
 				break
@@ -200,9 +205,9 @@ func WriteGeometry(version uint32, materials []*Material, vertices []*Vertex, tr
 		}
 	}
 
-	for i, b := range bones {
+	for i, b := range mesh.Bones {
 		nameID := -1
-		for i, val := range materials {
+		for i, val := range matManager.materials {
 			if val.Name == b.Name {
 				nameID = i
 				break

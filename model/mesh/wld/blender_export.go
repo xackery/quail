@@ -3,133 +3,50 @@ package wld
 import (
 	"fmt"
 	"os"
-	"strings"
-
-	"github.com/xackery/quail/dump"
-	"github.com/xackery/quail/model/geo"
 )
 
-// BlenderExport exports WLD to a blender dir
+// BlenderExport exports the TER to a directory for use in Blender.
 func (e *WLD) BlenderExport(dir string) error {
-	var err error
-	/*path := fmt.Sprintf("%s/_%s", dir, e.Name())
-	err = os.MkdirAll(path, 0755)
-	if err != nil {
-		return fmt.Errorf("create dir %s: %w", path, err)
-	}
-
-	if len(e.materials) > 0 {
-		pw, err := os.Create(fmt.Sprintf("%s/material_property.txt", path))
-		if err != nil {
-			return fmt.Errorf("create material_property.txt: %w", err)
-		}
-		defer pw.Close()
-		pw.WriteString("material_name|property_name|value|category\n")
-
-		mw, err := os.Create(fmt.Sprintf("%s/material.txt", path))
-		if err != nil {
-			return fmt.Errorf("create material.txt: %w", err)
-		}
-		mw.WriteString("name|flag|shader_name\n")
-		defer mw.Close()
-		for _, m := range e.materials {
-			mw.WriteString(m.Name + "|")
-			mw.WriteString(dump.Str(m.Flag) + "|")
-			mw.WriteString(m.ShaderName + "\n")
-			for _, property := range m.Properties {
-				pw.WriteString(m.Name + "|")
-				val := property.Name
-				if strings.EqualFold(property.Value, "e_texturediffuse0") {
-					val = "e_TextureDiffuse0"
-				}
-				pw.WriteString(val + "|")
-				pw.WriteString(dump.Str(property.Value) + "|")
-				pw.WriteString(dump.Str(property.Category) + "\n")
-			}
-		}
-	}
-	*/
-	if len(e.meshes) > 0 {
-		for i, mesh := range e.meshes {
-			fmt.Println("exporting mesh", mesh.Name)
-			if mesh.Name == "" {
-				mesh.Name = fmt.Sprintf("mesh_%d", i)
-			}
-			err = e.blenderExportMesh(dir, mesh)
-			if err != nil {
-				return fmt.Errorf("blenderExportMeshes: %w", err)
-			}
-		}
-	}
-
-	return nil
-}
-
-func (e *WLD) blenderExportMesh(dir string, mesh *geo.Mesh) error {
-	if len(e.meshes) == 0 {
-		return nil
-	}
-	path := fmt.Sprintf("%s/_%s.mds", dir, mesh.Name)
+	path := fmt.Sprintf("%s/_%s", dir, e.Name())
 	err := os.MkdirAll(path, 0755)
 	if err != nil {
 		return fmt.Errorf("create dir %s: %w", path, err)
 	}
 
-	if len(e.materials) > 0 {
-		pw, err := os.Create(fmt.Sprintf("%s/material_property.txt", path))
-		if err != nil {
-			return fmt.Errorf("create material_property.txt: %w", err)
-		}
-		defer pw.Close()
-		pw.WriteString("material_name|property_name|value|category\n")
-
-		mw, err := os.Create(fmt.Sprintf("%s/material.txt", path))
-		if err != nil {
-			return fmt.Errorf("create material.txt: %w", err)
-		}
-		mw.WriteString("name|flag|shader_name\n")
-		defer mw.Close()
-		for _, m := range e.materials {
-			mw.WriteString(m.Name + "|")
-			mw.WriteString(dump.Str(m.Flag) + "|")
-			mw.WriteString(m.ShaderName + "\n")
-			for _, property := range m.Properties {
-				pw.WriteString(m.Name + "|")
-				val := property.Name
-				if strings.EqualFold(property.Value, "e_texturediffuse0") {
-					val = "e_TextureDiffuse0"
-				}
-				pw.WriteString(val + "|")
-				pw.WriteString(dump.Str(property.Value) + "|")
-				pw.WriteString(dump.Str(property.Category) + "\n")
-			}
-		}
-	}
-
-	tw, err := os.Create(fmt.Sprintf("%s/triangle.txt", path))
+	vw, err := os.Create(fmt.Sprintf("%s/info.txt", path))
 	if err != nil {
-		return fmt.Errorf("create triangle.txt: %w", err)
-	}
-	defer tw.Close()
-	tw.WriteString("index flag material_name\n")
-	for _, t := range mesh.Triangles {
-		tw.WriteString(dump.Str(t.Index) + "|")
-		tw.WriteString(dump.Str(t.Flag) + "|")
-		tw.WriteString(dump.Str(t.MaterialName) + "\n")
-	}
-
-	vw, err := os.Create(fmt.Sprintf("%s/vertex.txt", path))
-	if err != nil {
-		return fmt.Errorf("create vertex.txt: %w", err)
+		return fmt.Errorf("create info.txt: %w", err)
 	}
 	defer vw.Close()
-	vw.WriteString("position|normal|uv|uv2|tint\n")
-	for _, v := range mesh.Vertices {
-		vw.WriteString(dump.Str(v.Position) + "|")
-		vw.WriteString(dump.Str(v.Normal) + "|")
-		vw.WriteString(dump.Str(v.Uv) + "|")
-		vw.WriteString(dump.Str(v.Uv2) + "|")
-		vw.WriteString(dump.Str(v.Tint) + "\n")
+	vw.WriteString(fmt.Sprintf("version=%d\n", e.version))
+
+	if e.materialManager.Count() > 0 {
+		err = e.materialManager.WriteFile(fmt.Sprintf("%s/material.txt", path), fmt.Sprintf("%s/material_property.txt", path))
+		if err != nil {
+			return fmt.Errorf("materialManager.WriteFile: %w", err)
+		}
 	}
+
+	if e.particleManager.PointCount() > 0 {
+		err = e.particleManager.WriteFile(fmt.Sprintf("%s/particle_point.txt", path), fmt.Sprintf("%s/particle_render.txt", path))
+		if err != nil {
+			return fmt.Errorf("particleManager.WriteFile: %w", err)
+		}
+	}
+
+	/*for _, file := range e.files {
+		fw, err := os.Create(fmt.Sprintf("%s/%s", path, file.Name()))
+		if err != nil {
+			return fmt.Errorf("create %s: %w", file.Name(), err)
+		}
+		defer fw.Close()
+		fw.Write(file.Data())
+	}*/
+
+	err = e.meshManager.WriteFile(path)
+	if err != nil {
+		return fmt.Errorf("write meshManager: %w", err)
+	}
+
 	return nil
 }

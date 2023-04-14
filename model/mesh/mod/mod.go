@@ -18,14 +18,10 @@ type MOD struct {
 	path string
 	// pfs is used as an alternative to path when loading data from a pfs file
 	pfs             archive.Reader
-	materials       []*geo.Material
-	vertices        []*geo.Vertex
-	triangles       []*geo.Triangle
+	MaterialManager *geo.MaterialManager
+	meshManager     *geo.MeshManager
+	particleManager *geo.ParticleManager
 	files           []archive.Filer // list of files known to be linked in this mod
-	particleRenders []*geo.ParticleRender
-	particlePoints  []*geo.ParticlePoint
-	isSkinned       bool
-	bones           []*geo.Bone
 	version         uint32
 }
 
@@ -65,7 +61,7 @@ func (e *MOD) SetPath(value string) {
 
 func (e *MOD) SetLayers(layers []*geo.Layer) error {
 	for _, o := range layers {
-		err := e.MaterialAdd(o.Name, "")
+		err := e.MaterialManager.Add(o.Name, "")
 		if err != nil {
 			return fmt.Errorf("materialAdd: %w", err)
 		}
@@ -88,14 +84,14 @@ func (e *MOD) SetLayers(layers []*geo.Layer) error {
 		}
 
 		if len(diffuseName) > 0 {
-			err = e.MaterialPropertyAdd(o.Name, "e_texturediffuse0", 2, diffuseName)
+			err = e.MaterialManager.PropertyAdd(o.Name, "e_texturediffuse0", 2, diffuseName)
 			if err != nil {
 				return fmt.Errorf("materialPropertyAdd %s: %w", diffuseName, err)
 			}
 		}
 
 		if len(normalName) > 0 {
-			err = e.MaterialPropertyAdd(o.Name, "e_texturediffuse0", 2, normalName)
+			err = e.MaterialManager.PropertyAdd(o.Name, "e_texturediffuse0", 2, normalName)
 			if err != nil {
 				return fmt.Errorf("materialPropertyAdd %s: %w", normalName, err)
 			}
@@ -108,16 +104,14 @@ func (e *MOD) AddFile(fe *archive.FileEntry) {
 	e.files = append(e.files, fe)
 }
 
-func (e *MOD) SetParticleRenders(particles []*geo.ParticleRender) error {
-	e.particleRenders = particles
-	return nil
-}
-
-func (e *MOD) SetParticlePoints(particles []*geo.ParticlePoint) error {
-	e.particlePoints = particles
-	return nil
-}
-
 func (e *MOD) Name() string {
 	return e.name
+}
+
+// Close flushes the data in a mod
+func (e *MOD) Close() {
+	e.files = nil
+	e.MaterialManager = &geo.MaterialManager{}
+	e.meshManager = &geo.MeshManager{}
+	e.particleManager = &geo.ParticleManager{}
 }

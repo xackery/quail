@@ -11,13 +11,15 @@ import (
 
 // WLD is a wld file struct
 type WLD struct {
-	archive        archive.ReadWriter
-	name           string
-	BspRegionCount uint32
-	Hash           map[int]string
-	materials      []*geo.Material
-	meshes         []*geo.Mesh
-	NameCache      map[int32]string
+	archive         archive.ReadWriter
+	version         uint32
+	name            string
+	meshManager     *geo.MeshManager
+	materialManager *geo.MaterialManager
+	particleManager *geo.ParticleManager
+	BspRegionCount  uint32
+	Hash            map[int]string
+	NameCache       map[int32]string
 }
 
 type fragmentInfo struct {
@@ -28,8 +30,11 @@ type fragmentInfo struct {
 // New creates a new empty instance. Use NewFile to load an archive file on creation
 func New(name string, pfs archive.ReadWriter) (*WLD, error) {
 	e := &WLD{
-		name:    name,
-		archive: pfs,
+		name:            name,
+		archive:         pfs,
+		materialManager: &geo.MaterialManager{},
+		meshManager:     &geo.MeshManager{},
+		particleManager: &geo.ParticleManager{},
 	}
 	return e, nil
 }
@@ -37,8 +42,11 @@ func New(name string, pfs archive.ReadWriter) (*WLD, error) {
 // NewFile creates a new instance and loads provided file
 func NewFile(name string, pfs archive.ReadWriter, file string) (*WLD, error) {
 	e := &WLD{
-		name:    name,
-		archive: pfs,
+		name:            name,
+		archive:         pfs,
+		materialManager: &geo.MaterialManager{},
+		meshManager:     &geo.MeshManager{},
+		particleManager: &geo.ParticleManager{},
 	}
 	data, err := pfs.File(file)
 	if err != nil {

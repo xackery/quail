@@ -4,7 +4,6 @@ import (
 	"encoding/binary"
 	"fmt"
 	"io"
-	"sort"
 	"strings"
 
 	"github.com/xackery/quail/dump"
@@ -16,6 +15,8 @@ import (
 func (e *MDS) Decode(r io.ReadSeeker) error {
 	var err error
 	e.isDecoded = true
+	modelName := strings.TrimSuffix(e.name, ".mds")
+
 	header := [4]byte{}
 	err = binary.Read(r, binary.LittleEndian, &header)
 	if err != nil {
@@ -30,6 +31,7 @@ func (e *MDS) Decode(r io.ReadSeeker) error {
 	if err != nil {
 		return fmt.Errorf("read header version: %w", err)
 	}
+	fmt.Println("version", e.version)
 
 	nameLength := uint32(0)
 	err = binary.Read(r, binary.LittleEndian, &nameLength)
@@ -119,11 +121,11 @@ func (e *MDS) Decode(r io.ReadSeeker) error {
 		}
 		dump.Hex(propertyCount, "%dpropertyCount=%d", i, propertyCount)
 
-		/*if name == fmt.Sprintf("%s_02", e.name) {
-			name = fmt.Sprintf("c_%s_s02_m01", e.name)
+		/*if name == fmt.Sprintf("%s_02", modelName) {
+			name = fmt.Sprintf("c_%s_s02_m01", modelName)
 		}*/
 
-		err = e.MaterialAdd(name, shaderName)
+		err = e.MaterialManager.Add(name, shaderName)
 		if err != nil {
 			return fmt.Errorf("addMaterial %s: %w", name, err)
 		}
@@ -151,9 +153,9 @@ func (e *MDS) Decode(r io.ReadSeeker) error {
 				if err != nil {
 					return fmt.Errorf("read propFloatValue: %w", err)
 				}
-				dump.Hex(propFloatValue, "%d%dpropertyFloat=%0.2f", i, j, propFloatValue)
+				dump.Hex(propFloatValue, "%d%dpropertyFloat=%0.3f", i, j, propFloatValue)
 
-				err = e.MaterialPropertyAdd(name, propertyName, propertyType, fmt.Sprintf("%0.2f", propFloatValue))
+				err = e.MaterialManager.PropertyAdd(name, propertyName, propertyType, fmt.Sprintf("%0.3f", propFloatValue))
 				if err != nil {
 					return fmt.Errorf("addMaterialProperty %s %s: %w", name, propertyName, err)
 				}
@@ -181,7 +183,7 @@ func (e *MDS) Decode(r io.ReadSeeker) error {
 					return fmt.Errorf("new fileentry material %s: %w", propertyName, err)
 				}
 				e.files = append(e.files, fe)
-				err = e.MaterialPropertyAdd(name, propertyName, propertyType, propertyValueName)
+				err = e.MaterialManager.PropertyAdd(name, propertyName, propertyType, propertyValueName)
 				if err != nil {
 					return fmt.Errorf("addMaterialProperty %s %s: %w", name, propertyName, err)
 				}
@@ -248,7 +250,7 @@ func (e *MDS) Decode(r io.ReadSeeker) error {
 
 		}
 
-		e.bones = append(e.bones, &geo.Bone{
+		e.meshManager.BoneAdd(modelName, &geo.Bone{
 			Name:          name,
 			Next:          next,
 			ChildrenCount: childrenCount,
@@ -339,7 +341,7 @@ func (e *MDS) Decode(r io.ReadSeeker) error {
 		//vertex.Uv.Y = -vertex.Uv.Y
 
 		vertex.Position = geo.ApplyQuaternion(vertex.Position, &geo.Quad4{X: 1, Y: 0, Z: 0, W: 0})
-		e.vertices = append(e.vertices, vertex)
+		e.meshManager.VertexAdd(modelName, vertex)
 	}
 	vSize := 32
 	if e.version >= 3 {
@@ -361,9 +363,9 @@ func (e *MDS) Decode(r io.ReadSeeker) error {
 			return fmt.Errorf("read face %d materialID: %w", i, err)
 		}
 
-		materialName, err := e.MaterialByID(int(materialID))
-		if err != nil {
-			return fmt.Errorf("material by id for face %d: %w", i, err)
+		material, ok := e.MaterialManager.ByID(int(materialID))
+		if !ok {
+			return fmt.Errorf("face %d materialID %d not found", i, materialID)
 		}
 
 		flag := uint32(0)
@@ -371,17 +373,14 @@ func (e *MDS) Decode(r io.ReadSeeker) error {
 		if err != nil {
 			return fmt.Errorf("read face %d flag: %w", i, err)
 		}
-		if materialName == "" {
-			materialName = fmt.Sprintf("empty_%d", flag)
-		}
 
-		err = e.FaceAdd(pos, materialName, flag)
+		err = e.meshManager.TriangleAdd(modelName, pos, material.Name, flag)
 		if err != nil {
 			return fmt.Errorf("faceAdd %d: %w", i, err)
 		}
 	}
 	dump.HexRange([]byte{0x03, 0x04}, int(faceCount)*20, "faceData=(%d bytes)", int(faceCount)*20)
-	sort.Sort(geo.MaterialByName(e.materials))
+	e.MaterialManager.SortByName()
 
 	return nil
 }

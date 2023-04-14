@@ -15,13 +15,12 @@ import (
 // Decode decodes a MOD file
 func (e *MOD) Decode(r io.ReadSeeker) error {
 	var err error
-	e.isSkinned = false
-	e.materials = []*geo.Material{}
-	e.vertices = []*geo.Vertex{}
-	e.triangles = []*geo.Triangle{}
-	e.bones = []*geo.Bone{}
-	e.particleRenders = []*geo.ParticleRender{}
-	e.particlePoints = []*geo.ParticlePoint{}
+	e.MaterialManager = &geo.MaterialManager{}
+	e.meshManager = &geo.MeshManager{}
+	e.particleManager = &geo.ParticleManager{}
+
+	// mod has a single model in it, we'll strip the .mod suffix and use the name as the model name
+	modelName := strings.TrimSuffix(e.name, ".mod")
 
 	header := [4]byte{}
 	err = binary.Read(r, binary.LittleEndian, &header)
@@ -41,6 +40,7 @@ func (e *MOD) Decode(r io.ReadSeeker) error {
 	if e.version > 3 {
 		return fmt.Errorf("version is %d, wanted < 4", e.version)
 	}
+	fmt.Println("version", e.version)
 
 	nameLength := uint32(0)
 	err = binary.Read(r, binary.LittleEndian, &nameLength)
@@ -136,7 +136,7 @@ func (e *MOD) Decode(r io.ReadSeeker) error {
 		}
 		dump.Hex(propertyCount, "%dpropertyCount=%d", i, propertyCount)
 
-		err = e.MaterialAdd(name, shaderName)
+		err = e.MaterialManager.Add(name, shaderName)
 		if err != nil {
 			return fmt.Errorf("addMaterial %s: %w", name, err)
 		}
@@ -164,9 +164,9 @@ func (e *MOD) Decode(r io.ReadSeeker) error {
 				if err != nil {
 					return fmt.Errorf("read propFloatValue: %w", err)
 				}
-				dump.Hex(propFloatValue, "%d%dpropertyFloat=%0.2f", i, j, propFloatValue)
+				dump.Hex(propFloatValue, "%d%dpropertyFloat=%0.3f", i, j, propFloatValue)
 
-				err = e.MaterialPropertyAdd(name, propertyName, propertyType, fmt.Sprintf("%0.2f", propFloatValue))
+				err = e.MaterialManager.PropertyAdd(name, propertyName, propertyType, fmt.Sprintf("%0.3f", propFloatValue))
 				if err != nil {
 					return fmt.Errorf("addMaterialProperty %s %s: %w", name, propertyName, err)
 				}
@@ -209,7 +209,7 @@ func (e *MOD) Decode(r io.ReadSeeker) error {
 
 					e.files = append(e.files, fe)
 				}
-				err = e.MaterialPropertyAdd(name, propertyName, propertyType, propertyValueName)
+				err = e.MaterialManager.PropertyAdd(name, propertyName, propertyType, propertyValueName)
 				if err != nil {
 					return fmt.Errorf("addMaterialProperty %s %s: %w", name, propertyName, err)
 				}
@@ -257,7 +257,7 @@ func (e *MOD) Decode(r io.ReadSeeker) error {
 			}
 		}
 
-		e.vertices = append(e.vertices, vertex)
+		e.meshManager.VertexAdd(modelName, vertex)
 	}
 	vSize := 32
 	if e.version >= 3 {
@@ -279,9 +279,14 @@ func (e *MOD) Decode(r io.ReadSeeker) error {
 			return fmt.Errorf("read triangle %d materialID: %w", i, err)
 		}
 
-		materialName, err := e.MaterialByID(int(materialID))
-		if err != nil {
-			return fmt.Errorf("material by id for triangle %d: %w", i, err)
+		materialName := ""
+		if materialID > -1 {
+
+			material, ok := e.MaterialManager.ByID(int(materialID))
+			if !ok {
+				return fmt.Errorf("triangle %d materialID %d not found", i, materialID)
+			}
+			materialName = material.Name
 		}
 
 		flag := uint32(0)
@@ -293,7 +298,7 @@ func (e *MOD) Decode(r io.ReadSeeker) error {
 		if materialName == "" {
 			materialName = fmt.Sprintf("empty_%d", flag)
 		}
-		err = e.TriangleAdd(pos, materialName, flag)
+		e.meshManager.TriangleAdd(modelName, pos, materialName, flag)
 		if err != nil {
 			return fmt.Errorf("triangleAdd %d: %w", i, err)
 		}
@@ -353,7 +358,7 @@ func (e *MOD) Decode(r io.ReadSeeker) error {
 		}
 		dump.Hex(bone.Scale, "%dscale=%+v", i, bone.Scale)
 
-		e.bones = append(e.bones, bone)
+		e.meshManager.BoneAdd(modelName, bone)
 	}
 	return nil
 }

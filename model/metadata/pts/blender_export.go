@@ -3,8 +3,6 @@ package pts
 import (
 	"fmt"
 	"os"
-
-	"github.com/xackery/quail/dump"
 )
 
 // BlenderExport exports a PTS file to a directory for use in blender
@@ -15,21 +13,9 @@ func (e *PTS) BlenderExport(dir string) error {
 		return fmt.Errorf("create dir %s: %w", path, err)
 	}
 
-	if len(e.particles) > 0 {
-		pw, err := os.Create(fmt.Sprintf("%s/particle_point.txt", path))
-		if err != nil {
-			return fmt.Errorf("create particle_point.txt: %w", err)
-		}
-
-		defer pw.Close()
-		pw.WriteString("name|bone|translation|rotation|scale\n")
-		for _, p := range e.particles {
-			pw.WriteString(dump.Str(p.Name) + "|")
-			pw.WriteString(dump.Str(p.Bone) + "|")
-			pw.WriteString(dump.Str(p.Translation) + "|")
-			pw.WriteString(dump.Str(p.Rotation) + "|")
-			pw.WriteString(dump.Str(p.Scale) + "\n")
-		}
+	err = e.particleManager.WriteFile(fmt.Sprintf("%s/particle_point.txt", path), fmt.Sprintf("%s/particle_render.txt", path))
+	if err != nil {
+		return fmt.Errorf("particleManager.WriteFile: %w", err)
 	}
 
 	return nil

@@ -13,16 +13,17 @@ import (
 
 // PTS contains particle location and attachment data
 type PTS struct {
-	name      string
-	archive   archive.Reader
-	particles []*geo.ParticlePoint
+	name            string
+	archive         archive.Reader
+	particleManager *geo.ParticleManager
 }
 
 // New creates a new empty instance. Use NewFile to load an archive file on creation
 func New(name string, pfs archive.Reader) (*PTS, error) {
 	return &PTS{
-		name:    name,
-		archive: pfs,
+		name:            name,
+		archive:         pfs,
+		particleManager: &geo.ParticleManager{},
 	}, nil
 }
 
@@ -41,11 +42,6 @@ func NewFile(name string, pfs archive.ReadWriter, file string) (*PTS, error) {
 		return nil, fmt.Errorf("decode: %w", err)
 	}
 	return e, nil
-}
-
-// ParticlePoints returns a list of particle points
-func (e *PTS) ParticlePoints() []*geo.ParticlePoint {
-	return e.particles
 }
 
 // Name returns the name of the file

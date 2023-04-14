@@ -185,28 +185,28 @@ func (e *ZON) Encode(w io.Writer) error {
 		}
 	}
 
-	for _, o := range e.objects {
+	for _, o := range e.objectManager.Objects() {
 
 		modelID := uint32(9999)
 		for i := range names {
-			if names[i].name != o.modelName {
+			if names[i].name != o.ModelName {
 				continue
 			}
 			modelID = uint32(i)
 			break
 		}
 		if modelID == 9999 {
-			return fmt.Errorf("modelID %s not found", o.modelName)
+			return fmt.Errorf("modelID %s not found", o.ModelName)
 		}
 
 		err = binary.Write(dataBuf, binary.LittleEndian, modelID)
 		if err != nil {
-			return fmt.Errorf("write object model id %s: %w", o.name, err)
+			return fmt.Errorf("write object model id %s: %w", o.Name, err)
 		}
 		//binary.Write(dataBuf, binary.LittleEndian, uint16(0))
 
 		name := &nameInfo{
-			name:   o.name,
+			name:   o.Name,
 			offset: uint32(nameBuf.Len()),
 		}
 
@@ -221,34 +221,34 @@ func (e *ZON) Encode(w io.Writer) error {
 		}
 		if isNew {
 			names = append(names, name)
-			err = binary.Write(nameBuf, binary.LittleEndian, []byte(o.name))
+			err = binary.Write(nameBuf, binary.LittleEndian, []byte(o.Name))
 			if err != nil {
-				return fmt.Errorf("write name %s: %w", o.name, err)
+				return fmt.Errorf("write name %s: %w", o.Name, err)
 			}
 			err = binary.Write(nameBuf, binary.LittleEndian, []byte{0})
 			if err != nil {
-				return fmt.Errorf("write zero %s: %w", o.name, err)
+				return fmt.Errorf("write zero %s: %w", o.Name, err)
 			}
 		}
 
 		err = binary.Write(dataBuf, binary.LittleEndian, name.offset)
 		if err != nil {
-			return fmt.Errorf("write objectname offset %s: %w", o.name, err)
+			return fmt.Errorf("write objectname offset %s: %w", o.Name, err)
 		}
 
-		err = binary.Write(dataBuf, binary.LittleEndian, o.translation)
+		err = binary.Write(dataBuf, binary.LittleEndian, o.Position)
 		if err != nil {
-			return fmt.Errorf("write object pos %s: %w", o.name, err)
+			return fmt.Errorf("write object pos %s: %w", o.Name, err)
 		}
 
-		err = binary.Write(dataBuf, binary.LittleEndian, o.rotation)
+		err = binary.Write(dataBuf, binary.LittleEndian, o.Rotation)
 		if err != nil {
-			return fmt.Errorf("write object rot %s: %w", o.name, err)
+			return fmt.Errorf("write object rot %s: %w", o.Name, err)
 		}
 
-		err = binary.Write(dataBuf, binary.LittleEndian, o.scale)
+		err = binary.Write(dataBuf, binary.LittleEndian, o.Scale)
 		if err != nil {
-			return fmt.Errorf("write object scale %s: %w", o.name, err)
+			return fmt.Errorf("write object scale %s: %w", o.Name, err)
 		}
 
 	}
@@ -366,7 +366,7 @@ func (e *ZON) Encode(w io.Writer) error {
 	if err != nil {
 		return fmt.Errorf("write model count: %w", err)
 	}
-	err = binary.Write(w, binary.LittleEndian, uint32(len(e.objects)))
+	err = binary.Write(w, binary.LittleEndian, uint32(e.objectManager.Count()))
 	if err != nil {
 		return fmt.Errorf("write object count: %w", err)
 	}

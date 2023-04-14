@@ -3,8 +3,6 @@ package lod
 import (
 	"fmt"
 	"os"
-
-	"github.com/xackery/quail/dump"
 )
 
 // BlenderExport exports a LIT file to a directory for use in blender
@@ -23,9 +21,7 @@ func (e *LOD) BlenderExport(dir string) error {
 		defer lw.Close()
 		lw.WriteString("category|model_name|distance\n")
 		for _, le := range e.lods {
-			lw.WriteString(dump.Str(le.Category) + "|")
-			lw.WriteString(dump.Str(le.ObjectName) + "|")
-			lw.WriteString(dump.Str(le.Distance) + "\n")
+			lw.WriteString(fmt.Sprintf("%s|%s|%d\n", le.Category, le.ObjectName, le.Distance))
 		}
 	}
 

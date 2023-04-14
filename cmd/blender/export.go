@@ -15,9 +15,11 @@ import (
 	"github.com/xackery/quail/model/mesh/ter"
 	"github.com/xackery/quail/model/mesh/wld"
 	"github.com/xackery/quail/model/metadata/ani"
+	"github.com/xackery/quail/model/metadata/lay"
 	"github.com/xackery/quail/model/metadata/lit"
 	"github.com/xackery/quail/model/metadata/pts"
 	"github.com/xackery/quail/model/metadata/tog"
+	"github.com/xackery/quail/model/metadata/zon"
 	"github.com/xackery/quail/pfs/archive"
 	"github.com/xackery/quail/pfs/eqg"
 	"github.com/xackery/quail/pfs/s3d"
@@ -34,7 +36,15 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return export(cmd, args)
+		var err error
+		defer func() {
+			if err != nil {
+				fmt.Println("Error:", err)
+				os.Exit(1)
+			}
+		}()
+		err = export(cmd, args)
+		return err
 	},
 }
 
@@ -105,6 +115,10 @@ func export(cmd *cobra.Command, args []string) error {
 			e, err = ter.New(fe.Name(), pfs)
 		case ".wld":
 			e, err = wld.New(fe.Name(), pfs)
+		case ".lay":
+			e, err = lay.New(fe.Name(), pfs)
+		case ".zon":
+			e, err = zon.New(fe.Name(), pfs)
 		//case ".lod":
 		//	e, err = lod.New(fe.Name(), pfs)
 		case ".prt":

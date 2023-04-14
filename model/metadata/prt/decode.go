@@ -91,7 +91,7 @@ func (e *PRT) Decode(r io.ReadSeeker) error {
 			return fmt.Errorf("%d read unknownC: %w", i, err)
 		}
 		dump.Hex(entry.UnknownC, "%dunknownC=%d", i, entry.UnknownC)
-		e.particles = append(e.particles, entry)
+		e.particleManager.RenderAdd(entry)
 	}
 	return nil
 }

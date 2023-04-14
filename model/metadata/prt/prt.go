@@ -13,16 +13,17 @@ import (
 
 // PRT contains particle rendering settings
 type PRT struct {
-	name      string
-	archive   archive.Reader
-	particles []*geo.ParticleRender
+	name            string
+	archive         archive.Reader
+	particleManager *geo.ParticleManager
 }
 
 // New creates a new empty instance. Use NewFile to load an archive file on creation
 func New(name string, pfs archive.Reader) (*PRT, error) {
 	return &PRT{
-		name:    name,
-		archive: pfs,
+		name:            name,
+		archive:         pfs,
+		particleManager: &geo.ParticleManager{},
 	}, nil
 }
 
@@ -41,11 +42,6 @@ func NewFile(name string, pfs archive.ReadWriter, file string) (*PRT, error) {
 		return nil, fmt.Errorf("decode: %w", err)
 	}
 	return e, nil
-}
-
-// ParticleRenders returns a list of particle renders
-func (e *PRT) ParticleRenders() []*geo.ParticleRender {
-	return e.particles
 }
 
 // Name returns the name of the prt

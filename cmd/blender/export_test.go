@@ -18,21 +18,24 @@ func Test_export(t *testing.T) {
 		name    string
 		wantErr bool
 	}{
-		{name: "it13926.eqg", wantErr: false},
+		//{name: "it13926.eqg", wantErr: false},
+		//{name: "it12095.eqg", wantErr: false}, // gnome on a stick
+		//{name: "sin.eqg", wantErr: false},     // siren
+		{name: "test.eqg", wantErr: false},
 		//{name: "gequip6.s3d", wantErr: false},
 		//{name: "shp_chr.s3d", wantErr: false},
+		//{name: "steamfontmts.eqg", wantErr: false},
+		//{name: "arena.eqg", wantErr: false},
+		//{name: "bloodfields.eqg", wantErr: false},
 		//{name: "ecommons_chr.s3d", wantErr: false},
 		//{name: "pum_chr.s3d", wantErr: false},
 		//{name: "crushbone.s3d", wantErr: false},
 		//{name: "gequip.s3d", wantErr: false},
 		//{name: "arena.s3d", wantErr: false},
-		//{name: "arena", wantErr: false},
-		//{name: "steamfontmts", wantErr: false},
-		//{name: "it13900", wantErr: false},
+		//{name: "it13900.eqg", wantErr: false},
 		//{name: "xhf", wantErr: false},
 		//{name: "zmf", wantErr: false},
 		//{name: "it12043.eqg", wantErr: false},
-		//{name: "it12095.eqg", wantErr: false},
 		//{name: "omensequip.eqg", wantErr: false},
 		/*{name: "it12312.eqg", wantErr: false},
 		{name: "it13900.eqg", wantErr: false},

@@ -14,6 +14,8 @@ import (
 func (e *TER) Decode(r io.ReadSeeker) error {
 	var err error
 
+	modelName := strings.TrimSuffix(e.name, ".ter")
+
 	header := [4]byte{}
 	err = binary.Read(r, binary.LittleEndian, &header)
 	if err != nil {
@@ -29,15 +31,16 @@ func (e *TER) Decode(r io.ReadSeeker) error {
 		return fmt.Errorf("read header version: %w", err)
 	}
 	dump.Hex(e.version, "version=%d", e.version)
+	fmt.Println("version", e.version)
 
 	switch e.version {
 	case 2:
-		err = e.loadVersion2(r)
+		err = e.loadVersion2(r, modelName)
 		if err != nil {
 			return fmt.Errorf("loadVersion2: %w", err)
 		}
 	case 3:
-		err = e.loadVersion3(r)
+		err = e.loadVersion3(r, modelName)
 		if err != nil {
 			return fmt.Errorf("loadVersion3: %w", err)
 		}
@@ -48,7 +51,7 @@ func (e *TER) Decode(r io.ReadSeeker) error {
 	return nil
 }
 
-func (e *TER) loadVersion2(r io.Reader) error {
+func (e *TER) loadVersion2(r io.Reader, modelName string) error {
 	var err error
 	nameLength := uint32(0)
 	err = binary.Read(r, binary.LittleEndian, &nameLength)
@@ -141,7 +144,7 @@ func (e *TER) loadVersion2(r io.Reader) error {
 		}
 		dump.Hex(propertyCount, "%dpropertyCount=%d", i, propertyCount)
 
-		err = e.MaterialAdd(name, shaderName)
+		err = e.MaterialManager.Add(name, shaderName)
 		if err != nil {
 			return fmt.Errorf("MaterialAdd %s: %w", name, err)
 		}
@@ -170,9 +173,9 @@ func (e *TER) loadVersion2(r io.Reader) error {
 				if err != nil {
 					return fmt.Errorf("read propFloatValue: %w", err)
 				}
-				dump.Hex(propFloatValue, "%d%dpropertyFloat=%0.2f", i, j, propFloatValue)
+				dump.Hex(propFloatValue, "%d%dpropertyFloat=%0.3f", i, j, propFloatValue)
 
-				err = e.MaterialPropertyAdd(name, propertyName, propertyType, fmt.Sprintf("%0.2f", propFloatValue))
+				err = e.MaterialManager.PropertyAdd(name, propertyName, propertyType, fmt.Sprintf("%0.3f", propFloatValue))
 				if err != nil {
 					return fmt.Errorf("addMaterialProperty %s %s: %w", name, propertyName, err)
 				}
@@ -208,7 +211,7 @@ func (e *TER) loadVersion2(r io.Reader) error {
 
 					e.files = append(e.files, fe)
 				}
-				err = e.MaterialPropertyAdd(name, propertyName, propertyType, propertyValueName)
+				err = e.MaterialManager.PropertyAdd(name, propertyName, propertyType, propertyValueName)
 				if err != nil {
 					return fmt.Errorf("addMaterialProperty %s %s: %w", name, propertyName, err)
 				}
@@ -224,21 +227,11 @@ func (e *TER) loadVersion2(r io.Reader) error {
 			return fmt.Errorf("read vertex %d position: %w", i, err)
 		}
 
-		/*newPos := [3]float32{}
-		newPos[0] = pos[1]
-		newPos[1] = -pos[0]
-		newPos[2] = pos[2]
-		pos = newPos*/
-
 		normal := &geo.Vector3{}
 		err = binary.Read(r, binary.LittleEndian, normal)
 		if err != nil {
 			return fmt.Errorf("read vertex %d normal: %w", i, err)
 		}
-
-		z := normal.Z
-		normal.Z = normal.Y
-		normal.Y = z
 
 		tint := &geo.RGBA{R: 128, G: 128, B: 128, A: 1}
 
@@ -248,7 +241,7 @@ func (e *TER) loadVersion2(r io.Reader) error {
 			return fmt.Errorf("read vertex %d uv: %w", i, err)
 		}
 
-		e.vertices = append(e.vertices, &geo.Vertex{
+		e.meshManager.VertexAdd(modelName, &geo.Vertex{
 			Position: pos,
 			Normal:   normal,
 			Tint:     tint,
@@ -272,10 +265,10 @@ func (e *TER) loadVersion2(r io.Reader) error {
 			return fmt.Errorf("read triangle %d materialID: %w", i, err)
 		}
 
-		materialName, err := e.MaterialByID(int32(materialID))
-		if err != nil {
-			//materialName = "BlendTex_5"
-			return fmt.Errorf("material by id for triangle %d (%d): %w", i, materialID, err)
+		material, ok := e.MaterialManager.ByID(int(materialID))
+		materialName := ""
+		if ok {
+			materialName = material.Name
 		}
 
 		flag := uint32(0)
@@ -284,10 +277,7 @@ func (e *TER) loadVersion2(r io.Reader) error {
 			return fmt.Errorf("read triangle %d flag: %w", i, err)
 		}
 
-		if materialName == "" {
-			materialName = fmt.Sprintf("empty_%d", flag)
-		}
-		err = e.triangleAdd(pos, materialName, flag)
+		err = e.meshManager.TriangleAdd(modelName, pos, materialName, flag)
 		if err != nil {
 			return fmt.Errorf("triangleAdd %d: %w", i, err)
 		}
@@ -296,7 +286,7 @@ func (e *TER) loadVersion2(r io.Reader) error {
 	return nil
 }
 
-func (e *TER) loadVersion3(r io.Reader) error {
+func (e *TER) loadVersion3(r io.Reader, modelName string) error {
 	var err error
 	nameLength := uint32(0)
 	err = binary.Read(r, binary.LittleEndian, &nameLength)
@@ -389,7 +379,7 @@ func (e *TER) loadVersion3(r io.Reader) error {
 		}
 		dump.Hex(propertyCount, "%dpropertyCount=%d", i, propertyCount)
 
-		err = e.MaterialAdd(name, shaderName)
+		err = e.MaterialManager.Add(name, shaderName)
 		if err != nil {
 			return fmt.Errorf("MaterialAdd %s: %w", name, err)
 		}
@@ -417,9 +407,9 @@ func (e *TER) loadVersion3(r io.Reader) error {
 				if err != nil {
 					return fmt.Errorf("read propFloatValue: %w", err)
 				}
-				dump.Hex(propFloatValue, "%d%dpropertyFloat=%0.2f", i, j, propFloatValue)
+				dump.Hex(propFloatValue, "%d%dpropertyFloat=%0.3f", i, j, propFloatValue)
 
-				err = e.MaterialPropertyAdd(name, propertyName, propertyType, fmt.Sprintf("%0.2f", propFloatValue))
+				err = e.MaterialManager.PropertyAdd(name, propertyName, propertyType, fmt.Sprintf("%0.3f", propFloatValue))
 				if err != nil {
 					return fmt.Errorf("addMaterialProperty %s %s: %w", name, propertyName, err)
 				}
@@ -456,7 +446,7 @@ func (e *TER) loadVersion3(r io.Reader) error {
 
 					e.files = append(e.files, fe)
 				}
-				err = e.MaterialPropertyAdd(name, propertyName, propertyType, propertyValueName)
+				err = e.MaterialManager.PropertyAdd(name, propertyName, propertyType, propertyValueName)
 				if err != nil {
 					return fmt.Errorf("addMaterialProperty %s %s: %w", name, propertyName, err)
 				}
@@ -491,7 +481,7 @@ func (e *TER) loadVersion3(r io.Reader) error {
 			return fmt.Errorf("read vertex %d uv2: %w", i, err)
 		}
 
-		e.vertices = append(e.vertices, vert)
+		e.meshManager.VertexAdd(modelName, vert)
 	}
 	dump.HexRange([]byte{0x01, 0x02}, int(verticesCount)*32, "vertData=(%d bytes)", int(verticesCount)*32)
 
@@ -508,10 +498,10 @@ func (e *TER) loadVersion3(r io.Reader) error {
 			return fmt.Errorf("read triangle %d materialID: %w", i, err)
 		}
 
-		materialName, err := e.MaterialByID(materialID)
-		if err != nil {
-			//materialName = "BlendTex_5"
-			return fmt.Errorf("material by id for triangle %d (%d): %w", i, materialID, err)
+		material, ok := e.MaterialManager.ByID(int(materialID))
+		materialName := ""
+		if ok {
+			materialName = material.Name
 		}
 
 		flag := uint32(0)
@@ -519,7 +509,7 @@ func (e *TER) loadVersion3(r io.Reader) error {
 		if err != nil {
 			return fmt.Errorf("read triangle %d flag: %w", i, err)
 		}
-		err = e.triangleAdd(pos, materialName, flag)
+		err = e.meshManager.TriangleAdd(modelName, pos, materialName, flag)
 		if err != nil {
 			return fmt.Errorf("addTriangle %d: %w", i, err)
 		}

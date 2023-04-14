@@ -72,7 +72,7 @@ func (e *PTS) Decode(r io.ReadSeeker) error {
 		}
 		dump.Hex(entry.Scale, "%dscale=%0.0f", i, entry.Scale)
 
-		e.particles = append(e.particles, entry)
+		e.particleManager.PointAdd(entry)
 	}
 	return nil
 }

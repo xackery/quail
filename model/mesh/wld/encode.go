@@ -27,7 +27,7 @@ func (e *WLD) Encode(w io.Writer) error {
 
 	//TODO: fragment count?
 	fragmentCount := uint32(0)
-	fragmentCount += uint32(len(e.meshes))
+	fragmentCount += uint32(e.meshManager.TriangleCount(e.name))
 	err = binary.Write(w, binary.LittleEndian, fragmentCount)
 	if err != nil {
 		return fmt.Errorf("write fragmentCount: %w", err)

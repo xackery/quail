@@ -13,13 +13,26 @@ type Vector2 struct {
 	Y float32
 }
 
+// NewVector2 returns a new vector2
 func NewVector2() *Vector2 {
 	return &Vector2{}
 }
 
+// NewVector2FromString returns a new vector2 from a string
+func NewVector2FromString(s string) *Vector2 {
+	parts := strings.Split(s, "|")
+	if len(parts) < 2 {
+		return nil
+	}
+	return &Vector2{
+		X: helper.AtoF32(parts[0]),
+		Y: helper.AtoF32(parts[1]),
+	}
+}
+
 // String returns a string version of vector2
 func (v *Vector2) String() string {
-	return fmt.Sprintf("%0.2f,%0.2f", v.X, v.Y)
+	return fmt.Sprintf("%0.3f,%0.3f", v.X, v.Y)
 }
 
 // AtoVector2 converts a string to a vector2
@@ -46,6 +59,11 @@ func NewVector3() *Vector3 {
 	return &Vector3{}
 }
 
+// String returns a string version of vector3
+func (e *Vector3) String() string {
+	return fmt.Sprintf("%0.3f,%0.3f,%0.3f", e.X, e.Y, e.Z)
+}
+
 // AtoVector3 converts a string to a vector3
 func AtoVector3(s string) *Vector3 {
 	parts := strings.Split(s, ",")
@@ -57,11 +75,6 @@ func AtoVector3(s string) *Vector3 {
 		Y: helper.AtoF32(parts[1]),
 		Z: helper.AtoF32(parts[2]),
 	}
-}
-
-// String returns a string version of vector3
-func (v *Vector3) String() string {
-	return fmt.Sprintf("%0.2f,%0.2f,%f", v.X, v.Y, v.Z)
 }
 
 // Quad4  has X,Y,Z,W defined as float32
@@ -93,7 +106,7 @@ func AtoQuad4(s string) *Quad4 {
 
 // String returns a string version of quad4
 func (q *Quad4) String() string {
-	return fmt.Sprintf("%0.2f,%0.2f,%0.2f,%0.2f", q.X, q.Y, q.Z, q.W)
+	return fmt.Sprintf("%0.3f,%0.3f,%0.3f,%0.3f", q.X, q.Y, q.Z, q.W)
 }
 
 // Index3 has X,Y,Z defined as int32
@@ -185,61 +198,5 @@ func AtoIndex4(s string) *Index4 {
 
 // String returns a string version of index4
 func (i *Index4) String() string {
-	return fmt.Sprintf("%d,%d,%d,%d", i.X, i.Y, i.Z, i.W)
-}
-
-// Property contains data about a material
-type Property struct {
-	Name     string
-	Category uint32
-	Value    string
-}
-
-// NewProperty returns a new property
-func NewProperty() *Property {
-	return &Property{}
-}
-
-// Vertex stores information related to a mesh
-type Vertex struct {
-	Position *Vector3
-	Normal   *Vector3
-	Tint     *RGBA
-	Uv       *Vector2
-	Uv2      *Vector2
-}
-
-// NewVertex returns a new vertex
-func NewVertex() *Vertex {
-	return &Vertex{
-		Position: &Vector3{},
-		Normal:   &Vector3{},
-		Tint:     &RGBA{},
-		Uv:       &Vector2{},
-		Uv2:      &Vector2{},
-	}
-}
-
-// String returns a string version of vertex
-func (v *Vertex) String() string {
-	return fmt.Sprintf("%s %s %s %s %s", v.Position, v.Normal, v.Tint, v.Uv, v.Uv2)
-}
-
-// Triangle refers to the index of 3 vertices and maps it to a flag and material
-type Triangle struct {
-	Index        *UIndex3
-	MaterialName string
-	Flag         uint32
-}
-
-// NewTriangle returns a new triangle
-func NewTriangle() *Triangle {
-	return &Triangle{
-		Index: &UIndex3{},
-	}
-}
-
-// String returns a string version of triangle
-func (t *Triangle) String() string {
-	return fmt.Sprintf("%s %s %d", t.Index, t.MaterialName, t.Flag)
+	return fmt.Sprintf("%d|%d|%d|%d", i.X, i.Y, i.Z, i.W)
 }

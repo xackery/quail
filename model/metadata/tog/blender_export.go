@@ -3,8 +3,6 @@ package tog
 import (
 	"fmt"
 	"os"
-
-	"github.com/xackery/quail/dump"
 )
 
 // BlenderExport exports a TOG file to a directory for use in blender
@@ -24,12 +22,12 @@ func (e *TOG) BlenderExport(dir string) error {
 		defer lw.Close()
 		lw.WriteString("name|position|rotation|scale|file_type|file_name\n")
 		for _, obj := range e.objects {
-			lw.WriteString(dump.Str(obj.Name) + "|")
-			lw.WriteString(dump.Str(obj.Position) + "|")
-			lw.WriteString(dump.Str(obj.Rotation) + "|")
-			lw.WriteString(dump.Str(obj.Scale) + "|")
-			lw.WriteString(dump.Str(obj.FileType) + "|")
-			lw.WriteString(dump.Str(obj.FileName) + "\n")
+			lw.WriteString(obj.Name + "|")
+			lw.WriteString(obj.Position.String() + "|")
+			lw.WriteString(obj.Rotation.String() + "|")
+			lw.WriteString(fmt.Sprintf("%0.2f|", obj.Scale))
+			lw.WriteString(obj.FileType + "|")
+			lw.WriteString(obj.FileName + "\n")
 		}
 	}
 

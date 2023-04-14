@@ -3,11 +3,6 @@ package mod
 import (
 	"fmt"
 	"os"
-	"strings"
-
-	"github.com/xackery/quail/dump"
-	"github.com/xackery/quail/helper"
-	"github.com/xackery/quail/model/geo"
 )
 
 // BlenderExport exports the MOD to a directory for use in Blender.
@@ -25,77 +20,20 @@ func (e *MOD) BlenderExport(dir string) error {
 	defer vw.Close()
 	vw.WriteString(fmt.Sprintf("version=%d\n", e.version))
 
-	if len(e.materials) > 0 {
-		pw, err := os.Create(fmt.Sprintf("%s/material_property.txt", path))
+	if e.MaterialManager.Count() > 0 {
+		err = e.MaterialManager.WriteFile(fmt.Sprintf("%s/material.txt", path), fmt.Sprintf("%s/material_property.txt", path))
 		if err != nil {
-			return fmt.Errorf("create material_property.txt: %w", err)
-		}
-		defer pw.Close()
-		pw.WriteString("material_name|property_name|value|category\n")
-
-		mw, err := os.Create(fmt.Sprintf("%s/material.txt", path))
-		if err != nil {
-			return fmt.Errorf("create material.txt: %w", err)
-		}
-		defer mw.Close()
-		mw.WriteString("name|flag|shader_name\n")
-		for _, m := range e.materials {
-			mw.WriteString(m.Name + "|")
-			mw.WriteString(dump.Str(m.Flag) + "|")
-			mw.WriteString(m.ShaderName + "\n")
-			for _, property := range m.Properties {
-				pw.WriteString(m.Name + "|")
-				pw.WriteString(property.Name + "|")
-				if strings.ToLower(property.Name) == "e_fshininess0" {
-					val := helper.AtoF32(property.Value)
-					if val > 100 {
-						fmt.Println("e_fshininess0 on material", m.Name, "is", property.Value, "which is too high. Setting to 100")
-						val = 1.0
-					} else {
-						val /= 100
-					}
-					pw.WriteString(dump.Str(val) + "|")
-				} else {
-					pw.WriteString(dump.Str(strings.ToLower(property.Value)) + "|")
-				}
-				pw.WriteString(dump.Str(property.Category) + "\n")
-			}
+			return fmt.Errorf("materialManager.WriteFile: %w", err)
 		}
 	}
 
-	if len(e.particlePoints) > 0 {
-		ppw, err := os.Create(fmt.Sprintf("%s/particle_point.txt", path))
+	if e.particleManager.PointCount() > 0 {
+		err = e.particleManager.WriteFile(fmt.Sprintf("%s/particle_point.txt", path), fmt.Sprintf("%s/particle_render.txt", path))
 		if err != nil {
-			return fmt.Errorf("create particle_point.txt: %w", err)
-		}
-		defer ppw.Close()
-		ppw.WriteString("name|bone|translation|rotation|scale\n")
-		for _, pp := range e.particlePoints {
-			ppw.WriteString(dump.Str(pp.Name) + "|")
-			ppw.WriteString(dump.Str(pp.Bone) + "|")
-			ppw.WriteString(dump.Str(pp.Translation) + "|")
-			ppw.WriteString(dump.Str(pp.Rotation) + "|")
-			ppw.WriteString(dump.Str(pp.Scale) + "\n")
+			return fmt.Errorf("particleManager.WriteFile: %w", err)
 		}
 	}
 
-	if len(e.particleRenders) > 0 {
-		prw, err := os.Create(fmt.Sprintf("%s/particle_render.txt", path))
-		if err != nil {
-			return fmt.Errorf("create particle_render.txt: %w", err)
-		}
-		defer prw.Close()
-		prw.WriteString("duration|id|id2|particle_point|unknownA|unknownB|unknownFFFFFFFF\n")
-		for _, pr := range e.particleRenders {
-			prw.WriteString(dump.Str(pr.Duration) + "|")
-			prw.WriteString(dump.Str(pr.ID) + "|")
-			prw.WriteString(dump.Str(pr.ID2) + "|")
-			prw.WriteString(dump.Str(pr.ParticlePoint) + "|")
-			prw.WriteString(dump.Str(pr.UnknownA) + "|")
-			prw.WriteString(dump.Str(pr.UnknownB) + "|")
-			prw.WriteString(dump.Str(pr.UnknownFFFFFFFF) + "\n")
-		}
-	}
 	/*for _, file := range e.files {
 		fw, err := os.Create(fmt.Sprintf("%s/%s", path, file.Name()))
 		if err != nil {
@@ -105,56 +43,9 @@ func (e *MOD) BlenderExport(dir string) error {
 		fw.Write(file.Data())
 	}*/
 
-	if len(e.triangles) > 0 {
-		tw, err := os.Create(fmt.Sprintf("%s/triangle.txt", path))
-		if err != nil {
-			return fmt.Errorf("create triangle.txt: %w", err)
-		}
-		defer tw.Close()
-		tw.WriteString("index|flag|material_name\n")
-		for _, t := range e.triangles {
-			tw.WriteString(dump.Str(t.Index) + "|")
-			tw.WriteString(dump.Str(t.Flag) + "|")
-			tw.WriteString(dump.Str(t.MaterialName) + "\n")
-		}
-
-		vw, err := os.Create(fmt.Sprintf("%s/vertex.txt", path))
-		if err != nil {
-			return fmt.Errorf("create vertex.txt: %w", err)
-		}
-		defer vw.Close()
-		vw.WriteString("position|normal|uv|uv2|tint\n")
-		for _, v := range e.vertices {
-			vw.WriteString(dump.Str(&geo.Vector3{X: v.Position.Y, Y: -v.Position.X, Z: v.Position.Z}) + "|")
-			vw.WriteString(dump.Str(&geo.Vector3{X: v.Normal.Y, Y: -v.Normal.X, Z: v.Normal.Z}) + "|")
-			vw.WriteString(dump.Str(v.Uv) + "|")
-			vw.WriteString(dump.Str(v.Uv2) + "|")
-			vw.WriteString(dump.Str(v.Tint) + "\n")
-		}
-	}
-
-	if len(e.bones) > 0 {
-		sw, err := os.Create(fmt.Sprintf("%s/skin.txt", path))
-		if err != nil {
-			return fmt.Errorf("create skin.txt: %w", err)
-		}
-		defer sw.Close()
-
-		bw, err := os.Create(fmt.Sprintf("%s/bone.txt", path))
-		if err != nil {
-			return fmt.Errorf("create bone.txt: %w", err)
-		}
-		defer bw.Close()
-		bw.WriteString("name|child_index|children_count|next|pivot|rotation|scale\n")
-		for _, b := range e.bones {
-			bw.WriteString(dump.Str(b.Name) + "|")
-			bw.WriteString(dump.Str(b.ChildIndex) + "|")
-			bw.WriteString(dump.Str(b.ChildrenCount) + "|")
-			bw.WriteString(dump.Str(b.Next) + "|")
-			bw.WriteString(dump.Str(b.Pivot) + "|")
-			bw.WriteString(dump.Str(b.Rotation) + "|")
-			bw.WriteString(dump.Str(b.Scale) + "\n")
-		}
+	err = e.meshManager.WriteFile(path)
+	if err != nil {
+		return fmt.Errorf("write meshManager: %w", err)
 	}
 
 	return nil

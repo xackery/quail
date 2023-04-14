@@ -25,7 +25,7 @@ func (e *TER) ArchiveExport(outArchive archive.Writer) error {
 		return fmt.Errorf("write %s.ter: %w", e.name, err)
 	}
 
-	for _, material := range e.materials {
+	for _, material := range e.MaterialManager.Materials() {
 		for _, p := range material.Properties {
 			if p.Category != 2 {
 				continue

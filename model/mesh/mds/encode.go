@@ -12,7 +12,7 @@ import (
 func (e *MDS) Encode(w io.Writer) error {
 	var err error
 
-	nameData, data, err := geo.WriteGeometry(e.version, e.materials, e.vertices, e.triangles, e.bones)
+	nameData, data, err := geo.WriteGeometry(e.version, e.MaterialManager, e.meshManager)
 	if err != nil {
 		return fmt.Errorf("writeGeometry: %w", err)
 	}
@@ -30,12 +30,12 @@ func (e *MDS) Encode(w io.Writer) error {
 	if err != nil {
 		return fmt.Errorf("write name length: %w", err)
 	}
-	err = binary.Write(w, binary.LittleEndian, uint32(len(e.materials)))
+	err = binary.Write(w, binary.LittleEndian, uint32(e.MaterialManager.Count()))
 	if err != nil {
 		return fmt.Errorf("write material count: %w", err)
 	}
 
-	err = binary.Write(w, binary.LittleEndian, uint32(len(e.bones)))
+	err = binary.Write(w, binary.LittleEndian, uint32(e.meshManager.BoneCount(e.name)))
 	if err != nil {
 		return fmt.Errorf("write bone count: %w", err)
 	}

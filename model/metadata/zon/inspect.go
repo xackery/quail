@@ -3,10 +3,7 @@ package zon
 import "fmt"
 
 func (e *ZON) Inspect() {
-	fmt.Printf("%d objects\n", len(e.Objects()))
-	for i, object := range e.Objects() {
-		fmt.Printf("	%d %+v\n", i, object)
-	}
+	e.objectManager.Inspect()
 
 	fmt.Printf("%d models\n", len(e.Models()))
 	for i, model := range e.Models() {

@@ -15,12 +15,13 @@ import (
 
 // ZON is a zon file struct
 type ZON struct {
-	name    string
-	pfs     archive.ReadWriter
-	models  []*model
-	objects []*object
-	regions []*region
-	lights  []*light
+	name          string
+	version       uint32
+	pfs           archive.ReadWriter
+	models        []*model
+	objectManager *geo.ObjectManager
+	regions       []*region
+	lights        []*light
 
 	terrains []*ter.TER
 	mdses    []*mds.MDS
@@ -32,25 +33,17 @@ type model struct {
 	baseName string
 }
 
-type object struct {
-	modelName   string
-	name        string
-	translation [3]float32
-	rotation    [3]float32
-	scale       float32
-}
-
 type region struct {
 	name    string
-	center  [3]float32
-	unknown [3]float32
-	extent  [3]float32
+	center  *geo.Vector3
+	unknown *geo.Vector3
+	extent  *geo.Vector3
 }
 
 type light struct {
 	name     string
-	position [3]float32
-	color    [3]float32
+	position *geo.Vector3
+	color    *geo.Vector3
 	radius   float32
 }
 
@@ -61,8 +54,9 @@ func New(name string, pfs archive.ReadWriter) (*ZON, error) {
 	}
 
 	z := &ZON{
-		name: name,
-		pfs:  pfs,
+		name:          name,
+		pfs:           pfs,
+		objectManager: &geo.ObjectManager{},
 	}
 	return z, nil
 }
@@ -113,10 +107,6 @@ func (e *ZON) Regions() []*region {
 
 func (e *ZON) Lights() []*light {
 	return e.lights
-}
-
-func (e *ZON) Objects() []*object {
-	return e.objects
 }
 
 func (e *ZON) Models() []*model {

@@ -18,12 +18,16 @@ func (e *LIT) Decode(r io.ReadSeeker) error {
 	}
 
 	lightCount := fileCount
+	fmt.Println("lightCount", lightCount)
 
 	for i := 0; i < int(lightCount); i++ {
 		color := &geo.RGBA{}
 		err = binary.Read(r, binary.LittleEndian, color)
 		if err != nil {
-			return fmt.Errorf("read %d: %w", i, err)
+			if err == io.EOF {
+				break
+			}
+			return fmt.Errorf("read light %d: %w", i, err)
 		}
 		e.lights = append(e.lights, color)
 	}

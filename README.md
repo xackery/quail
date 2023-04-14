@@ -31,49 +31,51 @@ File extensions are broken into the following categories:
 
 Pfs represents packaged files
 
-Extension|%|Ver|Notes
+Extension|Notes
 ---|---|---|---
-eqg|80%|EQG|Version 1 - Contains most assets of modern EQ files
-eqg|80%|EQG|Version 2 - Contains most assets of modern EQ files
-eqg|80%|EQG|Version 3 - Contains most assets of modern EQ files
-eqg|30%|EQG|Version 4 - Contains most assets of modern EQ files
-s3d|40%|S3D|Version 1 - Decode/Encode prototyped, EQ client fails to support Encoded data, some fragments unsupported
-s3d|40%|S3D|Version 2 - Decode/Encode prototyped, EQ client fails to support Encoded data, some fragments unsupported
-
+eqg|EverQuest Game Asset Pfs Archive
+s3d|EverQuest Game Asset Pfs Archive (Legacy)
 ## Model/Mesh
 
 Model meshes represents geometry data, and some times metadata
 
-Extension|%|Ver|Notes
----|---|---|---
-ter|40%|EQG|terrain data, Decode/Encode prototyped, GLTF bidirectional support prototyped
-mds|20%|EQG|model data, early prototyping
-mod|20%|EQG|model data, Decode/Encode prototypd, GLTF birectional support prototyped
-wld|20%|S3D|terrain/model megapack data, Decode/Encode prototyped, needs attention
+Extension|Notes
+---|---
+dat|zone mesh for version 4 zones
+mds|npc, object and item mesh information
+mod|npc, object and item mesh information
+ter|zone mesh for version 1 to 3
+wld|megapack of virtually all data via fragments, s3d legacy route
 
 ## Model/Metadata
 
 Model metadata tells additional details or variations of a mesh
 
-Extension|%|Ver|Notes
----|---|---|---
-tog|10%|EQG|object meta data - Encode template prototyped
-zon|50%|EQG|zone metadata - Decode/Encode prototyped, needs attention
-pts|30%|EQG|partical meta data, early prototype
-ani|10%|EQG|animation nodes and positions, missing features
-lit|10%|EQG|light data, decode prototyped
-lay|40%|EQG|layered material metadata - prototype in
-prt|30%|EQG|particle rendering - early prototype
+Extension|Notes
+---|---
+ani|bone animation data
+edd|unsure yet
+lay|layered texture data (variations of materials to swap texture)
+lit|baked light data, vertex colors
+lod|level of detail related information
+prt|particle rendering data
+pts|particle point data
+tog|toggle data, definnition information
+zon|lists zone metadata (e.g. terrain mesh name)
 
-## Model/Plugin
+tog|zone object location data (and refs vertex lighting data)
+eco|ecology objects (flora, rocks), used for randomizing and blending maps, V4 Zones
+rfd|radial floria definitions, more grass related sway, displacement, etc data, V4 Zones
 
-Model plugins are 3rd party export/import file types
+## Special Files
 
-Extension|%|Ver|Notes
----|---|---|---
-blend|10%|EQG|Blender 3d modeling, python required still
-obj|80%|EQG|lightform model OBJ export, - Decode/Encode working, bugs need to be sorted out (lightwave obj)
-gltf|10%|EQG|GLTF 3d modeling - needs a lot of work
+Name|Notes
+---|---
+floraexclusion.dat|flora exclusion areas, V4 zones
+grass.eco|
+lake.eco|
+*.prj|zone project information, 3ds max file (can be ignored) V4 zones
+dbg.txt|generated typically when lit data is missing, (can be ignored)
 
 # Problem Children
 // TODO:

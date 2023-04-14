@@ -22,7 +22,7 @@ func (e *LAY) Encode(w io.Writer) error {
 	// materials
 
 	tmpNames := []string{}
-	for _, o := range e.layers {
+	for _, o := range e.layerManager.Layers() {
 		tmpNames = append(tmpNames, o.Entry0)
 		tmpNames = append(tmpNames, o.Entry1)
 	}
@@ -70,7 +70,7 @@ func (e *LAY) Encode(w io.Writer) error {
 		return fmt.Errorf("write name length: %w", err)
 	}
 
-	err = binary.Write(w, binary.LittleEndian, uint32(len(e.layers)))
+	err = binary.Write(w, binary.LittleEndian, uint32(e.layerManager.Count()))
 	if err != nil {
 		return fmt.Errorf("write materialCount: %w", err)
 	}

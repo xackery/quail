@@ -24,7 +24,7 @@ func TestLIT_Decode(t *testing.T) {
 		wantErr bool
 	}{
 
-		//{name: "test", eqgPath: fmt.Sprintf("%s/steamfontmts.eqg", eqPath), litFile: "akanon_entry_obj_lavalightt01.lit", dstDir: "test", wantErr: false},
+		{name: "test", eqgPath: fmt.Sprintf("%s/steamfontmts.eqg", eqPath), litFile: "akanon_entry_obj_lavalightt01.lit", dstDir: "test", wantErr: false},
 		{name: "test", eqgPath: fmt.Sprintf("%s/steamfontmts.eqg", eqPath), litFile: "akanon_entry_obj_pipe_outera09.lit", dstDir: "test", wantErr: false},
 	}
 	for _, tt := range tests {

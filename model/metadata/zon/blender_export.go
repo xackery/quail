@@ -3,47 +3,41 @@ package zon
 import (
 	"fmt"
 	"os"
-
-	"github.com/xackery/quail/dump"
 )
 
 func (e *ZON) BlenderExport(dir string) error {
-	mw, err := os.Create(fmt.Sprintf("%s/zon_%s_model.txt", dir, e.Name()))
+	path := fmt.Sprintf("%s/_%s", dir, e.Name())
+	err := os.MkdirAll(path, 0755)
 	if err != nil {
-		return fmt.Errorf("zon_%s_model.txt: %w", e.Name(), err)
-	}
-	defer mw.Close()
-	mw.WriteString("base_name|name\n")
-	for _, model := range e.models {
-		mw.WriteString(model.baseName + "|")
-		mw.WriteString(model.name + "\n")
+		return fmt.Errorf("create dir %s: %w", path, err)
 	}
 
-	ow, err := os.Create(fmt.Sprintf("%s/zon_%s_object.txt", dir, e.Name()))
+	vw, err := os.Create(fmt.Sprintf("%s/info.txt", path))
 	if err != nil {
-		return fmt.Errorf("zon_%s_object.txt: %w", e.Name(), err)
+		return fmt.Errorf("create info.txt: %w", err)
 	}
-	defer ow.Close()
-	ow.WriteString("model_name|name|rotation|translation|scale\n")
-	for _, obj := range e.objects {
-		mw.WriteString(obj.modelName + "|")
-		mw.WriteString(obj.name + "|")
-		mw.WriteString(dump.Str(obj.rotation) + "|")
-		mw.WriteString(dump.Str(obj.translation) + "|")
-		mw.WriteString(dump.Str(obj.scale) + "\n")
+	defer vw.Close()
+	vw.WriteString(fmt.Sprintf("version=%d\n", e.version))
+
+	err = e.objectManager.WriteFile(fmt.Sprintf("%s/object.txt", path))
+	if err != nil {
+		return fmt.Errorf("objectManager.WriteFile: %w", err)
 	}
 
-	lw, err := os.Create(fmt.Sprintf("%s/zon_%s_light.txt", dir, e.Name()))
-	if err != nil {
-		return fmt.Errorf("zon_%s_light.txt: %w", e.Name(), err)
+	curPath := fmt.Sprintf("%s/model.txt", path)
+	if len(e.models) > 0 {
+		ow, err := os.Create(curPath)
+		if err != nil {
+			return fmt.Errorf("create file %s: %w", curPath, err)
+		}
+		defer ow.Close()
+
+		ow.WriteString("name|base_name\n")
+
+		for _, o := range e.models {
+			ow.WriteString(fmt.Sprintf("%s|%s\n", o.name, o.baseName))
+		}
 	}
-	defer lw.Close()
-	lw.WriteString("name|color|position|radius\n")
-	for _, light := range e.lights {
-		mw.WriteString(light.name + "|")
-		mw.WriteString(dump.Str(light.color) + "|")
-		mw.WriteString(dump.Str(light.position) + "|")
-		mw.WriteString(dump.Str(light.radius) + "\n")
-	}
+
 	return nil
 }

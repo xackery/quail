@@ -23,13 +23,11 @@ func (e *WLD) parseMesh(frag *fragmentInfo) error {
 		return nil
 	}
 
-	mesh := &geo.Mesh{
+	e.meshManager.Add(&geo.Mesh{
+		Name:      meshFragment.Name(),
 		Triangles: meshFragment.Triangles(),
 		Vertices:  meshFragment.Vertices(),
-		Name:      meshFragment.Name(),
-	}
-	fmt.Println("added mesh")
-	e.meshes = append(e.meshes, mesh)
+	})
 	return nil
 }
 
@@ -54,11 +52,11 @@ func (e *WLD) parseMaterial(frag *fragmentInfo) error {
 	outImageName := baseName + ".png"
 	inExt := ".bmp"
 
-	err := e.MaterialAdd(material.Name(), fmt.Sprintf("%d", material.ShaderType()))
+	err := e.materialManager.Add(material.Name(), fmt.Sprintf("%d", material.ShaderType()))
 	if err != nil {
 		return fmt.Errorf("materialadd: %w", err)
 	}
-	err = e.MaterialPropertyAdd(material.Name(), "e_texturediffuse0", 2, outImageName)
+	err = e.materialManager.PropertyAdd(material.Name(), "e_texturediffuse0", 2, outImageName)
 	if err != nil {
 		return fmt.Errorf("materialPropertyAdd %s: %w", outImageName, err)
 	}

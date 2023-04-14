@@ -3,8 +3,6 @@ package lit
 import (
 	"fmt"
 	"os"
-
-	"github.com/xackery/quail/dump"
 )
 
 // BlenderExport exports a LIT file to a directory for use in blender
@@ -24,7 +22,7 @@ func (e *LIT) BlenderExport(dir string) error {
 		defer lw.Close()
 		lw.WriteString("rgba\n")
 		for _, light := range e.lights {
-			lw.WriteString(dump.Str(light) + "\n")
+			lw.WriteString(light.String() + "\n")
 		}
 	}
 

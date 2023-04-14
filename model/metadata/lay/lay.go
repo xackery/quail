@@ -14,25 +14,28 @@ import (
 // LAY is a layer definition
 type LAY struct {
 	// name is used as an identifier
-	name string
+	name    string
+	version uint32
 	// pfs is used as an alternative to path when loading data from a pfs file
-	pfs    archive.Reader
-	layers []*geo.Layer
+	pfs          archive.Reader
+	layerManager *geo.LayerManager
 }
 
 // New creates a new empty instance. Use NewFile to load an archive file on creation
 func New(name string, pfs archive.Reader) (*LAY, error) {
 	e := &LAY{
-		name: name,
-		pfs:  pfs,
+		name:         name,
+		pfs:          pfs,
+		layerManager: &geo.LayerManager{},
 	}
 	return e, nil
 }
 
 func NewFile(name string, pfs archive.Reader, file string) (*LAY, error) {
 	e := &LAY{
-		name: name,
-		pfs:  pfs,
+		name:         name,
+		pfs:          pfs,
+		layerManager: &geo.LayerManager{},
 	}
 	data, err := pfs.File(file)
 	if err != nil {
@@ -49,17 +52,26 @@ func (e *LAY) SetName(value string) {
 	e.name = value
 }
 
+// Layers returns a list of layers
 func (e *LAY) Layers() []*geo.Layer {
-	return e.layers
+	return e.layerManager.Layers()
 }
 
+// LayerByIndex returns a layer by index
 func (e *LAY) LayerByIndex(index int) *geo.Layer {
-	if len(e.layers) <= index {
+	layers := e.layerManager.Layers()
+	if len(layers) <= index {
 		return nil
 	}
-	return e.layers[index]
+	return layers[index]
 }
 
+// LayerCount returns the number of layers
 func (e *LAY) LayerCount() int {
-	return len(e.layers)
+	return e.layerManager.Count()
+}
+
+// Name returns the name of the file
+func (e *LAY) Name() string {
+	return e.name
 }

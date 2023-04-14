@@ -86,7 +86,7 @@ func parseHierarchialSpriteDef(r io.ReadSeeker, v *HierarchialSpriteDef) error {
 		if err != nil {
 			return fmt.Errorf("read boundingRadius: %w", err)
 		}
-		dump.Hex(boundingRadius, "boundingRadius=%0.2f", boundingRadius)
+		dump.Hex(boundingRadius, "boundingRadius=%0.3f", boundingRadius)
 	}
 
 	for i := 0; i < int(boneCount); i++ {

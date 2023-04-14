@@ -6,7 +6,6 @@ package mds
 import (
 	"bytes"
 	"fmt"
-	"sort"
 	"strings"
 
 	"github.com/xackery/quail/model/geo"
@@ -22,23 +21,22 @@ type MDS struct {
 	// pfs is used as an alternative to path when loading data from a pfs file
 	version         uint32
 	pfs             archive.ReadWriter
-	materials       []*geo.Material
-	vertices        []*geo.Vertex
-	triangles       []*geo.Triangle
 	files           []archive.Filer
-	particleRenders []*geo.ParticleRender
-	particlePoints  []*geo.ParticlePoint
 	isDecoded       bool
+	MaterialManager *geo.MaterialManager
+	meshManager     *geo.MeshManager
+	particleManager *geo.ParticleManager
 	animations      []*geo.BoneAnimation
-	skin            *geo.Skin
-	bones           []*geo.Bone
 }
 
 // New creates a new empty instance. Use NewFile to load an archive file on creation
 func New(name string, pfs archive.ReadWriter) (*MDS, error) {
 	e := &MDS{
-		name: name,
-		pfs:  pfs,
+		name:            name,
+		pfs:             pfs,
+		MaterialManager: &geo.MaterialManager{},
+		meshManager:     &geo.MeshManager{},
+		particleManager: &geo.ParticleManager{},
 	}
 	return e, nil
 }
@@ -46,8 +44,11 @@ func New(name string, pfs archive.ReadWriter) (*MDS, error) {
 // NewFile creates a new instance and loads provided file
 func NewFile(name string, pfs archive.ReadWriter, file string) (*MDS, error) {
 	e := &MDS{
-		name: name,
-		pfs:  pfs,
+		name:            name,
+		pfs:             pfs,
+		MaterialManager: &geo.MaterialManager{},
+		meshManager:     &geo.MeshManager{},
+		particleManager: &geo.ParticleManager{},
 	}
 	data, err := pfs.File(file)
 	if err != nil {
@@ -70,7 +71,7 @@ func (e *MDS) SetPath(value string) {
 
 func (e *MDS) SetLayers(layers []*geo.Layer) error {
 	for _, o := range layers {
-		err := e.MaterialAdd(o.Name, "")
+		err := e.MaterialManager.Add(o.Name, "")
 		if err != nil {
 			return fmt.Errorf("materialAdd: %w", err)
 		}
@@ -93,20 +94,20 @@ func (e *MDS) SetLayers(layers []*geo.Layer) error {
 		}
 
 		if len(diffuseName) > 0 {
-			err = e.MaterialPropertyAdd(o.Name, "e_texturediffuse0", 2, diffuseName)
+			err = e.MaterialManager.PropertyAdd(o.Name, "e_texturediffuse0", 2, diffuseName)
 			if err != nil {
 				return fmt.Errorf("materialPropertyAdd %s: %w", diffuseName, err)
 			}
 		}
 
 		if len(normalName) > 0 {
-			err = e.MaterialPropertyAdd(o.Name, "e_texturenormal0", 2, normalName)
+			err = e.MaterialManager.PropertyAdd(o.Name, "e_texturenormal0", 2, normalName)
 			if err != nil {
 				return fmt.Errorf("materialPropertyAdd %s: %w", normalName, err)
 			}
 		}
 	}
-	sort.Sort(geo.MaterialByName(e.materials))
+	e.MaterialManager.SortByName()
 	return nil
 }
 
@@ -114,16 +115,14 @@ func (e *MDS) AddFile(fe *archive.FileEntry) {
 	e.files = append(e.files, fe)
 }
 
-func (e *MDS) SetParticleRenders(particles []*geo.ParticleRender) error {
-	e.particleRenders = particles
-	return nil
-}
-
-func (e *MDS) SetParticlePoints(particles []*geo.ParticlePoint) error {
-	e.particlePoints = particles
-	return nil
-}
-
 func (e *MDS) Name() string {
 	return e.name
+}
+
+// Close flushes the data in a mod
+func (e *MDS) Close() {
+	e.files = nil
+	e.MaterialManager = &geo.MaterialManager{}
+	e.meshManager = &geo.MeshManager{}
+	e.particleManager = &geo.ParticleManager{}
 }

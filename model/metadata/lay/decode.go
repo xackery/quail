@@ -6,8 +6,10 @@ import (
 	"io"
 
 	"github.com/xackery/quail/dump"
+	"github.com/xackery/quail/model/geo"
 )
 
+// Decode loads a lay file
 func (e *LAY) Decode(r io.ReadSeeker) error {
 	var err error
 	header := [4]byte{}
@@ -20,14 +22,13 @@ func (e *LAY) Decode(r io.ReadSeeker) error {
 		return fmt.Errorf("header does not match EQGL")
 	}
 
-	version := uint32(0)
-	err = binary.Read(r, binary.LittleEndian, &version)
+	err = binary.Read(r, binary.LittleEndian, &e.version)
 	if err != nil {
 		return fmt.Errorf("read version: %w", err)
 	}
-	dump.Hex(version, "version=%d", version)
+	dump.Hex(e.version, "version=%d", e.version)
 	versionOffset := 0
-	switch version {
+	switch e.version {
 	case 2:
 		versionOffset = 40 //32
 	case 3:
@@ -35,7 +36,7 @@ func (e *LAY) Decode(r io.ReadSeeker) error {
 	case 4:
 		versionOffset = 20
 	default:
-
+		return fmt.Errorf("unknown lay version: %d", e.version)
 	}
 
 	nameLength := uint32(0)
@@ -115,14 +116,11 @@ func (e *LAY) Decode(r io.ReadSeeker) error {
 		}
 		dump.Hex(entry1Offset, "%dentry1ID=0x%x(%s)", i, entry1Offset, entry1Name)
 
-		err = e.MaterialAdd(name, entry0Name, entry1Name)
-		if err != nil {
-			return fmt.Errorf("materialAdd: %w", err)
-		}
+		e.layerManager.Add(&geo.Layer{Name: name, Entry0: entry0Name, Entry1: entry1Name})
 
 		_, err = r.Seek(int64(versionOffset), io.SeekCurrent)
 		if err != nil {
-			return fmt.Errorf("%dseek version %d: %w", i, version, err)
+			return fmt.Errorf("%dseek version %d: %w", i, e.version, err)
 		}
 	}
 

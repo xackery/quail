@@ -5,7 +5,6 @@ import (
 	"encoding/binary"
 	"fmt"
 	"io"
-	"strconv"
 
 	"github.com/xackery/quail/dump"
 	"github.com/xackery/quail/model/mesh/wld/fragment"
@@ -31,14 +30,13 @@ func (e *WLD) Decode(r io.ReadSeeker) error {
 	}
 	dump.Hex(header, "header=0x%x", header)
 
-	version := uint32(0)
-	err = binary.Read(r, binary.LittleEndian, &version)
+	err = binary.Read(r, binary.LittleEndian, &e.version)
 	if err != nil {
 		return fmt.Errorf("read identifier: %w", err)
 	}
 
 	isOldWorld := false
-	switch version {
+	switch e.version {
 	case 0x00015500:
 		isOldWorld = true
 	case 0x1000C800:
@@ -175,22 +173,6 @@ func (e *WLD) Decode(r io.ReadSeeker) error {
 	}
 	//dump.HexRange([]byte{byte(i), byte(i) + 1}, int(fragSize), "%dfrag=%s", i, frag.FragmentType())
 	dump.HexRange([]byte{0, 1}, int(totalFragSize), "fragChunk=(%d bytes, %d entries)", int(totalFragSize), fragmentCount)
-
-	for _, mesh := range e.meshes {
-		for i, triangle := range mesh.Triangles {
-			index, err := strconv.Atoi(triangle.MaterialName)
-			if err != nil {
-				fmt.Printf("mesh %s triangle %d has materialName %s, should be a number: %s\n", mesh.Name, i, triangle.MaterialName, err)
-				index = 0
-				//return fmt.Errorf("mesh %s triangle %d has materialName %s, should be a number: %w", mesh.Name, i, triangle.MaterialName, err)
-			}
-			if len(e.materials) <= index {
-				fmt.Printf("mesh %s triangle %d has materialName %s, but only %d materials\n", mesh.Name, i, triangle.MaterialName, len(e.materials))
-				index = len(e.materials) - 1
-			}
-			triangle.MaterialName = e.materials[index].Name
-		}
-	}
 
 	return nil
 }

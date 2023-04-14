@@ -24,11 +24,11 @@ func TestEncode(t *testing.T) {
 	if err != nil {
 		t.Fatalf("new: %s", err)
 	}
-	err = e.MaterialAdd("test", "test2")
+	err = e.MaterialManager.Add("test", "test2")
 	if err != nil {
 		t.Fatalf("addModel: %s", err)
 	}
-	err = e.MaterialPropertyAdd("test", "testProp", 0, "1")
+	err = e.MaterialManager.PropertyAdd("test", "testProp", 0, "1")
 	if err != nil {
 		t.Fatalf("MaterialPropertyAdd: %s", err)
 	}
