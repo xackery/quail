@@ -12,7 +12,7 @@ type nameInfo struct {
 	name   string
 }
 
-// WriteGeometry writes the geometry to a buffer
+// WriteGeometry writes the geometry to a buffer in EQG style
 func WriteGeometry(version uint32, matManager *MaterialManager, meshManager *MeshManager) ([]byte, []byte, error) {
 	var err error
 
@@ -182,14 +182,15 @@ func WriteGeometry(version uint32, matManager *MaterialManager, meshManager *Mes
 		nameID := -1
 		for i, val := range matManager.materials {
 			if val.Name == o.MaterialName {
-				nameID = i
+				nameID = int(i)
 				break
 			}
 		}
 
-		if nameID == -1 {
-			return nil, nil, fmt.Errorf("triangle %d refers to material '%s', which is not declared", i, o.MaterialName)
-		}
+		// -1 is actually valid, implies a no texture material
+		//if nameID == -1 {
+		//	return nil, nil, fmt.Errorf("triangle %d refers to material '%s', which is not declared", i, o.MaterialName)
+		//}
 
 		err = binary.Write(dataBuf, binary.LittleEndian, o.Index)
 		if err != nil {
@@ -209,7 +210,7 @@ func WriteGeometry(version uint32, matManager *MaterialManager, meshManager *Mes
 		nameID := -1
 		for i, val := range matManager.materials {
 			if val.Name == b.Name {
-				nameID = i
+				nameID = int(i)
 				break
 			}
 		}

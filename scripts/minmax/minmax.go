@@ -123,7 +123,7 @@ func run() error {
 	return nil
 }
 
-func parseMaterials(eqgName string, meshName string, materials []*geo.Material) {
+func parseMaterials(eqgName string, meshName string, materials map[int32]geo.Material) {
 	for _, material := range materials {
 		for _, prop := range material.Properties {
 			pl, ok := propValues[fmt.Sprintf("%s|%d", prop.Name, prop.Category)]

@@ -46,7 +46,6 @@ func parseTrack(r io.ReadSeeker, v *Track) error {
 		return fmt.Errorf("read flag: %w", err)
 	}
 
-	//TODO: review
 	// Either 4 or 5 - maybe something to look into
 	// Bits are set 0, or 2. 0 has the extra field for delay.
 	// 2 doesn't have any additional fields.

@@ -9,8 +9,8 @@ import (
 type Object struct {
 	Name      string
 	ModelName string
-	Position  *Vector3
-	Rotation  *Vector3
+	Position  Vector3
+	Rotation  Vector3
 	Scale     float32
 	FileType  string
 	FileName  string

@@ -72,8 +72,6 @@ func TestMOD_BlenderImport(t *testing.T) {
 
 			e.version = 3
 
-			fmt.Println(e)
-
 			w, err := os.Create(tt.dstDir)
 			if err != nil {
 				t.Fatalf("failed to create file: %s", err.Error())

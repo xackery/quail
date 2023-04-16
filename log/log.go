@@ -17,6 +17,16 @@ var (
 )
 
 func init() {
+	log.SetFlags(0)
+}
+
+// SetLogLevel sets which log level to do, -1 = no logging, 0 = debug, 1 = info, 2 = warn, 3 = error
+func SetLogLevel(level int) {
+	logLevel = level
+}
+
+// LogToFile enables logging to files
+func LogToFile() {
 	os.Remove("quail.log")
 	f, err := os.OpenFile("quail.log", os.O_CREATE|os.O_WRONLY, 0666)
 	if err != nil {
@@ -24,12 +34,6 @@ func init() {
 		os.Exit(1)
 	}
 	log.SetOutput(io.MultiWriter(f, os.Stdout))
-	log.SetFlags(0)
-}
-
-// SetLogLevel sets which log level to do, -1 = no logging, 0 = debug, 1 = info, 2 = warn, 3 = error
-func SetLogLevel(level int) {
-	logLevel = level
 }
 
 func Println(v ...interface{}) {
@@ -47,7 +51,7 @@ func logPrintf(format string, v ...interface{}) {
 	}
 	mu.Lock()
 	var ok bool
-	_, file, line, ok := runtime.Caller(3)
+	_, file, line, ok := runtime.Caller(2)
 	if !ok {
 		file = "???"
 		line = 0
@@ -55,8 +59,6 @@ func logPrintf(format string, v ...interface{}) {
 	mu.Unlock()
 	file = strings.ReplaceAll(file, "/Users/xackery/Documents/code/projects/quail/", "")
 	log.Printf(fmt.Sprintf("./%s:%d %s", file, line, format), v...)
-	return
-
 }
 
 func logPrintln(v ...interface{}) {
@@ -66,7 +68,7 @@ func logPrintln(v ...interface{}) {
 	}
 	mu.Lock()
 	var ok bool
-	_, file, line, ok := runtime.Caller(1)
+	_, file, line, ok := runtime.Caller(0)
 	if !ok {
 		file = "???"
 		line = 0

@@ -48,8 +48,8 @@ func (e *LayerManager) WriteFile(dir string) error {
 // ReadFile reads a material file
 func (e *LayerManager) ReadFile(dir string) error {
 	var err error
-	layer_path := fmt.Sprintf("%s/layer.txt", dir)
-	err = e.layerRead(layer_path)
+	layerPath := fmt.Sprintf("%s/layer.txt", dir)
+	err = e.layerRead(layerPath)
 	if err != nil {
 		return fmt.Errorf("read layer: %w", err)
 	}

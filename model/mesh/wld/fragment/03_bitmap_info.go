@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/xackery/quail/log"
 	"github.com/xackery/quail/pfs/archive"
 )
 
@@ -47,7 +48,7 @@ func parseBitmapInfoImage(r io.ReadSeeker, e *BitmapInfo) error {
 		if err != nil {
 			return fmt.Errorf("nameFromHashIndex: %w", err)
 		}
-		fmt.Println("textureName", e.textureName)
+		log.Debugf("textureName: %s", e.textureName)
 	}
 
 	return nil

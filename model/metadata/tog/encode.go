@@ -14,7 +14,7 @@ func (e *TOG) Encode(w io.Writer) error {
 		return fmt.Errorf("parse togTemplate: %w", err)
 	}
 	type foo struct {
-		Objects []*geo.Object
+		Objects []geo.Object
 	}
 	o := &foo{
 		Objects: e.objects,

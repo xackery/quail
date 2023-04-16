@@ -62,14 +62,13 @@ func parseMaterialDef(r io.ReadSeeker, v *MaterialDef) error {
 	if err != nil {
 		return fmt.Errorf("read flags: %w", err)
 	}
-	//TODO: flags support
+
 	var params int32
 	err = binary.Read(r, binary.LittleEndian, &params)
 	if err != nil {
 		return fmt.Errorf("read params: %w", err)
 	}
 
-	//TODO: figure out color
 	rgba := color.RGBA{}
 	err = binary.Read(r, binary.LittleEndian, &rgba.R)
 	if err != nil {
@@ -102,7 +101,7 @@ func parseMaterialDef(r io.ReadSeeker, v *MaterialDef) error {
 	if err != nil {
 		return fmt.Errorf("read fragment reference: %w", err)
 	}
-	// TODO: add bitmapinforeference support
+
 	//if value != 0 {
 	//BitmapInfoReference = fragments[fragmentReference - 1] as BitmapInfoReference;
 	//}

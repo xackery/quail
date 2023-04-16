@@ -10,6 +10,7 @@ import (
 
 	"github.com/xackery/quail/dump"
 	"github.com/xackery/quail/helper"
+	"github.com/xackery/quail/log"
 	"github.com/xackery/quail/pfs/archive"
 )
 
@@ -56,7 +57,7 @@ func (e *EQG) Decode(r io.ReadSeeker) error {
 			return fmt.Errorf("read %d size: %w", i, err)
 		}
 		dirEntries = append(dirEntries, entry)
-		//fmt.Println(entry.crc, entry.offset, entry.size)
+		//log.Debugf(entry.crc, entry.offset, entry.size)
 	}
 
 	// reset back to start of file
@@ -93,7 +94,6 @@ func (e *EQG) Decode(r io.ReadSeeker) error {
 	var deflateSize uint32
 	var inflateSize uint32
 
-	//fmt.Println("found", fileCount, "files")
 	for i := 0; i < int(fileCount); i++ {
 		pos, err := r.Seek(0, io.SeekCurrent)
 		if err != nil {
@@ -137,7 +137,6 @@ func (e *EQG) Decode(r io.ReadSeeker) error {
 				firstByte = deflateData[0]
 			}
 
-			//fmt.Println("inflating", deflateSize, inflateSize)
 			chunkData, err := helper.Inflate(deflateData, int(inflateSize))
 			if err != nil {
 				return fmt.Errorf("inflate %d: %w", i, err)
@@ -153,12 +152,6 @@ func (e *EQG) Decode(r io.ReadSeeker) error {
 		if entry.size >= 16 {
 			dump.Hex([]byte{firstByte, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, lastByte}, "%dchunk=(%d bytes)", i, len(data))
 		}
-
-		//fmt.Println(entry.crc)
-		/*if entry.crc != 4294967295 {
-			fileByCRCs[entry.crc] = data
-			continue
-		}*/
 
 		nameBuf := bytes.NewBuffer(data)
 		var fileNameCount uint32
@@ -185,7 +178,6 @@ func (e *EQG) Decode(r io.ReadSeeker) error {
 				return fmt.Errorf("read nameData %w", err)
 			}
 			name := string(nameData[0 : len(nameData)-1])
-			// TODO: stop forcing lowercase
 			name = strings.ToLower(name)
 			dirNameByCRCs[helper.FilenameCRC32(name)] = name
 		}
@@ -227,7 +219,7 @@ func (e *EQG) Decode(r io.ReadSeeker) error {
 			return fmt.Errorf("read steveFooter: %w", err)
 		}
 		if dump.IsActive() {
-			fmt.Println("inspect: warning: STEVE footer missing, can be ignored")
+			log.Warnf("inspect: warning: STEVE footer missing, can be ignored")
 			return nil
 		}
 		return nil

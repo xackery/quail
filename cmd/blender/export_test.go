@@ -16,13 +16,17 @@ func Test_export(t *testing.T) {
 
 	tests := []struct {
 		name    string
+		model   string
 		wantErr bool
 	}{
 		//{name: "it13926.eqg", wantErr: false},
-		//{name: "it12095.eqg", wantErr: false}, // gnome on a stick
+		{name: "gequip.s3d"},                  //IT157 staff of the serpent
+		{name: "it12095.eqg", wantErr: false}, // gnome on a stick
 		//{name: "sin.eqg", wantErr: false},     // siren
-		{name: "test.eqg", wantErr: false},
-		//{name: "gequip6.s3d", wantErr: false},
+		//{name: "test.eqg", wantErr: false},
+		//{name: "sunderock.eqg", wantErr: false},
+		//{name: "gequip.s3d", wantErr: false},
+		//{name: "crushbone_chr.s3d", wantErr: false},
 		//{name: "shp_chr.s3d", wantErr: false},
 		//{name: "steamfontmts.eqg", wantErr: false},
 		//{name: "arena.eqg", wantErr: false},
@@ -32,6 +36,9 @@ func Test_export(t *testing.T) {
 		//{name: "crushbone.s3d", wantErr: false},
 		//{name: "gequip.s3d", wantErr: false},
 		//{name: "arena.s3d", wantErr: false},
+		//{name: "bal.eqg", wantErr: false},
+		//{name: "ans.eqg", wantErr: false},
+		//{name: "aro.eqg", wantErr: false},
 		//{name: "it13900.eqg", wantErr: false},
 		//{name: "xhf", wantErr: false},
 		//{name: "zmf", wantErr: false},

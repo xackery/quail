@@ -40,7 +40,7 @@ func (e *PRT) Decode(r io.ReadSeeker) error {
 	}
 
 	for i := 0; i < int(particleCount); i++ {
-		entry := &geo.ParticleRender{}
+		entry := geo.ParticleRender{}
 
 		err = binary.Read(r, binary.LittleEndian, &entry.ID)
 		if err != nil {

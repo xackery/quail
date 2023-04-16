@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/xackery/quail/log"
 	"github.com/xackery/quail/model/geo"
 )
 
@@ -18,7 +19,7 @@ func (e *LIT) Decode(r io.ReadSeeker) error {
 	}
 
 	lightCount := fileCount
-	fmt.Println("lightCount", lightCount)
+	log.Debugf("lightCount %d", lightCount)
 
 	for i := 0; i < int(lightCount); i++ {
 		color := &geo.RGBA{}

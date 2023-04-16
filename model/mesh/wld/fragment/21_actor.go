@@ -43,7 +43,7 @@ func parseActor(r io.ReadSeeker, v *Actor) error {
 		return fmt.Errorf("read flags: %w", err)
 	}
 	// Main zone: 0x2E, Actors: 0x32E
-	//TODO if flags != 0x2E && flags != 0x32E {
+	// if flags != 0x2E && flags != 0x32E {
 	//	return fmt.Errorf("unknown flags want 0x2E or 0x32E, got 0x%x", flags)
 	//}
 
@@ -115,9 +115,6 @@ func parseActor(r io.ReadSeeker, v *Actor) error {
 	if err != nil {
 		return fmt.Errorf("read colorFragment: %w", err)
 	}
-	//if value != 0 {
-	//TODO: look up vertexcolorreference
-	//}
 
 	return nil
 }

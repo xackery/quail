@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/xackery/encdec"
+	"github.com/xackery/quail/log"
 	"github.com/xackery/quail/model/geo"
 )
 
@@ -17,46 +19,21 @@ func (e *MDS) Encode(w io.Writer) error {
 		return fmt.Errorf("writeGeometry: %w", err)
 	}
 
-	// Start writing
-	err = binary.Write(w, binary.LittleEndian, []byte("EQGS"))
+	enc := encdec.NewEncoder(w, binary.LittleEndian)
+	enc.String("EQGM")
+	enc.Uint32(e.version)
+	enc.Uint32(uint32(len(nameData)))
+	enc.Uint32(uint32(e.MaterialManager.Count()))
+	enc.Uint32(uint32(e.meshManager.VertexTotalCount()))
+	enc.Uint32(uint32(e.meshManager.TriangleTotalCount()))
+	enc.Uint32(uint32(e.meshManager.BoneTotalCount()))
+	enc.Bytes(nameData)
+	enc.Bytes(data)
+	err = enc.Error()
 	if err != nil {
-		return fmt.Errorf("write header: %w", err)
-	}
-	err = binary.Write(w, binary.LittleEndian, uint32(1))
-	if err != nil {
-		return fmt.Errorf("write header version: %w", err)
-	}
-	err = binary.Write(w, binary.LittleEndian, uint32(len(nameData)))
-	if err != nil {
-		return fmt.Errorf("write name length: %w", err)
-	}
-	err = binary.Write(w, binary.LittleEndian, uint32(e.MaterialManager.Count()))
-	if err != nil {
-		return fmt.Errorf("write material count: %w", err)
+		return fmt.Errorf("encode: %w", err)
 	}
 
-	err = binary.Write(w, binary.LittleEndian, uint32(e.meshManager.BoneCount(e.name)))
-	if err != nil {
-		return fmt.Errorf("write bone count: %w", err)
-	}
-
-	//TODO: mds encode sub count
-	err = binary.Write(w, binary.LittleEndian, uint32(0))
-	if err != nil {
-		return fmt.Errorf("write sub count: %w", err)
-	}
-
-	err = binary.Write(w, binary.LittleEndian, nameData)
-	if err != nil {
-		return fmt.Errorf("write nameBuf: %w", err)
-	}
-
-	err = binary.Write(w, binary.LittleEndian, data)
-	if err != nil {
-		return fmt.Errorf("write dataBuf: %w", err)
-	}
-
-	//TODO: bone data
-
+	log.Debugf("%s encoded %d verts, %d triangles, %d bones, %d materials", e.name, e.meshManager.VertexTotalCount(), e.meshManager.TriangleTotalCount(), e.meshManager.BoneTotalCount(), e.MaterialManager.Count())
 	return nil
 }

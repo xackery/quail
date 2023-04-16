@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/xackery/quail/log"
 	"github.com/xackery/quail/model/geo"
 	"github.com/xackery/quail/model/mesh/mds"
 	"github.com/xackery/quail/model/mesh/mod"
@@ -86,7 +87,7 @@ func (e *ZON) Data() []byte {
 	w := bytes.NewBuffer(nil)
 	err := e.Encode(w)
 	if err != nil {
-		fmt.Println("failed to encode zon data:", err)
+		log.Errorf("failed to encode zon data: %s", err)
 		os.Exit(1)
 	}
 	return w.Bytes()
@@ -111,19 +112,4 @@ func (e *ZON) Lights() []*light {
 
 func (e *ZON) Models() []*model {
 	return e.models
-}
-
-func (e *ZON) SetLayers(layers []*geo.Layer) error {
-	fmt.Println("TODO: set layers via zon")
-	return nil
-}
-
-func (e *ZON) SetParticleRenders(particles []*geo.ParticleRender) error {
-	fmt.Println("TODO: set particles via zon")
-	return nil
-}
-
-func (e *ZON) SetParticlePoints(particles []*geo.ParticlePoint) error {
-	fmt.Println("TODO: set particles via zon")
-	return nil
 }

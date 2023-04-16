@@ -7,7 +7,7 @@ import (
 
 // Triangle refers to the index of 3 vertices and maps it to a flag and material
 type Triangle struct {
-	Index        *UIndex3
+	Index        UIndex3
 	MaterialName string
 	Flag         uint32
 }
@@ -15,7 +15,7 @@ type Triangle struct {
 // NewTriangle returns a new triangle
 func NewTriangle() *Triangle {
 	return &Triangle{
-		Index: &UIndex3{},
+		Index: UIndex3{},
 	}
 }
 

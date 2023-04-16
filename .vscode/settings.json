@@ -18,6 +18,10 @@
     },
     "files.trimTrailingWhitespace": true,
     "binary-file-viewer.parserFolders": [
-        "/src/quail/.vscode/parsers/"
-    ]
+        ".vscode/parsers"
+    ],
+    "search.exclude": {
+        "**/.git": true,
+        "**/test_data": true,
+    },
 }

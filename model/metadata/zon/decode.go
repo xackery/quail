@@ -155,15 +155,15 @@ func (e *ZON) Decode(r io.ReadSeeker) error {
 		}
 		dump.Hex(objectNameOffset, "%dobjectNameOffset=0x%x(%s)", i, objectNameOffset, name)
 		name = strings.ToLower(name)
-		position := &geo.Vector3{}
-		err = binary.Read(r, binary.LittleEndian, position)
+		position := geo.Vector3{}
+		err = binary.Read(r, binary.LittleEndian, &position)
 		if err != nil {
 			return fmt.Errorf("object %d position: %w", i, err)
 		}
 		dump.Hex(position, "%dposition=%+v", i, position)
 
-		rotation := &geo.Vector3{}
-		err = binary.Read(r, binary.LittleEndian, rotation)
+		rotation := geo.Vector3{}
+		err = binary.Read(r, binary.LittleEndian, &rotation)
 		if err != nil {
 			return fmt.Errorf("object %d rotation: %w", i, err)
 		}

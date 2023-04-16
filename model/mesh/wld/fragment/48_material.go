@@ -23,7 +23,7 @@ const (
 	MaterialTypeDiffuse5                        = 0x19
 	MaterialTypeInvisibleUnknown                = 0x53
 	MaterialTypeDiffuse6                        = 0x553
-	MaterialTypeCompleteUnknown                 = 0x1A // TODO: Analyze this
+	MaterialTypeCompleteUnknown                 = 0x1A
 	MaterialTypeDiffuse7                        = 0x12
 	MaterialTypeDiffuse8                        = 0x31
 	MaterialTypeInvisibleUnknown2               = 0x4B

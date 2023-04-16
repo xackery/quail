@@ -9,25 +9,25 @@ import (
 	"github.com/xackery/quail/pfs/archive"
 )
 
-// HierarchialSprite information
-type HierarchialSprite struct {
+// skeletonTrack information
+type skeletonTrack struct {
 	name      string
 	Reference uint32
 	FrameMs   uint32
 }
 
-func LoadHierarchialSprite(r io.ReadSeeker) (archive.WldFragmenter, error) {
-	v := &HierarchialSprite{}
-	err := parseHierarchialSprite(r, v)
+func LoadskeletonTrack(r io.ReadSeeker) (archive.WldFragmenter, error) {
+	v := &skeletonTrack{}
+	err := parseskeletonTrack(r, v)
 	if err != nil {
-		return nil, fmt.Errorf("parse HierarchialSprite: %w", err)
+		return nil, fmt.Errorf("parse skeletonTrack: %w", err)
 	}
 	return v, nil
 }
 
-func parseHierarchialSprite(r io.ReadSeeker, v *HierarchialSprite) error {
+func parseskeletonTrack(r io.ReadSeeker, v *skeletonTrack) error {
 	if v == nil {
-		return fmt.Errorf("HierarchialSprite is nil")
+		return fmt.Errorf("skeletonTrack is nil")
 	}
 	var value uint32
 	var err error
@@ -46,10 +46,6 @@ func parseHierarchialSprite(r io.ReadSeeker, v *HierarchialSprite) error {
 		return fmt.Errorf("read flag: %w", err)
 	}
 
-	//TODO: review
-	// Either 4 or 5 - maybe something to look into
-	// Bits are set 0, or 2. 0 has the extra field for delay.
-	// 2 doesn't have any additional fields.
 	if value&1 == 1 {
 		err = binary.Read(r, binary.LittleEndian, &v.FrameMs)
 		if err != nil {
@@ -60,11 +56,11 @@ func parseHierarchialSprite(r io.ReadSeeker, v *HierarchialSprite) error {
 	return nil
 }
 
-func (v *HierarchialSprite) FragmentType() string {
-	return "HierarchialSprite"
+func (v *skeletonTrack) FragmentType() string {
+	return "skeletonTrack"
 }
 
-func (e *HierarchialSprite) Data() []byte {
+func (e *skeletonTrack) Data() []byte {
 	buf := bytes.NewBuffer(nil)
 	return buf.Bytes()
 }

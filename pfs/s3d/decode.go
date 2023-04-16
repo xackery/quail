@@ -10,6 +10,7 @@ import (
 
 	"github.com/xackery/quail/dump"
 	"github.com/xackery/quail/helper"
+	"github.com/xackery/quail/log"
 	"github.com/xackery/quail/pfs/archive"
 )
 
@@ -56,7 +57,7 @@ func (e *S3D) Decode(r io.ReadSeeker) error {
 			return fmt.Errorf("read %d size: %w", i, err)
 		}
 		dirEntries = append(dirEntries, entry)
-		//fmt.Println(entry.crc, entry.offset, entry.size)
+		//log.Debugf(entry.crc, entry.offset, entry.size)
 	}
 
 	// reset back to start of file
@@ -136,7 +137,7 @@ func (e *S3D) Decode(r io.ReadSeeker) error {
 				firstByte = deflateData[0]
 			}
 
-			//fmt.Println("inflating", deflateSize, inflateSize)
+			//log.Debugf("inflating", deflateSize, inflateSize)
 			chunkData, err := helper.Inflate(deflateData, int(inflateSize))
 			if err != nil {
 				return fmt.Errorf("inflate %d: %w", i, err)
@@ -153,7 +154,7 @@ func (e *S3D) Decode(r io.ReadSeeker) error {
 			dump.Hex([]byte{firstByte, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, lastByte}, "%dchunk=(%d bytes)", i, len(data))
 		}
 
-		//fmt.Println(entry.crc)
+		//log.Debugf(entry.crc)
 		/*if entry.crc != 4294967295 {
 			fileByCRCs[entry.crc] = data
 			continue
@@ -225,7 +226,7 @@ func (e *S3D) Decode(r io.ReadSeeker) error {
 			return fmt.Errorf("read steveFooter: %w", err)
 		}
 		if dump.IsActive() {
-			fmt.Println("inspect: warning: STEVE footer missing, can be ignored")
+			log.Warnf("inspect: warning: STEVE footer missing, can be ignored")
 			return nil
 		}
 		return nil

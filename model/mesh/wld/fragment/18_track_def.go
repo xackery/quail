@@ -49,7 +49,6 @@ func parseTrackDef(r io.ReadSeeker, v *TrackDef) error {
 	}
 
 	//if value &3 == 3 { // has data2 values
-	//TODO: discern this
 	//}
 
 	if value != 8 { //object animations = 8

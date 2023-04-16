@@ -78,5 +78,9 @@ func (e *WLD) BlenderImport(dir string) error {
 		return fmt.Errorf("read meshManager: %w", err)
 	}
 
+	for _, mesh := range e.meshManager.Meshes() {
+		mesh.Name = fmt.Sprintf("%s_DMSPRITEDEF", mesh.Name)
+	}
+
 	return nil
 }

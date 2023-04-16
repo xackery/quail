@@ -3,7 +3,7 @@ package geo
 // ApplyQuaternion transforms this vector by multiplying it by
 // the specified quaternion and then by the quaternion inverse.
 // It basically applies the rotation encoded in the quaternion to this vector.
-func ApplyQuaternion(v *Vector3, q *Quad4) *Vector3 {
+func ApplyQuaternion(v Vector3, q Quad4) Vector3 {
 	x := v.X
 	y := v.Y
 	z := v.Z

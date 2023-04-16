@@ -5,8 +5,8 @@ import (
 	"bytes"
 	"fmt"
 	"os"
-	"strings"
 
+	"github.com/xackery/quail/log"
 	"github.com/xackery/quail/model/geo"
 	"github.com/xackery/quail/pfs/archive"
 )
@@ -27,7 +27,7 @@ func New(name string, pfs archive.ReadWriter) (*TER, error) {
 	t := &TER{
 		name:            name,
 		archive:         pfs,
-		MaterialManager: &geo.MaterialManager{},
+		MaterialManager: geo.NewMaterialManager(),
 		meshManager:     &geo.MeshManager{},
 		particleManager: &geo.ParticleManager{},
 	}
@@ -39,7 +39,7 @@ func NewFile(name string, pfs archive.ReadWriter, file string) (*TER, error) {
 	e := &TER{
 		name:            name,
 		archive:         pfs,
-		MaterialManager: &geo.MaterialManager{},
+		MaterialManager: geo.NewMaterialManager(),
 		meshManager:     &geo.MeshManager{},
 		particleManager: &geo.ParticleManager{},
 	}
@@ -62,7 +62,7 @@ func (e *TER) Data() []byte {
 	w := bytes.NewBuffer(nil)
 	err := e.Encode(w)
 	if err != nil {
-		fmt.Println("failed to encode terrain data:", err)
+		log.Warnf("failed to encode terrain data: %s", err)
 		os.Exit(1)
 	}
 	return w.Bytes()
@@ -70,47 +70,6 @@ func (e *TER) Data() []byte {
 
 func (e *TER) SetName(value string) {
 	e.name = value
-}
-
-func (e *TER) SetLayers(layers []*geo.Layer) error {
-	for _, o := range layers {
-		err := e.MaterialManager.Add(o.Name, "")
-		if err != nil {
-			return fmt.Errorf("materialAdd: %w", err)
-		}
-		entry0Name := strings.ToLower(o.Entry0)
-		entry1Name := strings.ToLower(o.Entry1)
-		diffuseName := ""
-		normalName := ""
-		if strings.Contains(entry0Name, "_c.dds") {
-			diffuseName = entry0Name
-		}
-		if strings.Contains(entry1Name, "_c.dds") {
-			diffuseName = entry1Name
-		}
-
-		if strings.Contains(entry0Name, "_n.dds") {
-			normalName = entry0Name
-		}
-		if strings.Contains(entry1Name, "_n.dds") {
-			normalName = entry1Name
-		}
-
-		if len(diffuseName) > 0 {
-			err = e.MaterialManager.PropertyAdd(o.Name, "e_texturediffuse0", 2, diffuseName)
-			if err != nil {
-				return fmt.Errorf("materialPropertyAdd %s: %w", diffuseName, err)
-			}
-		}
-
-		if len(normalName) > 0 {
-			err = e.MaterialManager.PropertyAdd(o.Name, "e_texturediffuse0", 2, normalName)
-			if err != nil {
-				return fmt.Errorf("materialPropertyAdd %s: %w", normalName, err)
-			}
-		}
-	}
-	return nil
 }
 
 // Close flushes the data in a mod

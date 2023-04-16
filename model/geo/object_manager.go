@@ -25,12 +25,12 @@ func (e *ObjectManager) Object(name string) (*Object, bool) {
 }
 
 // WriteFile writes all materials to a file
-func (e *ObjectManager) WriteFile(object_path string) error {
+func (e *ObjectManager) WriteFile(objectPath string) error {
 
 	if len(e.objects) > 0 {
-		ow, err := os.Create(object_path)
+		ow, err := os.Create(objectPath)
 		if err != nil {
-			return fmt.Errorf("create file %s: %w", object_path, err)
+			return fmt.Errorf("create file %s: %w", objectPath, err)
 		}
 		defer ow.Close()
 		object := &Object{}
@@ -51,10 +51,10 @@ func (e *ObjectManager) WriteFile(object_path string) error {
 }
 
 // ReadFile reads all objects from a file
-func (e *ObjectManager) ReadFile(object_path string) error {
-	r, err := os.Open(object_path)
+func (e *ObjectManager) ReadFile(objectPath string) error {
+	r, err := os.Open(objectPath)
 	if err != nil {
-		return fmt.Errorf("open %s: %w", object_path, err)
+		return fmt.Errorf("open %s: %w", objectPath, err)
 	}
 	defer r.Close()
 	scanner := bufio.NewScanner(r)

@@ -25,7 +25,6 @@ func (e *WLD) Encode(w io.Writer) error {
 		return fmt.Errorf("write identifier: %w", err)
 	}
 
-	//TODO: fragment count?
 	fragmentCount := uint32(0)
 	fragmentCount += uint32(e.meshManager.TriangleCount(e.name))
 	err = binary.Write(w, binary.LittleEndian, fragmentCount)
@@ -33,10 +32,10 @@ func (e *WLD) Encode(w io.Writer) error {
 		return fmt.Errorf("write fragmentCount: %w", err)
 	}
 
-	err = binary.Write(w, binary.LittleEndian, &e.BspRegionCount)
-	if err != nil {
-		return fmt.Errorf("write bsp region count: %w", err)
-	}
+	//err = binary.Write(w, binary.LittleEndian, &e.BspRegionCount)
+	//if err != nil {
+	//	return fmt.Errorf("write bsp region count: %w", err)
+	//}
 
 	value = 0x680D4
 	err = binary.Write(w, binary.LittleEndian, &value)
@@ -72,15 +71,15 @@ func (e *WLD) Encode(w io.Writer) error {
 
 	for i := 0; i < int(e.FragmentCount); i++ {
 		var fragSize uint32
-		var fragIndex int32
+		var fragCode int32
 
 		err = binary.Write(w, binary.LittleEndian, &fragSize)
 		if err != nil {
 			return fmt.Errorf("write fragment size %d/%d: %w", i, e.FragmentCount, err)
 		}
-		err = binary.Write(w, binary.LittleEndian, &fragIndex)
+		err = binary.Write(w, binary.LittleEndian, &fragCode)
 		if err != nil {
-			return fmt.Errorf("write fragment index %d/%d: %w", i, e.FragmentCount, err)
+			return fmt.Errorf("write fragment code %d/%d: %w", i, e.FragmentCount, err)
 		}
 
 		fragPosition, err := r.Seek(0, io.SeekCurrent)
@@ -94,12 +93,12 @@ func (e *WLD) Encode(w io.Writer) error {
 			return fmt.Errorf("write: %w", err)
 		}
 
-		log.Debugf("%d fragIndex: %d 0x%x, len %d\n%s", i, fragIndex, fragIndex, len(buf), hex.Dump(buf))
-		frag, err := e.ParseFragment(fragIndex, bytes.NewWriteer(buf))
+		log.Debugf("%d fragCode: %d 0x%x, len %d\n%s", i, fragCode, fragCode, len(buf), hex.Dump(buf))
+		frag, err := e.ParseFragment(fragCode, bytes.NewWriteer(buf))
 		if err != nil {
 			return fmt.Errorf("fragment load: %w", err)
 		}
-		log.Debugf("%d fragIndex: %d 0x%x determined to be %s", i, fragIndex, fragIndex, frag.FragmentType())
+		log.Debugf("%d fragCode: %d 0x%x determined to be %s", i, fragCode, fragCode, frag.FragmentType())
 
 		e.Fragments = append(e.Fragments, frag)
 

@@ -4,7 +4,6 @@ package mod
 import (
 	"bytes"
 	"fmt"
-	"strings"
 
 	"github.com/xackery/quail/model/geo"
 	"github.com/xackery/quail/pfs/archive"
@@ -28,8 +27,11 @@ type MOD struct {
 // New creates a new empty instance. Use NewFile to load an archive file on creation
 func New(name string, pfs archive.Reader) (*MOD, error) {
 	e := &MOD{
-		name: name,
-		pfs:  pfs,
+		name:            name,
+		pfs:             pfs,
+		MaterialManager: geo.NewMaterialManager(),
+		meshManager:     geo.NewMeshManager(),
+		particleManager: geo.NewParticleManager(),
 	}
 	return e, nil
 }
@@ -37,8 +39,11 @@ func New(name string, pfs archive.Reader) (*MOD, error) {
 // NewFile creates a new instance and loads provided file
 func NewFile(name string, pfs archive.ReadWriter, file string) (*MOD, error) {
 	e := &MOD{
-		name: name,
-		pfs:  pfs,
+		name:            name,
+		pfs:             pfs,
+		MaterialManager: geo.NewMaterialManager(),
+		meshManager:     geo.NewMeshManager(),
+		particleManager: geo.NewParticleManager(),
 	}
 	data, err := pfs.File(file)
 	if err != nil {
@@ -57,47 +62,6 @@ func (e *MOD) SetName(value string) {
 
 func (e *MOD) SetPath(value string) {
 	e.path = value
-}
-
-func (e *MOD) SetLayers(layers []*geo.Layer) error {
-	for _, o := range layers {
-		err := e.MaterialManager.Add(o.Name, "")
-		if err != nil {
-			return fmt.Errorf("materialAdd: %w", err)
-		}
-		entry0Name := strings.ToLower(o.Entry0)
-		entry1Name := strings.ToLower(o.Entry1)
-		diffuseName := ""
-		normalName := ""
-		if strings.Contains(entry0Name, "_c.dds") {
-			diffuseName = entry0Name
-		}
-		if strings.Contains(entry1Name, "_c.dds") {
-			diffuseName = entry1Name
-		}
-
-		if strings.Contains(entry0Name, "_n.dds") {
-			normalName = entry0Name
-		}
-		if strings.Contains(entry1Name, "_n.dds") {
-			normalName = entry1Name
-		}
-
-		if len(diffuseName) > 0 {
-			err = e.MaterialManager.PropertyAdd(o.Name, "e_texturediffuse0", 2, diffuseName)
-			if err != nil {
-				return fmt.Errorf("materialPropertyAdd %s: %w", diffuseName, err)
-			}
-		}
-
-		if len(normalName) > 0 {
-			err = e.MaterialManager.PropertyAdd(o.Name, "e_texturediffuse0", 2, normalName)
-			if err != nil {
-				return fmt.Errorf("materialPropertyAdd %s: %w", normalName, err)
-			}
-		}
-	}
-	return nil
 }
 
 func (e *MOD) AddFile(fe *archive.FileEntry) {

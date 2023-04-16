@@ -2,14 +2,16 @@
 
 [![GoDoc](https://godoc.org/github.com/xackery/quail?status.svg)](https://godoc.org/github.com/xackery/quail) [![Go Report Card](https://goreportcard.com/badge/github.com/xackery/quail)](https://goreportcard.com/report/github.com/xackery/quail) [![Platform Tests & Build](https://github.com/xackery/quail/actions/workflows/build_workflow.yml/badge.svg)](https://github.com/xackery/quail/actions/workflows/build_workflow.yml)
 
-[![quail](quail.png)](https://github.com/xackery/quail/releases/latest)
+<p align="center">[![quail](quail.png)](https://github.com/xackery/quail/releases/latest)</p>
 
-Quail manages EverQuest files. [Find downloads in releases](https://github.com/xackery/quail/releases/latest)
+Quail is a command line EverQuest pfs manager. The two primary ways to use it is with the extract/compress commands to turn a pfs archive into a folder to inspect and manipulate (then reverse), or do import/export to blender via [quail-addon](https://github.com/xackery/quail-addon).
 
-## Goals
-- EQG weapon bidirectional support via blender with V2
+You can [find the latest download of quail in releases](https://github.com/xackery/quail/releases/latest)
 
-## TODO
+
+## Status
+
+Quail currently in an early preview status. While many functionality goals have even reached, they are buggy and not supporting every use case.
 
 ## Usage
 
@@ -24,17 +26,16 @@ Available Commands:
   inspect     Inspect a file
 ```
 
-
-File extensions are broken into the following categories:
-
+# EverQuest File Overview
 ## Pfs
 
-Pfs represents packaged files
+Pfs represents packaged files, you can think of them as zip compressed archives but has a special format.
 
 Extension|Notes
----|---|---|---
+---|---
 eqg|EverQuest Game Asset Pfs Archive
 s3d|EverQuest Game Asset Pfs Archive (Legacy)
+
 ## Model/Mesh
 
 Model meshes represents geometry data, and some times metadata
@@ -44,60 +45,103 @@ Extension|Notes
 dat|zone mesh for version 4 zones
 mds|npc, object and item mesh information
 mod|npc, object and item mesh information
-ter|zone mesh for version 1 to 3
-wld|megapack of virtually all data via fragments, s3d legacy route
+ter|zone mesh data for version 1 to 3, similar to mod/mds just without bone data
+wld|megapack of model metdata and mesh information for s3d legacy pfs archives
 
 ## Model/Metadata
 
-Model metadata tells additional details or variations of a mesh
+Model Metadata gives additional information about a mesh
 
 Extension|Notes
 ---|---
-ani|bone animation data
-edd|unsure yet
-lay|layered texture data (variations of materials to swap texture)
-lit|baked light data, vertex colors
-lod|level of detail related information
-prt|particle rendering data
-pts|particle point data
-tog|toggle data, definnition information
-zon|lists zone metadata (e.g. terrain mesh name)
-
-tog|zone object location data (and refs vertex lighting data)
-eco|ecology objects (flora, rocks), used for randomizing and blending maps, V4 Zones
-rfd|radial floria definitions, more grass related sway, displacement, etc data, V4 Zones
+ani|**Ani**mation data, frame by frame based on bone locations
+edd|**E**mitter **d**efinition **d**ata, aligns with prt to give details about how particles and emitters work
+lay|**Lay**ered texture data (Used for texture swaps/variations in a single model)
+lit|**Li**gh**t** baking data, has same count as vertices
+lod|**L**evel **o**f **D**etail related information, usually refs to additional meshes to render based on distance
+prt|**P**article **R**endering **T**ransformations,
+pts|**P**article **T**ransformation **S**tatements,
+tog|**Tog**gle data
+zon|**Zon**e placement data, gives information about the zone terrain and object placements. Version 3 and below this is a binary file, Version 4+ it is raw text in a 3DsMax format
+eco|**Eco**logy metadata, used for randomizing and blending maps in Version 4 Zones
+rfd|**R**adial **F**lora **D**ata, grass, rocks,and other placable greenery metadata
 
 ## Special Files
 
 Name|Notes
 ---|---
-floraexclusion.dat|flora exclusion areas, V4 zones
-grass.eco|
-lake.eco|
-*.prj|zone project information, 3ds max file (can be ignored) V4 zones
-dbg.txt|generated typically when lit data is missing, (can be ignored)
+floraexclusion.dat|Flora exclusion areas, Versin 4 zones use this to create ignores on RFD files
+prj|3DS Max **Pr**o**j**ect files, this is used by internal team for opening a pfs mesh, doesn't appear to have any use for EverQuest.
+dbg.txt|**D**e**b**u**g** log, shows the last export attempt internally, doesn't appear to have any use for EverQuest.
 
-# Problem Children
-// TODO:
-- b09.eqg mds
-- aam.eqg mds
-- ahf.eqg mds
-- alg.eqg c_ala_bd_s24_c.dds not found
-- alkabormare.eqg obp_td_pine_burnedb.mod td_pine_needles_c.dds not found
-- anguish.eqg obj_walltorch447ch modelName obj_smallgate15 not found
-- ans.eqg mds
-- arelis.eqg obj_village_rubble_med_lod1.mod residence.dds not found
-- arena.eqg obp_tower.mod grid_standard.dds
+## World Fragments
 
-## Simple examples
-Frozen Crusader Ornament, item id 81466, is it13926
+Hex|Code|Name|Description
+---|---|---|---
+0x00|0|[Default](model/mesh/wld/z_00_default.go)|Default, unknown fragment
+0x01|1|[PaletteFile](model/mesh/wld/z_01_palette_file.go)|Default palette file link
+0x02|2|[UserData](model/mesh/wld/z_02_user_data.go)|
+0x03|3|[TextureList](model/mesh/wld/z_03_texture_list.go)|
+0x04|4|[Texture](model/mesh/wld/z_04_texture.go)|
+0x05|5|[TextureRef](model/mesh/wld/z_05_texture_ref.go)|
+0x06|6|[TwoDSpriteDef](model/mesh/wld/z_06_two_d_sprite_def.go)|
+0x07|7|[TwoDSprite](model/mesh/wld/z_07_two_d_sprite.go)|
+0x08|8|[ThreeDSpriteDef](model/mesh/wld/z_08_three_d_sprite_def.go)|
+0x09|9|[ThreeDSprite](model/mesh/wld/z_09_three_d_sprite.go)|
+0x0A|10|[FourDSpriteDef](model/mesh/wld/z_10_four_d_sprite_def.go)|
+0x0B|11|[FourDSprite](model/mesh/wld/z_11_four_d_sprite.go)|
+0x0C|12|[ParticleSpriteDef](model/mesh/wld/z_12_particle_sprite_def.go)|
+0x0D|13|[ParticleSprite](model/mesh/wld/z_13_particle_sprite.go)|
+0x0E|14|[CompositeSpriteDef](model/mesh/wld/z_14_composite_sprite_def.go)|
+0x0F|15|[CompositeSprite](model/mesh/wld/z_15_composite_sprite.go)|
+0x10|16|[skeletonTrackDef](model/mesh/wld/z_16_hierarchial_sprite_def.go)|
+0x11|17|[skeletonTrack](model/mesh/wld/z_17_hierarchial_sprite.go)|
+0x12|18|[TrackDef](model/mesh/wld/z_18_track_def.go)|
+0x13|19|[Track](model/mesh/wld/z_19_track.go)|
+0x14|20|[ActorDef](model/mesh/wld/z_20_actor_def.go)|
+0x15|21|[Actor](model/mesh/wld/z_21_actor.go)|
+0x16|22|[Sphere](model/mesh/wld/z_22_sphere.go)|
+0x17|23|[PolyhedronDef](model/mesh/wld/z_23_polyhedron_def.go)|
+0x18|24|[Polyhedron](model/mesh/wld/z_24_polyhedron.go)|
+0x19|25|[SphereListDef](model/mesh/wld/z_25_sphere_list_def.go)|
+0x1A|26|[SphereList](model/mesh/wld/z_26_sphere_list.go)|
+0x1B|27|[LightDef](model/mesh/wld/z_27_light_def.go)|
+0x1C|28|[Light](model/mesh/wld/z_28_light.go)|
+0x1D|29|[PointLightOld](model/mesh/wld/z_29_point_light_old.go)|
+0x1F|31|[SoundDef](model/mesh/wld/z_31_sound_def.go)|
+0x20|32|[Sound](model/mesh/wld/z_32_sound.go)|
+0x21|33|[WorldTree](model/mesh/wld/z_33_world_tree.go)|
+0x22|34|[Region](model/mesh/wld/z_34_region.go)|
+0x23|35|[ActiveGeoRegion](model/mesh/wld/z_35_active_geo_region.go)|
+0x24|36|[SkyRegion](model/mesh/wld/z_36_sky_region.go)|
+0x25|37|[DirectionalLightOld](model/mesh/wld/z_37_directional_light_old.go)|
+0x26|38|[BlitSpriteDef](model/mesh/wld/z_38_blit_sprite_def.go)|
+0x27|39|[BlitSprite](model/mesh/wld/z_39_blit_sprite.go)|
+0x28|40|[PointLight](model/mesh/wld/z_40_point_light.go)|
+0x29|41|[Zone](model/mesh/wld/z_41_zone.go)|
+0x2A|42|[AmbientLight](model/mesh/wld/z_42_ambient_light.go)|
+0x2B|43|[DirectionalLight](model/mesh/wld/z_43_directional_light.go)|
+0x2C|44|[DmSpriteDef](model/mesh/wld/z_44_dm_sprite_def.go)|
+0x2D|45|[DmSprite](model/mesh/wld/z_45_dm_sprite.go)|
+0x2E|46|[DmTrackDef](model/mesh/wld/z_46_dm_track_def.go)|
+0x2F|47|[DmTrack](model/mesh/wld/z_47_dm_track.go)|
+0x30|48|[Material](model/mesh/wld/z_48_material.go)|
+0x31|49|[MaterialList](model/mesh/wld/z_49_material_list.go)|
+0x32|50|[DmRGBTrackDef](model/mesh/wld/z_50_dm_r_g_b_track_def.go)|
+0x33|51|[DmRGBTrack](model/mesh/wld/z_51_dm_r_g_b_track.go)|
+0x34|52|[ParticleCloudDef](model/mesh/wld/z_52_particle_cloud_def.go)|
+0x35|53|[First](model/mesh/wld/z_53_first.go)|
+0x36|54|[Mesh](model/mesh/wld/z_54_mesh.go)|
+0x37|55|[DmTrackDef2](model/mesh/wld/z_55_dm_track_def2.go)|
 
-# GLTF Extensions
 
-// TODO:
-- [lights](https://github.com/KhronosGroup/glTF/tree/main/extensions/2.0/Khronos/KHR_lights_punctual)
+# References
 
-## External resources
+- Frozen Crusader Ornament, item id 81466, is it13926
+
+
+# External resources
 
 [gltf writer for wld fragments in lantern](https://github.com/vermadas/LanternExtractor/blob/vermadas/multi_inject/LanternExtractor/EQ/Wld/Exporters/GltfWriter.cs)
+
 [fragment overview ref](https://github.com/cjab/libeq/blob/0aff154702fe122fa726fb7fbb43a079d8f3a138/crates/libeq_wld/docs/README.md)

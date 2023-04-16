@@ -30,7 +30,7 @@ func (e *ParticleRender) WriteHeader(w io.StringWriter) error {
 
 // Write writes a ParticleRender to a string writer
 func (e *ParticleRender) Write(w io.StringWriter) error {
-	_, err := w.WriteString(fmt.Sprintf("%d|%d|%s|%d|%d|%d|%d|%d|%d\n",
+	_, err := w.WriteString(fmt.Sprintf("%d|%d|%s|%d|%d|%d|%d|%d|%d|%d|%d|%d\n",
 		e.ID,
 		e.ID2,
 		e.ParticlePoint,

@@ -12,7 +12,7 @@ import (
 type TOG struct {
 	name    string
 	pfs     archive.ReadWriter
-	objects []*geo.Object
+	objects []geo.Object
 }
 
 // New creates a new empty instance. Use NewFile to load an archive file on creation

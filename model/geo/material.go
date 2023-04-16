@@ -8,6 +8,7 @@ import (
 
 // Material contains data about a material
 type Material struct {
+	ID         int32
 	Name       string
 	ShaderName string
 	Flag       uint32
@@ -15,19 +16,19 @@ type Material struct {
 }
 
 // WriteHeader writes the header for a material file
-func (e *Material) WriteHeader(w io.StringWriter) error {
-	_, err := w.WriteString("material_name|flag|category\n")
+func (e Material) WriteHeader(w io.StringWriter) error {
+	_, err := w.WriteString("id|material_name|flag|category\n")
 	return err
 }
 
 // Write writes a material to a file
-func (e *Material) Write(w io.StringWriter) error {
-	_, err := w.WriteString(fmt.Sprintf("%s|%d|%s\n", e.Name, e.Flag, e.ShaderName))
+func (e Material) Write(w io.StringWriter) error {
+	_, err := w.WriteString(fmt.Sprintf("%d%s|%d|%s\n", e.ID, e.Name, e.Flag, e.ShaderName))
 	return err
 }
 
 // MaterialByName is a slice of Material
-type MaterialByName []*Material
+type MaterialByName []Material
 
 // Len returns the length of the slice
 func (s MaterialByName) Len() int {

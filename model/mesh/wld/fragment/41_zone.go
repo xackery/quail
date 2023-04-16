@@ -73,10 +73,7 @@ func parseZone(r io.ReadSeeker, v *Zone) error {
 	if strings.HasPrefix(ZoneString, "wtntp") {
 		Zones = append(Zones, 0)
 		Zones = append(Zones, 1)
-		//TODO: decode zoneline
 	}
-
-	// TODO: tons of more variants
 
 	return nil
 }

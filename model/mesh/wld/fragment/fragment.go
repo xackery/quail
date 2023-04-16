@@ -16,10 +16,10 @@ var (
 	names         = make(map[int32]string)
 )
 
-func New(fragIndex int32, r io.ReadSeeker) (archive.WldFragmenter, error) {
-	loadFunc, ok := fragmentTypes[fragIndex]
+func New(fragCode int32, r io.ReadSeeker) (archive.WldFragmenter, error) {
+	loadFunc, ok := fragmentTypes[fragCode]
 	if !ok {
-		return nil, fmt.Errorf("unknown frag index: %d 0x%x", fragIndex, fragIndex)
+		return nil, fmt.Errorf("unknown frag index: %d 0x%x", fragCode, fragCode)
 	}
 	return loadFunc(r)
 }
@@ -61,9 +61,9 @@ func init() {
 	// 0xf Unknown
 	fragmentTypes[15] = LoadCompositeSprite
 	// 0x10 SkeletonHierarchy aka HIERARCHICALSPRITEDEF
-	fragmentTypes[16] = LoadHierarchialSpriteDef
+	fragmentTypes[16] = LoadskeletonTrackDef
 	// 0x11 SkeletonHierarchyReference
-	fragmentTypes[17] = LoadHierarchialSprite
+	fragmentTypes[17] = LoadskeletonTrack
 	// 0x12 TrackDefinition
 	fragmentTypes[18] = LoadTrackDef
 	// 0x13 TrackInstance
@@ -135,7 +135,7 @@ func init() {
 	// 0x35 GlobalAmbientLight
 	fragmentTypes[53] = LoadGlobalAmbientLightDef
 	// 0x36 Mesh
-	fragmentTypes[54] = LoadDmSpriteDef2
+	//fragmentTypes[54] = LoadDmSpriteDef2
 	// 0x37 MeshAnimatedVertices
 	fragmentTypes[55] = LoadDmTrackDef2
 }

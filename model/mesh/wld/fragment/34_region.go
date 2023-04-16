@@ -122,8 +122,6 @@ func parseRegion(r io.ReadSeeker, v *Region) error {
 		}
 	}
 
-	//TODO: move past data 4? skipped?
-
 	for i := 0; i < int(data5Size); i++ {
 		_, err = r.Seek(int64(7*4), io.SeekCurrent)
 		if err != nil {

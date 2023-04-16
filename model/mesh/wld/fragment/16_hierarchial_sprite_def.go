@@ -10,22 +10,22 @@ import (
 	"github.com/xackery/quail/pfs/archive"
 )
 
-// HierarchialSpriteDef information
-type HierarchialSpriteDef struct {
+// skeletonTrackDef information
+type skeletonTrackDef struct {
 	name string
 }
 
-func LoadHierarchialSpriteDef(r io.ReadSeeker) (archive.WldFragmenter, error) {
-	v := &HierarchialSpriteDef{}
-	err := parseHierarchialSpriteDef(r, v)
+func LoadskeletonTrackDef(r io.ReadSeeker) (archive.WldFragmenter, error) {
+	v := &skeletonTrackDef{}
+	err := parseskeletonTrackDef(r, v)
 	if err != nil {
-		return nil, fmt.Errorf("parse HierarchialSpriteDef: %w", err)
+		return nil, fmt.Errorf("parse skeletonTrackDef: %w", err)
 	}
 	return v, nil
 }
 
-// based on https://github.com/danwilkins/LanternExtractor/blob/development/0.2.0/LanternExtractor/EQ/Wld/Fragments/HierarchialSpriteDef.cs
-func parseHierarchialSpriteDef(r io.ReadSeeker, v *HierarchialSpriteDef) error {
+// based on https://github.com/danwilkins/LanternExtractor/blob/development/0.2.0/LanternExtractor/EQ/Wld/Fragments/skeletonTrackDef.cs
+func parseskeletonTrackDef(r io.ReadSeeker, v *skeletonTrackDef) error {
 	var err error
 	v.name, err = nameFromHashIndex(r)
 	if err != nil {
@@ -162,11 +162,11 @@ func parseHierarchialSpriteDef(r io.ReadSeeker, v *HierarchialSpriteDef) error {
 	return nil
 }
 
-func (v *HierarchialSpriteDef) FragmentType() string {
-	return "HierarchialSpriteDef"
+func (v *skeletonTrackDef) FragmentType() string {
+	return "skeletonTrackDef"
 }
 
-func (e *HierarchialSpriteDef) Data() []byte {
+func (e *skeletonTrackDef) Data() []byte {
 	buf := bytes.NewBuffer(nil)
 	return buf.Bytes()
 }

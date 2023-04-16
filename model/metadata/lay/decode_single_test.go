@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/xackery/quail/dump"
+	"github.com/xackery/quail/log"
 	"github.com/xackery/quail/pfs/eqg"
 )
 
@@ -27,7 +28,7 @@ func TestLoadSingleTest(t *testing.T) {
 	}
 	for _, tt := range tests {
 
-		fmt.Println("loading", tt.category)
+		log.Debugf("loading %s", tt.category)
 		eqgFile := fmt.Sprintf("test/eq/%s.eqg", tt.category)
 
 		archive, err := eqg.NewFile(eqgFile)

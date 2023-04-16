@@ -1,5 +1,5 @@
 NAME := quail
-VERSION ?= 2.0.3
+VERSION ?= 2.0.4
 EQPATH := ~/Documents/games/EverQuest.app/drive_c/rebuildeq/
 
 build: build-docker build-darwin
@@ -56,6 +56,9 @@ build-windows:
 	@GOOS=windows GOARCH=amd64 CGO_ENABLED=1 CC=x86_64-w64-mingw32-gcc CXX=x86_64-w64-mingw32-g++ go build -buildmode=pie -ldflags="-X main.Version=${VERSION} -s -w" -o bin/${NAME}-win-x64.exe main.go
 	@#GOOS=windows GOARCH=386 CGO_ENABLED=1 CC=i686-w64-mingw32-gcc CXX=i686-w64-mingw32-g++ go build -buildmode=pie -ldflags="-X main.Version=${VERSION} -s -w" -o bin/${NAME}-win.exe main.go
 
+build-copy: build-darwin
+	@echo "copying to quail-addons..."
+	cp bin/quail-darwin-x64 "/Users/xackery/Library/Application Support/Blender/3.4/scripts/addons/quail-addon/quail-darwin"
 
 profile-heap:
 	@echo "profile-heap: running pprof watcher for 2 minutes with snapshots 0 to 3..."

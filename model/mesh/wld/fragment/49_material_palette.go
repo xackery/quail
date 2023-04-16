@@ -40,8 +40,6 @@ func parseMaterialPalette(r io.ReadSeeker, v *MaterialPalette) error {
 		return fmt.Errorf("read flags: %w", err)
 	}
 
-	//TODO: flags support
-
 	var materialCount uint32
 	err = binary.Read(r, binary.LittleEndian, &materialCount)
 	if err != nil {

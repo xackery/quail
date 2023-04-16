@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/xackery/quail/log"
 	"github.com/xackery/quail/model/geo"
 	"github.com/xackery/quail/pfs/archive"
 )
@@ -51,7 +52,7 @@ func (e *LIT) Data() []byte {
 
 	err := e.Encode(w)
 	if err != nil {
-		fmt.Println("failed to encode litrain data:", err)
+		log.Errorf("failed to encode lit data %s:", err)
 		os.Exit(1)
 	}
 	return w.Bytes()
