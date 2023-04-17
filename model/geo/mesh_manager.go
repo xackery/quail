@@ -29,8 +29,8 @@ func (e *MeshManager) Mesh(name string) (*Mesh, bool) {
 	return nil, false
 }
 
-// WriteFile writes all materials to a file
-func (e *MeshManager) WriteFile(dir string) error {
+// BlenderExport writes all materials to a file
+func (e *MeshManager) BlenderExport(dir string) error {
 	if len(e.meshes) > 0 {
 		mw, err := os.Create(fmt.Sprintf("%s/mesh.txt", dir))
 		if err != nil {

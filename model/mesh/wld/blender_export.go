@@ -21,14 +21,14 @@ func (e *WLD) BlenderExport(dir string) error {
 	vw.WriteString(fmt.Sprintf("version=%d\n", e.version))
 
 	if e.materialManager.Count() > 0 {
-		err = e.materialManager.WriteFile(fmt.Sprintf("%s/material.txt", path), fmt.Sprintf("%s/material_property.txt", path))
+		err = e.materialManager.BlenderExport(path)
 		if err != nil {
 			return fmt.Errorf("materialManager.WriteFile: %w", err)
 		}
 	}
 
 	if e.particleManager.PointCount() > 0 {
-		err = e.particleManager.WriteFile(fmt.Sprintf("%s/particle_point.txt", path), fmt.Sprintf("%s/particle_render.txt", path))
+		err = e.particleManager.BlenderExport(path)
 		if err != nil {
 			return fmt.Errorf("particleManager.WriteFile: %w", err)
 		}
@@ -43,7 +43,7 @@ func (e *WLD) BlenderExport(dir string) error {
 		fw.Write(file.Data())
 	}*/
 
-	err = e.meshManager.WriteFile(path)
+	err = e.meshManager.BlenderExport(path)
 	if err != nil {
 		return fmt.Errorf("write meshManager: %w", err)
 	}

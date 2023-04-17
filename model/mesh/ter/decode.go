@@ -64,7 +64,7 @@ func (e *TER) Decode(r io.ReadSeeker) error {
 
 		propertyCount := dec.Uint32()
 		for j := 0; j < int(propertyCount); j++ {
-			property := geo.Property{}
+			property := geo.MaterialProperty{}
 
 			propertyNameOffset := dec.Uint32()
 			property.Name, ok = names[propertyNameOffset]

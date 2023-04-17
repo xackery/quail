@@ -13,7 +13,7 @@ func (e *LAY) BlenderExport(dir string) error {
 		return fmt.Errorf("create dir %s: %w", path, err)
 	}
 
-	err = e.layerManager.WriteFile(path)
+	err = e.layerManager.BlenderExport(path)
 	if err != nil {
 		return fmt.Errorf("layerManager.WriteFile: %w", err)
 	}

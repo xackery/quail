@@ -27,9 +27,10 @@ func (e *MDS) Decode(r io.ReadSeeker) error {
 	e.version = dec.Uint32()
 	nameLength := int(dec.Uint32())
 	materialCount := dec.Uint32()
-	verticesCount := dec.Uint32()
-	triangleCount := dec.Uint32()
-	bonesCount := dec.Uint32()
+	boneCount := dec.Uint32()
+	subCount := dec.Uint32()
+	// TODO: subCount is not used?
+	_ = subCount
 	nameData := dec.Bytes(int(nameLength))
 
 	names := make(map[uint32]string)
@@ -67,7 +68,7 @@ func (e *MDS) Decode(r io.ReadSeeker) error {
 
 		propertyCount := dec.Uint32()
 		for j := 0; j < int(propertyCount); j++ {
-			property := geo.Property{}
+			property := geo.MaterialProperty{}
 
 			propertyNameOffset := dec.Uint32()
 			property.Name, ok = names[propertyNameOffset]
@@ -97,6 +98,48 @@ func (e *MDS) Decode(r io.ReadSeeker) error {
 		}
 	}
 
+	for i := 0; i < int(boneCount); i++ {
+		bone := geo.Bone{}
+		nameID := dec.Uint32()
+		bone.Name, ok = names[nameID]
+		if !ok {
+			return fmt.Errorf("bone name %d not found", nameID)
+		}
+		bone.Next = dec.Int32()
+		bone.ChildrenCount = dec.Uint32()
+		bone.ChildIndex = dec.Int32()
+		bone.Pivot.X = dec.Float32()
+		bone.Pivot.Y = dec.Float32()
+		bone.Pivot.Z = dec.Float32()
+		bone.Rotation.X = dec.Float32()
+		bone.Rotation.Y = dec.Float32()
+		bone.Rotation.Z = dec.Float32()
+		bone.Rotation.W = dec.Float32()
+		bone.Scale.X = dec.Float32()
+		bone.Scale.Y = dec.Float32()
+		bone.Scale.Z = dec.Float32()
+
+		err = e.meshManager.BoneAdd(modelName, bone)
+		if err != nil {
+			return fmt.Errorf("bone add: %w", err)
+		}
+	}
+
+	mainNameIndex := dec.Uint32()
+	// TODO: mainNameIndex is not used?
+	_ = mainNameIndex
+
+	subNameIndex := dec.Uint32()
+	// TODO: subNameIndex is not used?
+	_ = subNameIndex
+
+	verticesCount := dec.Uint32()
+	triangleCount := dec.Uint32()
+
+	boneAssignmentCount := dec.Uint32()
+	// TODO: boneAssignmentCount is not used?
+	_ = boneAssignmentCount
+
 	for i := 0; i < int(verticesCount); i++ {
 		v := geo.Vertex{}
 		v.Position.X = dec.Float32()
@@ -120,6 +163,8 @@ func (e *MDS) Decode(r io.ReadSeeker) error {
 			v.Uv2.Y = dec.Float32()
 		}
 
+		// TODO: is this really needed?
+		v.Position = geo.ApplyQuaternion(v.Position, geo.Quad4{X: 1, Y: 0, Z: 0, W: 0})
 		err = e.meshManager.VertexAdd(modelName, v)
 		if err != nil {
 			return fmt.Errorf("vertex add: %w", err)
@@ -141,32 +186,6 @@ func (e *MDS) Decode(r io.ReadSeeker) error {
 
 		t.Flag = dec.Uint32()
 		e.meshManager.TriangleAdd(modelName, t)
-	}
-
-	for i := 0; i < int(bonesCount); i++ {
-		bone := geo.Bone{}
-		nameID := dec.Uint32()
-		bone.Name, ok = names[nameID]
-		if !ok {
-			return fmt.Errorf("bone name %d not found", nameID)
-		}
-		bone.Next = dec.Int32()
-		bone.ChildrenCount = dec.Uint32()
-		bone.ChildIndex = dec.Int32()
-		bone.Pivot.X = dec.Float32()
-		bone.Pivot.Y = dec.Float32()
-		bone.Pivot.Z = dec.Float32()
-		bone.Rotation.X = dec.Float32()
-		bone.Rotation.Y = dec.Float32()
-		bone.Rotation.Z = dec.Float32()
-		bone.Scale.X = dec.Float32()
-		bone.Scale.Y = dec.Float32()
-		bone.Scale.Z = dec.Float32()
-
-		err = e.meshManager.BoneAdd(modelName, bone)
-		if err != nil {
-			return fmt.Errorf("bone add: %w", err)
-		}
 	}
 
 	if dec.Error() != nil {

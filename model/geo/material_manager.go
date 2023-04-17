@@ -7,39 +7,46 @@ import (
 	"strings"
 
 	"github.com/xackery/quail/helper"
+	"github.com/xackery/quail/log"
 )
 
 // MaterialManager manages materials
 type MaterialManager struct {
-	materials map[int32]Material
+	materials map[int32]*Material
 }
 
 // NewMaterialManager creates a new material manager
 func NewMaterialManager() *MaterialManager {
 	return &MaterialManager{
-		materials: make(map[int32]Material),
+		materials: make(map[int32]*Material),
 	}
 }
 
-// WriteFile writes all materials to a file
-func (e *MaterialManager) WriteFile(materialPath string, propertyPath string) error {
+// BlenderExport writes material.txt and material_property.txt to path
+func (e *MaterialManager) BlenderExport(path string) error {
+	if len(e.materials) == 0 {
+		return nil
+	}
+
+	propertyPath := fmt.Sprintf("%s/material_property.txt", path)
 	pw, err := os.Create(propertyPath)
 	if err != nil {
 		return fmt.Errorf("create file %s: %w", propertyPath, err)
 	}
 	defer pw.Close()
-	property := &Property{}
+	property := MaterialProperty{}
 	err = property.WriteHeader(pw)
 	if err != nil {
 		return fmt.Errorf("write property header: %w", err)
 	}
 
+	materialPath := fmt.Sprintf("%s/material.txt", path)
 	mw, err := os.Create(materialPath)
 	if err != nil {
 		return fmt.Errorf("create file %s: %w", materialPath, err)
 	}
 	defer mw.Close()
-	material := &Material{}
+	material := Material{}
 	err = material.WriteHeader(mw)
 	if err != nil {
 		return fmt.Errorf("write header: %w", err)
@@ -60,8 +67,9 @@ func (e *MaterialManager) WriteFile(materialPath string, propertyPath string) er
 	return nil
 }
 
-// ReadFile reads a material file
-func (e *MaterialManager) ReadFile(materialPath string, propertyPath string) error {
+// BlenderImport reads a material file
+func (e *MaterialManager) BlenderImport(path string) error {
+	materialPath := fmt.Sprintf("%s/material.txt", path)
 	r, err := os.Open(materialPath)
 	if err != nil {
 		return fmt.Errorf("open %s: %w", materialPath, err)
@@ -88,9 +96,10 @@ func (e *MaterialManager) ReadFile(materialPath string, propertyPath string) err
 			Flag:       helper.AtoU32(parts[2]),
 			ShaderName: parts[3],
 		}
-		e.materials[material.ID] = material
+		e.materials[material.ID] = &material
 	}
 
+	propertyPath := fmt.Sprintf("%s/material_property.txt", path)
 	r, err = os.Open(propertyPath)
 	if err != nil {
 		return fmt.Errorf("open %s: %w", propertyPath, err)
@@ -116,7 +125,7 @@ func (e *MaterialManager) ReadFile(materialPath string, propertyPath string) err
 				continue
 			}
 			isFound = true
-			material.Properties = append(material.Properties, Property{
+			material.Properties = append(material.Properties, MaterialProperty{
 				Name:     parts[1],
 				Value:    parts[2],
 				Category: helper.AtoU32(parts[3]),
@@ -137,18 +146,21 @@ func (e *MaterialManager) Add(material Material) error {
 		material.ShaderName = "Opaque_MaxCB1.fx"
 	}
 
-	e.materials[material.ID] = material
+	e.materials[material.ID] = &material
 	return nil
 }
 
 // PropertyAdd adds a property to a material
-func (e *MaterialManager) PropertyAdd(materialName string, property Property) error {
+func (e *MaterialManager) PropertyAdd(materialName string, property MaterialProperty) error {
 	materialName = strings.ToLower(materialName)
-	for _, o := range e.materials {
-		if o.Name != materialName {
+	for i, _ := range e.materials {
+		material := e.materials[i]
+		if material.Name != materialName {
 			continue
 		}
-		o.Properties = append(o.Properties)
+
+		material.Properties = append(e.materials[i].Properties, property)
+		log.Debugf("Added property %v to material %s", property, materialName)
 		return nil
 	}
 	return fmt.Errorf("materialName not found: '%s' (%d)", materialName, len(e.materials))
@@ -170,10 +182,10 @@ func (e *MaterialManager) Inspect() {
 // ByID returns a material by id
 func (e *MaterialManager) ByID(id int32) (Material, bool) {
 	material, ok := e.materials[id]
-	return material, ok
+	return *material, ok
 }
 
 // Materials returns all materials
-func (e *MaterialManager) Materials() map[int32]Material {
+func (e *MaterialManager) Materials() map[int32]*Material {
 	return e.materials
 }

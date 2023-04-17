@@ -12,7 +12,7 @@ type Material struct {
 	Name       string
 	ShaderName string
 	Flag       uint32
-	Properties Properties
+	Properties MaterialProperties
 }
 
 // WriteHeader writes the header for a material file
@@ -23,7 +23,7 @@ func (e Material) WriteHeader(w io.StringWriter) error {
 
 // Write writes a material to a file
 func (e Material) Write(w io.StringWriter) error {
-	_, err := w.WriteString(fmt.Sprintf("%d%s|%d|%s\n", e.ID, e.Name, e.Flag, e.ShaderName))
+	_, err := w.WriteString(fmt.Sprintf("%d|%s|%d|%s\n", e.ID, e.Name, e.Flag, e.ShaderName))
 	return err
 }
 

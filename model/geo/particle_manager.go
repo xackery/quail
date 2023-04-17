@@ -21,8 +21,9 @@ func NewParticleManager() *ParticleManager {
 }
 
 // WriteFile writes all materials to a file
-func (e *ParticleManager) WriteFile(pointPath string, renderPath string) error {
+func (e *ParticleManager) BlenderExport(path string) error {
 	if len(e.renders) > 0 {
+		renderPath := fmt.Sprintf("%s/particle_render.txt", path)
 		pw, err := os.Create(renderPath)
 		if err != nil {
 			return fmt.Errorf("create file %s: %w", renderPath, err)
@@ -44,6 +45,7 @@ func (e *ParticleManager) WriteFile(pointPath string, renderPath string) error {
 	}
 
 	if len(e.points) > 0 {
+		pointPath := fmt.Sprintf("%s/particle_point.txt", path)
 		mw, err := os.Create(pointPath)
 		if err != nil {
 			return fmt.Errorf("create particle point %s: %w", pointPath, err)

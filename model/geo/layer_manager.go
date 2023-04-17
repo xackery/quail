@@ -21,8 +21,8 @@ func (e *LayerManager) Layer(name string) (*Layer, bool) {
 	return nil, false
 }
 
-// WriteFile writes all layers to a directory
-func (e *LayerManager) WriteFile(dir string) error {
+// BlenderExport writes all layers to a directory
+func (e *LayerManager) BlenderExport(dir string) error {
 	if len(e.layers) > 0 {
 		mw, err := os.Create(fmt.Sprintf("%s/layer.txt", dir))
 		if err != nil {

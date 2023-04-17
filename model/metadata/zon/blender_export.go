@@ -19,7 +19,7 @@ func (e *ZON) BlenderExport(dir string) error {
 	defer vw.Close()
 	vw.WriteString(fmt.Sprintf("version=%d\n", e.version))
 
-	err = e.objectManager.WriteFile(fmt.Sprintf("%s/object.txt", path))
+	err = e.objectManager.BlenderExport(fmt.Sprintf("%s/object.txt", path))
 	if err != nil {
 		return fmt.Errorf("objectManager.WriteFile: %w", err)
 	}

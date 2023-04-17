@@ -20,14 +20,17 @@ func (e *MDS) Encode(w io.Writer) error {
 	}
 
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
-	enc.String("EQGM")
+	enc.String("EQGS")
 	enc.Uint32(e.version)
 	enc.Uint32(uint32(len(nameData)))
 	enc.Uint32(uint32(e.MaterialManager.Count()))
+	enc.Uint32(uint32(e.meshManager.BoneTotalCount()))
+	enc.Uint32(0) // TODO: subCount unhandled
+	enc.Bytes(nameData)
+	// TODO: fix  mds encoding
+
 	enc.Uint32(uint32(e.meshManager.VertexTotalCount()))
 	enc.Uint32(uint32(e.meshManager.TriangleTotalCount()))
-	enc.Uint32(uint32(e.meshManager.BoneTotalCount()))
-	enc.Bytes(nameData)
 	enc.Bytes(data)
 	err = enc.Error()
 	if err != nil {

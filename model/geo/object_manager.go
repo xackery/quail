@@ -24,8 +24,8 @@ func (e *ObjectManager) Object(name string) (*Object, bool) {
 	return nil, false
 }
 
-// WriteFile writes all materials to a file
-func (e *ObjectManager) WriteFile(objectPath string) error {
+// BlenderExport writes all materials to a file
+func (e *ObjectManager) BlenderExport(objectPath string) error {
 
 	if len(e.objects) > 0 {
 		ow, err := os.Create(objectPath)

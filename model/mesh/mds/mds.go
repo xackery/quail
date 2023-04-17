@@ -33,9 +33,9 @@ func New(name string, pfs archive.ReadWriter) (*MDS, error) {
 	e := &MDS{
 		name:            name,
 		pfs:             pfs,
-		MaterialManager: &geo.MaterialManager{},
-		meshManager:     &geo.MeshManager{},
-		particleManager: &geo.ParticleManager{},
+		MaterialManager: geo.NewMaterialManager(),
+		meshManager:     geo.NewMeshManager(),
+		particleManager: geo.NewParticleManager(),
 	}
 	return e, nil
 }
@@ -45,9 +45,9 @@ func NewFile(name string, pfs archive.ReadWriter, file string) (*MDS, error) {
 	e := &MDS{
 		name:            name,
 		pfs:             pfs,
-		MaterialManager: &geo.MaterialManager{},
-		meshManager:     &geo.MeshManager{},
-		particleManager: &geo.ParticleManager{},
+		MaterialManager: geo.NewMaterialManager(),
+		meshManager:     geo.NewMeshManager(),
+		particleManager: geo.NewParticleManager(),
 	}
 	data, err := pfs.File(file)
 	if err != nil {

@@ -10,6 +10,7 @@ import (
 	"github.com/xackery/quail/model/geo"
 )
 
+// 0x10 skeletonTrackDef
 type skeletonTrackDef struct {
 	nameRef            int32
 	flags              uint32
@@ -50,8 +51,9 @@ func (e *WLD) skeletonTrackDefRead(r io.ReadSeeker, fragmentOffset int) error {
 		def.radius = dec.Float32()
 	}
 
+	// TODO: figure out why anim lenght is off alignment
 	// decode animCount
-	if def.flags&0x4 != 0 {
+	/*if def.flags&0x4 != 0 {
 		def.anims = make([]anim, def.animCount)
 		for i := 0; i < int(def.animCount); i++ {
 			var anim anim
@@ -75,7 +77,7 @@ func (e *WLD) skeletonTrackDefRead(r io.ReadSeeker, fragmentOffset int) error {
 			def.skinToAnimRefs = append(def.skinToAnimRefs, dec.Int32())
 		}
 	}
-
+	*/
 	if dec.Error() != nil {
 		return fmt.Errorf("skeletonTrackDefRead: %w", dec.Error())
 	}

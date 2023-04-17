@@ -59,7 +59,7 @@ func (e *MDS) BlenderImport(dir string) error {
 
 	curPath = fmt.Sprintf("%s/material.txt", path)
 	if helper.IsFile(curPath) {
-		err = e.MaterialManager.ReadFile(curPath, fmt.Sprintf("%s/material_property.txt", path))
+		err = e.MaterialManager.BlenderImport(path)
 		if err != nil {
 			return fmt.Errorf("read %s: %w", curPath, err)
 		}
@@ -67,7 +67,7 @@ func (e *MDS) BlenderImport(dir string) error {
 
 	curPath = fmt.Sprintf("%s/particle_point.txt", path)
 	if helper.IsFile(curPath) {
-		err = e.MaterialManager.ReadFile(curPath, fmt.Sprintf("%s/particle_render.txt", path))
+		err = e.MaterialManager.BlenderImport(path)
 		if err != nil {
 			return fmt.Errorf("read %s: %w", curPath, err)
 		}

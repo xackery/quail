@@ -8,11 +8,11 @@ import (
 	"github.com/xackery/quail/helper"
 )
 
-// Property contains data about a property
-type Properties []Property
+// MaterialProperties contains a list of material properties
+type MaterialProperties []MaterialProperty
 
-// Property contains data about a material
-type Property struct {
+// MaterialProperty contains data about a material
+type MaterialProperty struct {
 	MaterialName string // parent material name
 	Name         string
 	Category     uint32
@@ -20,13 +20,13 @@ type Property struct {
 }
 
 // WriteHeader writes a material property header to a file
-func (e Property) WriteHeader(w io.StringWriter) error {
+func (e MaterialProperty) WriteHeader(w io.StringWriter) error {
 	_, err := w.WriteString("material_name|property_name|value|category\n")
 	return err
 }
 
 // Write writes a material property to a file
-func (e Property) Write(w io.StringWriter) error {
+func (e MaterialProperty) Write(w io.StringWriter) error {
 	value := strings.ToLower(e.Value)
 	if strings.ToLower(e.Name) == "e_fshininess0" {
 		val := helper.AtoF32(e.Value)

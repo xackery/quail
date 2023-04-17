@@ -11,11 +11,12 @@ import (
 	"github.com/xackery/quail/model/geo"
 )
 
+// Decode decodes a MOD file
 func (e *MOD) Decode(r io.ReadSeeker) error {
 	var err error
 	var ok bool
 
-	modelName := strings.TrimSuffix(e.name, ".ter")
+	modelName := strings.TrimSuffix(e.name, ".mod")
 
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 
@@ -68,7 +69,9 @@ func (e *MOD) Decode(r io.ReadSeeker) error {
 
 		propertyCount := dec.Uint32()
 		for j := 0; j < int(propertyCount); j++ {
-			property := geo.Property{}
+			property := geo.MaterialProperty{
+				MaterialName: material.Name,
+			}
 
 			propertyNameOffset := dec.Uint32()
 			property.Name, ok = names[propertyNameOffset]
