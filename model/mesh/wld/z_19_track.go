@@ -2,6 +2,7 @@ package wld
 
 import (
 	"encoding/binary"
+	"fmt"
 	"io"
 
 	"github.com/xackery/encdec"
@@ -24,6 +25,10 @@ func (e *WLD) trackRead(r io.ReadSeeker, fragmentOffset int) error {
 	def.flags = dec.Uint32()
 	if def.flags&0x01 == 0x01 {
 		def.sleep = dec.Uint32()
+	}
+
+	if dec.Error() != nil {
+		return fmt.Errorf("trackRead: %w", dec.Error())
 	}
 
 	log.Debugf("%+v", def)

@@ -8,6 +8,7 @@ import (
 	"github.com/xackery/quail/log"
 )
 
+// TODO: all skeletonCounts 0 on test
 func TestWLD_trackDefRead(t *testing.T) {
 	eqPath := os.Getenv("EQ_PATH")
 	if eqPath == "" {

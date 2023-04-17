@@ -26,8 +26,8 @@ func (e *WLD) initParsers() map[int32]*decoder {
 		0x11: {name: "skeletonTrack", parse: e.skeletonTrackRead},             // 17
 		0x12: {name: "TrackDef", parse: e.trackDefRead},                       // 18
 		0x13: {name: "Track", parse: e.trackRead},                             // 19
-		0x14: {name: "ActorDef", parse: e.actorDefRead},                       // 20
-		0x15: {name: "Actor", parse: e.actorRead},                             // 21
+		0x14: {name: "Model", parse: e.modelRead},                             // 20
+		0x15: {name: "ObjectLocation", parse: e.objectLocationRead},           // 21
 		0x16: {name: "Sphere", parse: e.sphereRead},                           // 22
 		0x17: {name: "PolyhedronDef", parse: e.polyhedronDefRead},             // 23
 		0x18: {name: "Polyhedron", parse: e.polyhedronRead},                   // 24

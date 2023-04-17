@@ -8,7 +8,7 @@ import (
 	"github.com/xackery/quail/log"
 )
 
-func TestWLD_trackRead(t *testing.T) {
+func TestWLD_objectLocationRead(t *testing.T) {
 	eqPath := os.Getenv("EQ_PATH")
 	if eqPath == "" {
 		t.Skip("EQ_PATH not set")
@@ -29,7 +29,7 @@ func TestWLD_trackRead(t *testing.T) {
 				return
 			}
 
-			count, err := parseFragments(fmt.Sprintf("%s/test_data/%s", eqPath, tt.name), 18, e.trackRead)
+			count, err := parseFragments(fmt.Sprintf("%s/test_data/%s", eqPath, tt.name), 21, e.objectLocationRead)
 			if err != nil && !tt.wantErr {
 				t.Errorf("%s parseFragment error = %v, wantErr %v", tt.name, err, tt.wantErr)
 				return

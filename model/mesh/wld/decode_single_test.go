@@ -21,7 +21,7 @@ func TestExtractWldFragment(t *testing.T) {
 		t.Skip("EQ_PATH not set")
 	}
 
-	name := "crushbone.s3d"
+	name := "gequip.s3d"
 	out := fmt.Sprintf("%s/test_data/%s", eqPath, name)
 
 	pfs, err := s3d.NewFile(fmt.Sprintf("%s/%s", eqPath, name))

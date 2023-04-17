@@ -5,20 +5,24 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/ghostiam/binstruct"
+	"github.com/xackery/encdec"
 	"github.com/xackery/quail/log"
 )
 
+// 0x16 sphere
 type sphere struct {
+	nameRef int32
+	radius  float32
 }
 
 func (e *WLD) sphereRead(r io.ReadSeeker, fragmentOffset int) error {
 	def := &sphere{}
+	dec := encdec.NewDecoder(r, binary.LittleEndian)
+	def.nameRef = dec.Int32()  //nameRef
+	def.radius = dec.Float32() //radius
 
-	dec := binstruct.NewDecoder(r, binary.LittleEndian)
-	err := dec.Decode(def)
-	if err != nil {
-		return fmt.Errorf("decode: %w", err)
+	if dec.Error() != nil {
+		return fmt.Errorf("sphereRead: %w", dec.Error())
 	}
 
 	log.Debugf("%+v", def)

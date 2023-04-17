@@ -24,4 +24,5 @@
         "**/.git": true,
         "**/test_data": true,
     },
+    "window.title": "quail"
 }
