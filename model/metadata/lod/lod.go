@@ -67,7 +67,7 @@ func (e *LOD) Data() []byte {
 
 	err := e.Encode(w)
 	if err != nil {
-		log.Errorf("failed to encode litrain data: %s", err)
+		log.Errorf("Failed to encode litrain data: %s", err)
 		os.Exit(1)
 	}
 	return w.Bytes()

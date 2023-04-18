@@ -62,7 +62,7 @@ func (e *TER) Data() []byte {
 	w := bytes.NewBuffer(nil)
 	err := e.Encode(w)
 	if err != nil {
-		log.Warnf("failed to encode terrain data: %s", err)
+		log.Warnf("Failed to encode terrain data: %s", err)
 		os.Exit(1)
 	}
 	return w.Bytes()

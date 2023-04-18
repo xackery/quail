@@ -52,7 +52,7 @@ func (e *LIT) Data() []byte {
 
 	err := e.Encode(w)
 	if err != nil {
-		log.Errorf("failed to encode lit data %s:", err)
+		log.Errorf("Failed to encode lit data %s:", err)
 		os.Exit(1)
 	}
 	return w.Bytes()

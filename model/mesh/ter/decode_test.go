@@ -26,7 +26,7 @@ func TestTER_Decode(t *testing.T) {
 
 			pfs, err := eqg.NewFile(fmt.Sprintf("%s/%s", eqPath, tt.name))
 			if err != nil {
-				t.Fatalf("failed to open eqg file: %s", err.Error())
+				t.Fatalf("Failed to open eqg file: %s", err.Error())
 			}
 
 			for _, fe := range pfs.Files() {
@@ -35,12 +35,12 @@ func TestTER_Decode(t *testing.T) {
 				}
 				e, err := New(fe.Name(), pfs)
 				if err != nil {
-					t.Fatalf("failed to new ter: %s", err.Error())
+					t.Fatalf("Failed to new ter: %s", err.Error())
 				}
 
 				err = e.Decode(bytes.NewReader(fe.Data()))
 				if err != nil {
-					t.Fatalf("failed to decode ter: %s", err.Error())
+					t.Fatalf("Failed to decode ter: %s", err.Error())
 				}
 				break
 			}

@@ -153,7 +153,7 @@ func (e *MaterialManager) Add(material Material) error {
 // PropertyAdd adds a property to a material
 func (e *MaterialManager) PropertyAdd(materialName string, property MaterialProperty) error {
 	materialName = strings.ToLower(materialName)
-	for i, _ := range e.materials {
+	for i := range e.materials {
 		material := e.materials[i]
 		if material.Name != materialName {
 			continue

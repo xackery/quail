@@ -30,7 +30,7 @@ func LogToFile() {
 	os.Remove("quail.log")
 	f, err := os.OpenFile("quail.log", os.O_CREATE|os.O_WRONLY, 0666)
 	if err != nil {
-		fmt.Println("failed opening log file:", err.Error())
+		fmt.Println("Failed opening log file:", err.Error())
 		os.Exit(1)
 	}
 	log.SetOutput(io.MultiWriter(f, os.Stdout))

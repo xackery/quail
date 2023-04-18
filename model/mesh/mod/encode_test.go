@@ -27,7 +27,7 @@ func TestMOD_Encode(t *testing.T) {
 
 			pfs, err := eqg.NewFile(fmt.Sprintf("%s/%s", eqPath, tt.name))
 			if err != nil {
-				t.Fatalf("failed to open eqg file: %s", err.Error())
+				t.Fatalf("Failed to open eqg file: %s", err.Error())
 			}
 
 			for _, fe := range pfs.Files() {
@@ -36,29 +36,29 @@ func TestMOD_Encode(t *testing.T) {
 				}
 				e, err := New(fe.Name(), pfs)
 				if err != nil {
-					t.Fatalf("failed to new mod: %s", err.Error())
+					t.Fatalf("Failed to new mod: %s", err.Error())
 				}
 				e.version = tt.version
 
 				err = e.Decode(bytes.NewReader(fe.Data()))
 				if err != nil {
-					t.Fatalf("failed to decode mod: %s", err.Error())
+					t.Fatalf("Failed to decode mod: %s", err.Error())
 				}
 
 				out := fmt.Sprintf("test/_%s/%s", tt.name, fe.Name())
 				err = os.MkdirAll(filepath.Dir(out), 0755)
 				if err != nil {
-					t.Fatalf("failed to create dir: %s", err.Error())
+					t.Fatalf("Failed to create dir: %s", err.Error())
 				}
 				w, err := os.Create(out)
 				if err != nil {
-					t.Fatalf("failed to create file: %s", err.Error())
+					t.Fatalf("Failed to create file: %s", err.Error())
 				}
 				defer w.Close()
 
 				err = e.Encode(w)
 				if err != nil {
-					t.Fatalf("failed to encode mod: %s", err.Error())
+					t.Fatalf("Failed to encode mod: %s", err.Error())
 				}
 				break
 			}
