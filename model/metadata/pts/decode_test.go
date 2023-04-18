@@ -1,27 +1,25 @@
-package mod
+package pts
 
 import (
 	"bytes"
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 	"testing"
 
 	"github.com/xackery/quail/pfs/eqg"
 )
 
-func TestMOD_Decode(t *testing.T) {
+func TestPTS_Decode(t *testing.T) {
 	eqPath := os.Getenv("EQ_PATH")
 	if eqPath == "" {
 		t.Skip("EQ_PATH not set")
 	}
 	tests := []struct {
-		name      string
-		modelName string
-		wantErr   bool
+		name    string
+		wantErr bool
 	}{
-		{name: "it13926.eqg", wantErr: false},
+		{name: "sin.eqg", wantErr: false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -33,28 +31,25 @@ func TestMOD_Decode(t *testing.T) {
 
 			isFound := false
 			for _, fe := range pfs.Files() {
-				if filepath.Ext(fe.Name()) != ".mod" {
-					continue
-				}
-				if tt.modelName != "" && !strings.Contains(fe.Name(), tt.modelName) {
+				if filepath.Ext(fe.Name()) != ".pts" {
 					continue
 				}
 				isFound = true
-
 				e, err := New(fe.Name(), pfs)
 				if err != nil {
-					t.Fatalf("Failed to new mod: %s", err.Error())
+					t.Fatalf("Failed to new pts: %s", err.Error())
 				}
 
 				err = e.Decode(bytes.NewReader(fe.Data()))
 				if err != nil {
-					t.Fatalf("Failed to decode mod: %s", err.Error())
+					t.Fatalf("Failed to decode pts: %s", err.Error())
 				}
 				break
 			}
 			if !isFound {
-				t.Fatalf("mod %s not found", tt.name)
+				t.Fatalf("pts %s not found", tt.name)
 			}
+
 		})
 	}
 }

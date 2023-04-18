@@ -20,7 +20,7 @@ func (e *MOD) Decode(r io.ReadSeeker) error {
 
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 
-	header := dec.FixedString(4)
+	header := dec.StringFixed(4)
 	if header != "EQGM" {
 		return fmt.Errorf("invalid header %s, wanted EQGM", header)
 	}

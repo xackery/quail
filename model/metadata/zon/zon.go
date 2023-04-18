@@ -19,10 +19,10 @@ type ZON struct {
 	name          string
 	version       uint32
 	pfs           archive.ReadWriter
-	models        []*model
+	models        []model
 	objectManager *geo.ObjectManager
-	regions       []*region
-	lights        []*light
+	regions       []region
+	lights        []light
 
 	terrains []*ter.TER
 	mdses    []*mds.MDS
@@ -43,8 +43,8 @@ type region struct {
 
 type light struct {
 	name     string
-	position *geo.Vector3
-	color    *geo.Vector3
+	position geo.Vector3
+	color    geo.Vector3
 	radius   float32
 }
 
@@ -87,7 +87,7 @@ func (e *ZON) Data() []byte {
 	w := bytes.NewBuffer(nil)
 	err := e.Encode(w)
 	if err != nil {
-		log.Errorf("failed to encode zon data: %s", err)
+		log.Errorf("Failed to encode zon data: %s", err)
 		os.Exit(1)
 	}
 	return w.Bytes()
@@ -102,14 +102,14 @@ func (e *ZON) ModelNames() []string {
 	return names
 }
 
-func (e *ZON) Regions() []*region {
+func (e *ZON) Regions() []region {
 	return e.regions
 }
 
-func (e *ZON) Lights() []*light {
+func (e *ZON) Lights() []light {
 	return e.lights
 }
 
-func (e *ZON) Models() []*model {
+func (e *ZON) Models() []model {
 	return e.models
 }

@@ -19,7 +19,7 @@ func (e *TER) Decode(r io.ReadSeeker) error {
 
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 
-	header := dec.FixedString(4)
+	header := dec.StringFixed(4)
 	if header != "EQGT" {
 		return fmt.Errorf("invalid header %s, wanted EQGT", header)
 	}

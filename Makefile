@@ -38,7 +38,8 @@ build-local:
 	cd scripts/itdump && GOOS=windows GOARCH=amd64 CC=x86_64-w64-mingw32-gcc CXX=x86_64-w64-mingw32-g++ go build -ldflags "-X main.Version=${VERSION}" -o bin/quail-windows-${VERSION}.exe
 test:
 	@echo "test: running tests..."
-	go test ./...
+	@#go test ./...
+	EQ_PATH=/Users/xackery/Documents/games/EverQuest.app/Contents/Resources/drive_c/rebuildeq/ go test ./...
 test-prep:
 	@echo "test-prep: preparing tests..."
 	@-#cp ${EQPATH}/obj_gears.mod mod/test/obj_gears.mod

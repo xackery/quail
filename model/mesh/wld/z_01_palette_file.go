@@ -21,7 +21,7 @@ func (e *WLD) paletteFileRead(r io.ReadSeeker, fragmentOffset int) error {
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	def.NameRef = dec.Int32()
 	def.NameLength = dec.Uint16()
-	def.FileName = dec.FixedString(int(def.NameLength))
+	def.FileName = dec.StringFixed(int(def.NameLength))
 	if dec.Error() != nil {
 		return fmt.Errorf("paletteFileRead: %s", dec.Error())
 	}

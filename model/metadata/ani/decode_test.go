@@ -31,7 +31,7 @@ func TestANI_Decode(t *testing.T) {
 
 			pfs, err := eqg.NewFile(tt.eqgPath)
 			if err != nil {
-				t.Fatalf("failed to open eqg file: %s", err.Error())
+				t.Fatalf("Failed to open eqg file: %s", err.Error())
 			}
 
 			for _, fe := range pfs.Files() {
@@ -40,12 +40,12 @@ func TestANI_Decode(t *testing.T) {
 				}
 				e, err := New(baseName+".ani", pfs)
 				if err != nil {
-					t.Fatalf("failed to create ani: %s", err.Error())
+					t.Fatalf("Failed to create ani: %s", err.Error())
 				}
 
 				err = e.Decode(bytes.NewReader(fe.Data()))
 				if err != nil {
-					t.Fatalf("failed to decode ter: %s", err.Error())
+					t.Fatalf("Failed to decode ter: %s", err.Error())
 				}
 
 				break

@@ -22,7 +22,7 @@ func (e *WLD) textureListRead(r io.ReadSeeker, fragmentOffset int) error {
 	textureCount := dec.Int32()
 	for i := 0; i < int(textureCount); i++ {
 		nameLength := dec.Uint16()
-		def.TextureNames = append(def.TextureNames, dec.FixedString(int(nameLength))) // TODO: this actually is encoded
+		def.TextureNames = append(def.TextureNames, dec.StringFixed(int(nameLength))) // TODO: this actually is encoded
 	}
 	if dec.Error() != nil {
 		return fmt.Errorf("textureListRead: %s", dec.Error())
