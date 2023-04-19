@@ -135,6 +135,10 @@ Hex|Code|Name|Description
 0x37|55|[DmTrackDef2](model/mesh/wld/z_55_dm_track_def2.go)|MeshAnimatedVertices
 
 
+# Running Tests and Setting Up a Development Environment
+
+At the root of the repo, you'll see a file called `.env_default`. Copy it to the file `.env`, and edit the EQ_PATH variable inside to point to your EQ directory. NOTE that this EQ directory will get folders made like _gequip.s3d/, or _test_data/, so you may want to consider pointing to a unused EQ path if you don't like the clutter of folders on top.
+
 # References
 
 - Frozen Crusader Ornament, item id 81466, is it13926
