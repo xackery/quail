@@ -4,7 +4,6 @@ import (
 	"testing"
 )
 
-// TODO: no refs
 func TestWLD_objectLocationRead(t *testing.T) {
 	e, err := New("test", nil)
 	if err != nil {
@@ -12,9 +11,9 @@ func TestWLD_objectLocationRead(t *testing.T) {
 		return
 	}
 	fragmentTests(t,
-		true, //single run stop
+		false, //single run stop
 		[]string{
-			"gequip.s3d",
+			"gfaydark.s3d",
 		},
 		21,                   //fragCode
 		-1,                   //fragIndex

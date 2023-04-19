@@ -9,6 +9,7 @@ import (
 	"github.com/xackery/quail/log"
 )
 
+// 0x09
 type threeDSprite struct {
 	NameRef   int32
 	ThreeDRef int32

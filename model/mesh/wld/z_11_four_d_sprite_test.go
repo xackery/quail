@@ -14,7 +14,7 @@ func TestWLD_fourDSpriteRead(t *testing.T) {
 	fragmentTests(t,
 		true, //single run stop
 		[]string{
-			"gequip.s3d",
+			"gfaydark.s3d",
 		},
 		11,                //fragCode
 		-1,                //fragIndex

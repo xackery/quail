@@ -24,3 +24,22 @@ func ApplyQuaternion(v Vector3, q Quad4) Vector3 {
 	v.Z = iz*qw + iw*-qz + ix*-qy - iy*-qx
 	return v
 }
+
+// Normalize a quaternion
+func Normalize(q Quad4) Quad4 {
+	out := Quad4{}
+	l := q.X*q.X + q.Y*q.Y + q.Z*q.Z + q.W*q.W
+	if l == 0 {
+		out.X = 0
+		out.Y = 0
+		out.Z = 0
+		out.W = 1
+		return out
+	}
+	l = 1 / l
+	out.X = q.X * l
+	out.Y = q.Y * l
+	out.Z = q.Z * l
+	out.W = q.W * l
+	return out
+}
