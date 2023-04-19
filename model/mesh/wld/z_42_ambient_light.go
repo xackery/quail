@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/ghostiam/binstruct"
+	"github.com/xackery/encdec"
 	"github.com/xackery/quail/log"
 )
 
@@ -15,10 +15,10 @@ type ambientLight struct {
 func (e *WLD) ambientLightRead(r io.ReadSeeker, fragmentOffset int) error {
 	def := &ambientLight{}
 
-	dec := binstruct.NewDecoder(r, binary.LittleEndian)
-	err := dec.Decode(def)
-	if err != nil {
-		return fmt.Errorf("decode: %w", err)
+	dec := encdec.NewDecoder(r, binary.LittleEndian)
+
+	if dec.Error() != nil {
+		return fmt.Errorf("ambientLightRead: %v", dec.Error())
 	}
 
 	log.Debugf("%+v", def)

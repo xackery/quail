@@ -79,7 +79,7 @@ func (e *MDS) Name() string {
 // Close flushes the data in a mod
 func (e *MDS) Close() {
 	e.files = nil
-	e.MaterialManager = &geo.MaterialManager{}
-	e.meshManager = &geo.MeshManager{}
-	e.particleManager = &geo.ParticleManager{}
+	e.MaterialManager = geo.NewMaterialManager()
+	e.meshManager = geo.NewMeshManager()
+	e.particleManager = geo.NewParticleManager()
 }

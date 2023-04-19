@@ -13,9 +13,9 @@ import (
 // BlenderImport imports a blender structure to MOD
 func (e *MOD) BlenderImport(dir string) error {
 	e.version = 1
-	e.MaterialManager = &geo.MaterialManager{}
-	e.meshManager = &geo.MeshManager{}
-	e.particleManager = &geo.ParticleManager{}
+	e.MaterialManager = geo.NewMaterialManager()
+	e.meshManager = geo.NewMeshManager()
+	e.particleManager = geo.NewParticleManager()
 	path := dir
 
 	fi, err := os.Stat(path)

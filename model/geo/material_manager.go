@@ -182,6 +182,9 @@ func (e *MaterialManager) Inspect() {
 // ByID returns a material by id
 func (e *MaterialManager) ByID(id int32) (Material, bool) {
 	material, ok := e.materials[id]
+	if !ok {
+		return Material{}, false
+	}
 	return *material, ok
 }
 

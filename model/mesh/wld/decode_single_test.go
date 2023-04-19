@@ -22,7 +22,7 @@ func TestExtractWldFragment(t *testing.T) {
 	}
 
 	name := "gequip.s3d"
-	out := fmt.Sprintf("%s/test_data/%s", eqPath, name)
+	out := fmt.Sprintf("%s/_test_data/%s", eqPath, name)
 
 	pfs, err := s3d.NewFile(fmt.Sprintf("%s/%s", eqPath, name))
 	if err != nil {

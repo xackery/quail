@@ -28,8 +28,8 @@ func New(name string, pfs archive.ReadWriter) (*TER, error) {
 		name:            name,
 		archive:         pfs,
 		MaterialManager: geo.NewMaterialManager(),
-		meshManager:     &geo.MeshManager{},
-		particleManager: &geo.ParticleManager{},
+		meshManager:     geo.NewMeshManager(),
+		particleManager: geo.NewParticleManager(),
 	}
 	return t, nil
 }
@@ -40,8 +40,8 @@ func NewFile(name string, pfs archive.ReadWriter, file string) (*TER, error) {
 		name:            name,
 		archive:         pfs,
 		MaterialManager: geo.NewMaterialManager(),
-		meshManager:     &geo.MeshManager{},
-		particleManager: &geo.ParticleManager{},
+		meshManager:     geo.NewMeshManager(),
+		particleManager: geo.NewParticleManager(),
 	}
 	data, err := pfs.File(file)
 	if err != nil {
@@ -75,7 +75,7 @@ func (e *TER) SetName(value string) {
 // Close flushes the data in a mod
 func (e *TER) Close() {
 	e.files = nil
-	e.MaterialManager = &geo.MaterialManager{}
-	e.meshManager = &geo.MeshManager{}
-	e.particleManager = &geo.ParticleManager{}
+	e.MaterialManager = geo.NewMaterialManager()
+	e.meshManager = geo.NewMeshManager()
+	e.particleManager = geo.NewParticleManager()
 }

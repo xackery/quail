@@ -5,25 +5,32 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/ghostiam/binstruct"
+	"github.com/xackery/encdec"
 	"github.com/xackery/quail/log"
 )
 
 // materialList 0x31 49
 type materialList struct {
-	NameRef       int32
-	Flags         uint32
-	MaterialCount uint32
-	MaterialRefs  []uint32 `bin:"len:MaterialCount"`
+	nameRef       int32
+	flags         uint32
+	materialCount uint32
+	materialRefs  []uint32
 }
 
 func (e *WLD) materialListRead(r io.ReadSeeker, fragmentOffset int) error {
 	def := &materialList{}
 
-	dec := binstruct.NewDecoder(r, binary.LittleEndian)
-	err := dec.Decode(def)
-	if err != nil {
-		return fmt.Errorf("decode: %w", err)
+	dec := encdec.NewDecoder(r, binary.LittleEndian)
+	def.nameRef = dec.Int32()
+	def.flags = dec.Uint32()
+	def.materialCount = dec.Uint32()
+	def.materialRefs = make([]uint32, def.materialCount)
+	for i := uint32(0); i < def.materialCount; i++ {
+		def.materialRefs[i] = dec.Uint32()
+	}
+
+	if dec.Error() != nil {
+		return fmt.Errorf("materialListRead: %v", dec.Error())
 	}
 
 	log.Debugf("%+v", def)

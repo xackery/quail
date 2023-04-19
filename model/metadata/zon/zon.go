@@ -36,9 +36,9 @@ type model struct {
 
 type region struct {
 	name    string
-	center  *geo.Vector3
-	unknown *geo.Vector3
-	extent  *geo.Vector3
+	center  geo.Vector3
+	unknown geo.Vector3
+	extent  geo.Vector3
 }
 
 type light struct {

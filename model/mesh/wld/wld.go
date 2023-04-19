@@ -27,9 +27,9 @@ func New(name string, pfs archive.ReadWriter) (*WLD, error) {
 	e := &WLD{
 		name:            name,
 		archive:         pfs,
-		materialManager: &geo.MaterialManager{},
-		meshManager:     &geo.MeshManager{},
-		particleManager: &geo.ParticleManager{},
+		materialManager: geo.NewMaterialManager(),
+		meshManager:     geo.NewMeshManager(),
+		particleManager: geo.NewParticleManager(),
 		fragments:       make(map[int]parserer),
 	}
 	return e, nil
@@ -40,9 +40,9 @@ func NewFile(name string, pfs archive.ReadWriter, file string) (*WLD, error) {
 	e := &WLD{
 		name:            name,
 		archive:         pfs,
-		materialManager: &geo.MaterialManager{},
-		meshManager:     &geo.MeshManager{},
-		particleManager: &geo.ParticleManager{},
+		materialManager: geo.NewMaterialManager(),
+		meshManager:     geo.NewMeshManager(),
+		particleManager: geo.NewParticleManager(),
 		fragments:       make(map[int]parserer),
 	}
 	data, err := pfs.File(file)

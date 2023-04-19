@@ -23,7 +23,7 @@ func New(name string, pfs archive.Reader) (*PTS, error) {
 	return &PTS{
 		name:            name,
 		archive:         pfs,
-		particleManager: &geo.ParticleManager{},
+		particleManager: geo.NewParticleManager(),
 	}, nil
 }
 

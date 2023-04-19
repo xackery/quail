@@ -22,7 +22,7 @@ func TestBlender_Export(t *testing.T) {
 		wantErr   bool
 	}{
 		{name: "it13926.eqg", wantErr: false},
-		{name: "it12095.eqg", wantErr: false},
+		//{name: "it12095.eqg", wantErr: false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

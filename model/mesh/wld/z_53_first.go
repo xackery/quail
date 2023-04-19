@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/ghostiam/binstruct"
+	"github.com/xackery/encdec"
 	"github.com/xackery/quail/log"
 )
 
@@ -16,10 +16,10 @@ type first struct {
 func (e *WLD) firstRead(r io.ReadSeeker, fragmentOffset int) error {
 	def := &first{}
 
-	dec := binstruct.NewDecoder(r, binary.LittleEndian)
-	err := dec.Decode(def)
-	if err != nil {
-		return fmt.Errorf("decode: %w", err)
+	dec := encdec.NewDecoder(r, binary.LittleEndian)
+
+	if dec.Error() != nil {
+		return fmt.Errorf("firstRead: %v", dec.Error())
 	}
 
 	log.Debugf("%+v", def)

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/ghostiam/binstruct"
+	"github.com/xackery/encdec"
 	"github.com/xackery/quail/log"
 )
 
@@ -15,10 +15,10 @@ type dmSpriteDef struct {
 func (e *WLD) dmSpriteDefRead(r io.ReadSeeker, fragmentOffset int) error {
 	def := &dmSpriteDef{}
 
-	dec := binstruct.NewDecoder(r, binary.LittleEndian)
-	err := dec.Decode(def)
-	if err != nil {
-		return fmt.Errorf("decode: %w", err)
+	dec := encdec.NewDecoder(r, binary.LittleEndian)
+
+	if dec.Error() != nil {
+		return fmt.Errorf("dmSpriteDefRead: %v", dec.Error())
 	}
 
 	log.Debugf("%+v", def)

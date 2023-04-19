@@ -13,9 +13,9 @@ import (
 // BlenderImport imports a blender structure to TER
 func (e *WLD) BlenderImport(dir string) error {
 	e.version = 1
-	e.materialManager = &geo.MaterialManager{}
-	e.meshManager = &geo.MeshManager{}
-	e.particleManager = &geo.ParticleManager{}
+	e.materialManager = geo.NewMaterialManager()
+	e.meshManager = geo.NewMeshManager()
+	e.particleManager = geo.NewParticleManager()
 	path := dir
 
 	fi, err := os.Stat(path)

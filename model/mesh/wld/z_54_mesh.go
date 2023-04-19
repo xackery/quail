@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/ghostiam/binstruct"
+	"github.com/xackery/encdec"
 	"github.com/xackery/quail/log"
 	"github.com/xackery/quail/model/geo"
 )
@@ -53,10 +53,10 @@ func (e *WLD) meshRead(r io.ReadSeeker, fragmentOffset int) error {
 		isNewWorldFormat: !e.isOldWorld,
 	}
 
-	dec := binstruct.NewDecoder(r, binary.LittleEndian)
-	err := dec.Decode(def)
-	if err != nil {
-		return fmt.Errorf("decode: %w", err)
+	dec := encdec.NewDecoder(r, binary.LittleEndian)
+
+	if dec.Error() != nil {
+		return fmt.Errorf("meshRead: %v", dec.Error())
 	}
 
 	log.Debugf("%+v", def)
@@ -81,6 +81,7 @@ func (v *mesh) build(e *WLD) error {
 	return nil
 }
 
+/*
 // UvUnmarhsal reads a uv
 func (v *mesh) UvsUnmarshal(r binstruct.Reader) error {
 
@@ -216,3 +217,4 @@ func (v *mesh) TrianglesUnmarshal(r binstruct.Reader) error {
 	}
 	return nil
 }
+*/
