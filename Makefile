@@ -2,13 +2,11 @@ NAME := quail
 VERSION ?= 2.0.4
 EQPATH := ~/Documents/games/EverQuest.app/drive_c/rebuildeq/
 
-build: build-docker build-darwin
-	@echo "build: running build-local..."
-	@docker run \
-	--rm \
-	-w /src \
-	-v ${PWD}:/src \
-	-it quail-builder bash -c 'time make build-local'
+build:
+	@echo "build: building to bin/quail..."
+	go build main.go
+	-mv main bin/quail
+	-mv main.exe bin/quail.exe
 
 run:
 	@echo "run: running..."
@@ -25,17 +23,6 @@ bundle:
 	@echo "bundle: setting quail icon"
 	go-winres simply --icon quail.png
 
-build-docker:
-	@echo "build-docker: building docker image..."
-	docker build -t quail-builder .github -f .github/build.dockerfile
-build-local:
-	@echo "build-local: building local..."
-	@#go test ./...
-	@#go test -cover ./...
-	@echo "Building Linux..."
-	GOOS=linux GOARCH=amd64 go build -ldflags "-X main.Version=${VERSION}" -o bin/quail-linux-${VERSION}
-	@echo "Building Windows..."
-	cd scripts/itdump && GOOS=windows GOARCH=amd64 CC=x86_64-w64-mingw32-gcc CXX=x86_64-w64-mingw32-g++ go build -ldflags "-X main.Version=${VERSION}" -o bin/quail-windows-${VERSION}.exe
 test:
 	@echo "test: running tests..."
 	@go test ./...
