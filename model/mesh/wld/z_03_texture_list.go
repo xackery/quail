@@ -42,7 +42,7 @@ func (e *WLD) textureListWrite(w io.Writer, fragmentOffset int) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
 	def := e.fragments[fragmentOffset].(*textureList)
 	enc.Int32(def.NameRef)
-	enc.Int32(int32(len(def.TextureNames)))
+	enc.Int32(int32(len(def.TextureNames) + 1))
 	for _, textureName := range def.TextureNames {
 		enc.Uint16(uint16(len(textureName)))
 		enc.String(textureName)
