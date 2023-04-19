@@ -178,8 +178,6 @@ github.com/subosito/gotenv v1.4.2 h1:X1TuBLAMDFbaTAChgCBLu3DU3UPyELpnF2jjJ2cz/S8
 github.com/subosito/gotenv v1.4.2/go.mod h1:ayKnFf/c6rvx/2iiLrJUk1e6plDbT3edrFNGqEflhK0=
 github.com/xackery/colors v1.0.1 h1:RR2dQ32ArZPxONWEWd8o9okyuXRbli7S/jkqDVn0K8M=
 github.com/xackery/colors v1.0.1/go.mod h1:uCBeFbEpvD33k6H/+iGuw2vUNpm66amp+EWDg13b5oM=
-github.com/xackery/go-zlib v1.1.2-0.20220114180313-3fb65525737c h1:K/R+h+g19bcQRIinRqfsfSvUk86f59BYqXE1VanhVzU=
-github.com/xackery/go-zlib v1.1.2-0.20220114180313-3fb65525737c/go.mod h1:wZURpSzVLjuviF1NUM2sycenZfzrb1AahSci0Q0r42Y=
 github.com/yuin/goldmark v1.1.25/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
 github.com/yuin/goldmark v1.1.27/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
 github.com/yuin/goldmark v1.1.32/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=

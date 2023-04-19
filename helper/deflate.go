@@ -2,10 +2,9 @@ package helper
 
 import (
 	"bytes"
+	"compress/zlib"
 	"encoding/binary"
 	"fmt"
-
-	"github.com/xackery/go-zlib"
 )
 
 // Deflate takes a byte slice and compresses it down
@@ -28,13 +27,8 @@ func Deflate(in []byte) ([]byte, error) {
 		buf := bytes.NewBuffer(nil)
 
 		//w, err := zlib.NewWriterLevel(buf, 2)
-		//w := zlib.NewWriter(buf)
-		//13 = 58 01
-		//w, err := zlib.NewWriterRaw(buf, 6, 0, 13, 8)
-		w, err := zlib.NewWriterRaw(buf, 5, 0, 15, 8)
-		if err != nil {
-			return nil, fmt.Errorf("newWriter: %w", err)
-		}
+		w := zlib.NewWriter(buf)
+		//w, err := zlib.NewWriterRaw(buf, 5, 0, 15, 8)
 		//if err != nil {
 		//	return nil, fmt.Errorf("newWriter: %w", err)
 		//}
