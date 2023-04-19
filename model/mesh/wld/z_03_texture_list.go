@@ -20,9 +20,10 @@ func (e *WLD) textureListRead(r io.ReadSeeker, fragmentOffset int) error {
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	def.NameRef = dec.Int32()
 	textureCount := dec.Int32()
-	for i := 0; i < int(textureCount); i++ {
+
+	for i := 0; i < int(textureCount+1); i++ {
 		nameLength := dec.Uint16()
-		def.TextureNames = append(def.TextureNames, dec.StringFixed(int(nameLength))) // TODO: this actually is encoded
+		def.TextureNames = append(def.TextureNames, decodeStringHash(dec.Bytes(int(nameLength)))) // TODO: this actually is encoded
 	}
 	if dec.Error() != nil {
 		return fmt.Errorf("textureListRead: %s", dec.Error())
