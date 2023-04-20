@@ -43,7 +43,7 @@ func TestTER_Encode(t *testing.T) {
 					t.Fatalf("Failed to decode ter: %s", err.Error())
 				}
 
-				out := fmt.Sprintf("test/_%s/%s", tt.name, fe.Name())
+				out := fmt.Sprintf("test/%s", fe.Name())
 				err = os.MkdirAll(filepath.Dir(out), 0755)
 				if err != nil {
 					t.Fatalf("Failed to create dir: %s", err.Error())

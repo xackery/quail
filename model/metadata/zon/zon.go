@@ -57,7 +57,7 @@ func New(name string, pfs archive.ReadWriter) (*ZON, error) {
 	z := &ZON{
 		name:          name,
 		pfs:           pfs,
-		objectManager: &geo.ObjectManager{},
+		objectManager: geo.NewObjectManager(),
 	}
 	return z, nil
 }
@@ -65,8 +65,9 @@ func New(name string, pfs archive.ReadWriter) (*ZON, error) {
 // NewFile creates a new instance and loads provided file
 func NewFile(name string, pfs archive.ReadWriter, file string) (*ZON, error) {
 	e := &ZON{
-		name: name,
-		pfs:  pfs,
+		name:          name,
+		pfs:           pfs,
+		objectManager: geo.NewObjectManager(),
 	}
 	data, err := pfs.File(file)
 	if err != nil {

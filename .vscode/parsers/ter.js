@@ -28,6 +28,4 @@ registerParser(() => {
 	const trianglesCount = getNumberValue();
 	addRow('Triangles Count', trianglesCount, 'triangles count');
 	read(4);
-	const bonesCount = getNumberValue();
-	addRow('Bones Count', bonesCount, 'bones count');
 });

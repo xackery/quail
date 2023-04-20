@@ -18,9 +18,24 @@ func (e *TER) Encode(w io.Writer) error {
 		e.version = 2
 	}
 
-	nameData, meshData, err := geo.WriteGeometry(e.version, e.MaterialManager, e.meshManager)
+	names, nameData, err := geo.NameBuild(e.MaterialManager, e.meshManager)
 	if err != nil {
-		return fmt.Errorf("writeGeometry: %w", err)
+		return fmt.Errorf("nameBuild: %w", err)
+	}
+
+	materialData, err := geo.MaterialBuild(e.version, names, e.MaterialManager)
+	if err != nil {
+		return fmt.Errorf("materialBuild: %w", err)
+	}
+
+	verticesData, err := geo.VertexBuild(e.version, names, e.meshManager)
+	if err != nil {
+		return fmt.Errorf("vertexBuild: %w", err)
+	}
+
+	triangleData, err := geo.TriangleBuild(e.version, names, e.MaterialManager, e.meshManager)
+	if err != nil {
+		return fmt.Errorf("triangleBuild: %w", err)
 	}
 
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
@@ -31,7 +46,13 @@ func (e *TER) Encode(w io.Writer) error {
 	enc.Uint32(uint32(e.meshManager.VertexCount(e.name)))
 	enc.Uint32(uint32(e.meshManager.TriangleCount(e.name)))
 	enc.Bytes(nameData)
-	enc.Bytes(meshData)
+	enc.Bytes(materialData)
+	enc.Bytes(verticesData)
+	enc.Bytes(triangleData)
+
+	if enc.Error() != nil {
+		return fmt.Errorf("encode: %w", err)
+	}
 
 	log.Debugf("%s encoded %d verts, %d triangles, %d materials", e.name, e.meshManager.VertexTotalCount(), e.meshManager.TriangleTotalCount(), e.MaterialManager.Count())
 	return nil

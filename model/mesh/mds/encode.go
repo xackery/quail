@@ -13,10 +13,29 @@ import (
 // Encode writes a zon file to location
 func (e *MDS) Encode(w io.Writer) error {
 	var err error
-
-	nameData, data, err := geo.WriteGeometry(e.version, e.MaterialManager, e.meshManager)
+	names, nameData, err := geo.NameBuild(e.MaterialManager, e.meshManager)
 	if err != nil {
-		return fmt.Errorf("writeGeometry: %w", err)
+		return fmt.Errorf("nameBuild: %w", err)
+	}
+
+	materialData, err := geo.MaterialBuild(e.version, names, e.MaterialManager)
+	if err != nil {
+		return fmt.Errorf("materialBuild: %w", err)
+	}
+
+	verticesData, err := geo.VertexBuild(e.version, names, e.meshManager)
+	if err != nil {
+		return fmt.Errorf("vertexBuild: %w", err)
+	}
+
+	triangleData, err := geo.TriangleBuild(e.version, names, e.MaterialManager, e.meshManager)
+	if err != nil {
+		return fmt.Errorf("triangleBuild: %w", err)
+	}
+
+	boneData, err := geo.BoneBuild(e.version, names, e.meshManager)
+	if err != nil {
+		return fmt.Errorf("boneBuild: %w", err)
 	}
 
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
@@ -25,13 +44,18 @@ func (e *MDS) Encode(w io.Writer) error {
 	enc.Uint32(uint32(len(nameData)))
 	enc.Uint32(uint32(e.MaterialManager.Count()))
 	enc.Uint32(uint32(e.meshManager.BoneTotalCount()))
-	enc.Uint32(0) // TODO: subCount unhandled
+	enc.Uint32(0) // subCount
 	enc.Bytes(nameData)
-	// TODO: fix  mds encoding
-
+	enc.Bytes(materialData)
+	enc.Bytes(boneData)
+	enc.Uint32(0) // mainNameIndex?
+	enc.Uint32(0) // subNameIndex?
 	enc.Uint32(uint32(e.meshManager.VertexTotalCount()))
 	enc.Uint32(uint32(e.meshManager.TriangleTotalCount()))
-	enc.Bytes(data)
+	enc.Uint32(0) //TODO: fix boneassignmentcount
+	enc.Bytes(verticesData)
+	enc.Bytes(triangleData)
+
 	err = enc.Error()
 	if err != nil {
 		return fmt.Errorf("encode: %w", err)
