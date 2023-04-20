@@ -16,11 +16,12 @@ func TestMOD_Encode(t *testing.T) {
 		t.Skip("EQ_PATH not set")
 	}
 	tests := []struct {
-		name    string
-		version uint32
-		wantErr bool
+		name      string
+		modelName string
+		version   uint32
+		wantErr   bool
 	}{
-		{name: "it13926.eqg", version: 3, wantErr: false},
+		{name: "it13926.eqg", modelName: "it13926.mod", version: 3, wantErr: false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -45,12 +46,23 @@ func TestMOD_Encode(t *testing.T) {
 					t.Fatalf("Failed to decode mod: %s", err.Error())
 				}
 
-				out := fmt.Sprintf("test/_%s/%s", tt.name, fe.Name())
-				err = os.MkdirAll(filepath.Dir(out), 0755)
+				outDir := fmt.Sprintf("test/_%s/test_data/", tt.name)
+				err = os.MkdirAll(outDir, 0755)
 				if err != nil {
 					t.Fatalf("Failed to create dir: %s", err.Error())
 				}
-				w, err := os.Create(out)
+
+				err = os.WriteFile(fmt.Sprintf("%s/%s-raw.mod", outDir, fe.Name()), fe.Data(), 0755)
+				if err != nil {
+					t.Fatalf("Failed to write file: %s", err.Error())
+				}
+
+				err = e.Decode(bytes.NewReader(fe.Data()))
+				if err != nil {
+					t.Fatalf("Failed to decode mod: %s", err.Error())
+				}
+
+				w, err := os.Create(fmt.Sprintf("%s/%s-encoded.mod", outDir, fe.Name()))
 				if err != nil {
 					t.Fatalf("Failed to create file: %s", err.Error())
 				}
@@ -60,7 +72,6 @@ func TestMOD_Encode(t *testing.T) {
 				if err != nil {
 					t.Fatalf("Failed to encode mod: %s", err.Error())
 				}
-				break
 			}
 
 		})

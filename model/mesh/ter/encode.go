@@ -18,7 +18,7 @@ func (e *TER) Encode(w io.Writer) error {
 		e.version = 2
 	}
 
-	names, nameData, err := geo.NameBuild(e.MaterialManager, e.meshManager)
+	names, nameData, err := geo.NameBuild(e.MaterialManager, e.meshManager, nil)
 	if err != nil {
 		return fmt.Errorf("nameBuild: %w", err)
 	}

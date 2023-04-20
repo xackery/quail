@@ -13,7 +13,7 @@ import (
 // Encode writes a zon file to location
 func (e *MOD) Encode(w io.Writer) error {
 	var err error
-	names, nameData, err := geo.NameBuild(e.MaterialManager, e.meshManager)
+	names, nameData, err := geo.NameBuild(e.MaterialManager, e.meshManager, nil)
 	if err != nil {
 		return fmt.Errorf("nameBuild: %w", err)
 	}

@@ -10,6 +10,7 @@ registerFileType((fileExt, filePath, fileData) => {
 });
 
 registerParser(() => {
+	addStandardHeader();
 	// Parse
 	read(4);
 	addRow('header', getStringValue(), 'header (EQTZ)');

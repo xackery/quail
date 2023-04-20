@@ -7,7 +7,7 @@ import (
 )
 
 // NameBuild prepares an EQG-styled name buffer list
-func NameBuild(matManager *MaterialManager, meshManager *MeshManager) (map[string]int32, []byte, error) {
+func NameBuild(matManager *MaterialManager, meshManager *MeshManager, miscNames []string) (map[string]int32, []byte, error) {
 	var err error
 
 	names := make(map[string]int32)
@@ -37,6 +37,30 @@ func NameBuild(matManager *MaterialManager, meshManager *MeshManager) (map[strin
 	}
 
 	for _, name := range tmpNames {
+		isNew := true
+		for key := range names {
+			if key == name {
+				isNew = false
+				break
+			}
+		}
+		if !isNew {
+			continue
+		}
+
+		names[name] = int32(nameBuf.Len())
+
+		_, err = nameBuf.Write([]byte(name))
+		if err != nil {
+			return nil, nil, fmt.Errorf("write name: %w", err)
+		}
+		_, err = nameBuf.Write([]byte{0})
+		if err != nil {
+			return nil, nil, fmt.Errorf("write 0: %w", err)
+		}
+	}
+
+	for _, name := range miscNames {
 		isNew := true
 		for key := range names {
 			if key == name {
