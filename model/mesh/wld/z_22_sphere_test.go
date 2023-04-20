@@ -4,7 +4,6 @@ import (
 	"testing"
 )
 
-// TODO: no refs
 func TestWLD_sphereRead(t *testing.T) {
 	e, err := New("test", nil)
 	if err != nil {
@@ -14,7 +13,7 @@ func TestWLD_sphereRead(t *testing.T) {
 	fragmentTests(t,
 		true, //single run stop
 		[]string{
-			"gequip.s3d",
+			"qeynos2.s3d",
 		},
 		22,           //fragCode
 		-1,           //fragIndex
