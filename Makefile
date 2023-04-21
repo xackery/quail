@@ -66,3 +66,15 @@ profile-trace:
 	@echo "profile-trace: getting trace data, this can show memory leaks and other issues..."
 	curl http://localhost:8082/debug/pprof/trace > bin/trace.out
 	go tool trace bin/trace.out
+
+
+sanitize:
+	@echo "sanitize: checking for errors"
+	rm -rf vendor/
+	go vet -tags ci ./...
+	test -z $(goimports -e -d . | tee /dev/stderr)
+	gocyclo -over 99 .
+	golint -set_exit_status $(go list -tags ci ./...)
+	staticcheck -go 1.14 ./...
+	go test -tags ci -covermode=atomic -coverprofile=coverage.out ./...
+    coverage=`go tool cover -func coverage.out | grep total | tr -s '\t' | cut -f 3 | grep -o '[^%]*'`

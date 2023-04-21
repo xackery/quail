@@ -7,7 +7,7 @@ import (
 )
 
 // NameBuild prepares an EQG-styled name buffer list
-func NameBuild(matManager *MaterialManager, meshManager *MeshManager) (map[string]int32, []byte, error) {
+func NameBuild(matManager *MaterialManager, meshManager *MeshManager, miscNames []string) (map[string]int32, []byte, error) {
 	var err error
 
 	names := make(map[string]int32)
@@ -27,6 +27,21 @@ func NameBuild(matManager *MaterialManager, meshManager *MeshManager) (map[strin
 				}
 			}
 		}
+	}
+
+	for _, name := range miscNames {
+		isNew := true
+		for key := range names {
+			if key == name {
+				isNew = false
+				break
+			}
+		}
+		if !isNew {
+			continue
+		}
+
+		tmpNames = append(tmpNames, name)
 	}
 
 	// append bones to tmpNames

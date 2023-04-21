@@ -8,12 +8,17 @@ import (
 	"github.com/xackery/encdec"
 	"github.com/xackery/quail/log"
 	"github.com/xackery/quail/model/geo"
+	"github.com/xackery/quail/tag"
 )
 
 // Encode writes a zon file to location
 func (e *MOD) Encode(w io.Writer) error {
 	var err error
-	names, nameData, err := geo.NameBuild(e.MaterialManager, e.meshManager)
+	modelNames := []string{}
+	if e.meshManager.BoneTotalCount() > 0 {
+		modelNames = append(modelNames, e.name)
+	}
+	names, nameData, err := geo.NameBuild(e.MaterialManager, e.meshManager, modelNames)
 	if err != nil {
 		return fmt.Errorf("nameBuild: %w", err)
 	}
@@ -33,11 +38,12 @@ func (e *MOD) Encode(w io.Writer) error {
 		return fmt.Errorf("triangleBuild: %w", err)
 	}
 
-	boneData, err := geo.BoneBuild(e.version, names, e.meshManager)
+	boneData, err := geo.BoneBuild(e.version, true, names, e.meshManager)
 	if err != nil {
 		return fmt.Errorf("boneBuild: %w", err)
 	}
 
+	tag.New()
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
 	enc.String("EQGM")
 	enc.Uint32(e.version)
@@ -46,11 +52,17 @@ func (e *MOD) Encode(w io.Writer) error {
 	enc.Uint32(uint32(e.meshManager.VertexTotalCount()))
 	enc.Uint32(uint32(e.meshManager.TriangleTotalCount()))
 	enc.Uint32(uint32(e.meshManager.BoneTotalCount()))
+	tag.Add(0, int(enc.Pos()-1), "red", "header")
 	enc.Bytes(nameData)
+	tag.Add(tag.LastPos(), int(enc.Pos()), "green", "names")
 	enc.Bytes(materialData)
+	tag.Add(tag.LastPos(), int(enc.Pos()), "blue", "materials")
 	enc.Bytes(verticesData)
+	tag.Add(tag.LastPos(), int(enc.Pos()), "yellow", "vertices")
 	enc.Bytes(triangleData)
+	tag.Add(tag.LastPos(), int(enc.Pos()), "purple", "triangles")
 	enc.Bytes(boneData)
+	tag.Add(tag.LastPos(), int(enc.Pos()), "orange", "bones")
 
 	err = enc.Error()
 	if err != nil {

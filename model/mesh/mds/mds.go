@@ -16,12 +16,11 @@ type MDS struct {
 	// base is the mds's base model name
 	name string
 	// path is used for relative paths when looking for flat file texture references
-	path string
-	// pfs is used as an alternative to path when loading data from a pfs file
+	path            string
+	itemName        string // Contains an origin item, seems optional, unsure where it's reffered to
 	version         uint32
 	pfs             archive.ReadWriter
 	files           []archive.Filer
-	isDecoded       bool
 	MaterialManager *geo.MaterialManager
 	meshManager     *geo.MeshManager
 	particleManager *geo.ParticleManager

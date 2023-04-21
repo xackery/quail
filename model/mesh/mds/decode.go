@@ -15,7 +15,7 @@ func (e *MDS) Decode(r io.ReadSeeker) error {
 	var err error
 	var ok bool
 
-	modelName := strings.TrimSuffix(e.name, ".ter")
+	modelName := strings.TrimSuffix(e.name, ".mds")
 
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 
@@ -28,23 +28,26 @@ func (e *MDS) Decode(r io.ReadSeeker) error {
 	nameLength := int(dec.Uint32())
 	materialCount := dec.Uint32()
 	boneCount := dec.Uint32()
-	subCount := dec.Uint32()
-	// TODO: subCount is not used?
-	_ = subCount
+	dec.Uint32() // TODO: subCount is not used?
+
 	nameData := dec.Bytes(int(nameLength))
 
 	names := make(map[uint32]string)
 	chunk := []byte{}
 	lastOffset := 0
+	lastElement := ""
 	for i, b := range nameData {
 		if b == 0 {
 			names[uint32(lastOffset)] = string(chunk)
+			lastElement = string(chunk)
 			chunk = []byte{}
 			lastOffset = i + 1
 			continue
 		}
 		chunk = append(chunk, b)
 	}
+
+	e.itemName = lastElement
 
 	log.Debugf("names: %+v", names)
 
@@ -54,7 +57,7 @@ func (e *MDS) Decode(r io.ReadSeeker) error {
 		nameOffset := dec.Uint32()
 		material.Name, ok = names[nameOffset]
 		if !ok {
-			return fmt.Errorf("material nameID %d not found", nameOffset)
+			return fmt.Errorf("material nameOffset %d not found", nameOffset)
 		}
 		shaderOffset := dec.Uint32()
 		material.ShaderName, ok = names[shaderOffset]
@@ -100,10 +103,10 @@ func (e *MDS) Decode(r io.ReadSeeker) error {
 
 	for i := 0; i < int(boneCount); i++ {
 		bone := geo.Bone{}
-		nameID := dec.Uint32()
-		bone.Name, ok = names[nameID]
+		nameOffset := dec.Uint32()
+		bone.Name, ok = names[nameOffset]
 		if !ok {
-			return fmt.Errorf("bone name %d not found", nameID)
+			return fmt.Errorf("bone name %d not found", nameOffset)
 		}
 		bone.Next = dec.Int32()
 		bone.ChildrenCount = dec.Uint32()

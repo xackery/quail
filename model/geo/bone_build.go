@@ -9,7 +9,7 @@ import (
 )
 
 // BoneBuild prepares an EQG-styled bone buffer list
-func BoneBuild(version uint32, names map[string]int32, meshManager *MeshManager) ([]byte, error) {
+func BoneBuild(version uint32, isMod bool, names map[string]int32, meshManager *MeshManager) ([]byte, error) {
 	dataBuf := bytes.NewBuffer(nil)
 	if len(meshManager.Meshes()) < 1 {
 		return nil, fmt.Errorf("no meshes found")
@@ -44,6 +44,9 @@ func BoneBuild(version uint32, names map[string]int32, meshManager *MeshManager)
 		enc.Float32(o.Scale.X)
 		enc.Float32(o.Scale.Y)
 		enc.Float32(o.Scale.Z)
+		if isMod {
+			enc.Float32(1.0)
+		}
 	}
 	return dataBuf.Bytes(), nil
 }
