@@ -7,7 +7,7 @@ require (
 	github.com/spf13/cobra v1.7.0
 	github.com/spf13/viper v1.15.0
 	github.com/xackery/colors v1.0.1
-	github.com/xackery/encdec v0.0.0-20230418021150-6c6c220cb6cc
+	github.com/xackery/encdec v0.0.7
 	golang.org/x/image v0.7.0
 )
 

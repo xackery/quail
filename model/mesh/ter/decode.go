@@ -50,7 +50,7 @@ func (e *TER) Decode(r io.ReadSeeker) error {
 		nameOffset := dec.Uint32()
 		material.Name, ok = names[nameOffset]
 		if !ok {
-			return fmt.Errorf("material nameID %d not found", nameOffset)
+			return fmt.Errorf("material nameOffset %d not found", nameOffset)
 		}
 		shaderOffset := dec.Uint32()
 		material.ShaderName, ok = names[shaderOffset]

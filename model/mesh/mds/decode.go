@@ -57,7 +57,7 @@ func (e *MDS) Decode(r io.ReadSeeker) error {
 		nameOffset := dec.Uint32()
 		material.Name, ok = names[nameOffset]
 		if !ok {
-			return fmt.Errorf("material nameID %d not found", nameOffset)
+			return fmt.Errorf("material nameOffset %d not found", nameOffset)
 		}
 		shaderOffset := dec.Uint32()
 		material.ShaderName, ok = names[shaderOffset]
@@ -103,10 +103,10 @@ func (e *MDS) Decode(r io.ReadSeeker) error {
 
 	for i := 0; i < int(boneCount); i++ {
 		bone := geo.Bone{}
-		nameID := dec.Uint32()
-		bone.Name, ok = names[nameID]
+		nameOffset := dec.Uint32()
+		bone.Name, ok = names[nameOffset]
 		if !ok {
-			return fmt.Errorf("bone name %d not found", nameID)
+			return fmt.Errorf("bone name %d not found", nameOffset)
 		}
 		bone.Next = dec.Int32()
 		bone.ChildrenCount = dec.Uint32()

@@ -20,6 +20,11 @@ func init() {
 	log.SetFlags(0)
 }
 
+// LogLevel returns the current log level, -1 = no logging, 0 = debug, 1 = info, 2 = warn, 3 = error
+func LogLevel() int {
+	return logLevel
+}
+
 // SetLogLevel sets which log level to do, -1 = no logging, 0 = debug, 1 = info, 2 = warn, 3 = error
 func SetLogLevel(level int) {
 	logLevel = level

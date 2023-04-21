@@ -9,6 +9,7 @@ import (
 )
 
 var (
+	// Version is the current version
 	Version string
 )
 

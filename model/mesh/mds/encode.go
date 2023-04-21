@@ -33,7 +33,7 @@ func (e *MDS) Encode(w io.Writer) error {
 		return fmt.Errorf("triangleBuild: %w", err)
 	}
 
-	boneData, err := geo.BoneBuild(e.version, names, e.meshManager)
+	boneData, err := geo.BoneBuild(e.version, false, names, e.meshManager)
 	if err != nil {
 		return fmt.Errorf("boneBuild: %w", err)
 	}

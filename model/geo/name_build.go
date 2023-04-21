@@ -29,14 +29,7 @@ func NameBuild(matManager *MaterialManager, meshManager *MeshManager, miscNames 
 		}
 	}
 
-	// append bones to tmpNames
-	for _, mesh := range meshManager.Meshes() {
-		for _, bone := range mesh.Bones {
-			tmpNames = append(tmpNames, bone.Name)
-		}
-	}
-
-	for _, name := range tmpNames {
+	for _, name := range miscNames {
 		isNew := true
 		for key := range names {
 			if key == name {
@@ -48,19 +41,17 @@ func NameBuild(matManager *MaterialManager, meshManager *MeshManager, miscNames 
 			continue
 		}
 
-		names[name] = int32(nameBuf.Len())
+		tmpNames = append(tmpNames, name)
+	}
 
-		_, err = nameBuf.Write([]byte(name))
-		if err != nil {
-			return nil, nil, fmt.Errorf("write name: %w", err)
-		}
-		_, err = nameBuf.Write([]byte{0})
-		if err != nil {
-			return nil, nil, fmt.Errorf("write 0: %w", err)
+	// append bones to tmpNames
+	for _, mesh := range meshManager.Meshes() {
+		for _, bone := range mesh.Bones {
+			tmpNames = append(tmpNames, bone.Name)
 		}
 	}
 
-	for _, name := range miscNames {
+	for _, name := range tmpNames {
 		isNew := true
 		for key := range names {
 			if key == name {

@@ -9,9 +9,13 @@ import (
 	"github.com/xackery/encdec"
 	"github.com/xackery/quail/log"
 	"github.com/xackery/quail/model/geo"
+	"github.com/xackery/quail/tag"
 )
 
 // Decode decodes a MOD file
+// `test`
+// example: https://github.com/Zaela/EQGModelImporter/blob/master/src/mod.cpp
+// example: zone-utilities model loader https://github.com/EQEmu/zone-utilities/blob/master/src/common/eqg_model_loader.cpp
 func (e *MOD) Decode(r io.ReadSeeker) error {
 	var err error
 	var ok bool
@@ -25,20 +29,27 @@ func (e *MOD) Decode(r io.ReadSeeker) error {
 		return fmt.Errorf("invalid header %s, wanted EQGM", header)
 	}
 
+	tag.New()
 	e.version = dec.Uint32()
+	log.Debugf("version: %d", e.version)
+
 	nameLength := int(dec.Uint32())
 	materialCount := dec.Uint32()
 	verticesCount := dec.Uint32()
 	triangleCount := dec.Uint32()
 	bonesCount := dec.Uint32()
+	tag.Add(0, int(dec.Pos()-1), "red", "header")
 	nameData := dec.Bytes(int(nameLength))
+	tag.Add(tag.LastPos(), dec.Pos(), "green", "names")
 
 	names := make(map[uint32]string)
+	modelNames := []string{}
 	chunk := []byte{}
 	lastOffset := 0
 	for i, b := range nameData {
 		if b == 0 {
 			names[uint32(lastOffset)] = string(chunk)
+			modelNames = append(modelNames, string(chunk))
 			chunk = []byte{}
 			lastOffset = i + 1
 			continue
@@ -48,14 +59,16 @@ func (e *MOD) Decode(r io.ReadSeeker) error {
 
 	log.Debugf("names: %+v", names)
 
+	nameCounter := 0
 	for i := 0; i < int(materialCount); i++ {
 		material := geo.Material{}
 		material.ID = dec.Int32()
 		log.Debugf("material %d", material.ID)
 		nameOffset := dec.Uint32()
+		nameCounter++
 		material.Name, ok = names[nameOffset]
 		if !ok {
-			return fmt.Errorf("material nameID %d not found", nameOffset)
+			return fmt.Errorf("material nameOffset %d not found", nameOffset)
 		}
 		shaderOffset := dec.Uint32()
 		material.ShaderName, ok = names[shaderOffset]
@@ -74,6 +87,7 @@ func (e *MOD) Decode(r io.ReadSeeker) error {
 			}
 
 			propertyNameOffset := dec.Uint32()
+			nameCounter++
 			property.Name, ok = names[propertyNameOffset]
 			if !ok {
 				return fmt.Errorf("material property name not found")
@@ -84,6 +98,7 @@ func (e *MOD) Decode(r io.ReadSeeker) error {
 				property.Value = fmt.Sprintf("%0.3f", dec.Float32())
 			} else {
 				val := dec.Uint32()
+				nameCounter++
 				if property.Category == 2 {
 					property.Value, ok = names[val]
 					if !ok {
@@ -100,7 +115,20 @@ func (e *MOD) Decode(r io.ReadSeeker) error {
 			}
 		}
 	}
+	tag.Add(tag.LastPos(), dec.Pos(), "blue", "materials")
 
+	// TODO: figure out where the bone identifier is at without this nameCounter hack
+	if bonesCount > 0 {
+		if nameCounter < 2 {
+			nameCounter = 0
+		}
+
+		if len(modelNames) < nameCounter-2 {
+			return fmt.Errorf("invalid model name count")
+		}
+		e.name = modelNames[nameCounter-2]
+	}
+	log.Debugf("model name: %s", e.name)
 	for i := 0; i < int(verticesCount); i++ {
 		v := geo.Vertex{}
 		v.Position.X = dec.Float32()
@@ -129,6 +157,7 @@ func (e *MOD) Decode(r io.ReadSeeker) error {
 			return fmt.Errorf("vertex add: %w", err)
 		}
 	}
+	tag.Add(tag.LastPos(), dec.Pos(), "yellow", "vertices")
 
 	for i := 0; i < int(triangleCount); i++ {
 		t := geo.Triangle{}
@@ -146,13 +175,15 @@ func (e *MOD) Decode(r io.ReadSeeker) error {
 		t.Flag = dec.Uint32()
 		e.meshManager.TriangleAdd(modelName, t)
 	}
+	tag.Add(tag.LastPos(), dec.Pos(), "purple", "triangles")
 
 	for i := 0; i < int(bonesCount); i++ {
 		bone := geo.Bone{}
-		nameID := dec.Uint32()
-		bone.Name, ok = names[nameID]
+		nameOffset := dec.Uint32()
+		bone.Name, ok = names[nameOffset]
+		log.Debugf("decoding bone %d/%d %d=%s", i, bonesCount, nameOffset, bone.Name)
 		if !ok {
-			return fmt.Errorf("bone name %d not found", nameID)
+			return fmt.Errorf("bone name %d not found", nameOffset)
 		}
 		bone.Next = dec.Int32()
 		bone.ChildrenCount = dec.Uint32()
@@ -166,12 +197,14 @@ func (e *MOD) Decode(r io.ReadSeeker) error {
 		bone.Scale.X = dec.Float32()
 		bone.Scale.Y = dec.Float32()
 		bone.Scale.Z = dec.Float32()
+		dec.Float32() // TODO: store this? what is this, 1.00
 
 		err = e.meshManager.BoneAdd(modelName, bone)
 		if err != nil {
 			return fmt.Errorf("bone add: %w", err)
 		}
 	}
+	tag.Add(tag.LastPos(), dec.Pos(), "orange", "bones")
 
 	if dec.Error() != nil {
 		return fmt.Errorf("decode: %w", dec.Error())
