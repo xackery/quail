@@ -4,7 +4,6 @@ import (
 	"testing"
 )
 
-// TODO: no refs
 func TestWLD_worldTreeRead(t *testing.T) {
 	e, err := New("test", nil)
 	if err != nil {
@@ -14,7 +13,7 @@ func TestWLD_worldTreeRead(t *testing.T) {
 	fragmentTests(t,
 		true, //single run stop
 		[]string{
-			"gequip.s3d",
+			"acrylia.s3d",
 		},
 		33,              //fragCode
 		-1,              //fragIndex
