@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-// TODO: no refs
+// TODO: no refs used in any s3d - Tacc
 func TestWLD_soundRead(t *testing.T) {
 	e, err := New("test", nil)
 	if err != nil {
@@ -14,7 +14,7 @@ func TestWLD_soundRead(t *testing.T) {
 	fragmentTests(t,
 		true, //single run stop
 		[]string{
-			"gequip.s3d",
+			"yxtta_obj.s3d",
 		},
 		32,          //fragCode
 		-1,          //fragIndex
