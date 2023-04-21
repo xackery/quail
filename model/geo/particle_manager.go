@@ -129,7 +129,7 @@ func (e *ParticleManager) ReadFile(pointPath string, renderPath string) error {
 			UnknownB: helper.AtoU32(parts[5]),
 			//UnknownFFFFFFFF: helper.AtoU32(parts[6]),
 		})
-		return fmt.Errorf("todo: blender import fix for particles")
+		return fmt.Errorf("TODO: blender import fix for particles")
 	}
 	r.Close()
 

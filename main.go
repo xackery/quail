@@ -19,6 +19,6 @@ func main() {
 		fmt.Printf("quail %s\n", Version)
 	}
 	log.SetLogLevel(1)
-	log.LogToFile()
+	//log.LogToFile()
 	cmd.Execute()
 }
