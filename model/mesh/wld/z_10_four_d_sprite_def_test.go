@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-// TODO: no refs
+// TODO: no refs used in any s3d - Tacc
 func TestWLD_fourDSpriteDefRead(t *testing.T) {
 	e, err := New("test", nil)
 	if err != nil {
@@ -14,7 +14,7 @@ func TestWLD_fourDSpriteDefRead(t *testing.T) {
 	fragmentTests(t,
 		true, //single run stop
 		[]string{
-			"gfaydark.s3d",
+			"yxtta_obj.s3d",
 		},
 		10,                   //fragCode
 		-1,                   //fragIndex
