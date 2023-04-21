@@ -4,7 +4,6 @@ import (
 	"testing"
 )
 
-// TODO: no refs
 func TestWLD_regionRead(t *testing.T) {
 	e, err := New("test", nil)
 	if err != nil {
@@ -14,7 +13,7 @@ func TestWLD_regionRead(t *testing.T) {
 	fragmentTests(t,
 		true, //single run stop
 		[]string{
-			"gfaydark.s3d",
+			"abysmal.s3d",
 		},
 		34,           //fragCode
 		-1,           //fragIndex
