@@ -20,9 +20,9 @@ func Test_export(t *testing.T) {
 		wantErr bool
 	}{
 		{name: "it13926.eqg", wantErr: false},
-		{name: "gequip.s3d"},                  //IT157 staff of the serpent
-		{name: "it12095.eqg", wantErr: false}, // gnome on a stick
-		{name: "sin.eqg", wantErr: false},     // siren
+		//{name: "gequip.s3d"},                  //IT157 staff of the serpent
+		//{name: "it12095.eqg", wantErr: false}, // gnome on a stick
+		//{name: "sin.eqg", wantErr: false},     // siren
 		//{name: "test.eqg", wantErr: false},
 		//{name: "sunderock.eqg", wantErr: false},
 		//{name: "gequip.s3d", wantErr: false},

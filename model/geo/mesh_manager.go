@@ -331,8 +331,8 @@ func (e *MeshManager) vertexRead(path string, mesh *Mesh) error {
 			Uv2:      AtoVector2(parts[3]),
 			Tint:     AtoRGBA(parts[4]),
 		}
-		vert.Position = Vector3{X: vert.Position.Y, Y: -vert.Position.X, Z: vert.Position.Z}
-		vert.Normal = Vector3{X: vert.Normal.Y, Y: -vert.Normal.X, Z: vert.Normal.Z}
+		vert.Position = Vector3{X: -vert.Position.Y, Y: vert.Position.X, Z: vert.Position.Z}
+		vert.Normal = Vector3{X: -vert.Normal.Y, Y: vert.Normal.X, Z: vert.Normal.Z}
 
 		mesh.Vertices = append(mesh.Vertices, vert)
 	}
