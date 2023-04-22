@@ -11,26 +11,31 @@ import (
 
 // ObjectManager is an object manager
 type ObjectManager struct {
-	objects []*Object
+	objects []Object
+}
+
+// NewObjectManager creates a new object manager
+func NewObjectManager() *ObjectManager {
+	return &ObjectManager{}
 }
 
 // Object returns an object by name
-func (e *ObjectManager) Object(name string) (*Object, bool) {
+func (e *ObjectManager) Object(name string) (Object, bool) {
 	for _, object := range e.objects {
 		if object.Name == name {
 			return object, true
 		}
 	}
-	return nil, false
+	return Object{}, false
 }
 
-// WriteFile writes all materials to a file
-func (e *ObjectManager) WriteFile(object_path string) error {
+// BlenderExport writes all materials to a file
+func (e *ObjectManager) BlenderExport(objectPath string) error {
 
 	if len(e.objects) > 0 {
-		ow, err := os.Create(object_path)
+		ow, err := os.Create(objectPath)
 		if err != nil {
-			return fmt.Errorf("create file %s: %w", object_path, err)
+			return fmt.Errorf("create file %s: %w", objectPath, err)
 		}
 		defer ow.Close()
 		object := &Object{}
@@ -51,10 +56,10 @@ func (e *ObjectManager) WriteFile(object_path string) error {
 }
 
 // ReadFile reads all objects from a file
-func (e *ObjectManager) ReadFile(object_path string) error {
-	r, err := os.Open(object_path)
+func (e *ObjectManager) ReadFile(objectPath string) error {
+	r, err := os.Open(objectPath)
 	if err != nil {
-		return fmt.Errorf("open %s: %w", object_path, err)
+		return fmt.Errorf("open %s: %w", objectPath, err)
 	}
 	defer r.Close()
 	scanner := bufio.NewScanner(r)
@@ -72,8 +77,7 @@ func (e *ObjectManager) ReadFile(object_path string) error {
 		if len(parts) < 3 {
 			return fmt.Errorf("invalid triangle.txt (expected 4 records) line %d: %s", lineNumber, line)
 		}
-
-		e.objects = append(e.objects, &Object{
+		obj := Object{
 			Name:      parts[0],
 			ModelName: parts[1],
 			Position:  AtoVector3(parts[2]),
@@ -81,7 +85,8 @@ func (e *ObjectManager) ReadFile(object_path string) error {
 			Scale:     helper.AtoF32(parts[4]),
 			FileType:  parts[5],
 			FileName:  parts[6],
-		})
+		}
+		e.objects = append(e.objects, obj)
 	}
 	r.Close()
 
@@ -89,7 +94,7 @@ func (e *ObjectManager) ReadFile(object_path string) error {
 }
 
 // Add adds an object to the manager
-func (e *ObjectManager) Add(object *Object) {
+func (e *ObjectManager) Add(object Object) {
 	e.objects = append(e.objects, object)
 }
 
@@ -102,7 +107,7 @@ func (e *ObjectManager) Inspect() {
 }
 
 // Objects returns all objects
-func (e *ObjectManager) Objects() []*Object {
+func (e *ObjectManager) Objects() []Object {
 	return e.objects
 }
 

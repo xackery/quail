@@ -14,9 +14,10 @@ func TestS3DDecode(t *testing.T) {
 		t.Skip("EQ_PATH not set")
 	}
 
-	eqgFile := fmt.Sprintf("%s/shp_chr.s3d", eqPath)
+	name := "shp_chr.s3d"
+	eqgFile := fmt.Sprintf("%s/%s", eqPath, name)
 	dump.New(eqgFile)
-	defer dump.WriteFileClose(eqgFile)
+	defer dump.WriteFileClose("test/" + name)
 	e, err := NewFile(eqgFile)
 	if err != nil {
 		t.Fatalf("new: %s", err)

@@ -13,7 +13,7 @@ func (e *PTS) BlenderExport(dir string) error {
 		return fmt.Errorf("create dir %s: %w", path, err)
 	}
 
-	err = e.particleManager.WriteFile(fmt.Sprintf("%s/particle_point.txt", path), fmt.Sprintf("%s/particle_render.txt", path))
+	err = e.particleManager.BlenderExport(path)
 	if err != nil {
 		return fmt.Errorf("particleManager.WriteFile: %w", err)
 	}

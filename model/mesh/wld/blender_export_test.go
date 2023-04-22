@@ -32,7 +32,7 @@ func TestWLD_BlenderExport(t *testing.T) {
 
 			pfs, err := s3d.NewFile(path)
 			if err != nil {
-				t.Fatalf("failed to open s3d file: %s", err.Error())
+				t.Fatalf("Failed to open s3d file: %s", err.Error())
 			}
 
 			for _, fe := range pfs.Files() {
@@ -41,12 +41,12 @@ func TestWLD_BlenderExport(t *testing.T) {
 				}
 				e, err := New(baseName+".wld", pfs)
 				if err != nil {
-					t.Fatalf("failed to create wld: %s", err.Error())
+					t.Fatalf("Failed to create wld: %s", err.Error())
 				}
 
 				err = e.Decode(bytes.NewReader(fe.Data()))
 				if err != nil {
-					t.Fatalf("failed to decode wld: %s", err.Error())
+					t.Fatalf("Failed to decode wld: %s", err.Error())
 				}
 
 				if err := e.BlenderExport(tt.dstDir); (err != nil) != tt.wantErr {

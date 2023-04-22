@@ -3,13 +3,11 @@ module github.com/xackery/quail
 go 1.20
 
 require (
-	github.com/malashin/dds v0.0.0-20190511100755-ab62708f5fe5
 	github.com/mitchellh/go-homedir v1.1.0
-	github.com/sergeymakinen/go-bmp v1.0.0-beta.1
 	github.com/spf13/cobra v1.7.0
 	github.com/spf13/viper v1.15.0
 	github.com/xackery/colors v1.0.1
-	github.com/xackery/go-zlib v1.1.2-0.20220114180313-3fb65525737c
+	github.com/xackery/encdec v0.0.7
 	golang.org/x/image v0.7.0
 )
 

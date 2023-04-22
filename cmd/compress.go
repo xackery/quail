@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -115,7 +114,8 @@ func compressEQG(path string, out string) error {
 			continue
 		}
 		fileCount++
-		data, err := ioutil.ReadFile(fmt.Sprintf("%s/%s", path, file.Name()))
+
+		data, err := os.ReadFile(fmt.Sprintf("%s/%s", path, file.Name()))
 		if err != nil {
 			return fmt.Errorf("read %s: %w", file.Name(), err)
 		}
@@ -172,7 +172,7 @@ func compressS3D(path string, out string) error {
 			continue
 		}
 		fileCount++
-		data, err := ioutil.ReadFile(fmt.Sprintf("%s/%s", path, file.Name()))
+		data, err := os.ReadFile(fmt.Sprintf("%s/%s", path, file.Name()))
 		if err != nil {
 			return fmt.Errorf("read %s: %w", file.Name(), err)
 		}

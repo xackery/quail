@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/xackery/quail/log"
 	"github.com/xackery/quail/model/geo"
 	"github.com/xackery/quail/model/mesh/mds"
 	"github.com/xackery/quail/model/mesh/mod"
@@ -18,10 +19,10 @@ type ZON struct {
 	name          string
 	version       uint32
 	pfs           archive.ReadWriter
-	models        []*model
+	models        []model
 	objectManager *geo.ObjectManager
-	regions       []*region
-	lights        []*light
+	regions       []region
+	lights        []light
 
 	terrains []*ter.TER
 	mdses    []*mds.MDS
@@ -35,15 +36,15 @@ type model struct {
 
 type region struct {
 	name    string
-	center  *geo.Vector3
-	unknown *geo.Vector3
-	extent  *geo.Vector3
+	center  geo.Vector3
+	unknown geo.Vector3
+	extent  geo.Vector3
 }
 
 type light struct {
 	name     string
-	position *geo.Vector3
-	color    *geo.Vector3
+	position geo.Vector3
+	color    geo.Vector3
 	radius   float32
 }
 
@@ -56,7 +57,7 @@ func New(name string, pfs archive.ReadWriter) (*ZON, error) {
 	z := &ZON{
 		name:          name,
 		pfs:           pfs,
-		objectManager: &geo.ObjectManager{},
+		objectManager: geo.NewObjectManager(),
 	}
 	return z, nil
 }
@@ -64,8 +65,9 @@ func New(name string, pfs archive.ReadWriter) (*ZON, error) {
 // NewFile creates a new instance and loads provided file
 func NewFile(name string, pfs archive.ReadWriter, file string) (*ZON, error) {
 	e := &ZON{
-		name: name,
-		pfs:  pfs,
+		name:          name,
+		pfs:           pfs,
+		objectManager: geo.NewObjectManager(),
 	}
 	data, err := pfs.File(file)
 	if err != nil {
@@ -86,7 +88,7 @@ func (e *ZON) Data() []byte {
 	w := bytes.NewBuffer(nil)
 	err := e.Encode(w)
 	if err != nil {
-		fmt.Println("failed to encode zon data:", err)
+		log.Errorf("Failed to encode zon data: %s", err)
 		os.Exit(1)
 	}
 	return w.Bytes()
@@ -101,29 +103,14 @@ func (e *ZON) ModelNames() []string {
 	return names
 }
 
-func (e *ZON) Regions() []*region {
+func (e *ZON) Regions() []region {
 	return e.regions
 }
 
-func (e *ZON) Lights() []*light {
+func (e *ZON) Lights() []light {
 	return e.lights
 }
 
-func (e *ZON) Models() []*model {
+func (e *ZON) Models() []model {
 	return e.models
-}
-
-func (e *ZON) SetLayers(layers []*geo.Layer) error {
-	fmt.Println("TODO: set layers via zon")
-	return nil
-}
-
-func (e *ZON) SetParticleRenders(particles []*geo.ParticleRender) error {
-	fmt.Println("TODO: set particles via zon")
-	return nil
-}
-
-func (e *ZON) SetParticlePoints(particles []*geo.ParticlePoint) error {
-	fmt.Println("TODO: set particles via zon")
-	return nil
 }

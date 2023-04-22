@@ -14,6 +14,11 @@ type MeshManager struct {
 	meshes []*Mesh
 }
 
+// NewMeshManager creates a new mesh manager
+func NewMeshManager() *MeshManager {
+	return &MeshManager{}
+}
+
 // Mesh returns a mesh by name
 func (e *MeshManager) Mesh(name string) (*Mesh, bool) {
 	for _, mesh := range e.meshes {
@@ -24,8 +29,8 @@ func (e *MeshManager) Mesh(name string) (*Mesh, bool) {
 	return nil, false
 }
 
-// WriteFile writes all materials to a file
-func (e *MeshManager) WriteFile(dir string) error {
+// BlenderExport writes all materials to a file
+func (e *MeshManager) BlenderExport(dir string) error {
 	if len(e.meshes) > 0 {
 		mw, err := os.Create(fmt.Sprintf("%s/mesh.txt", dir))
 		if err != nil {
@@ -46,11 +51,12 @@ func (e *MeshManager) WriteFile(dir string) error {
 	}
 
 	for _, mesh := range e.meshes {
+		meshName := strings.TrimSuffix(mesh.Name, "_DMSPRITEDEF")
 		if len(mesh.Triangles) > 0 {
-			triangle_path := fmt.Sprintf("%s/%s_triangle.txt", dir, mesh.Name)
-			mw, err := os.Create(triangle_path)
+			trianglePath := fmt.Sprintf("%s/%s_triangle.txt", dir, meshName)
+			mw, err := os.Create(trianglePath)
 			if err != nil {
-				return fmt.Errorf("create file %s: %w", triangle_path, err)
+				return fmt.Errorf("create file %s: %w", trianglePath, err)
 			}
 			defer mw.Close()
 			triangle := &Triangle{}
@@ -68,10 +74,10 @@ func (e *MeshManager) WriteFile(dir string) error {
 		}
 
 		if len(mesh.Vertices) > 0 {
-			vertex_path := fmt.Sprintf("%s/%s_vertex.txt", dir, mesh.Name)
-			pw, err := os.Create(vertex_path)
+			vertexPath := fmt.Sprintf("%s/%s_vertex.txt", dir, meshName)
+			pw, err := os.Create(vertexPath)
 			if err != nil {
-				return fmt.Errorf("create file %s: %w", vertex_path, err)
+				return fmt.Errorf("create file %s: %w", vertexPath, err)
 			}
 			defer pw.Close()
 			vertex := &Vertex{}
@@ -88,10 +94,10 @@ func (e *MeshManager) WriteFile(dir string) error {
 		}
 
 		if len(mesh.Bones) > 0 {
-			bone_path := fmt.Sprintf("%s/%s_bone.txt", dir, mesh.Name)
-			bw, err := os.Create(bone_path)
+			bonePath := fmt.Sprintf("%s/%s_bone.txt", dir, meshName)
+			bw, err := os.Create(bonePath)
 			if err != nil {
-				return fmt.Errorf("create file %s: %w", bone_path, err)
+				return fmt.Errorf("create file %s: %w", bonePath, err)
 			}
 			defer bw.Close()
 			bone := &Bone{}
@@ -108,13 +114,13 @@ func (e *MeshManager) WriteFile(dir string) error {
 		}
 
 		if len(mesh.Animations) > 0 {
-			animation_path := fmt.Sprintf("%s/%s_animation.txt", dir, mesh.Name)
-			bw, err := os.Create(animation_path)
+			animationPath := fmt.Sprintf("%s/%s_animation.txt", dir, meshName)
+			bw, err := os.Create(animationPath)
 			if err != nil {
-				return fmt.Errorf("create file %s: %w", animation_path, err)
+				return fmt.Errorf("create file %s: %w", animationPath, err)
 			}
 			defer bw.Close()
-			anim := &BoneAnimation{}
+			anim := BoneAnimation{}
 			err = anim.WriteHeader(bw)
 			if err != nil {
 				return fmt.Errorf("write bone animation header: %w", err)
@@ -134,33 +140,33 @@ func (e *MeshManager) WriteFile(dir string) error {
 // ReadFile reads a material file
 func (e *MeshManager) ReadFile(dir string) error {
 	var err error
-	mesh_path := fmt.Sprintf("%s/mesh.txt", dir)
-	err = e.meshRead(mesh_path)
+	meshPath := fmt.Sprintf("%s/mesh.txt", dir)
+	err = e.meshRead(meshPath)
 	if err != nil {
-		return fmt.Errorf("read mesh: %w", err)
+		return fmt.Errorf("meshRead: %w", err)
 	}
 
 	for _, mesh := range e.meshes {
-		triangle_path := fmt.Sprintf("%s/%s_triangle.txt", dir, mesh.Name)
-		err = e.triangleRead(triangle_path, mesh)
+		trianglePath := fmt.Sprintf("%s/%s_triangle.txt", dir, mesh.Name)
+		err = e.triangleRead(trianglePath, mesh)
 		if err != nil {
 			return fmt.Errorf("read triangle: %w", err)
 		}
 
-		vertex_path := fmt.Sprintf("%s/%s_vertex.txt", dir, mesh.Name)
-		err = e.vertexRead(vertex_path, mesh)
+		vertexPath := fmt.Sprintf("%s/%s_vertex.txt", dir, mesh.Name)
+		err = e.vertexRead(vertexPath, mesh)
 		if err != nil {
 			return fmt.Errorf("read vertex: %w", err)
 		}
 
-		bone_path := fmt.Sprintf("%s/%s_bone.txt", dir, mesh.Name)
-		err = e.boneRead(bone_path, mesh)
+		bonePath := fmt.Sprintf("%s/%s_bone.txt", dir, mesh.Name)
+		err = e.boneRead(bonePath, mesh)
 		if err != nil {
 			return fmt.Errorf("read bone: %w", err)
 		}
 
-		animation_path := fmt.Sprintf("%s/%s_animation.txt", dir, mesh.Name)
-		err = e.animationRead(animation_path, mesh)
+		animationPath := fmt.Sprintf("%s/%s_animation.txt", dir, mesh.Name)
+		err = e.animationRead(animationPath, mesh)
 		if err != nil {
 			return fmt.Errorf("read animation: %w", err)
 		}
@@ -169,7 +175,7 @@ func (e *MeshManager) ReadFile(dir string) error {
 }
 
 // VertexAdd adds a vertex to the mesh manager
-func (e *MeshManager) VertexAdd(meshName string, vertex *Vertex) error {
+func (e *MeshManager) VertexAdd(meshName string, vertex Vertex) error {
 	mesh, ok := e.Mesh(meshName)
 	if !ok {
 		mesh = &Mesh{Name: meshName}
@@ -180,33 +186,20 @@ func (e *MeshManager) VertexAdd(meshName string, vertex *Vertex) error {
 }
 
 // TriangleAdd adds a triangle to the mesh manager
-func (e *MeshManager) TriangleAdd(meshName string, index *UIndex3, materialName string, flag uint32) error {
+func (e *MeshManager) TriangleAdd(meshName string, triangle Triangle) error {
 	mesh, ok := e.Mesh(meshName)
 	if !ok {
 		mesh = &Mesh{Name: meshName}
 		e.Add(mesh)
 	}
 
-	materialName = strings.ToLower(materialName)
-	if materialName == "" || strings.HasPrefix(materialName, "empty_") {
-		mesh.Triangles = append(mesh.Triangles, &Triangle{
-			Index:        index,
-			MaterialName: materialName,
-			Flag:         flag,
-		})
-		return nil
-	}
-
-	mesh.Triangles = append(mesh.Triangles, &Triangle{
-		Index:        index,
-		MaterialName: materialName,
-		Flag:         flag,
-	})
+	triangle.MaterialName = strings.ToLower(triangle.MaterialName)
+	mesh.Triangles = append(mesh.Triangles, triangle)
 	return nil
 }
 
 // BoneAdd adds a bone to the mesh manager
-func (e *MeshManager) BoneAdd(meshName string, bone *Bone) error {
+func (e *MeshManager) BoneAdd(meshName string, bone Bone) error {
 	mesh, ok := e.Mesh(meshName)
 	if !ok {
 		mesh = &Mesh{Name: meshName}
@@ -297,7 +290,7 @@ func (e *MeshManager) triangleRead(path string, mesh *Mesh) error {
 			return fmt.Errorf("invalid triangle.txt (expected 4 records) line %d: %s", lineNumber, line)
 		}
 
-		mesh.Triangles = append(mesh.Triangles, &Triangle{
+		mesh.Triangles = append(mesh.Triangles, Triangle{
 			Index:        AtoUIndex3(parts[0]),
 			Flag:         helper.AtoU32(parts[1]),
 			MaterialName: parts[2],
@@ -331,15 +324,15 @@ func (e *MeshManager) vertexRead(path string, mesh *Mesh) error {
 		if len(parts) < 5 {
 			return fmt.Errorf("invalid vertex.txt (expected 5 records) line %d: %s", lineNumber, line)
 		}
-		vert := &Vertex{
+		vert := Vertex{
 			Position: AtoVector3(parts[0]),
 			Normal:   AtoVector3(parts[1]),
 			Uv:       AtoVector2(parts[2]),
 			Uv2:      AtoVector2(parts[3]),
 			Tint:     AtoRGBA(parts[4]),
 		}
-		vert.Position = &Vector3{X: vert.Position.Y, Y: -vert.Position.X, Z: vert.Position.Z}
-		vert.Normal = &Vector3{X: vert.Normal.Y, Y: -vert.Normal.X, Z: vert.Normal.Z}
+		vert.Position = Vector3{X: -vert.Position.Y, Y: vert.Position.X, Z: vert.Position.Z}
+		vert.Normal = Vector3{X: -vert.Normal.Y, Y: vert.Normal.X, Z: vert.Normal.Z}
 
 		mesh.Vertices = append(mesh.Vertices, vert)
 	}
@@ -372,7 +365,7 @@ func (e *MeshManager) boneRead(path string, mesh *Mesh) error {
 		if len(parts) < 7 {
 			return fmt.Errorf("invalid bone.txt (expected 7 records) line %d: %s", lineNumber, line)
 		}
-		mesh.Bones = append(mesh.Bones, &Bone{
+		mesh.Bones = append(mesh.Bones, Bone{
 			Name:          parts[0],
 			ChildIndex:    helper.AtoI32(parts[1]),
 			ChildrenCount: helper.AtoU32(parts[2]),
@@ -439,4 +432,39 @@ func (e *MeshManager) meshRead(path string) error {
 		e.meshes = append(e.meshes, &Mesh{Name: line})
 	}
 	return nil
+}
+
+// Meshes returns a pointer to the meshes slice.
+func (e *MeshManager) Meshes() []*Mesh {
+	return e.meshes
+}
+
+// TriangleTotalCount returns the total triangle count
+func (e *MeshManager) TriangleTotalCount() int {
+	total := 0
+
+	for _, mesh := range e.meshes {
+		total += len(mesh.Triangles)
+	}
+	return total
+}
+
+// VertexTotalCount returns the total vertex count
+func (e *MeshManager) VertexTotalCount() int {
+	total := 0
+
+	for _, mesh := range e.meshes {
+		total += len(mesh.Vertices)
+	}
+	return total
+}
+
+// BoneTotalCount returns the total bone count
+func (e *MeshManager) BoneTotalCount() int {
+	total := 0
+
+	for _, mesh := range e.meshes {
+		total += len(mesh.Bones)
+	}
+	return total
 }

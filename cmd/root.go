@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
+	"github.com/xackery/quail/log"
 
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/viper"
@@ -16,7 +17,7 @@ var cfgFile string
 var rootCmd = &cobra.Command{
 	Use:   "quail",
 	Short: "Ever[Q]uest [U]niversal [A]rchive, [I]mport, and [L]oader system",
-	Long: `An Ever[Q]uest [U]niversal [A]rchive, [I]mport, and [L]oader system. 
+	Long: `An Ever[Q]uest [U]niversal [A]rchive, [I]mport, and [L]oader system.
   - .ani animation files (inspect)
   - .eqg pfs archives (compress, extract, inspect)
   - .mod model files (inspect)
@@ -40,15 +41,24 @@ func init() {
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.
 
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.quail.yaml)")
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "Config file (default is $HOME/.quail.yaml)")
+	rootCmd.PersistentFlags().BoolP("verbose", "v", false, "Enable verbose debugging")
 
-	// Cobra also supports local flags, which will only run
-	// when this action is called directly.
-	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
 // initConfig reads in config file and ENV variables if set.
 func initConfig() {
+	isVerbose, err := rootCmd.Flags().GetBool("verbose")
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	if isVerbose {
+		log.SetLogLevel(0)
+		log.Debugf("Verbose logging enabled")
+	}
+
 	if cfgFile != "" {
 		// Use config file from the flag.
 		viper.SetConfigFile(cfgFile)

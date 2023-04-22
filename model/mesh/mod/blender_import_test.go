@@ -30,7 +30,7 @@ func TestMOD_BlenderImport(t *testing.T) {
 			eqPath := fmt.Sprintf("%s/%s", eqPath, tt.name)
 			pfs, err := eqg.NewFile(eqPath)
 			if err != nil {
-				t.Fatalf("failed to open eqg: %s", err.Error())
+				t.Fatalf("Failed to open eqg: %s", err.Error())
 			}
 			baseName := filepath.Base(tt.name)
 			baseName = baseName[:len(baseName)-4]
@@ -47,22 +47,22 @@ func TestMOD_BlenderImport(t *testing.T) {
 				break
 			}
 			if !isFound {
-				t.Fatalf("failed to find %s in eqg", modName)
+				t.Fatalf("Failed to find %s in eqg", modName)
 			}
 
 			e, err := New(modName, nil)
 			if err != nil {
-				t.Fatalf("failed to create mod: %s", err.Error())
+				t.Fatalf("Failed to create mod: %s", err.Error())
 			}
 
 			err = e.Decode(bytes.NewReader(data))
 			if err != nil {
-				t.Fatalf("failed to decode mod: %s", err.Error())
+				t.Fatalf("Failed to decode mod: %s", err.Error())
 			}
 
 			err = e.BlenderExport(tt.srcDir)
 			if err != nil {
-				t.Fatalf("failed to blender export mod: %s", err.Error())
+				t.Fatalf("Failed to blender export mod: %s", err.Error())
 			}
 
 			err = e.BlenderImport(tt.srcDir + "/_" + modName)
@@ -72,15 +72,13 @@ func TestMOD_BlenderImport(t *testing.T) {
 
 			e.version = 3
 
-			fmt.Println(e)
-
 			w, err := os.Create(tt.dstDir)
 			if err != nil {
-				t.Fatalf("failed to create file: %s", err.Error())
+				t.Fatalf("Failed to create file: %s", err.Error())
 			}
 			err = e.Encode(w)
 			if err != nil {
-				t.Fatalf("failed to encode mod: %s", err.Error())
+				t.Fatalf("Failed to encode mod: %s", err.Error())
 			}
 			w.Close()
 

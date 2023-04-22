@@ -132,7 +132,7 @@ var debugCmd = &cobra.Command{
 			return nil
 		}
 
-		return fmt.Errorf("failed to debug: unknown extension %s on file %s", ext, filepath.Base(path))
+		return fmt.Errorf("debug: unknown extension %s on file %s", ext, filepath.Base(path))
 	},
 }
 
@@ -223,7 +223,7 @@ func dumpDecode(r io.ReadSeeker, ext string, path string, out string) error {
 		dump.New(path)
 		err = v.instance.Decode(r)
 		if err != nil {
-			return fmt.Errorf("failed to decode %s: %w", v.extension, err)
+			return fmt.Errorf("decode %s: %w", v.extension, err)
 		}
 		dump.WriteFileClose(fmt.Sprintf("%s.png", out))
 		return nil

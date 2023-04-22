@@ -8,16 +8,21 @@
     "go.testEnvFile": "${workspaceFolder}/.env",
     "workbench.editorAssociations": {
         "*.hex": "hexEditor.hexedit",
-        "*.eqg": "binary-file-viewer.viewer",
+        "*.eqg": "hexEditor.hexedit", //"binary-file-viewer.viewer",
         "*.s3d": "hexEditor.hexedit",
-        "*.mod": "binary-file-viewer.viewer",
-        "*.mds": "binary-file-viewer.viewer",
-        "*.ter": "binary-file-viewer.viewer",
-        "*.zon": "binary-file-viewer.viewer",
+        "*.mod": "hexEditor.hexedit", //"binary-file-viewer.viewer",
+        "*.mds": "hexEditor.hexedit", //"binary-file-viewer.viewer",
+        "*.ter": "hexEditor.hexedit", //"binary-file-viewer.viewer",
+        "*.zon": "hexEditor.hexedit", //"binary-file-viewer.viewer",
         "*.pprof": "easyview.view",
     },
     "files.trimTrailingWhitespace": true,
     "binary-file-viewer.parserFolders": [
-        "/src/quail/.vscode/parsers/"
-    ]
+        ".vscode/parsers"
+    ],
+    "search.exclude": {
+        "**/.git": true,
+        "**/test_data": true,
+    },
+    "window.title": "quail"
 }

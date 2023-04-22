@@ -25,7 +25,7 @@ func Test_import(t *testing.T) {
 			//if err := import_blender(&cobra.Command{}, []string{fmt.Sprintf("%s/%s", eqPath, tt.name), "test/out/"}); (err != nil) != tt.wantErr {
 			//	t.Errorf("import() error = %v, wantErr %v", err, tt.wantErr)
 			//}
-			err := import_blender(&cobra.Command{}, []string{fmt.Sprintf("%s/_%s", "test", tt.name), fmt.Sprintf("test/%s", tt.name)})
+			err := import_blender(&cobra.Command{}, []string{fmt.Sprintf("%s/out/_%s", "test", tt.name), fmt.Sprintf("test/%s", tt.name)})
 			if err != nil {
 				t.Errorf("import() error = %v, wantErr %v", err, tt.wantErr)
 			}

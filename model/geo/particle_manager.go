@@ -11,16 +11,22 @@ import (
 
 // ParticleManager is a particle manager
 type ParticleManager struct {
-	renders []*ParticleRender
-	points  []*ParticlePoint
+	renders []ParticleRender
+	points  []ParticlePoint
+}
+
+// NewParticleManager creates a new particle manager
+func NewParticleManager() *ParticleManager {
+	return &ParticleManager{}
 }
 
 // WriteFile writes all materials to a file
-func (e *ParticleManager) WriteFile(point_path string, render_path string) error {
+func (e *ParticleManager) BlenderExport(path string) error {
 	if len(e.renders) > 0 {
-		pw, err := os.Create(render_path)
+		renderPath := fmt.Sprintf("%s/particle_render.txt", path)
+		pw, err := os.Create(renderPath)
 		if err != nil {
-			return fmt.Errorf("create file %s: %w", render_path, err)
+			return fmt.Errorf("create file %s: %w", renderPath, err)
 		}
 		defer pw.Close()
 
@@ -39,9 +45,10 @@ func (e *ParticleManager) WriteFile(point_path string, render_path string) error
 	}
 
 	if len(e.points) > 0 {
-		mw, err := os.Create(point_path)
+		pointPath := fmt.Sprintf("%s/particle_point.txt", path)
+		mw, err := os.Create(pointPath)
 		if err != nil {
-			return fmt.Errorf("create particle point %s: %w", point_path, err)
+			return fmt.Errorf("create particle point %s: %w", pointPath, err)
 		}
 		defer mw.Close()
 		pp := &ParticlePoint{}
@@ -62,10 +69,10 @@ func (e *ParticleManager) WriteFile(point_path string, render_path string) error
 }
 
 // ReadFile reads a material file
-func (e *ParticleManager) ReadFile(point_path string, render_path string) error {
-	r, err := os.Open(point_path)
+func (e *ParticleManager) ReadFile(pointPath string, renderPath string) error {
+	r, err := os.Open(pointPath)
 	if err != nil {
-		return fmt.Errorf("open %s: %w", point_path, err)
+		return fmt.Errorf("open %s: %w", pointPath, err)
 	}
 	defer r.Close()
 	scanner := bufio.NewScanner(r)
@@ -84,7 +91,7 @@ func (e *ParticleManager) ReadFile(point_path string, render_path string) error 
 			return fmt.Errorf("invalid particle points (expected 5 records) line %d: %s", lineNumber, line)
 		}
 
-		e.points = append(e.points, &ParticlePoint{
+		e.points = append(e.points, ParticlePoint{
 			Name:        parts[0],
 			Bone:        parts[1],
 			Translation: AtoVector3(parts[2]),
@@ -94,9 +101,9 @@ func (e *ParticleManager) ReadFile(point_path string, render_path string) error 
 	}
 	r.Close()
 
-	r, err = os.Open(render_path)
+	r, err = os.Open(renderPath)
 	if err != nil {
-		return fmt.Errorf("open %s: %w", render_path, err)
+		return fmt.Errorf("open %s: %w", renderPath, err)
 	}
 	scanner = bufio.NewScanner(r)
 	lineNumber = 0
@@ -113,7 +120,7 @@ func (e *ParticleManager) ReadFile(point_path string, render_path string) error 
 		if len(parts) < 7 {
 			return fmt.Errorf("invalid particle_render.txt (expected 7 records) line %d: %s", lineNumber, line)
 		}
-		e.renders = append(e.renders, &ParticleRender{
+		e.renders = append(e.renders, ParticleRender{
 			Duration:      helper.AtoU32(parts[0]),
 			ID:            helper.AtoU32(parts[1]),
 			ID2:           helper.AtoU32(parts[2]),
@@ -122,7 +129,7 @@ func (e *ParticleManager) ReadFile(point_path string, render_path string) error 
 			UnknownB: helper.AtoU32(parts[5]),
 			//UnknownFFFFFFFF: helper.AtoU32(parts[6]),
 		})
-		return fmt.Errorf("todo: blender import fix for particles")
+		return fmt.Errorf("TODO: blender import fix for particles")
 	}
 	r.Close()
 
@@ -152,11 +159,11 @@ func (e *ParticleManager) RenderCount() int {
 }
 
 // PointAdd adds a point
-func (e *ParticleManager) PointAdd(point *ParticlePoint) {
+func (e *ParticleManager) PointAdd(point ParticlePoint) {
 	e.points = append(e.points, point)
 }
 
 // RenderAdd adds a render
-func (e *ParticleManager) RenderAdd(render *ParticleRender) {
+func (e *ParticleManager) RenderAdd(render ParticleRender) {
 	e.renders = append(e.renders, render)
 }

@@ -80,7 +80,6 @@ func (e *EQG) Encode(w io.WriteSeeker) error {
 		if err != nil {
 			return fmt.Errorf("write name %s: %w", file.Name(), err)
 		}
-		//fmt.Println(len(file.Name)+1, hex.Dump([]byte(file.Name)))
 
 		/*err = binary.Write(fileBuffer, binary.LittleEndian, uint8(fileBuffer.Len()))
 		if err != nil {

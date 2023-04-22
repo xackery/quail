@@ -14,7 +14,7 @@ type Layer struct {
 
 // String returns a string representation of the layer
 func (e *Layer) String() string {
-	return fmt.Sprintf("%s %s %s", e.Name, e.Entry0, e.Entry1)
+	return fmt.Sprintf("%s|%s|%s", e.Name, e.Entry0, e.Entry1)
 }
 
 // WriteHeader writes the header to a file

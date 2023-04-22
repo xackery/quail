@@ -6,75 +6,40 @@ import (
 	"io"
 	"strings"
 
-	"github.com/xackery/quail/dump"
+	"github.com/xackery/encdec"
+	"github.com/xackery/quail/log"
 	"github.com/xackery/quail/model/geo"
-	"github.com/xackery/quail/pfs/archive"
 )
 
-// Decode decodes a MDS file
 func (e *MDS) Decode(r io.ReadSeeker) error {
 	var err error
-	e.isDecoded = true
+	var ok bool
+
 	modelName := strings.TrimSuffix(e.name, ".mds")
 
-	header := [4]byte{}
-	err = binary.Read(r, binary.LittleEndian, &header)
-	if err != nil {
-		return fmt.Errorf("read header: %w", err)
-	}
-	dump.Hex(header, "header=%s", header)
-	if header != [4]byte{'E', 'Q', 'G', 'S'} {
-		return fmt.Errorf("header does not match EQGS")
+	dec := encdec.NewDecoder(r, binary.LittleEndian)
+
+	header := dec.StringFixed(4)
+	if header != "EQGS" {
+		return fmt.Errorf("invalid header %s, wanted EQGS", header)
 	}
 
-	err = binary.Read(r, binary.LittleEndian, &e.version)
-	if err != nil {
-		return fmt.Errorf("read header version: %w", err)
-	}
-	fmt.Println("version", e.version)
+	e.version = dec.Uint32()
+	nameLength := int(dec.Uint32())
+	materialCount := dec.Uint32()
+	boneCount := dec.Uint32()
+	dec.Uint32() // TODO: subCount is not used?
 
-	nameLength := uint32(0)
-	err = binary.Read(r, binary.LittleEndian, &nameLength)
-	if err != nil {
-		return fmt.Errorf("read name length: %w", err)
-	}
-	dump.Hex(nameLength, "nameLength=%d", nameLength)
-
-	materialCount := uint32(0)
-	err = binary.Read(r, binary.LittleEndian, &materialCount)
-	if err != nil {
-		return fmt.Errorf("read material count: %w", err)
-	}
-	dump.Hex(materialCount, "materialCount=%d", materialCount)
-
-	boneCount := uint32(0)
-	err = binary.Read(r, binary.LittleEndian, &boneCount)
-	if err != nil {
-		return fmt.Errorf("read bone count: %w", err)
-	}
-	dump.Hex(boneCount, "boneCount=%d", boneCount)
-
-	subCount := uint32(0)
-	err = binary.Read(r, binary.LittleEndian, &subCount)
-	if err != nil {
-		return fmt.Errorf("read subCount: %w", err)
-	}
-	dump.Hex(subCount, "subCount=%d", subCount)
-
-	nameData := make([]byte, nameLength)
-
-	err = binary.Read(r, binary.LittleEndian, &nameData)
-	if err != nil {
-		return fmt.Errorf("read nameData: %w", err)
-	}
+	nameData := dec.Bytes(int(nameLength))
 
 	names := make(map[uint32]string)
-
 	chunk := []byte{}
 	lastOffset := 0
+	lastElement := ""
 	for i, b := range nameData {
 		if b == 0 {
 			names[uint32(lastOffset)] = string(chunk)
+			lastElement = string(chunk)
 			chunk = []byte{}
 			lastOffset = i + 1
 			continue
@@ -82,305 +47,155 @@ func (e *MDS) Decode(r io.ReadSeeker) error {
 		chunk = append(chunk, b)
 	}
 
-	dump.HexRange(nameData, int(nameLength), "nameData=(%d bytes, %d entries)", nameLength, len(names))
+	e.itemName = lastElement
+
+	log.Debugf("names: %+v", names)
+
 	for i := 0; i < int(materialCount); i++ {
-		materialID := uint32(0)
-		err = binary.Read(r, binary.LittleEndian, &materialID)
-		if err != nil {
-			return fmt.Errorf("read materialID: %w", err)
-		}
-		dump.Hex(materialID, "%dmaterialID=%d", i, materialID)
-
-		nameOffset := uint32(0)
-		err = binary.Read(r, binary.LittleEndian, &nameOffset)
-		if err != nil {
-			return fmt.Errorf("read nameOffset: %w", err)
-		}
-		name, ok := names[nameOffset]
+		material := geo.Material{}
+		material.ID = dec.Int32()
+		nameOffset := dec.Uint32()
+		material.Name, ok = names[nameOffset]
 		if !ok {
-			return fmt.Errorf("%dnames offset 0x%x not found", i, nameOffset)
+			return fmt.Errorf("material nameOffset %d not found", nameOffset)
 		}
-		name = strings.ToLower(name)
-		dump.Hex(nameOffset, "%dnameOffset=0x%x(%s)", i, nameOffset, name)
-
-		shaderOffset := uint32(0)
-		err = binary.Read(r, binary.LittleEndian, &shaderOffset)
-		if err != nil {
-			return fmt.Errorf("read shaderOffset: %w", err)
-		}
-		shaderName, ok := names[shaderOffset]
+		shaderOffset := dec.Uint32()
+		material.ShaderName, ok = names[shaderOffset]
 		if !ok {
-			return fmt.Errorf("%d names offset 0x%x not found", i, nameOffset)
+			return fmt.Errorf("material shader not found")
 		}
-		dump.Hex(shaderOffset, "%dshaderOffset=0x%x(%s)", i, shaderOffset, shaderName)
-
-		propertyCount := uint32(0)
-		err = binary.Read(r, binary.LittleEndian, &propertyCount)
+		err = e.MaterialManager.Add(material)
 		if err != nil {
-			return fmt.Errorf("read propertyCount: %w", err)
+			return fmt.Errorf("material add: %w", err)
 		}
-		dump.Hex(propertyCount, "%dpropertyCount=%d", i, propertyCount)
 
-		/*if name == fmt.Sprintf("%s_02", modelName) {
-			name = fmt.Sprintf("c_%s_s02_m01", modelName)
-		}*/
-
-		err = e.MaterialManager.Add(name, shaderName)
-		if err != nil {
-			return fmt.Errorf("addMaterial %s: %w", name, err)
-		}
+		propertyCount := dec.Uint32()
 		for j := 0; j < int(propertyCount); j++ {
-			propertyNameOffset := uint32(0)
-			err = binary.Read(r, binary.LittleEndian, &propertyNameOffset)
-			if err != nil {
-				return fmt.Errorf("read propertyNameOffset: %w", err)
-			}
-			propertyName, ok := names[propertyNameOffset]
+			property := geo.MaterialProperty{}
+
+			propertyNameOffset := dec.Uint32()
+			property.Name, ok = names[propertyNameOffset]
 			if !ok {
-				return fmt.Errorf("%d%d material %s property offset %d not found", i, j, name, propertyNameOffset)
+				return fmt.Errorf("material property name not found")
 			}
-			dump.Hex(propertyNameOffset, "%d%dpropertyNameOffset=0x%x(%s)", i, j, propertyNameOffset, propertyName)
 
-			propertyType := uint32(0)
-			err = binary.Read(r, binary.LittleEndian, &propertyType)
-			if err != nil {
-				return fmt.Errorf("read propertyType: %w", err)
-			}
-			dump.Hex(propertyType, "%d%dpropertyType=%d", i, j, propertyType)
-			if propertyType == 0 {
-				propFloatValue := float32(0)
-				err = binary.Read(r, binary.LittleEndian, &propFloatValue)
-				if err != nil {
-					return fmt.Errorf("read propFloatValue: %w", err)
-				}
-				dump.Hex(propFloatValue, "%d%dpropertyFloat=%0.3f", i, j, propFloatValue)
-
-				err = e.MaterialManager.PropertyAdd(name, propertyName, propertyType, fmt.Sprintf("%0.3f", propFloatValue))
-				if err != nil {
-					return fmt.Errorf("addMaterialProperty %s %s: %w", name, propertyName, err)
-				}
-
+			property.Category = dec.Uint32()
+			if property.Category == 0 {
+				property.Value = fmt.Sprintf("%0.3f", dec.Float32())
 			} else {
-				propertyValue := uint32(0)
-				err = binary.Read(r, binary.LittleEndian, &propertyValue)
-				if err != nil {
-					return fmt.Errorf("read propertyValue: %w", err)
-				}
-				dump.Hex(propertyValue, "%d%dpropertyValue=%d", i, j, propertyValue)
-
-				propertyValueName, ok := names[propertyValue]
-				if !ok {
-					return fmt.Errorf("property %d names offset %d not found", j, propertyValue)
-				}
-
-				data, err := e.pfs.File(propertyValueName)
-				if err != nil {
-					fmt.Printf("warning: read material '%s' property %s: %s\n", name, propertyName, err)
-					//	return fmt.Errorf("read material via eqg %s: %w", propertyName, err)
-				}
-				fe, err := archive.NewFileEntry(propertyValueName, data)
-				if err != nil {
-					return fmt.Errorf("new fileentry material %s: %w", propertyName, err)
-				}
-				e.files = append(e.files, fe)
-				err = e.MaterialManager.PropertyAdd(name, propertyName, propertyType, propertyValueName)
-				if err != nil {
-					return fmt.Errorf("addMaterialProperty %s %s: %w", name, propertyName, err)
+				val := dec.Uint32()
+				if property.Category == 2 {
+					property.Value, ok = names[val]
+					if !ok {
+						return fmt.Errorf("material property value %d not found", val)
+					}
+				} else {
+					property.Value = fmt.Sprintf("%d", val)
 				}
 			}
 
+			err = e.MaterialManager.PropertyAdd(material.Name, property)
+			if err != nil {
+				return fmt.Errorf("material property add: %w", err)
+			}
 		}
 	}
 
-	//64bytes worth
 	for i := 0; i < int(boneCount); i++ {
-		//52?
-		materialID := uint32(0)
-		err = binary.Read(r, binary.LittleEndian, &materialID)
+		bone := geo.Bone{}
+		nameOffset := dec.Uint32()
+		bone.Name, ok = names[nameOffset]
+		if !ok {
+			return fmt.Errorf("bone name %d not found", nameOffset)
+		}
+		bone.Next = dec.Int32()
+		bone.ChildrenCount = dec.Uint32()
+		bone.ChildIndex = dec.Int32()
+		bone.Pivot.X = dec.Float32()
+		bone.Pivot.Y = dec.Float32()
+		bone.Pivot.Z = dec.Float32()
+		bone.Rotation.X = dec.Float32()
+		bone.Rotation.Y = dec.Float32()
+		bone.Rotation.Z = dec.Float32()
+		bone.Rotation.W = dec.Float32()
+		bone.Scale.X = dec.Float32()
+		bone.Scale.Y = dec.Float32()
+		bone.Scale.Z = dec.Float32()
+
+		err = e.meshManager.BoneAdd(modelName, bone)
 		if err != nil {
-			return fmt.Errorf("read bone %d materialID: %w", i, err)
+			return fmt.Errorf("bone add: %w", err)
 		}
-		dump.Hex(materialID, "%dmaterialid=%d(%s)", i, materialID, names[materialID])
-
-		name := names[materialID]
-
-		next := int32(0)
-		err = binary.Read(r, binary.LittleEndian, &next)
-		if err != nil {
-			return fmt.Errorf("read bone %d next: %w", i, err)
-		}
-		dump.Hex(next, "%dnext=%d", i, next)
-
-		childrenCount := uint32(0)
-		err = binary.Read(r, binary.LittleEndian, &childrenCount)
-		if err != nil {
-			return fmt.Errorf("read bone %d childrenCount: %w", i, err)
-		}
-		dump.Hex(childrenCount, "%dchildrenCount=%d", i, childrenCount)
-
-		childIndex := int32(0)
-		err = binary.Read(r, binary.LittleEndian, &childIndex)
-		if err != nil {
-			return fmt.Errorf("read bone %d childIndex: %w", i, err)
-		}
-		dump.Hex(childIndex, "%dchildIndex=%d", i, childIndex)
-
-		pivot := &geo.Vector3{}
-		err = binary.Read(r, binary.LittleEndian, pivot)
-		if err != nil {
-			return fmt.Errorf("read bone %d pivot: %w", i, err)
-		}
-		dump.Hex(pivot, "%dpivot=%+v", i, pivot)
-
-		rot := &geo.Quad4{}
-		err = binary.Read(r, binary.LittleEndian, rot)
-		if err != nil {
-			return fmt.Errorf("read bone %d rot: %w", i, err)
-		}
-		dump.Hex(rot, "%drot=%+v", i, rot)
-
-		scale := &geo.Vector3{}
-		err = binary.Read(r, binary.LittleEndian, scale)
-		if err != nil {
-			return fmt.Errorf("read bone %d scale: %w", i, err)
-		}
-		dump.Hex(scale, "%dscale=%+v", i, scale)
-
-		if name != "" {
-
-		}
-
-		e.meshManager.BoneAdd(modelName, &geo.Bone{
-			Name:          name,
-			Next:          next,
-			ChildrenCount: childrenCount,
-			ChildIndex:    childIndex,
-			Pivot:         pivot,
-			Rotation:      rot,
-			Scale:         scale,
-		})
-
 	}
 
-	mainNameIndex := uint32(0)
-	err = binary.Read(r, binary.LittleEndian, &mainNameIndex)
-	if err != nil {
-		return fmt.Errorf("read mainNameIndex: %w", err)
-	}
-	dump.Hex(mainNameIndex, "mainNameIndex=%d", mainNameIndex)
+	mainNameIndex := dec.Uint32()
+	// TODO: mainNameIndex is not used?
+	_ = mainNameIndex
 
-	subNameIndex := uint32(0)
-	err = binary.Read(r, binary.LittleEndian, &subNameIndex)
-	if err != nil {
-		return fmt.Errorf("read subNameIndex: %w", err)
-	}
-	dump.Hex(subNameIndex, "subNameIndex=%d", subNameIndex)
+	subNameIndex := dec.Uint32()
+	// TODO: subNameIndex is not used?
+	_ = subNameIndex
 
-	verticesCount := uint32(0)
-	err = binary.Read(r, binary.LittleEndian, &verticesCount)
-	if err != nil {
-		return fmt.Errorf("read vertices count: %w", err)
-	}
-	dump.Hex(verticesCount, "verticesCount=%d", verticesCount)
+	verticesCount := dec.Uint32()
+	triangleCount := dec.Uint32()
 
-	faceCount := uint32(0)
-	err = binary.Read(r, binary.LittleEndian, &faceCount)
-	if err != nil {
-		return fmt.Errorf("read face count: %w", err)
-	}
-	dump.Hex(faceCount, "faceCount=%d", faceCount)
-
-	boneAssignmentCount := uint32(0)
-	err = binary.Read(r, binary.LittleEndian, &boneAssignmentCount)
-	if err != nil {
-		return fmt.Errorf("read boneAssignmentCount: %w", err)
-	}
-	dump.Hex(boneAssignmentCount, "boneAssignmentCount=%d", boneAssignmentCount)
+	boneAssignmentCount := dec.Uint32()
+	// TODO: boneAssignmentCount is not used?
+	_ = boneAssignmentCount
 
 	for i := 0; i < int(verticesCount); i++ {
-
-		vertex := geo.NewVertex()
-
-		err = binary.Read(r, binary.LittleEndian, vertex.Position)
-		if err != nil {
-			return fmt.Errorf("read vertex %d position: %w", i, err)
-		}
-
-		err = binary.Read(r, binary.LittleEndian, vertex.Normal)
-		if err != nil {
-			return fmt.Errorf("read vertex %d normal: %w", i, err)
-		}
-
-		if e.version < 3 {
-
-			err = binary.Read(r, binary.LittleEndian, vertex.Uv)
-			if err != nil {
-				return fmt.Errorf("read vertex %d uv: %w", i, err)
-			}
-
-			vertex.Tint = &geo.RGBA{R: 128, G: 128, B: 128, A: 1}
+		v := geo.Vertex{}
+		v.Position.X = dec.Float32()
+		v.Position.Y = dec.Float32()
+		v.Position.Z = dec.Float32()
+		v.Normal.X = dec.Float32()
+		v.Normal.Y = dec.Float32()
+		v.Normal.Z = dec.Float32()
+		if e.version <= 2 {
+			v.Tint = geo.RGBA{R: 128, G: 128, B: 128, A: 255}
 		} else {
-			// TODO: may be misaligned (RGB vs RGBA)
-			err = binary.Read(r, binary.LittleEndian, vertex.Tint)
-			if err != nil {
-				return fmt.Errorf("read vertex %d tint: %w", i, err)
-			}
-
-			err = binary.Read(r, binary.LittleEndian, vertex.Uv)
-			if err != nil {
-				return fmt.Errorf("read vertex %d uv: %w", i, err)
-			}
-
-			err = binary.Read(r, binary.LittleEndian, vertex.Uv2)
-			if err != nil {
-				return fmt.Errorf("read vertex %d uv2: %w", i, err)
-			}
+			v.Tint = geo.RGBA{R: dec.Uint8(), G: dec.Uint8(), B: dec.Uint8(), A: dec.Uint8()}
+		}
+		v.Uv.X = dec.Float32()
+		v.Uv.Y = dec.Float32()
+		if e.version <= 2 {
+			v.Uv2.X = 0
+			v.Uv2.Y = 0
+		} else {
+			v.Uv2.X = dec.Float32()
+			v.Uv2.Y = dec.Float32()
 		}
 
-		// fiddle uv coord
-		//vertex.Uv.Y = -vertex.Uv.Y
-
-		vertex.Position = geo.ApplyQuaternion(vertex.Position, &geo.Quad4{X: 1, Y: 0, Z: 0, W: 0})
-		e.meshManager.VertexAdd(modelName, vertex)
-	}
-	vSize := 32
-	if e.version >= 3 {
-		vSize += 12
-	}
-	dump.HexRange([]byte{0x01, 0x02}, int(verticesCount)*32, "vertData=(%d bytes)", int(verticesCount)*32)
-
-	for i := 0; i < int(faceCount); i++ {
-		pos := &geo.UIndex3{}
-		//pos := [3]float32{}
-		err = binary.Read(r, binary.LittleEndian, pos)
+		// TODO: is this really needed?
+		v.Position = geo.ApplyQuaternion(v.Position, geo.Quad4{X: 1, Y: 0, Z: 0, W: 0})
+		err = e.meshManager.VertexAdd(modelName, v)
 		if err != nil {
-			return fmt.Errorf("read face %d pos: %w", i, err)
-		}
-
-		materialID := int32(0)
-		err = binary.Read(r, binary.LittleEndian, &materialID)
-		if err != nil {
-			return fmt.Errorf("read face %d materialID: %w", i, err)
-		}
-
-		material, ok := e.MaterialManager.ByID(int(materialID))
-		if !ok {
-			return fmt.Errorf("face %d materialID %d not found", i, materialID)
-		}
-
-		flag := uint32(0)
-		err = binary.Read(r, binary.LittleEndian, &flag)
-		if err != nil {
-			return fmt.Errorf("read face %d flag: %w", i, err)
-		}
-
-		err = e.meshManager.TriangleAdd(modelName, pos, material.Name, flag)
-		if err != nil {
-			return fmt.Errorf("faceAdd %d: %w", i, err)
+			return fmt.Errorf("vertex add: %w", err)
 		}
 	}
-	dump.HexRange([]byte{0x03, 0x04}, int(faceCount)*20, "faceData=(%d bytes)", int(faceCount)*20)
-	e.MaterialManager.SortByName()
+
+	for i := 0; i < int(triangleCount); i++ {
+		t := geo.Triangle{}
+		t.Index.X = dec.Uint32()
+		t.Index.Y = dec.Uint32()
+		t.Index.Z = dec.Uint32()
+
+		materialID := dec.Int32()
+		material, ok := e.MaterialManager.ByID(materialID)
+		if materialID != -1 && !ok {
+			return fmt.Errorf("material %d not found", materialID)
+		}
+		t.MaterialName = material.Name
+
+		t.Flag = dec.Uint32()
+		e.meshManager.TriangleAdd(modelName, t)
+	}
+
+	if dec.Error() != nil {
+		return fmt.Errorf("decode: %w", dec.Error())
+	}
+
+	log.Debugf("%s decoded %d verts, %d triangles, %d bones, %d materials", e.name, e.meshManager.VertexTotalCount(), e.meshManager.TriangleTotalCount(), e.meshManager.BoneTotalCount(), e.MaterialManager.Count())
 
 	return nil
 }

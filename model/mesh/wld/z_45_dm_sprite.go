@@ -1,0 +1,31 @@
+package wld
+
+import (
+	"encoding/binary"
+	"fmt"
+	"io"
+
+	"github.com/xackery/encdec"
+	"github.com/xackery/quail/log"
+)
+
+type dmSprite struct {
+}
+
+func (e *WLD) dmSpriteRead(r io.ReadSeeker, fragmentOffset int) error {
+	def := &dmSprite{}
+
+	dec := encdec.NewDecoder(r, binary.LittleEndian)
+
+	if dec.Error() != nil {
+		return fmt.Errorf("dmSpriteRead: %v", dec.Error())
+	}
+
+	log.Debugf("%+v", def)
+	e.fragments[fragmentOffset] = def
+	return nil
+}
+
+func (v *dmSprite) build(e *WLD) error {
+	return nil
+}

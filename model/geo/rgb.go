@@ -41,12 +41,12 @@ type RGBA struct {
 }
 
 // AtoRGBA converts a string to a RGBA
-func AtoRGBA(s string) *RGBA {
+func AtoRGBA(s string) RGBA {
 	parts := strings.Split(s, ",")
 	if len(parts) < 4 {
-		return nil
+		return RGBA{}
 	}
-	return &RGBA{
+	return RGBA{
 		R: helper.AtoU8(parts[0]),
 		G: helper.AtoU8(parts[1]),
 		B: helper.AtoU8(parts[2]),
@@ -55,6 +55,6 @@ func AtoRGBA(s string) *RGBA {
 }
 
 // String returns a string representation of the RGBA
-func (e *RGBA) String() string {
+func (e RGBA) String() string {
 	return fmt.Sprintf("%d,%d,%d,%d", e.R, e.G, e.B, e.A)
 }

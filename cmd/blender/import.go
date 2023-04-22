@@ -162,6 +162,8 @@ func import_blender(cmd *cobra.Command, args []string) error {
 			isRawFile = true
 		case ".txt":
 			isRawFile = true
+		case ".DS_Store":
+			continue
 		default:
 			fmt.Println("TODO:", fe.Name(), "support")
 			continue

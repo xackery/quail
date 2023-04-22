@@ -13,9 +13,9 @@ import (
 // BlenderImport imports a blender structure to TER
 func (e *WLD) BlenderImport(dir string) error {
 	e.version = 1
-	e.materialManager = &geo.MaterialManager{}
-	e.meshManager = &geo.MeshManager{}
-	e.particleManager = &geo.ParticleManager{}
+	e.materialManager = geo.NewMaterialManager()
+	e.meshManager = geo.NewMeshManager()
+	e.particleManager = geo.NewParticleManager()
 	path := dir
 
 	fi, err := os.Stat(path)
@@ -59,7 +59,7 @@ func (e *WLD) BlenderImport(dir string) error {
 
 	curPath = fmt.Sprintf("%s/material.txt", path)
 	if helper.IsFile(curPath) {
-		err = e.materialManager.ReadFile(curPath, fmt.Sprintf("%s/material_property.txt", path))
+		err = e.materialManager.BlenderImport(path)
 		if err != nil {
 			return fmt.Errorf("read %s: %w", curPath, err)
 		}
@@ -67,7 +67,7 @@ func (e *WLD) BlenderImport(dir string) error {
 
 	curPath = fmt.Sprintf("%s/particle_point.txt", path)
 	if helper.IsFile(curPath) {
-		err = e.materialManager.ReadFile(curPath, fmt.Sprintf("%s/particle_render.txt", path))
+		err = e.materialManager.BlenderImport(path)
 		if err != nil {
 			return fmt.Errorf("read %s: %w", curPath, err)
 		}
@@ -76,6 +76,10 @@ func (e *WLD) BlenderImport(dir string) error {
 	err = e.meshManager.ReadFile(path)
 	if err != nil {
 		return fmt.Errorf("read meshManager: %w", err)
+	}
+
+	for _, mesh := range e.meshManager.Meshes() {
+		mesh.Name = fmt.Sprintf("%s_DMSPRITEDEF", mesh.Name)
 	}
 
 	return nil

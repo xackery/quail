@@ -31,7 +31,7 @@ func TestTER_BlenderExport(t *testing.T) {
 
 			pfs, err := eqg.NewFile(tt.eqgPath)
 			if err != nil {
-				t.Fatalf("failed to open eqg file: %s", err.Error())
+				t.Fatalf("Failed to open eqg file: %s", err.Error())
 			}
 
 			for _, fe := range pfs.Files() {
@@ -40,12 +40,12 @@ func TestTER_BlenderExport(t *testing.T) {
 				}
 				e, err := New(baseName+".ter", pfs)
 				if err != nil {
-					t.Fatalf("failed to create ter: %s", err.Error())
+					t.Fatalf("Failed to create ter: %s", err.Error())
 				}
 
 				err = e.Decode(bytes.NewReader(fe.Data()))
 				if err != nil {
-					t.Fatalf("failed to decode ter: %s", err.Error())
+					t.Fatalf("Failed to decode ter: %s", err.Error())
 				}
 
 				if err := e.BlenderExport(tt.dstDir); (err != nil) != tt.wantErr {

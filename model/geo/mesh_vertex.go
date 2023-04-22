@@ -7,21 +7,21 @@ import (
 
 // Vertex stores information related to a mesh
 type Vertex struct {
-	Position *Vector3
-	Normal   *Vector3
-	Tint     *RGBA
-	Uv       *Vector2
-	Uv2      *Vector2
+	Position Vector3
+	Normal   Vector3
+	Tint     RGBA
+	Uv       Vector2
+	Uv2      Vector2
 }
 
 // NewVertex returns a new vertex
-func NewVertex() *Vertex {
-	return &Vertex{
-		Position: &Vector3{},
-		Normal:   &Vector3{},
-		Tint:     &RGBA{},
-		Uv:       &Vector2{},
-		Uv2:      &Vector2{},
+func NewVertex() Vertex {
+	return Vertex{
+		Position: Vector3{},
+		Normal:   Vector3{},
+		Tint:     RGBA{},
+		Uv:       Vector2{},
+		Uv2:      Vector2{},
 	}
 }
 

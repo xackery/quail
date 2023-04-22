@@ -17,14 +17,9 @@ type WLD struct {
 	meshManager     *geo.MeshManager
 	materialManager *geo.MaterialManager
 	particleManager *geo.ParticleManager
-	BspRegionCount  uint32
-	Hash            map[int]string
-	NameCache       map[int32]string
-}
-
-type fragmentInfo struct {
-	name string
-	data archive.WldFragmenter
+	names           map[int32]string // used temporarily while decoding a wld
+	fragments       map[int]parserer // used temporarily while decoding a wld
+	isOldWorld      bool             // if true, impacts how fragments are loaded
 }
 
 // New creates a new empty instance. Use NewFile to load an archive file on creation
@@ -32,9 +27,10 @@ func New(name string, pfs archive.ReadWriter) (*WLD, error) {
 	e := &WLD{
 		name:            name,
 		archive:         pfs,
-		materialManager: &geo.MaterialManager{},
-		meshManager:     &geo.MeshManager{},
-		particleManager: &geo.ParticleManager{},
+		materialManager: geo.NewMaterialManager(),
+		meshManager:     geo.NewMeshManager(),
+		particleManager: geo.NewParticleManager(),
+		fragments:       make(map[int]parserer),
 	}
 	return e, nil
 }
@@ -44,9 +40,10 @@ func NewFile(name string, pfs archive.ReadWriter, file string) (*WLD, error) {
 	e := &WLD{
 		name:            name,
 		archive:         pfs,
-		materialManager: &geo.MaterialManager{},
-		meshManager:     &geo.MeshManager{},
-		particleManager: &geo.ParticleManager{},
+		materialManager: geo.NewMaterialManager(),
+		meshManager:     geo.NewMeshManager(),
+		particleManager: geo.NewParticleManager(),
+		fragments:       make(map[int]parserer),
 	}
 	data, err := pfs.File(file)
 	if err != nil {
@@ -57,21 +54,6 @@ func NewFile(name string, pfs archive.ReadWriter, file string) (*WLD, error) {
 		return nil, fmt.Errorf("decode: %w", err)
 	}
 	return e, nil
-}
-
-// SetLayers sets layers for a world file
-func (e *WLD) SetLayers(layers []*geo.Layer) error {
-	return nil
-}
-
-// SetParticleRenders sets particle renders for a world file
-func (e *WLD) SetParticleRenders(particles []*geo.ParticleRender) error {
-	return nil
-}
-
-// SetParticlePoints sets particle points for a world file
-func (e *WLD) SetParticlePoints(particles []*geo.ParticlePoint) error {
-	return nil
 }
 
 // Name returns the name of the archive

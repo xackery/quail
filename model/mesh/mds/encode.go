@@ -5,58 +5,62 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/xackery/encdec"
+	"github.com/xackery/quail/log"
 	"github.com/xackery/quail/model/geo"
 )
 
 // Encode writes a zon file to location
 func (e *MDS) Encode(w io.Writer) error {
 	var err error
-
-	nameData, data, err := geo.WriteGeometry(e.version, e.MaterialManager, e.meshManager)
+	names, nameData, err := geo.NameBuild(e.MaterialManager, e.meshManager, []string{e.itemName})
 	if err != nil {
-		return fmt.Errorf("writeGeometry: %w", err)
+		return fmt.Errorf("nameBuild: %w", err)
 	}
 
-	// Start writing
-	err = binary.Write(w, binary.LittleEndian, []byte("EQGS"))
+	materialData, err := geo.MaterialBuild(e.version, names, e.MaterialManager)
 	if err != nil {
-		return fmt.Errorf("write header: %w", err)
-	}
-	err = binary.Write(w, binary.LittleEndian, uint32(1))
-	if err != nil {
-		return fmt.Errorf("write header version: %w", err)
-	}
-	err = binary.Write(w, binary.LittleEndian, uint32(len(nameData)))
-	if err != nil {
-		return fmt.Errorf("write name length: %w", err)
-	}
-	err = binary.Write(w, binary.LittleEndian, uint32(e.MaterialManager.Count()))
-	if err != nil {
-		return fmt.Errorf("write material count: %w", err)
+		return fmt.Errorf("materialBuild: %w", err)
 	}
 
-	err = binary.Write(w, binary.LittleEndian, uint32(e.meshManager.BoneCount(e.name)))
+	verticesData, err := geo.VertexBuild(e.version, names, e.meshManager)
 	if err != nil {
-		return fmt.Errorf("write bone count: %w", err)
+		return fmt.Errorf("vertexBuild: %w", err)
 	}
 
-	//TODO: mds encode sub count
-	err = binary.Write(w, binary.LittleEndian, uint32(0))
+	triangleData, err := geo.TriangleBuild(e.version, names, e.MaterialManager, e.meshManager)
 	if err != nil {
-		return fmt.Errorf("write sub count: %w", err)
+		return fmt.Errorf("triangleBuild: %w", err)
 	}
 
-	err = binary.Write(w, binary.LittleEndian, nameData)
+	boneData, err := geo.BoneBuild(e.version, false, names, e.meshManager)
 	if err != nil {
-		return fmt.Errorf("write nameBuf: %w", err)
+		return fmt.Errorf("boneBuild: %w", err)
 	}
 
-	err = binary.Write(w, binary.LittleEndian, data)
+	enc := encdec.NewEncoder(w, binary.LittleEndian)
+	enc.String("EQGS")
+	enc.Uint32(e.version)
+	enc.Uint32(uint32(len(nameData)))
+	enc.Uint32(uint32(e.MaterialManager.Count()))
+	enc.Uint32(uint32(e.meshManager.BoneTotalCount()))
+	enc.Uint32(0) // subCount
+	enc.Bytes(nameData)
+	enc.Bytes(materialData)
+	enc.Bytes(boneData)
+	enc.Uint32(0) // mainNameIndex?
+	enc.Uint32(0) // subNameIndex?
+	enc.Uint32(uint32(e.meshManager.VertexTotalCount()))
+	enc.Uint32(uint32(e.meshManager.TriangleTotalCount()))
+	enc.Uint32(0) //TODO: fix boneassignmentcount
+	enc.Bytes(verticesData)
+	enc.Bytes(triangleData)
+
+	err = enc.Error()
 	if err != nil {
-		return fmt.Errorf("write dataBuf: %w", err)
+		return fmt.Errorf("encode: %w", err)
 	}
 
-	//TODO: bone data
-
+	log.Debugf("%s encoded %d verts, %d triangles, %d bones, %d materials", e.name, e.meshManager.VertexTotalCount(), e.meshManager.TriangleTotalCount(), e.meshManager.BoneTotalCount(), e.MaterialManager.Count())
 	return nil
 }

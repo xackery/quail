@@ -1,86 +1,50 @@
 package zon
 
 import (
-	"bufio"
-	"bytes"
 	"encoding/binary"
 	"fmt"
 	"io"
 	"strings"
 
+	"github.com/xackery/encdec"
 	"github.com/xackery/quail/dump"
-	"github.com/xackery/quail/helper"
+	"github.com/xackery/quail/log"
 	"github.com/xackery/quail/model/geo"
 )
 
+// Decode decodes a zon file
 func (e *ZON) Decode(r io.ReadSeeker) error {
-	var err error
+	dec := encdec.NewDecoder(r, binary.LittleEndian)
 
-	header := [4]byte{}
-	err = binary.Read(r, binary.LittleEndian, &header)
-	if err != nil {
-		return fmt.Errorf("read header: %w", err)
-	}
+	// Read header
+	header := dec.StringFixed(4)
 	dump.Hex(header, "header=%s", header)
-	if header != [4]byte{'E', 'Q', 'G', 'Z'} && header != [4]byte{'E', 'Q', 'T', 'Z'} {
-		return fmt.Errorf("header does not match EQGZ/EQTZ")
+	if header != "EQGZ" && header != "EQTZ" {
+		return fmt.Errorf("header %s does not match EQGZ or EQTZ", header)
 	}
 
-	if header == [4]byte{'E', 'Q', 'T', 'Z'} {
+	if header == "EQTZ" {
 		return e.eqgtzpDecode(r)
 	}
 
-	err = binary.Read(r, binary.LittleEndian, &e.version)
-	if err != nil {
-		return fmt.Errorf("read header version: %w", err)
-	}
+	e.version = dec.Uint32()
 	dump.Hex(e.version, "version=%d", e.version)
 	if e.version != 1 {
 		return fmt.Errorf("version is %d, wanted 1", e.version)
 	}
 
-	nameLength := uint32(0)
-	err = binary.Read(r, binary.LittleEndian, &nameLength)
-	if err != nil {
-		return fmt.Errorf("read name length: %w", err)
-	}
+	nameLength := dec.Uint32()
 	dump.Hex(nameLength, "nameLength=%d", nameLength)
-
-	modelCount := uint32(0)
-	err = binary.Read(r, binary.LittleEndian, &modelCount)
-	if err != nil {
-		return fmt.Errorf("read model count: %w", err)
-	}
+	modelCount := dec.Uint32()
 	dump.Hex(modelCount, "modelCount=%d", modelCount)
-
-	objectCount := uint32(0)
-	err = binary.Read(r, binary.LittleEndian, &objectCount)
-	if err != nil {
-		return fmt.Errorf("read object count: %w", err)
-	}
+	objectCount := dec.Uint32()
 	dump.Hex(objectCount, "objectCount=%d", objectCount)
-
-	regionCount := uint32(0)
-	err = binary.Read(r, binary.LittleEndian, &regionCount)
-	if err != nil {
-		return fmt.Errorf("read region count: %w", err)
-	}
+	regionCount := dec.Uint32()
 	dump.Hex(regionCount, "regionCount=%d", regionCount)
-
-	lightCount := uint32(0)
-	err = binary.Read(r, binary.LittleEndian, &lightCount)
-	if err != nil {
-		return fmt.Errorf("read light count: %w", err)
-	}
+	lightCount := dec.Uint32()
 	dump.Hex(lightCount, "lightCount=%d", lightCount)
 
-	nameData := make([]byte, nameLength)
-
-	err = binary.Read(r, binary.LittleEndian, &nameData)
-	if err != nil {
-		return fmt.Errorf("read nameData: %w", err)
-	}
-
+	nameData := dec.Bytes(int(nameLength))
 	type nameInfo struct {
 		name   string
 		offset uint32
@@ -104,11 +68,7 @@ func (e *ZON) Decode(r io.ReadSeeker) error {
 	dump.HexRange(nameData, int(nameLength), "nameData=(%d bytes, %d entries)", nameLength, len(names))
 
 	for i := 0; i < int(modelCount); i++ {
-		modelNameOffset := uint32(0)
-		err = binary.Read(r, binary.LittleEndian, &modelNameOffset)
-		if err != nil {
-			return fmt.Errorf("model %d name offset: %w", i, err)
-		}
+		modelNameOffset := dec.Uint32()
 		name := ""
 		for _, val := range names {
 			if val.offset != modelNameOffset {
@@ -121,28 +81,19 @@ func (e *ZON) Decode(r io.ReadSeeker) error {
 		}
 		name = strings.ToLower(name)
 
-		e.models = append(e.models, &model{name: name})
+		e.models = append(e.models, model{name: name})
 	}
 	dump.HexRange([]byte{1, 2}, int(modelCount*4), "modelChunk=(%d bytes, %d entries)", int(modelCount*4), objectCount)
 
 	for i := 0; i < int(objectCount); i++ {
-
-		modelID := uint32(0)
-		err = binary.Read(r, binary.LittleEndian, &modelID)
-		if err != nil {
-			return fmt.Errorf("object %d modelID: %w", i, err)
-		}
+		modelID := dec.Uint32()
 		if len(names) <= int(modelID) {
 			return fmt.Errorf("modelID 0x%x greater than names", modelID)
 		}
 		modelName := names[int(modelID)].name
 		dump.Hex(modelID, "%dmodelID=%d(%s)", i, modelID, names[int(modelID)].name)
 		modelName = strings.ToLower(modelName)
-		objectNameOffset := uint32(0)
-		err = binary.Read(r, binary.LittleEndian, &objectNameOffset)
-		if err != nil {
-			return fmt.Errorf("object %d name ID: %w", i, err)
-		}
+		objectNameOffset := dec.Uint32()
 		name := ""
 		for _, val := range names {
 			if val.offset != objectNameOffset {
@@ -155,28 +106,20 @@ func (e *ZON) Decode(r io.ReadSeeker) error {
 		}
 		dump.Hex(objectNameOffset, "%dobjectNameOffset=0x%x(%s)", i, objectNameOffset, name)
 		name = strings.ToLower(name)
-		position := &geo.Vector3{}
-		err = binary.Read(r, binary.LittleEndian, position)
-		if err != nil {
-			return fmt.Errorf("object %d position: %w", i, err)
-		}
+		position := geo.Vector3{}
+		position.X = dec.Float32()
+		position.Y = dec.Float32()
+		position.Z = dec.Float32()
 		dump.Hex(position, "%dposition=%+v", i, position)
-
-		rotation := &geo.Vector3{}
-		err = binary.Read(r, binary.LittleEndian, rotation)
-		if err != nil {
-			return fmt.Errorf("object %d rotation: %w", i, err)
-		}
-		dump.Hex(rotation, "rotation=%+v", rotation)
-
-		scale := float32(0)
-		err = binary.Read(r, binary.LittleEndian, &scale)
-		if err != nil {
-			return fmt.Errorf("object %d scale: %w", i, err)
-		}
+		rotation := geo.Vector3{}
+		rotation.X = dec.Float32()
+		rotation.Y = dec.Float32()
+		rotation.Z = dec.Float32()
+		dump.Hex(rotation, "%drotation=%+v", i, rotation)
+		scale := dec.Float32()
 		dump.Hex(scale, "scale=%0.3f", scale)
 
-		e.objectManager.Add(&geo.Object{
+		e.objectManager.Add(geo.Object{
 			Name:      name,
 			ModelName: modelName,
 			Position:  position,
@@ -190,132 +133,70 @@ func (e *ZON) Decode(r io.ReadSeeker) error {
 	//dump.HexRange([]byte{1, 2}, int(objectCount*36), "objectChunk=(%d bytes, %d entries)", int(objectCount*36), objectCount)
 
 	for i := 0; i < int(regionCount); i++ {
-		regionNameOffset := uint32(0)
-		err = binary.Read(r, binary.LittleEndian, &regionNameOffset)
-		if err != nil {
-			return fmt.Errorf("region %d name ID: %w", i, err)
-		}
-		name := ""
+		region := region{}
+
+		regionNameOffset := dec.Uint32()
 		for _, val := range names {
 			if val.offset != regionNameOffset {
 				continue
 			}
-			name = val.name
+			region.name = val.name
 		}
-		if name == "" {
+		if region.name == "" {
 			return fmt.Errorf("model %d name at offset 0x%x not found", i, regionNameOffset)
 		}
 		//dump.Hex(regionNameOffset, "regionNameOffset=0x%x(%s)", regionNameOffset, name)
 
-		center := &geo.Vector3{}
-		err = binary.Read(r, binary.LittleEndian, center)
-		if err != nil {
-			return fmt.Errorf("region %d center: %w", i, err)
-		}
+		region.center.X = dec.Float32()
+		region.center.Y = dec.Float32()
+		region.center.Z = dec.Float32()
 		//dump.Hex(center, "center=%+v", center)
-
-		unknown := &geo.Vector3{}
-		err = binary.Read(r, binary.LittleEndian, unknown)
-		if err != nil {
-			return fmt.Errorf("region %d unknown: %w", i, err)
-		}
+		region.unknown.X = dec.Float32()
+		region.unknown.Y = dec.Float32()
+		region.unknown.Z = dec.Float32()
 		//dump.Hex(unknown, "unknown=%+v", unknown)
-
-		extent := &geo.Vector3{}
-		err = binary.Read(r, binary.LittleEndian, extent)
-		if err != nil {
-			return fmt.Errorf("region %d extent: %w", i, err)
-		}
+		region.extent.X = dec.Float32()
+		region.extent.Y = dec.Float32()
+		region.extent.Z = dec.Float32()
 		//dump.Hex(extent, "extent=%+v", extent)
 
-		e.regions = append(e.regions, &region{name: name, center: center, unknown: unknown, extent: extent})
-
+		e.regions = append(e.regions, region)
 	}
 	dump.HexRange([]byte{1, 2}, int(regionCount*40), "regionChunk=(%d bytes, %d entries)", int(regionCount*36), regionCount)
 
 	for i := 0; i < int(lightCount); i++ {
-		lightNameOffset := uint32(0)
-		err = binary.Read(r, binary.LittleEndian, &lightNameOffset)
-		if err != nil {
-			return fmt.Errorf("light %d name ID: %w", i, err)
-		}
-		name := ""
+		lit := light{}
+		lightNameOffset := dec.Uint32()
 		for _, val := range names {
 			if val.offset != lightNameOffset {
 				continue
 			}
-			name = val.name
+			lit.name = val.name
 		}
-		if name == "" {
+		if lit.name == "" {
 			return fmt.Errorf("model %d name at offset 0x%x not found", i, lightNameOffset)
 		}
 		//dump.Hex(lightNameOffset, "lightNameOffset=0x%x(%s)", lightNameOffset, name)
-
-		pos := &geo.Vector3{}
-		err = binary.Read(r, binary.LittleEndian, pos)
-		if err != nil {
-			return fmt.Errorf("light %d pos: %w", i, err)
-		}
-		//dump.Hex(pos, "pos=%+v", pos)
-
-		color := &geo.Vector3{}
-		err = binary.Read(r, binary.LittleEndian, color)
-		if err != nil {
-			return fmt.Errorf("light %d color: %w", i, err)
-		}
+		lit.position.X = dec.Float32()
+		lit.position.Y = dec.Float32()
+		lit.position.Z = dec.Float32()
+		//dump.Hex(position, "position=%+v", position)
+		lit.color.X = dec.Float32()
+		lit.color.Y = dec.Float32()
+		lit.color.Z = dec.Float32()
 		//dump.Hex(color, "color=%+v", color)
-
-		radius := float32(0)
-		err = binary.Read(r, binary.LittleEndian, &radius)
-		if err != nil {
-			return fmt.Errorf("light %d radius: %w", i, err)
-		}
+		lit.radius = dec.Float32()
 		//dump.Hex(radius, "radius=%+v", radius)
 
-		e.lights = append(e.lights, &light{name: name, position: pos, color: color, radius: radius})
+		e.lights = append(e.lights, lit)
 
 	}
 	dump.HexRange([]byte{1, 2}, int(lightCount*32), "lightChunk=(%d bytes, %d entries)", int(lightCount*32), lightCount)
 
-	return nil
-}
-
-func (e *ZON) eqgtzpDecode(r io.ReadSeeker) error {
-	scanner := bufio.NewScanner(r)
-	scanner.Split(func(data []byte, atEOF bool) (advance int, token []byte, err error) {
-		if atEOF && len(data) == 0 {
-			return 0, nil, nil
-		}
-		if i := bytes.IndexByte(data, '\n'); i >= 0 {
-			// We have a full newline-terminated line.
-			return i + 1, data[0 : i+1], nil
-		}
-		// If we're at EOF, we have a final, non-terminated line. Return it.
-		if atEOF {
-			return len(data), data, nil
-		}
-		// Request more data.
-		return 0, nil, nil
-	})
-
-	for scanner.Scan() {
-		line := scanner.Text()
-		if !strings.HasPrefix(line, "*") {
-			continue
-		}
-		line = strings.TrimPrefix(line, "*")
-		line = strings.TrimSpace(line)
-		parts := strings.Split(line, " ")
-		switch parts[0] {
-		case "NAME":
-			e.models = append(e.models, &model{name: parts[1], baseName: parts[1]})
-		case "VERSION":
-			e.version = helper.AtoU32(parts[1])
-			if e.version == 0 {
-				return fmt.Errorf("invalid version on eqtzp: %s", parts[1])
-			}
-		}
+	if dec.Error() != nil {
+		return fmt.Errorf("decode: %w", dec.Error())
 	}
 
+	log.Debugf("%s is version %d and has %d objects, %d regions, %d lights", e.name, e.version, len(e.objectManager.Objects()), len(e.regions), len(e.lights))
 	return nil
 }

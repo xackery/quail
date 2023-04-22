@@ -21,8 +21,8 @@ func (e *LayerManager) Layer(name string) (*Layer, bool) {
 	return nil, false
 }
 
-// WriteFile writes all layers to a directory
-func (e *LayerManager) WriteFile(dir string) error {
+// BlenderExport writes all layers to a directory
+func (e *LayerManager) BlenderExport(dir string) error {
 	if len(e.layers) > 0 {
 		mw, err := os.Create(fmt.Sprintf("%s/layer.txt", dir))
 		if err != nil {
@@ -48,8 +48,8 @@ func (e *LayerManager) WriteFile(dir string) error {
 // ReadFile reads a material file
 func (e *LayerManager) ReadFile(dir string) error {
 	var err error
-	layer_path := fmt.Sprintf("%s/layer.txt", dir)
-	err = e.layerRead(layer_path)
+	layerPath := fmt.Sprintf("%s/layer.txt", dir)
+	err = e.layerRead(layerPath)
 	if err != nil {
 		return fmt.Errorf("read layer: %w", err)
 	}

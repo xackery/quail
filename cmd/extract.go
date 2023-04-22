@@ -116,7 +116,7 @@ func extractEQG(in string, out string, isDir bool) error {
 	}
 	results, err := a.Extract(out)
 	if err != nil {
-		fmt.Printf("failed to extract %s: %s\n", filepath.Base(in), err)
+		fmt.Printf("Failed to extract %s: %s\n", filepath.Base(in), err)
 		os.Exit(1)
 	}
 
@@ -149,7 +149,7 @@ func extractS3D(path string, out string, isDir bool) error {
 
 	results, err := e.Extract(out)
 	if err != nil {
-		fmt.Printf("failed to extract %s: %s\n", filepath.Base(path), err)
+		fmt.Printf("Failed to extract %s: %s\n", filepath.Base(path), err)
 		os.Exit(1)
 	}
 

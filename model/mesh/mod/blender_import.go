@@ -13,9 +13,9 @@ import (
 // BlenderImport imports a blender structure to MOD
 func (e *MOD) BlenderImport(dir string) error {
 	e.version = 1
-	e.MaterialManager = &geo.MaterialManager{}
-	e.meshManager = &geo.MeshManager{}
-	e.particleManager = &geo.ParticleManager{}
+	e.MaterialManager = geo.NewMaterialManager()
+	e.meshManager = geo.NewMeshManager()
+	e.particleManager = geo.NewParticleManager()
 	path := dir
 
 	fi, err := os.Stat(path)
@@ -59,7 +59,7 @@ func (e *MOD) BlenderImport(dir string) error {
 
 	curPath = fmt.Sprintf("%s/material.txt", path)
 	if helper.IsFile(curPath) {
-		err = e.MaterialManager.ReadFile(curPath, fmt.Sprintf("%s/material_property.txt", path))
+		err = e.MaterialManager.BlenderImport(path)
 		if err != nil {
 			return fmt.Errorf("read %s: %w", curPath, err)
 		}
@@ -67,7 +67,7 @@ func (e *MOD) BlenderImport(dir string) error {
 
 	curPath = fmt.Sprintf("%s/particle_point.txt", path)
 	if helper.IsFile(curPath) {
-		err = e.MaterialManager.ReadFile(curPath, fmt.Sprintf("%s/particle_render.txt", path))
+		err = e.MaterialManager.BlenderImport(path)
 		if err != nil {
 			return fmt.Errorf("read %s: %w", curPath, err)
 		}
