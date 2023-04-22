@@ -2,7 +2,7 @@
 
 [![GoDoc](https://godoc.org/github.com/xackery/quail?status.svg)](https://godoc.org/github.com/xackery/quail) [![Go Report Card](https://goreportcard.com/badge/github.com/xackery/quail)](https://goreportcard.com/report/github.com/xackery/quail) [![Platform Tests & Build](https://github.com/xackery/quail/actions/workflows/build_workflow.yml/badge.svg)](https://github.com/xackery/quail/actions/workflows/build_workflow.yml)
 
-<p align="center">[![quail](quail.png)](https://github.com/xackery/quail/releases/latest)</p>
+[![quail](quail.png)](https://github.com/xackery/quail/releases/latest)
 
 Quail is a command line EverQuest pfs manager. The two primary ways to use it is with the extract/compress commands to turn a pfs archive into a folder to inspect and manipulate (then reverse), or do import/export to blender via [quail-addon](https://github.com/xackery/quail-addon).
 
