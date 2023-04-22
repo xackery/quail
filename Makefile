@@ -29,7 +29,8 @@ test:
 test-prep:
 	@echo "test-prep: preparing tests..."
 	@-#cp ${EQPATH}/obj_gears.mod mod/test/obj_gears.mod
-	.PHONY: build-darwin
+
+build-all: build-darwin build-windows build-linux
 build-darwin:
 	@echo "build-darwin: ${VERSION}"
 	@GOOS=darwin GOARCH=amd64 go build -buildmode=pie -ldflags="-X main.Version=${VERSION} -s -w" -o bin/${NAME}-darwin-x64 main.go
