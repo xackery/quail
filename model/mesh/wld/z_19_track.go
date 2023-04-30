@@ -23,7 +23,9 @@ func (e *WLD) trackRead(r io.ReadSeeker, fragmentOffset int) error {
 	def.nameRef = dec.Int32()
 	def.trackRef = dec.Int32()
 	def.flags = dec.Uint32()
+	// TODO: find an example with a flag sleep enabled
 	if def.flags&0x01 == 0x01 {
+		log.Debugf("Found a sleep enabled track!")
 		def.sleep = dec.Uint32()
 	}
 
