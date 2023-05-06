@@ -41,6 +41,7 @@ func TestMOD_Encode(t *testing.T) {
 				if tt.modelName != "" && fe.Name() != tt.modelName {
 					continue
 				}
+				fmt.Println("decoding", fe.Name())
 
 				outDir := fmt.Sprintf("test/_%s/test_data/", tt.name)
 				err = os.MkdirAll(outDir, 0755)
@@ -76,7 +77,9 @@ func TestMOD_Encode(t *testing.T) {
 					t.Fatalf("Failed to encode mod: %s", err.Error())
 				}
 				tag.Write(fmt.Sprintf("%s/%s-encoded.mod.tags", outDir, fe.Name()))
+				return
 			}
+			t.Fatalf("Failed to find mod file: %s", tt.modelName)
 
 		})
 	}

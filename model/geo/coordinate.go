@@ -27,7 +27,7 @@ func NewVector2FromString(s string) Vector2 {
 
 // String returns a string version of vector2
 func (v Vector2) String() string {
-	return fmt.Sprintf("%0.3f,%0.3f", v.X, v.Y)
+	return fmt.Sprintf("%0.8f,%0.8f", v.X, v.Y)
 }
 
 // AtoVector2 converts a string to a vector2
@@ -56,7 +56,7 @@ func NewVector3() Vector3 {
 
 // String returns a string version of vector3
 func (e *Vector3) String() string {
-	return fmt.Sprintf("%0.3f,%0.3f,%0.3f", e.X, e.Y, e.Z)
+	return fmt.Sprintf("%0.8f,%0.8f,%0.8f", e.X, e.Y, e.Z)
 }
 
 // AtoVector3 converts a string to a vector3
@@ -101,7 +101,7 @@ func AtoQuad4(s string) Quad4 {
 
 // String returns a string version of quad4
 func (q Quad4) String() string {
-	return fmt.Sprintf("%0.3f,%0.3f,%0.3f,%0.3f", q.X, q.Y, q.Z, q.W)
+	return fmt.Sprintf("%0.8f,%0.8f,%0.8f,%0.8f", q.X, q.Y, q.Z, q.W)
 }
 
 // Index3 has X,Y,Z defined as int32

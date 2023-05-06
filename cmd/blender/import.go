@@ -197,7 +197,6 @@ func import_blender(cmd *cobra.Command, args []string) error {
 		if err != nil {
 			return fmt.Errorf("%s.WriteFile %s: %w", ext, fe.Name(), err)
 		}
-		fmt.Println(name)
 	}
 
 	w, err := os.Create(out)

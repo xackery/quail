@@ -117,7 +117,7 @@ func (e *ZON) Decode(r io.ReadSeeker) error {
 		rotation.Z = dec.Float32()
 		dump.Hex(rotation, "%drotation=%+v", i, rotation)
 		scale := dec.Float32()
-		dump.Hex(scale, "scale=%0.3f", scale)
+		dump.Hex(scale, "scale=%0.8f", scale)
 
 		e.objectManager.Add(geo.Object{
 			Name:      name,
