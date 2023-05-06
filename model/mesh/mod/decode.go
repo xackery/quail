@@ -40,7 +40,7 @@ func (e *MOD) Decode(r io.ReadSeeker) error {
 	bonesCount := dec.Uint32()
 	tag.Add(0, int(dec.Pos()-1), "red", "header")
 	nameData := dec.Bytes(int(nameLength))
-	tag.Add(tag.LastPos(), dec.Pos(), "green", "names")
+	tag.Add(tag.LastPos(), int(dec.Pos()), "green", "names")
 
 	names := make(map[uint32]string)
 	modelNames := []string{}
@@ -115,7 +115,7 @@ func (e *MOD) Decode(r io.ReadSeeker) error {
 			}
 		}
 	}
-	tag.Add(tag.LastPos(), dec.Pos(), "blue", "materials")
+	tag.Add(tag.LastPos(), int(dec.Pos()), "blue", "materials")
 
 	// TODO: figure out where the bone identifier is at without this nameCounter hack
 	if bonesCount > 0 {
@@ -157,7 +157,7 @@ func (e *MOD) Decode(r io.ReadSeeker) error {
 			return fmt.Errorf("vertex add: %w", err)
 		}
 	}
-	tag.Add(tag.LastPos(), dec.Pos(), "yellow", "vertices")
+	tag.Add(tag.LastPos(), int(dec.Pos()), "yellow", "vertices")
 
 	for i := 0; i < int(triangleCount); i++ {
 		t := geo.Triangle{}
@@ -175,7 +175,7 @@ func (e *MOD) Decode(r io.ReadSeeker) error {
 		t.Flag = dec.Uint32()
 		e.meshManager.TriangleAdd(modelName, t)
 	}
-	tag.Add(tag.LastPos(), dec.Pos(), "purple", "triangles")
+	tag.Add(tag.LastPos(), int(dec.Pos()), "purple", "triangles")
 
 	for i := 0; i < int(bonesCount); i++ {
 		bone := geo.Bone{}
@@ -204,7 +204,7 @@ func (e *MOD) Decode(r io.ReadSeeker) error {
 			return fmt.Errorf("bone add: %w", err)
 		}
 	}
-	tag.Add(tag.LastPos(), dec.Pos(), "orange", "bones")
+	tag.Add(tag.LastPos(), int(dec.Pos()), "orange", "bones")
 
 	if dec.Error() != nil {
 		return fmt.Errorf("decode: %w", dec.Error())

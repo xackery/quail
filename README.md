@@ -74,6 +74,19 @@ floraexclusion.dat|Flora exclusion areas, Versin 4 zones use this to create igno
 prj|3DS Max **Pr**o**j**ect files, this is used by internal team for opening a pfs mesh, doesn't appear to have any use for EverQuest.
 dbg.txt|**D**e**b**u**g** log, shows the last export attempt internally, doesn't appear to have any use for EverQuest.
 
+
+## Progress Checklist
+- Import Support
+  - Bugs EQG with V4 and zone files
+  - Bugs S3D (not supported currently)
+- Export Support
+  - UV Fix bad alignment
+- Bone/Animations
+- Image Sequence support (animated textures)
+- MOD support
+- S3D/WLD support
+- V4 Zone support
+
 ## World Fragments
 
 Hex|Code|Name|Description
