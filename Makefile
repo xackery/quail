@@ -22,6 +22,7 @@ set-version:
 
 # bundle quail with windows icon
 bundle:
+	@echo "if go-winres is not found, run go install github.com/tc-hib/go-winres@latest"
 	@echo "bundle: setting quail icon"
 	go-winres simply --icon quail.png
 
@@ -43,8 +44,8 @@ build-linux:
 
 build-windows:
 	@echo "build-windows: ${VERSION}"
-	@GOOS=windows GOARCH=amd64 CGO_ENABLED=1 CC=x86_64-w64-mingw32-gcc CXX=x86_64-w64-mingw32-g++ go build -buildmode=pie -ldflags="-X main.Version=${VERSION} -s -w" -o bin/${NAME}-win-x64.exe main.go
-	@#GOOS=windows GOARCH=386 CGO_ENABLED=1 CC=i686-w64-mingw32-gcc CXX=i686-w64-mingw32-g++ go build -buildmode=pie -ldflags="-X main.Version=${VERSION} -s -w" -o bin/${NAME}-win.exe main.go
+	@GOOS=windows GOARCH=amd64 go build -buildmode=pie -ldflags="-X main.Version=${VERSION} -s -w" -o bin/${NAME}-win-x64.exe main.go
+	@#GOOS=windows GOARCH=386 go build -buildmode=pie -ldflags="-X main.Version=${VERSION} -s -w" -o bin/${NAME}-win.exe main.go
 
 # used by xackery, build darwin copy and move to blender path
 build-copy: build-darwin
@@ -80,6 +81,7 @@ sanitize:
 	rm -rf vendor/
 	go vet -tags ci ./...
 	test -z $(goimports -e -d . | tee /dev/stderr)
+	-go install github.com/fzipp/gocyclo/cmd/gocyclo@latest
 	gocyclo -over 99 .
 	golint -set_exit_status $(go list -tags ci ./...)
 	staticcheck -go 1.14 ./...
