@@ -95,7 +95,7 @@ func (e *MOD) Decode(r io.ReadSeeker) error {
 
 			property.Category = dec.Uint32()
 			if property.Category == 0 {
-				property.Value = fmt.Sprintf("%0.3f", dec.Float32())
+				property.Value = fmt.Sprintf("%0.8f", dec.Float32())
 			} else {
 				val := dec.Uint32()
 				nameCounter++
@@ -150,6 +150,10 @@ func (e *MOD) Decode(r io.ReadSeeker) error {
 		} else {
 			v.Uv2.X = dec.Float32()
 			v.Uv2.Y = dec.Float32()
+		}
+
+		if i == 0 {
+			log.Debugf("vertex %d: %+v", i, v)
 		}
 
 		err = e.meshManager.VertexAdd(modelName, v)

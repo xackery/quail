@@ -18,10 +18,11 @@ func TestMOD_Decode(t *testing.T) {
 	}
 	tests := []struct {
 		name      string
+		path      string
 		modelName string
 		wantErr   bool
 	}{
-		{name: "it13926.eqg", wantErr: false},
+		{name: "it13926.eqg", path: eqPath, wantErr: false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
