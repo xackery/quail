@@ -2,6 +2,7 @@ package blender
 
 import (
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/spf13/cobra"
@@ -9,7 +10,10 @@ import (
 )
 
 func Test_import(t *testing.T) {
-
+	eqPath := os.Getenv("EQ_PATH")
+	if eqPath == "" {
+		t.Skip("EQ_PATH not set")
+	}
 	tests := []struct {
 		name    string
 		wantErr bool
