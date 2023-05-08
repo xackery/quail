@@ -1,5 +1,11 @@
 name: Build Go Binaries and Prep Release
-on: [push]
+on:
+  push:
+    branches:
+      - main
+      - dev
+env:
+  VERSION: "v0.0.0" # this gets set by set-version
 jobs:
   build_and_preview:
     runs-on: ubuntu-latest
