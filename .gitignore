@@ -26,3 +26,4 @@ test/
 test/*
 eq.sh
 bin/
+.DS_Store

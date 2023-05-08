@@ -1,5 +1,5 @@
 NAME := quail
-VERSION ?= 2.0.5
+VERSION ?= 2.0.6
 EQPATH := ~/Documents/games/EverQuest.app/drive_c/rebuildeq/
 
 # build quail for local OS and windows
@@ -14,11 +14,6 @@ run:
 	@echo "run: running..."
 	go run main.go
 
-# CICD triggers this
-.PHONY: set-variable
-set-version:
-	@echo "set-version: setting version to ${VERSION}"
-	@echo "VERSION=${VERSION}" >> $$GITHUB_ENV
 
 # bundle quail with windows icon
 bundle:
@@ -36,21 +31,20 @@ build-all: build-darwin build-windows build-linux
 
 build-darwin:
 	@echo "build-darwin: ${VERSION}"
-	@GOOS=darwin GOARCH=amd64 go build -buildmode=pie -ldflags="-X main.Version=${VERSION} -s -w" -o bin/${NAME}-darwin-x64 main.go
+	@GOOS=darwin GOARCH=amd64 go build -buildmode=pie -ldflags="-X main.Version=${VERSION} -s -w" -o bin/${NAME}-darwin main.go
 
 build-linux:
 	@echo "build-linux: ${VERSION}"
-	@GOOS=linux GOARCH=amd64 go build -buildmode=pie -ldflags="-X main.Version=${VERSION} -w" -o bin/${NAME}-linux-x64 main.go
+	@GOOS=linux GOARCH=amd64 go build -ldflags="-X main.Version=${VERSION} -s -w" -o bin/${NAME}-linux main.go
 
 build-windows:
 	@echo "build-windows: ${VERSION}"
-	@GOOS=windows GOARCH=amd64 go build -buildmode=pie -ldflags="-X main.Version=${VERSION} -s -w" -o bin/${NAME}-win-x64.exe main.go
-	@#GOOS=windows GOARCH=386 go build -buildmode=pie -ldflags="-X main.Version=${VERSION} -s -w" -o bin/${NAME}-win.exe main.go
+	@GOOS=windows GOARCH=amd64 go build -buildmode=pie -ldflags="-X main.Version=${VERSION} -s -w" -o bin/${NAME}-windows.exe main.go
 
 # used by xackery, build darwin copy and move to blender path
 build-copy: build-darwin
 	@echo "copying to quail-addons..."
-	cp bin/quail-darwin-x64 "/Users/xackery/Library/Application Support/Blender/3.4/scripts/addons/quail-addon/quail-darwin"
+	cp bin/quail-darwin "/Users/xackery/Library/Application Support/Blender/3.4/scripts/addons/quail-addon/quail-darwin"
 
 # run pprof and dump 3 snapshots of heap
 profile-heap:
@@ -87,3 +81,7 @@ sanitize:
 	staticcheck -go 1.14 ./...
 	go test -tags ci -covermode=atomic -coverprofile=coverage.out ./...
     coverage=`go tool cover -func coverage.out | grep total | tr -s '\t' | cut -f 3 | grep -o '[^%]*'`
+
+# CICD triggers this
+set-version-%:
+	@echo "VERSION=${VERSION}.$*" >> $$GITHUB_ENV
