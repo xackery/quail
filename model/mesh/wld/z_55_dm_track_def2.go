@@ -30,3 +30,7 @@ func (e *WLD) dmTrackDef2Read(r io.ReadSeeker, fragmentOffset int) error {
 func (v *dmTrackDef2) build(e *WLD) error {
 	return nil
 }
+
+func (e *WLD) dmTrackDef2Write(w io.Writer, fragmentOffset int) error {
+	return fmt.Errorf("not implemented")
+}

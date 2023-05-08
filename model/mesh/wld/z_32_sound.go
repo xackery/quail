@@ -33,3 +33,7 @@ func (e *WLD) soundRead(r io.ReadSeeker, fragmentOffset int) error {
 func (v *sound) build(e *WLD) error {
 	return nil
 }
+
+func (e *WLD) soundWrite(w io.Writer, fragmentOffset int) error {
+	return fmt.Errorf("not implemented")
+}

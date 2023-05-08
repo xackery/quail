@@ -90,3 +90,7 @@ func (e *WLD) skeletonTrackDefRead(r io.ReadSeeker, fragmentOffset int) error {
 func (v *skeletonTrackDef) build(e *WLD) error {
 	return nil
 }
+
+func (e *WLD) skeletonTrackDefWrite(w io.Writer, fragmentOffset int) error {
+	return fmt.Errorf("not implemented")
+}

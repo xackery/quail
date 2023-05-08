@@ -29,3 +29,7 @@ func (e *WLD) pointLightRead(r io.ReadSeeker, fragmentOffset int) error {
 func (v *pointLight) build(e *WLD) error {
 	return nil
 }
+
+func (e *WLD) pointLightWrite(w io.Writer, fragmentOffset int) error {
+	return fmt.Errorf("not implemented")
+}

@@ -89,3 +89,7 @@ const (
 	MaterialTypeTransparentAdditiveUnlitSkydome = 0x10
 	MaterialTypeInvisibleUnknown3               = 0x03
 )
+
+func (e *WLD) materialWrite(w io.Writer, fragmentOffset int) error {
+	return fmt.Errorf("not implemented")
+}

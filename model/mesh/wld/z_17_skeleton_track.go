@@ -36,3 +36,7 @@ func (e *WLD) skeletonTrackRead(r io.ReadSeeker, fragmentOffset int) error {
 func (v *skeletonTrack) build(e *WLD) error {
 	return nil
 }
+
+func (e *WLD) skeletonTrackWrite(w io.Writer, fragmentOffset int) error {
+	return fmt.Errorf("not implemented")
+}

@@ -34,3 +34,7 @@ func (e *WLD) particleSpriteRead(r io.ReadSeeker, fragmentOffset int) error {
 func (v *particleSprite) build(e *WLD) error {
 	return nil
 }
+
+func (e *WLD) particleSpriteWrite(w io.Writer, fragmentOffset int) error {
+	return fmt.Errorf("not implemented")
+}

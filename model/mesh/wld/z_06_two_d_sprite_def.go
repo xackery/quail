@@ -2,6 +2,7 @@ package wld
 
 import (
 	"encoding/binary"
+	"fmt"
 	"io"
 
 	"github.com/xackery/encdec"
@@ -82,4 +83,8 @@ func (e *WLD) twoDSpriteDefRead(r io.ReadSeeker, fragmentOffset int) error {
 
 func (v *twoDSpriteDef) build(e *WLD) error {
 	return nil
+}
+
+func (e *WLD) twoDSpriteDefWrite(w io.Writer, fragmentOffset int) error {
+	return fmt.Errorf("not implemented")
 }

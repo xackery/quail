@@ -29,3 +29,7 @@ func (e *WLD) zoneRead(r io.ReadSeeker, fragmentOffset int) error {
 func (v *zone) build(e *WLD) error {
 	return nil
 }
+
+func (e *WLD) zoneWrite(w io.Writer, fragmentOffset int) error {
+	return fmt.Errorf("not implemented")
+}

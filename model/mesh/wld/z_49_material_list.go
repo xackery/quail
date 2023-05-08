@@ -41,3 +41,7 @@ func (e *WLD) materialListRead(r io.ReadSeeker, fragmentOffset int) error {
 func (v *materialList) build(e *WLD) error {
 	return nil
 }
+
+func (e *WLD) materialListWrite(w io.Writer, fragmentOffset int) error {
+	return fmt.Errorf("not implemented")
+}

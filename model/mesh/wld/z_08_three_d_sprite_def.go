@@ -130,3 +130,7 @@ func (e *WLD) threeDSpriteDefRead(r io.ReadSeeker, fragmentOffset int) error {
 func (v *threeDSpriteDef) build(e *WLD) error {
 	return nil
 }
+
+func (e *WLD) threeDSpriteDefWrite(w io.Writer, fragmentOffset int) error {
+	return fmt.Errorf("not implemented")
+}

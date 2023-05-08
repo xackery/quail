@@ -29,3 +29,7 @@ func (e *WLD) activeGeoRegionRead(r io.ReadSeeker, fragmentOffset int) error {
 func (v *activeGeoRegion) build(e *WLD) error {
 	return nil
 }
+
+func (e *WLD) activeGeoRegionWrite(w io.Writer, fragmentOffset int) error {
+	return fmt.Errorf("not implemented")
+}

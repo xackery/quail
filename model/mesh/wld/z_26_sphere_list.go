@@ -36,3 +36,7 @@ func (e *WLD) sphereListRead(r io.ReadSeeker, fragmentOffset int) error {
 func (v *sphereList) build(e *WLD) error {
 	return nil
 }
+
+func (e *WLD) sphereListWrite(w io.Writer, fragmentOffset int) error {
+	return fmt.Errorf("not implemented")
+}

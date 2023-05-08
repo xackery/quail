@@ -218,3 +218,7 @@ func (v *mesh) TrianglesUnmarshal(r binstruct.Reader) error {
 	return nil
 }
 */
+
+func (e *WLD) meshWrite(w io.Writer, fragmentOffset int) error {
+	return fmt.Errorf("not implemented")
+}

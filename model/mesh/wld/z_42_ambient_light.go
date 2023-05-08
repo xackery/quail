@@ -29,3 +29,7 @@ func (e *WLD) ambientLightRead(r io.ReadSeeker, fragmentOffset int) error {
 func (v *ambientLight) build(e *WLD) error {
 	return nil
 }
+
+func (e *WLD) ambientLightWrite(w io.Writer, fragmentOffset int) error {
+	return fmt.Errorf("not implemented")
+}

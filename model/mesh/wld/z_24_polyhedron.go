@@ -36,3 +36,7 @@ func (e *WLD) polyhedronRead(r io.ReadSeeker, fragmentOffset int) error {
 func (v *polyhedron) build(e *WLD) error {
 	return nil
 }
+
+func (e *WLD) polyhedronWrite(w io.Writer, fragmentOffset int) error {
+	return fmt.Errorf("not implemented")
+}

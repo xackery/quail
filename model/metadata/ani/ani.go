@@ -17,6 +17,7 @@ type ANI struct {
 func New(name string, pfs archive.ReadWriter) (*ANI, error) {
 	e := &ANI{
 		name: name,
+		pfs:  pfs,
 	}
 	return e, nil
 }

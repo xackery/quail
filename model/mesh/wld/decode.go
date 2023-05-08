@@ -11,9 +11,10 @@ import (
 	"github.com/xackery/quail/log"
 )
 
-type decoder struct {
-	name  string
-	parse func(r io.ReadSeeker, fragOffset int) error
+type encoderdecoder struct {
+	name   string
+	decode func(r io.ReadSeeker, fragOffset int) error
+	encode func(w io.Writer, fragOffset int) error
 }
 
 // Decode loads a wld file
@@ -30,8 +31,6 @@ func (e *WLD) Decode(r io.ReadSeeker) error {
 	if err != nil {
 		return fmt.Errorf("read header: %w", err)
 	}
-
-	parsers := e.initParsers()
 
 	totalFragSize := uint32(0)
 	for fragOffset := 0; fragOffset < int(fragmentCount); fragOffset++ {
@@ -52,11 +51,11 @@ func (e *WLD) Decode(r io.ReadSeeker) error {
 			return fmt.Errorf("read: %w", err)
 		}
 
-		parser, ok := parsers[fragCode]
+		parser, ok := e.packs[fragCode]
 		if !ok {
 			log.Warnf("warning: unknown fragCode %d at offset %d", fragCode, fragOffset)
 		} else {
-			err = parser.parse(bytes.NewReader(buf), fragOffset)
+			err = parser.decode(bytes.NewReader(buf), fragOffset)
 			if err != nil {
 				log.Warnf("warning: parse %s (%d, 0x%x): %s\n", parser.name, fragCode, fragCode, err)
 				//return fmt.Errorf("parse %s: %w", parser.name, err)

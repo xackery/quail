@@ -24,7 +24,6 @@ type MDS struct {
 	MaterialManager *geo.MaterialManager
 	meshManager     *geo.MeshManager
 	particleManager *geo.ParticleManager
-	animations      []*geo.BoneAnimation
 }
 
 // New creates a new empty instance. Use NewFile to load an archive file on creation

@@ -20,6 +20,7 @@ type WLD struct {
 	names           map[int32]string // used temporarily while decoding a wld
 	fragments       map[int]parserer // used temporarily while decoding a wld
 	isOldWorld      bool             // if true, impacts how fragments are loaded
+	packs           map[int32]*encoderdecoder
 }
 
 // New creates a new empty instance. Use NewFile to load an archive file on creation
@@ -32,6 +33,7 @@ func New(name string, pfs archive.ReadWriter) (*WLD, error) {
 		particleManager: geo.NewParticleManager(),
 		fragments:       make(map[int]parserer),
 	}
+	e.packs = e.initPacks()
 	return e, nil
 }
 

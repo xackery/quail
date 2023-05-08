@@ -2,6 +2,7 @@ package wld
 
 import (
 	"encoding/binary"
+	"fmt"
 	"io"
 
 	"github.com/xackery/encdec"
@@ -47,4 +48,8 @@ func (e *WLD) sphereListDefRead(r io.ReadSeeker, fragmentOffset int) error {
 
 func (v *sphereListDef) build(e *WLD) error {
 	return nil
+}
+
+func (e *WLD) sphereListDefWrite(w io.Writer, fragmentOffset int) error {
+	return fmt.Errorf("not implemented")
 }

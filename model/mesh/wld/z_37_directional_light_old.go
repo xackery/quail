@@ -29,3 +29,7 @@ func (e *WLD) directionalLightOldRead(r io.ReadSeeker, fragmentOffset int) error
 func (v *directionalLightOld) build(e *WLD) error {
 	return nil
 }
+
+func (e *WLD) directionalLightOldWrite(w io.Writer, fragmentOffset int) error {
+	return fmt.Errorf("not implemented")
+}

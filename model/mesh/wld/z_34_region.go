@@ -155,3 +155,7 @@ func (e *WLD) regionRead(r io.ReadSeeker, fragmentOffset int) error {
 func (v *region) build(e *WLD) error {
 	return nil
 }
+
+func (e *WLD) regionWrite(w io.Writer, fragmentOffset int) error {
+	return fmt.Errorf("not implemented")
+}

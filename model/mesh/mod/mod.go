@@ -12,8 +12,7 @@ import (
 // MOD is a zon file struct
 type MOD struct {
 	// name is used as an identifier
-	name     string
-	itemName string // used for re-encoding
+	name string
 	// path is used for relative paths when looking for flat file texture references
 	path string
 	// pfs is used as an alternative to path when loading data from a pfs file

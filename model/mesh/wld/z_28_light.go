@@ -36,3 +36,7 @@ func (e *WLD) lightRead(r io.ReadSeeker, fragmentOffset int) error {
 func (v *light) build(e *WLD) error {
 	return nil
 }
+
+func (e *WLD) lightWrite(w io.Writer, fragmentOffset int) error {
+	return fmt.Errorf("not implemented")
+}

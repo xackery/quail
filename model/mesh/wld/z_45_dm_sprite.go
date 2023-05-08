@@ -29,3 +29,7 @@ func (e *WLD) dmSpriteRead(r io.ReadSeeker, fragmentOffset int) error {
 func (v *dmSprite) build(e *WLD) error {
 	return nil
 }
+
+func (e *WLD) dmSpriteWrite(w io.Writer, fragmentOffset int) error {
+	return fmt.Errorf("not implemented")
+}

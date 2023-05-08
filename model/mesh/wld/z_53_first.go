@@ -30,3 +30,7 @@ func (e *WLD) firstRead(r io.ReadSeeker, fragmentOffset int) error {
 func (v *first) build(e *WLD) error {
 	return nil
 }
+
+func (e *WLD) firstWrite(w io.Writer, fragmentOffset int) error {
+	return fmt.Errorf("not implemented")
+}

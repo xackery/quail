@@ -29,3 +29,7 @@ func (e *WLD) dmRGBTrackRead(r io.ReadSeeker, fragmentOffset int) error {
 func (v *dmRGBTrack) build(e *WLD) error {
 	return nil
 }
+
+func (e *WLD) dmRGBTrackWrite(w io.Writer, fragmentOffset int) error {
+	return fmt.Errorf("not implemented")
+}

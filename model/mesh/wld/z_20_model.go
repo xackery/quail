@@ -81,3 +81,7 @@ func (e *WLD) modelRead(r io.ReadSeeker, fragmentOffset int) error {
 func (v *model) build(e *WLD) error {
 	return nil
 }
+
+func (e *WLD) modelWrite(w io.Writer, fragmentOffset int) error {
+	return fmt.Errorf("not implemented")
+}

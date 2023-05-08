@@ -29,3 +29,7 @@ func (e *WLD) blitSpriteDefRead(r io.ReadSeeker, fragmentOffset int) error {
 func (v *blitSpriteDef) build(e *WLD) error {
 	return nil
 }
+
+func (e *WLD) blitSpriteDefWrite(w io.Writer, fragmentOffset int) error {
+	return fmt.Errorf("not implemented")
+}

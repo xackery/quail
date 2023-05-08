@@ -29,3 +29,7 @@ func (e *WLD) skyRegionRead(r io.ReadSeeker, fragmentOffset int) error {
 func (v *skyRegion) build(e *WLD) error {
 	return nil
 }
+
+func (e *WLD) skyRegionWrite(w io.Writer, fragmentOffset int) error {
+	return fmt.Errorf("not implemented")
+}

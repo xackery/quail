@@ -63,3 +63,7 @@ func (e *WLD) fourDSpriteDefRead(r io.ReadSeeker, fragmentOffset int) error {
 func (v *fourDSpriteDef) build(e *WLD) error {
 	return nil
 }
+
+func (e *WLD) fourDSpriteDefWrite(w io.Writer, fragmentOffset int) error {
+	return fmt.Errorf("not implemented")
+}
