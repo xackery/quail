@@ -20,7 +20,7 @@ func (e *WLD) userDataRead(r io.ReadSeeker, fragmentOffset int) error {
 	}
 
 	log.Debugf("userData: %+v", def)
-	e.fragments[fragmentOffset] = def
+	e.Fragments[fragmentOffset] = def
 	return nil
 }
 

@@ -20,7 +20,7 @@ func (e *WLD) compositeSpriteRead(r io.ReadSeeker, fragmentOffset int) error {
 	}
 
 	log.Debugf("compositeSprite: %+v", def)
-	e.fragments[fragmentOffset] = def
+	e.Fragments[fragmentOffset] = def
 	return nil
 }
 

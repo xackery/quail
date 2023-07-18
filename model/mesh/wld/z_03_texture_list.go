@@ -30,7 +30,7 @@ func (e *WLD) textureListRead(r io.ReadSeeker, fragmentOffset int) error {
 	}
 
 	log.Debugf("textureList%+v\n", def)
-	e.fragments[fragmentOffset] = def
+	e.Fragments[fragmentOffset] = def
 	return nil
 }
 
@@ -40,7 +40,7 @@ func (v *textureList) build(e *WLD) error {
 
 func (e *WLD) textureListWrite(w io.Writer, fragmentOffset int) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
-	def := e.fragments[fragmentOffset].(*textureList)
+	def := e.Fragments[fragmentOffset].(*textureList)
 	enc.Int32(def.NameRef)
 	enc.Int32(int32(len(def.TextureNames) - 1))
 	for _, textureName := range def.TextureNames {

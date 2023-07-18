@@ -144,7 +144,7 @@ func (e *TER) Decode(r io.ReadSeeker) error {
 		return fmt.Errorf("decode: %w", dec.Error())
 	}
 
-	log.Debugf("%s decoded %d verts, %d triangles, %d materials", e.name, e.meshManager.VertexTotalCount(), e.meshManager.TriangleTotalCount(), e.MaterialManager.Count())
+	log.Debugf("%s (ter) decoded %d verts, %d triangles, %d materials", e.name, e.meshManager.VertexTotalCount(), e.meshManager.TriangleTotalCount(), e.MaterialManager.Count())
 
 	return nil
 }

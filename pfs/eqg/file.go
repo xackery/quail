@@ -19,11 +19,14 @@ func (e *EQG) File(name string) ([]byte, error) {
 }
 
 func (e *EQG) Close() error {
+	e.files = nil
+	e.name = ""
+	e.fileCount = 0
 	return nil
 }
 
 func (e *EQG) Len() int {
-	return e.fileCount
+	return len(e.files)
 }
 
 // Files returns a string array of every file inside an EQG
@@ -32,7 +35,7 @@ func (e *EQG) Files() []archive.Filer {
 }
 
 func (e *EQG) WriteFile(name string, data []byte) error {
-	name = strings.ToLower(name)
+	//name = strings.ToLower(name)
 	for _, file := range e.files {
 		if file.Name() == name {
 			return file.SetData(data)

@@ -27,7 +27,7 @@ func (e *WLD) paletteFileRead(r io.ReadSeeker, fragmentOffset int) error {
 	}
 
 	log.Debugf("paletteFile: %+v", def)
-	e.fragments[fragmentOffset] = def
+	e.Fragments[fragmentOffset] = def
 	return nil
 }
 
@@ -37,7 +37,7 @@ func (v *paletteFile) build(e *WLD) error {
 
 func (e *WLD) paletteFileWrite(w io.Writer, fragmentOffset int) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
-	def := e.fragments[fragmentOffset].(*paletteFile)
+	def := e.Fragments[fragmentOffset].(*paletteFile)
 	enc.Int32(def.NameRef)
 	enc.Uint16(def.NameLength)
 	enc.String(def.FileName)

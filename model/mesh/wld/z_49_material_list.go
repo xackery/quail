@@ -9,8 +9,8 @@ import (
 	"github.com/xackery/quail/log"
 )
 
-// materialList 0x31 49
-type materialList struct {
+// MaterialList 0x31 49
+type MaterialList struct {
 	nameRef       int32
 	flags         uint32
 	materialCount uint32
@@ -18,7 +18,7 @@ type materialList struct {
 }
 
 func (e *WLD) materialListRead(r io.ReadSeeker, fragmentOffset int) error {
-	def := &materialList{}
+	def := &MaterialList{}
 
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	def.nameRef = dec.Int32()
@@ -34,11 +34,11 @@ func (e *WLD) materialListRead(r io.ReadSeeker, fragmentOffset int) error {
 	}
 
 	log.Debugf("%+v", def)
-	e.fragments[fragmentOffset] = def
+	e.Fragments[fragmentOffset] = def
 	return nil
 }
 
-func (v *materialList) build(e *WLD) error {
+func (v *MaterialList) build(e *WLD) error {
 	return nil
 }
 

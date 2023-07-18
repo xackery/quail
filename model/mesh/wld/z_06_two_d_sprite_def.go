@@ -77,7 +77,7 @@ func (e *WLD) twoDSpriteDefRead(r io.ReadSeeker, fragmentOffset int) error {
 	}
 
 	log.Debugf("%+v\n", def)
-	e.fragments[fragmentOffset] = def
+	e.Fragments[fragmentOffset] = def
 	return nil
 }
 

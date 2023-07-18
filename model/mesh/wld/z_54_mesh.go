@@ -4,21 +4,24 @@ import (
 	"encoding/binary"
 	"fmt"
 	"io"
+	"strings"
 
 	"github.com/xackery/encdec"
+	"github.com/xackery/quail/dump"
 	"github.com/xackery/quail/log"
 	"github.com/xackery/quail/model/geo"
+	"github.com/xackery/quail/quail/def"
 )
 
-// mesh 0x36 54
-type mesh struct {
+// Mesh 0x36 54
+type Mesh struct {
 	isNewWorldFormat bool `bin:"-"`
 	NameRef          int32
 	Flags            uint32
 	// A reference to a [MaterialListFragment] fragment. This tells the client which materials this mesh uses.
 	// For zone meshes the [MaterialListFragment] contains all the materials used in the entire zone.
 	// For placeable objects the [MaterialListFragment] contains all of the materials used in that object.
-	MaterialListRef            int32
+	MaterialListRef            uint32
 	AnimationRef               int32
 	Fragment3Ref               int32 // unknown, usually empty
 	Fragment4Ref               int32 // unknown, usually ref to first texture
@@ -49,22 +52,141 @@ type mesh struct {
 }
 
 func (e *WLD) meshRead(r io.ReadSeeker, fragmentOffset int) error {
-	def := &mesh{
-		isNewWorldFormat: !e.isOldWorld,
-	}
+	mesh := &def.Mesh{}
 
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
+	nameRef := dec.Int32()
+	//nameLength := dec.Uint32()
+	name, ok := e.names[-nameRef]
+	if !ok {
+		return fmt.Errorf("unknown name ref %d", nameRef)
+	}
+	mesh.Name = strings.ToLower(strings.TrimSuffix(name, "_DMSPRITEDEF"))
+	flags := dec.Uint32() // flags, currently unknown, zone meshes are 0x00018003, placeable objects are 0x00014003
+	dump.Hex(flags, "flags=%d", flags)
+
+	materialListRef := dec.Int32()
+	dump.Hex(materialListRef, "materialListRef=%d", materialListRef)
+	animationRef := dec.Int32() //used by flags/trees only
+	dump.Hex(animationRef, "animationRef=%d", animationRef)
+
+	_ = dec.Uint32() // unknown, usually empty
+	_ = dec.Uint32() // unknown, This usually seems to reference the first [TextureImagesFragment] fragment in the file.
+
+	// for zone meshes, x coordinate of the center of the mesh
+	// for placeable objects, this seems to define where the vertices will lie relative to the object’s local origin
+	centerX := dec.Float32()
+	centerY := dec.Float32()
+	centerZ := dec.Float32()
+
+	_ = dec.Uint32() // unknown, usually empty
+	_ = dec.Uint32() // unknown, usually empty
+	_ = dec.Uint32() // unknown, usually empty
+	_ = dec.Uint32() // unknown, usually empty
+
+	//maxDistance := dec.Float32 // Given the values in center, this seems to contain the maximum distance between any vertex and that position. It seems to define a radius from that position within which the mesh lies.
+	minX := dec.Float32() // min x, y, and z coords in absolute coords of any vertex in the mesh.
+	dump.Hex(minX, "minX=%f", minX)
+	minY := dec.Float32()
+	dump.Hex(minY, "minY=%f", minY)
+	minZ := dec.Float32()
+	dump.Hex(minZ, "minZ=%f", minZ)
+
+	maxX := dec.Float32() // max x, y, and z coords in absolute coords of any vertex in the mesh.
+	dump.Hex(maxX, "maxX=%f", maxX)
+	maxY := dec.Float32()
+	dump.Hex(maxY, "maxY=%f", maxY)
+	maxZ := dec.Float32()
+	dump.Hex(maxZ, "maxZ=%f", maxZ)
+
+	vertexCount := dec.Uint16()   // number of vertices in the mesh (called position_count in libeq)
+	uvCount := dec.Uint16()       // number of uv in the mesh (called texture_coordinate_count in libeq)
+	normalCount := dec.Uint16()   // number of vertex normal entries in the mesh (called normal_count in libeq)
+	colorCount := dec.Uint16()    // number of vertex color entries in the mesh (called color_count in libeq)
+	triangleCount := dec.Uint16() // number of triangles in the mesh (called face_count in libeq)
+	/// This seems to only be used when dealing with animated (mob) models.
+	/// It contains the number of vertex piece entries. Vertices are grouped together by
+	/// skeleton piece in this case and vertex piece entries tell the client how
+	/// many vertices are in each piece. It’s possible that there could be more
+	/// pieces in the skeleton than are in the meshes it references. Extra pieces have
+	/// no faces or vertices and I suspect they are there to define attachment points for
+	/// objects (e.g. weapons or shields).
+	skinAssignmentGroupsCount := dec.Uint16()
+	dump.Hex(skinAssignmentGroupsCount, "skinAssignmentGroupsCount=%d", skinAssignmentGroupsCount)
+	triangleMaterialGroupsCount := dec.Uint16() // number of triangle texture entries. faces are grouped together by material and polygon material entries. This tells the client the number of faces using a material.
+	dump.Hex(triangleMaterialGroupsCount, "triangleMaterialGroupsCount=%d", triangleMaterialGroupsCount)
+
+	vertexMaterialGroupsCount := dec.Uint16() // number of vertex material entries. Vertices are grouped together by material and vertex material entries tell the client how many vertices there are using a material.
+	dump.Hex(vertexMaterialGroupsCount, "vertexMaterialGroupsCount=%d", vertexMaterialGroupsCount)
+
+	meshopCount := dec.Uint16() // number of entries in meshops. Seems to be used only for animated mob models.
+	dump.Hex(meshopCount, "vertexCount=%d", meshopCount)
+
+	scale := float32(1 / float32(int(1)<<dec.Uint16())) // This allows vertex coordinates to be stored as integral values instead of floating-point values, without losing precision based on mesh size. Vertex values are multiplied by (1 shl `scale`) and stored in the vertex entries. FPSCALE is the internal name.
+
+	/// Vertices (x, y, z) belonging to this mesh. Each axis should
+	/// be multiplied by (1 shl `scale`) for the final vertex position.
+	for i := 0; i < int(vertexCount); i++ {
+		vert := def.Vertex{}
+		vert.Position.X = float32(centerX) + (float32(dec.Int16()) * scale)
+		vert.Position.Y = float32(centerY) + (float32(dec.Int16()) * scale)
+		vert.Position.Z = float32(centerZ) + (float32(dec.Int16()) * scale)
+		mesh.Vertices = append(mesh.Vertices, vert)
+	}
+
+	for i := 0; i < int(uvCount); i++ {
+		uv := def.Vector2{}
+		if e.isOldWorld {
+			uv.X = float32(dec.Int16()) / 256
+			uv.Y = float32(dec.Int16()) / 256
+		} else {
+			uv.X = float32(dec.Int32()) / 256
+			uv.Y = float32(dec.Int32()) / 256
+		}
+		mesh.Vertices[i].Uv = uv
+	}
+
+	for i := 0; i < int(normalCount); i++ {
+		normal := def.Vector3{}
+		normal.X = float32(dec.Int8()) / 128
+		normal.Y = float32(dec.Int8()) / 128
+		normal.Z = float32(dec.Int8()) / 128
+		mesh.Vertices[i].Normal = normal
+	}
+
+	for i := 0; i < int(colorCount); i++ {
+		color := def.RGBA{}
+		color.R = dec.Uint8()
+		color.G = dec.Uint8()
+		color.B = dec.Uint8()
+		color.A = dec.Uint8()
+		mesh.Vertices[i].Tint = color
+	}
+
+	for i := 0; i < int(triangleCount); i++ {
+		triangle := def.Triangle{}
+		notSolidFlag := dec.Uint16()
+		if notSolidFlag != 0 {
+			triangle.Flag = 1
+		}
+		triangle.Index.X = uint32(dec.Uint16())
+		triangle.Index.Y = uint32(dec.Uint16())
+		triangle.Index.Z = uint32(dec.Uint16())
+		mesh.Triangles = append(mesh.Triangles, triangle)
+	}
+
+	log.Debugf("mesh.Triangles=%+v count=%d", mesh.Triangles, triangleCount)
 
 	if dec.Error() != nil {
 		return fmt.Errorf("meshRead: %v", dec.Error())
 	}
 
-	log.Debugf("%+v", def)
-	e.fragments[fragmentOffset] = def
+	log.Debugf("%+v", mesh)
+	e.Fragments[fragmentOffset] = mesh
 	return nil
 }
 
-func (v *mesh) build(e *WLD) error {
+func (v *Mesh) build(e *WLD) error {
 	name, ok := e.names[-v.NameRef]
 	if !ok {
 		return fmt.Errorf("offset 0x%x (len %d)", -v.NameRef, len(e.names))
@@ -78,6 +200,11 @@ func (v *mesh) build(e *WLD) error {
 
 	e.meshManager.Add(m)
 
+	dm := &def.Mesh{
+		Name: name,
+	}
+
+	e.meshes = append(e.meshes, dm)
 	return nil
 }
 

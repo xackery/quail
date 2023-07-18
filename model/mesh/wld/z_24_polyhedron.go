@@ -29,7 +29,7 @@ func (e *WLD) polyhedronRead(r io.ReadSeeker, fragmentOffset int) error {
 	}
 
 	log.Debugf("%+v", def)
-	e.fragments[fragmentOffset] = def
+	e.Fragments[fragmentOffset] = def
 	return nil
 }
 

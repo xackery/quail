@@ -1,0 +1,42 @@
+package quail
+
+import (
+	"os"
+	"testing"
+
+	"github.com/xackery/quail/quail/def"
+)
+
+func TestQuail_PFSImport(t *testing.T) {
+	eqPath := os.Getenv("EQ_PATH")
+	if eqPath == "" {
+		t.Skip("EQ_PATH not set")
+	}
+	type fields struct {
+		Meshes []*def.Mesh
+	}
+	type args struct {
+		path string
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		wantErr bool
+	}{
+		//{name: "invalid", args: args{path: "invalid.txt"}, wantErr: true},
+		//{name: "valid", args: args{path: "it13900.eqg"}, wantErr: false},
+		//{name: "valid", args: args{path: "broodlands.eqg"}, wantErr: false},
+		{name: "valid", args: args{path: "freportn_chr.s3d"}, wantErr: false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			e := &Quail{
+				Meshes: tt.fields.Meshes,
+			}
+			if err := e.PFSImport(eqPath + "/" + tt.args.path); (err != nil) != tt.wantErr {
+				t.Errorf("Quail.ImportPFS() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}

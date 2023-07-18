@@ -74,13 +74,6 @@ func (e *WLD) Decode(r io.ReadSeeker) error {
 		return fmt.Errorf("decode: %w", dec.Error())
 	}
 
-	for i, frag := range e.fragments {
-		err = frag.build(e)
-		if err != nil {
-			return fmt.Errorf("build %d: %w", i, err)
-		}
-	}
-
 	return nil
 }
 

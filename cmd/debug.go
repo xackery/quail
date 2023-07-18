@@ -11,11 +11,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/xackery/quail/dump"
-	"github.com/xackery/quail/model/mesh/mds"
-	"github.com/xackery/quail/model/mesh/mod"
 	"github.com/xackery/quail/model/mesh/ter"
-	"github.com/xackery/quail/model/metadata/ani"
-	"github.com/xackery/quail/model/metadata/zon"
 	"github.com/xackery/quail/pfs/archive"
 	"github.com/xackery/quail/pfs/eqg"
 	"github.com/xackery/quail/pfs/s3d"
@@ -96,13 +92,9 @@ var debugCmd = &cobra.Command{
 			extension string
 		}
 		decodes := []*decodeTypes{
-			{instance: &ani.ANI{}, extension: ".ani"},
 			{instance: &eqg.EQG{}, extension: ".eqg"},
 			{instance: &s3d.S3D{}, extension: ".s3d"},
-			{instance: &mod.MOD{}, extension: ".mod"},
-			{instance: &mds.MDS{}, extension: ".mds"},
 			{instance: &ter.TER{}, extension: ".ter"},
-			{instance: &zon.ZON{}, extension: ".zon"},
 		}
 
 		fmt.Println("debugging file", path, "and dumping results to", out)
@@ -205,13 +197,9 @@ func dumpDecode(r io.ReadSeeker, ext string, path string, out string) error {
 		extension string
 	}
 	decodes := []*decodeTypes{
-		{instance: &ani.ANI{}, extension: ".ani"},
 		{instance: &eqg.EQG{}, extension: ".eqg"},
 		{instance: &s3d.S3D{}, extension: ".s3d"},
-		{instance: &mod.MOD{}, extension: ".mod"},
-		{instance: &mds.MDS{}, extension: ".mds"},
 		{instance: &ter.TER{}, extension: ".ter"},
-		{instance: &zon.ZON{}, extension: ".zon"},
 	}
 
 	for _, v := range decodes {

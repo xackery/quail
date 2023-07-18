@@ -8,11 +8,8 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
-	"github.com/xackery/quail/model/mesh/mds"
-	"github.com/xackery/quail/model/mesh/mod"
 	"github.com/xackery/quail/model/mesh/ter"
 	"github.com/xackery/quail/model/metadata/lit"
-	"github.com/xackery/quail/model/metadata/zon"
 	"github.com/xackery/quail/pfs/archive"
 	"github.com/xackery/quail/pfs/eqg"
 	"github.com/xackery/quail/pfs/s3d"
@@ -136,9 +133,6 @@ func inspect(pfs archive.ReadWriter, file string) error {
 		invoke func(file string, pfs archive.ReadWriter) error
 		name   string
 	}{
-		{invoke: inspectMDS, name: "mds"},
-		{invoke: inspectZON, name: "zon"},
-		{invoke: inspectMOD, name: "mod"},
 		{invoke: inspectTER, name: "ter"},
 		{invoke: inspectLIT, name: "lit"},
 	}
@@ -248,36 +242,6 @@ func inspectS3D(path string) error {
 		fmt.Printf("%s\t%s\n", out, fe.Name())
 	}
 
-	return nil
-}
-
-func inspectMDS(file string, pfs archive.ReadWriter) error {
-	e, err := mds.NewFile(filepath.Base(file), pfs, file)
-	if err != nil {
-		return fmt.Errorf("mds new: %w", err)
-	}
-
-	e.Inspect()
-	return nil
-}
-
-func inspectZON(file string, pfs archive.ReadWriter) error {
-	e, err := zon.NewFile(filepath.Base(file), pfs, file)
-	if err != nil {
-		return fmt.Errorf("zon new: %w", err)
-	}
-
-	e.Inspect()
-	return nil
-}
-
-func inspectMOD(file string, pfs archive.ReadWriter) error {
-	e, err := mod.NewFile(filepath.Base(file), pfs, file)
-	if err != nil {
-		return fmt.Errorf("mod new: %w", err)
-	}
-
-	e.Inspect()
 	return nil
 }
 

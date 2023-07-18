@@ -24,6 +24,7 @@ tmp.*
 .env
 test/
 test/*
+testdata/
 eq.sh
 bin/
 .DS_Store

@@ -1,6 +1,6 @@
 package wld
 
-type parserer interface {
+type Parserer interface {
 	build(e *WLD) error
 }
 

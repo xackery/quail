@@ -178,16 +178,18 @@ func (e *EQG) Decode(r io.ReadSeeker) error {
 				return fmt.Errorf("read nameData %w", err)
 			}
 			name := string(nameData[0 : len(nameData)-1])
-			name = strings.ToLower(name)
+			//name = strings.ToLower(name)
 			dirNameByCRCs[helper.FilenameCRC32(name)] = name
 		}
-
 	}
 
+	//log.Debugf("CRC dump %+v\n%+v", dirNameByCRCs, len(fileByCRCs))
 	for crc, data := range fileByCRCs {
 		dirName, ok := dirNameByCRCs[crc]
 		if !ok {
-			return fmt.Errorf("dirName for crc %d not found", crc)
+			log.Warnf("dirName for crc %d not found", crc)
+			continue
+			//return fmt.Errorf("dirName for crc %d not found", crc)
 		}
 
 		//force spaces in pfs archives to _

@@ -41,3 +41,8 @@ func NewFile(path string) (*S3D, error) {
 	}
 	return e, nil
 }
+
+// Close closes the archive
+func (e *S3D) Close() error {
+	return nil
+}
