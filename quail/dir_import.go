@@ -35,7 +35,7 @@ func (quail *Quail) DirImport(path string) error {
 		switch filepath.Ext(qf.Name()) {
 		case ".mesh":
 			mesh := &def.Mesh{
-				FileType: "mds", // default to mod
+				FileType: "mod", // default to mod
 			}
 			mesh.Name = strings.TrimSuffix(qf.Name(), ".mesh")
 			meshPath := fmt.Sprintf("%s/%s", path, qf.Name())
