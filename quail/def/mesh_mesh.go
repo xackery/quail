@@ -59,11 +59,12 @@ func (mesh *Mesh) triangleBuild(version uint32, names map[string]int32) ([]byte,
 		enc.Int32(materialIdx)
 		enc.Uint32(o.Flag)
 	}
+
 	return dataBuf.Bytes(), nil
 }
 
 // BoneBuild prepares an EQG-styled bone buffer list
-func (mesh *Mesh) boneBuild(version uint32, isMod bool, names map[string]int32) ([]byte, error) {
+func (mesh *Mesh) boneBuild(version uint32, fileType string, names map[string]int32) ([]byte, error) {
 	dataBuf := bytes.NewBuffer(nil)
 	enc := encdec.NewEncoder(dataBuf, binary.LittleEndian)
 
@@ -94,7 +95,7 @@ func (mesh *Mesh) boneBuild(version uint32, isMod bool, names map[string]int32) 
 		enc.Float32(o.Scale.X)
 		enc.Float32(o.Scale.Y)
 		enc.Float32(o.Scale.Z)
-		if isMod {
+		if fileType == "mod" {
 			enc.Float32(1.0)
 		}
 	}
