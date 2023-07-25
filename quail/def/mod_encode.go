@@ -39,7 +39,7 @@ func (mesh *Mesh) MODEncode(version uint32, w io.Writer) error {
 		return fmt.Errorf("triangleBuild: %w", err)
 	}
 
-	boneData, err := mesh.boneBuild(version, true, names)
+	boneData, err := mesh.boneBuild(version, "mod", names)
 	if err != nil {
 		return fmt.Errorf("boneBuild: %w", err)
 	}

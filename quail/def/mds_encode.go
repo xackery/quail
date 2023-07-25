@@ -15,6 +15,15 @@ func (mesh *Mesh) MDSEncode(version uint32, w io.Writer) error {
 	var err error
 	modelNames := []string{}
 
+	if len(mesh.Bones) == 0 {
+		mesh.Bones = append(mesh.Bones, Bone{
+			Name:       "ROOT_BONE",
+			Next:       -1,
+			ChildIndex: -1,
+			Scale:      Vector3{1, 1, 1},
+		})
+	}
+
 	if len(mesh.Bones) > 0 {
 		modelNames = append(modelNames, mesh.Name)
 	}
@@ -39,7 +48,7 @@ func (mesh *Mesh) MDSEncode(version uint32, w io.Writer) error {
 		return fmt.Errorf("triangleBuild: %w", err)
 	}
 
-	boneData, err := mesh.boneBuild(version, true, names)
+	boneData, err := mesh.boneBuild(version, "mds", names)
 	if err != nil {
 		return fmt.Errorf("boneBuild: %w", err)
 	}

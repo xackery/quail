@@ -35,7 +35,7 @@ func (quail *Quail) DirImport(path string) error {
 		switch filepath.Ext(qf.Name()) {
 		case ".mesh":
 			mesh := &def.Mesh{
-				FileType: "mod", // default to mod
+				FileType: "mds", // default to mod
 			}
 			mesh.Name = strings.TrimSuffix(qf.Name(), ".mesh")
 			meshPath := fmt.Sprintf("%s/%s", path, qf.Name())
@@ -60,6 +60,10 @@ func (quail *Quail) DirImport(path string) error {
 						records := strings.Split(line, "|")
 						if len(records) != 3 {
 							return fmt.Errorf("triangle.txt line %d: expected 3 records, got %d", i, len(records))
+						}
+						if records[0] == "ext" {
+							mesh.FileType = records[1]
+							continue
 						}
 						triangle := def.Triangle{}
 						vec3 := strings.Split(records[0], ",")
