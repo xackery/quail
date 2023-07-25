@@ -51,7 +51,7 @@ func Printf(format string, v ...interface{}) {
 
 func logPrintf(format string, v ...interface{}) {
 	if logLevel > 0 {
-		log.Printf(format, v...)
+		fmt.Printf(format+"\n", v...)
 		return
 	}
 	mu.Lock()
@@ -63,12 +63,13 @@ func logPrintf(format string, v ...interface{}) {
 	}
 	mu.Unlock()
 	file = strings.ReplaceAll(file, "/Users/xackery/Documents/code/projects/quail/", "")
-	log.Printf(fmt.Sprintf("./%s:%d %s", file, line, format), v...)
+
+	fmt.Printf(fmt.Sprintf("./%s:%d %s\n", file, line, format), v...)
 }
 
 func logPrintln(v ...interface{}) {
 	if logLevel > 0 {
-		log.Println(v...)
+		fmt.Println(v...)
 		return
 	}
 	mu.Lock()
@@ -82,7 +83,7 @@ func logPrintln(v ...interface{}) {
 	file = strings.ReplaceAll(file, "/Users/xackery/Documents/code/projects/quail/", "")
 	v = append([]interface{}{fmt.Sprintf("%s:%d ", file, line)}, v...)
 
-	log.Println(v...)
+	fmt.Println(v...)
 }
 
 func Debugln(v ...interface{}) {

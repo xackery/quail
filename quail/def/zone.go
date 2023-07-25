@@ -4,9 +4,9 @@ package def
 type Zone struct {
 	Name    string
 	Models  []string
-	Objects []*Object
-	Regions []*Region
-	Lights  []*Light
+	Objects []Object
+	Regions []Region
+	Lights  []Light
 }
 
 // Object is an object

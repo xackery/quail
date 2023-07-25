@@ -2,6 +2,7 @@ package quail
 
 import (
 	"os"
+	"path/filepath"
 	"reflect"
 	"testing"
 
@@ -29,11 +30,10 @@ func TestQuail_PFSExport(t *testing.T) {
 		args    args
 		wantErr bool
 	}{
-		//{name: "invalid", args: args{fileVersion: 1, pfsVersion: 1, srcPath: "invalid.txt"}, wantErr: true},
-		//{name: "load-save", args: args{fileVersion: 1, pfsVersion: 1, srcPath: "it13900.eqg", dstPath: "test/it13900.eqg"}, wantErr: false},
-		//{name: "load-save", args: args{fileVersion: 1, pfsVersion: 1, srcPath: "dbx.eqg", dstPath: "test/dbx.eqg"}, wantErr: false},
-		//{name: "load-save", args: args{fileVersion: 1, pfsVersion: 1, srcPath: "freportn_chr.s3d", dstPath: "test/freport_n.eqg"}, wantErr: false},
-		{name: "load-save", args: args{fileVersion: 1, pfsVersion: 1, srcPath: "bloodfields.eqg", dstPath: "test/bloodfields.eqg"}, wantErr: false},
+		//{name: "load-save", args: args{srcPath: "it13900.eqg", fileVersion: 1, pfsVersion: 1}, wantErr: false},
+		//{name: "load-save", args: args{srcPath: "dbx.eqg", fileVersion: 1, pfsVersion: 1}, wantErr: false},
+		//{name: "load-save", args: args{srcPath: "freportn_chr.s3d", fileVersion: 1, pfsVersion: 1}, wantErr: false},
+		{name: "load-save", args: args{srcPath: "bloodfields.eqg", fileVersion: 1, pfsVersion: 1}, wantErr: false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -42,14 +42,14 @@ func TestQuail_PFSExport(t *testing.T) {
 			}
 
 			if err := e.PFSImport(eqPath + "/" + tt.args.srcPath); err != nil {
-				t.Errorf("Quail.ImportPFS() error = %v", err)
+				t.Fatalf("Quail.ImportPFS() error = %v", err)
 			}
 
 			//e.Meshes[0].Bones = []def.Bone{}
 			//e.Meshes[0].Animations = []def.BoneAnimation{}
 
 			if err := e.PFSExport(tt.args.fileVersion, tt.args.pfsVersion, tt.args.dstPath); (err != nil) != tt.wantErr {
-				t.Errorf("Quail.ExportPFS() error = %v, wantErr %v", err, tt.wantErr)
+				t.Fatalf("Quail.ExportPFS() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
@@ -66,7 +66,6 @@ func TestQuail_PFSExportImportExport(t *testing.T) {
 	type args struct {
 		fileVersion uint32
 		pfsVersion  int
-		dstPath     string
 		srcPath     string
 	}
 	tests := []struct {
@@ -75,15 +74,16 @@ func TestQuail_PFSExportImportExport(t *testing.T) {
 		args    args
 		wantErr bool
 	}{
-		//{name: "invalid", args: args{fileVersion: 1, pfsVersion: 1, srcPath: "invalid.txt"}, wantErr: true},
-		//{name: "load-save", args: args{fileVersion: 1, pfsVersion: 1, srcPath: "it13900.eqg", dstPath: "test/it13900.eqg"}, wantErr: false},
-		//{name: "load-save", args: args{fileVersion: 1, pfsVersion: 1, srcPath: "dbx.eqg", dstPath: "test/dbx.eqg"}, wantErr: false},
-		//{name: "load-save", args: args{fileVersion: 1, pfsVersion: 1, srcPath: "mnt.eqg", dstPath: "test/mnt.eqg"}, wantErr: false},
-		//{name: "load-save", args: args{fileVersion: 1, pfsVersion: 1, srcPath: "mnt.eqg", dstPath: "test/mnt.eqg"}, wantErr: false},
-		//{name: "load-save", args: args{fileVersion: 1, pfsVersion: 1, srcPath: "mnt.eqg", dstPath: "test/mnt.eqg"}, wantErr: false},
-		{name: "load-save", args: args{fileVersion: 1, pfsVersion: 1, srcPath: "bloodfields.eqg", dstPath: "test/bloodfields.eqg"}, wantErr: false},
-		//{name: "load-save", args: args{fileVersion: 1, pfsVersion: 1, srcPath: "i27.eqg", dstPath: "test/i27.eqg"}, wantErr: false},
-		//{name: "load-save", args: args{fileVersion: 1, pfsVersion: 1, srcPath: "freportn_chr.s3d", dstPath: "test/freport_n.eqg"}, wantErr: false},
+		//{name: "invalid", args: args{srcPath: "invalid.txt", fileVersion: 1, pfsVersion: 1}, wantErr: true},
+		//{name: "load-save", args: args{srcPath: "it13900.eqg", fileVersion: 1, pfsVersion: 1}, wantErr: false},
+		//{name: "load-save", args: args{srcPath: "dbx.eqg", fileVersion: 1, pfsVersion: 1}, wantErr: false},
+		//{name: "load-save", args: args{srcPath: "mnt.eqg", fileVersion: 1, pfsVersion: 1}, wantErr: false},
+		//{name: "load-save", args: args{srcPath: "mnt.eqg", fileVersion: 1, pfsVersion: 1}, wantErr: false},
+		//{name: "load-save", args: args{srcPath: "mnt.eqg", fileVersion: 1, pfsVersion: 1}, wantErr: false},
+		//{name: "load-save", args: args{srcPath: "bloodfields.eqg", fileVersion: 1, pfsVersion: 1}, wantErr: false},
+		//{name: "load-save", args: args{srcPath: "i9.eqg", fileVersion: 1, pfsVersion: 1}, wantErr: false},
+		{name: "load-save", args: args{srcPath: "it13968.eqg", fileVersion: 1, pfsVersion: 1}, wantErr: false},
+		//{name: "load-save", args: args{srcPath: "freportn_chr.s3d", fileVersion: 1, pfsVersion: 1}, wantErr: false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -92,22 +92,22 @@ func TestQuail_PFSExportImportExport(t *testing.T) {
 			}
 
 			if err := e.PFSImport(eqPath + "/" + tt.args.srcPath); err != nil {
-				t.Errorf("Quail.ImportPFS() error = %v", err)
+				t.Fatalf("Quail.ImportPFS() error = %v", err)
 			}
 
 			//e.Meshes[0].Bones = []def.Bone{}
 			//e.Meshes[0].Animations = []def.BoneAnimation{}
 
-			if err := e.PFSExport(tt.args.fileVersion, tt.args.pfsVersion, tt.args.dstPath); (err != nil) != tt.wantErr {
-				t.Errorf("Quail.ExportPFS() error = %v, wantErr %v", err, tt.wantErr)
+			if err := e.PFSExport(tt.args.fileVersion, tt.args.pfsVersion, "test/"+filepath.Base(tt.args.srcPath)); (err != nil) != tt.wantErr {
+				t.Fatalf("Quail.ExportPFS() error = %v, wantErr %v", err, tt.wantErr)
 			}
 
 			e2 := &Quail{
 				Meshes: tt.fields.Meshes,
 			}
 
-			if err := e2.PFSImport(tt.args.dstPath); err != nil {
-				t.Errorf("Quail.ImportPFS() error = %v", err)
+			if err := e2.PFSImport("test/" + filepath.Base(tt.args.srcPath)); err != nil {
+				t.Fatalf("Quail.ImportPFS() error = %v", err)
 			}
 
 			//e2.Meshes[0].Bones = []def.Bone{}
@@ -252,6 +252,8 @@ func TestQuail_PFSExportImportExport(t *testing.T) {
 					t.Fatalf("animation name mismatch, %s not found", anim.Name)
 				}
 			}
+
+			log.Debugf("seems like a clean roundtrip for %s", filepath.Base(tt.args.srcPath))
 		})
 	}
 }

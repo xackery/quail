@@ -145,6 +145,7 @@ func Decode(mesh *def.Mesh, r io.ReadSeeker) error {
 		}
 		v.Uv.X = dec.Float32()
 		v.Uv.Y = dec.Float32()
+
 		if version <= 2 {
 			v.Uv2.X = 0
 			v.Uv2.Y = 0
@@ -174,7 +175,8 @@ func Decode(mesh *def.Mesh, r io.ReadSeeker) error {
 		}
 		if material == nil {
 			if materialID != -1 {
-				return fmt.Errorf("material %d not found", materialID)
+				log.Debugf("material %d not found", materialID)
+				//return fmt.Errorf("material %d not found", materialID)
 			}
 			t.MaterialName = ""
 		} else {

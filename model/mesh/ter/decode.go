@@ -132,6 +132,7 @@ func (e *TER) Decode(r io.ReadSeeker) error {
 		materialID := dec.Int32()
 		material, ok := e.MaterialManager.ByID(materialID)
 		if materialID != -1 && !ok {
+			log.Debugf("material %d not found", materialID)
 			return fmt.Errorf("material %d not found", materialID)
 		}
 		t.MaterialName = material.Name

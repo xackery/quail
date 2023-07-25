@@ -9,10 +9,10 @@ import (
 	"github.com/xackery/quail/log"
 )
 
-// material 0x30 48
-type material struct {
-	nameRef int32
-	flags   uint32
+// Material 0x30 48
+type Material struct {
+	NameRef int32
+	Flags   uint32
 	/* // Bit 0 ........ Apparently must be 1 if the texture isn’t transparent.
 	   // Bit 1 ........ Set to 1 if the texture is masked (e.g. tree leaves).
 	   // Bit 2 ........ Set to 1 if the texture is semi-transparent but not masked.
@@ -20,28 +20,28 @@ type material struct {
 	   // Bit 4 ........ Set to 1 if the texture is masked but not semi-transparent.
 	   // Bit 31 ...... Apparently must be 1 if the texture isn’t transparent.
 	*/
-	renderMethod  uint32
-	rGBPen        uint32 // This typically contains 0x004E4E4E but has also been known to contain 0xB2B2B2.
-	brightness    float32
-	scaledAmbient float32
-	textureRef    uint32
-	pairs         [2]uint32 //This only exists if bit 1 of flags is set. Both fields usually contain 0.
+	RenderMethod  uint32
+	RGBPen        uint32 // This typically contains 0x004E4E4E but has also been known to contain 0xB2B2B2.
+	Brightness    float32
+	ScaledAmbient float32
+	TextureRef    uint32
+	Pairs         [2]uint32 //This only exists if bit 1 of flags is set. Both fields usually contain 0.
 }
 
 func (e *WLD) materialRead(r io.ReadSeeker, fragmentOffset int) error {
-	def := &material{}
+	def := &Material{}
 
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
-	def.nameRef = dec.Int32()
-	def.flags = dec.Uint32()
-	def.renderMethod = dec.Uint32()
-	def.rGBPen = dec.Uint32()
-	def.brightness = dec.Float32()
-	def.scaledAmbient = dec.Float32()
-	def.textureRef = dec.Uint32()
-	if def.flags&0x1 != 0 {
-		def.pairs[0] = dec.Uint32()
-		def.pairs[1] = dec.Uint32()
+	def.NameRef = dec.Int32()
+	def.Flags = dec.Uint32()
+	def.RenderMethod = dec.Uint32()
+	def.RGBPen = dec.Uint32()
+	def.Brightness = dec.Float32()
+	def.ScaledAmbient = dec.Float32()
+	def.TextureRef = dec.Uint32()
+	if def.Flags&0x1 != 0 {
+		def.Pairs[0] = dec.Uint32()
+		def.Pairs[1] = dec.Uint32()
 	}
 
 	if dec.Error() != nil {
@@ -53,7 +53,7 @@ func (e *WLD) materialRead(r io.ReadSeeker, fragmentOffset int) error {
 	return nil
 }
 
-func (v *material) build(e *WLD) error {
+func (v *Material) build(e *WLD) error {
 	return nil
 }
 

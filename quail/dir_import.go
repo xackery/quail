@@ -34,7 +34,9 @@ func (quail *Quail) DirImport(path string) error {
 		}
 		switch filepath.Ext(qf.Name()) {
 		case ".mesh":
-			mesh := &def.Mesh{}
+			mesh := &def.Mesh{
+				FileType: "mod", // default to mod
+			}
 			mesh.Name = strings.TrimSuffix(qf.Name(), ".mesh")
 			meshPath := fmt.Sprintf("%s/%s", path, qf.Name())
 			meshFiles, err := os.ReadDir(meshPath)
@@ -125,8 +127,8 @@ func (quail *Quail) DirImport(path string) error {
 							continue
 						}
 						records := strings.Split(line, "|")
-						if len(records) != 3 {
-							return fmt.Errorf("bone.txt line %d: expected 3 records, got %d", i, len(records))
+						if len(records) != 7 {
+							return fmt.Errorf("bone.txt line %d: expected 7 records, got %d", i, len(records))
 						}
 						bone := def.Bone{}
 						bone.Name = records[0]
@@ -167,8 +169,8 @@ func (quail *Quail) DirImport(path string) error {
 							continue
 						}
 						records := strings.Split(line, "|")
-						if len(records) != 2 {
-							return fmt.Errorf("particle_render.txt line %d: expected 2 records, got %d", i, len(records))
+						if len(records) != 8 {
+							return fmt.Errorf("particle_render.txt line %d: expected 8 records, got %d", i, len(records))
 						}
 
 						entry := &def.ParticleRenderEntry{}
@@ -207,11 +209,16 @@ func (quail *Quail) DirImport(path string) error {
 							continue
 						}
 						records := strings.Split(line, "|")
-						if len(records) != 2 {
-							return fmt.Errorf("particle_point.txt line %d: expected 2 records, got %d", i, len(records))
+						if len(records) != 5 {
+							return fmt.Errorf("particle_point.txt line %d: expected 5 records, got %d", i, len(records))
 						}
 
-						entry := &def.ParticlePointEntry{}
+						if records[0] == "id" {
+							particlePoint.Name = records[1]
+							continue
+						}
+
+						entry := def.ParticlePointEntry{}
 						entry.Name = records[0]
 						entry.Bone = records[1]
 						vec3 := strings.Split(records[2], ",")
@@ -232,8 +239,10 @@ func (quail *Quail) DirImport(path string) error {
 					mesh.ParticlePoints = append(mesh.ParticlePoints, particlePoint)
 				}
 				if mf.IsDir() && strings.HasSuffix(mf.Name(), ".material") {
-					material := &def.Material{}
-					material.Name = mf.Name()
+					material := &def.Material{
+						ShaderName: "Opaque_MaxCB1.fx",
+					}
+					material.Name = strings.TrimSuffix(mf.Name(), ".material")
 					materialData, err := os.ReadFile(fmt.Sprintf("%s/%s/property.txt", meshPath, mf.Name()))
 					if err != nil {
 						return fmt.Errorf("read mesh %s material %s: %w", mesh.Name, mf.Name(), err)
@@ -247,9 +256,14 @@ func (quail *Quail) DirImport(path string) error {
 							continue
 						}
 						records := strings.Split(line, "|")
+						if records[0] == "shaderName" {
+							material.ShaderName = records[1]
+							continue
+						}
 						if len(records) != 3 {
 							return fmt.Errorf("material %s line %d: expected 3 records, got %d", mf.Name(), i, len(records))
 						}
+
 						property := &def.MaterialProperty{}
 						property.Name = records[0]
 						property.Value = records[1]

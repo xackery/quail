@@ -70,7 +70,7 @@ func execConvert(cmd *cobra.Command, args []string) error {
 	}
 	srcExt := filepath.Ext(srcPath)
 	if fi.IsDir() && srcExt != ".quail" {
-		return fmt.Errorf("Failed convert: srcPath is %s but also a directory. Set to a file for this extension.", srcExt)
+		return fmt.Errorf("convert: srcPath is %s but also a directory. Set to a file for this extension", srcExt)
 	}
 
 	q := quail.New()

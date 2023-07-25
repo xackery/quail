@@ -19,6 +19,25 @@ func (e *EQG) File(name string) ([]byte, error) {
 }
 
 func (e *EQG) Close() error {
+	e.ContentsSummary = "\n"
+	for i, fe := range e.files {
+		base := float64(len(fe.Data()))
+		out := ""
+		num := float64(1024)
+		if base < num*num*num*num {
+			out = fmt.Sprintf("%0.0fG", base/num/num/num)
+		}
+		if base < num*num*num {
+			out = fmt.Sprintf("%0.0fM", base/num/num)
+		}
+		if base < num*num {
+			out = fmt.Sprintf("%0.0fK", base/num)
+		}
+		if base < num {
+			out = fmt.Sprintf("%0.0fB", base)
+		}
+		e.ContentsSummary += fmt.Sprintf("%d %s:\t %s\n", i, out, fe.Name())
+	}
 	e.files = nil
 	e.name = ""
 	e.fileCount = 0

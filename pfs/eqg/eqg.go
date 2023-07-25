@@ -11,9 +11,10 @@ import (
 
 // EQG represents a modern everquest zone archive format
 type EQG struct {
-	name      string
-	files     []archive.Filer
-	fileCount int
+	name            string
+	files           []archive.Filer
+	ContentsSummary string
+	fileCount       int
 }
 
 // New creates a new empty instance. Use NewFile to load an archive on creation

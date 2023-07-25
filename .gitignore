@@ -28,3 +28,4 @@ testdata/
 eq.sh
 bin/
 .DS_Store
+go.mod.tags

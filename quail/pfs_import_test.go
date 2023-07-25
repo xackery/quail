@@ -27,7 +27,10 @@ func TestQuail_PFSImport(t *testing.T) {
 		//{name: "invalid", args: args{path: "invalid.txt"}, wantErr: true},
 		//{name: "valid", args: args{path: "it13900.eqg"}, wantErr: false},
 		//{name: "valid", args: args{path: "broodlands.eqg"}, wantErr: false},
-		{name: "valid", args: args{path: "freportn_chr.s3d"}, wantErr: false},
+		//{name: "valid", args: args{path: "freportn_chr.s3d"}, wantErr: false},
+		{name: "valid", args: args{path: "freportn.s3d"}, wantErr: false},
+		//{name: "valid", args: args{path: "it13968.eqg"}, wantErr: false},
+		//{name: "valid", args: args{path: "dbx.eqg"}, wantErr: false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

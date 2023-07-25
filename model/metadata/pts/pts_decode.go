@@ -29,13 +29,11 @@ func Decode(point *def.ParticlePoint, r io.ReadSeeker) error {
 	}
 
 	for i := 0; i < int(particleCount); i++ {
-		entry := &def.ParticlePointEntry{}
+		entry := def.ParticlePointEntry{}
 		entry.Name = dec.StringZero()
 		entry.NameSuffix = dec.Bytes(64 - len(entry.Name) - 1)
-
 		entry.Bone = dec.StringZero()
 		entry.BoneSuffix = dec.Bytes(64 - len(entry.Bone) - 1)
-
 		entry.Translation.X = dec.Float32()
 		entry.Translation.Y = dec.Float32()
 		entry.Translation.Z = dec.Float32()

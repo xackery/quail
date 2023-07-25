@@ -67,7 +67,7 @@ func Decode(zone *def.Zone, r io.ReadSeeker) error {
 	}
 
 	for i := 0; i < int(objectCount); i++ {
-		object := &def.Object{}
+		object := def.Object{}
 		nameIndex := dec.Uint32()
 
 		if nameIndex >= uint32(len(namesIndexed)) {
@@ -95,7 +95,7 @@ func Decode(zone *def.Zone, r io.ReadSeeker) error {
 	}
 
 	for i := 0; i < int(regionCount); i++ {
-		region := &def.Region{}
+		region := def.Region{}
 
 		nameOffset := dec.Uint32()
 		region.Name, ok = names[nameOffset]
@@ -119,7 +119,7 @@ func Decode(zone *def.Zone, r io.ReadSeeker) error {
 	}
 
 	for i := 0; i < int(lightCount); i++ {
-		light := &def.Light{}
+		light := def.Light{}
 
 		nameOffset := dec.Uint32()
 		light.Name, ok = names[nameOffset]

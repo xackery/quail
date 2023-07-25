@@ -3,10 +3,12 @@ package quail
 import (
 	"bytes"
 	"fmt"
+	"image/png"
 	"os"
 	"path/filepath"
 	"strings"
 
+	"github.com/sergeymakinen/go-bmp"
 	"github.com/xackery/quail/log"
 	"github.com/xackery/quail/model/mesh/mds"
 	"github.com/xackery/quail/model/mesh/mod"
@@ -207,6 +209,10 @@ func (e *Quail) S3DImport(path string) error {
 		}
 	}
 
+	if len(e.Meshes) == 1 && e.Meshes[0].Name == "" {
+		e.Meshes[0].Name = strings.TrimSuffix(filepath.Base(path), filepath.Ext(path))
+	}
+
 	materialCount := 0
 	textureCount := 0
 	for _, mesh := range e.Meshes {
@@ -221,11 +227,35 @@ func (e *Quail) S3DImport(path string) error {
 					continue
 				}
 				for _, file := range pfs.Files() {
-					if strings.EqualFold(file.Name(), property.Value) {
-						property.Data = file.Data()
-						textureCount++
+					if !strings.EqualFold(file.Name(), property.Value) {
+						continue
 					}
+					property.Data = file.Data()
+					textureCount++
+
+					if string(property.Data[0:3]) == "DDS" {
+						property.Value = strings.TrimSuffix(property.Value, filepath.Ext(property.Value)) + ".dds"
+						material.Name = strings.TrimSuffix(strings.TrimSuffix(material.Name, ".BMP"), ".bmp")
+						continue
+					}
+
+					if filepath.Ext(strings.ToLower(property.Value)) != ".bmp" {
+						continue
+					}
+					img, err := bmp.Decode(bytes.NewReader(file.Data()))
+					if err != nil {
+						return fmt.Errorf("bmp decode: %w", err)
+					}
+					buf := new(bytes.Buffer)
+					// convert to png
+					err = png.Encode(buf, img)
+					if err != nil {
+						return fmt.Errorf("png encode: %w", err)
+					}
+					property.Value = strings.TrimSuffix(property.Value, filepath.Ext(property.Value)) + ".png"
+					material.Name = strings.TrimSuffix(material.Name, ".bmp")
 				}
+
 			}
 		}
 	}

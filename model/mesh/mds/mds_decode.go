@@ -160,6 +160,7 @@ func Decode(mesh *def.Mesh, r io.ReadSeeker) error {
 	boneAssignmentCount := dec.Uint32()
 	// TODO: boneAssignmentCount is not used?
 	_ = boneAssignmentCount
+	log.Debugf("boneAssignmentCount: %d", boneAssignmentCount)
 
 	for i := 0; i < int(verticesCount); i++ {
 		v := def.Vertex{}
@@ -204,7 +205,8 @@ func Decode(mesh *def.Mesh, r io.ReadSeeker) error {
 		}
 		if material == nil {
 			if materialID != -1 {
-				return fmt.Errorf("material %d not found", materialID)
+				log.Debugf("material %d not found", materialID)
+				//return fmt.Errorf("material %d not found", materialID)
 			}
 			t.MaterialName = ""
 		} else {

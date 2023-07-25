@@ -56,10 +56,10 @@ func (e *Quail) EQGExport(fileVersion uint32, pfsVersion int, path string) error
 			return fmt.Errorf("encodeMod %s: %w", mesh.Name, err)
 		}
 
-		os.WriteFile(fmt.Sprintf("%s/%s-raw-out.mod", "testdata", mesh.Name), buf.Bytes(), 0644)
-		tag.Write(fmt.Sprintf("%s/%s-raw-out.mod.tags", "testdata", mesh.Name))
+		os.WriteFile(fmt.Sprintf("%s/%s-raw-out.%s", "testdata", mesh.Name, mesh.FileType), buf.Bytes(), 0644)
+		tag.Write(fmt.Sprintf("%s/%s-raw-out.%s.tags", "testdata", mesh.Name, mesh.FileType))
 
-		err = pfs.Add(fmt.Sprintf("%s.mod", mesh.Name), buf.Bytes())
+		err = pfs.Add(fmt.Sprintf("%s.%s", mesh.Name, mesh.FileType), buf.Bytes())
 		if err != nil {
 			return fmt.Errorf("addMod %s: %w", mesh.Name, err)
 		}

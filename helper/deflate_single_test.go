@@ -3,7 +3,6 @@ package helper
 import (
 	"encoding/hex"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"testing"
 )
@@ -12,7 +11,7 @@ func TestDeflate(t *testing.T) {
 	if os.Getenv("SINGLE_TEST") != "1" {
 		return
 	}
-	data, err := ioutil.ReadFile("../scripts/deflate/data")
+	data, err := os.ReadFile("../scripts/deflate/data")
 	if err != nil {
 		t.Fatalf("readfile: %s", err.Error())
 	}

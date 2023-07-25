@@ -6,7 +6,6 @@ import (
 	"io"
 
 	"github.com/xackery/encdec"
-	"github.com/xackery/quail/log"
 )
 
 type zone struct {
@@ -21,7 +20,7 @@ func (e *WLD) zoneRead(r io.ReadSeeker, fragmentOffset int) error {
 		return fmt.Errorf("zoneRead: %v", dec.Error())
 	}
 
-	log.Debugf("%+v", def)
+	//log.Debugf("%+v", def)
 	e.Fragments[fragmentOffset] = def
 	return nil
 }

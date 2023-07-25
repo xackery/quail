@@ -43,6 +43,11 @@ type Vector3 struct {
 	Z float32
 }
 
+// String returns a string representation of the vector
+func (v Vector3) String() string {
+	return fmt.Sprintf("%f %f %f", v.X, v.Y, v.Z)
+}
+
 // Vector2 has X,Y defined as float32
 type Vector2 struct {
 	X float32
@@ -214,6 +219,8 @@ func (mesh *Mesh) Encode(version uint32, w io.Writer) error {
 		return mesh.MODEncode(version, w)
 	case "mds":
 		return mesh.MDSEncode(version, w)
+	case "ter":
+		return mesh.TEREncode(version, w)
 	}
 	return fmt.Errorf("unknown file type: %s", mesh.FileType)
 }

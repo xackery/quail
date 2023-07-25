@@ -116,6 +116,7 @@ func (quail *Quail) DirExport(path string) error {
 
 			ppw.WriteString("name|bone|translation|rotation|scale\n")
 			for _, point := range mesh.ParticlePoints {
+				ppw.WriteString(fmt.Sprintf("id|%s|-|-|-\n", point.Name))
 				for _, entry := range point.Entries {
 					ppw.WriteString(fmt.Sprintf("%s|%s|%0.8f,%0.8f,%0.8f|%0.8f,%0.8f,%0.8f|%0.8f,%0.8f,%0.8f\n", entry.Name, entry.Bone, entry.Translation.X, entry.Translation.Y, entry.Translation.Z, entry.Rotation.X, entry.Rotation.Y, entry.Rotation.Z, entry.Scale.X, entry.Scale.Y, entry.Scale.Z))
 				}
@@ -141,6 +142,7 @@ func (quail *Quail) DirExport(path string) error {
 			defer mw.Close()
 
 			mw.WriteString("property_name|value|category\n")
+			mw.WriteString(fmt.Sprintf("shaderName|%s|2\n", material.ShaderName))
 			for _, property := range material.Properties {
 				value := strings.ToLower(property.Value)
 				if strings.ToLower(property.Name) == "e_fshininess0" {

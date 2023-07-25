@@ -12,6 +12,7 @@ import (
 func (mesh *Mesh) vertexBuild(version uint32, names map[string]int32) ([]byte, error) {
 	dataBuf := bytes.NewBuffer(nil)
 	enc := encdec.NewEncoder(dataBuf, binary.LittleEndian)
+
 	// verts
 	for _, o := range mesh.Vertices {
 		enc.Float32(o.Position.X)
@@ -20,7 +21,7 @@ func (mesh *Mesh) vertexBuild(version uint32, names map[string]int32) ([]byte, e
 		enc.Float32(o.Normal.X)
 		enc.Float32(o.Normal.Y)
 		enc.Float32(o.Normal.Z)
-		if version < 3 {
+		if version <= 2 {
 			enc.Float32(o.Uv.X)
 			enc.Float32(o.Uv.Y)
 		} else {
