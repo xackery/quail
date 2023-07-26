@@ -11,9 +11,13 @@ type ParticleRenderEntry struct {
 	ID2                 uint32 `json:"id2"`
 	ParticlePoint       string `json:"particlePoint"`
 	ParticlePointSuffix []byte
-	UnknownA            [5]uint32 `json:"unknowna"` //Pretty sure last 3 have something to do with durations
-	Duration            uint32    `json:"duration"`
-	UnknownB            uint32    `json:"unknownb"`
-	UnknownFFFFFFFF     int32     `json:"unknownffffffff"`
-	UnknownC            uint32    `json:"unknownc"`
+	UnknownA1           uint32
+	UnknownA2           uint32
+	UnknownA3           uint32
+	UnknownA4           uint32
+	UnknownA5           uint32
+	Duration            uint32 `json:"duration"`
+	UnknownB            uint32 `json:"unknownb"`
+	UnknownFFFFFFFF     int32  `json:"unknownffffffff"`
+	UnknownC            uint32 `json:"unknownc"`
 }

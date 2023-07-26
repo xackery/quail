@@ -140,7 +140,7 @@ func compressEQG(path string, out string) error {
 		return fmt.Errorf("encode %s: %w", out, err)
 	}
 
-	fmt.Printf("%d file%s: %s\nwritten to %s\n", fileCount, helper.Pluralize(fileCount), addStdout, out)
+	fmt.Printf("%s\n%d file%s written to %s\n", addStdout, fileCount, helper.Pluralize(fileCount), out)
 	return nil
 }
 
@@ -197,6 +197,6 @@ func compressS3D(path string, out string) error {
 		return fmt.Errorf("encode %s: %w", out, err)
 	}
 
-	fmt.Printf("%d file%s: %s\nwritten to %s\n", fileCount, helper.Pluralize(fileCount), addStdout, out)
+	fmt.Printf("%s\n%d file%s written to %s\n", addStdout, fileCount, helper.Pluralize(fileCount), out)
 	return nil
 }

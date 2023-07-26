@@ -248,8 +248,24 @@ func TestQuail_DirExportImport(t *testing.T) {
 							t.Fatalf("mesh particle render entry particle point suffix mismatch, %+v != %+v", entry.ParticlePointSuffix, cmp.ParticlePointSuffix)
 						}*/
 
-						if entry.UnknownA != cmp.UnknownA {
-							t.Fatalf("mesh particle render entry unknown a mismatch, %+v != %+v", entry.UnknownA, cmp.UnknownA)
+						if entry.UnknownA1 != cmp.UnknownA1 {
+							t.Fatalf("mesh particle render entry unknown a1 mismatch, %+v != %+v", entry.UnknownA1, cmp.UnknownA1)
+						}
+
+						if entry.UnknownA2 != cmp.UnknownA2 {
+							t.Fatalf("mesh particle render entry unknown a2 mismatch, %+v != %+v", entry.UnknownA2, cmp.UnknownA2)
+						}
+
+						if entry.UnknownA3 != cmp.UnknownA3 {
+							t.Fatalf("mesh particle render entry unknown a3 mismatch, %+v != %+v", entry.UnknownA3, cmp.UnknownA3)
+						}
+
+						if entry.UnknownA4 != cmp.UnknownA4 {
+							t.Fatalf("mesh particle render entry unknown a4 mismatch, %+v != %+v", entry.UnknownA4, cmp.UnknownA4)
+						}
+
+						if entry.UnknownA5 != cmp.UnknownA5 {
+							t.Fatalf("mesh particle render entry unknown a5 mismatch, %+v != %+v", entry.UnknownA5, cmp.UnknownA5)
 						}
 
 						if entry.UnknownB != cmp.UnknownB {

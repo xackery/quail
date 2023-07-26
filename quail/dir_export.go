@@ -98,11 +98,11 @@ func (quail *Quail) DirExport(path string) error {
 			}
 			defer prw.Close()
 
-			prw.WriteString("id|id2|particlePoint|unknowna|duration|unknownb|unknownffffffff|unknownc\n")
+			prw.WriteString("id|id2|particle_point|unknowna1|unknowna2|unknowna3|unknowna4|unknowna5|duration|unknownb|unknownffffffff|unknownc\n")
 			for _, render := range mesh.ParticleRenders {
 				for _, entry := range render.Entries {
 					prw.WriteString(fmt.Sprintf("%d|%d|%s|", entry.ID, entry.ID2, entry.ParticlePoint))
-					prw.WriteString(fmt.Sprintf("%d,%d,%d,%d,%d|", entry.UnknownA[0], entry.UnknownA[1], entry.UnknownA[2], entry.UnknownA[3], entry.UnknownA[4]))
+					prw.WriteString(fmt.Sprintf("%d|%d|%d|%d|%d|", entry.UnknownA1, entry.UnknownA2, entry.UnknownA3, entry.UnknownA4, entry.UnknownA5))
 					prw.WriteString(fmt.Sprintf("%d|%d|%d|%d\n", entry.Duration, entry.UnknownB, entry.UnknownFFFFFFFF, entry.UnknownC))
 				}
 			}
@@ -117,7 +117,6 @@ func (quail *Quail) DirExport(path string) error {
 
 			ppw.WriteString("name|bone|translation|rotation|scale\n")
 			for _, point := range mesh.ParticlePoints {
-				ppw.WriteString(fmt.Sprintf("id|%s|-|-|-\n", point.Name))
 				for _, entry := range point.Entries {
 					ppw.WriteString(fmt.Sprintf("%s|%s|%0.8f,%0.8f,%0.8f|%0.8f,%0.8f,%0.8f|%0.8f,%0.8f,%0.8f\n", entry.Name, entry.Bone, entry.Translation.X, entry.Translation.Y, entry.Translation.Z, entry.Rotation.X, entry.Rotation.Y, entry.Rotation.Z, entry.Scale.X, entry.Scale.Y, entry.Scale.Z))
 				}

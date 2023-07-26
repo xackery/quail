@@ -173,25 +173,24 @@ func (quail *Quail) DirImport(path string) error {
 							continue
 						}
 						records := strings.Split(line, "|")
-						if len(records) != 8 {
-							return fmt.Errorf("particle_render.txt line %d: expected 8 records, got %d", i, len(records))
+						if len(records) != 11 {
+							return fmt.Errorf("particle_render.txt line %d: expected 11 records, got %d", i, len(records))
 						}
 
 						entry := &def.ParticleRenderEntry{}
 						entry.ID = helper.ParseUint32(records[0], 0)
 						entry.ID2 = helper.ParseUint32(records[1], 0)
 						entry.ParticlePoint = records[2]
-						b5 := strings.Split(records[3], ",")
-						entry.UnknownA[0] = helper.ParseUint32(b5[0], 0)
-						entry.UnknownA[1] = helper.ParseUint32(b5[1], 0)
-						entry.UnknownA[2] = helper.ParseUint32(b5[2], 0)
-						entry.UnknownA[3] = helper.ParseUint32(b5[3], 0)
-						entry.UnknownA[4] = helper.ParseUint32(b5[4], 0)
+						entry.UnknownA1 = helper.ParseUint32(records[3], 0)
+						entry.UnknownA2 = helper.ParseUint32(records[4], 0)
+						entry.UnknownA3 = helper.ParseUint32(records[5], 0)
+						entry.UnknownA4 = helper.ParseUint32(records[6], 0)
+						entry.UnknownA5 = helper.ParseUint32(records[7], 0)
 
-						entry.Duration = helper.ParseUint32(records[4], 0)
-						entry.UnknownB = helper.ParseUint32(records[5], 0)
-						entry.UnknownFFFFFFFF = helper.ParseInt32(records[6], 0)
-						entry.UnknownC = helper.ParseUint32(records[7], 0)
+						entry.Duration = helper.ParseUint32(records[8], 0)
+						entry.UnknownB = helper.ParseUint32(records[9], 0)
+						entry.UnknownFFFFFFFF = helper.ParseInt32(records[10], 0)
+						entry.UnknownC = helper.ParseUint32(records[11], 0)
 						particleRender.Entries = append(particleRender.Entries, entry)
 					}
 					mesh.ParticleRenders = append(mesh.ParticleRenders, particleRender)

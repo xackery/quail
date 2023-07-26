@@ -7,14 +7,18 @@ import (
 
 // ParticleRender defines what particle to emit on a particle point
 type ParticleRender struct {
-	ID              uint32    `json:"id"` //id is actorsemittersnew.edd
-	ID2             uint32    `json:"id2"`
-	ParticlePoint   string    `json:"particlePoint"`
-	UnknownA        [5]uint32 `json:"unknowna"` //Pretty sure last 3 have something to do with durations
-	Duration        uint32    `json:"duration"`
-	UnknownB        uint32    `json:"unknownb"`
-	UnknownFFFFFFFF int32     `json:"unknownffffffff"`
-	UnknownC        uint32    `json:"unknownc"`
+	ID              uint32 `json:"id"` //id is actorsemittersnew.edd
+	ID2             uint32 `json:"id2"`
+	ParticlePoint   string `json:"particlePoint"`
+	UnknownA1       uint32 `json:"unknowna1"`
+	UnknownA2       uint32 `json:"unknowna2"`
+	UnknownA3       uint32 `json:"unknowna3"`
+	UnknownA4       uint32 `json:"unknowna4"`
+	UnknownA5       uint32 `json:"unknowna5"`
+	Duration        uint32 `json:"duration"`
+	UnknownB        uint32 `json:"unknownb"`
+	UnknownFFFFFFFF int32  `json:"unknownffffffff"`
+	UnknownC        uint32 `json:"unknownc"`
 }
 
 // NewParticleRender returns a new particle render
@@ -24,7 +28,7 @@ func NewParticleRender() *ParticleRender {
 
 // WriteHeader writes the header for a ParticleRender
 func (e *ParticleRender) WriteHeader(w io.StringWriter) error {
-	_, err := w.WriteString("id|id2|particlePoint|unknowna|duration|unknownb|unknownffffffff|unknownc\n")
+	_, err := w.WriteString("id|id2|particle_point|unknowna|duration|unknownb|unknownffffffff|unknownc\n")
 	return err
 }
 
@@ -34,11 +38,11 @@ func (e *ParticleRender) Write(w io.StringWriter) error {
 		e.ID,
 		e.ID2,
 		e.ParticlePoint,
-		e.UnknownA[0],
-		e.UnknownA[1],
-		e.UnknownA[2],
-		e.UnknownA[3],
-		e.UnknownA[4],
+		e.UnknownA1,
+		e.UnknownA2,
+		e.UnknownA3,
+		e.UnknownA4,
+		e.UnknownA5,
 		e.Duration,
 		e.UnknownB,
 		e.UnknownFFFFFFFF,

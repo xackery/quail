@@ -39,7 +39,12 @@ func Decode(render *def.ParticleRender, r io.ReadSeeker) error {
 		entry.ParticlePoint = dec.StringZero()
 		entry.ParticlePointSuffix = dec.Bytes(64 - len(entry.ParticlePoint) - 1)
 
-		entry.UnknownA = [5]uint32{dec.Uint32(), dec.Uint32(), dec.Uint32(), dec.Uint32(), dec.Uint32()}
+		entry.UnknownA1 = dec.Uint32()
+		entry.UnknownA2 = dec.Uint32()
+		entry.UnknownA3 = dec.Uint32()
+		entry.UnknownA4 = dec.Uint32()
+		entry.UnknownA5 = dec.Uint32()
+
 		entry.Duration = dec.Uint32()
 		entry.UnknownB = dec.Uint32()
 		entry.UnknownFFFFFFFF = dec.Int32()
