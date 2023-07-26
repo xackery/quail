@@ -50,7 +50,7 @@ func (quail *Quail) DirExport(path string) error {
 			defer tw.Close()
 
 			tw.WriteString("index|flag|material_name\n")
-			tw.WriteString(fmt.Sprintf("ext|%s|-1|-1", mesh.FileType))
+			tw.WriteString(fmt.Sprintf("ext|%s|-1|-1\n", mesh.FileType))
 			for _, triangle := range mesh.Triangles {
 				tw.WriteString(fmt.Sprintf("%d,%d,%d|%d|%s\n", triangle.Index.X, triangle.Index.Y, triangle.Index.Z, triangle.Flag, triangle.MaterialName))
 			}
