@@ -19,6 +19,6 @@ jobs:
           prerelease: true
           title: "${{env.VERSION}}"
           files: |
-            bin/talkeq-linux
-            bin/talkeq-windows.exe
-            bin/talkeq-darwin
+            bin/quail-linux
+            bin/quail.exe
+            bin/quail-darwin

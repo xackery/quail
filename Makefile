@@ -39,7 +39,7 @@ build-linux:
 
 build-windows:
 	@echo "build-windows: ${BUILD_VERSION}"
-	@GOOS=windows GOARCH=amd64 go build -buildmode=pie -ldflags="-X main.Version=${BUILD_VERSION} -s -w" -o bin/${NAME}-windows.exe main.go
+	@GOOS=windows GOARCH=amd64 go build -buildmode=pie -ldflags="-X main.Version=${BUILD_VERSION} -s -w" -o bin/${NAME}.exe main.go
 
 # used by xackery, build darwin copy and move to blender path
 build-copy: build-darwin
