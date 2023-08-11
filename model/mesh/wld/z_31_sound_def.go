@@ -26,10 +26,14 @@ func (e *WLD) soundDefRead(r io.ReadSeeker, fragmentOffset int) error {
 	}
 
 	log.Debugf("%+v", def)
-	e.fragments[fragmentOffset] = def
+	e.Fragments[fragmentOffset] = def
 	return nil
 }
 
 func (v *soundDef) build(e *WLD) error {
 	return nil
+}
+
+func (e *WLD) soundDefWrite(w io.Writer, fragmentOffset int) error {
+	return fmt.Errorf("not implemented")
 }

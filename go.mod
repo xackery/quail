@@ -3,7 +3,9 @@ module github.com/xackery/quail
 go 1.20
 
 require (
+	github.com/jmoiron/sqlx v1.3.5
 	github.com/mitchellh/go-homedir v1.1.0
+	github.com/sergeymakinen/go-bmp v1.0.0-beta.1
 	github.com/spf13/cobra v1.7.0
 	github.com/spf13/viper v1.15.0
 	github.com/xackery/colors v1.0.1

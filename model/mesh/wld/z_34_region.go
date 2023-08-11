@@ -148,10 +148,14 @@ func (e *WLD) regionRead(r io.ReadSeeker, fragmentOffset int) error {
 	}
 
 	log.Debugf("%+v", def)
-	e.fragments[fragmentOffset] = def
+	e.Fragments[fragmentOffset] = def
 	return nil
 }
 
 func (v *region) build(e *WLD) error {
 	return nil
+}
+
+func (e *WLD) regionWrite(w io.Writer, fragmentOffset int) error {
+	return fmt.Errorf("not implemented")
 }

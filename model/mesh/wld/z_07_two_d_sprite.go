@@ -27,10 +27,14 @@ func (e *WLD) twoDSpriteRead(r io.ReadSeeker, fragmentOffset int) error {
 	}
 
 	log.Debugf("twoDSprite: %+v\n", def)
-	e.fragments[fragmentOffset] = def
+	e.Fragments[fragmentOffset] = def
 	return nil
 }
 
 func (v *twoDSprite) build(e *WLD) error {
 	return nil
+}
+
+func (e *WLD) twoDSpriteWrite(w io.Writer, fragmentOffset int) error {
+	return fmt.Errorf("not implemented")
 }

@@ -4,7 +4,6 @@ import (
 	"testing"
 )
 
-// TODO: no refs
 func TestWLD_ambientLightRead(t *testing.T) {
 	e, err := New("test", nil)
 	if err != nil {

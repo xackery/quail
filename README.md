@@ -2,7 +2,7 @@
 
 [![GoDoc](https://godoc.org/github.com/xackery/quail?status.svg)](https://godoc.org/github.com/xackery/quail) [![Go Report Card](https://goreportcard.com/badge/github.com/xackery/quail)](https://goreportcard.com/report/github.com/xackery/quail) [![Platform Tests & Build](https://github.com/xackery/quail/actions/workflows/build_workflow.yml/badge.svg)](https://github.com/xackery/quail/actions/workflows/build_workflow.yml)
 
-<p align="center">[![quail](quail.png)](https://github.com/xackery/quail/releases/latest)</p>
+[![quail](quail.png)](https://github.com/xackery/quail/releases/latest)
 
 Quail is a command line EverQuest pfs manager. The two primary ways to use it is with the extract/compress commands to turn a pfs archive into a folder to inspect and manipulate (then reverse), or do import/export to blender via [quail-addon](https://github.com/xackery/quail-addon).
 
@@ -73,6 +73,19 @@ Name|Notes
 floraexclusion.dat|Flora exclusion areas, Versin 4 zones use this to create ignores on RFD files
 prj|3DS Max **Pr**o**j**ect files, this is used by internal team for opening a pfs mesh, doesn't appear to have any use for EverQuest.
 dbg.txt|**D**e**b**u**g** log, shows the last export attempt internally, doesn't appear to have any use for EverQuest.
+
+
+## Progress Checklist
+- Import Support
+  - Bugs EQG with V4 and zone files
+  - Bugs S3D (not supported currently)
+- Export Support
+  - UV Fix bad alignment
+- Bone/Animations
+- Image Sequence support (animated textures)
+- MOD support
+- S3D/WLD support
+- V4 Zone support
 
 ## World Fragments
 

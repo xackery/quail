@@ -74,7 +74,7 @@ func (e *TER) Decode(r io.ReadSeeker) error {
 
 			property.Category = dec.Uint32()
 			if property.Category == 0 {
-				property.Value = fmt.Sprintf("%0.3f", dec.Float32())
+				property.Value = fmt.Sprintf("%0.8f", dec.Float32())
 			} else {
 				val := dec.Uint32()
 				if property.Category == 2 {
@@ -132,6 +132,7 @@ func (e *TER) Decode(r io.ReadSeeker) error {
 		materialID := dec.Int32()
 		material, ok := e.MaterialManager.ByID(materialID)
 		if materialID != -1 && !ok {
+			log.Debugf("material %d not found", materialID)
 			return fmt.Errorf("material %d not found", materialID)
 		}
 		t.MaterialName = material.Name
@@ -144,7 +145,7 @@ func (e *TER) Decode(r io.ReadSeeker) error {
 		return fmt.Errorf("decode: %w", dec.Error())
 	}
 
-	log.Debugf("%s decoded %d verts, %d triangles, %d materials", e.name, e.meshManager.VertexTotalCount(), e.meshManager.TriangleTotalCount(), e.MaterialManager.Count())
+	log.Debugf("%s (ter) decoded %d verts, %d triangles, %d materials", e.name, e.meshManager.VertexTotalCount(), e.meshManager.TriangleTotalCount(), e.MaterialManager.Count())
 
 	return nil
 }

@@ -22,10 +22,14 @@ func (e *WLD) dmRGBTrackDefRead(r io.ReadSeeker, fragmentOffset int) error {
 	}
 
 	log.Debugf("%+v", def)
-	e.fragments[fragmentOffset] = def
+	e.Fragments[fragmentOffset] = def
 	return nil
 }
 
 func (v *dmRGBTrackDef) build(e *WLD) error {
 	return nil
+}
+
+func (e *WLD) dmRGBTrackDefWrite(w io.Writer, fragmentOffset int) error {
+	return fmt.Errorf("not implemented")
 }

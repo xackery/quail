@@ -131,10 +131,6 @@ func compareReadAndWrite(t *testing.T, path string, fragCode int32, fragOffset i
 		}
 		total++
 
-		err = e.fragments[fragOffset].build(e)
-		if err != nil {
-			return fmt.Errorf("build: %w", err)
-		}
 		buf := bytes.NewBuffer(nil)
 
 		err = e.textureListWrite(buf, fragOffset)

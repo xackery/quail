@@ -6,7 +6,6 @@ import (
 	"io"
 
 	"github.com/xackery/encdec"
-	"github.com/xackery/quail/log"
 )
 
 type zone struct {
@@ -21,11 +20,15 @@ func (e *WLD) zoneRead(r io.ReadSeeker, fragmentOffset int) error {
 		return fmt.Errorf("zoneRead: %v", dec.Error())
 	}
 
-	log.Debugf("%+v", def)
-	e.fragments[fragmentOffset] = def
+	//log.Debugf("%+v", def)
+	e.Fragments[fragmentOffset] = def
 	return nil
 }
 
 func (v *zone) build(e *WLD) error {
 	return nil
+}
+
+func (e *WLD) zoneWrite(w io.Writer, fragmentOffset int) error {
+	return fmt.Errorf("not implemented")
 }

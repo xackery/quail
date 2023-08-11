@@ -28,10 +28,14 @@ func (e *WLD) threeDSpriteRead(r io.ReadSeeker, fragmentOffset int) error {
 	}
 
 	log.Debugf("%+v", def)
-	e.fragments[fragmentOffset] = def
+	e.Fragments[fragmentOffset] = def
 	return nil
 }
 
 func (v *threeDSprite) build(e *WLD) error {
 	return nil
+}
+
+func (e *WLD) threeDSpriteWrite(w io.Writer, fragmentOffset int) error {
+	return fmt.Errorf("not implemented")
 }

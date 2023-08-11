@@ -1,0 +1,24 @@
+name: Build Go Binaries and Prep Release
+on: [push]
+env:
+  VERSION: "" # this gets set by set-version
+jobs:
+  build_and_preview:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - run: make set-version-${{github.run_number}}
+      - run: go get ./...
+      - run: go test -tags ci,wayland ./...
+      - run: make build-all
+      - uses: "marvinpinto/action-automatic-releases@latest"
+        if: github.ref == 'refs/heads/main'
+        with:
+          repo_token: "${{secrets.GITHUB_TOKEN}}"
+          automatic_release_tag: "${{env.VERSION}}"
+          prerelease: true
+          title: "${{env.VERSION}}"
+          files: |
+            bin/talkeq-linux
+            bin/talkeq-windows.exe
+            bin/talkeq-darwin

@@ -9,14 +9,14 @@ import (
 	"github.com/xackery/quail/log"
 )
 
-// textureList 0x03 03
-type textureList struct {
+// TextureList 0x03 03
+type TextureList struct {
 	NameRef      int32
 	TextureNames []string
 }
 
 func (e *WLD) textureListRead(r io.ReadSeeker, fragmentOffset int) error {
-	def := &textureList{}
+	def := &TextureList{}
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	def.NameRef = dec.Int32()
 	textureCount := dec.Int32()
@@ -30,17 +30,17 @@ func (e *WLD) textureListRead(r io.ReadSeeker, fragmentOffset int) error {
 	}
 
 	log.Debugf("textureList%+v\n", def)
-	e.fragments[fragmentOffset] = def
+	e.Fragments[fragmentOffset] = def
 	return nil
 }
 
-func (v *textureList) build(e *WLD) error {
+func (v *TextureList) build(e *WLD) error {
 	return nil
 }
 
 func (e *WLD) textureListWrite(w io.Writer, fragmentOffset int) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
-	def := e.fragments[fragmentOffset].(*textureList)
+	def := e.Fragments[fragmentOffset].(*TextureList)
 	enc.Int32(def.NameRef)
 	enc.Int32(int32(len(def.TextureNames) - 1))
 	for _, textureName := range def.TextureNames {

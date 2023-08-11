@@ -27,10 +27,14 @@ func (e *WLD) fourDSpriteRead(r io.ReadSeeker, fragmentOffset int) error {
 	}
 
 	log.Debugf("%+v", def)
-	e.fragments[fragmentOffset] = def
+	e.Fragments[fragmentOffset] = def
 	return nil
 }
 
 func (v *fourDSprite) build(e *WLD) error {
 	return nil
+}
+
+func (e *WLD) fourDSpriteWrite(w io.Writer, fragmentOffset int) error {
+	return fmt.Errorf("not implemented")
 }

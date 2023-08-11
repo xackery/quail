@@ -1,21 +1,25 @@
 package cmd
 
 import (
+	"bytes"
 	"fmt"
 	"os"
 	"path/filepath"
-	"sort"
+	"reflect"
 	"strings"
 
 	"github.com/spf13/cobra"
+	"github.com/xackery/quail/log"
 	"github.com/xackery/quail/model/mesh/mds"
 	"github.com/xackery/quail/model/mesh/mod"
-	"github.com/xackery/quail/model/mesh/ter"
-	"github.com/xackery/quail/model/metadata/lit"
+	"github.com/xackery/quail/model/metadata/prt"
+	"github.com/xackery/quail/model/metadata/pts"
 	"github.com/xackery/quail/model/metadata/zon"
 	"github.com/xackery/quail/pfs/archive"
 	"github.com/xackery/quail/pfs/eqg"
 	"github.com/xackery/quail/pfs/s3d"
+	"github.com/xackery/quail/quail"
+	"github.com/xackery/quail/quail/def"
 )
 
 // inspectCmd represents the inspect command
@@ -56,68 +60,14 @@ var inspectCmd = &cobra.Command{
 			return fmt.Errorf("inspect requires a target file, directory provided")
 		}
 
-		var pfs archive.ReadWriter
-		ext := filepath.Ext(path)
-		switch ext {
-		case ".eqg":
-			e, err := eqg.New(filepath.Base(path))
-			if err != nil {
-				return fmt.Errorf("eqg new: %w", err)
-			}
-
-			if file == "" {
-				err = inspectEQG(path)
-				if err != nil {
-					return fmt.Errorf("inspectEQG: %w", err)
-				}
-				os.Exit(0)
-			}
-			r, err := os.Open(path)
-			if err != nil {
-				return err
-			}
-			defer r.Close()
-			err = e.Decode(r)
-			if err != nil {
-				return fmt.Errorf("decode: %w", err)
-			}
-
-			pfs = e
-		case ".s3d":
-			e, err := s3d.New(filepath.Base(path))
-			if err != nil {
-				return fmt.Errorf("s3d new: %w", err)
-			}
-			if file == "" {
-				err = inspectS3D(path)
-				if err != nil {
-					return fmt.Errorf("inspectS3D: %w", err)
-				}
-				os.Exit(0)
-			}
-			r, err := os.Open(path)
-			if err != nil {
-				return err
-			}
-			defer r.Close()
-			err = e.Decode(r)
-			if err != nil {
-				return fmt.Errorf("decode: %w", err)
-			}
-			pfs = e
-		default:
-			file = filepath.Base(path)
-			pfs, err = archive.NewPath(path)
-			if err != nil {
-				return fmt.Errorf("path new: %w", err)
-			}
-		}
-
-		err = inspect(pfs, file)
+		inspected, err := inspect(path, file)
 		if err != nil {
 			return fmt.Errorf("inspect: %w", err)
 		}
+
+		reflectTraversal(inspected, 0, -1)
 		return nil
+
 	},
 }
 
@@ -127,176 +77,184 @@ func init() {
 	inspectCmd.PersistentFlags().String("file", "", "file to inspect inside pfs")
 }
 
-func inspect(pfs archive.ReadWriter, file string) error {
+func reflectTraversal(inspected interface{}, nest int, index int) {
+	v := reflect.ValueOf(inspected)
+	tv := v.Type()
 
-	var err error
-	ext := strings.ToLower(filepath.Ext(file))
-
-	callbacks := []struct {
-		invoke func(file string, pfs archive.ReadWriter) error
-		name   string
-	}{
-		{invoke: inspectMDS, name: "mds"},
-		{invoke: inspectZON, name: "zon"},
-		{invoke: inspectMOD, name: "mod"},
-		{invoke: inspectTER, name: "ter"},
-		{invoke: inspectLIT, name: "lit"},
+	if v.Kind() == reflect.Ptr {
+		v = v.Elem()
+		tv = v.Type()
 	}
 
-	for _, evt := range callbacks {
-		if ext != "."+evt.name {
+	if v.Kind() == reflect.Slice {
+		if v.Len() == 0 {
+			log.Infof("%s%s (Empty)", strings.Repeat("  ", nest), tv.Name())
+			return
+		}
+		log.Infof("%s%s:", strings.Repeat("  ", nest), tv.Name())
+		for i := 0; i < v.Len(); i++ {
+			reflectTraversal(v.Index(i).Interface(), nest+1, i)
+		}
+		return
+	}
+
+	for i := 0; i < v.NumField(); i++ {
+		// check if field is exported
+		if tv.Field(i).PkgPath != "" {
 			continue
 		}
-		err = evt.invoke(file, pfs)
+
+		indexStr := ""
+		if index >= 0 {
+			indexStr = fmt.Sprintf("[%d]", index)
+		}
+
+		// is it a slice?
+		if v.Field(i).Kind() == reflect.Slice {
+			s := v.Field(i)
+			if s.Len() == 0 {
+				log.Infof("%s%s %s: (Empty)", strings.Repeat("  ", nest), indexStr, tv.Field(i).Name)
+				continue
+			}
+			log.Infof("%s%s %s:", strings.Repeat("  ", nest), indexStr, tv.Field(i).Name)
+
+			for j := 0; j < s.Len(); j++ {
+				if tv.Field(i).PkgPath != "" {
+					continue
+				}
+
+				if s.Index(j).Kind() == reflect.Uint8 {
+					if j == 0 {
+						fmt.Printf("%s", strings.Repeat("  ", nest+1))
+					}
+					fmt.Printf("0x%02x ", s.Index(j).Interface())
+					if j == s.Len()-1 {
+						fmt.Println()
+					}
+					continue
+				}
+				reflectTraversal(s.Index(j).Interface(), nest+1, j)
+				//log.Infof("  %d %s\t %+v", j, tv.Field(i).Name, s.Index(j).Interface())
+			}
+			continue
+		}
+
+		if tv.Field(i).Name == "MaterialName" {
+			continue
+		}
+
+		log.Infof("%s%s %s: %v", strings.Repeat("  ", nest), indexStr, tv.Field(i).Name, v.Field(i).Interface())
+	}
+}
+
+func inspect(path string, file string) (interface{}, error) {
+	if len(file) < 2 {
+		log.Infof("Inspecting %s", filepath.Base(path))
+	} else {
+		log.Infof("Inspecting %s %s", filepath.Base(path), filepath.Base(file))
+	}
+
+	ext := strings.ToLower(filepath.Ext(path))
+	switch ext {
+	case ".eqg":
+		pfs, err := eqg.NewFile(path)
 		if err != nil {
-			return fmt.Errorf("inspect %s: %w", evt.name, err)
+			return nil, fmt.Errorf("%s load: %w", ext, err)
 		}
-		os.Exit(0)
+		if len(file) < 2 {
+			pfs.Close()
+			return *pfs, nil
+		}
+		return inspectFile(pfs, path, file)
+	case ".s3d":
+		pfs, err := s3d.NewFile(path)
+		if err != nil {
+			return nil, fmt.Errorf("%s load: %w", ext, err)
+		}
+		if len(file) < 2 {
+			pfs.Close()
+			return *pfs, nil
+		}
+		return inspectFile(pfs, path, file)
+	default:
+		return inspectFile(nil, path, path)
 	}
-
-	return fmt.Errorf("unsupported extension: %s", ext)
 }
 
-func inspectEQG(path string) error {
-	pfs, err := eqg.New(filepath.Base(path))
-	if err != nil {
-		return fmt.Errorf("new: %w", err)
-	}
-	r, err := os.Open(path)
-	if err != nil {
-		return err
-	}
-	defer r.Close()
-	err = pfs.Decode(r)
-	if err != nil {
-		return fmt.Errorf("decode: %w", err)
+func inspectFile(pfs archive.Reader, path string, file string) (interface{}, error) {
+	if pfs == nil {
+		data, err := os.ReadFile(path)
+		if err != nil {
+			return nil, err
+		}
+		return inspectContent(filepath.Base(file), bytes.NewReader(data))
 	}
 
-	fmt.Printf("%s contains %d files:\n", filepath.Base(path), pfs.Len())
-
-	filesByName := pfs.Files()
-	noteworthyFile := "file.ext"
-
-	sort.Sort(archive.FilerByName(filesByName))
 	for _, fe := range pfs.Files() {
-		base := float64(len(fe.Data()))
-		out := ""
-		num := float64(1024)
-		if strings.HasSuffix(fe.Name(), ".zon") {
-			noteworthyFile = fe.Name()
+		if !strings.EqualFold(fe.Name(), file) {
+			continue
 		}
-		if strings.HasSuffix(fe.Name(), ".mds") && noteworthyFile == "file.ext" {
-			noteworthyFile = fe.Name()
-		}
-		if strings.HasSuffix(fe.Name(), ".mod") && noteworthyFile == "file.ext" {
-			noteworthyFile = fe.Name()
-		}
-		if base < num*num*num*num {
-			out = fmt.Sprintf("%0.0fG", base/num/num/num)
-		}
-		if base < num*num*num {
-			out = fmt.Sprintf("%0.0fM", base/num/num)
-		}
-		if base < num*num {
-			out = fmt.Sprintf("%0.0fK", base/num)
-		}
-		if base < num {
-			out = fmt.Sprintf("%0.0fB", base)
-		}
-		fmt.Printf("%s\t%s\n", out, fe.Name())
+		return inspectContent(file, bytes.NewReader(fe.Data()))
 	}
-
-	fmt.Printf("you can inspect files, e.g.: quail inspect %s %s\n", path, noteworthyFile)
-	return nil
+	return nil, fmt.Errorf("%s not found in %s", file, filepath.Base(path))
 }
 
-func inspectS3D(path string) error {
-	pfs, err := s3d.New(filepath.Base(path))
-	if err != nil {
-		return fmt.Errorf("new: %w", err)
-	}
-	r, err := os.Open(path)
-	if err != nil {
-		return err
-	}
-	defer r.Close()
-	err = pfs.Decode(r)
-	if err != nil {
-		return fmt.Errorf("decode: %w", err)
-	}
-
-	fmt.Printf("%s contains %d files:\n", filepath.Base(path), pfs.Len())
-
-	filesByName := pfs.Files()
-	sort.Sort(archive.FilerByName(filesByName))
-	for _, fe := range pfs.Files() {
-		base := float64(len(fe.Data()))
-		out := ""
-		num := float64(1024)
-		if base < num*num*num*num {
-			out = fmt.Sprintf("%0.0fG", base/num/num/num)
+func inspectContent(file string, data *bytes.Reader) (interface{}, error) {
+	var err error
+	ext := strings.ToLower(filepath.Ext(file))
+	switch ext {
+	case ".mds":
+		mesh := &def.Mesh{
+			Name: strings.TrimSuffix(strings.ToUpper(file), ".MDS"),
 		}
-		if base < num*num*num {
-			out = fmt.Sprintf("%0.0fM", base/num/num)
+		err = mds.Decode(mesh, data)
+		if err != nil {
+			return nil, fmt.Errorf("mds.Decode %s: %w", file, err)
 		}
-		if base < num*num {
-			out = fmt.Sprintf("%0.0fK", base/num)
+		return mesh, nil
+	case ".mod":
+		mesh := &def.Mesh{
+			Name: strings.TrimSuffix(strings.ToUpper(file), ".MOD"),
 		}
-		if base < num {
-			out = fmt.Sprintf("%0.0fB", base)
+		err = mod.Decode(mesh, data)
+		if err != nil {
+			return nil, fmt.Errorf("mod.Decode %s: %w", file, err)
 		}
-		fmt.Printf("%s\t%s\n", out, fe.Name())
+		return mesh, nil
+	case ".pts":
+		point := &def.ParticlePoint{
+			Name: strings.TrimSuffix(strings.ToUpper(file), ".MDS"),
+		}
+		err = pts.Decode(point, data)
+		if err != nil {
+			return nil, fmt.Errorf("pts.Decode %s: %w", file, err)
+		}
+		return point, nil
+	case ".ptr":
+		render := &def.ParticleRender{
+			Name: strings.TrimSuffix(strings.ToUpper(file), ".MDS"),
+		}
+		err = prt.Decode(render, data)
+		if err != nil {
+			return nil, fmt.Errorf("pst.Decode %s: %w", file, err)
+		}
+		return render, nil
+	case ".zon":
+		zone := &def.Zone{
+			Name: strings.TrimSuffix(strings.ToUpper(file), ".ZON"),
+		}
+		err = zon.Decode(zone, data)
+		if err != nil {
+			return nil, fmt.Errorf("zon.Decode %s: %w", file, err)
+		}
+		return zone, nil
+	case ".wld":
+		meshes, err := quail.WLDDecode(data, nil)
+		if err != nil {
+			return nil, fmt.Errorf("wld.Decode %s: %w", file, err)
+		}
+		return meshes, nil
+	default:
+		return nil, fmt.Errorf("unknown file type %s", ext)
 	}
-
-	return nil
-}
-
-func inspectMDS(file string, pfs archive.ReadWriter) error {
-	e, err := mds.NewFile(filepath.Base(file), pfs, file)
-	if err != nil {
-		return fmt.Errorf("mds new: %w", err)
-	}
-
-	e.Inspect()
-	return nil
-}
-
-func inspectZON(file string, pfs archive.ReadWriter) error {
-	e, err := zon.NewFile(filepath.Base(file), pfs, file)
-	if err != nil {
-		return fmt.Errorf("zon new: %w", err)
-	}
-
-	e.Inspect()
-	return nil
-}
-
-func inspectMOD(file string, pfs archive.ReadWriter) error {
-	e, err := mod.NewFile(filepath.Base(file), pfs, file)
-	if err != nil {
-		return fmt.Errorf("mod new: %w", err)
-	}
-
-	e.Inspect()
-	return nil
-}
-
-func inspectTER(file string, pfs archive.ReadWriter) error {
-	e, err := ter.NewFile(filepath.Base(file), pfs, file)
-	if err != nil {
-		return fmt.Errorf("ter new: %w", err)
-	}
-	e.Inspect()
-
-	return nil
-}
-
-func inspectLIT(file string, pfs archive.ReadWriter) error {
-	e, err := lit.NewFile(filepath.Base(file), pfs, file)
-	if err != nil {
-		return fmt.Errorf("lit new: %w", err)
-	}
-	e.Inspect()
-
-	return nil
 }

@@ -27,10 +27,14 @@ func (e *WLD) particleSpriteRead(r io.ReadSeeker, fragmentOffset int) error {
 	}
 
 	log.Debugf("%+v", def)
-	e.fragments[fragmentOffset] = def
+	e.Fragments[fragmentOffset] = def
 	return nil
 }
 
 func (v *particleSprite) build(e *WLD) error {
 	return nil
+}
+
+func (e *WLD) particleSpriteWrite(w io.Writer, fragmentOffset int) error {
+	return fmt.Errorf("not implemented")
 }

@@ -32,7 +32,7 @@ func (e *Bone) WriteHeader(w io.StringWriter) error {
 
 // WriteString writes a Bone to a string writer
 func (e *Bone) Write(w io.StringWriter) error {
-	_, err := w.WriteString(fmt.Sprintf("%s|%d|%d|%d|%s|%s|%0.3f\n",
+	_, err := w.WriteString(fmt.Sprintf("%s|%d|%d|%d|%s|%s|%0.8f\n",
 		e.Name,
 		e.ChildIndex,
 		e.ChildrenCount,

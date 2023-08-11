@@ -7,6 +7,7 @@ import (
 
 	"github.com/xackery/quail/model/geo"
 	"github.com/xackery/quail/pfs/archive"
+	"github.com/xackery/quail/quail/def"
 )
 
 // WLD is a wld file struct
@@ -17,9 +18,11 @@ type WLD struct {
 	meshManager     *geo.MeshManager
 	materialManager *geo.MaterialManager
 	particleManager *geo.ParticleManager
-	names           map[int32]string // used temporarily while decoding a wld
-	fragments       map[int]parserer // used temporarily while decoding a wld
-	isOldWorld      bool             // if true, impacts how fragments are loaded
+	names           map[int32]string    // used temporarily while decoding a wld
+	Fragments       map[int]interface{} // used temporarily while decoding a wld
+	isOldWorld      bool                // if true, impacts how fragments are loaded
+	packs           map[int32]*encoderdecoder
+	meshes          []*def.Mesh
 }
 
 // New creates a new empty instance. Use NewFile to load an archive file on creation
@@ -30,8 +33,9 @@ func New(name string, pfs archive.ReadWriter) (*WLD, error) {
 		materialManager: geo.NewMaterialManager(),
 		meshManager:     geo.NewMeshManager(),
 		particleManager: geo.NewParticleManager(),
-		fragments:       make(map[int]parserer),
+		Fragments:       make(map[int]interface{}),
 	}
+	e.packs = e.initPacks()
 	return e, nil
 }
 
@@ -43,8 +47,9 @@ func NewFile(name string, pfs archive.ReadWriter, file string) (*WLD, error) {
 		materialManager: geo.NewMaterialManager(),
 		meshManager:     geo.NewMeshManager(),
 		particleManager: geo.NewParticleManager(),
-		fragments:       make(map[int]parserer),
+		Fragments:       make(map[int]interface{}),
 	}
+	e.packs = e.initPacks()
 	data, err := pfs.File(file)
 	if err != nil {
 		return nil, fmt.Errorf("file '%s': %w", file, err)
@@ -59,4 +64,14 @@ func NewFile(name string, pfs archive.ReadWriter, file string) (*WLD, error) {
 // Name returns the name of the archive
 func (e *WLD) Name() string {
 	return e.name
+}
+
+// Meshes returns the meshes
+func (e *WLD) Meshes() []*def.Mesh {
+	return e.meshes
+}
+
+// Names returns the names
+func (e *WLD) Names() map[int32]string {
+	return e.names
 }
