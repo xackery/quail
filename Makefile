@@ -1,5 +1,5 @@
 NAME := quail
-VERSION ?= 2.0.6
+VERSION ?= 2.1.0
 EQPATH := ~/Documents/games/EverQuest.app/drive_c/rebuildeq/
 
 # build quail for local OS and windows

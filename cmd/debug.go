@@ -150,8 +150,7 @@ func debugEQG(path string, out string, filter string) error {
 		return fmt.Errorf("decode: %w", err)
 	}
 
-	fmt.Printf("%s contains %d files:\n", filepath.Base(path), pfs.Len())
-
+	fileCount := 0
 	filesByName := pfs.Files()
 	sort.Sort(archive.FilerByName(filesByName))
 	for i, fe := range pfs.Files() {
@@ -174,6 +173,7 @@ func debugEQG(path string, out string, filter string) error {
 			strSize = fmt.Sprintf("%0.0fB", base)
 		}
 
+		fileCount++
 		fmt.Printf("%d: %s %s\n", i, fe.Name(), strSize)
 		ext := strings.ToLower(filepath.Ext(fe.Name()))
 		r := bytes.NewReader(fe.Data())
@@ -183,6 +183,7 @@ func debugEQG(path string, out string, filter string) error {
 		}
 		fmt.Printf("%s\t%s\n", out, fe.Name())
 	}
+	fmt.Printf("%s contains %d files.\n", filepath.Base(path), fileCount)
 
 	return nil
 }

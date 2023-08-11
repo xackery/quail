@@ -121,9 +121,13 @@ func (e *WLD) meshRead(r io.ReadSeeker, fragmentOffset int) error {
 	vertexTextureCount := dec.Uint16()  // number of vertex material entries. Vertices are grouped together by material and vertex material entries tell the client how many vertices there are using a material.
 
 	meshAnimatedBoneCount := dec.Uint16() // number of entries in meshops. Seems to be used only for animated mob models.
+	rawScale := dec.Uint16()
+	fmt.Println(rawScale)
+	scale := float32(1 / float32(int(1)<<rawScale)) // This allows vertex coordinates to be stored as integral values instead of floating-point values, without losing precision based on mesh size. Vertex values are multiplied by (1 shl `scale`) and stored in the vertex entries. FPSCALE is the internal name.
+	// convert scale back to rawscale
+	//rawScale = uint16(math.Log2(float64(1 / scale)))
 
-	scale := float32(1 / float32(int(1)<<dec.Uint16())) // This allows vertex coordinates to be stored as integral values instead of floating-point values, without losing precision based on mesh size. Vertex values are multiplied by (1 shl `scale`) and stored in the vertex entries. FPSCALE is the internal name.
-
+	fmt.Println("sclae:", scale)
 	/// Vertices (x, y, z) belonging to this mesh. Each axis should
 	/// be multiplied by (1 shl `scale`) for the final vertex position.
 	for i := 0; i < int(vertexCount); i++ {

@@ -33,7 +33,8 @@ func TestQuail_PFSExport(t *testing.T) {
 		//{name: "load-save", args: args{srcPath: "it13900.eqg", fileVersion: 1, pfsVersion: 1}, wantErr: false},
 		//{name: "load-save", args: args{srcPath: "dbx.eqg", fileVersion: 1, pfsVersion: 1}, wantErr: false},
 		//{name: "load-save", args: args{srcPath: "freportn_chr.s3d", fileVersion: 1, pfsVersion: 1}, wantErr: false},
-		{name: "load-save", args: args{srcPath: "bloodfields.eqg", fileVersion: 1, pfsVersion: 1}, wantErr: false},
+		//{name: "load-save", args: args{srcPath: "bloodfields.eqg", fileVersion: 1, pfsVersion: 1}, wantErr: false},
+		{name: "load-save", args: args{srcPath: "qeynos2.s3d", fileVersion: 1, pfsVersion: 1}, wantErr: false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

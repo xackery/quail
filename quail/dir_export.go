@@ -174,19 +174,19 @@ func (quail *Quail) DirExport(path string) error {
 			return fmt.Errorf("mkdir %s: %w", anim.Name, err)
 		}
 
-		aw, err := os.Create(fmt.Sprintf("%s/anmation.txt", animPath))
+		aw, err := os.Create(fmt.Sprintf("%s/animation.txt", animPath))
 		if err != nil {
 			return fmt.Errorf("create anim %s: %w", anim.Name, err)
 		}
 		defer aw.Close()
 
-		aw.WriteString("isStrict\n")
+		aw.WriteString("key|value\n")
 
 		val := 0
 		if anim.IsStrict {
 			val = 1
 		}
-		aw.WriteString(fmt.Sprintf("%d\n", val))
+		aw.WriteString(fmt.Sprintf("is_strict|%d\n", val))
 
 		for _, bone := range anim.Bones {
 			fw, err := os.Create(fmt.Sprintf("%s/%s.txt", animPath, bone.Name))
