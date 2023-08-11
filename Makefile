@@ -1,5 +1,5 @@
 NAME := quail
-VERSION ?= 2.1.0
+BUILD_VERSION ?= 2.1.0
 EQPATH := ~/Documents/games/EverQuest.app/drive_c/rebuildeq/
 
 # build quail for local OS and windows
@@ -30,16 +30,16 @@ test:
 build-all: build-darwin build-windows build-linux
 
 build-darwin:
-	@echo "build-darwin: ${VERSION}"
-	@GOOS=darwin GOARCH=amd64 go build -buildmode=pie -ldflags="-X main.Version=${VERSION} -s -w" -o bin/${NAME}-darwin main.go
+	@echo "build-darwin: ${BUILD_VERSION}"
+	@GOOS=darwin GOARCH=amd64 go build -buildmode=pie -ldflags="-X main.Version=${BUILD_VERSION} -s -w" -o bin/${NAME}-darwin main.go
 
 build-linux:
-	@echo "build-linux: ${VERSION}"
-	@GOOS=linux GOARCH=amd64 go build -ldflags="-X main.Version=${VERSION} -s -w" -o bin/${NAME}-linux main.go
+	@echo "build-linux: ${BUILD_VERSION}"
+	@GOOS=linux GOARCH=amd64 go build -ldflags="-X main.Version=${BUILD_VERSION} -s -w" -o bin/${NAME}-linux main.go
 
 build-windows:
-	@echo "build-windows: ${VERSION}"
-	@GOOS=windows GOARCH=amd64 go build -buildmode=pie -ldflags="-X main.Version=${VERSION} -s -w" -o bin/${NAME}-windows.exe main.go
+	@echo "build-windows: ${BUILD_VERSION}"
+	@GOOS=windows GOARCH=amd64 go build -buildmode=pie -ldflags="-X main.Version=${BUILD_VERSION} -s -w" -o bin/${NAME}-windows.exe main.go
 
 # used by xackery, build darwin copy and move to blender path
 build-copy: build-darwin
@@ -84,4 +84,4 @@ sanitize:
 
 # CICD triggers this
 set-version-%:
-	@echo "VERSION=${VERSION}.$*" >> $$GITHUB_ENV
+	@echo "VERSION=${BUILD_VERSION}.$*" >> $$GITHUB_ENV
