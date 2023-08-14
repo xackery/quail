@@ -261,7 +261,7 @@ func (quail *Quail) dirParseMesh(path string, name string) error {
 				ShaderName: "Opaque_MaxCB1.fx",
 			}
 			material.Name = strings.TrimSuffix(mf.Name(), ".material")
-			materialData, err := os.ReadFile(fmt.Sprintf("%s/%s/property.txt", meshPath, mf.Name()))
+			materialData, err := os.ReadFile(fmt.Sprintf("%s/%s/property.txt", path, mf.Name()))
 			if err != nil {
 				return fmt.Errorf("read mesh %s material %s: %w", mesh.Name, mf.Name(), err)
 			}
