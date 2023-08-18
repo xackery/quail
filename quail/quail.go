@@ -5,12 +5,15 @@ import (
 )
 
 type Quail struct {
-	Meshes     []*def.Mesh
-	Animations []*def.Animation
-	Zone       *def.Zone
+	Meshes        []*def.Mesh
+	Animations    []*def.Animation
+	Zone          *def.Zone
+	materialCache map[string]*def.Material
 }
 
 // New returns a new Quail instance
 func New() *Quail {
-	return &Quail{}
+	return &Quail{
+		materialCache: make(map[string]*def.Material),
+	}
 }

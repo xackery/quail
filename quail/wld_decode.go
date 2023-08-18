@@ -32,6 +32,7 @@ func WLDDecode(r io.ReadSeeker, pfs archive.ReadWriter) ([]*def.Mesh, error) {
 		switch d := f.(type) {
 		case *wld.Mesh:
 			curMesh.Name = d.Name
+
 			curMesh.Vertices = d.Vertices
 			curMesh.Triangles = d.Triangles
 

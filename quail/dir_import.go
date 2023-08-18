@@ -32,6 +32,19 @@ func (quail *Quail) DirImport(path string) error {
 		if !qf.IsDir() {
 			continue
 		}
+
+		switch filepath.Ext(qf.Name()) {
+		case ".material":
+			err = quail.dirParseMaterial(path, qf.Name())
+			if err != nil {
+				return fmt.Errorf("parse material %s: %w", qf.Name(), err)
+			}
+		}
+	}
+	for _, qf := range quailFiles {
+		if !qf.IsDir() {
+			continue
+		}
 		switch filepath.Ext(qf.Name()) {
 		case ".mesh":
 			err = quail.dirParseMesh(path, qf.Name())
@@ -87,6 +100,21 @@ func (quail *Quail) dirParseMesh(path string, name string) error {
 				triangle.Index.Z = helper.ParseUint32(vec3[2], 0)
 				triangle.Flag = helper.ParseUint32(records[1], 0)
 				triangle.MaterialName = records[2]
+				isLoaded := false
+				for _, material := range mesh.Materials {
+					if material.Name != triangle.MaterialName {
+						continue
+					}
+					isLoaded = true
+					break
+				}
+				if !isLoaded {
+					mat, ok := quail.materialCache[triangle.MaterialName]
+					if !ok {
+						return fmt.Errorf("material %s not found", triangle.MaterialName)
+					}
+					mesh.Materials = append(mesh.Materials, mat)
+				}
 				mesh.Triangles = append(mesh.Triangles, triangle)
 			}
 		}
@@ -256,49 +284,57 @@ func (quail *Quail) dirParseMesh(path string, name string) error {
 			}
 			mesh.ParticlePoints = append(mesh.ParticlePoints, particlePoint)
 		}
-		if mf.IsDir() && strings.HasSuffix(mf.Name(), ".material") {
-			material := &def.Material{
-				ShaderName: "Opaque_MaxCB1.fx",
-			}
-			material.Name = strings.TrimSuffix(mf.Name(), ".material")
-			materialData, err := os.ReadFile(fmt.Sprintf("%s/%s/property.txt", path, mf.Name()))
-			if err != nil {
-				return fmt.Errorf("read mesh %s material %s: %w", mesh.Name, mf.Name(), err)
-			}
-			lines := strings.Split(string(materialData), "\n")
-			for i, line := range lines {
-				if i == 0 {
-					continue
-				}
-				if len(line) == 0 {
-					continue
-				}
-				records := strings.Split(line, "|")
-				if records[0] == "shaderName" {
-					material.ShaderName = records[1]
-					continue
-				}
-				if len(records) != 3 {
-					return fmt.Errorf("material %s line %d: expected 3 records, got %d", mf.Name(), i, len(records))
-				}
-
-				property := &def.MaterialProperty{}
-				property.Name = records[0]
-				property.Value = records[1]
-				property.Category = helper.ParseUint32(records[2], 0)
-				if property.Category == 2 && strings.Contains(strings.ToLower(property.Name), "texture") {
-					property.Data, err = os.ReadFile(fmt.Sprintf("%s/%s/%s", meshPath, mf.Name(), property.Value))
-					if err != nil {
-						return fmt.Errorf("read mesh %s material %s texture %s: %w", mesh.Name, mf.Name(), property.Value, err)
-					}
-				}
-
-				material.Properties = append(material.Properties, property)
-			}
-			mesh.Materials = append(mesh.Materials, material)
-		}
 	}
 	quail.Meshes = append(quail.Meshes, mesh)
+	return nil
+}
+
+func (quail *Quail) dirParseMaterial(path string, name string) error {
+	material := &def.Material{
+		ShaderName: "Opaque_MaxCB1.fx",
+	}
+	material.Name = strings.TrimSuffix(name, ".material")
+	_, ok := quail.materialCache[material.Name]
+	if ok {
+		// ignore materials already loaded
+		return nil
+	}
+	materialData, err := os.ReadFile(fmt.Sprintf("%s/%s/property.txt", path, name))
+	if err != nil {
+		return fmt.Errorf("read material %s: %w", material.Name, err)
+	}
+
+	lines := strings.Split(string(materialData), "\n")
+	for i, line := range lines {
+		if i == 0 {
+			continue
+		}
+		if len(line) == 0 {
+			continue
+		}
+		records := strings.Split(line, "|")
+		if records[0] == "shaderName" {
+			material.ShaderName = records[1]
+			continue
+		}
+		if len(records) != 3 {
+			return fmt.Errorf("material %s line %d: expected 3 records, got %d", material.Name, i, len(records))
+		}
+
+		property := &def.MaterialProperty{}
+		property.Name = records[0]
+		property.Value = records[1]
+		property.Category = helper.ParseUint32(records[2], 0)
+		if property.Category == 2 && strings.Contains(strings.ToLower(property.Name), "texture") {
+			property.Data, err = os.ReadFile(fmt.Sprintf("%s/%s/%s", path, name, property.Value))
+			if err != nil {
+				return fmt.Errorf("read material %s texture %s: %w", material.Name, property.Value, err)
+			}
+		}
+
+		material.Properties = append(material.Properties, property)
+	}
+	quail.materialCache[material.Name] = material
 	return nil
 }
 
