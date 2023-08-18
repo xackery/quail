@@ -313,7 +313,7 @@ func (quail *Quail) dirParseMaterial(path string, name string) error {
 			continue
 		}
 		records := strings.Split(line, "|")
-		if records[0] == "shaderName" {
+		if records[0] == "shaderName" && len(records[1]) > 0 {
 			material.ShaderName = records[1]
 			continue
 		}
