@@ -99,7 +99,7 @@ func (quail *Quail) dirParseMesh(path string, name string) error {
 				triangle.Index.Y = helper.ParseUint32(vec3[1], 0)
 				triangle.Index.Z = helper.ParseUint32(vec3[2], 0)
 				triangle.Flag = helper.ParseUint32(records[1], 0)
-				triangle.MaterialName = records[2]
+				triangle.MaterialName = helper.Clean(strings.TrimSuffix(strings.TrimSuffix(records[2], "\n"), "\r"))
 				isLoaded := false
 				for _, material := range mesh.Materials {
 					if material.Name != triangle.MaterialName {
