@@ -73,11 +73,10 @@ func (quail *Quail) dirParseMesh(path string, name string) error {
 	}
 	for _, mf := range meshFiles {
 		if mf.Name() == "triangle.txt" {
-			triangleData, err := os.ReadFile(fmt.Sprintf("%s/%s", meshPath, mf.Name()))
+			lines, err := helper.ReadFile(fmt.Sprintf("%s/%s", meshPath, mf.Name()))
 			if err != nil {
 				return fmt.Errorf("read mesh %s triangle.txt: %w", mesh.Name, err)
 			}
-			lines := strings.Split(string(triangleData), "\n")
 			for i, line := range lines {
 				if i == 0 {
 					continue
@@ -119,11 +118,10 @@ func (quail *Quail) dirParseMesh(path string, name string) error {
 			}
 		}
 		if mf.Name() == "vertex.txt" {
-			vertexData, err := os.ReadFile(fmt.Sprintf("%s/%s", meshPath, mf.Name()))
+			lines, err := helper.ReadFile(fmt.Sprintf("%s/%s", meshPath, mf.Name()))
 			if err != nil {
 				return fmt.Errorf("read mesh %s vertex.txt: %w", mesh.Name, err)
 			}
-			lines := strings.Split(string(vertexData), "\n")
 			for i, line := range lines {
 				if i == 0 {
 					continue
@@ -161,11 +159,10 @@ func (quail *Quail) dirParseMesh(path string, name string) error {
 		}
 
 		if mf.Name() == "bone.txt" {
-			boneData, err := os.ReadFile(fmt.Sprintf("%s/%s", meshPath, mf.Name()))
+			lines, err := helper.ReadFile(fmt.Sprintf("%s/%s", meshPath, mf.Name()))
 			if err != nil {
 				return fmt.Errorf("read mesh %s bone.txt: %w", mesh.Name, err)
 			}
-			lines := strings.Split(string(boneData), "\n")
 			for i, line := range lines {
 				if i == 0 {
 					continue
@@ -203,11 +200,10 @@ func (quail *Quail) dirParseMesh(path string, name string) error {
 		if mf.Name() == "particle_render.txt" {
 			particleRender := &def.ParticleRender{}
 
-			particleRenderData, err := os.ReadFile(fmt.Sprintf("%s/%s", meshPath, mf.Name()))
+			lines, err := helper.ReadFile(fmt.Sprintf("%s/%s", meshPath, mf.Name()))
 			if err != nil {
 				return fmt.Errorf("read mesh %s particle_render.txt: %w", mesh.Name, err)
 			}
-			lines := strings.Split(string(particleRenderData), "\n")
 			for i, line := range lines {
 				if i == 0 {
 					continue
@@ -242,11 +238,10 @@ func (quail *Quail) dirParseMesh(path string, name string) error {
 		if mf.Name() == "particle_point.txt" {
 			particlePoint := &def.ParticlePoint{}
 
-			particlePointData, err := os.ReadFile(fmt.Sprintf("%s/%s", meshPath, mf.Name()))
+			lines, err := helper.ReadFile(fmt.Sprintf("%s/%s", meshPath, mf.Name()))
 			if err != nil {
 				return fmt.Errorf("read mesh %s particle_point.txt: %w", mesh.Name, err)
 			}
-			lines := strings.Split(string(particlePointData), "\n")
 			for i, line := range lines {
 				if i == 0 {
 					continue
@@ -299,12 +294,11 @@ func (quail *Quail) dirParseMaterial(path string, name string) error {
 		// ignore materials already loaded
 		return nil
 	}
-	materialData, err := os.ReadFile(fmt.Sprintf("%s/%s/property.txt", path, name))
+	lines, err := helper.ReadFile(fmt.Sprintf("%s/%s/property.txt", path, name))
 	if err != nil {
 		return fmt.Errorf("read material %s: %w", material.Name, err)
 	}
 
-	lines := strings.Split(string(materialData), "\n")
 	for i, line := range lines {
 		if i == 0 {
 			continue
@@ -356,11 +350,10 @@ func (quail *Quail) dirParseAni(path string, name string) error {
 
 	for _, af := range aniFiles {
 		if af.Name() == "animation.txt" {
-			animationData, err := os.ReadFile(fmt.Sprintf("%s/%s", aniPath, af.Name()))
+			lines, err := helper.ReadFile(fmt.Sprintf("%s/%s", aniPath, af.Name()))
 			if err != nil {
 				return fmt.Errorf("read ani %s animation.txt: %w", ani.Name, err)
 			}
-			lines := strings.Split(string(animationData), "\n")
 			for i, line := range lines {
 				if i == 0 {
 					continue
@@ -385,11 +378,10 @@ func (quail *Quail) dirParseAni(path string, name string) error {
 		if strings.Contains(bone.Name, ".") {
 			bone.Name = strings.Split(bone.Name, ".")[0]
 		}
-		frameData, err := os.ReadFile(fmt.Sprintf("%s/%s", aniPath, af.Name()))
+		lines, err := helper.ReadFile(fmt.Sprintf("%s/%s", aniPath, af.Name()))
 		if err != nil {
 			return fmt.Errorf("read ani %s %s: %w", ani.Name, af.Name(), err)
 		}
-		lines := strings.Split(string(frameData), "\n")
 		for i, line := range lines {
 			if i == 0 {
 				continue

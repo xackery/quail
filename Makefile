@@ -1,5 +1,5 @@
 NAME := quail
-BUILD_VERSION ?= 2.1.6
+BUILD_VERSION ?= 2.1.7
 EQPATH := ~/Documents/games/EverQuest.app/drive_c/rebuildeq/
 
 # build quail for local OS and windows
@@ -7,7 +7,6 @@ build:
 	@echo "build: building to bin/quail..."
 	go build main.go
 	-mv main bin/quail
-	-mv main.exe bin/quail.exe
 
 # run quail
 run:
@@ -27,7 +26,7 @@ test:
 	@go test ./...
 
 # build all supported os's
-build-all: build-darwin build-windows build-linux
+build-all: build-darwin build-windows build-linux build-windows-addon
 
 build-darwin:
 	@echo "build-darwin: ${BUILD_VERSION}"
