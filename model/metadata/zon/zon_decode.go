@@ -6,13 +6,13 @@ import (
 	"io"
 
 	"github.com/xackery/encdec"
+	"github.com/xackery/quail/common"
 	"github.com/xackery/quail/dump"
 	"github.com/xackery/quail/log"
-	"github.com/xackery/quail/quail/def"
 )
 
 // Decode decodes a ZON file
-func Decode(zone *def.Zone, r io.ReadSeeker) error {
+func Decode(zone *common.Zone, r io.ReadSeeker) error {
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 
 	// Read header
@@ -67,7 +67,7 @@ func Decode(zone *def.Zone, r io.ReadSeeker) error {
 	}
 
 	for i := 0; i < int(objectCount); i++ {
-		object := def.Object{}
+		object := common.Object{}
 		nameIndex := dec.Uint32()
 
 		if nameIndex >= uint32(len(namesIndexed)) {
@@ -95,7 +95,7 @@ func Decode(zone *def.Zone, r io.ReadSeeker) error {
 	}
 
 	for i := 0; i < int(regionCount); i++ {
-		region := def.Region{}
+		region := common.Region{}
 
 		nameOffset := dec.Uint32()
 		region.Name, ok = names[nameOffset]
@@ -119,7 +119,7 @@ func Decode(zone *def.Zone, r io.ReadSeeker) error {
 	}
 
 	for i := 0; i < int(lightCount); i++ {
-		light := def.Light{}
+		light := common.Light{}
 
 		nameOffset := dec.Uint32()
 		light.Name, ok = names[nameOffset]

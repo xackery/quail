@@ -6,13 +6,13 @@ import (
 	"io"
 
 	"github.com/xackery/encdec"
+	"github.com/xackery/quail/common"
 	"github.com/xackery/quail/log"
-	"github.com/xackery/quail/quail/def"
 	"github.com/xackery/quail/tag"
 )
 
 // Decode decodes a PRT file
-func Decode(render *def.ParticleRender, r io.ReadSeeker) error {
+func Decode(render *common.ParticleRender, r io.ReadSeeker) error {
 
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 
@@ -30,7 +30,7 @@ func Decode(render *def.ParticleRender, r io.ReadSeeker) error {
 	}
 
 	for i := 0; i < int(particleCount); i++ {
-		entry := &def.ParticleRenderEntry{}
+		entry := &common.ParticleRenderEntry{}
 		entry.ID = dec.Uint32()
 		if version >= 5 {
 			entry.ID2 = dec.Uint32()

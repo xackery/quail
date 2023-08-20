@@ -6,8 +6,8 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/xackery/quail/common"
 	"github.com/xackery/quail/log"
-	"github.com/xackery/quail/quail/def"
 )
 
 func TestQuail_PFSExport(t *testing.T) {
@@ -16,7 +16,7 @@ func TestQuail_PFSExport(t *testing.T) {
 		t.Skip("EQ_PATH not set")
 	}
 	type fields struct {
-		Meshes []*def.Mesh
+		Meshes []*common.Model
 	}
 	type args struct {
 		fileVersion uint32
@@ -24,32 +24,34 @@ func TestQuail_PFSExport(t *testing.T) {
 		srcPath     string
 	}
 	tests := []struct {
-		name    string
 		fields  fields
 		args    args
 		wantErr bool
 	}{
-		//{name: "load-save", args: args{srcPath: "it13900.eqg", fileVersion: 1, pfsVersion: 1}, wantErr: false},
-		//{name: "load-save", args: args{srcPath: "dbx.eqg", fileVersion: 1, pfsVersion: 1}, wantErr: false},
-		//{name: "load-save", args: args{srcPath: "freportn_chr.s3d", fileVersion: 1, pfsVersion: 1}, wantErr: false},
-		{name: "load-save", args: args{srcPath: "bloodfields.eqg", fileVersion: 1, pfsVersion: 1}, wantErr: false},
-		//{name: "load-save", args: args{srcPath: "qeynos2.s3d", fileVersion: 1, pfsVersion: 1}, wantErr: false},
+		//{args: args{srcPath: "it13900.eqg", fileVersion: 1, pfsVersion: 1}, wantErr: false},
+		//{args: args{srcPath: "dbx.eqg", fileVersion: 1, pfsVersion: 1}, wantErr: false},
+		//{args: args{srcPath: "freportn_chr.s3d", fileVersion: 1, pfsVersion: 1}, wantErr: false},
+		//{args: args{srcPath: "bloodfields.eqg", fileVersion: 1, pfsVersion: 1}, wantErr: false},
+		//{args: args{srcPath: "qeynos2.s3d", fileVersion: 1, pfsVersion: 1}, wantErr: false},
+		{args: args{srcPath: "wrm.eqg", fileVersion: 1, pfsVersion: 1}, wantErr: false},
 	}
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+		os.RemoveAll("test")
+		os.MkdirAll("test", 0755)
+		t.Run(tt.args.srcPath, func(t *testing.T) {
 			e := &Quail{
-				Meshes: tt.fields.Meshes,
+				Models: tt.fields.Meshes,
 			}
 
 			if err := e.PFSImport(eqPath + "/" + tt.args.srcPath); err != nil {
-				t.Fatalf("Quail.ImportPFS() error = %v", err)
+				t.Fatalf("pfs import %s error = %v", tt.args.srcPath, err)
 			}
 
 			//e.Meshes[0].Bones = []def.Bone{}
 			//e.Meshes[0].Animations = []def.BoneAnimation{}
 
 			if err := e.PFSExport(tt.args.fileVersion, tt.args.pfsVersion, "test/"+filepath.Base(tt.args.srcPath)); (err != nil) != tt.wantErr {
-				t.Fatalf("Quail.ExportPFS() error = %v, wantErr %v", err, tt.wantErr)
+				t.Fatalf("pfs export %s error = %v, wantErr %v", tt.args.srcPath, err, tt.wantErr)
 			}
 		})
 	}
@@ -61,7 +63,7 @@ func TestQuail_PFSExportImportExport(t *testing.T) {
 		t.Skip("EQ_PATH not set")
 	}
 	type fields struct {
-		Meshes []*def.Mesh
+		Meshes []*common.Model
 	}
 	type args struct {
 		fileVersion uint32
@@ -89,7 +91,7 @@ func TestQuail_PFSExportImportExport(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			e := &Quail{
-				Meshes: tt.fields.Meshes,
+				Models: tt.fields.Meshes,
 			}
 
 			if err := e.PFSImport(eqPath + "/" + tt.args.srcPath); err != nil {
@@ -104,7 +106,7 @@ func TestQuail_PFSExportImportExport(t *testing.T) {
 			}
 
 			e2 := &Quail{
-				Meshes: tt.fields.Meshes,
+				Models: tt.fields.Meshes,
 			}
 
 			if err := e2.PFSImport("test/" + filepath.Base(tt.args.srcPath)); err != nil {
@@ -114,74 +116,74 @@ func TestQuail_PFSExportImportExport(t *testing.T) {
 			//e2.Meshes[0].Bones = []def.Bone{}
 			//e2.Meshes[0].Animations = []def.BoneAnimation{}
 
-			if len(e.Meshes) != len(e2.Meshes) {
-				t.Fatalf("mesh count mismatch, %d != %d", len(e.Meshes), len(e2.Meshes))
+			if len(e.Models) != len(e2.Models) {
+				t.Fatalf("mesh count mismatch, %d != %d", len(e.Models), len(e2.Models))
 			}
 
-			for i, mesh := range e.Meshes {
-				if mesh.Name != e2.Meshes[i].Name {
-					t.Fatalf("mesh name mismatch, %s != %s", mesh.Name, e2.Meshes[i].Name)
+			for i, mesh := range e.Models {
+				if mesh.Name != e2.Models[i].Name {
+					t.Fatalf("mesh name mismatch, %s != %s", mesh.Name, e2.Models[i].Name)
 				}
 
-				if len(mesh.Vertices) != len(e2.Meshes[i].Vertices) {
-					t.Fatalf("mesh vertex count mismatch, %d != %d", len(mesh.Vertices), len(e2.Meshes[i].Vertices))
+				if len(mesh.Vertices) != len(e2.Models[i].Vertices) {
+					t.Fatalf("mesh vertex count mismatch, %d != %d", len(mesh.Vertices), len(e2.Models[i].Vertices))
 				}
 
 				for j, vert := range mesh.Vertices {
-					if !reflect.DeepEqual(vert, e2.Meshes[i].Vertices[j]) {
-						t.Fatalf("mesh vertex mismatch, %v != %v", vert, e2.Meshes[i].Vertices[j])
+					if !reflect.DeepEqual(vert, e2.Models[i].Vertices[j]) {
+						t.Fatalf("mesh vertex mismatch, %v != %v", vert, e2.Models[i].Vertices[j])
 					}
 				}
 
-				if len(mesh.Triangles) != len(e2.Meshes[i].Triangles) {
-					t.Fatalf("mesh triangle count mismatch, %d != %d", len(mesh.Triangles), len(e2.Meshes[i].Triangles))
+				if len(mesh.Triangles) != len(e2.Models[i].Triangles) {
+					t.Fatalf("mesh triangle count mismatch, %d != %d", len(mesh.Triangles), len(e2.Models[i].Triangles))
 				}
 
 				for j, tri := range mesh.Triangles {
-					if !reflect.DeepEqual(tri, e2.Meshes[i].Triangles[j]) {
-						t.Fatalf("mesh triangle mismatch, %v != %v", tri, e2.Meshes[i].Triangles[j])
+					if !reflect.DeepEqual(tri, e2.Models[i].Triangles[j]) {
+						t.Fatalf("mesh triangle mismatch, %v != %v", tri, e2.Models[i].Triangles[j])
 					}
 				}
 
-				if len(mesh.Materials) != len(e2.Meshes[i].Materials) {
-					t.Fatalf("mesh material count mismatch, %d != %d", len(mesh.Materials), len(e2.Meshes[i].Materials))
+				if len(mesh.Materials) != len(e2.Models[i].Materials) {
+					t.Fatalf("mesh material count mismatch, %d != %d", len(mesh.Materials), len(e2.Models[i].Materials))
 				}
 
 				for j, mat := range mesh.Materials {
-					if !reflect.DeepEqual(mat, e2.Meshes[i].Materials[j]) {
-						t.Fatalf("mesh material mismatch, %v != %v", mat, e2.Meshes[i].Materials[j])
+					if !reflect.DeepEqual(mat, e2.Models[i].Materials[j]) {
+						t.Fatalf("mesh material mismatch, %v != %v", mat, e2.Models[i].Materials[j])
 					}
 				}
 
-				if len(mesh.Bones) != len(e2.Meshes[i].Bones) {
-					t.Fatalf("mesh bone count mismatch, %d != %d", len(mesh.Bones), len(e2.Meshes[i].Bones))
+				if len(mesh.Bones) != len(e2.Models[i].Bones) {
+					t.Fatalf("mesh bone count mismatch, %d != %d", len(mesh.Bones), len(e2.Models[i].Bones))
 				}
 
 				for j, bone := range mesh.Bones {
-					if !reflect.DeepEqual(bone, e2.Meshes[i].Bones[j]) {
-						t.Fatalf("mesh bone mismatch, %v != %v", bone, e2.Meshes[i].Bones[j])
+					if !reflect.DeepEqual(bone, e2.Models[i].Bones[j]) {
+						t.Fatalf("mesh bone mismatch, %v != %v", bone, e2.Models[i].Bones[j])
 					}
 				}
 
-				if len(mesh.ParticlePoints) != len(e2.Meshes[i].ParticlePoints) {
-					t.Fatalf("mesh particle point count mismatch, %d != %d", len(mesh.ParticlePoints), len(e2.Meshes[i].ParticlePoints))
+				if len(mesh.ParticlePoints) != len(e2.Models[i].ParticlePoints) {
+					t.Fatalf("mesh particle point count mismatch, %d != %d", len(mesh.ParticlePoints), len(e2.Models[i].ParticlePoints))
 				}
 
 				for j, pp := range mesh.ParticlePoints {
-					if !reflect.DeepEqual(pp, e2.Meshes[i].ParticlePoints[j]) {
-						t.Fatalf("mesh particle point mismatch, %v != %v", pp, e2.Meshes[i].ParticlePoints[j])
+					if !reflect.DeepEqual(pp, e2.Models[i].ParticlePoints[j]) {
+						t.Fatalf("mesh particle point mismatch, %v != %v", pp, e2.Models[i].ParticlePoints[j])
 					}
 				}
 
-				if len(mesh.ParticleRenders) != len(e2.Meshes[i].ParticleRenders) {
-					t.Fatalf("mesh particle render count mismatch, %d != %d", len(mesh.ParticleRenders), len(e2.Meshes[i].ParticleRenders))
+				if len(mesh.ParticleRenders) != len(e2.Models[i].ParticleRenders) {
+					t.Fatalf("mesh particle render count mismatch, %d != %d", len(mesh.ParticleRenders), len(e2.Models[i].ParticleRenders))
 				}
 
 				for j, pr := range mesh.ParticleRenders {
 
 					for k, entry := range pr.Entries {
 
-						cmp := e2.Meshes[i].ParticleRenders[j].Entries[k]
+						cmp := e2.Models[i].ParticleRenders[j].Entries[k]
 
 						log.Debugf("%v vs %v", entry, cmp)
 						if entry.Duration != cmp.Duration {

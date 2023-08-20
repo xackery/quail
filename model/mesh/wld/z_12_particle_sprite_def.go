@@ -6,8 +6,8 @@ import (
 	"io"
 
 	"github.com/xackery/encdec"
+	"github.com/xackery/quail/common"
 	"github.com/xackery/quail/log"
-	"github.com/xackery/quail/model/geo"
 )
 
 // 0x0c particleSpriteDef (particle sprite definition)
@@ -16,9 +16,9 @@ type particleSpriteDef struct {
 	flags         uint32
 	verticesCount uint32
 	unknown       uint32
-	centerOffset  geo.Vector3
+	centerOffset  common.Vector3
 	radius        float32
-	vertices      []geo.Vector3
+	vertices      []common.Vector3
 	renderMethod  uint32
 	renderInfo    renderInfo
 	pen           []uint32
@@ -41,7 +41,7 @@ func (e *WLD) particleSpriteDefRead(r io.ReadSeeker, fragmentOffset int) error {
 		def.radius = dec.Float32()
 	}
 	if def.verticesCount > 0 { // has vertices
-		def.vertices = make([]geo.Vector3, def.verticesCount)
+		def.vertices = make([]common.Vector3, def.verticesCount)
 		for i := uint32(0); i < def.verticesCount; i++ {
 			def.vertices[i].X = dec.Float32()
 			def.vertices[i].Y = dec.Float32()

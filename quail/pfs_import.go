@@ -9,16 +9,17 @@ import (
 	"strings"
 
 	"github.com/sergeymakinen/go-bmp"
+	"github.com/xackery/quail/common"
 	"github.com/xackery/quail/log"
 	"github.com/xackery/quail/model/mesh/mds"
 	"github.com/xackery/quail/model/mesh/mod"
+	"github.com/xackery/quail/model/mesh/ter"
 	"github.com/xackery/quail/model/metadata/ani"
 	"github.com/xackery/quail/model/metadata/prt"
 	"github.com/xackery/quail/model/metadata/pts"
 	"github.com/xackery/quail/model/metadata/zon"
 	"github.com/xackery/quail/pfs/eqg"
 	"github.com/xackery/quail/pfs/s3d"
-	"github.com/xackery/quail/quail/def"
 	"github.com/xackery/quail/tag"
 )
 
@@ -44,13 +45,13 @@ func (e *Quail) EQGImport(path string) error {
 	}
 	defer pfs.Close()
 
-	particlePoints := []*def.ParticlePoint{}
-	particleRenders := []*def.ParticleRender{}
+	particlePoints := []*common.ParticlePoint{}
+	particleRenders := []*common.ParticleRender{}
 
 	for _, file := range pfs.Files() {
 		switch filepath.Ext(file.Name()) {
 		case ".zon":
-			e.Zone = &def.Zone{
+			e.Zone = &common.Zone{
 				Name: strings.TrimSuffix(strings.ToUpper(file.Name()), ".ZON"),
 			}
 			err = zon.Decode(e.Zone, bytes.NewReader(file.Data()))
@@ -61,7 +62,7 @@ func (e *Quail) EQGImport(path string) error {
 			tag.Write(fmt.Sprintf("%s/%s-raw.zon.tags", "testdata", file.Name()))
 
 		case ".pts":
-			point := &def.ParticlePoint{
+			point := &common.ParticlePoint{
 				Name: strings.TrimSuffix(strings.ToUpper(file.Name()), ".PTS"),
 			}
 			err = pts.Decode(point, bytes.NewReader(file.Data()))
@@ -72,7 +73,7 @@ func (e *Quail) EQGImport(path string) error {
 			tag.Write(fmt.Sprintf("%s/%s-raw.pts.tags", "testdata", file.Name()))
 			particlePoints = append(particlePoints, point)
 		case ".prt":
-			render := &def.ParticleRender{
+			render := &common.ParticleRender{
 				Name: strings.TrimSuffix(strings.ToUpper(file.Name()), ".PRT"),
 			}
 			err = prt.Decode(render, bytes.NewReader(file.Data()))
@@ -83,7 +84,7 @@ func (e *Quail) EQGImport(path string) error {
 			tag.Write(fmt.Sprintf("%s/%s-raw.prt.tags", "testdata", file.Name()))
 			particleRenders = append(particleRenders, render)
 		case ".ani":
-			anim := &def.Animation{
+			anim := &common.Animation{
 				Name: strings.TrimSuffix(strings.ToUpper(file.Name()), ".ANI"),
 			}
 			err = ani.Decode(anim, bytes.NewReader(file.Data()))
@@ -95,7 +96,7 @@ func (e *Quail) EQGImport(path string) error {
 			tag.Write(fmt.Sprintf("%s/%s-raw.ani.tags", "testdata", file.Name()))
 			e.Animations = append(e.Animations, anim)
 		case ".mod":
-			mesh := &def.Mesh{
+			mesh := &common.Model{
 				Name: strings.TrimSuffix(strings.ToUpper(file.Name()), ".MOD"),
 			}
 			err = mod.Decode(mesh, bytes.NewReader(file.Data()))
@@ -105,34 +106,34 @@ func (e *Quail) EQGImport(path string) error {
 			os.WriteFile(fmt.Sprintf("%s/%s-raw.mod", "testdata", file.Name()), file.Data(), 0644)
 			tag.Write(fmt.Sprintf("%s/%s-raw.mod.tags", "testdata", file.Name()))
 
-			e.Meshes = append(e.Meshes, mesh)
+			e.Models = append(e.Models, mesh)
 		case ".ter":
-			mesh := &def.Mesh{
+			mesh := &common.Model{
 				Name: strings.TrimSuffix(strings.ToUpper(file.Name()), ".MOD"),
 			}
-			err = TERDecode(mesh, bytes.NewReader(file.Data()))
+			err = ter.Decode(mesh, bytes.NewReader(file.Data()))
 			if err != nil {
 				return fmt.Errorf("decodeter %s: %w", file.Name(), err)
 			}
 			os.WriteFile(fmt.Sprintf("%s/%s-raw.ter", "testdata", file.Name()), file.Data(), 0644)
 			tag.Write(fmt.Sprintf("%s/%s-raw.ter.tags", "testdata", file.Name()))
 
-			e.Meshes = append(e.Meshes, mesh)
+			e.Models = append(e.Models, mesh)
 		case ".mds":
-			mesh := &def.Mesh{
+			mesh := &common.Model{
 				Name: strings.TrimSuffix(strings.ToUpper(file.Name()), ".MDS"),
 			}
 			err = mds.Decode(mesh, bytes.NewReader(file.Data()))
 			if err != nil {
 				return fmt.Errorf("decodeMds %s: %w", file.Name(), err)
 			}
-			e.Meshes = append(e.Meshes, mesh)
+			e.Models = append(e.Models, mesh)
 		}
 	}
 
 	for _, point := range particlePoints {
 		isFound := false
-		for _, mesh := range e.Meshes {
+		for _, mesh := range e.Models {
 			if strings.EqualFold(mesh.Name, point.Name) {
 				isFound = true
 				mesh.ParticlePoints = append(mesh.ParticlePoints, point)
@@ -146,7 +147,7 @@ func (e *Quail) EQGImport(path string) error {
 
 	for _, render := range particleRenders {
 		isFound := false
-		for _, mesh := range e.Meshes {
+		for _, mesh := range e.Models {
 			if strings.EqualFold(mesh.Name, render.Name) {
 				isFound = true
 				mesh.ParticleRenders = append(mesh.ParticleRenders, render)
@@ -160,7 +161,7 @@ func (e *Quail) EQGImport(path string) error {
 
 	materialCount := 0
 	textureCount := 0
-	for _, mesh := range e.Meshes {
+	for _, mesh := range e.Models {
 		for _, material := range mesh.Materials {
 			materialCount++
 			for _, property := range material.Properties {
@@ -180,7 +181,7 @@ func (e *Quail) EQGImport(path string) error {
 		}
 	}
 
-	log.Debugf("%s (eqg) loaded %d meshes, %d materials, %d texture files", filepath.Base(path), len(e.Meshes), materialCount, textureCount)
+	log.Debugf("%s (eqg) loaded %d meshes, %d materials, %d texture files", filepath.Base(path), len(e.Models), materialCount, textureCount)
 	return nil
 }
 
@@ -205,17 +206,17 @@ func (e *Quail) S3DImport(path string) error {
 			if err != nil {
 				return fmt.Errorf("wldDecode %s: %w", file.Name(), err)
 			}
-			e.Meshes = append(e.Meshes, meshes...)
+			e.Models = append(e.Models, meshes...)
 		}
 	}
 
-	if len(e.Meshes) == 1 && e.Meshes[0].Name == "" {
-		e.Meshes[0].Name = strings.TrimSuffix(filepath.Base(path), filepath.Ext(path))
+	if len(e.Models) == 1 && e.Models[0].Name == "" {
+		e.Models[0].Name = strings.TrimSuffix(filepath.Base(path), filepath.Ext(path))
 	}
 
 	materialCount := 0
 	textureCount := 0
-	for _, mesh := range e.Meshes {
+	for _, mesh := range e.Models {
 		log.Debugf("mesh %s has %d materials", mesh.Name, len(mesh.Materials))
 		for _, material := range mesh.Materials {
 			materialCount++
@@ -260,6 +261,6 @@ func (e *Quail) S3DImport(path string) error {
 		}
 	}
 
-	log.Debugf("%s (s3d) loaded %d meshes, %d materials, %d texture files", filepath.Base(path), len(e.Meshes), materialCount, textureCount)
+	log.Debugf("%s (s3d) loaded %d meshes, %d materials, %d texture files", filepath.Base(path), len(e.Models), materialCount, textureCount)
 	return nil
 }

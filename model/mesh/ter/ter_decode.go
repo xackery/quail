@@ -1,4 +1,4 @@
-package mod
+package ter
 
 import (
 	"encoding/binary"
@@ -12,15 +12,15 @@ import (
 	"github.com/xackery/quail/tag"
 )
 
-// Decode decodes a MOD file
+// Decode decodes a TER file
 func Decode(mesh *common.Model, r io.ReadSeeker) error {
 	var ok bool
-	mesh.FileType = "mod"
+	mesh.FileType = "ter"
 
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 
 	header := dec.StringFixed(4)
-	if header != "EQGM" {
+	if header != "EQGT" {
 		return fmt.Errorf("invalid header %s, wanted EQGM", header)
 	}
 
@@ -31,7 +31,6 @@ func Decode(mesh *common.Model, r io.ReadSeeker) error {
 	materialCount := dec.Uint32()
 	verticesCount := dec.Uint32()
 	triangleCount := dec.Uint32()
-	bonesCount := dec.Uint32()
 	tag.Add(0, int(dec.Pos()-1), "red", "header")
 	nameData := dec.Bytes(int(nameLength))
 	tag.Add(tag.LastPos(), int(dec.Pos()), "green", "names")
@@ -145,7 +144,6 @@ func Decode(mesh *common.Model, r io.ReadSeeker) error {
 		}
 		v.Uv.X = dec.Float32()
 		v.Uv.Y = dec.Float32()
-
 		if version <= 2 {
 			v.Uv2.X = 0
 			v.Uv2.Y = 0
@@ -174,10 +172,10 @@ func Decode(mesh *common.Model, r io.ReadSeeker) error {
 			}
 		}
 		if material == nil {
-			if materialID != -1 {
-				log.Debugf("material %d not found", materialID)
-				//return fmt.Errorf("material %d not found", materialID)
-			}
+			//if materialID != -1 {
+			//log.Warnf("material %d not found", materialID)
+			//return fmt.Errorf("material %d not found", materialID)
+			//}
 			t.MaterialName = ""
 		} else {
 			t.MaterialName = material.Name
@@ -188,38 +186,12 @@ func Decode(mesh *common.Model, r io.ReadSeeker) error {
 	}
 	tag.Add(tag.LastPos(), int(dec.Pos()), "purple", "triangles")
 
-	for i := 0; i < int(bonesCount); i++ {
-		bone := common.Bone{}
-		nameOffset := dec.Uint32()
-		bone.Name, ok = names[nameOffset]
-		log.Debugf("decoding bone %d/%d %d=%s", i, bonesCount, nameOffset, bone.Name)
-		if !ok {
-			return fmt.Errorf("bone name %d not found", nameOffset)
-		}
-		bone.Next = dec.Int32()
-		bone.ChildrenCount = dec.Uint32()
-		bone.ChildIndex = dec.Int32()
-		bone.Pivot.X = dec.Float32()
-		bone.Pivot.Y = dec.Float32()
-		bone.Pivot.Z = dec.Float32()
-		bone.Rotation.X = dec.Float32()
-		bone.Rotation.Y = dec.Float32()
-		bone.Rotation.Z = dec.Float32()
-		bone.Scale.X = dec.Float32()
-		bone.Scale.Y = dec.Float32()
-		bone.Scale.Z = dec.Float32()
-		dec.Float32() // TODO: store this? what is this, 1.00
-
-		mesh.Bones = append(mesh.Bones, bone)
-	}
-	tag.Add(tag.LastPos(), int(dec.Pos()), "orange", "bones")
-
 	if dec.Error() != nil {
 		return fmt.Errorf("decode: %w", dec.Error())
 	}
 
 	mesh.Name = strings.ToLower(mesh.Name)
 
-	log.Debugf("%s (mod) decoded %d verts, %d triangles, %d bones, %d materials", mesh.Name, len(mesh.Vertices), len(mesh.Triangles), len(mesh.Bones), len(mesh.Materials))
+	log.Debugf("%s (ter) decoded %d verts, %d triangles, %d bones, %d materials", mesh.Name, len(mesh.Vertices), len(mesh.Triangles), len(mesh.Bones), len(mesh.Materials))
 	return nil
 }

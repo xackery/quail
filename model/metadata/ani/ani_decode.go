@@ -6,14 +6,14 @@ import (
 	"io"
 
 	"github.com/xackery/encdec"
+	"github.com/xackery/quail/common"
 	"github.com/xackery/quail/dump"
 	"github.com/xackery/quail/log"
-	"github.com/xackery/quail/quail/def"
 	"github.com/xackery/quail/tag"
 )
 
 // Decode decodes an ANI file
-func Decode(animation *def.Animation, r io.ReadSeeker) error {
+func Decode(animation *common.Animation, r io.ReadSeeker) error {
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 
 	header := dec.StringFixed(4)
@@ -52,30 +52,30 @@ func Decode(animation *def.Animation, r io.ReadSeeker) error {
 	}
 
 	for i := 0; i < int(boneCount); i++ {
-		bone := &def.BoneAnimation{}
+		bone := &common.BoneAnimation{}
 		bone.FrameCount = dec.Uint32()
 
 		nameOffset := dec.Uint32()
 		bone.Name = names[nameOffset]
 
 		for j := 0; j < int(bone.FrameCount); j++ {
-			frame := &def.BoneAnimationFrame{}
+			frame := &common.BoneAnimationFrame{}
 
 			frame.Milliseconds = dec.Uint32()
-			frame.Translation = &def.Vector3{
+			frame.Translation = &common.Vector3{
 				X: dec.Float32(),
 				Y: dec.Float32(),
 				Z: dec.Float32(),
 			}
 
-			frame.Rotation = &def.Quad4{
+			frame.Rotation = &common.Quad4{
 				X: dec.Float32(),
 				Y: dec.Float32(),
 				Z: dec.Float32(),
 				W: dec.Float32(),
 			}
 
-			frame.Scale = &def.Vector3{
+			frame.Scale = &common.Vector3{
 				X: dec.Float32(),
 				Y: dec.Float32(),
 				Z: dec.Float32(),

@@ -35,7 +35,7 @@ func (quail *Quail) DirExport(path string) error {
 		return fmt.Errorf("path %s is not a directory", path)
 	}
 
-	for _, mesh := range quail.Meshes {
+	for _, mesh := range quail.Models {
 		meshPath := fmt.Sprintf("%s/%s.mesh", path, mesh.Name)
 		err = os.MkdirAll(meshPath, 0755)
 		if err != nil {

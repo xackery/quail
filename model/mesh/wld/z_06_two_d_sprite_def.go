@@ -6,8 +6,8 @@ import (
 	"io"
 
 	"github.com/xackery/encdec"
+	"github.com/xackery/quail/common"
 	"github.com/xackery/quail/log"
-	"github.com/xackery/quail/model/geo"
 )
 
 // twoDSpriteDef is a 2D sprite definition 0x06
@@ -16,10 +16,10 @@ type twoDSpriteDef struct {
 	flags           uint32
 	textureCount    uint32
 	pitchCount      uint32
-	scale           geo.Vector2
+	scale           common.Vector2
 	sphereRef       uint32
 	depthScale      float32
-	centerOffset    geo.Vector3
+	centerOffset    common.Vector3
 	boundingRadius  float32
 	currentFrameRef int32
 	sleep           uint32

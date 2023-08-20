@@ -6,8 +6,8 @@ import (
 	"io"
 
 	"github.com/xackery/encdec"
+	"github.com/xackery/quail/common"
 	"github.com/xackery/quail/log"
-	"github.com/xackery/quail/model/geo"
 )
 
 type fourDSpriteDef struct {
@@ -15,10 +15,10 @@ type fourDSpriteDef struct {
 	Flags           uint32
 	FrameCount      uint32
 	PolyRef         int32
-	centerOffset    geo.Vector3 `bin:"-"`
-	radius          float32     `bin:"-"`
-	currentFrame    uint32      `bin:"-"`
-	sleep           uint32      `bin:"-"`
+	centerOffset    common.Vector3 `bin:"-"`
+	radius          float32        `bin:"-"`
+	currentFrame    uint32         `bin:"-"`
+	sleep           uint32         `bin:"-"`
 	spriteFragments []uint32
 }
 

@@ -6,8 +6,8 @@ import (
 	"io"
 
 	"github.com/xackery/encdec"
+	"github.com/xackery/quail/common"
 	"github.com/xackery/quail/log"
-	"github.com/xackery/quail/model/geo"
 )
 
 type objectLocation struct {
@@ -16,8 +16,8 @@ type objectLocation struct {
 	flags          uint32
 	sphereRef      uint32
 	currentAction  uint32
-	offset         geo.Vector3
-	rotation       geo.Vector3
+	offset         common.Vector3
+	rotation       common.Vector3
 	unk1           uint32
 	boundingRadius float32
 	scale          float32

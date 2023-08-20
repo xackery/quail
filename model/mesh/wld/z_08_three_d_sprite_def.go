@@ -6,8 +6,8 @@ import (
 	"io"
 
 	"github.com/xackery/encdec"
+	"github.com/xackery/quail/common"
 	"github.com/xackery/quail/log"
-	"github.com/xackery/quail/model/geo"
 )
 
 // 0x08 8 typically a camera
@@ -17,9 +17,9 @@ type threeDSpriteDef struct {
 	VertexCount   uint32
 	BspNodeCount  uint32
 	SphereListRef uint32
-	CenterOffset  geo.Vector3
+	CenterOffset  common.Vector3
 	Radius        float32
-	Vertices      []geo.Vector3
+	Vertices      []common.Vector3
 	BspNodes      []bspNode
 }
 
@@ -43,14 +43,14 @@ type renderInfo struct {
 }
 
 type uvInfo struct {
-	origin geo.Vector3
-	uAxis  geo.Vector3
-	vAxis  geo.Vector3
+	origin common.Vector3
+	uAxis  common.Vector3
+	vAxis  common.Vector3
 }
 
 type uvMap struct {
 	entryCount uint32
-	entries    []geo.Vector2
+	entries    []common.Vector2
 }
 
 func (e *WLD) threeDSpriteDefRead(r io.ReadSeeker, fragmentOffset int) error {
@@ -66,7 +66,7 @@ func (e *WLD) threeDSpriteDefRead(r io.ReadSeeker, fragmentOffset int) error {
 	def.CenterOffset.Z = dec.Float32()
 	def.Radius = dec.Float32()
 	for i := 0; i < int(def.VertexCount); i++ {
-		v := geo.Vector3{}
+		v := common.Vector3{}
 		v.X = dec.Float32()
 		v.Y = dec.Float32()
 		v.Z = dec.Float32()
@@ -108,7 +108,7 @@ func (e *WLD) threeDSpriteDefRead(r io.ReadSeeker, fragmentOffset int) error {
 		if v.RenderInfo.flags&0x20 == 0x20 {
 			v.RenderInfo.uvMap.entryCount = dec.Uint32()
 			for j := 0; j < int(v.RenderInfo.uvMap.entryCount); j++ {
-				vv := geo.Vector2{}
+				vv := common.Vector2{}
 				vv.X = dec.Float32()
 				vv.Y = dec.Float32()
 				v.RenderInfo.uvMap.entries = append(v.RenderInfo.uvMap.entries, vv)

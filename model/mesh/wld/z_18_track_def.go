@@ -6,8 +6,8 @@ import (
 	"io"
 
 	"github.com/xackery/encdec"
+	"github.com/xackery/quail/common"
 	"github.com/xackery/quail/log"
-	"github.com/xackery/quail/model/geo"
 )
 
 // 0x12 trackDef
@@ -19,10 +19,9 @@ type trackDef struct {
 }
 
 type boneTransform struct {
-	translation geo.Vector3
-	rotation    geo.Quad4
+	translation common.Vector3
+	rotation    common.Quad4
 	scale       float32
-	matrix      [16]float32
 }
 
 func (e *WLD) trackDefRead(r io.ReadSeeker, fragmentOffset int) error {
@@ -52,7 +51,7 @@ func (e *WLD) trackDefRead(r io.ReadSeeker, fragmentOffset int) error {
 		ft.rotation.Y = float32(rotY)
 		ft.rotation.Z = float32(rotZ)
 		ft.rotation.W = float32(rotDenom)
-		ft.rotation = geo.Normalize(ft.rotation)
+		ft.rotation = common.Normalize(ft.rotation)
 		def.skeletonTransforms = append(def.skeletonTransforms, ft)
 	}
 

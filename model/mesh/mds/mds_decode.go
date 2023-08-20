@@ -6,13 +6,13 @@ import (
 	"io"
 
 	"github.com/xackery/encdec"
+	"github.com/xackery/quail/common"
 	"github.com/xackery/quail/log"
-	"github.com/xackery/quail/quail/def"
 	"github.com/xackery/quail/tag"
 )
 
 // MDSDecode decodes a MDS file
-func Decode(mesh *def.Mesh, r io.ReadSeeker) error {
+func Decode(mesh *common.Model, r io.ReadSeeker) error {
 	var ok bool
 	mesh.FileType = "mds"
 
@@ -52,7 +52,7 @@ func Decode(mesh *def.Mesh, r io.ReadSeeker) error {
 	//log.Debugf("names: %+v", names)
 
 	for i := 0; i < int(materialCount); i++ {
-		material := &def.Material{}
+		material := &common.Material{}
 		material.ID = dec.Int32()
 		nameOffset := dec.Uint32()
 		material.Name, ok = names[nameOffset]
@@ -79,7 +79,7 @@ func Decode(mesh *def.Mesh, r io.ReadSeeker) error {
 
 		propertyCount := dec.Uint32()
 		for j := 0; j < int(propertyCount); j++ {
-			property := &def.MaterialProperty{
+			property := &common.MaterialProperty{
 				Name: material.Name,
 			}
 
@@ -121,7 +121,7 @@ func Decode(mesh *def.Mesh, r io.ReadSeeker) error {
 	tag.Add(tag.LastPos(), int(dec.Pos()), "blue", "materials")
 
 	for i := 0; i < int(boneCount); i++ {
-		bone := def.Bone{}
+		bone := common.Bone{}
 		nameOffset := dec.Uint32()
 		bone.Name, ok = names[nameOffset]
 		if !ok {
@@ -163,7 +163,7 @@ func Decode(mesh *def.Mesh, r io.ReadSeeker) error {
 	log.Debugf("boneAssignmentCount: %d", boneAssignmentCount)
 
 	for i := 0; i < int(verticesCount); i++ {
-		v := def.Vertex{}
+		v := common.Vertex{}
 		v.Position.X = dec.Float32()
 		v.Position.Y = dec.Float32()
 		v.Position.Z = dec.Float32()
@@ -171,9 +171,9 @@ func Decode(mesh *def.Mesh, r io.ReadSeeker) error {
 		v.Normal.Y = dec.Float32()
 		v.Normal.Z = dec.Float32()
 		if version <= 2 {
-			v.Tint = def.RGBA{R: 128, G: 128, B: 128, A: 255}
+			v.Tint = common.RGBA{R: 128, G: 128, B: 128, A: 255}
 		} else {
-			v.Tint = def.RGBA{R: dec.Uint8(), G: dec.Uint8(), B: dec.Uint8(), A: dec.Uint8()}
+			v.Tint = common.RGBA{R: dec.Uint8(), G: dec.Uint8(), B: dec.Uint8(), A: dec.Uint8()}
 		}
 		v.Uv.X = dec.Float32()
 		v.Uv.Y = dec.Float32()
@@ -189,14 +189,14 @@ func Decode(mesh *def.Mesh, r io.ReadSeeker) error {
 	}
 
 	for i := 0; i < int(triangleCount); i++ {
-		t := def.Triangle{}
+		t := common.Triangle{}
 		t.Index.X = dec.Uint32()
 		t.Index.Y = dec.Uint32()
 		t.Index.Z = dec.Uint32()
 
 		materialID := dec.Int32()
 
-		var material *def.Material
+		var material *common.Material
 		for _, mat := range mesh.Materials {
 			if mat.ID == materialID {
 				material = mat

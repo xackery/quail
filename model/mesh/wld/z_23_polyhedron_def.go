@@ -6,8 +6,8 @@ import (
 	"io"
 
 	"github.com/xackery/encdec"
+	"github.com/xackery/quail/common"
 	"github.com/xackery/quail/log"
-	"github.com/xackery/quail/model/geo"
 )
 
 // 0x17 polyhedronDef
@@ -18,7 +18,7 @@ type polyhedronDef struct {
 	size2    uint32
 	params1  float32
 	params2  float32
-	entries1 []geo.Vector3
+	entries1 []common.Vector3
 	entries2 []entries2
 }
 
@@ -38,7 +38,7 @@ func (e *WLD) polyhedronDefRead(r io.ReadSeeker, fragmentOffset int) error {
 	def.params1 = dec.Float32()
 	def.params2 = dec.Float32()
 	for i := 0; i < int(def.size1); i++ {
-		var entry geo.Vector3
+		var entry common.Vector3
 		entry.X = dec.Float32()
 		entry.Y = dec.Float32()
 		entry.Z = dec.Float32()

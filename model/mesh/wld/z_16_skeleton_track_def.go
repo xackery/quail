@@ -6,8 +6,8 @@ import (
 	"io"
 
 	"github.com/xackery/encdec"
+	"github.com/xackery/quail/common"
 	"github.com/xackery/quail/log"
-	"github.com/xackery/quail/model/geo"
 )
 
 // 0x10 skeletonTrackDef
@@ -16,21 +16,8 @@ type skeletonTrackDef struct {
 	flags              uint32
 	animCount          uint32
 	collisionVolumeRef uint32
-	centerOffset       geo.Vector3
+	centerOffset       common.Vector3
 	radius             float32
-	anims              []anim
-	meshCount          uint32
-	meshRefs           []int32
-	skinToAnimRefs     []int32
-}
-
-type anim struct {
-	NameRef         int32
-	Flags           uint32
-	TrackRef        int32
-	MeshOrSpriteRef int32
-	SubAnimCount    uint32
-	SubAnims        []uint32
 }
 
 func (e *WLD) skeletonTrackDefRead(r io.ReadSeeker, fragmentOffset int) error {

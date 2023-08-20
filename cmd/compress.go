@@ -70,7 +70,7 @@ func init() {
 	compressCmd.PersistentFlags().String("out", "", "name of compressed eqg archive output, defaults to path's basename")
 	compressCmd.Example = `quail compress --path="./_clz.eqg/"
 quail compress ./_soldungb.eqg/
-quail compress _soldungb.eqg/ foo.eqg
+quail compress _soldungb.eqg/ common.eqg
 quail compress --path=_soldungb.eqg/ --out=foo.eqg`
 }
 

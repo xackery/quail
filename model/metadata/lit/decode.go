@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/xackery/quail/common"
 	"github.com/xackery/quail/log"
-	"github.com/xackery/quail/model/geo"
 )
 
 func (e *LIT) Decode(r io.ReadSeeker) error {
@@ -22,7 +22,7 @@ func (e *LIT) Decode(r io.ReadSeeker) error {
 	log.Debugf("lightCount %d", lightCount)
 
 	for i := 0; i < int(lightCount); i++ {
-		color := &geo.RGBA{}
+		color := &common.RGBA{}
 		err = binary.Read(r, binary.LittleEndian, color)
 		if err != nil {
 			if err == io.EOF {

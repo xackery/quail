@@ -5,8 +5,8 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/xackery/quail/common"
 	"github.com/xackery/quail/log"
-	"github.com/xackery/quail/quail/def"
 )
 
 func TestQuail_DirExport(t *testing.T) {
@@ -16,7 +16,7 @@ func TestQuail_DirExport(t *testing.T) {
 	}
 
 	type fields struct {
-		Meshes []*def.Mesh
+		Meshes []*common.Model
 	}
 	type args struct {
 		srcPath string
@@ -42,9 +42,11 @@ func TestQuail_DirExport(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		os.RemoveAll("test")
+		os.MkdirAll("test", 0755)
 		t.Run(tt.name, func(t *testing.T) {
 			quail := &Quail{
-				Meshes: tt.fields.Meshes,
+				Models: tt.fields.Meshes,
 			}
 
 			if err := quail.PFSImport(eqPath + "/" + tt.args.srcPath); err != nil {
@@ -65,7 +67,7 @@ func TestQuail_DirExportPFS(t *testing.T) {
 	}
 
 	type fields struct {
-		Meshes []*def.Mesh
+		Meshes []*common.Model
 	}
 	type args struct {
 		srcPath string
@@ -86,9 +88,11 @@ func TestQuail_DirExportPFS(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		os.RemoveAll("test")
+		os.MkdirAll("test", 0755)
 		t.Run(tt.name, func(t *testing.T) {
 			quail := &Quail{
-				Meshes: tt.fields.Meshes,
+				Models: tt.fields.Meshes,
 			}
 
 			if err := quail.PFSImport(eqPath + "/" + tt.args.srcPath); err != nil {
@@ -119,7 +123,7 @@ func TestQuail_DirExportImport(t *testing.T) {
 	}
 
 	type fields struct {
-		Meshes []*def.Mesh
+		Meshes []*common.Model
 	}
 	type args struct {
 		srcPath string
@@ -146,7 +150,7 @@ func TestQuail_DirExportImport(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			e := &Quail{
-				Meshes: tt.fields.Meshes,
+				Models: tt.fields.Meshes,
 			}
 
 			if err := e.PFSImport(eqPath + "/" + tt.args.srcPath); err != nil {
@@ -163,17 +167,17 @@ func TestQuail_DirExportImport(t *testing.T) {
 				t.Errorf("Quail.ImportDir() error = %+v, wantErr %+v", err, tt.wantErr)
 			}
 
-			if len(e.Meshes) != len(e2.Meshes) {
-				t.Fatalf("mesh count mismatch, %d != %d", len(e.Meshes), len(e2.Meshes))
+			if len(e.Models) != len(e2.Models) {
+				t.Fatalf("mesh count mismatch, %d != %d", len(e.Models), len(e2.Models))
 			}
 
-			for i, mesh := range e.Meshes {
-				if mesh.Name != e2.Meshes[i].Name {
-					t.Fatalf("mesh name mismatch, %s != %s", mesh.Name, e2.Meshes[i].Name)
+			for i, mesh := range e.Models {
+				if mesh.Name != e2.Models[i].Name {
+					t.Fatalf("mesh name mismatch, %s != %s", mesh.Name, e2.Models[i].Name)
 				}
 
-				if len(mesh.Vertices) != len(e2.Meshes[i].Vertices) {
-					t.Fatalf("mesh vertex count mismatch, %d != %d", len(mesh.Vertices), len(e2.Meshes[i].Vertices))
+				if len(mesh.Vertices) != len(e2.Models[i].Vertices) {
+					t.Fatalf("mesh vertex count mismatch, %d != %d", len(mesh.Vertices), len(e2.Models[i].Vertices))
 				}
 
 				/*for j, vert := range mesh.Vertices {
@@ -182,18 +186,18 @@ func TestQuail_DirExportImport(t *testing.T) {
 					}
 				}*/
 
-				if len(mesh.Triangles) != len(e2.Meshes[i].Triangles) {
-					t.Fatalf("mesh triangle count mismatch, %d != %d", len(mesh.Triangles), len(e2.Meshes[i].Triangles))
+				if len(mesh.Triangles) != len(e2.Models[i].Triangles) {
+					t.Fatalf("mesh triangle count mismatch, %d != %d", len(mesh.Triangles), len(e2.Models[i].Triangles))
 				}
 
 				for j, tri := range mesh.Triangles {
-					if !reflect.DeepEqual(tri, e2.Meshes[i].Triangles[j]) {
-						t.Fatalf("mesh triangle mismatch, %+v != %+v", tri, e2.Meshes[i].Triangles[j])
+					if !reflect.DeepEqual(tri, e2.Models[i].Triangles[j]) {
+						t.Fatalf("mesh triangle mismatch, %+v != %+v", tri, e2.Models[i].Triangles[j])
 					}
 				}
 
-				if len(mesh.Materials) != len(e2.Meshes[i].Materials) {
-					t.Fatalf("mesh material count mismatch, %d != %d", len(mesh.Materials), len(e2.Meshes[i].Materials))
+				if len(mesh.Materials) != len(e2.Models[i].Materials) {
+					t.Fatalf("mesh material count mismatch, %d != %d", len(mesh.Materials), len(e2.Models[i].Materials))
 				}
 
 				/*for j, mat := range mesh.Materials {
@@ -202,8 +206,8 @@ func TestQuail_DirExportImport(t *testing.T) {
 					}
 				}*/
 
-				if len(mesh.Bones) != len(e2.Meshes[i].Bones) {
-					t.Fatalf("mesh bone count mismatch, %d != %d", len(mesh.Bones), len(e2.Meshes[i].Bones))
+				if len(mesh.Bones) != len(e2.Models[i].Bones) {
+					t.Fatalf("mesh bone count mismatch, %d != %d", len(mesh.Bones), len(e2.Models[i].Bones))
 				}
 
 				/*for j, bone := range mesh.Bones {
@@ -212,8 +216,8 @@ func TestQuail_DirExportImport(t *testing.T) {
 					}
 				}*/
 
-				if len(mesh.ParticlePoints) != len(e2.Meshes[i].ParticlePoints) {
-					t.Fatalf("mesh particle point count mismatch, %d != %d", len(mesh.ParticlePoints), len(e2.Meshes[i].ParticlePoints))
+				if len(mesh.ParticlePoints) != len(e2.Models[i].ParticlePoints) {
+					t.Fatalf("mesh particle point count mismatch, %d != %d", len(mesh.ParticlePoints), len(e2.Models[i].ParticlePoints))
 				}
 
 				/* for j, pp := range mesh.ParticlePoints {
@@ -222,15 +226,15 @@ func TestQuail_DirExportImport(t *testing.T) {
 					}
 				} */
 
-				if len(mesh.ParticleRenders) != len(e2.Meshes[i].ParticleRenders) {
-					t.Fatalf("mesh particle render count mismatch, %d != %d", len(mesh.ParticleRenders), len(e2.Meshes[i].ParticleRenders))
+				if len(mesh.ParticleRenders) != len(e2.Models[i].ParticleRenders) {
+					t.Fatalf("mesh particle render count mismatch, %d != %d", len(mesh.ParticleRenders), len(e2.Models[i].ParticleRenders))
 				}
 
 				for j, pr := range mesh.ParticleRenders {
 
 					for k, entry := range pr.Entries {
 
-						cmp := e2.Meshes[i].ParticleRenders[j].Entries[k]
+						cmp := e2.Models[i].ParticleRenders[j].Entries[k]
 
 						log.Debugf("%+v vs %+v", entry, cmp)
 						if entry.Duration != cmp.Duration {

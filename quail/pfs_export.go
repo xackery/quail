@@ -8,6 +8,11 @@ import (
 	"strings"
 
 	"github.com/xackery/quail/log"
+	"github.com/xackery/quail/model"
+	"github.com/xackery/quail/model/metadata/ani"
+	"github.com/xackery/quail/model/metadata/prt"
+	"github.com/xackery/quail/model/metadata/pts"
+	"github.com/xackery/quail/model/metadata/zon"
 	"github.com/xackery/quail/pfs/eqg"
 	"github.com/xackery/quail/tag"
 )
@@ -43,7 +48,7 @@ func (e *Quail) EQGExport(fileVersion uint32, pfsVersion int, path string) error
 
 	if e.Zone != nil {
 		buf := &bytes.Buffer{}
-		err = e.Zone.Encode(fileVersion, buf)
+		err = zon.Encode(e.Zone, fileVersion, buf)
 		if err != nil {
 			return fmt.Errorf("encodeZon %s: %w", e.Zone.Name, err)
 		}
@@ -56,28 +61,28 @@ func (e *Quail) EQGExport(fileVersion uint32, pfsVersion int, path string) error
 		}
 	}
 
-	for _, mesh := range e.Meshes {
+	for _, entry := range e.Models {
 		buf := &bytes.Buffer{}
-		err = mesh.Encode(fileVersion, buf)
+		err = model.Encode(entry, fileVersion, buf)
 		if err != nil {
-			return fmt.Errorf("encodeMod %s: %w", mesh.Name, err)
+			return fmt.Errorf("encodeMod %s: %w", entry.Name, err)
 		}
 
-		os.WriteFile(fmt.Sprintf("%s/%s-raw-out.%s", "testdata", mesh.Name, mesh.FileType), buf.Bytes(), 0644)
-		tag.Write(fmt.Sprintf("%s/%s-raw-out.%s.tags", "testdata", mesh.Name, mesh.FileType))
+		os.WriteFile(fmt.Sprintf("%s/%s-raw-out.%s", "testdata", entry.Name, entry.FileType), buf.Bytes(), 0644)
+		tag.Write(fmt.Sprintf("%s/%s-raw-out.%s.tags", "testdata", entry.Name, entry.FileType))
 
-		err = pfs.Add(fmt.Sprintf("%s.%s", mesh.Name, mesh.FileType), buf.Bytes())
+		err = pfs.Add(fmt.Sprintf("%s.%s", entry.Name, entry.FileType), buf.Bytes())
 		if err != nil {
-			return fmt.Errorf("addMod %s: %w", mesh.Name, err)
+			return fmt.Errorf("addMod %s: %w", entry.Name, err)
 		}
-		for _, material := range mesh.Materials {
+		for _, material := range entry.Materials {
 			for _, property := range material.Properties {
 				if len(property.Data) == 0 {
 					continue
 				}
 				err = pfs.Add(property.Value, property.Data)
 				if err != nil {
-					return fmt.Errorf("mesh %s addMaterial %s texture %s: %w", mesh.Name, material.Name, property.Value, err)
+					return fmt.Errorf("mesh %s addMaterial %s texture %s: %w", entry.Name, material.Name, property.Value, err)
 				}
 			}
 		}
@@ -85,7 +90,7 @@ func (e *Quail) EQGExport(fileVersion uint32, pfsVersion int, path string) error
 
 	for _, anim := range e.Animations {
 		buf := &bytes.Buffer{}
-		err = anim.ANIEncode(fileVersion, buf)
+		err = ani.Encode(anim, fileVersion, buf)
 		if err != nil {
 			return fmt.Errorf("encodeAni %s: %w", anim.Name, err)
 		}
@@ -95,10 +100,10 @@ func (e *Quail) EQGExport(fileVersion uint32, pfsVersion int, path string) error
 		}
 	}
 
-	for _, mesh := range e.Meshes {
+	for _, mesh := range e.Models {
 		for _, render := range mesh.ParticleRenders {
 			buf := &bytes.Buffer{}
-			err = render.PRTEncode(4, buf) // TODO: add support for other versions
+			err = prt.Encode(render, 4, buf) // TODO: add support for other versions
 			if err != nil {
 				return fmt.Errorf("encodePtr %s: %w", render.Name, err)
 			}
@@ -110,7 +115,7 @@ func (e *Quail) EQGExport(fileVersion uint32, pfsVersion int, path string) error
 
 		for _, point := range mesh.ParticlePoints {
 			buf := &bytes.Buffer{}
-			err = point.PTSEncode(fileVersion, buf)
+			err = pts.Encode(point, fileVersion, buf)
 			if err != nil {
 				return fmt.Errorf("encodePts %s: %w", point.Name, err)
 			}

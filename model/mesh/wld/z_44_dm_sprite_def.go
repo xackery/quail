@@ -6,8 +6,8 @@ import (
 	"io"
 
 	"github.com/xackery/encdec"
+	"github.com/xackery/quail/common"
 	"github.com/xackery/quail/log"
-	"github.com/xackery/quail/model/geo"
 )
 
 type dmSpriteDef struct {
@@ -16,18 +16,18 @@ type dmSpriteDef struct {
 	fragment1Maybe    int16
 	materialReference uint32
 	fragment3         uint32
-	centerPosition    geo.Vector3
+	centerPosition    common.Vector3
 	params2           uint32
 	something2        uint32
 	something3        uint32
-	verticies         []geo.Vector3
-	texCoords         []geo.Vector3
-	normals           []geo.Vector3
+	verticies         []common.Vector3
+	texCoords         []common.Vector3
+	normals           []common.Vector3
 	colors            []int32
 	polygons          []spritePolygon
 	vertexPieces      []spriteVertexPiece
 	renderGroups      []spriteRenderGroup
-	vertexTex         []geo.Vector2
+	vertexTex         []common.Vector2
 }
 
 type spritePolygon struct {
@@ -81,7 +81,7 @@ func (e *WLD) dmSpriteDefRead(r io.ReadSeeker, fragmentOffset int) error {
 	}
 
 	for i := uint32(0); i < vertexCount; i++ {
-		var vertex geo.Vector3
+		var vertex common.Vector3
 		vertex.X = dec.Float32()
 		vertex.Y = dec.Float32()
 		vertex.Z = dec.Float32()
@@ -89,7 +89,7 @@ func (e *WLD) dmSpriteDefRead(r io.ReadSeeker, fragmentOffset int) error {
 	}
 
 	for i := uint32(0); i < texCoordCount; i++ {
-		var texCoord geo.Vector3
+		var texCoord common.Vector3
 		texCoord.X = dec.Float32()
 		texCoord.Y = dec.Float32()
 		texCoord.Z = dec.Float32()
@@ -97,7 +97,7 @@ func (e *WLD) dmSpriteDefRead(r io.ReadSeeker, fragmentOffset int) error {
 	}
 
 	for i := uint32(0); i < normalCount; i++ {
-		var normal geo.Vector3
+		var normal common.Vector3
 		normal.X = dec.Float32()
 		normal.Y = dec.Float32()
 		normal.Z = dec.Float32()
@@ -153,7 +153,7 @@ func (e *WLD) dmSpriteDefRead(r io.ReadSeeker, fragmentOffset int) error {
 	if def.flags&12 != 0 {
 		spriteVertexCount := dec.Uint32()
 		for i := uint32(0); i < spriteVertexCount; i++ {
-			var vertexTex geo.Vector2
+			var vertexTex common.Vector2
 			vertexTex.X = dec.Float32()
 			vertexTex.Y = dec.Float32()
 			def.vertexTex = append(def.vertexTex, vertexTex)

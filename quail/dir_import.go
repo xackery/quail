@@ -6,8 +6,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/xackery/quail/common"
 	"github.com/xackery/quail/helper"
-	"github.com/xackery/quail/quail/def"
 )
 
 // DirImport imports the quail target from a directory
@@ -62,7 +62,7 @@ func (quail *Quail) DirImport(path string) error {
 }
 
 func (quail *Quail) dirParseMesh(path string, name string) error {
-	mesh := &def.Mesh{
+	mesh := &common.Model{
 		FileType: "mod", // default to mod
 	}
 	mesh.Name = strings.TrimSuffix(name, ".mesh")
@@ -92,7 +92,7 @@ func (quail *Quail) dirParseMesh(path string, name string) error {
 					mesh.FileType = records[1]
 					continue
 				}
-				triangle := def.Triangle{}
+				triangle := common.Triangle{}
 				vec3 := strings.Split(records[0], ",")
 				triangle.Index.X = helper.ParseUint32(vec3[0], 0)
 				triangle.Index.Y = helper.ParseUint32(vec3[1], 0)
@@ -133,7 +133,7 @@ func (quail *Quail) dirParseMesh(path string, name string) error {
 				if len(records) != 5 {
 					return fmt.Errorf("vertex.txt line %d: expected 5 records, got %d", i, len(records))
 				}
-				vertex := def.Vertex{}
+				vertex := common.Vertex{}
 				vec3 := strings.Split(records[0], ",")
 				vertex.Position.X = helper.ParseFloat32(vec3[0], 0)
 				vertex.Position.Y = helper.ParseFloat32(vec3[1], 0)
@@ -174,7 +174,7 @@ func (quail *Quail) dirParseMesh(path string, name string) error {
 				if len(records) != 7 {
 					return fmt.Errorf("bone.txt line %d: expected 7 records, got %d", i, len(records))
 				}
-				bone := def.Bone{}
+				bone := common.Bone{}
 				bone.Name = records[0]
 				bone.ChildIndex = helper.ParseInt32(records[1], 0)
 				bone.ChildrenCount = helper.ParseUint32(records[2], 0)
@@ -198,7 +198,7 @@ func (quail *Quail) dirParseMesh(path string, name string) error {
 		}
 
 		if mf.Name() == "particle_render.txt" {
-			particleRender := &def.ParticleRender{}
+			particleRender := &common.ParticleRender{}
 
 			lines, err := helper.ReadFile(fmt.Sprintf("%s/%s", meshPath, mf.Name()))
 			if err != nil {
@@ -216,7 +216,7 @@ func (quail *Quail) dirParseMesh(path string, name string) error {
 					return fmt.Errorf("particle_render.txt line %d: expected 11 records, got %d", i, len(records))
 				}
 
-				entry := &def.ParticleRenderEntry{}
+				entry := &common.ParticleRenderEntry{}
 				entry.ID = helper.ParseUint32(records[0], 0)
 				entry.ID2 = helper.ParseUint32(records[1], 0)
 				entry.ParticlePoint = records[2]
@@ -236,7 +236,7 @@ func (quail *Quail) dirParseMesh(path string, name string) error {
 		}
 
 		if mf.Name() == "particle_point.txt" {
-			particlePoint := &def.ParticlePoint{}
+			particlePoint := &common.ParticlePoint{}
 
 			lines, err := helper.ReadFile(fmt.Sprintf("%s/%s", meshPath, mf.Name()))
 			if err != nil {
@@ -259,7 +259,7 @@ func (quail *Quail) dirParseMesh(path string, name string) error {
 					continue
 				}
 
-				entry := def.ParticlePointEntry{}
+				entry := common.ParticlePointEntry{}
 				entry.Name = records[0]
 				entry.Bone = records[1]
 				vec3 := strings.Split(records[2], ",")
@@ -280,12 +280,12 @@ func (quail *Quail) dirParseMesh(path string, name string) error {
 			mesh.ParticlePoints = append(mesh.ParticlePoints, particlePoint)
 		}
 	}
-	quail.Meshes = append(quail.Meshes, mesh)
+	quail.Models = append(quail.Models, mesh)
 	return nil
 }
 
 func (quail *Quail) dirParseMaterial(path string, name string) error {
-	material := &def.Material{
+	material := &common.Material{
 		ShaderName: "Opaque_MaxCB1.fx",
 	}
 	material.Name = strings.TrimSuffix(name, ".material")
@@ -322,7 +322,7 @@ func (quail *Quail) dirParseMaterial(path string, name string) error {
 			return fmt.Errorf("material %s line %d: expected 3 records, got %d", material.Name, i, len(records))
 		}
 
-		property := &def.MaterialProperty{}
+		property := &common.MaterialProperty{}
 		property.Name = records[0]
 		property.Value = records[1]
 		property.Category = helper.ParseUint32(records[2], 0)
@@ -340,7 +340,7 @@ func (quail *Quail) dirParseMaterial(path string, name string) error {
 }
 
 func (quail *Quail) dirParseAni(path string, name string) error {
-	ani := &def.Animation{}
+	ani := &common.Animation{}
 	ani.Name = strings.TrimSuffix(name, ".ani")
 	aniPath := fmt.Sprintf("%s/%s", path, name)
 	aniFiles, err := os.ReadDir(aniPath)
@@ -373,7 +373,7 @@ func (quail *Quail) dirParseAni(path string, name string) error {
 			continue
 		}
 
-		bone := &def.BoneAnimation{}
+		bone := &common.BoneAnimation{}
 		bone.Name = af.Name()
 		if strings.Contains(bone.Name, ".") {
 			bone.Name = strings.Split(bone.Name, ".")[0]
@@ -394,7 +394,7 @@ func (quail *Quail) dirParseAni(path string, name string) error {
 			if len(records) != 4 {
 				return fmt.Errorf("%s line %d: expected 4 records, got %d", af.Name(), i, len(records))
 			}
-			frame := &def.BoneAnimationFrame{}
+			frame := &common.BoneAnimationFrame{}
 			frame.Milliseconds = helper.ParseUint32(records[0], 0)
 			vec4 := strings.Split(records[1], ",")
 			frame.Rotation.X = helper.ParseFloat32(vec4[0], 0)

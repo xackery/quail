@@ -7,18 +7,16 @@ import (
 	"strings"
 
 	"github.com/xackery/encdec"
+	"github.com/xackery/quail/common"
 	"github.com/xackery/quail/log"
-	"github.com/xackery/quail/model/geo"
-	"github.com/xackery/quail/quail/def"
 )
 
 // Mesh 0x36 54
 type Mesh struct {
-	isNewWorldFormat bool `bin:"-"`
-	NameRef          int32
-	Name             string
-	FileType         string
-	Flags            uint32
+	NameRef  int32
+	Name     string
+	FileType string
+	Flags    uint32
 	// A reference to a [MaterialListFragment] fragment. This tells the client which materials this mesh uses.
 	// For zone meshes the [MaterialListFragment] contains all the materials used in the entire zone.
 	// For placeable objects the [MaterialListFragment] contains all of the materials used in that object.
@@ -26,22 +24,21 @@ type Mesh struct {
 	AnimationRef      int32
 	Fragment3Ref      int32 // unknown, usually empty
 	Fragment4Ref      int32 // unknown, usually ref to first texture
-	Center            geo.Vector3
-	Params2           geo.UIndex3 // unknown, usually 0,0,0
-	MaxDistance       float32     // radius from center, max distance from center
-	Min               geo.Vector3 // min x,y,z
-	Max               geo.Vector3 // max x,y,z
-	MeshopCount       uint16      // used for animated mshes
-	Scale             float32     `bin:"ScaleUnmarshal,le"`
-	Vertices          []def.Vertex
-	Uvs               []geo.Vector2 `bin:"UvsUnmarshal,le"`
-	Normals           []geo.UIndex3 `bin:"NormalsUnmarshal,le"`
-	Colors            []geo.RGBA    `bin:"len:ColorCount"`
+	Center            common.Vector3
+	Params2           common.UIndex3 // unknown, usually 0,0,0
+	MaxDistance       float32        // radius from center, max distance from center
+	Min               common.Vector3 // min x,y,z
+	Max               common.Vector3 // max x,y,z
+	MeshopCount       uint16         // used for animated mshes
+	Scale             float32        `bin:"ScaleUnmarshal,le"`
+	Vertices          []common.Vertex
+	Uvs               []common.Vector2 `bin:"UvsUnmarshal,le"`
+	Normals           []common.UIndex3 `bin:"NormalsUnmarshal,le"`
+	Colors            []common.RGBA    `bin:"len:ColorCount"`
 	TriangleMaterials []MeshTriangleMaterial
-	Triangles         []def.Triangle
+	Triangles         []common.Triangle
 	VertexPieces      []MeshVertexPiece
 	AnimatedBones     []MeshAnimatedBone
-	meshops           []geo.Vector2 `bin:"-"`
 }
 
 type MeshVertexPiece struct {
@@ -55,7 +52,7 @@ type MeshTriangleMaterial struct {
 }
 
 type MeshAnimatedBone struct {
-	Position geo.Vector3
+	Position common.Vector3
 }
 
 func (e *WLD) meshRead(r io.ReadSeeker, fragmentOffset int) error {
@@ -131,7 +128,7 @@ func (e *WLD) meshRead(r io.ReadSeeker, fragmentOffset int) error {
 	/// Vertices (x, y, z) belonging to this mesh. Each axis should
 	/// be multiplied by (1 shl `scale`) for the final vertex position.
 	for i := 0; i < int(vertexCount); i++ {
-		vert := def.Vertex{}
+		vert := common.Vertex{}
 		vert.Position.X = float32(centerX) + (float32(dec.Int16()) * scale)
 		vert.Position.Y = float32(centerY) + (float32(dec.Int16()) * scale)
 		vert.Position.Z = float32(centerZ) + (float32(dec.Int16()) * scale)
@@ -139,7 +136,7 @@ func (e *WLD) meshRead(r io.ReadSeeker, fragmentOffset int) error {
 	}
 
 	for i := 0; i < int(uvCount); i++ {
-		uv := def.Vector2{}
+		uv := common.Vector2{}
 		if e.isOldWorld {
 			uv.X = float32(dec.Int16()) / 256
 			uv.Y = float32(dec.Int16()) / 256
@@ -151,7 +148,7 @@ func (e *WLD) meshRead(r io.ReadSeeker, fragmentOffset int) error {
 	}
 
 	for i := 0; i < int(normalCount); i++ {
-		normal := def.Vector3{}
+		normal := common.Vector3{}
 		normal.X = float32(dec.Int8()) / 128
 		normal.Y = float32(dec.Int8()) / 128
 		normal.Z = float32(dec.Int8()) / 128
@@ -161,7 +158,7 @@ func (e *WLD) meshRead(r io.ReadSeeker, fragmentOffset int) error {
 	}
 
 	for i := 0; i < int(colorCount); i++ {
-		color := def.RGBA{}
+		color := common.RGBA{}
 		color.R = dec.Uint8()
 		color.G = dec.Uint8()
 		color.B = dec.Uint8()
@@ -172,7 +169,7 @@ func (e *WLD) meshRead(r io.ReadSeeker, fragmentOffset int) error {
 	}
 
 	for i := 0; i < int(triangleCount); i++ {
-		triangle := def.Triangle{}
+		triangle := common.Triangle{}
 		notSolidFlag := dec.Uint16()
 		if notSolidFlag != 0 {
 			triangle.Flag = 1

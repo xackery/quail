@@ -9,9 +9,11 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
+	"github.com/xackery/quail/common"
 	"github.com/xackery/quail/log"
 	"github.com/xackery/quail/model/mesh/mds"
 	"github.com/xackery/quail/model/mesh/mod"
+	"github.com/xackery/quail/model/metadata/lay"
 	"github.com/xackery/quail/model/metadata/prt"
 	"github.com/xackery/quail/model/metadata/pts"
 	"github.com/xackery/quail/model/metadata/zon"
@@ -19,7 +21,6 @@ import (
 	"github.com/xackery/quail/pfs/eqg"
 	"github.com/xackery/quail/pfs/s3d"
 	"github.com/xackery/quail/quail"
-	"github.com/xackery/quail/quail/def"
 )
 
 // inspectCmd represents the inspect command
@@ -204,25 +205,25 @@ func inspectContent(file string, data *bytes.Reader) (interface{}, error) {
 	ext := strings.ToLower(filepath.Ext(file))
 	switch ext {
 	case ".mds":
-		mesh := &def.Mesh{
+		model := &common.Model{
 			Name: strings.TrimSuffix(strings.ToUpper(file), ".MDS"),
 		}
-		err = mds.Decode(mesh, data)
+		err = mds.Decode(model, data)
 		if err != nil {
 			return nil, fmt.Errorf("mds.Decode %s: %w", file, err)
 		}
-		return mesh, nil
+		return model, nil
 	case ".mod":
-		mesh := &def.Mesh{
+		model := &common.Model{
 			Name: strings.TrimSuffix(strings.ToUpper(file), ".MOD"),
 		}
-		err = mod.Decode(mesh, data)
+		err = mod.Decode(model, data)
 		if err != nil {
 			return nil, fmt.Errorf("mod.Decode %s: %w", file, err)
 		}
-		return mesh, nil
+		return model, nil
 	case ".pts":
-		point := &def.ParticlePoint{
+		point := &common.ParticlePoint{
 			Name: strings.TrimSuffix(strings.ToUpper(file), ".MDS"),
 		}
 		err = pts.Decode(point, data)
@@ -231,7 +232,7 @@ func inspectContent(file string, data *bytes.Reader) (interface{}, error) {
 		}
 		return point, nil
 	case ".ptr":
-		render := &def.ParticleRender{
+		render := &common.ParticleRender{
 			Name: strings.TrimSuffix(strings.ToUpper(file), ".MDS"),
 		}
 		err = prt.Decode(render, data)
@@ -240,7 +241,7 @@ func inspectContent(file string, data *bytes.Reader) (interface{}, error) {
 		}
 		return render, nil
 	case ".zon":
-		zone := &def.Zone{
+		zone := &common.Zone{
 			Name: strings.TrimSuffix(strings.ToUpper(file), ".ZON"),
 		}
 		err = zon.Decode(zone, data)
@@ -249,11 +250,20 @@ func inspectContent(file string, data *bytes.Reader) (interface{}, error) {
 		}
 		return zone, nil
 	case ".wld":
-		meshes, err := quail.WLDDecode(data, nil)
+		modeles, err := quail.WLDDecode(data, nil)
 		if err != nil {
 			return nil, fmt.Errorf("wld.Decode %s: %w", file, err)
 		}
-		return meshes, nil
+		return modeles, nil
+	case ".lay":
+		model := &common.Model{
+			Name: strings.TrimSuffix(strings.ToUpper(file), ".LAY"),
+		}
+		err := lay.Decode(model, data)
+		if err != nil {
+			return nil, fmt.Errorf("lay.Decode %s: %w", file, err)
+		}
+		return model, nil
 	default:
 		return nil, fmt.Errorf("unknown file type %s", ext)
 	}

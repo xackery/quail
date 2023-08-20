@@ -6,8 +6,8 @@ import (
 	"io"
 
 	"github.com/xackery/encdec"
+	"github.com/xackery/quail/common"
 	"github.com/xackery/quail/log"
-	"github.com/xackery/quail/model/geo"
 )
 
 // 0x22 region
@@ -22,18 +22,10 @@ type region struct {
 	obstacleCount        uint32
 	cuttingObstacleCount uint32
 	visibleNodeCount     uint32
-	regionVertices       []geo.Vector3
-	regionProximals      []geo.Vector2
-	renderVertices       []geo.Vector3
+	regionVertices       []common.Vector3
+	regionProximals      []common.Vector2
+	renderVertices       []common.Vector3
 	walls                []wall
-	obstacles            []obstacle
-	visNodes             []visNode
-	visibles             []visible
-	sphere               geo.Quad4
-	reverbVolume         float32
-	reverbOffset         int32
-	userData             string
-	meshRef              int32
 }
 
 type wall struct {
@@ -41,31 +33,8 @@ type wall struct {
 	vertexCount  uint32
 	renderMethod uint32
 	renderInfo   renderInfo
-	normal       geo.Quad4
+	normal       common.Quad4
 	vertices     []uint32
-}
-
-type obstacle struct {
-	flags        uint32
-	nextRegion   int32
-	obstacleType uint8
-	vertexCount  uint32
-	vertices     []uint32
-	normal       geo.Quad4
-	edgeWall     uint32
-	userData     string
-}
-
-type visNode struct {
-	normal    geo.Quad4
-	visIndex  uint32
-	frontTree uint32
-	backTree  uint32
-}
-
-type visible struct {
-	rangeCount uint16
-	ranges     []uint8
 }
 
 func (e *WLD) regionRead(r io.ReadSeeker, fragmentOffset int) error {
@@ -82,21 +51,21 @@ func (e *WLD) regionRead(r io.ReadSeeker, fragmentOffset int) error {
 	def.obstacleCount = dec.Uint32()
 	def.cuttingObstacleCount = dec.Uint32()
 	def.visibleNodeCount = dec.Uint32()
-	/*def.visibles = make([]uint32, def.visibleNodeCount)
+	/*common.visibles = make([]uint32, def.visibleNodeCount)
 	for i := uint32(0); i < def.visibleNodeCount; i++ {
 		def.visibles[i] = dec.Uint32()
 	}*/
-	def.regionVertices = make([]geo.Vector3, def.regionVertexCount)
+	def.regionVertices = make([]common.Vector3, def.regionVertexCount)
 	for i := uint32(0); i < def.regionVertexCount; i++ {
-		def.regionVertices[i] = geo.Vector3{
+		def.regionVertices[i] = common.Vector3{
 			X: dec.Float32(),
 			Y: dec.Float32(),
 			Z: dec.Float32(),
 		}
 	}
-	def.regionProximals = make([]geo.Vector2, def.regionProximalCount)
+	def.regionProximals = make([]common.Vector2, def.regionProximalCount)
 	for i := uint32(0); i < def.regionProximalCount; i++ {
-		def.regionProximals[i] = geo.Vector2{
+		def.regionProximals[i] = common.Vector2{
 			X: dec.Float32(),
 			Y: dec.Float32(),
 		}
@@ -105,9 +74,9 @@ func (e *WLD) regionRead(r io.ReadSeeker, fragmentOffset int) error {
 		def.renderVertexCount = 0
 	}
 
-	def.renderVertices = make([]geo.Vector3, def.renderVertexCount)
+	def.renderVertices = make([]common.Vector3, def.renderVertexCount)
 	for i := uint32(0); i < def.renderVertexCount; i++ {
-		def.renderVertices[i] = geo.Vector3{
+		def.renderVertices[i] = common.Vector3{
 			X: dec.Float32(),
 			Y: dec.Float32(),
 			Z: dec.Float32(),
@@ -129,7 +98,7 @@ func (e *WLD) regionRead(r io.ReadSeeker, fragmentOffset int) error {
 		wall.renderInfo.uvInfo.vAxis.Y = dec.Float32()
 		wall.renderInfo.uvInfo.vAxis.Z = dec.Float32()
 
-		wall.normal = geo.Quad4{
+		wall.normal = common.Quad4{
 			X: dec.Float32(),
 			Y: dec.Float32(),
 			Z: dec.Float32(),

@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/xackery/quail/common"
 	"github.com/xackery/quail/log"
-	"github.com/xackery/quail/model/geo"
 	"github.com/xackery/quail/pfs/archive"
 )
 
@@ -15,7 +15,7 @@ import (
 type LIT struct {
 	name   string
 	pfs    archive.Reader
-	lights []*geo.RGBA
+	lights []*common.RGBA
 }
 
 // New creates a new empty instance. Use NewFile to load an archive file on creation

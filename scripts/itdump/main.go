@@ -54,7 +54,7 @@ func run() error {
 			//return fmt.Errorf("pfs import: %w", err)
 		}
 
-		for _, mesh := range q.Meshes {
+		for _, mesh := range q.Models {
 			if !strings.HasPrefix(strings.ToLower(mesh.Name), "it") {
 				continue
 			}

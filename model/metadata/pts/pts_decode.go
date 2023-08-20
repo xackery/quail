@@ -6,13 +6,13 @@ import (
 	"io"
 
 	"github.com/xackery/encdec"
+	"github.com/xackery/quail/common"
 	"github.com/xackery/quail/log"
-	"github.com/xackery/quail/quail/def"
 	"github.com/xackery/quail/tag"
 )
 
 // Decode decodes a PTS file
-func Decode(point *def.ParticlePoint, r io.ReadSeeker) error {
+func Decode(point *common.ParticlePoint, r io.ReadSeeker) error {
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 
 	header := dec.StringFixed(4)
@@ -29,7 +29,7 @@ func Decode(point *def.ParticlePoint, r io.ReadSeeker) error {
 	}
 
 	for i := 0; i < int(particleCount); i++ {
-		entry := def.ParticlePointEntry{}
+		entry := common.ParticlePointEntry{}
 		entry.Name = dec.StringZero()
 		entry.NameSuffix = dec.Bytes(64 - len(entry.Name) - 1)
 		entry.Bone = dec.StringZero()

@@ -6,8 +6,8 @@ import (
 	"io"
 
 	"github.com/xackery/encdec"
+	"github.com/xackery/quail/common"
 	"github.com/xackery/quail/log"
-	"github.com/xackery/quail/model/geo"
 )
 
 // 0x1B lightDef
@@ -17,7 +17,7 @@ type lightDef struct {
 	frameCurrentRef uint32
 	sleep           uint32
 	lightLevels     []float32
-	colors          []geo.Vector3
+	colors          []common.Vector3
 }
 
 func (e *WLD) lightDefRead(r io.ReadSeeker, fragmentOffset int) error {
@@ -41,7 +41,7 @@ func (e *WLD) lightDefRead(r io.ReadSeeker, fragmentOffset int) error {
 	// 0x08 is skip frames, unused
 	if def.flags&0x10 != 0 {
 		for i := uint32(0); i < frameCount; i++ {
-			var color geo.Vector3
+			var color common.Vector3
 			color.X = dec.Float32()
 			color.Y = dec.Float32()
 			color.Z = dec.Float32()

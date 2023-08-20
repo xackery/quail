@@ -5,7 +5,7 @@ import (
 	"io"
 	"text/template"
 
-	"github.com/xackery/quail/model/geo"
+	"github.com/xackery/quail/common"
 )
 
 func (e *TOG) Encode(w io.Writer) error {
@@ -14,7 +14,7 @@ func (e *TOG) Encode(w io.Writer) error {
 		return fmt.Errorf("parse togTemplate: %w", err)
 	}
 	type foo struct {
-		Objects []geo.Object
+		Objects []common.Object
 	}
 	o := &foo{
 		Objects: e.objects,

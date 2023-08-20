@@ -10,7 +10,8 @@ import (
 
 var (
 	// Version is the current version
-	Version     string
+	Version string
+	// ShowVersion is a flag to show version
 	ShowVersion string
 )
 

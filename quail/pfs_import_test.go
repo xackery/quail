@@ -4,7 +4,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/xackery/quail/quail/def"
+	"github.com/xackery/quail/common"
 )
 
 func TestQuail_PFSImport(t *testing.T) {
@@ -13,7 +13,7 @@ func TestQuail_PFSImport(t *testing.T) {
 		t.Skip("EQ_PATH not set")
 	}
 	type fields struct {
-		Meshes []*def.Mesh
+		Meshes []*common.Model
 	}
 	type args struct {
 		path string
@@ -35,7 +35,7 @@ func TestQuail_PFSImport(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			e := &Quail{
-				Meshes: tt.fields.Meshes,
+				Models: tt.fields.Meshes,
 			}
 			if err := e.PFSImport(eqPath + "/" + tt.args.path); (err != nil) != tt.wantErr {
 				t.Errorf("Quail.ImportPFS() error = %v, wantErr %v", err, tt.wantErr)

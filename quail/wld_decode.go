@@ -3,16 +3,16 @@ package quail
 import (
 	"io"
 
+	"github.com/xackery/quail/common"
 	"github.com/xackery/quail/helper"
 	"github.com/xackery/quail/log"
 	"github.com/xackery/quail/model/mesh/wld"
 	"github.com/xackery/quail/pfs/archive"
-	"github.com/xackery/quail/quail/def"
 )
 
 // Decode decodes a WLD file
-func WLDDecode(r io.ReadSeeker, pfs archive.ReadWriter) ([]*def.Mesh, error) {
-	meshes := make([]*def.Mesh, 0)
+func WLDDecode(r io.ReadSeeker, pfs archive.ReadWriter) ([]*common.Model, error) {
+	meshes := make([]*common.Model, 0)
 
 	e, err := wld.New("test", pfs)
 	if err != nil {
@@ -24,9 +24,9 @@ func WLDDecode(r io.ReadSeeker, pfs archive.ReadWriter) ([]*def.Mesh, error) {
 		return nil, err
 	}
 
-	materials := make([]*def.Material, 0)
+	materials := make([]*common.Material, 0)
 
-	curMesh := &def.Mesh{}
+	curMesh := &common.Model{}
 	//names := e.Names()
 	for _, f := range e.Fragments {
 		switch d := f.(type) {
@@ -73,14 +73,14 @@ func WLDDecode(r io.ReadSeeker, pfs archive.ReadWriter) ([]*def.Mesh, error) {
 
 			meshes = append(meshes, curMesh)
 			//ref := e.Fragments[d.MaterialListRef].(*wld.MaterialList)
-			curMesh = &def.Mesh{}
+			curMesh = &common.Model{}
 		case *wld.TextureList:
 			log.Debugf("texture list: %+v", d)
 			for _, texture := range d.TextureNames {
-				material := &def.Material{
+				material := &common.Material{
 					Name: helper.Clean(texture),
 				}
-				material.Properties = append(material.Properties, &def.MaterialProperty{
+				material.Properties = append(material.Properties, &common.MaterialProperty{
 					Name:     "e_TextureDiffuse0",
 					Value:    helper.Clean(texture),
 					Category: 2,
@@ -95,10 +95,10 @@ func WLDDecode(r io.ReadSeeker, pfs archive.ReadWriter) ([]*def.Mesh, error) {
 				case *wld.TextureList:
 					log.Debugf("texture list: %+v", t)
 					for _, texture := range t.TextureNames {
-						material := &def.Material{
+						material := &common.Material{
 							Name: helper.Clean(texture),
 						}
-						material.Properties = append(material.Properties, &def.MaterialProperty{
+						material.Properties = append(material.Properties, &common.MaterialProperty{
 							Name:     "e_TextureDiffuse0",
 							Value:    helper.Clean(texture),
 							Category: 2,
@@ -114,10 +114,10 @@ func WLDDecode(r io.ReadSeeker, pfs archive.ReadWriter) ([]*def.Mesh, error) {
 						case *wld.TextureList:
 							log.Debugf("texture list: %+v", t)
 							for _, texture := range t.TextureNames {
-								material := &def.Material{
+								material := &common.Material{
 									Name: helper.Clean(texture),
 								}
-								material.Properties = append(material.Properties, &def.MaterialProperty{
+								material.Properties = append(material.Properties, &common.MaterialProperty{
 									Name:     "e_TextureDiffuse0",
 									Value:    helper.Clean(texture),
 									Category: 2,

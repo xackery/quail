@@ -1,19 +1,17 @@
 package quail
 
-import (
-	"github.com/xackery/quail/quail/def"
-)
+import "github.com/xackery/quail/common"
 
 type Quail struct {
-	Meshes        []*def.Mesh
-	Animations    []*def.Animation
-	Zone          *def.Zone
-	materialCache map[string]*def.Material
+	Models        []*common.Model
+	Animations    []*common.Animation
+	Zone          *common.Zone
+	materialCache map[string]*common.Material
 }
 
 // New returns a new Quail instance
 func New() *Quail {
 	return &Quail{
-		materialCache: make(map[string]*def.Material),
+		materialCache: make(map[string]*common.Material),
 	}
 }

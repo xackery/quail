@@ -6,8 +6,8 @@ import (
 	"io"
 
 	"github.com/xackery/encdec"
+	"github.com/xackery/quail/common"
 	"github.com/xackery/quail/log"
-	"github.com/xackery/quail/model/geo"
 )
 
 // 0x14 model
@@ -19,8 +19,8 @@ type model struct {
 	fragmentRefCount uint32
 	boundsRef        int32
 	currentAction    uint32
-	offset           geo.Vector3
-	rotation         geo.Vector3
+	offset           common.Vector3
+	rotation         common.Vector3
 	unk1             uint32
 	actions          []action
 	fragmentRefs     []uint32

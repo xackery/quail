@@ -6,8 +6,8 @@ import (
 	"io"
 
 	"github.com/xackery/encdec"
+	"github.com/xackery/quail/common"
 	"github.com/xackery/quail/log"
-	"github.com/xackery/quail/model/geo"
 )
 
 // 0x21 worldTree
@@ -18,7 +18,7 @@ type worldTree struct {
 }
 
 type worldTreeNode struct {
-	normal    geo.Vector3
+	normal    common.Vector3
 	distance  float32
 	regionRef int32
 	frontRef  int32
