@@ -14,6 +14,9 @@ import (
 
 // Export exports the quail target
 func (e *Quail) PFSExport(fileVersion uint32, pfsVersion int, path string) error {
+	if len(path) == 0 {
+		return fmt.Errorf("path is empty")
+	}
 	ext := strings.ToLower(filepath.Ext(path))
 
 	switch ext {
@@ -22,6 +25,10 @@ func (e *Quail) PFSExport(fileVersion uint32, pfsVersion int, path string) error
 	case ".s3d":
 		return e.S3DExport(fileVersion, pfsVersion, path)
 	default:
+		if len(ext) < 2 {
+			return fmt.Errorf("unknown pfs type %s, valid options are eqg and pfs", path)
+		}
+
 		return fmt.Errorf("unknown pfs type %s, valid options are eqg and pfs", ext[1:])
 	}
 }

@@ -21,7 +21,6 @@ func TestQuail_PFSExport(t *testing.T) {
 	type args struct {
 		fileVersion uint32
 		pfsVersion  int
-		dstPath     string
 		srcPath     string
 	}
 	tests := []struct {
@@ -33,8 +32,8 @@ func TestQuail_PFSExport(t *testing.T) {
 		//{name: "load-save", args: args{srcPath: "it13900.eqg", fileVersion: 1, pfsVersion: 1}, wantErr: false},
 		//{name: "load-save", args: args{srcPath: "dbx.eqg", fileVersion: 1, pfsVersion: 1}, wantErr: false},
 		//{name: "load-save", args: args{srcPath: "freportn_chr.s3d", fileVersion: 1, pfsVersion: 1}, wantErr: false},
-		//{name: "load-save", args: args{srcPath: "bloodfields.eqg", fileVersion: 1, pfsVersion: 1}, wantErr: false},
-		{name: "load-save", args: args{srcPath: "qeynos2.s3d", fileVersion: 1, pfsVersion: 1}, wantErr: false},
+		{name: "load-save", args: args{srcPath: "bloodfields.eqg", fileVersion: 1, pfsVersion: 1}, wantErr: false},
+		//{name: "load-save", args: args{srcPath: "qeynos2.s3d", fileVersion: 1, pfsVersion: 1}, wantErr: false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -49,7 +48,7 @@ func TestQuail_PFSExport(t *testing.T) {
 			//e.Meshes[0].Bones = []def.Bone{}
 			//e.Meshes[0].Animations = []def.BoneAnimation{}
 
-			if err := e.PFSExport(tt.args.fileVersion, tt.args.pfsVersion, tt.args.dstPath); (err != nil) != tt.wantErr {
+			if err := e.PFSExport(tt.args.fileVersion, tt.args.pfsVersion, "test/"+filepath.Base(tt.args.srcPath)); (err != nil) != tt.wantErr {
 				t.Fatalf("Quail.ExportPFS() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -82,8 +81,9 @@ func TestQuail_PFSExportImportExport(t *testing.T) {
 		//{name: "load-save", args: args{srcPath: "mnt.eqg", fileVersion: 1, pfsVersion: 1}, wantErr: false},
 		//{name: "load-save", args: args{srcPath: "mnt.eqg", fileVersion: 1, pfsVersion: 1}, wantErr: false},
 		//{name: "load-save", args: args{srcPath: "bloodfields.eqg", fileVersion: 1, pfsVersion: 1}, wantErr: false},
+		{name: "load-save", args: args{srcPath: "bazaar.eqg", fileVersion: 1, pfsVersion: 1}, wantErr: false},
 		//{name: "load-save", args: args{srcPath: "i9.eqg", fileVersion: 1, pfsVersion: 1}, wantErr: false},
-		{name: "load-save", args: args{srcPath: "it13968.eqg", fileVersion: 1, pfsVersion: 1}, wantErr: false},
+		//{name: "load-save", args: args{srcPath: "it13968.eqg", fileVersion: 1, pfsVersion: 1}, wantErr: false},
 		//{name: "load-save", args: args{srcPath: "freportn_chr.s3d", fileVersion: 1, pfsVersion: 1}, wantErr: false},
 	}
 	for _, tt := range tests {

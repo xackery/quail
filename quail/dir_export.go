@@ -166,7 +166,6 @@ func (quail *Quail) DirExport(path string) error {
 	}
 
 	for _, anim := range quail.Animations {
-
 		animPath := fmt.Sprintf("%s/%s.ani", path, anim.Name)
 		err = os.MkdirAll(animPath, 0755)
 		if err != nil {
@@ -202,6 +201,66 @@ func (quail *Quail) DirExport(path string) error {
 				fw.WriteString(fmt.Sprintf("%0.8f,%0.8f,%0.8f\n", frame.Translation.X, frame.Translation.Y, frame.Translation.Z))
 			}
 		}
+	}
+
+	if quail.Zone != nil {
+		zon := quail.Zone
+		zonPath := fmt.Sprintf("%s/%s.zone", path, zon.Name)
+		err = os.MkdirAll(zonPath, 0755)
+		if err != nil {
+			return fmt.Errorf("mkdir %s: %w", zon.Name, err)
+		}
+
+		lw, err := os.Create(fmt.Sprintf("%s/light.txt", zonPath))
+		if err != nil {
+			return fmt.Errorf("create light.txt: %w", err)
+		}
+		defer lw.Close()
+		lw.WriteString("name|position|color|radius\n")
+		for _, light := range zon.Lights {
+			lw.WriteString(fmt.Sprintf("%s|", light.Name))
+			lw.WriteString(fmt.Sprintf("%0.8f,%0.8f,%0.8f|", light.Position.X, light.Position.Y, light.Position.Z))
+			lw.WriteString(fmt.Sprintf("%0.8f,%0.8f,%0.8f|", light.Color.X, light.Color.Y, light.Color.Z))
+			lw.WriteString(fmt.Sprintf("%0.8f\n", light.Radius))
+		}
+
+		mw, err := os.Create(fmt.Sprintf("%s/model.txt", zonPath))
+		if err != nil {
+			return fmt.Errorf("create model.txt: %w", err)
+		}
+		defer mw.Close()
+		mw.WriteString("name\n")
+		for _, model := range zon.Models {
+			mw.WriteString(fmt.Sprintf("%s\n", model))
+		}
+
+		ow, err := os.Create(fmt.Sprintf("%s/object.txt", zonPath))
+		if err != nil {
+			return fmt.Errorf("create object.txt: %w", err)
+		}
+		defer ow.Close()
+		ow.WriteString("modelName|name|position|rotation|scale\n")
+		for _, object := range zon.Objects {
+			ow.WriteString(fmt.Sprintf("%s|", object.ModelName))
+			ow.WriteString(fmt.Sprintf("%s|", object.Name))
+			ow.WriteString(fmt.Sprintf("%0.8f,%0.8f,%0.8f|", object.Position.X, object.Position.Y, object.Position.Z))
+			ow.WriteString(fmt.Sprintf("%0.8f,%0.8f,%0.8f|", object.Rotation.X, object.Rotation.Y, object.Rotation.Z))
+			ow.WriteString(fmt.Sprintf("%0.8f\n", object.Scale))
+		}
+
+		rw, err := os.Create(fmt.Sprintf("%s/region.txt", zonPath))
+		if err != nil {
+			return fmt.Errorf("create region.txt: %w", err)
+		}
+		defer rw.Close()
+		rw.WriteString("name|center|extent|unknown\n")
+		for _, region := range zon.Regions {
+			rw.WriteString(fmt.Sprintf("%s|", region.Name))
+			rw.WriteString(fmt.Sprintf("%0.8f,%0.8f,%0.8f|", region.Center.X, region.Center.Y, region.Center.Z))
+			rw.WriteString(fmt.Sprintf("%0.8f,%0.8f,%0.8f|", region.Extent.X, region.Extent.Y, region.Extent.Z))
+			rw.WriteString(fmt.Sprintf("%0.8f,%0.8f,%0.8f\n", region.Unknown.X, region.Unknown.Y, region.Unknown.Z))
+		}
+
 	}
 
 	return nil
