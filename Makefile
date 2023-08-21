@@ -49,17 +49,17 @@ build-copy: build-darwin
 	@echo "copying to quail-addons..."
 	cp bin/quail-darwin "/Users/xackery/Library/Application Support/Blender/3.4/scripts/addons/quail-addon/quail-darwin"
 
-# run pprof and dump 3 snapshots of heap
+# run pprof and dump 4 snapshots of heap
 profile-heap:
 	@echo "profile-heap: running pprof watcher for 2 minutes with snapshots 0 to 3..."
 	@-mkdir -p bin
-	curl http://localhost:8082/debug/pprof/heap > bin/heap.0.pprof
+	curl http://localhost:6060/debug/pprof/heap > bin/heap.0.pprof
 	sleep 30
-	curl http://localhost:8082/debug/pprof/heap > bin/heap.1.pprof
+	curl http://localhost:6060/debug/pprof/heap > bin/heap.1.pprof
 	sleep 30
-	curl http://localhost:8082/debug/pprof/heap > bin/heap.2.pprof
+	curl http://localhost:6060/debug/pprof/heap > bin/heap.2.pprof
 	sleep 30
-	curl http://localhost:8082/debug/pprof/heap > bin/heap.3.pprof
+	curl http://localhost:6060/debug/pprof/heap > bin/heap.3.pprof
 
 # peek at a heap
 profile-heap-%:
@@ -69,7 +69,7 @@ profile-heap-%:
 # run a trace on quail
 profile-trace:
 	@echo "profile-trace: getting trace data, this can show memory leaks and other issues..."
-	curl http://localhost:8082/debug/pprof/trace > bin/trace.out
+	curl http://localhost:6060/debug/pprof/trace > bin/trace.out
 	go tool trace bin/trace.out
 
 # run sanitization against golang
@@ -88,3 +88,6 @@ sanitize:
 # CICD triggers this
 set-version-%:
 	@echo "VERSION=${BUILD_VERSION}.$*" >> $$GITHUB_ENV
+
+extverdump:
+	go run scripts/extverdump/main.go ../eq > scripts/extverdump/version.txt

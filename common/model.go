@@ -19,6 +19,7 @@ type Model struct {
 	Materials       []*Material
 	ParticlePoints  []*ParticlePoint
 	ParticleRenders []*ParticleRender
+	Version         int
 }
 
 // Material is a material

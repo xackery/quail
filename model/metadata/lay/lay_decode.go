@@ -2,7 +2,6 @@ package lay
 
 import (
 	"encoding/binary"
-	"encoding/hex"
 	"fmt"
 	"io"
 
@@ -12,7 +11,7 @@ import (
 )
 
 // Decode loads a lay file
-func Decode(mesh *common.Model, r io.ReadSeeker) error {
+func Decode(model *common.Model, r io.ReadSeeker) error {
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 
 	header := dec.StringFixed(4)
@@ -23,8 +22,7 @@ func Decode(mesh *common.Model, r io.ReadSeeker) error {
 	tag.New()
 
 	version := dec.Uint32()
-
-	fmt.Println("version is", version)
+	model.Version = int(version)
 	versionOffset := 0
 	switch version {
 	case 2:
@@ -78,9 +76,12 @@ func Decode(mesh *common.Model, r io.ReadSeeker) error {
 			}
 		}
 
-		print("name: ", name, " colorTexture: ", colorTexture, " normalTexture: ", normalTexture, "\n")
+		//print("name: ", name, " colorTexture: ", colorTexture, " normalTexture: ", normalTexture, "\n")
+		dec.Bytes(versionOffset)
+		//fmt.Println(hex.Dump())
+		if len(colorTexture) == 0 || len(normalTexture) == 0 || len(name) == 0 {
 
-		fmt.Println(hex.Dump(dec.Bytes(versionOffset)))
+		}
 	}
 
 	if dec.Error() != nil {

@@ -2,6 +2,7 @@ package common
 
 // ParticlePoint is a particle point
 type ParticlePoint struct {
+	Version int
 	Name    string
 	Entries []ParticlePointEntry
 }

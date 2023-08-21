@@ -7,11 +7,13 @@ import (
 
 // Zone is a zone
 type Zone struct {
+	Version int
 	Name    string
 	Models  []string
 	Objects []Object
 	Regions []Region
 	Lights  []Light
+	Lits    []*RGBA
 }
 
 // Object is an object

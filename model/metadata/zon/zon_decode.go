@@ -28,6 +28,7 @@ func Decode(zone *common.Zone, r io.ReadSeeker) error {
 	}
 
 	version := dec.Uint32()
+	zone.Version = int(version)
 	if version != 1 {
 		return fmt.Errorf("version is %d, wanted 1", version)
 	}

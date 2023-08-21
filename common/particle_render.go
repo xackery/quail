@@ -1,6 +1,7 @@
 package common
 
 type ParticleRender struct {
+	Version int
 	Name    string
 	Entries []*ParticleRenderEntry
 }

@@ -12,9 +12,9 @@ import (
 )
 
 // MDSDecode decodes a MDS file
-func Decode(mesh *common.Model, r io.ReadSeeker) error {
+func Decode(model *common.Model, r io.ReadSeeker) error {
 	var ok bool
-	mesh.FileType = "mds"
+	model.FileType = "mds"
 
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 
@@ -25,6 +25,7 @@ func Decode(mesh *common.Model, r io.ReadSeeker) error {
 
 	tag.New()
 	version := dec.Uint32()
+	model.Version = int(version)
 	nameLength := int(dec.Uint32())
 	materialCount := dec.Uint32()
 	boneCount := dec.Uint32()
@@ -66,7 +67,7 @@ func Decode(mesh *common.Model, r io.ReadSeeker) error {
 		}
 
 		isNew := true
-		for _, mat := range mesh.Materials {
+		for _, mat := range model.Materials {
 			if mat.Name == material.Name {
 				material = mat
 				isNew = false
@@ -74,7 +75,7 @@ func Decode(mesh *common.Model, r io.ReadSeeker) error {
 			}
 		}
 		if isNew {
-			mesh.Materials = append(mesh.Materials, material)
+			model.Materials = append(model.Materials, material)
 		}
 
 		propertyCount := dec.Uint32()
@@ -141,7 +142,7 @@ func Decode(mesh *common.Model, r io.ReadSeeker) error {
 		bone.Scale.Y = dec.Float32()
 		bone.Scale.Z = dec.Float32()
 
-		mesh.Bones = append(mesh.Bones, bone)
+		model.Bones = append(model.Bones, bone)
 	}
 
 	mainNameIndex := dec.Uint32()
@@ -185,7 +186,7 @@ func Decode(mesh *common.Model, r io.ReadSeeker) error {
 			v.Uv2.Y = dec.Float32()
 		}
 
-		mesh.Vertices = append(mesh.Vertices, v)
+		model.Vertices = append(model.Vertices, v)
 	}
 
 	for i := 0; i < int(triangleCount); i++ {
@@ -197,7 +198,7 @@ func Decode(mesh *common.Model, r io.ReadSeeker) error {
 		materialID := dec.Int32()
 
 		var material *common.Material
-		for _, mat := range mesh.Materials {
+		for _, mat := range model.Materials {
 			if mat.ID == materialID {
 				material = mat
 				break
@@ -214,13 +215,13 @@ func Decode(mesh *common.Model, r io.ReadSeeker) error {
 		}
 
 		t.Flag = dec.Uint32()
-		mesh.Triangles = append(mesh.Triangles, t)
+		model.Triangles = append(model.Triangles, t)
 	}
 
 	if dec.Error() != nil {
 		return fmt.Errorf("decode: %w", dec.Error())
 	}
 
-	log.Debugf("%s (mds) decoded %d verts, %d triangles, %d bones, %d materials", mesh.Name, len(mesh.Vertices), len(mesh.Triangles), len(mesh.Bones), len(mesh.Materials))
+	log.Debugf("%s (mds) decoded %d verts, %d triangles, %d bones, %d materials", model.Name, len(model.Vertices), len(model.Triangles), len(model.Bones), len(model.Materials))
 	return nil
 }

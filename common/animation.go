@@ -10,6 +10,7 @@ import (
 
 // Animation is an animation
 type Animation struct {
+	Version  int
 	Name     string
 	Bones    []*BoneAnimation
 	IsStrict bool

@@ -24,6 +24,7 @@ func Decode(point *common.ParticlePoint, r io.ReadSeeker) error {
 
 	particleCount := dec.Uint32()
 	version := dec.Uint32()
+	point.Version = int(version)
 	if version != 1 {
 		return fmt.Errorf("invalid version %d, wanted 1", version)
 	}

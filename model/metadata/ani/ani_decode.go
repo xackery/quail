@@ -23,6 +23,7 @@ func Decode(animation *common.Animation, r io.ReadSeeker) error {
 	tag.New()
 
 	version := dec.Uint32()
+	animation.Version = int(version)
 	nameLength := int(dec.Uint32())
 	boneCount := dec.Uint32()
 
