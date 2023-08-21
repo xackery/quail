@@ -13,7 +13,7 @@ func TestWLD_meshRead(t *testing.T) {
 	fragmentTests(t,
 		true, //single run stop
 		[]string{
-			"gequip.s3d",
+			//"gequip.s3d",
 		},
 		54,         //fragCode
 		-1,         //fragIndex

@@ -135,9 +135,9 @@ type BoneAnimation struct {
 // BoneAnimationFrame is a bone animation frame
 type BoneAnimationFrame struct {
 	Milliseconds uint32
-	Translation  *Vector3
-	Rotation     *Quad4
-	Scale        *Vector3
+	Translation  Vector3
+	Rotation     Quad4
+	Scale        Vector3
 }
 
 // NameBuild prepares an EQG-styled name buffer list

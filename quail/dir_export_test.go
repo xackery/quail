@@ -16,7 +16,7 @@ func TestQuail_DirExport(t *testing.T) {
 	}
 
 	type fields struct {
-		Meshes []*common.Model
+		Models []*common.Model
 	}
 	type args struct {
 		srcPath string
@@ -46,7 +46,7 @@ func TestQuail_DirExport(t *testing.T) {
 		os.MkdirAll("test", 0755)
 		t.Run(tt.name, func(t *testing.T) {
 			quail := &Quail{
-				Models: tt.fields.Meshes,
+				Models: tt.fields.Models,
 			}
 
 			if err := quail.PFSImport(eqPath + "/" + tt.args.srcPath); err != nil {
@@ -67,7 +67,7 @@ func TestQuail_DirExportPFS(t *testing.T) {
 	}
 
 	type fields struct {
-		Meshes []*common.Model
+		Models []*common.Model
 	}
 	type args struct {
 		srcPath string
@@ -91,9 +91,8 @@ func TestQuail_DirExportPFS(t *testing.T) {
 		os.RemoveAll("test")
 		os.MkdirAll("test", 0755)
 		t.Run(tt.name, func(t *testing.T) {
-			quail := &Quail{
-				Models: tt.fields.Meshes,
-			}
+			quail := New()
+			quail.Models = tt.fields.Models
 
 			if err := quail.PFSImport(eqPath + "/" + tt.args.srcPath); err != nil {
 				t.Errorf("Quail.ImportPFS() error = %+v", err)
@@ -123,7 +122,7 @@ func TestQuail_DirExportImport(t *testing.T) {
 	}
 
 	type fields struct {
-		Meshes []*common.Model
+		Models []*common.Model
 	}
 	type args struct {
 		srcPath string
@@ -135,9 +134,9 @@ func TestQuail_DirExportImport(t *testing.T) {
 		wantErr bool
 	}{
 		//{name: "invalid", args: args{srcPath: "invalid.txt"}}, wantErr: true},
-		//{name: "valid", args: args{srcPath: "it13900.eqg"},  wantErr: false},
+		{name: "valid", args: args{srcPath: "it13900.eqg"}, wantErr: false},
 		//{name: "valid", args: args{srcPath: "it12095.eqg"},  wantErr: false},
-		{name: "valid", args: args{srcPath: "dbx.eqg"}, wantErr: false},
+		//{name: "valid", args: args{srcPath: "dbx.eqg"}, wantErr: false},
 		//{name: "valid", args: args{srcPath: "broodlands.eqg"}, wantErr: false},
 		//{name: "valid", args: args{srcPath: "freportn_chr.s3d"}, wantErr: false},
 		//{name: "valid", args: args{srcPath: "gequip4.s3d"}, wantErr: false},
@@ -149,9 +148,8 @@ func TestQuail_DirExportImport(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			e := &Quail{
-				Models: tt.fields.Meshes,
-			}
+			e := New()
+			e.Models = tt.fields.Models
 
 			if err := e.PFSImport(eqPath + "/" + tt.args.srcPath); err != nil {
 				t.Errorf("Quail.ImportPFS() error = %+v", err)
@@ -161,76 +159,76 @@ func TestQuail_DirExportImport(t *testing.T) {
 				t.Errorf("Quail.ExportDir() error = %+v, wantErr %+v", err, tt.wantErr)
 			}
 
-			e2 := &Quail{}
+			e2 := New()
 
 			if err := e2.DirImport("test" + "/" + tt.args.srcPath[0:len(tt.args.srcPath)-4] + ".quail"); (err != nil) != tt.wantErr {
 				t.Errorf("Quail.ImportDir() error = %+v, wantErr %+v", err, tt.wantErr)
 			}
 
 			if len(e.Models) != len(e2.Models) {
-				t.Fatalf("mesh count mismatch, %d != %d", len(e.Models), len(e2.Models))
+				t.Fatalf("model count mismatch, %d != %d", len(e.Models), len(e2.Models))
 			}
 
-			for i, mesh := range e.Models {
-				if mesh.Name != e2.Models[i].Name {
-					t.Fatalf("mesh name mismatch, %s != %s", mesh.Name, e2.Models[i].Name)
+			for i, model := range e.Models {
+				if model.Name != e2.Models[i].Name {
+					t.Fatalf("model name mismatch, %s != %s", model.Name, e2.Models[i].Name)
 				}
 
-				if len(mesh.Vertices) != len(e2.Models[i].Vertices) {
-					t.Fatalf("mesh vertex count mismatch, %d != %d", len(mesh.Vertices), len(e2.Models[i].Vertices))
+				if len(model.Vertices) != len(e2.Models[i].Vertices) {
+					t.Fatalf("model vertex count mismatch, %d != %d", len(model.Vertices), len(e2.Models[i].Vertices))
 				}
 
-				/*for j, vert := range mesh.Vertices {
-					if !reflect.DeepEqual(vert, e2.Meshes[i].Vertices[j]) {
-						t.Fatalf("mesh vertex %d mismatch, %+v != %+v", j, vert, e2.Meshes[i].Vertices[j])
+				/*for j, vert := range model.Vertices {
+					if !reflect.DeepEqual(vert, e2.Models[i].Vertices[j]) {
+						t.Fatalf("model vertex %d mismatch, %+v != %+v", j, vert, e2.Models[i].Vertices[j])
 					}
 				}*/
 
-				if len(mesh.Triangles) != len(e2.Models[i].Triangles) {
-					t.Fatalf("mesh triangle count mismatch, %d != %d", len(mesh.Triangles), len(e2.Models[i].Triangles))
+				if len(model.Triangles) != len(e2.Models[i].Triangles) {
+					t.Fatalf("model triangle count mismatch, %d != %d", len(model.Triangles), len(e2.Models[i].Triangles))
 				}
 
-				for j, tri := range mesh.Triangles {
+				for j, tri := range model.Triangles {
 					if !reflect.DeepEqual(tri, e2.Models[i].Triangles[j]) {
-						t.Fatalf("mesh triangle mismatch, %+v != %+v", tri, e2.Models[i].Triangles[j])
+						t.Fatalf("model triangle mismatch, %+v != %+v", tri, e2.Models[i].Triangles[j])
 					}
 				}
 
-				if len(mesh.Materials) != len(e2.Models[i].Materials) {
-					t.Fatalf("mesh material count mismatch, %d != %d", len(mesh.Materials), len(e2.Models[i].Materials))
+				if len(model.Materials) != len(e2.Models[i].Materials) {
+					t.Fatalf("model material count mismatch, %d != %d", len(model.Materials), len(e2.Models[i].Materials))
 				}
 
-				/*for j, mat := range mesh.Materials {
-					if !reflect.DeepEqual(mat, e2.Meshes[i].Materials[j]) {
-						t.Fatalf("mesh material mismatch, %+v != %+v", mat, e2.Meshes[i].Materials[j])
-					}
-				}*/
-
-				if len(mesh.Bones) != len(e2.Models[i].Bones) {
-					t.Fatalf("mesh bone count mismatch, %d != %d", len(mesh.Bones), len(e2.Models[i].Bones))
-				}
-
-				/*for j, bone := range mesh.Bones {
-					if !reflect.DeepEqual(bone, e2.Meshes[i].Bones[j]) {
-						t.Fatalf("mesh bone mismatch, %+v != %+v", bone, e2.Meshes[i].Bones[j])
+				/*for j, mat := range model.Materials {
+					if !reflect.DeepEqual(mat, e2.Models[i].Materials[j]) {
+						t.Fatalf("model material mismatch, %+v != %+v", mat, e2.Models[i].Materials[j])
 					}
 				}*/
 
-				if len(mesh.ParticlePoints) != len(e2.Models[i].ParticlePoints) {
-					t.Fatalf("mesh particle point count mismatch, %d != %d", len(mesh.ParticlePoints), len(e2.Models[i].ParticlePoints))
+				if len(model.Bones) != len(e2.Models[i].Bones) {
+					t.Fatalf("model bone count mismatch, %d != %d", len(model.Bones), len(e2.Models[i].Bones))
 				}
 
-				/* for j, pp := range mesh.ParticlePoints {
-					if !reflect.DeepEqual(pp, e2.Meshes[i].ParticlePoints[j]) {
-						t.Fatalf("mesh particle point mismatch, %+v != %+v", pp, e2.Meshes[i].ParticlePoints[j])
+				/*for j, bone := range model.Bones {
+					if !reflect.DeepEqual(bone, e2.Models[i].Bones[j]) {
+						t.Fatalf("model bone mismatch, %+v != %+v", bone, e2.Models[i].Bones[j])
+					}
+				}*/
+
+				if len(model.ParticlePoints) != len(e2.Models[i].ParticlePoints) {
+					t.Fatalf("model particle point count mismatch, %d != %d", len(model.ParticlePoints), len(e2.Models[i].ParticlePoints))
+				}
+
+				/* for j, pp := range model.ParticlePoints {
+					if !reflect.DeepEqual(pp, e2.Models[i].ParticlePoints[j]) {
+						t.Fatalf("model particle point mismatch, %+v != %+v", pp, e2.Models[i].ParticlePoints[j])
 					}
 				} */
 
-				if len(mesh.ParticleRenders) != len(e2.Models[i].ParticleRenders) {
-					t.Fatalf("mesh particle render count mismatch, %d != %d", len(mesh.ParticleRenders), len(e2.Models[i].ParticleRenders))
+				if len(model.ParticleRenders) != len(e2.Models[i].ParticleRenders) {
+					t.Fatalf("model particle render count mismatch, %d != %d", len(model.ParticleRenders), len(e2.Models[i].ParticleRenders))
 				}
 
-				for j, pr := range mesh.ParticleRenders {
+				for j, pr := range model.ParticleRenders {
 
 					for k, entry := range pr.Entries {
 
@@ -238,55 +236,55 @@ func TestQuail_DirExportImport(t *testing.T) {
 
 						log.Debugf("%+v vs %+v", entry, cmp)
 						if entry.Duration != cmp.Duration {
-							t.Fatalf("mesh particle render entry duration mismatch, %+v != %+v", entry.Duration, cmp.Duration)
+							t.Fatalf("model particle render entry duration mismatch, %+v != %+v", entry.Duration, cmp.Duration)
 						}
 
 						if entry.ID != cmp.ID {
-							t.Fatalf("mesh particle render entry id mismatch, %+v != %+v", entry.ID, cmp.ID)
+							t.Fatalf("model particle render entry id mismatch, %+v != %+v", entry.ID, cmp.ID)
 						}
 
 						if entry.ID2 != cmp.ID2 {
-							t.Fatalf("mesh particle render entry id2 mismatch, %+v != %+v", entry.ID2, cmp.ID2)
+							t.Fatalf("model particle render entry id2 mismatch, %+v != %+v", entry.ID2, cmp.ID2)
 						}
 
 						if entry.ParticlePoint != cmp.ParticlePoint {
-							t.Fatalf("mesh particle render entry particle point mismatch, %+v != %+v", entry.ParticlePoint, cmp.ParticlePoint)
+							t.Fatalf("model particle render entry particle point mismatch, %+v != %+v", entry.ParticlePoint, cmp.ParticlePoint)
 						}
 
 						/*if reflect.DeepEqual(entry.ParticlePointSuffix, cmp.ParticlePointSuffix) {
-							t.Fatalf("mesh particle render entry particle point suffix mismatch, %+v != %+v", entry.ParticlePointSuffix, cmp.ParticlePointSuffix)
+							t.Fatalf("model particle render entry particle point suffix mismatch, %+v != %+v", entry.ParticlePointSuffix, cmp.ParticlePointSuffix)
 						}*/
 
 						if entry.UnknownA1 != cmp.UnknownA1 {
-							t.Fatalf("mesh particle render entry unknown a1 mismatch, %+v != %+v", entry.UnknownA1, cmp.UnknownA1)
+							t.Fatalf("model particle render entry unknown a1 mismatch, %+v != %+v", entry.UnknownA1, cmp.UnknownA1)
 						}
 
 						if entry.UnknownA2 != cmp.UnknownA2 {
-							t.Fatalf("mesh particle render entry unknown a2 mismatch, %+v != %+v", entry.UnknownA2, cmp.UnknownA2)
+							t.Fatalf("model particle render entry unknown a2 mismatch, %+v != %+v", entry.UnknownA2, cmp.UnknownA2)
 						}
 
 						if entry.UnknownA3 != cmp.UnknownA3 {
-							t.Fatalf("mesh particle render entry unknown a3 mismatch, %+v != %+v", entry.UnknownA3, cmp.UnknownA3)
+							t.Fatalf("model particle render entry unknown a3 mismatch, %+v != %+v", entry.UnknownA3, cmp.UnknownA3)
 						}
 
 						if entry.UnknownA4 != cmp.UnknownA4 {
-							t.Fatalf("mesh particle render entry unknown a4 mismatch, %+v != %+v", entry.UnknownA4, cmp.UnknownA4)
+							t.Fatalf("model particle render entry unknown a4 mismatch, %+v != %+v", entry.UnknownA4, cmp.UnknownA4)
 						}
 
 						if entry.UnknownA5 != cmp.UnknownA5 {
-							t.Fatalf("mesh particle render entry unknown a5 mismatch, %+v != %+v", entry.UnknownA5, cmp.UnknownA5)
+							t.Fatalf("model particle render entry unknown a5 mismatch, %+v != %+v", entry.UnknownA5, cmp.UnknownA5)
 						}
 
 						if entry.UnknownB != cmp.UnknownB {
-							t.Fatalf("mesh particle render entry unknown b mismatch, %+v != %+v", entry.UnknownB, cmp.UnknownB)
+							t.Fatalf("model particle render entry unknown b mismatch, %+v != %+v", entry.UnknownB, cmp.UnknownB)
 						}
 
 						if entry.UnknownC != cmp.UnknownC {
-							t.Fatalf("mesh particle render entry unknown c mismatch, %+v != %+v", entry.UnknownC, cmp.UnknownC)
+							t.Fatalf("model particle render entry unknown c mismatch, %+v != %+v", entry.UnknownC, cmp.UnknownC)
 						}
 
 						if entry.UnknownFFFFFFFF != cmp.UnknownFFFFFFFF {
-							t.Fatalf("mesh particle render entry unknown ffffffff mismatch, %+v != %+v", entry.UnknownFFFFFFFF, cmp.UnknownFFFFFFFF)
+							t.Fatalf("model particle render entry unknown ffffffff mismatch, %+v != %+v", entry.UnknownFFFFFFFF, cmp.UnknownFFFFFFFF)
 						}
 
 					}

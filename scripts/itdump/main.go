@@ -54,11 +54,11 @@ func run() error {
 			//return fmt.Errorf("pfs import: %w", err)
 		}
 
-		for _, mesh := range q.Models {
-			if !strings.HasPrefix(strings.ToLower(mesh.Name), "it") {
+		for _, model := range q.Models {
+			if !strings.HasPrefix(strings.ToLower(model.Name), "it") {
 				continue
 			}
-			fmt.Printf("%s|%s\n", mesh.Name, filepath.Base(path))
+			fmt.Printf("%s|%s\n", model.Name, filepath.Base(path))
 		}
 
 		return nil

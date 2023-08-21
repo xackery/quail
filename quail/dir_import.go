@@ -46,10 +46,10 @@ func (quail *Quail) DirImport(path string) error {
 			continue
 		}
 		switch filepath.Ext(qf.Name()) {
-		case ".mesh":
-			err = quail.dirParseMesh(path, qf.Name())
+		case ".model":
+			err = quail.dirParseModel(path, qf.Name())
 			if err != nil {
-				return fmt.Errorf("parse mesh %s: %w", qf.Name(), err)
+				return fmt.Errorf("parse model %s: %w", qf.Name(), err)
 			}
 		case ".ani":
 			err = quail.dirParseAni(path, qf.Name())
@@ -61,21 +61,21 @@ func (quail *Quail) DirImport(path string) error {
 	return nil
 }
 
-func (quail *Quail) dirParseMesh(path string, name string) error {
-	mesh := &common.Model{
+func (quail *Quail) dirParseModel(path string, name string) error {
+	model := &common.Model{
 		FileType: "mod", // default to mod
 	}
-	mesh.Name = strings.TrimSuffix(name, ".mesh")
-	meshPath := fmt.Sprintf("%s/%s", path, name)
-	meshFiles, err := os.ReadDir(meshPath)
+	model.Name = strings.TrimSuffix(name, ".model")
+	modelPath := fmt.Sprintf("%s/%s", path, name)
+	modelFiles, err := os.ReadDir(modelPath)
 	if err != nil {
-		return fmt.Errorf("read dir %s: %w", meshPath, err)
+		return fmt.Errorf("read dir %s: %w", modelPath, err)
 	}
-	for _, mf := range meshFiles {
+	for _, mf := range modelFiles {
 		if mf.Name() == "triangle.txt" {
-			lines, err := helper.ReadFile(fmt.Sprintf("%s/%s", meshPath, mf.Name()))
+			lines, err := helper.ReadFile(fmt.Sprintf("%s/%s", modelPath, mf.Name()))
 			if err != nil {
-				return fmt.Errorf("read mesh %s triangle.txt: %w", mesh.Name, err)
+				return fmt.Errorf("read model %s triangle.txt: %w", model.Name, err)
 			}
 			for i, line := range lines {
 				if i == 0 {
@@ -89,7 +89,7 @@ func (quail *Quail) dirParseMesh(path string, name string) error {
 					return fmt.Errorf("triangle.txt line %d: expected 3 records, got %d", i, len(records))
 				}
 				if records[0] == "ext" {
-					mesh.FileType = records[1]
+					model.FileType = records[1]
 					continue
 				}
 				triangle := common.Triangle{}
@@ -100,7 +100,7 @@ func (quail *Quail) dirParseMesh(path string, name string) error {
 				triangle.Flag = helper.ParseUint32(records[1], 0)
 				triangle.MaterialName = helper.Clean(strings.TrimSuffix(strings.TrimSuffix(records[2], "\n"), "\r"))
 				isLoaded := false
-				for _, material := range mesh.Materials {
+				for _, material := range model.Materials {
 					if material.Name != triangle.MaterialName {
 						continue
 					}
@@ -112,15 +112,15 @@ func (quail *Quail) dirParseMesh(path string, name string) error {
 					if !ok {
 						return fmt.Errorf("material %s not found", triangle.MaterialName)
 					}
-					mesh.Materials = append(mesh.Materials, mat)
+					model.Materials = append(model.Materials, mat)
 				}
-				mesh.Triangles = append(mesh.Triangles, triangle)
+				model.Triangles = append(model.Triangles, triangle)
 			}
 		}
 		if mf.Name() == "vertex.txt" {
-			lines, err := helper.ReadFile(fmt.Sprintf("%s/%s", meshPath, mf.Name()))
+			lines, err := helper.ReadFile(fmt.Sprintf("%s/%s", modelPath, mf.Name()))
 			if err != nil {
-				return fmt.Errorf("read mesh %s vertex.txt: %w", mesh.Name, err)
+				return fmt.Errorf("read model %s vertex.txt: %w", model.Name, err)
 			}
 			for i, line := range lines {
 				if i == 0 {
@@ -154,14 +154,14 @@ func (quail *Quail) dirParseMesh(path string, name string) error {
 				vertex.Tint.B = helper.ParseUint8(rgb4[2], 0)
 				vertex.Tint.A = helper.ParseUint8(rgb4[3], 0)
 
-				mesh.Vertices = append(mesh.Vertices, vertex)
+				model.Vertices = append(model.Vertices, vertex)
 			}
 		}
 
 		if mf.Name() == "bone.txt" {
-			lines, err := helper.ReadFile(fmt.Sprintf("%s/%s", meshPath, mf.Name()))
+			lines, err := helper.ReadFile(fmt.Sprintf("%s/%s", modelPath, mf.Name()))
 			if err != nil {
-				return fmt.Errorf("read mesh %s bone.txt: %w", mesh.Name, err)
+				return fmt.Errorf("read model %s bone.txt: %w", model.Name, err)
 			}
 			for i, line := range lines {
 				if i == 0 {
@@ -193,16 +193,16 @@ func (quail *Quail) dirParseMesh(path string, name string) error {
 				bone.Scale.Y = helper.ParseFloat32(vec3[1], 0)
 				bone.Scale.Z = helper.ParseFloat32(vec3[2], 0)
 
-				mesh.Bones = append(mesh.Bones, bone)
+				model.Bones = append(model.Bones, bone)
 			}
 		}
 
 		if mf.Name() == "particle_render.txt" {
 			particleRender := &common.ParticleRender{}
 
-			lines, err := helper.ReadFile(fmt.Sprintf("%s/%s", meshPath, mf.Name()))
+			lines, err := helper.ReadFile(fmt.Sprintf("%s/%s", modelPath, mf.Name()))
 			if err != nil {
-				return fmt.Errorf("read mesh %s particle_render.txt: %w", mesh.Name, err)
+				return fmt.Errorf("read model %s particle_render.txt: %w", model.Name, err)
 			}
 			for i, line := range lines {
 				if i == 0 {
@@ -212,7 +212,7 @@ func (quail *Quail) dirParseMesh(path string, name string) error {
 					continue
 				}
 				records := strings.Split(line, "|")
-				if len(records) != 11 {
+				if len(records) != 12 {
 					return fmt.Errorf("particle_render.txt line %d: expected 11 records, got %d", i, len(records))
 				}
 
@@ -232,15 +232,15 @@ func (quail *Quail) dirParseMesh(path string, name string) error {
 				entry.UnknownC = helper.ParseUint32(records[11], 0)
 				particleRender.Entries = append(particleRender.Entries, entry)
 			}
-			mesh.ParticleRenders = append(mesh.ParticleRenders, particleRender)
+			model.ParticleRenders = append(model.ParticleRenders, particleRender)
 		}
 
 		if mf.Name() == "particle_point.txt" {
 			particlePoint := &common.ParticlePoint{}
 
-			lines, err := helper.ReadFile(fmt.Sprintf("%s/%s", meshPath, mf.Name()))
+			lines, err := helper.ReadFile(fmt.Sprintf("%s/%s", modelPath, mf.Name()))
 			if err != nil {
-				return fmt.Errorf("read mesh %s particle_point.txt: %w", mesh.Name, err)
+				return fmt.Errorf("read model %s particle_point.txt: %w", model.Name, err)
 			}
 			for i, line := range lines {
 				if i == 0 {
@@ -277,10 +277,10 @@ func (quail *Quail) dirParseMesh(path string, name string) error {
 
 				particlePoint.Entries = append(particlePoint.Entries, entry)
 			}
-			mesh.ParticlePoints = append(mesh.ParticlePoints, particlePoint)
+			model.ParticlePoints = append(model.ParticlePoints, particlePoint)
 		}
 	}
-	quail.Models = append(quail.Models, mesh)
+	quail.Models = append(quail.Models, model)
 	return nil
 }
 
@@ -335,6 +335,7 @@ func (quail *Quail) dirParseMaterial(path string, name string) error {
 
 		material.Properties = append(material.Properties, property)
 	}
+
 	quail.materialCache[material.Name] = material
 	return nil
 }
@@ -362,8 +363,8 @@ func (quail *Quail) dirParseAni(path string, name string) error {
 					continue
 				}
 				records := strings.Split(line, "|")
-				if len(records) != 3 {
-					return fmt.Errorf("animation.txt line %d: expected 3 records, got %d", i, len(records))
+				if len(records) != 2 {
+					return fmt.Errorf("animation.txt line %d: expected 2 records, got %d", i, len(records))
 				}
 				if records[0] == "is_strict" {
 					ani.IsStrict = helper.ParseBool(records[1], false)

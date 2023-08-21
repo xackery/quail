@@ -42,11 +42,11 @@ Model meshes represents geometry data, and some times metadata
 
 Extension|Notes
 ---|---
-dat|zone mesh for version 4 zones
-mds|npc, object and item mesh information
-mod|npc, object and item mesh information
-ter|zone mesh data for version 1 to 3, similar to mod/mds just without bone data
-wld|megapack of model metdata and mesh information for s3d legacy pfs archives
+dat|zone model for version 4 zones
+mds|npc, object and item model information
+mod|npc, object and item model information
+ter|zone model data for version 1 to 3, similar to mod/mds just without bone data
+wld|megapack of model metadata and model information for s3d legacy pfs archives
 
 ## Model/Metadata
 

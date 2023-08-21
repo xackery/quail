@@ -13,7 +13,7 @@ func TestQuail_PFSImport(t *testing.T) {
 		t.Skip("EQ_PATH not set")
 	}
 	type fields struct {
-		Meshes []*common.Model
+		Models []*common.Model
 	}
 	type args struct {
 		path string
@@ -35,7 +35,7 @@ func TestQuail_PFSImport(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			e := &Quail{
-				Models: tt.fields.Meshes,
+				Models: tt.fields.Models,
 			}
 			if err := e.PFSImport(eqPath + "/" + tt.args.path); (err != nil) != tt.wantErr {
 				t.Errorf("Quail.ImportPFS() error = %v, wantErr %v", err, tt.wantErr)

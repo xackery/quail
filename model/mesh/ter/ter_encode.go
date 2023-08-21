@@ -12,30 +12,30 @@ import (
 )
 
 // Encode writes a ter file
-func Encode(mesh *common.Model, version uint32, w io.Writer) error {
+func Encode(model *common.Model, version uint32, w io.Writer) error {
 	var err error
 	modelNames := []string{}
 
-	if len(mesh.Bones) > 0 {
-		modelNames = append(modelNames, mesh.Name)
+	if len(model.Bones) > 0 {
+		modelNames = append(modelNames, model.Name)
 	}
 
-	names, nameData, err := mesh.NameBuild(modelNames)
+	names, nameData, err := model.NameBuild(modelNames)
 	if err != nil {
 		return fmt.Errorf("nameBuild: %w", err)
 	}
 
-	materialData, err := mesh.MaterialBuild(names)
+	materialData, err := model.MaterialBuild(names)
 	if err != nil {
 		return fmt.Errorf("materialBuild: %w", err)
 	}
 
-	verticesData, err := mesh.VertexBuild(version, names)
+	verticesData, err := model.VertexBuild(version, names)
 	if err != nil {
 		return fmt.Errorf("vertexBuild: %w", err)
 	}
 
-	triangleData, err := mesh.TriangleBuild(version, names)
+	triangleData, err := model.TriangleBuild(version, names)
 	if err != nil {
 		return fmt.Errorf("triangleBuild: %w", err)
 	}
@@ -45,10 +45,10 @@ func Encode(mesh *common.Model, version uint32, w io.Writer) error {
 	enc.String("EQGT")
 	enc.Uint32(version)
 	enc.Uint32(uint32(len(nameData)))
-	enc.Uint32(uint32(len(mesh.Materials)))
-	enc.Uint32(uint32(len(mesh.Vertices)))
-	enc.Uint32(uint32(len(mesh.Triangles)))
-	enc.Uint32(uint32(len(mesh.Bones)))
+	enc.Uint32(uint32(len(model.Materials)))
+	enc.Uint32(uint32(len(model.Vertices)))
+	enc.Uint32(uint32(len(model.Triangles)))
+	enc.Uint32(uint32(len(model.Bones)))
 	tag.Add(0, int(enc.Pos()-1), "red", "header")
 	enc.Bytes(nameData)
 	tag.Add(tag.LastPos(), int(enc.Pos()), "green", "names")
@@ -64,6 +64,6 @@ func Encode(mesh *common.Model, version uint32, w io.Writer) error {
 		return fmt.Errorf("encode: %w", err)
 	}
 
-	log.Debugf("%s encoded %d verts, %d triangles, %d bones, %d materials", mesh.Name, len(mesh.Vertices), len(mesh.Triangles), len(mesh.Bones), len(mesh.Materials))
+	log.Debugf("%s encoded %d verts, %d triangles, %d bones, %d materials", model.Name, len(model.Vertices), len(model.Triangles), len(model.Bones), len(model.Materials))
 	return nil
 }

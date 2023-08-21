@@ -48,7 +48,7 @@ func Decode(model *common.Model, r io.ReadSeeker) error {
 		chunk = append(chunk, b)
 	}
 
-	//mesh.Name = lastElement
+	//model.Name = lastElement
 
 	//log.Debugf("names: %+v", names)
 

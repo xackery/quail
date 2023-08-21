@@ -13,9 +13,6 @@ import (
 )
 
 func TestExtractWldFragment(t *testing.T) {
-	if os.Getenv("SINGLE_TEST") != "1" {
-		t.Skip("Skipping single test")
-	}
 	eqPath := os.Getenv("EQ_PATH")
 	if eqPath == "" {
 		t.Skip("EQ_PATH not set")

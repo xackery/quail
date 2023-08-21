@@ -82,7 +82,7 @@ func (e *Quail) EQGExport(fileVersion uint32, pfsVersion int, path string) error
 				}
 				err = pfs.Add(property.Value, property.Data)
 				if err != nil {
-					return fmt.Errorf("mesh %s addMaterial %s texture %s: %w", entry.Name, material.Name, property.Value, err)
+					return fmt.Errorf("model %s addMaterial %s texture %s: %w", entry.Name, material.Name, property.Value, err)
 				}
 			}
 		}
@@ -100,8 +100,8 @@ func (e *Quail) EQGExport(fileVersion uint32, pfsVersion int, path string) error
 		}
 	}
 
-	for _, mesh := range e.Models {
-		for _, render := range mesh.ParticleRenders {
+	for _, model := range e.Models {
+		for _, render := range model.ParticleRenders {
 			buf := &bytes.Buffer{}
 			err = prt.Encode(render, 4, buf) // TODO: add support for other versions
 			if err != nil {
@@ -113,7 +113,7 @@ func (e *Quail) EQGExport(fileVersion uint32, pfsVersion int, path string) error
 			}
 		}
 
-		for _, point := range mesh.ParticlePoints {
+		for _, point := range model.ParticlePoints {
 			buf := &bytes.Buffer{}
 			err = pts.Encode(point, fileVersion, buf)
 			if err != nil {

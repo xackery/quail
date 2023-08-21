@@ -59,7 +59,7 @@ func (e *WLD) initPacks() map[int32]*encoderdecoder {
 		0x33: {name: "DmRGBTrack", decode: e.dmRGBTrackRead, encode: e.dmRGBTrackWrite},                            // 51
 		0x34: {name: "ParticleCloudDef", decode: e.particleCloudDefRead, encode: e.particleCloudDefWrite},          // 52
 		0x35: {name: "First", decode: e.firstRead, encode: e.firstWrite},                                           // 53
-		0x36: {name: "mesh", decode: e.meshRead, encode: e.meshWrite},                                              // 54
+		0x36: {name: "Mesh", decode: e.meshRead, encode: e.meshWrite},                                              // 54
 		0x37: {name: "DmTrackDef2", decode: e.dmTrackDef2Read, encode: e.dmTrackDef2Write},                         // 55
 	}
 }

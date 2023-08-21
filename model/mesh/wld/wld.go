@@ -18,7 +18,7 @@ type WLD struct {
 	Fragments  map[int]interface{} // used temporarily while decoding a wld
 	isOldWorld bool                // if true, impacts how fragments are loaded
 	packs      map[int32]*encoderdecoder
-	meshes     []*common.Model
+	models     []*common.Model
 }
 
 // New creates a new empty instance. Use NewFile to load an archive file on creation
@@ -56,9 +56,9 @@ func (e *WLD) Name() string {
 	return e.name
 }
 
-// Meshes returns the meshes
-func (e *WLD) Meshes() []*common.Model {
-	return e.meshes
+// Models returns the models
+func (e *WLD) Models() []*common.Model {
+	return e.models
 }
 
 // Names returns the names

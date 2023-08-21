@@ -35,36 +35,36 @@ func (quail *Quail) DirExport(path string) error {
 		return fmt.Errorf("path %s is not a directory", path)
 	}
 
-	for _, mesh := range quail.Models {
-		meshPath := fmt.Sprintf("%s/%s.mesh", path, mesh.Name)
-		err = os.MkdirAll(meshPath, 0755)
+	for _, model := range quail.Models {
+		modelPath := fmt.Sprintf("%s/%s.model", path, model.Name)
+		err = os.MkdirAll(modelPath, 0755)
 		if err != nil {
-			return fmt.Errorf("mkdir %s: %w", mesh.Name, err)
+			return fmt.Errorf("mkdir %s: %w", model.Name, err)
 		}
 
-		if len(mesh.Triangles) > 0 {
-			tw, err := os.Create(fmt.Sprintf("%s/triangle.txt", meshPath))
+		if len(model.Triangles) > 0 {
+			tw, err := os.Create(fmt.Sprintf("%s/triangle.txt", modelPath))
 			if err != nil {
-				return fmt.Errorf("create mesh %s triangle.txt: %w", mesh.Name, err)
+				return fmt.Errorf("create model %s triangle.txt: %w", model.Name, err)
 			}
 			defer tw.Close()
 
 			tw.WriteString("index|flag|material_name\n")
-			tw.WriteString(fmt.Sprintf("ext|%s|-1\n", mesh.FileType))
-			for _, triangle := range mesh.Triangles {
+			tw.WriteString(fmt.Sprintf("ext|%s|-1\n", model.FileType))
+			for _, triangle := range model.Triangles {
 				tw.WriteString(fmt.Sprintf("%d,%d,%d|%d|%s\n", triangle.Index.X, triangle.Index.Y, triangle.Index.Z, triangle.Flag, triangle.MaterialName))
 			}
 		}
 
-		if len(mesh.Vertices) > 0 {
-			vw, err := os.Create(fmt.Sprintf("%s/vertex.txt", meshPath))
+		if len(model.Vertices) > 0 {
+			vw, err := os.Create(fmt.Sprintf("%s/vertex.txt", modelPath))
 			if err != nil {
-				return fmt.Errorf("create mesh %s vertex.txt: %w", mesh.Name, err)
+				return fmt.Errorf("create model %s vertex.txt: %w", model.Name, err)
 			}
 			defer vw.Close()
 
 			vw.WriteString("position|normal|uv|uv2|tint\n")
-			for _, vertex := range mesh.Vertices {
+			for _, vertex := range model.Vertices {
 
 				vw.WriteString(fmt.Sprintf("%0.8f,%0.8f,%0.8f|%0.8f,%0.8f,%0.8f|%0.8f,%0.8f|%0.8f,%0.8f|%d,%d,%d,%d\n",
 					vertex.Position.X, vertex.Position.Y, vertex.Position.Z,
@@ -75,15 +75,15 @@ func (quail *Quail) DirExport(path string) error {
 			}
 		}
 
-		if len(mesh.Bones) > 0 {
-			bw, err := os.Create(fmt.Sprintf("%s/bone.txt", meshPath))
+		if len(model.Bones) > 0 {
+			bw, err := os.Create(fmt.Sprintf("%s/bone.txt", modelPath))
 			if err != nil {
-				return fmt.Errorf("create mesh %s bone.txt: %w", mesh.Name, err)
+				return fmt.Errorf("create model %s bone.txt: %w", model.Name, err)
 			}
 			defer bw.Close()
 
 			bw.WriteString("name|child_index|children_count|next|pivot|rotation|scale\n")
-			for _, bone := range mesh.Bones {
+			for _, bone := range model.Bones {
 				bw.WriteString(fmt.Sprintf("%s|%d|%d|%d", bone.Name, bone.ChildIndex, bone.ChildrenCount, bone.Next))
 				bw.WriteString(fmt.Sprintf("|%0.8f,%0.8f,%0.8f", bone.Pivot.Y, -bone.Pivot.X, bone.Pivot.Z)) //xyz is wonky
 				bw.WriteString(fmt.Sprintf("|%0.8f,%0.8f,%0.8f,%0.8f", bone.Rotation.X, bone.Rotation.Y, bone.Rotation.Z, bone.Rotation.W))
@@ -91,15 +91,15 @@ func (quail *Quail) DirExport(path string) error {
 			}
 		}
 
-		if len(mesh.ParticleRenders) > 0 {
-			prw, err := os.Create(fmt.Sprintf("%s/particle_render.txt", meshPath))
+		if len(model.ParticleRenders) > 0 {
+			prw, err := os.Create(fmt.Sprintf("%s/particle_render.txt", modelPath))
 			if err != nil {
-				return fmt.Errorf("create mesh %s particle_render.txt: %w", mesh.Name, err)
+				return fmt.Errorf("create model %s particle_render.txt: %w", model.Name, err)
 			}
 			defer prw.Close()
 
 			prw.WriteString("id|id2|particle_point|unknowna1|unknowna2|unknowna3|unknowna4|unknowna5|duration|unknownb|unknownffffffff|unknownc\n")
-			for _, render := range mesh.ParticleRenders {
+			for _, render := range model.ParticleRenders {
 				for _, entry := range render.Entries {
 					prw.WriteString(fmt.Sprintf("%d|%d|%s|", entry.ID, entry.ID2, entry.ParticlePoint))
 					prw.WriteString(fmt.Sprintf("%d|%d|%d|%d|%d|", entry.UnknownA1, entry.UnknownA2, entry.UnknownA3, entry.UnknownA4, entry.UnknownA5))
@@ -108,22 +108,22 @@ func (quail *Quail) DirExport(path string) error {
 			}
 		}
 
-		if len(mesh.ParticlePoints) > 0 {
-			ppw, err := os.Create(fmt.Sprintf("%s/particle_point.txt", meshPath))
+		if len(model.ParticlePoints) > 0 {
+			ppw, err := os.Create(fmt.Sprintf("%s/particle_point.txt", modelPath))
 			if err != nil {
-				return fmt.Errorf("create mesh %s particle_point.txt: %w", mesh.Name, err)
+				return fmt.Errorf("create model %s particle_point.txt: %w", model.Name, err)
 			}
 			defer ppw.Close()
 
 			ppw.WriteString("name|bone|translation|rotation|scale\n")
-			for _, point := range mesh.ParticlePoints {
+			for _, point := range model.ParticlePoints {
 				for _, entry := range point.Entries {
 					ppw.WriteString(fmt.Sprintf("%s|%s|%0.8f,%0.8f,%0.8f|%0.8f,%0.8f,%0.8f|%0.8f,%0.8f,%0.8f\n", entry.Name, entry.Bone, entry.Translation.X, entry.Translation.Y, entry.Translation.Z, entry.Rotation.X, entry.Rotation.Y, entry.Rotation.Z, entry.Scale.X, entry.Scale.Y, entry.Scale.Z))
 				}
 			}
 		}
 
-		for _, material := range mesh.Materials {
+		for _, material := range model.Materials {
 			materialPath := fmt.Sprintf("%s/%s.material", path, material.Name)
 			_, err = os.Stat(materialPath)
 			if err == nil {
@@ -136,7 +136,7 @@ func (quail *Quail) DirExport(path string) error {
 
 			mw, err := os.Create(fmt.Sprintf("%s/property.txt", materialPath))
 			if err != nil {
-				return fmt.Errorf("create mesh %s material %s property.txt: %w", mesh.Name, material.Name, err)
+				return fmt.Errorf("create model %s material %s property.txt: %w", model.Name, material.Name, err)
 			}
 			defer mw.Close()
 

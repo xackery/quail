@@ -2,12 +2,17 @@ package mod
 
 import (
 	"io"
+	"os"
 	"testing"
 
 	"github.com/xackery/quail/common"
 )
 
 func TestDecode(t *testing.T) {
+	eqPath := os.Getenv("EQ_PATH")
+	if eqPath == "" {
+		t.Skip("EQ_PATH not set")
+	}
 	type args struct {
 		model *common.Model
 		r     io.ReadSeeker

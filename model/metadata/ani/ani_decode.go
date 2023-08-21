@@ -63,20 +63,20 @@ func Decode(animation *common.Animation, r io.ReadSeeker) error {
 			frame := &common.BoneAnimationFrame{}
 
 			frame.Milliseconds = dec.Uint32()
-			frame.Translation = &common.Vector3{
+			frame.Translation = common.Vector3{
 				X: dec.Float32(),
 				Y: dec.Float32(),
 				Z: dec.Float32(),
 			}
 
-			frame.Rotation = &common.Quad4{
+			frame.Rotation = common.Quad4{
 				X: dec.Float32(),
 				Y: dec.Float32(),
 				Z: dec.Float32(),
 				W: dec.Float32(),
 			}
 
-			frame.Scale = &common.Vector3{
+			frame.Scale = common.Vector3{
 				X: dec.Float32(),
 				Y: dec.Float32(),
 				Z: dec.Float32(),

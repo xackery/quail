@@ -12,12 +12,12 @@ import (
 )
 
 // Encode writes a mds file
-func Encode(mesh *common.Model, version uint32, w io.Writer) error {
+func Encode(model *common.Model, version uint32, w io.Writer) error {
 	var err error
 	modelNames := []string{}
 
-	if len(mesh.Bones) == 0 {
-		mesh.Bones = append(mesh.Bones, common.Bone{
+	if len(model.Bones) == 0 {
+		model.Bones = append(model.Bones, common.Bone{
 			Name:       "ROOT_BONE",
 			Next:       -1,
 			ChildIndex: -1,
@@ -25,31 +25,31 @@ func Encode(mesh *common.Model, version uint32, w io.Writer) error {
 		})
 	}
 
-	if len(mesh.Bones) > 0 {
-		modelNames = append(modelNames, mesh.Name)
+	if len(model.Bones) > 0 {
+		modelNames = append(modelNames, model.Name)
 	}
 
-	names, nameData, err := mesh.NameBuild(modelNames)
+	names, nameData, err := model.NameBuild(modelNames)
 	if err != nil {
 		return fmt.Errorf("nameBuild: %w", err)
 	}
 
-	materialData, err := mesh.MaterialBuild(names)
+	materialData, err := model.MaterialBuild(names)
 	if err != nil {
 		return fmt.Errorf("materialBuild: %w", err)
 	}
 
-	verticesData, err := mesh.VertexBuild(version, names)
+	verticesData, err := model.VertexBuild(version, names)
 	if err != nil {
 		return fmt.Errorf("vertexBuild: %w", err)
 	}
 
-	triangleData, err := mesh.TriangleBuild(version, names)
+	triangleData, err := model.TriangleBuild(version, names)
 	if err != nil {
 		return fmt.Errorf("triangleBuild: %w", err)
 	}
 
-	boneData, err := mesh.BoneBuild(version, "mds", names)
+	boneData, err := model.BoneBuild(version, "mds", names)
 	if err != nil {
 		return fmt.Errorf("boneBuild: %w", err)
 	}
@@ -59,16 +59,16 @@ func Encode(mesh *common.Model, version uint32, w io.Writer) error {
 	enc.String("EQGS")
 	enc.Uint32(version)
 	enc.Uint32(uint32(len(nameData)))
-	enc.Uint32(uint32(len(mesh.Materials)))
-	enc.Uint32(uint32(len(mesh.Bones)))
+	enc.Uint32(uint32(len(model.Materials)))
+	enc.Uint32(uint32(len(model.Bones)))
 	enc.Uint32(0) // subCount
 	enc.Bytes(nameData)
 	enc.Bytes(materialData)
 	enc.Bytes(boneData)
 	enc.Uint32(0) // mainNameIndex?
 	enc.Uint32(0) // subNameIndex?
-	enc.Uint32(uint32(len(mesh.Vertices)))
-	enc.Uint32(uint32(len(mesh.Triangles)))
+	enc.Uint32(uint32(len(model.Vertices)))
+	enc.Uint32(uint32(len(model.Triangles)))
 	enc.Uint32(0) //TODO: fix boneassignmentcount
 	enc.Bytes(verticesData)
 	enc.Bytes(triangleData)
@@ -78,6 +78,6 @@ func Encode(mesh *common.Model, version uint32, w io.Writer) error {
 		return fmt.Errorf("encode: %w", err)
 	}
 
-	log.Debugf("%s encoded %d verts, %d triangles, %d bones, %d materials", mesh.Name, len(mesh.Vertices), len(mesh.Triangles), len(mesh.Bones), len(mesh.Materials))
+	log.Debugf("%s encoded %d verts, %d triangles, %d bones, %d materials", model.Name, len(model.Vertices), len(model.Triangles), len(model.Bones), len(model.Materials))
 	return nil
 }
