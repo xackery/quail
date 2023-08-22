@@ -7,30 +7,30 @@ import (
 
 	"github.com/xackery/encdec"
 	"github.com/xackery/quail/common"
-	"github.com/xackery/quail/dump"
 	"github.com/xackery/quail/log"
+	"github.com/xackery/quail/tag"
 )
 
 // Decode decodes a ZON file
 func Decode(zone *common.Zone, r io.ReadSeeker) error {
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 
+	tag.New()
+
 	// Read header
 	header := dec.StringFixed(4)
-	dump.Hex(header, "header=%s", header)
 	if header != "EQGZ" && header != "EQTZ" {
 		return fmt.Errorf("header %s does not match EQGZ or EQTZ", header)
 	}
 
 	if header == "EQTZ" {
-		return fmt.Errorf("type 4 zone not supported")
-		//return e.eqgtzpDecode(r)
+		return DecodeV4(zone, r)
 	}
 
 	version := dec.Uint32()
 	zone.Version = int(version)
 	if version != 1 {
-		return fmt.Errorf("version is %d, wanted 1", version)
+		//return fmt.Errorf("version is %d, wanted 1", version)
 	}
 
 	nameLength := dec.Uint32()
@@ -39,6 +39,7 @@ func Decode(zone *common.Zone, r io.ReadSeeker) error {
 	regionCount := dec.Uint32()
 	lightCount := dec.Uint32()
 
+	tag.Add(0, int(dec.Pos()), "red", "header")
 	nameData := dec.Bytes(int(nameLength))
 	names := make(map[uint32]string)
 	namesIndexed := []string{}
@@ -55,6 +56,7 @@ func Decode(zone *common.Zone, r io.ReadSeeker) error {
 		}
 		chunk = append(chunk, b)
 	}
+	tag.Add(tag.LastPos(), int(dec.Pos()), "green", fmt.Sprintf("names (%d total)", len(names)))
 
 	var ok bool
 	for i := 0; i < int(modelCount); i++ {
@@ -66,6 +68,7 @@ func Decode(zone *common.Zone, r io.ReadSeeker) error {
 
 		zone.Models = append(zone.Models, name)
 	}
+	tag.AddRand(tag.LastPos(), int(dec.Pos()), fmt.Sprintf("modelNames (%d total)", modelCount))
 
 	for i := 0; i < int(objectCount); i++ {
 		object := common.Object{}
@@ -93,6 +96,7 @@ func Decode(zone *common.Zone, r io.ReadSeeker) error {
 
 		object.Scale = dec.Float32()
 		zone.Objects = append(zone.Objects, object)
+		tag.AddRand(tag.LastPos(), int(dec.Pos()), fmt.Sprintf("%d|%s", i, object.ModelName))
 	}
 
 	for i := 0; i < int(regionCount); i++ {
@@ -117,6 +121,7 @@ func Decode(zone *common.Zone, r io.ReadSeeker) error {
 		region.Extent.Z = dec.Float32()
 
 		zone.Regions = append(zone.Regions, region)
+		tag.AddRand(tag.LastPos(), int(dec.Pos()), fmt.Sprintf("%d|%s", i, region.Name))
 	}
 
 	for i := 0; i < int(lightCount); i++ {
@@ -139,6 +144,7 @@ func Decode(zone *common.Zone, r io.ReadSeeker) error {
 		light.Radius = dec.Float32()
 
 		zone.Lights = append(zone.Lights, light)
+		tag.AddRand(tag.LastPos(), int(dec.Pos()), fmt.Sprintf("%d|%s", i, light.Name))
 	}
 
 	if dec.Error() != nil {

@@ -33,7 +33,7 @@ func Decode(model *common.Model, r io.ReadSeeker) error {
 	verticesCount := dec.Uint32()
 	triangleCount := dec.Uint32()
 	bonesCount := dec.Uint32()
-	tag.Add(0, int(dec.Pos()-1), "red", "header")
+	tag.Add(0, int(dec.Pos()), "red", "header")
 	nameData := dec.Bytes(int(nameLength))
 	tag.Add(tag.LastPos(), int(dec.Pos()), "green", "names")
 

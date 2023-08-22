@@ -14,7 +14,10 @@
         "*.mds": "hexEditor.hexedit", //"binary-file-viewer.viewer",
         "*.ter": "hexEditor.hexedit", //"binary-file-viewer.viewer",
         "*.zon": "hexEditor.hexedit", //"binary-file-viewer.viewer",
+        "*.lay": "hexEditor.hexedit", //"binary-file-viewer.viewer",
+        "*.pts": "hexEditor.hexedit", //"binary-file-viewer.viewer",
         "*.pprof": "easyview.view",
+
     },
     "files.trimTrailingWhitespace": true,
     "binary-file-viewer.parserFolders": [

@@ -41,9 +41,9 @@ func TestQuail_DirExport(t *testing.T) {
 		//{name: "valid", args: args{srcPath: "gequip4.s3d"}, wantErr: false},
 	}
 
+	os.RemoveAll("test")
+	os.MkdirAll("test", 0755)
 	for _, tt := range tests {
-		os.RemoveAll("test")
-		os.MkdirAll("test", 0755)
 		t.Run(tt.name, func(t *testing.T) {
 			quail := &Quail{
 				Models: tt.fields.Models,
@@ -87,9 +87,9 @@ func TestQuail_DirExportPFS(t *testing.T) {
 		//{name: "valid", args: args{srcPath: "gequip4.s3d"}, wantErr: false},
 	}
 
+	os.RemoveAll("test")
+	os.MkdirAll("test", 0755)
 	for _, tt := range tests {
-		os.RemoveAll("test")
-		os.MkdirAll("test", 0755)
 		t.Run(tt.name, func(t *testing.T) {
 			quail := New()
 			quail.Models = tt.fields.Models

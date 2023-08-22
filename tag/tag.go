@@ -2,6 +2,7 @@ package tag
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"os"
 	"sync"
@@ -10,9 +11,10 @@ import (
 )
 
 var (
-	mu      sync.RWMutex
-	lastPos int
-	tags    []tag
+	mu        sync.RWMutex
+	lastPos   int
+	tags      []tag
+	lastColor string
 )
 
 type tag struct {
@@ -24,6 +26,9 @@ type tag struct {
 
 // New creates a new tag manager
 func New() {
+	if flag.Lookup("test.v") == nil {
+		return
+	}
 	mu.Lock()
 	defer mu.Unlock()
 	tags = []tag{}
@@ -31,6 +36,9 @@ func New() {
 
 // LastPos returns the last position
 func LastPos() int {
+	if flag.Lookup("test.v") == nil {
+		return 0
+	}
 	mu.Lock()
 	defer mu.Unlock()
 	return lastPos
@@ -38,6 +46,9 @@ func LastPos() int {
 
 // Close closes the tag manager
 func Close() {
+	if flag.Lookup("test.v") == nil {
+		return
+	}
 	mu.Lock()
 	defer mu.Unlock()
 	tags = []tag{}
@@ -45,11 +56,53 @@ func Close() {
 
 // Add creates a new tag
 func Add(from, to int, color, caption string) {
+	if flag.Lookup("test.v") == nil {
+		return
+	}
 	if log.LogLevel() != 0 {
 		return
 	}
 	mu.Lock()
 	defer mu.Unlock()
+	tags = append(tags, tag{
+		From:    from,
+		To:      to - 1,
+		Color:   color,
+		Caption: caption,
+	})
+	lastPos = to
+}
+
+// Add creates a new tag with random color
+func AddRand(from, to int, caption string) {
+	if flag.Lookup("test.v") == nil {
+		return
+	}
+	if log.LogLevel() != 0 {
+		return
+	}
+	mu.Lock()
+	defer mu.Unlock()
+
+	// make a string array of colors
+	colors := []string{
+		"red",
+		"green",
+		"blue",
+		"yellow",
+		"orange",
+		"purple",
+		"pink",
+		"brown",
+		"gray",
+	}
+	// pick one randomly
+	color := colors[from%len(colors)]
+	if color == lastColor {
+		color = colors[(from+1)%len(colors)]
+	}
+	lastColor = color
+
 	tags = append(tags, tag{
 		From:    from,
 		To:      to,
@@ -61,6 +114,9 @@ func Add(from, to int, color, caption string) {
 
 // Write writes the tag file
 func Write(path string) error {
+	if flag.Lookup("test.v") == nil {
+		return nil
+	}
 	mu.Lock()
 	defer mu.Unlock()
 

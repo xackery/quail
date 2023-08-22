@@ -250,20 +250,18 @@ func inspectContent(file string, data *bytes.Reader) (interface{}, error) {
 		}
 		return zone, nil
 	case ".wld":
-		modeles, err := quail.WLDDecode(data, nil)
+		models, err := quail.WLDDecode(data, nil)
 		if err != nil {
 			return nil, fmt.Errorf("wld.Decode %s: %w", file, err)
 		}
-		return modeles, nil
+		return models, nil
 	case ".lay":
-		model := &common.Model{
-			Name: strings.TrimSuffix(strings.ToUpper(file), ".LAY"),
-		}
+		model := &common.Model{}
 		err := lay.Decode(model, data)
 		if err != nil {
 			return nil, fmt.Errorf("lay.Decode %s: %w", file, err)
 		}
-		return model, nil
+		return model.Layers, nil
 	default:
 		return nil, fmt.Errorf("unknown file type %s", ext)
 	}

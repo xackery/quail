@@ -35,9 +35,9 @@ func TestQuail_PFSExport(t *testing.T) {
 		//{args: args{srcPath: "qeynos2.s3d", fileVersion: 1, pfsVersion: 1}, wantErr: false},
 		{args: args{srcPath: "wrm.eqg", fileVersion: 1, pfsVersion: 1}, wantErr: false},
 	}
+	os.RemoveAll("test")
+	os.MkdirAll("test", 0755)
 	for _, tt := range tests {
-		os.RemoveAll("test")
-		os.MkdirAll("test", 0755)
 		t.Run(tt.args.srcPath, func(t *testing.T) {
 			e := &Quail{
 				Models: tt.fields.Models,

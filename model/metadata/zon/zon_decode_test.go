@@ -1,38 +1,75 @@
 package zon
 
 import (
-	"io"
+	"bytes"
+	"fmt"
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/xackery/quail/common"
+	"github.com/xackery/quail/pfs/eqg"
+	"github.com/xackery/quail/tag"
 )
 
 func TestDecode(t *testing.T) {
-	type args struct {
-		zone *common.Zone
-		r    io.ReadSeeker
+	eqPath := os.Getenv("EQ_PATH")
+	if eqPath == "" {
+		t.Skip("EQ_PATH not set")
 	}
+	type args struct {
+	}
+
 	tests := []struct {
 		name    string
 		args    args
 		wantErr bool
 	}{
 		// .zon|1|anguish.zon|anguish.eqg
+		//{name: "anguish.eqg"},
 		// .zon|1|bazaar.zon|bazaar.eqg
+		//{name: "bazaar.eqg"},
 		// .zon|1|bloodfields.zon|bloodfields.eqg
+		{name: "bloodfields.eqg"},
 		// .zon|1|broodlands.zon|broodlands.eqg
+		//{name: "broodlands.eqg"},
 		// .zon|1|catacomba.zon|dranikcatacombsa.eqg
+		//{name: "dranikcatacombsa.eqg"},
 		// .zon|1|wallofslaughter.zon|wallofslaughter.eqg
+		//{name: "wallofslaughter.eqg"},
 		// .zon|2|arginhiz.zon|arginhiz.eqg
+		//{name: "arginhiz.eqg"},
 		// .zon|2|guardian.zon|guardian.eqg
+		//{name: "guardian.eqg"},
 		// .zon|4|arthicrex_te.zon|arthicrex.eqg
+		{name: "arthicrex.eqg"},
 		// .zon|4|ascent.zon|direwind.eqg
+		{name: "direwind.eqg"},
 		// .zon|4|atiiki.zon|atiiki.eqg
+		{name: "atiiki.eqg"},
 	}
+
+	os.RemoveAll("test")
+	os.MkdirAll("test", 0755)
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := Decode(tt.args.zone, tt.args.r); (err != nil) != tt.wantErr {
-				t.Errorf("Decode() error = %v, wantErr %v", err, tt.wantErr)
+			pfs, err := eqg.NewFile(fmt.Sprintf("%s/%s", eqPath, tt.name))
+			if err != nil {
+				t.Fatalf("failed to open eqg %s: %s", tt.name, err.Error())
+			}
+			for _, file := range pfs.Files() {
+				if filepath.Ext(file.Name()) != ".zon" {
+					continue
+				}
+				zone := &common.Zone{}
+
+				err = Decode(zone, bytes.NewReader(file.Data()))
+				os.WriteFile(fmt.Sprintf("test/%s", file.Name()), file.Data(), 0644)
+				tag.Write(fmt.Sprintf("test/%s.tags", file.Name()))
+				if err != nil {
+					t.Fatalf("failed to decode %s: %s", tt.name, err.Error())
+				}
+
 			}
 		})
 	}

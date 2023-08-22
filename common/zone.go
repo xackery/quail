@@ -14,6 +14,20 @@ type Zone struct {
 	Regions []Region
 	Lights  []Light
 	Lits    []*RGBA
+	V4Info  V4Info
+}
+
+type V4Info struct {
+	MinLng               int
+	MinLat               int
+	MaxLng               int
+	MaxLat               int
+	MinExtents           Vector3
+	MaxExtents           Vector3
+	UnitsPerVert         float32
+	QuadsPerTile         int
+	CoverMapInputSize    int
+	LayeringMapInputSize int
 }
 
 // Object is an object

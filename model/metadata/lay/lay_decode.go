@@ -12,6 +12,8 @@ import (
 
 // Decode loads a lay file
 func Decode(model *common.Model, r io.ReadSeeker) error {
+	var ok bool
+
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 
 	header := dec.StringFixed(4)
@@ -22,13 +24,12 @@ func Decode(model *common.Model, r io.ReadSeeker) error {
 	tag.New()
 
 	version := dec.Uint32()
-	model.Version = int(version)
 	versionOffset := 0
 	switch version {
 	case 2:
-		versionOffset = 40 //32
+		versionOffset = 52 //32
 	case 3:
-		versionOffset = 18 //14
+		versionOffset = 16 //14
 	case 4:
 		versionOffset = 20
 	default:
@@ -37,7 +38,7 @@ func Decode(model *common.Model, r io.ReadSeeker) error {
 
 	nameLength := int(dec.Uint32())
 	materialCount := dec.Uint32()
-	tag.Add(0, int(dec.Pos()-1), "red", "header")
+	tag.Add(0, int(dec.Pos()), "red", "header")
 	nameData := dec.Bytes(int(nameLength))
 	tag.Add(tag.LastPos(), int(dec.Pos()), "green", "names")
 
@@ -56,32 +57,34 @@ func Decode(model *common.Model, r io.ReadSeeker) error {
 
 	for i := 0; i < int(materialCount); i++ {
 		entryID := dec.Uint32()
+		layer := &common.Layer{}
 
-		name, ok := names[entryID]
-		if !ok {
-			return fmt.Errorf("%d names materialID 0x%x not found", i, entryID)
-		}
-		entryID = dec.Uint32()
-		colorTexture, ok := names[entryID]
-		if !ok {
-			return fmt.Errorf("%d names colorTexture 0x%x not found", i, entryID)
-		}
-
-		normalTexture := ""
-		entryID = dec.Uint32()
 		if entryID != 0xffffffff {
-			normalTexture, ok = names[entryID]
+			layer.Material, ok = names[entryID]
 			if !ok {
-				return fmt.Errorf("%d names normalTexture 0x%x not found", i, entryID)
+				return fmt.Errorf("%d material 0x%x not found", i, entryID)
 			}
 		}
 
-		//print("name: ", name, " colorTexture: ", colorTexture, " normalTexture: ", normalTexture, "\n")
+		entryID = dec.Uint32()
+		if entryID != 0xffffffff {
+			layer.Diffuse, ok = names[entryID]
+			if !ok {
+				return fmt.Errorf("%d diffuse 0x%x not found", i, entryID)
+			}
+		}
+
+		entryID = dec.Uint32()
+		if entryID != 0xffffffff {
+			layer.Normal, ok = names[entryID]
+			if !ok {
+				return fmt.Errorf("%d normal 0x%x not found", i, entryID)
+			}
+		}
 		dec.Bytes(versionOffset)
 		//fmt.Println(hex.Dump())
-		if len(colorTexture) == 0 || len(normalTexture) == 0 || len(name) == 0 {
-
-		}
+		model.Layers = append(model.Layers, layer)
+		tag.AddRand(tag.LastPos(), int(dec.Pos()), fmt.Sprintf("%d|%s|%s|%s", i, layer.Material, layer.Diffuse, layer.Normal))
 	}
 
 	if dec.Error() != nil {

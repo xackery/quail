@@ -13,7 +13,6 @@ run:
 	@echo "run: running..."
 	go run main.go
 
-
 # bundle quail with windows icon
 bundle:
 	@echo "if go-winres is not found, run go install github.com/tc-hib/go-winres@latest"

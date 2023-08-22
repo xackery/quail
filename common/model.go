@@ -20,6 +20,7 @@ type Model struct {
 	ParticlePoints  []*ParticlePoint
 	ParticleRenders []*ParticleRender
 	Version         int
+	Layers          []*Layer
 }
 
 // Material is a material
@@ -37,6 +38,13 @@ type MaterialProperty struct {
 	Category uint32
 	Value    string
 	Data     []byte
+}
+
+// Layer is a layer of materials to swap
+type Layer struct {
+	Material string
+	Diffuse  string
+	Normal   string
 }
 
 // Vector3 has X,Y,Z defined as float32
