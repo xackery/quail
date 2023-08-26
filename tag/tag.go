@@ -73,6 +73,13 @@ func Add(from, to int, color, caption string) {
 	lastPos = to
 }
 
+func Addf(from, to int, color, format string, args ...interface{}) {
+	if flag.Lookup("test.v") == nil {
+		return
+	}
+	Add(from, to, color, fmt.Sprintf(format, args...))
+}
+
 // Add creates a new tag with random color
 func AddRand(from, to int, caption string) {
 	if flag.Lookup("test.v") == nil {
@@ -110,6 +117,13 @@ func AddRand(from, to int, caption string) {
 		Caption: caption,
 	})
 	lastPos = to
+}
+
+func AddRandf(from, to int, format string, args ...interface{}) {
+	if flag.Lookup("test.v") == nil {
+		return
+	}
+	AddRand(from, to, fmt.Sprintf(format, args...))
 }
 
 // Write writes the tag file

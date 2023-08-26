@@ -30,6 +30,7 @@ type Material struct {
 	ShaderName string
 	Flag       uint32
 	Properties []*MaterialProperty
+	Animation  MaterialAnimation
 }
 
 // MaterialProperty is a material property
@@ -38,6 +39,11 @@ type MaterialProperty struct {
 	Category uint32
 	Value    string
 	Data     []byte
+}
+
+type MaterialAnimation struct {
+	Sleep    uint32
+	Textures []string
 }
 
 // Layer is a layer of materials to swap

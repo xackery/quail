@@ -28,7 +28,7 @@ func TestQuail_PFSImport(t *testing.T) {
 		//{name: "valid", args: args{path: "it13900.eqg"}, wantErr: false},
 		//{name: "valid", args: args{path: "broodlands.eqg"}, wantErr: false},
 		//{name: "valid", args: args{path: "freportn_chr.s3d"}, wantErr: false},
-		{name: "valid", args: args{path: "qeynos2.s3d"}, wantErr: false},
+		{name: "valid", args: args{path: "crushbone.s3d"}, wantErr: false},
 		//{name: "valid", args: args{path: "it13968.eqg"}, wantErr: false},
 		//{name: "valid", args: args{path: "dbx.eqg"}, wantErr: false},
 	}

@@ -1,5 +1,5 @@
 NAME := quail
-BUILD_VERSION ?= 2.1.9
+BUILD_VERSION ?= 2.1.10
 EQPATH := ~/Documents/games/EverQuest.app/drive_c/rebuildeq/
 
 # build quail for local OS and windows
@@ -89,4 +89,10 @@ set-version-%:
 	@echo "VERSION=${BUILD_VERSION}.$*" >> $$GITHUB_ENV
 
 extverdump:
-	go run scripts/extverdump/main.go ../eq > scripts/extverdump/version.txt
+	go run scripts/extverdump/main.go ../eq > scripts/extverdump/version-rof.
+
+explore-%:
+	rm -rf _*.s3d/
+	rm -rf _*.eqg/
+	go run main.go extract ../eq/$*.s3d
+	wld-cli explore _$*.s3d/$*.wld
