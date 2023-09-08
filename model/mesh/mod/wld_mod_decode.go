@@ -123,10 +123,15 @@ func DecodeMesh(model *common.Model, nameRef *int32, isOldWorld bool, r io.ReadS
 
 	for i := 0; i < int(triangleCount); i++ {
 		triangle := common.Triangle{}
-		notSolidFlag := dec.Uint16()
-		if notSolidFlag != 0 {
-			triangle.Flag = 1
-		}
+		triangle.Flag = uint32(dec.Uint16())
+		//dec.Uint16() // remove it's flags
+		//triangle.Flag = uint32(dec.Uint16())
+		//triangle.Flag = flags
+		//fmt.Println("flags", notSolidFlag)
+		//if notSolidFlag != 0 {
+		//	triangle.Flag = 1
+		//}*/
+
 		triangle.Index.X = uint32(dec.Uint16())
 		triangle.Index.Y = uint32(dec.Uint16())
 		triangle.Index.Z = uint32(dec.Uint16())

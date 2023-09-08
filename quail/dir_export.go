@@ -36,6 +36,10 @@ func (quail *Quail) DirExport(path string) error {
 	}
 
 	for _, model := range quail.Models {
+		if len(model.Triangles) == 0 {
+			fmt.Println("skipping empty triangle model", model.Name)
+			continue
+		}
 		modelPath := fmt.Sprintf("%s/%s.model", path, model.Name)
 		err = os.MkdirAll(modelPath, 0755)
 		if err != nil {

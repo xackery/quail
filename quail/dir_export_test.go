@@ -81,10 +81,11 @@ func TestQuail_DirExportPFS(t *testing.T) {
 		//{name: "invalid", args: args{srcPath: "invalid.txt"}}, wantErr: true},
 		//{name: "valid", args: args{srcPath: "it13900.eqg"},  wantErr: false},
 		//{name: "valid", args: args{srcPath: "it12095.eqg"},  wantErr: false},
-		{name: "valid", args: args{srcPath: "it13968.eqg"}, wantErr: false},
+		//{name: "valid", args: args{srcPath: "it13968.eqg"}, wantErr: false},
 		//{name: "valid", args: args{srcPath: "broodlands.eqg"}, wantErr: false},
 		//{name: "valid", args: args{srcPath: "freportn_chr.s3d"}, wantErr: false},
 		//{name: "valid", args: args{srcPath: "gequip4.s3d"}, wantErr: false},
+		{name: "valid", args: args{srcPath: "crushbone.s3d"}, wantErr: false},
 	}
 
 	os.RemoveAll("test")

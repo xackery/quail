@@ -65,7 +65,7 @@ func DecodeMaterialDef(material *common.Material, nameRef *int32, r io.ReadSeeke
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	*nameRef = dec.Int32()
 	flags := dec.Uint32()
-	renderMethod := dec.Uint32() &^ 0x80000000
+	renderMethod := dec.Uint32() // &^ 0x80000000
 
 	/*
 	   // Most flags are _unknown_, however:
@@ -76,46 +76,48 @@ func DecodeMaterialDef(material *common.Material, nameRef *int32, r io.ReadSeeke
 	   // Bit 4 ........ Set to 1 if the texture is masked but not semi-transparent.
 	   // Bit 31 ...... Apparently must be 1 if the texture isn’t transparent.
 	*/
+	/*
+		switch renderMethod {
+		// Standard diffuse shader
+		case 0x00:
+			material.ShaderName = "Boundary"
+		case 0x01: // Diffuse
+		case 0x12:
+		case 0x31:
+		case 0x14:
+		case 0x15:
+		case 0x02: // Diffuse Variant
+		case 0x19:
+		case 0x553:
+		case 0x07: // Non solid surfaces that shouldn't really be masked
+			//material.ShaderName = "Diffuse2"
+		case 0x05: // Transparent with 0.5 blend strength
+			material.ShaderName = "Transparent50"
+		case 0x09: // Transparent with 0.25 blend strength
+			material.ShaderName = "Transparent25"
+		case 0x0A: // Transparent with 0.75 blend strength
+			material.ShaderName = "Transparent75"
+		case 0x0B:
+			material.ShaderName = "TransparentAdditiveUnlit"
+		case 0x13:
+			material.ShaderName = "TransparentMasked"
+		case 0x17:
+			material.ShaderName = "TransparentAdditive"
+		case 0x53:
+		case 0x4B:
+		case 0x03:
+			material.ShaderName = "invis"
+		case 0x1A: // TODO: Analyze thi:
+			material.ShaderName = "CompleteUnknown"
+		case 0x0D:
+			material.ShaderName = "DiffuseSkydome"
+		case 0x0F:
+			material.ShaderName = "TransparentSkydome"
+		case 0x10:
+			material.ShaderName = "TransparentAdditiveUnlitSkydome"
+		} */
 
-	switch renderMethod {
-	// Standard diffuse shader
-	case 0x00:
-		material.ShaderName = "Boundary"
-	case 0x01: // Diffuse
-	case 0x12:
-	case 0x31:
-	case 0x14:
-	case 0x15:
-	case 0x02: // Diffuse Variant
-	case 0x19:
-	case 0x553:
-	case 0x07: // Non solid surfaces that shouldn't really be masked
-		//material.ShaderName = "Diffuse2"
-	case 0x05: // Transparent with 0.5 blend strength
-		material.ShaderName = "Transparent50"
-	case 0x09: // Transparent with 0.25 blend strength
-		material.ShaderName = "Transparent25"
-	case 0x0A: // Transparent with 0.75 blend strength
-		material.ShaderName = "Transparent75"
-	case 0x0B:
-		material.ShaderName = "TransparentAdditiveUnlit"
-	case 0x13:
-		material.ShaderName = "TransparentMasked"
-	case 0x17:
-		material.ShaderName = "TransparentAdditive"
-	case 0x53:
-	case 0x4B:
-	case 0x03:
-		material.ShaderName = "invis"
-	case 0x1A: // TODO: Analyze thi:
-		material.ShaderName = "CompleteUnknown"
-	case 0x0D:
-		material.ShaderName = "DiffuseSkydome"
-	case 0x0F:
-		material.ShaderName = "TransparentSkydome"
-	case 0x10:
-		material.ShaderName = "TransparentAdditiveUnlitSkydome"
-	}
+	material.ShaderName = fmt.Sprintf("renderMethod_0x%x", renderMethod)
 	// This typically contains 0x004E4E4E but has also bee known to contain 0xB2B2B2.
 	// Could this be an RGB reflectivity value?
 	dec.Uint32() // RGBPEN %d, %d, %d

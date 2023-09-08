@@ -122,7 +122,7 @@ func Decode(wld *common.Wld) error {
 				ShaderName: "Opaque_MaxCB1.fx",
 			}
 			materials[i] = curMaterial
-			fmt.Printf("adding materialRef %d %s\n", i, curMaterial.Name)
+			//fmt.Printf("adding materialRef %d %s\n", i, curMaterial.Name)
 		case 0x31: // MaterialPalette (MaterialList)
 			dec := encdec.NewDecoder(r, binary.LittleEndian)
 			dec.Int32()  // nameRef
@@ -151,9 +151,6 @@ func Decode(wld *common.Wld) error {
 	}
 
 	newModels := []*common.Model{}
-	terModel := &common.Model{
-		FileType: "ter",
-	}
 	customModels := []*common.Model{}
 
 	for _, model := range wld.Models {
@@ -162,47 +159,35 @@ func Decode(wld *common.Wld) error {
 		if model.FileType != "ter" {
 			curModel = model
 		}
+
 		if model.FileType == "ter" {
-			curModel = terModel
-			if terModel.Name == "" {
-				terModel.Name = model.Name
-				if terModel.Name == "" {
-					terModel.Name = "ter"
-				}
-				newModels = append(newModels, terModel)
-			}
 
 			// sample first triangle to check for flags
 			triangle := model.Triangles[0]
 			material := materialLookup(triangle, materials, materialList)
-
-			/*if material != nil && material.ShaderName == "mesh_invisible" {
-				curModel = terInvisModel
-				if terInvisModel.Name == "" {
-					terInvisModel.Name = model.Name + "_invis"
-					if terInvisModel.Name == "" {
-						terInvisModel.Name = "ter_invis"
-					}
-					newModels = append(newModels, terInvisModel)
-				}
-			}*/
+			customName := fmt.Sprintf("mesh%d", triangle.Flag) // material.ShaderName + fmt.Sprintf("_%d", triangle.Flag)
 			if material != nil {
-				isFound := false
-				for _, cust := range customModels {
-					if cust.Name != material.ShaderName {
-						continue
-					}
-					isFound = true
-					curModel = cust
+				customName = material.ShaderName
+				if strings.Contains(strings.ToLower(triangle.MaterialName), "crushsky") {
+					customName = "crushsky"
 				}
-				if !isFound {
-					curModel = &common.Model{
-						Name:     material.ShaderName,
-						FileType: "ter",
-					}
-					customModels = append(customModels, curModel)
-					newModels = append(newModels, curModel)
+			}
+			isFound := false
+			for _, cust := range customModels {
+				if cust.Name != customName {
+					continue
 				}
+				isFound = true
+				curModel = cust
+			}
+			if !isFound {
+				fmt.Println("adding custom model", customName)
+				curModel = &common.Model{
+					Name:     customName,
+					FileType: "ter",
+				}
+				customModels = append(customModels, curModel)
+				newModels = append(newModels, curModel)
 			}
 
 		}
@@ -214,6 +199,10 @@ func Decode(wld *common.Wld) error {
 			newTriangle := common.Triangle{
 				Flag: triangle.Flag,
 			}
+			if newTriangle.Flag == 0 {
+				newTriangle.Flag = 2
+			}
+
 			material := materialLookup(triangle, materials, materialList)
 			if material != nil {
 				isNew := true
@@ -256,4 +245,8 @@ func materialLookup(triangle common.Triangle, materials map[uint32]*common.Mater
 	}
 
 	return material
+}
+
+func modelLookup() {
+
 }
