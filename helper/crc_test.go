@@ -14,6 +14,7 @@ func TestFilenameCRC32(t *testing.T) {
 		want uint32
 	}{
 		{name: string("FilenameCRC32"), args: args{name: "test"}, want: 1537663841},
+		{name: string("FilenameCRC32"), args: args{name: "__PFSFileNames__"}, want: 1633159881},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

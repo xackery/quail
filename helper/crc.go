@@ -5,6 +5,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"io"
+	"strings"
 )
 
 var (
@@ -67,6 +68,7 @@ func FilenameCRC32(name string) uint32 {
 	if len(name) == 0 {
 		return 0
 	}
+	name = strings.ToLower(name)
 	if name[len(name)-1] != '\000' {
 		name += "\000"
 	}
