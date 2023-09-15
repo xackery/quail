@@ -2,6 +2,7 @@ package eqg
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/xackery/quail/log"
 	"github.com/xackery/quail/pfs/archive"
@@ -9,9 +10,9 @@ import (
 
 // Add adds a new entry to a eqg
 func (e *EQG) Add(name string, data []byte) error {
-	//name = strings.ToLower(name)
+	name = strings.ToLower(name)
 	for _, f := range e.files {
-		if f.Name() == name {
+		if strings.EqualFold(f.Name(), name) {
 			//log.Warnf("entry %s already exists", name)
 			return nil
 			//return fmt.Errorf("entry %s already exists", name)

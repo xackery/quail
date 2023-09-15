@@ -5,6 +5,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"io"
+	"strings"
 )
 
 var (
@@ -64,6 +65,7 @@ func init() {
 
 // FilenameCRC32 returns the CRC of a file's name
 func FilenameCRC32(name string) uint32 {
+	name = strings.ToLower(name)
 	if len(name) == 0 {
 		return 0
 	}

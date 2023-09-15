@@ -54,9 +54,9 @@ func (e *EQG) Files() []archive.Filer {
 }
 
 func (e *EQG) WriteFile(name string, data []byte) error {
-	//name = strings.ToLower(name)
+	name = strings.ToLower(name)
 	for _, file := range e.files {
-		if file.Name() == name {
+		if strings.EqualFold(file.Name(), name) {
 			return file.SetData(data)
 		}
 	}

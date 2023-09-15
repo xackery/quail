@@ -9,8 +9,9 @@ import (
 
 // File returns data of a file
 func (e *S3D) File(name string) ([]byte, error) {
+	name = strings.ToLower(name)
 	for _, f := range e.files {
-		if f.Name() == name {
+		if strings.EqualFold(f.Name(), name) {
 			return f.Data(), nil
 		}
 	}
@@ -29,7 +30,7 @@ func (e *S3D) Len() int {
 func (e *S3D) WriteFile(name string, data []byte) error {
 	name = strings.ToLower(name)
 	for _, file := range e.files {
-		if file.Name() == name {
+		if strings.EqualFold(file.Name(), name) {
 			return file.SetData(data)
 		}
 	}
