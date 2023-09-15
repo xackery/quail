@@ -35,11 +35,11 @@ func TestS3D_Extract(t *testing.T) {
 			}
 			got, err := e.Extract(tt.args.path)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("S3D.Extract() error = %v, wantErr %v", err, tt.wantErr)
+				t.Fatalf("S3D.Extract() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if got != tt.want {
-				t.Errorf("S3D.Extract() = %v, want %v", got, tt.want)
+				t.Fatalf("S3D.Extract() = %v, want %v", got, tt.want)
 			}
 		})
 	}

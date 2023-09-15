@@ -38,7 +38,7 @@ func TestQuail_PFSImport(t *testing.T) {
 				Models: tt.fields.Models,
 			}
 			if err := e.PFSImport(eqPath + "/" + tt.args.path); (err != nil) != tt.wantErr {
-				t.Errorf("Quail.ImportPFS() error = %v, wantErr %v", err, tt.wantErr)
+				t.Fatalf("Quail.ImportPFS() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}

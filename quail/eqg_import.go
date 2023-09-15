@@ -218,6 +218,6 @@ func (e *Quail) EQGImport(path string) error {
 		}
 	}
 
-	log.Debugf("%s (eqg) loaded %d modeles, %d materials, %d texture files", filepath.Base(path), len(e.Models), materialCount, textureCount)
+	log.Debugf("%s (eqg) loaded %d models, %d materials, %d texture files", filepath.Base(path), len(e.Models), materialCount, textureCount)
 	return nil
 }

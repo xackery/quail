@@ -44,7 +44,7 @@ func TestWLD_textureListReadWrite(t *testing.T) {
 
 			err = compareReadAndWrite(t, fmt.Sprintf("%s/_test_data/%s/", eqPath, tt.name), 3, tt.fragOffset, e)
 			if err != nil && !tt.wantErr {
-				t.Errorf("%s compareReadAndWrite error = %v, wantErr %v", tt.name, err, tt.wantErr)
+				t.Fatalf("%s compareReadAndWrite error = %v, wantErr %v", tt.name, err, tt.wantErr)
 				return
 			}
 

@@ -18,7 +18,7 @@ func TestFilenameCRC32(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := FilenameCRC32(tt.args.name); got != tt.want {
-				t.Errorf("FilenameCRC32() = %v, want %v", got, tt.want)
+				t.Fatalf("FilenameCRC32() = %v, want %v", got, tt.want)
 			}
 		})
 	}
@@ -38,7 +38,7 @@ func TestValidate(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if err := Validate(tt.args.data); (err != nil) != tt.wantErr {
-				t.Errorf("Validate() error = %v, wantErr %v", err, tt.wantErr)
+				t.Fatalf("Validate() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
@@ -60,11 +60,11 @@ func TestGenerateCRC16(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			gotChecksum, err := GenerateCRC16(tt.args.data)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("GenerateCRC16() error = %v, wantErr %v", err, tt.wantErr)
+				t.Fatalf("GenerateCRC16() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if gotChecksum != tt.wantChecksum {
-				t.Errorf("GenerateCRC16() = %v, want %v", gotChecksum, tt.wantChecksum)
+				t.Fatalf("GenerateCRC16() = %v, want %v", gotChecksum, tt.wantChecksum)
 			}
 		})
 	}
@@ -86,11 +86,11 @@ func TestGenerateCRC32(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			gotChecksum, err := GenerateCRC32(tt.args.data)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("GenerateCRC32() error = %v, wantErr %v", err, tt.wantErr)
+				t.Fatalf("GenerateCRC32() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if gotChecksum != tt.wantChecksum {
-				t.Errorf("GenerateCRC32() = %v, want %v", gotChecksum, tt.wantChecksum)
+				t.Fatalf("GenerateCRC32() = %v, want %v", gotChecksum, tt.wantChecksum)
 			}
 		})
 	}

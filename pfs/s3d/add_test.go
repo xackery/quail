@@ -34,7 +34,7 @@ func TestS3D_Add(t *testing.T) {
 				fileCount: tt.fields.fileCount,
 			}
 			if err := e.Add(tt.args.name, tt.args.data); (err != nil) != tt.wantErr {
-				t.Errorf("S3D.Add() error = %v, wantErr %v", err, tt.wantErr)
+				t.Fatalf("S3D.Add() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}

@@ -29,11 +29,11 @@ func (e *Quail) S3DImport(path string) error {
 
 			log.Debugf("testing %s", file.Name())
 
-			modeles, err := WLDDecode(bytes.NewReader(file.Data()), pfs)
+			models, err := WLDDecode(bytes.NewReader(file.Data()), pfs)
 			if err != nil {
 				return fmt.Errorf("wldDecode %s: %w", file.Name(), err)
 			}
-			e.Models = append(e.Models, modeles...)
+			e.Models = append(e.Models, models...)
 		}
 	}
 
@@ -88,6 +88,6 @@ func (e *Quail) S3DImport(path string) error {
 		}
 	}
 
-	log.Debugf("%s (s3d) loaded %d modeles, %d materials, %d texture files", filepath.Base(path), len(e.Models), materialCount, textureCount)
+	log.Debugf("%s (s3d) loaded %d models, %d materials, %d texture files", filepath.Base(path), len(e.Models), materialCount, textureCount)
 	return nil
 }

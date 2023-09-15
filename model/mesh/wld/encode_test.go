@@ -45,7 +45,7 @@ func TestWLD_Encode(t *testing.T) {
 
 				err = e.Decode(bytes.NewReader(fe.Data()))
 				if err != nil && !tt.wantErr {
-					t.Errorf("Decode() error = %v, wantErr %v", err, tt.wantErr)
+					t.Fatalf("Decode() error = %v, wantErr %v", err, tt.wantErr)
 					return
 				}
 

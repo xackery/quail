@@ -37,15 +37,15 @@ func TestS3D_File(t *testing.T) {
 			}
 			got, err := e.File(tt.args.name)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("S3D.File() error = %v, wantErr %v", err, tt.wantErr)
+				t.Fatalf("S3D.File() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if err != nil && err.Error() != tt.errStr {
-				t.Errorf("S3D.File() error = %v, want %v", err, tt.errStr)
+				t.Fatalf("S3D.File() error = %v, want %v", err, tt.errStr)
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("S3D.File() = %v, want %v", got, tt.want)
+				t.Fatalf("S3D.File() = %v, want %v", got, tt.want)
 			}
 		})
 	}

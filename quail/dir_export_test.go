@@ -50,11 +50,11 @@ func TestQuail_DirExport(t *testing.T) {
 			}
 
 			if err := quail.PFSImport(eqPath + "/" + tt.args.srcPath); err != nil {
-				t.Errorf("Quail.ImportPFS() error = %+v", err)
+				t.Fatalf("Quail.ImportPFS() error = %+v", err)
 			}
 
 			if err := quail.DirExport("test" + "/" + tt.args.srcPath); (err != nil) != tt.wantErr {
-				t.Errorf("Quail.ExportDir() error = %+v, wantErr %+v", err, tt.wantErr)
+				t.Fatalf("Quail.ExportDir() error = %+v, wantErr %+v", err, tt.wantErr)
 			}
 		})
 	}
@@ -79,13 +79,13 @@ func TestQuail_DirExportPFS(t *testing.T) {
 		wantErr bool
 	}{
 		//{name: "invalid", args: args{srcPath: "invalid.txt"}}, wantErr: true},
-		//{name: "valid", args: args{srcPath: "it13900.eqg"},  wantErr: false},
+		{name: "valid", args: args{srcPath: "it13900.eqg"}, wantErr: false},
 		//{name: "valid", args: args{srcPath: "it12095.eqg"},  wantErr: false},
 		//{name: "valid", args: args{srcPath: "it13968.eqg"}, wantErr: false},
 		//{name: "valid", args: args{srcPath: "broodlands.eqg"}, wantErr: false},
 		//{name: "valid", args: args{srcPath: "freportn_chr.s3d"}, wantErr: false},
 		//{name: "valid", args: args{srcPath: "gequip4.s3d"}, wantErr: false},
-		{name: "valid", args: args{srcPath: "crushbone.s3d"}, wantErr: false},
+		//{name: "valid", args: args{srcPath: "crushbone.s3d"}, wantErr: false},
 	}
 
 	os.RemoveAll("test")
@@ -96,20 +96,20 @@ func TestQuail_DirExportPFS(t *testing.T) {
 			quail.Models = tt.fields.Models
 
 			if err := quail.PFSImport(eqPath + "/" + tt.args.srcPath); err != nil {
-				t.Errorf("Quail.ImportPFS() error = %+v", err)
+				t.Fatalf("Quail.ImportPFS() error = %+v", err)
 			}
 
 			if err := quail.DirExport("test" + "/" + tt.args.srcPath); (err != nil) != tt.wantErr {
-				t.Errorf("Quail.ExportDir() error = %+v, wantErr %+v", err, tt.wantErr)
+				t.Fatalf("Quail.ExportDir() error = %+v, wantErr %+v", err, tt.wantErr)
 			}
 
 			newPath := "test" + "/" + tt.args.srcPath[0:len(tt.args.srcPath)-4] + ".quail"
 			if err := quail.DirImport(newPath); err != nil {
-				t.Errorf("Quail.ImportDir() error = %+v", err)
+				t.Fatalf("Quail.ImportDir() error = %+v", err)
 			}
 
 			if err := quail.PFSExport(1, 1, "test"+"/"+tt.args.srcPath); (err != nil) != tt.wantErr {
-				t.Errorf("Quail.ExportPFS() error = %+v, wantErr %+v", err, tt.wantErr)
+				t.Fatalf("Quail.ExportPFS() error = %+v, wantErr %+v", err, tt.wantErr)
 			}
 
 		})
@@ -153,17 +153,17 @@ func TestQuail_DirExportImport(t *testing.T) {
 			e.Models = tt.fields.Models
 
 			if err := e.PFSImport(eqPath + "/" + tt.args.srcPath); err != nil {
-				t.Errorf("Quail.ImportPFS() error = %+v", err)
+				t.Fatalf("Quail.ImportPFS() error = %+v", err)
 			}
 
 			if err := e.DirExport("test" + "/" + tt.args.srcPath); (err != nil) != tt.wantErr {
-				t.Errorf("Quail.ExportDir() error = %+v, wantErr %+v", err, tt.wantErr)
+				t.Fatalf("Quail.ExportDir() error = %+v, wantErr %+v", err, tt.wantErr)
 			}
 
 			e2 := New()
 
 			if err := e2.DirImport("test" + "/" + tt.args.srcPath[0:len(tt.args.srcPath)-4] + ".quail"); (err != nil) != tt.wantErr {
-				t.Errorf("Quail.ImportDir() error = %+v, wantErr %+v", err, tt.wantErr)
+				t.Fatalf("Quail.ImportDir() error = %+v, wantErr %+v", err, tt.wantErr)
 			}
 
 			if len(e.Models) != len(e2.Models) {

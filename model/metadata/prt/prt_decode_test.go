@@ -41,7 +41,7 @@ func TestDecode(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if err := Decode(tt.args.render, tt.args.r); (err != nil) != tt.wantErr {
-				t.Errorf("Decode() error = %v, wantErr %v", err, tt.wantErr)
+				t.Fatalf("Decode() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
