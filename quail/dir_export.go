@@ -78,54 +78,55 @@ func (quail *Quail) DirExport(path string) error {
 					vertex.Tint.R, vertex.Tint.G, vertex.Tint.B, vertex.Tint.A))
 			}
 		}
+		/*
+			if len(model.Bones) > 0 {
+				bw, err := os.Create(fmt.Sprintf("%s/bone.txt", modelPath))
+				if err != nil {
+					return fmt.Errorf("create model %s bone.txt: %w", model.Name, err)
+				}
+				defer bw.Close()
 
-		if len(model.Bones) > 0 {
-			bw, err := os.Create(fmt.Sprintf("%s/bone.txt", modelPath))
-			if err != nil {
-				return fmt.Errorf("create model %s bone.txt: %w", model.Name, err)
-			}
-			defer bw.Close()
-
-			bw.WriteString("name|child_index|children_count|next|pivot|rotation|scale\n")
-			for _, bone := range model.Bones {
-				bw.WriteString(fmt.Sprintf("%s|%d|%d|%d", bone.Name, bone.ChildIndex, bone.ChildrenCount, bone.Next))
-				bw.WriteString(fmt.Sprintf("|%0.8f,%0.8f,%0.8f", bone.Pivot.Y, -bone.Pivot.X, bone.Pivot.Z)) //xyz is wonky
-				bw.WriteString(fmt.Sprintf("|%0.8f,%0.8f,%0.8f,%0.8f", bone.Rotation.X, bone.Rotation.Y, bone.Rotation.Z, bone.Rotation.W))
-				bw.WriteString(fmt.Sprintf("|%0.8f,%0.8f,%0.8f\n", bone.Scale.X, bone.Scale.Y, bone.Scale.Z))
-			}
-		}
-
-		if len(model.ParticleRenders) > 0 {
-			prw, err := os.Create(fmt.Sprintf("%s/particle_render.txt", modelPath))
-			if err != nil {
-				return fmt.Errorf("create model %s particle_render.txt: %w", model.Name, err)
-			}
-			defer prw.Close()
-
-			prw.WriteString("id|id2|particle_point|unknowna1|unknowna2|unknowna3|unknowna4|unknowna5|duration|unknownb|unknownffffffff|unknownc\n")
-			for _, render := range model.ParticleRenders {
-				for _, entry := range render.Entries {
-					prw.WriteString(fmt.Sprintf("%d|%d|%s|", entry.ID, entry.ID2, entry.ParticlePoint))
-					prw.WriteString(fmt.Sprintf("%d|%d|%d|%d|%d|", entry.UnknownA1, entry.UnknownA2, entry.UnknownA3, entry.UnknownA4, entry.UnknownA5))
-					prw.WriteString(fmt.Sprintf("%d|%d|%d|%d\n", entry.Duration, entry.UnknownB, entry.UnknownFFFFFFFF, entry.UnknownC))
+				bw.WriteString("name|child_index|children_count|next|pivot|rotation|scale\n")
+				for _, bone := range model.Bones {
+					bw.WriteString(fmt.Sprintf("%s|%d|%d|%d", bone.Name, bone.ChildIndex, bone.ChildrenCount, bone.Next))
+					bw.WriteString(fmt.Sprintf("|%0.8f,%0.8f,%0.8f", bone.Pivot.Y, -bone.Pivot.X, bone.Pivot.Z)) //xyz is wonky
+					bw.WriteString(fmt.Sprintf("|%0.8f,%0.8f,%0.8f,%0.8f", bone.Rotation.X, bone.Rotation.Y, bone.Rotation.Z, bone.Rotation.W))
+					bw.WriteString(fmt.Sprintf("|%0.8f,%0.8f,%0.8f\n", bone.Scale.X, bone.Scale.Y, bone.Scale.Z))
 				}
 			}
-		}
 
-		if len(model.ParticlePoints) > 0 {
-			ppw, err := os.Create(fmt.Sprintf("%s/particle_point.txt", modelPath))
-			if err != nil {
-				return fmt.Errorf("create model %s particle_point.txt: %w", model.Name, err)
-			}
-			defer ppw.Close()
+			if len(model.ParticleRenders) > 0 {
+				prw, err := os.Create(fmt.Sprintf("%s/particle_render.txt", modelPath))
+				if err != nil {
+					return fmt.Errorf("create model %s particle_render.txt: %w", model.Name, err)
+				}
+				defer prw.Close()
 
-			ppw.WriteString("name|bone|translation|rotation|scale\n")
-			for _, point := range model.ParticlePoints {
-				for _, entry := range point.Entries {
-					ppw.WriteString(fmt.Sprintf("%s|%s|%0.8f,%0.8f,%0.8f|%0.8f,%0.8f,%0.8f|%0.8f,%0.8f,%0.8f\n", entry.Name, entry.Bone, entry.Translation.X, entry.Translation.Y, entry.Translation.Z, entry.Rotation.X, entry.Rotation.Y, entry.Rotation.Z, entry.Scale.X, entry.Scale.Y, entry.Scale.Z))
+				prw.WriteString("id|id2|particle_point|unknowna1|unknowna2|unknowna3|unknowna4|unknowna5|duration|unknownb|unknownffffffff|unknownc\n")
+				for _, render := range model.ParticleRenders {
+					for _, entry := range render.Entries {
+						prw.WriteString(fmt.Sprintf("%d|%d|%s|", entry.ID, entry.ID2, entry.ParticlePoint))
+						prw.WriteString(fmt.Sprintf("%d|%d|%d|%d|%d|", entry.UnknownA1, entry.UnknownA2, entry.UnknownA3, entry.UnknownA4, entry.UnknownA5))
+						prw.WriteString(fmt.Sprintf("%d|%d|%d|%d\n", entry.Duration, entry.UnknownB, entry.UnknownFFFFFFFF, entry.UnknownC))
+					}
 				}
 			}
-		}
+
+			if len(model.ParticlePoints) > 0 {
+				ppw, err := os.Create(fmt.Sprintf("%s/particle_point.txt", modelPath))
+				if err != nil {
+					return fmt.Errorf("create model %s particle_point.txt: %w", model.Name, err)
+				}
+				defer ppw.Close()
+
+				ppw.WriteString("name|bone|translation|rotation|scale\n")
+				for _, point := range model.ParticlePoints {
+					for _, entry := range point.Entries {
+						ppw.WriteString(fmt.Sprintf("%s|%s|%0.8f,%0.8f,%0.8f|%0.8f,%0.8f,%0.8f|%0.8f,%0.8f,%0.8f\n", entry.Name, entry.Bone, entry.Translation.X, entry.Translation.Y, entry.Translation.Z, entry.Rotation.X, entry.Rotation.Y, entry.Rotation.Z, entry.Scale.X, entry.Scale.Y, entry.Scale.Z))
+					}
+				}
+			}
+		*/
 
 		for _, material := range model.Materials {
 			materialPath := fmt.Sprintf("%s/%s.material", path, material.Name)
@@ -168,45 +169,45 @@ func (quail *Quail) DirExport(path string) error {
 
 		}
 	}
-
-	for _, anim := range quail.Animations {
-		animPath := fmt.Sprintf("%s/%s.ani", path, anim.Name)
-		err = os.MkdirAll(animPath, 0755)
-		if err != nil {
-			return fmt.Errorf("mkdir %s: %w", anim.Name, err)
-		}
-
-		aw, err := os.Create(fmt.Sprintf("%s/animation.txt", animPath))
-		if err != nil {
-			return fmt.Errorf("create anim %s: %w", anim.Name, err)
-		}
-		defer aw.Close()
-
-		aw.WriteString("key|value\n")
-
-		val := 0
-		if anim.IsStrict {
-			val = 1
-		}
-		aw.WriteString(fmt.Sprintf("is_strict|%d\n", val))
-
-		for _, bone := range anim.Bones {
-			fw, err := os.Create(fmt.Sprintf("%s/%s.txt", animPath, bone.Name))
+	/*
+		for _, anim := range quail.Animations {
+			animPath := fmt.Sprintf("%s/%s.ani", path, anim.Name)
+			err = os.MkdirAll(animPath, 0755)
 			if err != nil {
-				return fmt.Errorf("create anim %s bone %s: %w", anim.Name, bone.Name, err)
+				return fmt.Errorf("mkdir %s: %w", anim.Name, err)
 			}
-			defer fw.Close()
 
-			fw.WriteString("milliseconds|rotation|scale|translation\n")
-			for _, frame := range bone.Frames {
-				fw.WriteString(fmt.Sprintf("%d|", frame.Milliseconds))
-				fw.WriteString(fmt.Sprintf("%0.8f,%0.8f,%0.8f,%0.8f|", frame.Rotation.X, frame.Rotation.Y, frame.Rotation.Z, frame.Rotation.W))
-				fw.WriteString(fmt.Sprintf("%0.8f,%0.8f,%0.8f|", frame.Scale.X, frame.Scale.Y, frame.Scale.Z))
-				fw.WriteString(fmt.Sprintf("%0.8f,%0.8f,%0.8f\n", frame.Translation.X, frame.Translation.Y, frame.Translation.Z))
+			aw, err := os.Create(fmt.Sprintf("%s/animation.txt", animPath))
+			if err != nil {
+				return fmt.Errorf("create anim %s: %w", anim.Name, err)
+			}
+			defer aw.Close()
+
+			aw.WriteString("key|value\n")
+
+			val := 0
+			if anim.IsStrict {
+				val = 1
+			}
+			aw.WriteString(fmt.Sprintf("is_strict|%d\n", val))
+
+			for _, bone := range anim.Bones {
+				fw, err := os.Create(fmt.Sprintf("%s/%s.txt", animPath, bone.Name))
+				if err != nil {
+					return fmt.Errorf("create anim %s bone %s: %w", anim.Name, bone.Name, err)
+				}
+				defer fw.Close()
+
+				fw.WriteString("milliseconds|rotation|scale|translation\n")
+				for _, frame := range bone.Frames {
+					fw.WriteString(fmt.Sprintf("%d|", frame.Milliseconds))
+					fw.WriteString(fmt.Sprintf("%0.8f,%0.8f,%0.8f,%0.8f|", frame.Rotation.X, frame.Rotation.Y, frame.Rotation.Z, frame.Rotation.W))
+					fw.WriteString(fmt.Sprintf("%0.8f,%0.8f,%0.8f|", frame.Scale.X, frame.Scale.Y, frame.Scale.Z))
+					fw.WriteString(fmt.Sprintf("%0.8f,%0.8f,%0.8f\n", frame.Translation.X, frame.Translation.Y, frame.Translation.Z))
+				}
 			}
 		}
-	}
-
+	*/
 	if quail.Zone != nil {
 		zon := quail.Zone
 		zonPath := fmt.Sprintf("%s/%s.zone", path, zon.Name)
