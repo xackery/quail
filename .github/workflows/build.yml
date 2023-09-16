@@ -22,8 +22,3 @@ jobs:
             bin/quail-linux
             bin/quail.exe
             bin/quail-darwin
-      - uses: dev-drprasad/delete-older-releases
-        with:
-          keep_latest: 3
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
