@@ -119,7 +119,7 @@ func Decode(model *common.Model, r io.ReadSeeker) error {
 			}
 		}
 	}
-	tag.Add(tag.LastPos(), int(dec.Pos()), "blue", "materials")
+	tag.Add(tag.LastPos(), dec.Pos(), "blue", "materials")
 
 	for i := 0; i < int(boneCount); i++ {
 		bone := common.Bone{}

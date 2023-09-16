@@ -28,7 +28,7 @@ func Decode(point *common.ParticlePoint, r io.ReadSeeker) error {
 	if version != 1 {
 		return fmt.Errorf("invalid version %d, wanted 1", version)
 	}
-	tag.Add(0, int(dec.Pos()), "red", "header")
+	tag.Add(0, dec.Pos(), "red", "header")
 
 	for i := 0; i < int(particleCount); i++ {
 		entry := common.ParticlePointEntry{}
@@ -49,7 +49,7 @@ func Decode(point *common.ParticlePoint, r io.ReadSeeker) error {
 		entry.Scale.Z = dec.Float32()
 
 		point.Entries = append(point.Entries, entry)
-		tag.AddRand(tag.LastPos(), int(dec.Pos()), fmt.Sprintf("%d|%s|%s", i, entry.Name, entry.Bone))
+		tag.AddRand(tag.LastPos(), dec.Pos(), fmt.Sprintf("%d|%s|%s", i, entry.Name, entry.Bone))
 	}
 
 	if dec.Error() != nil {

@@ -34,10 +34,10 @@ func Decode(animation *common.Animation, r io.ReadSeeker) error {
 			animation.IsStrict = true
 		}
 	}
-	tag.Add(0, int(dec.Pos()), "red", "header")
+	tag.Add(0, dec.Pos(), "red", "header")
 
 	nameData := dec.Bytes(int(nameLength))
-	tag.Add(tag.LastPos(), int(dec.Pos()), "green", "names")
+	tag.Add(tag.LastPos(), dec.Pos(), "green", "names")
 
 	names := make(map[uint32]string)
 	chunk := []byte{}

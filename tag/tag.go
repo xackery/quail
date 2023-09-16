@@ -12,14 +12,14 @@ import (
 
 var (
 	mu        sync.RWMutex
-	lastPos   int
+	lastPos   int64
 	tags      []tag
 	lastColor string
 )
 
 type tag struct {
-	From    int    `json:"from"`
-	To      int    `json:"to"`
+	From    int64  `json:"from"`
+	To      int64  `json:"to"`
 	Color   string `json:"color"`
 	Caption string `json:"caption"`
 }
@@ -35,7 +35,7 @@ func New() {
 }
 
 // LastPos returns the last position
-func LastPos() int {
+func LastPos() int64 {
 	if flag.Lookup("test.v") == nil {
 		return 0
 	}
@@ -55,7 +55,7 @@ func Close() {
 }
 
 // Add creates a new tag
-func Add(from, to int, color, caption string) {
+func Add(from, to int64, color, caption string) {
 	if flag.Lookup("test.v") == nil {
 		return
 	}
@@ -73,7 +73,7 @@ func Add(from, to int, color, caption string) {
 	lastPos = to
 }
 
-func Addf(from, to int, color, format string, args ...interface{}) {
+func Addf(from, to int64, color, format string, args ...interface{}) {
 	if flag.Lookup("test.v") == nil {
 		return
 	}
@@ -81,7 +81,7 @@ func Addf(from, to int, color, format string, args ...interface{}) {
 }
 
 // Add creates a new tag with random color
-func AddRand(from, to int, caption string) {
+func AddRand(from, to int64, caption string) {
 	if flag.Lookup("test.v") == nil {
 		return
 	}
@@ -104,9 +104,9 @@ func AddRand(from, to int, caption string) {
 		"gray",
 	}
 	// pick one randomly
-	color := colors[from%len(colors)]
+	color := colors[from%int64(len(colors))]
 	if color == lastColor {
-		color = colors[(from+1)%len(colors)]
+		color = colors[(from+1)%int64(len(colors))]
 	}
 	lastColor = color
 
@@ -119,7 +119,7 @@ func AddRand(from, to int, caption string) {
 	lastPos = to
 }
 
-func AddRandf(from, to int, format string, args ...interface{}) {
+func AddRandf(from, to int64, format string, args ...interface{}) {
 	if flag.Lookup("test.v") == nil {
 		return
 	}

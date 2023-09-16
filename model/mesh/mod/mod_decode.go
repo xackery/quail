@@ -33,9 +33,9 @@ func Decode(model *common.Model, r io.ReadSeeker) error {
 	verticesCount := dec.Uint32()
 	triangleCount := dec.Uint32()
 	bonesCount := dec.Uint32()
-	tag.Add(0, int(dec.Pos()), "red", "header")
+	tag.Add(0, dec.Pos(), "red", "header")
 	nameData := dec.Bytes(int(nameLength))
-	tag.Add(tag.LastPos(), int(dec.Pos()), "green", "names")
+	tag.Add(tag.LastPos(), dec.Pos(), "green", "names")
 
 	names := make(map[uint32]string)
 	modelNames := []string{}
@@ -129,7 +129,7 @@ func Decode(model *common.Model, r io.ReadSeeker) error {
 			}
 		}
 	}
-	tag.Add(tag.LastPos(), int(dec.Pos()), "blue", "materials")
+	tag.Add(tag.LastPos(), dec.Pos(), "blue", "materials")
 
 	for i := 0; i < int(verticesCount); i++ {
 		v := common.Vertex{}
@@ -157,7 +157,7 @@ func Decode(model *common.Model, r io.ReadSeeker) error {
 
 		model.Vertices = append(model.Vertices, v)
 	}
-	tag.Add(tag.LastPos(), int(dec.Pos()), "yellow", "vertices")
+	tag.Add(tag.LastPos(), dec.Pos(), "yellow", "vertices")
 
 	for i := 0; i < int(triangleCount); i++ {
 		t := common.Triangle{}
@@ -187,7 +187,7 @@ func Decode(model *common.Model, r io.ReadSeeker) error {
 		t.Flag = dec.Uint32()
 		model.Triangles = append(model.Triangles, t)
 	}
-	tag.Add(tag.LastPos(), int(dec.Pos()), "purple", "triangles")
+	tag.Add(tag.LastPos(), dec.Pos(), "purple", "triangles")
 
 	for i := 0; i < int(bonesCount); i++ {
 		bone := common.Bone{}
@@ -213,7 +213,7 @@ func Decode(model *common.Model, r io.ReadSeeker) error {
 
 		model.Bones = append(model.Bones, bone)
 	}
-	tag.Add(tag.LastPos(), int(dec.Pos()), "orange", "bones")
+	tag.Add(tag.LastPos(), dec.Pos(), "orange", "bones")
 
 	if dec.Error() != nil {
 		return fmt.Errorf("decode: %w", dec.Error())

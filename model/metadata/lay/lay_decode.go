@@ -38,9 +38,9 @@ func Decode(model *common.Model, r io.ReadSeeker) error {
 
 	nameLength := int(dec.Uint32())
 	materialCount := dec.Uint32()
-	tag.Add(0, int(dec.Pos()), "red", "header")
+	tag.Add(0, dec.Pos(), "red", "header")
 	nameData := dec.Bytes(int(nameLength))
-	tag.Add(tag.LastPos(), int(dec.Pos()), "green", "names")
+	tag.Add(tag.LastPos(), dec.Pos(), "green", "names")
 
 	names := make(map[uint32]string)
 	chunk := []byte{}
@@ -84,7 +84,7 @@ func Decode(model *common.Model, r io.ReadSeeker) error {
 		dec.Bytes(versionOffset)
 		//fmt.Println(hex.Dump())
 		model.Layers = append(model.Layers, layer)
-		tag.AddRand(tag.LastPos(), int(dec.Pos()), fmt.Sprintf("%d|%s|%s|%s", i, layer.Material, layer.Diffuse, layer.Normal))
+		tag.AddRand(tag.LastPos(), dec.Pos(), fmt.Sprintf("%d|%s|%s|%s", i, layer.Material, layer.Diffuse, layer.Normal))
 	}
 
 	if dec.Error() != nil {
