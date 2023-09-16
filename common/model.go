@@ -13,13 +13,13 @@ import (
 type Model struct {
 	Name            string
 	FileType        string
+	Version         int
 	Vertices        []Vertex
 	Triangles       []Triangle
 	Bones           []Bone
 	Materials       []*Material
 	ParticlePoints  []*ParticlePoint
 	ParticleRenders []*ParticleRender
-	Version         int
 	Layers          []*Layer
 }
 

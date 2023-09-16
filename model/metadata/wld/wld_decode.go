@@ -246,7 +246,3 @@ func materialLookup(triangle common.Triangle, materials map[uint32]*common.Mater
 
 	return material
 }
-
-func modelLookup() {
-
-}
