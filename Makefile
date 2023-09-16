@@ -29,19 +29,19 @@ build-all: build-darwin build-windows build-linux build-windows-addon
 
 build-darwin:
 	@echo "build-darwin: ${BUILD_VERSION}"
-	@GOOS=darwin GOARCH=amd64 go build -trimpath -buildmode=pie -ldflags="-X main.Version=${BUILD_VERSION} -s -w" -o bin/${NAME}-darwin main.go
+	@CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -trimpath -buildmode=pie -ldflags="-X main.Version=${BUILD_VERSION} -s -w" -o bin/${NAME}-darwin main.go
 
 build-linux:
 	@echo "build-linux: ${BUILD_VERSION}"
-	@GOOS=linux GOARCH=amd64 go build -trimpath -ldflags="-X main.Version=${BUILD_VERSION} -s -w" -o bin/${NAME}-linux main.go
+	@CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -trimpath -ldflags="-X main.Version=${BUILD_VERSION} -s -w" -o bin/${NAME}-linux main.go
 
 build-windows:
 	@echo "build-windows: ${BUILD_VERSION}"
-	@GOOS=windows GOARCH=amd64 go build -trimpath -buildmode=pie -ldflags="-X main.Version=${BUILD_VERSION} -s -w" -o bin/${NAME}.exe main.go
+	@CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -trimpath -buildmode=pie -ldflags="-X main.Version=${BUILD_VERSION} -s -w" -o bin/${NAME}.exe main.go
 
 build-windows-addon:
 	@echo "build-windows-addon: ${BUILD_VERSION}"
-	@GOOS=windows GOARCH=amd64 go build -trimpath -buildmode=pie -ldflags="-X main.Version=${BUILD_VERSION} -X main.ShowVersion=1 -s -w" -o bin/${NAME}-addon.exe main.go
+	@CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -trimpath -buildmode=pie -ldflags="-X main.Version=${BUILD_VERSION} -X main.ShowVersion=1 -s -w" -o bin/${NAME}-addon.exe main.go
 
 # used by xackery, build darwin copy and move to blender path
 build-copy: build-darwin
