@@ -99,6 +99,11 @@ func reflectTraversal(inspected interface{}, nest int, index int) {
 		return
 	}
 
+	if v.Kind() != reflect.Struct {
+		log.Infof("%s%v", strings.Repeat("  ", nest), v.Interface())
+		return
+	}
+
 	for i := 0; i < v.NumField(); i++ {
 		// check if field is exported
 		if tv.Field(i).PkgPath != "" {
@@ -231,13 +236,13 @@ func inspectContent(file string, data *bytes.Reader) (interface{}, error) {
 			return nil, fmt.Errorf("pts.Decode %s: %w", file, err)
 		}
 		return point, nil
-	case ".ptr":
+	case ".prt":
 		render := &common.ParticleRender{
 			Name: strings.TrimSuffix(strings.ToUpper(file), ".MDS"),
 		}
 		err = prt.Decode(render, data)
 		if err != nil {
-			return nil, fmt.Errorf("pst.Decode %s: %w", file, err)
+			return nil, fmt.Errorf("prt.Decode %s: %w", file, err)
 		}
 		return render, nil
 	case ".zon":
