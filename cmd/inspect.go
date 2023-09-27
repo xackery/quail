@@ -192,6 +192,16 @@ func inspect(path string, file string) (interface{}, error) {
 			return *pfs, nil
 		}
 		return inspectFile(pfs, path, file)
+	case ".pak":
+		pfs, err := eqg.NewFile(path)
+		if err != nil {
+			return nil, fmt.Errorf("%s load: %w", ext, err)
+		}
+		if len(file) < 2 {
+			pfs.Close()
+			return *pfs, nil
+		}
+		return inspectFile(pfs, path, file)
 	default:
 		return inspectFile(nil, path, path)
 	}

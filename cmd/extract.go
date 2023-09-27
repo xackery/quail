@@ -100,6 +100,11 @@ func extract(in string, out string, isDir bool) (bool, error) {
 		if err != nil {
 			return true, fmt.Errorf("extractEQG: %w", err)
 		}
+	case ".pak":
+		err = extractEQG(in, out, isDir)
+		if err != nil {
+			return true, fmt.Errorf("extractEQG: %w", err)
+		}
 	default:
 		return false, nil
 	}

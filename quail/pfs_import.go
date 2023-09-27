@@ -14,6 +14,10 @@ func (e *Quail) PFSImport(path string) error {
 		return e.EQGImport(path)
 	case ".s3d":
 		return e.S3DImport(path)
+	case ".pfs":
+		return e.EQGImport(path)
+	case ".pak":
+		return e.EQGImport(path)
 	default:
 		return fmt.Errorf("unknown pfs type %s, valid options are eqg and pfs", ext)
 	}

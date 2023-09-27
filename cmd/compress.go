@@ -84,6 +84,9 @@ func compress(path string, out string) error {
 	if strings.HasSuffix(out, ".pfs") {
 		return compressEQG(path, out)
 	}
+	if strings.HasSuffix(out, ".pak") {
+		return compressEQG(path, out)
+	}
 
 	out = out + ".eqg"
 	return compressEQG(path, out)
