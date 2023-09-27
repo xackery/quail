@@ -81,6 +81,9 @@ func compress(path string, out string) error {
 	if strings.HasSuffix(out, ".s3d") {
 		return compressS3D(path, out)
 	}
+	if strings.HasSuffix(out, ".pfs") {
+		return compressEQG(path, out)
+	}
 
 	out = out + ".eqg"
 	return compressEQG(path, out)

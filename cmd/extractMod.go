@@ -95,6 +95,11 @@ func extractMod(in string, out string, isDir bool) (bool, error) {
 		if err != nil {
 			return true, fmt.Errorf("extractS3D: %w", err)
 		}
+	case ".pfs":
+		err = extractModEQG(in, out, isDir)
+		if err != nil {
+			return true, fmt.Errorf("extractEQG pfs: %w", err)
+		}
 	default:
 		return false, nil
 	}
