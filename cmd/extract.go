@@ -7,15 +7,14 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
-	"github.com/xackery/quail/pfs/eqg"
-	"github.com/xackery/quail/pfs/s3d"
+	"github.com/xackery/quail/pfs"
 )
 
 // extractCmd represents the extract command
 var extractCmd = &cobra.Command{
 	Use:   "extract",
-	Short: "Extract an eqg or s3d archive to a _file.ext/ folder",
-	Long:  `Extract an eqg or s3d archive`,
+	Short: "Extract an pfs (eqg/s3d/pak/pfs) archive to a _file.ext/ folder",
+	Long:  `Extract an pfs archive`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		path, err := cmd.Flags().GetString("path")
 		if err != nil {
@@ -86,24 +85,24 @@ func extract(in string, out string, isDir bool) (bool, error) {
 	var err error
 	switch strings.ToLower(filepath.Ext(in)) {
 	case ".eqg":
-		err = extractEQG(in, out, isDir)
+		err = extractPFS(in, out, isDir)
 		if err != nil {
-			return true, fmt.Errorf("extractEQG: %w", err)
+			return true, fmt.Errorf("extractPFS: %w", err)
 		}
 	case ".s3d":
-		err = extractS3D(in, out, isDir)
+		err = extractPFS(in, out, isDir)
 		if err != nil {
-			return true, fmt.Errorf("extractS3D: %w", err)
+			return true, fmt.Errorf("extractPFS: %w", err)
 		}
 	case ".pfs":
-		err = extractEQG(in, out, isDir)
+		err = extractPFS(in, out, isDir)
 		if err != nil {
-			return true, fmt.Errorf("extractEQG: %w", err)
+			return true, fmt.Errorf("extractPFS: %w", err)
 		}
 	case ".pak":
-		err = extractEQG(in, out, isDir)
+		err = extractPFS(in, out, isDir)
 		if err != nil {
-			return true, fmt.Errorf("extractEQG: %w", err)
+			return true, fmt.Errorf("extractPFS: %w", err)
 		}
 	default:
 		return false, nil
@@ -111,14 +110,14 @@ func extract(in string, out string, isDir bool) (bool, error) {
 	return true, nil
 }
 
-func extractEQG(in string, out string, isDir bool) error {
+func extractPFS(in string, out string, isDir bool) error {
 	f, err := os.Open(in)
 	if err != nil {
 		return err
 	}
-	a, err := eqg.New("out")
+	a, err := pfs.New("out")
 	if err != nil {
-		return fmt.Errorf("eqg.New: %w", err)
+		return fmt.Errorf("pfs.New: %w", err)
 	}
 	err = a.Decode(f)
 	if err != nil {
@@ -139,33 +138,6 @@ func extractEQG(in string, out string, isDir bool) error {
 
 func init() {
 	rootCmd.AddCommand(extractCmd)
-	extractCmd.PersistentFlags().String("path", "", "path to compressed eqg")
+	extractCmd.PersistentFlags().String("path", "", "path to compressed pfs")
 	extractCmd.PersistentFlags().String("out", "", "out path to extract to")
-}
-
-func extractS3D(path string, out string, isDir bool) error {
-	f, err := os.Open(path)
-	if err != nil {
-		return err
-	}
-	e, err := s3d.New("out")
-	if err != nil {
-		return fmt.Errorf("eqg.New: %w", err)
-	}
-	err = e.Decode(f)
-	if err != nil {
-		return fmt.Errorf("decode %s: %w", path, err)
-	}
-
-	results, err := e.Extract(out)
-	if err != nil {
-		fmt.Printf("Failed to extract %s: %s\n", filepath.Base(path), err)
-		os.Exit(1)
-	}
-
-	if isDir && len(results) > 64 {
-		results = results[0:64] + " (summarized due to directory extract)"
-	}
-	fmt.Println(filepath.Base(path), results)
-	return nil
 }

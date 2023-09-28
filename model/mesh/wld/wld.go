@@ -6,12 +6,12 @@ import (
 	"fmt"
 
 	"github.com/xackery/quail/common"
-	"github.com/xackery/quail/pfs/archive"
+	"github.com/xackery/quail/pfs"
 )
 
 // WLD is a wld file struct
 type WLD struct {
-	archive    archive.ReadWriter
+	archive    *pfs.PFS
 	version    uint32
 	name       string
 	names      map[int32]string    // used temporarily while decoding a wld
@@ -22,7 +22,7 @@ type WLD struct {
 }
 
 // New creates a new empty instance. Use NewFile to load an archive file on creation
-func New(name string, pfs archive.ReadWriter) (*WLD, error) {
+func New(name string, pfs *pfs.PFS) (*WLD, error) {
 	e := &WLD{
 		name:      name,
 		archive:   pfs,
@@ -33,7 +33,7 @@ func New(name string, pfs archive.ReadWriter) (*WLD, error) {
 }
 
 // NewFile creates a new instance and loads provided file
-func NewFile(name string, pfs archive.ReadWriter, file string) (*WLD, error) {
+func NewFile(name string, pfs *pfs.PFS, file string) (*WLD, error) {
 	e := &WLD{
 		name:      name,
 		archive:   pfs,

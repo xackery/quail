@@ -17,9 +17,7 @@ import (
 	"github.com/xackery/quail/model/metadata/prt"
 	"github.com/xackery/quail/model/metadata/pts"
 	"github.com/xackery/quail/model/metadata/zon"
-	"github.com/xackery/quail/pfs/archive"
-	"github.com/xackery/quail/pfs/eqg"
-	"github.com/xackery/quail/pfs/s3d"
+	"github.com/xackery/quail/pfs"
 	"github.com/xackery/quail/quail"
 )
 
@@ -160,54 +158,31 @@ func inspect(path string, file string) (interface{}, error) {
 		log.Infof("Inspecting %s %s", filepath.Base(path), filepath.Base(file))
 	}
 
+	isValidExt := false
+	exts := []string{".eqg", ".s3d", ".pfs", ".pak"}
 	ext := strings.ToLower(filepath.Ext(path))
-	switch ext {
-	case ".eqg":
-		pfs, err := eqg.NewFile(path)
-		if err != nil {
-			return nil, fmt.Errorf("%s load: %w", ext, err)
+	for _, ext := range exts {
+		if strings.HasSuffix(path, ext) {
+			isValidExt = true
+			break
 		}
-		if len(file) < 2 {
-			pfs.Close()
-			return *pfs, nil
-		}
-		return inspectFile(pfs, path, file)
-	case ".s3d":
-		pfs, err := s3d.NewFile(path)
-		if err != nil {
-			return nil, fmt.Errorf("%s load: %w", ext, err)
-		}
-		if len(file) < 2 {
-			pfs.Close()
-			return *pfs, nil
-		}
-		return inspectFile(pfs, path, file)
-	case ".pfs":
-		pfs, err := eqg.NewFile(path)
-		if err != nil {
-			return nil, fmt.Errorf("%s load: %w", ext, err)
-		}
-		if len(file) < 2 {
-			pfs.Close()
-			return *pfs, nil
-		}
-		return inspectFile(pfs, path, file)
-	case ".pak":
-		pfs, err := eqg.NewFile(path)
-		if err != nil {
-			return nil, fmt.Errorf("%s load: %w", ext, err)
-		}
-		if len(file) < 2 {
-			pfs.Close()
-			return *pfs, nil
-		}
-		return inspectFile(pfs, path, file)
-	default:
-		return inspectFile(nil, path, path)
 	}
+	if !isValidExt {
+		return inspectFile(nil, path, file)
+	}
+
+	pfs, err := pfs.NewFile(path)
+	if err != nil {
+		return nil, fmt.Errorf("%s load: %w", ext, err)
+	}
+	if len(file) < 2 {
+		pfs.Close()
+		return *pfs, nil
+	}
+	return inspectFile(pfs, path, file)
 }
 
-func inspectFile(pfs archive.Reader, path string, file string) (interface{}, error) {
+func inspectFile(pfs *pfs.PFS, path string, file string) (interface{}, error) {
 	if pfs == nil {
 		data, err := os.ReadFile(path)
 		if err != nil {

@@ -1,4 +1,4 @@
-package eqg
+package pfs
 
 import (
 	"bytes"
@@ -11,11 +11,10 @@ import (
 	"github.com/xackery/quail/dump"
 	"github.com/xackery/quail/helper"
 	"github.com/xackery/quail/log"
-	"github.com/xackery/quail/pfs/archive"
 )
 
-// Decode will decode an EQG
-func (e *EQG) Decode(r io.ReadSeeker) error {
+// Decode will decode a PFS archive
+func (e *PFS) Decode(r io.ReadSeeker) error {
 	var err error
 	type dirEntry struct {
 		crc    uint32
@@ -87,7 +86,7 @@ func (e *EQG) Decode(r io.ReadSeeker) error {
 		return fmt.Errorf("unknown version")
 	}
 
-	e.files = []archive.Filer{}
+	e.files = []FileEntry{}
 	fileByCRCs := make(map[uint32][]byte)
 	dirNameByCRCs := make(map[uint32]string)
 
@@ -194,12 +193,7 @@ func (e *EQG) Decode(r io.ReadSeeker) error {
 
 		//force spaces in pfs archives to _
 		dirName = strings.ReplaceAll(dirName, " ", "_")
-		file, err := archive.NewFileEntry(dirName, data)
-		if err != nil {
-			return fmt.Errorf("new file entry %s: %w", dirName, err)
-		}
-
-		e.files = append(e.files, file)
+		e.files = append(e.files, NewFileEntry(dirName, data))
 	}
 
 	dump.Hex(fileCount, "fileCount=%d", fileCount)

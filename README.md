@@ -18,23 +18,27 @@ Quail currently in an early preview status. While many functionality goals have 
 Quail has a number of commands that are displayed when the program is ran on it's own with no arguments:
 ```
 Available Commands:
-  blender     Export/Import special blender-friendly quail-addon formats
-  compress    Create an eqg archive by compressing a directory
-  debug       Debug a file
-  extract     Extract an eqg or s3d archive
+  completion  Generate the autocompletion script for the specified shell
+  compress    Compress an eqg/s3d/pfs/pak folder named _file.ext/ to a pfs archive
+  convert     Take one file, convert to another
+  extract     Extract an pfs (eqg/s3d/pak/pfs) archive to a _file.ext/ folder
+  extract-mod ExtractMod an pfs archive to a _file.ext/ folder
   help        Help about any command
-  inspect     Inspect a file
+  hybrid      Hybrid merge geometry with existing bone data
+  inspect     Inspect an EverQuest asset
 ```
 
 # EverQuest File Overview
 ## Pfs
 
-Pfs represents packaged files, you can think of them as zip compressed archives but has a special format.
+Pfs represents packaged files, you can think of them as zip compressed archives but has a special format. They all use the same decoder and encoder.
 
 Extension|Notes
 ---|---
 eqg|EverQuest Game Asset Pfs Archive
 s3d|EverQuest Game Asset Pfs Archive (Legacy)
+pak|EverQuest Game Asset Pfs Archive (Legacy)
+pfs|EverQuest Game Asset Pfs Archive (Legacy)
 
 ## Model/Mesh
 

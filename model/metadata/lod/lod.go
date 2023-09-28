@@ -7,7 +7,7 @@ import (
 	"os"
 
 	"github.com/xackery/quail/log"
-	"github.com/xackery/quail/pfs/archive"
+	"github.com/xackery/quail/pfs"
 )
 
 // LOD is level of detail information
@@ -21,7 +21,7 @@ LOD,OBJ_FIREPIT_STMFT_LOD3,1000
 */
 type LOD struct {
 	name string
-	pfs  archive.Reader
+	pfs  *pfs.PFS
 	lods []*LODEntry
 }
 
@@ -32,7 +32,7 @@ type LODEntry struct {
 }
 
 // New creates a new empty instance. Use NewFile to load an archive file on creation
-func New(name string, pfs archive.Reader) (*LOD, error) {
+func New(name string, pfs *pfs.PFS) (*LOD, error) {
 	t := &LOD{
 		name: name,
 	}
@@ -40,7 +40,7 @@ func New(name string, pfs archive.Reader) (*LOD, error) {
 }
 
 // NewFile creates a new instance and loads provided file
-func NewFile(name string, pfs archive.Reader, file string) (*LOD, error) {
+func NewFile(name string, pfs *pfs.PFS, file string) (*LOD, error) {
 	e := &LOD{
 		name: name,
 		pfs:  pfs,

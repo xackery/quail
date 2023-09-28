@@ -12,7 +12,7 @@ import (
 	"testing"
 
 	"github.com/xackery/quail/log"
-	"github.com/xackery/quail/pfs/s3d"
+	"github.com/xackery/quail/pfs"
 )
 
 func fragmentTests(t *testing.T, isSingleRun bool, names []string, fragCode int32, fragOffset int, parser func(r io.ReadSeeker, fragOffset int) error) {
@@ -174,9 +174,9 @@ func extractFragments(t *testing.T, name string) {
 
 	out := fmt.Sprintf("%s/_test_data/%s", eqPath, name)
 
-	pfs, err := s3d.NewFile(fmt.Sprintf("%s/%s", eqPath, name))
+	pfs, err := pfs.NewFile(fmt.Sprintf("%s/%s", eqPath, name))
 	if err != nil {
-		t.Fatalf("s3d.NewFile: %v", err)
+		t.Fatalf("pfs.NewFile: %v", err)
 		return
 	}
 	wldName := strings.TrimSuffix(name, ".s3d") + ".wld"

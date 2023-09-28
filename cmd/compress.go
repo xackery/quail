@@ -8,14 +8,13 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/xackery/quail/helper"
-	"github.com/xackery/quail/pfs/eqg"
-	"github.com/xackery/quail/pfs/s3d"
+	"github.com/xackery/quail/pfs"
 )
 
 // compressCmd represents the compress command
 var compressCmd = &cobra.Command{
 	Use:   "compress",
-	Short: "Compress an eqg/s3d folder named _file.ext/ to a pfs archive",
+	Short: "Compress an eqg/s3d/pfs/pak folder named _file.ext/ to a pfs archive",
 	Long:  `Compress is used to take a provided _file.eqg or _file.s3d and compress it based on a folder structure`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		path, err := cmd.Flags().GetString("path")
@@ -52,8 +51,15 @@ var compressCmd = &cobra.Command{
 
 		out = strings.ToLower(out)
 
-		if strings.Contains(out, ".") && !strings.HasSuffix(out, ".eqg") && !strings.HasSuffix(out, ".s3d") {
-			return fmt.Errorf("only eqg and s3d extension out names are supported")
+		isValid := false
+		for _, ext := range []string{".eqg", ".s3d", ".pfs", ".pak"} {
+			if strings.HasSuffix(out, ext) {
+				isValid = true
+				break
+			}
+		}
+		if !isValid {
+			return fmt.Errorf("out must have a valid extension (.eqg, .s3d, .pfs, .pak)")
 		}
 		out = strings.TrimPrefix(out, "_")
 		err = compress(path, out)
@@ -76,23 +82,23 @@ quail compress --path=_soldungb.eqg/ --out=foo.eqg`
 
 func compress(path string, out string) error {
 	if strings.HasSuffix(out, ".eqg") {
-		return compressEQG(path, out)
+		return compressPFS(path, out)
 	}
 	if strings.HasSuffix(out, ".s3d") {
-		return compressS3D(path, out)
+		return compressPFS(path, out)
 	}
 	if strings.HasSuffix(out, ".pfs") {
-		return compressEQG(path, out)
+		return compressPFS(path, out)
 	}
 	if strings.HasSuffix(out, ".pak") {
-		return compressEQG(path, out)
+		return compressPFS(path, out)
 	}
 
 	out = out + ".eqg"
-	return compressEQG(path, out)
+	return compressPFS(path, out)
 }
 
-func compressEQG(path string, out string) error {
+func compressPFS(path string, out string) error {
 	fi, err := os.Stat(path)
 	if err != nil {
 		return fmt.Errorf("path check: %w", err)
@@ -101,7 +107,7 @@ func compressEQG(path string, out string) error {
 		return fmt.Errorf("path invalid, must be a directory (%s)", path)
 	}
 
-	archive := &eqg.EQG{}
+	archive := &pfs.PFS{}
 	files, err := os.ReadDir(path)
 	if err != nil {
 		return fmt.Errorf("readdir path: %w", err)
@@ -121,63 +127,6 @@ func compressEQG(path string, out string) error {
 		}
 		fileCount++
 
-		data, err := os.ReadFile(fmt.Sprintf("%s/%s", path, file.Name()))
-		if err != nil {
-			return fmt.Errorf("read %s: %w", file.Name(), err)
-		}
-		err = archive.Add(file.Name(), data)
-		if err != nil {
-			return fmt.Errorf("add %s: %w", file.Name(), err)
-		}
-		addStdout += file.Name() + ", "
-	}
-	if fileCount == 0 {
-		return fmt.Errorf("no files found to add")
-	}
-	addStdout = addStdout[0:len(addStdout)-2] + "\n"
-
-	w, err := os.Create(out)
-	if err != nil {
-		return fmt.Errorf("create %s: %w", out, err)
-	}
-	defer w.Close()
-	err = archive.Encode(w)
-	if err != nil {
-		return fmt.Errorf("encode %s: %w", out, err)
-	}
-
-	fmt.Printf("%s\n%d file%s written to %s\n", addStdout, fileCount, helper.Pluralize(fileCount), out)
-	return nil
-}
-
-func compressS3D(path string, out string) error {
-	fi, err := os.Stat(path)
-	if err != nil {
-		return fmt.Errorf("path check: %w", err)
-	}
-	if !fi.IsDir() {
-		return fmt.Errorf("path invalid, must be a directory (%s)", path)
-	}
-
-	archive := &s3d.S3D{}
-	files, err := os.ReadDir(path)
-	if err != nil {
-		return fmt.Errorf("readdir path: %w", err)
-	}
-	if len(files) == 0 {
-		return fmt.Errorf("no files found in %s to add to archive %s", path, out)
-	}
-
-	addStdout := ""
-	fileCount := 0
-	for _, file := range files {
-		if file.IsDir() {
-			continue
-		}
-		if file.Name() == ".DS_Store" {
-			continue
-		}
-		fileCount++
 		data, err := os.ReadFile(fmt.Sprintf("%s/%s", path, file.Name()))
 		if err != nil {
 			return fmt.Errorf("read %s: %w", file.Name(), err)

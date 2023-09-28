@@ -6,17 +6,17 @@ import (
 	"fmt"
 
 	"github.com/xackery/quail/common"
-	"github.com/xackery/quail/pfs/archive"
+	"github.com/xackery/quail/pfs"
 )
 
 type TOG struct {
 	name    string
-	pfs     archive.ReadWriter
+	pfs     *pfs.PFS
 	objects []common.Object
 }
 
 // New creates a new empty instance. Use NewFile to load an archive file on creation
-func New(name string, pfs archive.ReadWriter) (*TOG, error) {
+func New(name string, pfs *pfs.PFS) (*TOG, error) {
 	e := &TOG{
 		name: name,
 		pfs:  pfs,
@@ -25,7 +25,7 @@ func New(name string, pfs archive.ReadWriter) (*TOG, error) {
 }
 
 // NewFile creates a new instance and loads provided file
-func NewFile(name string, pfs archive.ReadWriter, file string) (*TOG, error) {
+func NewFile(name string, pfs *pfs.PFS, file string) (*TOG, error) {
 	e := &TOG{
 		name: name,
 		pfs:  pfs,

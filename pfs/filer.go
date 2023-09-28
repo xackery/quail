@@ -1,4 +1,4 @@
-package archive
+package pfs
 
 import (
 	"strings"
@@ -6,15 +6,14 @@ import (
 	"github.com/xackery/quail/helper"
 )
 
-// Filer is an interface that file-like structs fit inside
-type Filer interface {
+// filer is an interface that file-like structs fit inside
+type filer interface {
 	Name() string
 	Data() []byte
-	SetData([]byte) error
 }
 
 // FilerByCRC sorts a slice of Filer by CRC32
-type FilerByCRC []Filer
+type FilerByCRC []FileEntry
 
 // Len returns the length of the slice
 func (s FilerByCRC) Len() int {
@@ -32,7 +31,7 @@ func (s FilerByCRC) Less(i, j int) bool {
 }
 
 // FilerByName sorts a slice of Filer by name
-type FilerByName []Filer
+type FilerByName []filer
 
 // Len returns the length of the slice
 func (s FilerByName) Len() int {

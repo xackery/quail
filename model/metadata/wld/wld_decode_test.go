@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/xackery/quail/common"
-	"github.com/xackery/quail/pfs/s3d"
+	"github.com/xackery/quail/pfs"
 )
 
 func TestDecode(t *testing.T) {
@@ -22,7 +22,7 @@ func TestDecode(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			pfs, err := s3d.NewFile(fmt.Sprintf("%s/%s.s3d", eqPath, tt.name))
+			pfs, err := pfs.NewFile(fmt.Sprintf("%s/%s.s3d", eqPath, tt.name))
 			if err != nil {
 				t.Fatalf("failed to open s3d %s: %s", tt.name, err.Error())
 			}

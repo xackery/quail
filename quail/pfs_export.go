@@ -13,7 +13,7 @@ import (
 	"github.com/xackery/quail/model/metadata/prt"
 	"github.com/xackery/quail/model/metadata/pts"
 	"github.com/xackery/quail/model/metadata/zon"
-	"github.com/xackery/quail/pfs/eqg"
+	"github.com/xackery/quail/pfs"
 	"github.com/xackery/quail/tag"
 )
 
@@ -40,7 +40,7 @@ func (e *Quail) PFSExport(fileVersion uint32, pfsVersion int, path string) error
 
 // EQGExport exports the quail target to an EQG file
 func (e *Quail) EQGExport(fileVersion uint32, pfsVersion int, path string) error {
-	pfs, err := eqg.New(path)
+	pfs, err := pfs.New(path)
 	if err != nil {
 		return fmt.Errorf("eqg new: %w", err)
 	}

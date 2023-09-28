@@ -7,11 +7,11 @@ import (
 	"github.com/xackery/quail/helper"
 	"github.com/xackery/quail/log"
 	"github.com/xackery/quail/model/mesh/wld"
-	"github.com/xackery/quail/pfs/archive"
+	"github.com/xackery/quail/pfs"
 )
 
 // Decode decodes a WLD file
-func WLDDecode(r io.ReadSeeker, pfs archive.ReadWriter) ([]*common.Model, error) {
+func WLDDecode(r io.ReadSeeker, pfs *pfs.PFS) ([]*common.Model, error) {
 	models := make([]*common.Model, 0)
 
 	e, err := wld.New("test", pfs)

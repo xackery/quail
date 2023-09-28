@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/xackery/quail/common"
-	"github.com/xackery/quail/pfs/eqg"
+	"github.com/xackery/quail/pfs"
 	"github.com/xackery/quail/tag"
 )
 
@@ -32,7 +32,7 @@ func TestDecode(t *testing.T) {
 	os.MkdirAll("test", 0755)
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			pfs, err := eqg.NewFile(fmt.Sprintf("%s/%s", eqPath, tt.name))
+			pfs, err := pfs.NewFile(fmt.Sprintf("%s/%s", eqPath, tt.name))
 			if err != nil {
 				t.Fatalf("failed to open eqg %s: %s", tt.name, err.Error())
 			}

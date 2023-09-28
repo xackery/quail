@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/xackery/quail/log"
-	"github.com/xackery/quail/pfs/eqg"
+	"github.com/xackery/quail/pfs"
 )
 
 func main() {
@@ -43,7 +43,7 @@ func run() error {
 			return nil
 		}
 
-		pfs, err := eqg.NewFile(path)
+		pfs, err := pfs.NewFile(path)
 		if err != nil {
 			return fmt.Errorf("load: %w", err)
 		}

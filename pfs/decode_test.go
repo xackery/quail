@@ -1,4 +1,4 @@
-package eqg
+package pfs
 
 import (
 	"fmt"

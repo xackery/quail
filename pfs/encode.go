@@ -1,4 +1,4 @@
-package eqg
+package pfs
 
 import (
 	"bytes"
@@ -8,11 +8,10 @@ import (
 	"time"
 
 	"github.com/xackery/quail/helper"
-	"github.com/xackery/quail/pfs/archive"
 )
 
-// Encode will write a EQG to writer
-func (e *EQG) Encode(w io.WriteSeeker) error {
+// Encode will write a PFS archive to w
+func (e *PFS) Encode(w io.WriteSeeker) error {
 	var err error
 
 	type dirEntry struct {
@@ -45,7 +44,7 @@ func (e *EQG) Encode(w io.WriteSeeker) error {
 		return fmt.Errorf("write file count: %w", err)
 	}
 
-	e.files = archive.FilerByCRC(e.files)
+	e.files = FilerByCRC(e.files)
 	for _, file := range e.files {
 		pos, err = w.Seek(0, io.SeekCurrent)
 		if err != nil {

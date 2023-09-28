@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/xackery/quail/log"
-	"github.com/xackery/quail/pfs/s3d"
+	"github.com/xackery/quail/pfs"
 )
 
 func TestWLD_Decode(t *testing.T) {
@@ -26,7 +26,7 @@ func TestWLD_Decode(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			pfs, err := s3d.NewFile(fmt.Sprintf("%s/%s", eqPath, tt.name))
+			pfs, err := pfs.NewFile(fmt.Sprintf("%s/%s", eqPath, tt.name))
 			if err != nil {
 				t.Fatalf("s3d.NewFile: %v", err)
 				return

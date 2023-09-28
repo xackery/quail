@@ -9,14 +9,14 @@ import (
 
 	"github.com/sergeymakinen/go-bmp"
 	"github.com/xackery/quail/log"
-	"github.com/xackery/quail/pfs/s3d"
+	"github.com/xackery/quail/pfs"
 )
 
 // S3DImport imports the quail target to an S3D file
 func (e *Quail) S3DImport(path string) error {
-	pfs, err := s3d.NewFile(path)
+	pfs, err := pfs.NewFile(path)
 	if err != nil {
-		return fmt.Errorf("s3d load: %w", err)
+		return fmt.Errorf("pfs load: %w", err)
 	}
 	defer pfs.Close()
 
