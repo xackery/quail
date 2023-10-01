@@ -14,6 +14,9 @@ func TestFilenameCRC32(t *testing.T) {
 		want uint32
 	}{
 		{name: string("FilenameCRC32"), args: args{name: "test"}, want: 1537663841},
+		{name: "Test 2", args: args{name: "hello world"}, want: 2533725502},
+		{name: "Test 3", args: args{name: "12345"}, want: 742322399},
+		{name: "Test 4", args: args{name: "test.txt"}, want: 2138351979},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
