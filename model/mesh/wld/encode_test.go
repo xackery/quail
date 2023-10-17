@@ -7,6 +7,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/xackery/quail/common"
 	"github.com/xackery/quail/log"
 	"github.com/xackery/quail/pfs"
 )
@@ -16,6 +17,7 @@ func TestWLD_Encode(t *testing.T) {
 	if eqPath == "" {
 		t.Skip("EQ_PATH not set")
 	}
+	dirTest := common.DirTest(t)
 
 	log.SetLogLevel(1)
 	tests := []struct {
@@ -49,7 +51,7 @@ func TestWLD_Encode(t *testing.T) {
 					return
 				}
 
-				w, err := os.Create(fmt.Sprintf("test/%s", fe.Name()))
+				w, err := os.Create(fmt.Sprintf(dirTest+"/%s", fe.Name()))
 				if err != nil {
 					t.Fatalf("os.Create: %v", err)
 					return

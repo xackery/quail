@@ -16,6 +16,7 @@ func TestDecodeMesh(t *testing.T) {
 	if eqPath == "" {
 		t.Skip("EQ_PATH not set")
 	}
+	dirTest := common.DirTest(t)
 	tests := []struct {
 		name       string
 		isOldWorld bool
@@ -25,8 +26,6 @@ func TestDecodeMesh(t *testing.T) {
 		{"crushbone", true, 222},
 		{"crushbone", true, 223},
 	}
-	os.RemoveAll("test")
-	os.MkdirAll("test", 0755)
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			model := &common.Model{}
@@ -53,8 +52,8 @@ func TestDecodeMesh(t *testing.T) {
 			nameRef := int32(0)
 			r := bytes.NewReader(data)
 			err = DecodeMesh(model, &nameRef, tt.isOldWorld, r)
-			os.WriteFile(fmt.Sprintf("test/%s.hex", tt.name), data, 0644)
-			tag.Write(fmt.Sprintf("test/%s.hex.tags", tt.name))
+			os.WriteFile(fmt.Sprintf(dirTest+"/%s.hex", tt.name), data, 0644)
+			tag.Write(fmt.Sprintf(dirTest+"/%s.hex.tags", tt.name))
 			if err != nil {
 				t.Fatalf("failed to decode %s: %s", tt.name, err.Error())
 			}

@@ -15,6 +15,7 @@ func TestQuail_PFSExport(t *testing.T) {
 	if eqPath == "" {
 		t.Skip("EQ_PATH not set")
 	}
+	dirTest := common.DirTest(t)
 	type fields struct {
 		Models []*common.Model
 	}
@@ -35,8 +36,6 @@ func TestQuail_PFSExport(t *testing.T) {
 		//{args: args{srcPath: "qeynos2.s3d", fileVersion: 1, pfsVersion: 1}, wantErr: false},
 		{args: args{srcPath: "wrm.eqg", fileVersion: 1, pfsVersion: 1}, wantErr: false},
 	}
-	os.RemoveAll("test")
-	os.MkdirAll("test", 0755)
 	for _, tt := range tests {
 		t.Run(tt.args.srcPath, func(t *testing.T) {
 			e := &Quail{
@@ -50,7 +49,7 @@ func TestQuail_PFSExport(t *testing.T) {
 			//e.Models[0].Bones = []def.Bone{}
 			//e.Models[0].Animations = []def.BoneAnimation{}
 
-			if err := e.PFSExport(tt.args.fileVersion, tt.args.pfsVersion, "test/"+filepath.Base(tt.args.srcPath)); (err != nil) != tt.wantErr {
+			if err := e.PFSExport(tt.args.fileVersion, tt.args.pfsVersion, dirTest+"/"+filepath.Base(tt.args.srcPath)); (err != nil) != tt.wantErr {
 				t.Fatalf("pfs export %s error = %v, wantErr %v", tt.args.srcPath, err, tt.wantErr)
 			}
 		})
@@ -62,6 +61,7 @@ func TestQuail_PFSExportImportExport(t *testing.T) {
 	if eqPath == "" {
 		t.Skip("EQ_PATH not set")
 	}
+	dirTest := common.DirTest(t)
 	type fields struct {
 		Models []*common.Model
 	}
@@ -101,7 +101,7 @@ func TestQuail_PFSExportImportExport(t *testing.T) {
 			//e.Models[0].Bones = []def.Bone{}
 			//e.Models[0].Animations = []def.BoneAnimation{}
 
-			if err := e.PFSExport(tt.args.fileVersion, tt.args.pfsVersion, "test/"+filepath.Base(tt.args.srcPath)); (err != nil) != tt.wantErr {
+			if err := e.PFSExport(tt.args.fileVersion, tt.args.pfsVersion, dirTest+"/"+filepath.Base(tt.args.srcPath)); (err != nil) != tt.wantErr {
 				t.Fatalf("Quail.ExportPFS() error = %v, wantErr %v", err, tt.wantErr)
 			}
 
@@ -109,7 +109,7 @@ func TestQuail_PFSExportImportExport(t *testing.T) {
 				Models: tt.fields.Models,
 			}
 
-			if err := e2.PFSImport("test/" + filepath.Base(tt.args.srcPath)); err != nil {
+			if err := e2.PFSImport(dirTest + "/" + filepath.Base(tt.args.srcPath)); err != nil {
 				t.Fatalf("Quail.ImportPFS() error = %v", err)
 			}
 

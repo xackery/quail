@@ -15,6 +15,7 @@ func TestDecode(t *testing.T) {
 	if eqPath == "" {
 		t.Skip("EQ_PATH not set")
 	}
+
 	tests := []struct {
 		name string
 	}{

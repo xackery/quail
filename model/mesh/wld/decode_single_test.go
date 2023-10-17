@@ -9,6 +9,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/xackery/quail/common"
 	"github.com/xackery/quail/pfs"
 )
 
@@ -17,9 +18,10 @@ func TestExtractWldFragment(t *testing.T) {
 	if eqPath == "" {
 		t.Skip("EQ_PATH not set")
 	}
+	dirTest := common.DirTest(t)
 
 	name := "gequip.s3d"
-	out := fmt.Sprintf("%s/_test_data/%s", eqPath, name)
+	out := fmt.Sprintf("%s/_test_data/%s", dirTest, name)
 
 	pfs, err := pfs.NewFile(fmt.Sprintf("%s/%s", eqPath, name))
 	if err != nil {

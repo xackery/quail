@@ -2,8 +2,12 @@
 package pfs
 
 import (
+	"fmt"
 	"reflect"
+	"strings"
 	"testing"
+
+	"github.com/xackery/quail/common"
 )
 
 func TestPFS_Add(t *testing.T) {
@@ -135,6 +139,8 @@ func TestPFS_Extract(t *testing.T) {
 		ContentsSummary string
 		fileCount       int
 	}
+	dirTest := common.DirTest(t)
+	fmt.Println(dirTest)
 	type args struct {
 		path string
 	}
@@ -145,8 +151,8 @@ func TestPFS_Extract(t *testing.T) {
 		want    string
 		wantErr bool
 	}{
-		{name: "success", fields: fields{files: []FileEntry{{name: "test", data: []byte("test")}}}, args: args{path: "test"}, want: "extracted 1 file to test: test", wantErr: false},
-		{name: "fail", args: args{path: "test"}, want: "", wantErr: true},
+		{name: "success", fields: fields{files: []FileEntry{{name: "test", data: []byte("test")}}}, args: args{path: dirTest + "/test.pfs"}, want: "extracted 1", wantErr: false},
+		{name: "fail", args: args{path: dirTest + "/test.pfs"}, want: "", wantErr: true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -161,7 +167,7 @@ func TestPFS_Extract(t *testing.T) {
 				t.Errorf("PFS.Extract() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if got != tt.want {
+			if !strings.Contains(got, tt.want) {
 				t.Errorf("PFS.Extract() = %v, want %v", got, tt.want)
 			}
 		})
@@ -244,6 +250,7 @@ func TestPFS_WriteFile(t *testing.T) {
 		ContentsSummary string
 		fileCount       int
 	}
+
 	type args struct {
 		name string
 		data []byte

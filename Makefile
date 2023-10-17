@@ -20,8 +20,11 @@ bundle:
 	go-winres simply --icon quail.png
 
 # run tests that aren't flagged for SINGLE_TEST
+.PHONY: test
 test:
 	@echo "test: running tests..."
+	@mkdir -p test
+	@rm -rf test/*
 	@go test ./...
 
 # build all supported os's

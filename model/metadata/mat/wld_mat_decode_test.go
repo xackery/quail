@@ -22,8 +22,7 @@ func TestDecodeMaterial(t *testing.T) {
 	}{
 		{"crushbone", 5},
 	}
-	os.RemoveAll("test")
-	os.MkdirAll("test", 0755)
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			material := &common.Material{}
