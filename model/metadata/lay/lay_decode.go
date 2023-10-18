@@ -23,9 +23,9 @@ func Decode(model *common.Model, r io.ReadSeeker) error {
 
 	tag.New()
 
-	version := dec.Uint32()
+	model.Version = int(dec.Uint32())
 	versionOffset := 0
-	switch version {
+	switch model.Version {
 	case 2:
 		versionOffset = 52 //32
 	case 3:
@@ -33,7 +33,7 @@ func Decode(model *common.Model, r io.ReadSeeker) error {
 	case 4:
 		versionOffset = 20
 	default:
-		return fmt.Errorf("unknown lay version: %d", version)
+		return fmt.Errorf("unknown lay version: %d", model.Version)
 	}
 
 	nameLength := int(dec.Uint32())
