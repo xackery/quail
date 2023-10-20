@@ -1,6 +1,9 @@
 package quail
 
-import "github.com/xackery/quail/common"
+import (
+	"github.com/xackery/quail/common"
+	"github.com/xackery/quail/log"
+)
 
 type Quail struct {
 	Models                 []*common.Model
@@ -24,4 +27,9 @@ func (e *Quail) Close() error {
 	e.Zone = nil
 	e.materialCache = make(map[string]*common.Material)
 	return nil
+}
+
+// SetLogLevel sets the log level
+func SetLogLevel(level int) {
+	log.SetLogLevel(level)
 }
