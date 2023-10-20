@@ -65,11 +65,15 @@ func TestDecode(t *testing.T) {
 				model := &common.Model{}
 				err = Decode(model, bytes.NewReader(file.Data()))
 				if err != nil {
-					os.WriteFile(fmt.Sprintf("%s/%s", dirTest, file.Name()), file.Data(), 0644)
+					err = os.WriteFile(fmt.Sprintf("%s/%s", dirTest, file.Name()), file.Data(), 0644)
+					if err != nil {
+						t.Fatalf("failed to write %s: %s", tt.name, err.Error())
+					}
 					tag.Write(fmt.Sprintf("%s/%s.tags", dirTest, file.Name()))
 					t.Fatalf("failed to decode %s: %s", tt.name, err.Error())
 				}
-
+				fmt.Println("decoded", tt.name)
+				fmt.Printf("%+v\n", model)
 			}
 		})
 	}

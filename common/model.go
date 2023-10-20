@@ -53,6 +53,10 @@ type Layer struct {
 	Normal   string
 }
 
+func (v Layer) String() string {
+	return fmt.Sprintf("[%s, %s, %s]", v.Material, v.Diffuse, v.Normal)
+}
+
 // Vector3 has X,Y,Z defined as float32
 type Vector3 struct {
 	X float32
