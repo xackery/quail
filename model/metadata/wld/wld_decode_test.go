@@ -33,17 +33,12 @@ func TestDecode(t *testing.T) {
 				t.Fatalf("failed to open wld %s: %s", tt.name, err.Error())
 			}
 
-			wld, err := common.WldOpen(bytes.NewReader(data))
-			if err != nil {
-				t.Fatalf("failed to load %s: %s", tt.name, err.Error())
-			}
-			defer wld.Close()
-
-			err = Decode(wld)
+			wld := &common.Wld{}
+			err = Decode(wld, bytes.NewReader(data))
 			if err != nil {
 				t.Fatalf("failed to decode %s: %s", tt.name, err.Error())
 			}
-			fmt.Printf("%s has %d materials\n", tt.name, len(wld.Materials))
+
 		})
 	}
 }

@@ -99,3 +99,7 @@ explore-%:
 	rm -rf _*.eqg/
 	go run main.go extract ../eq/$*.s3d
 	wld-cli explore _$*.s3d/$*.wld
+
+test-cover:
+	go test -coverprofile=coverage.out ./...
+	go tool cover -html=coverage.out

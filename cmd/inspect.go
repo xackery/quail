@@ -250,7 +250,7 @@ func inspectContent(file string, data *bytes.Reader) (interface{}, error) {
 		}
 		return zone, nil
 	case ".wld":
-		models, err := quail.WLDDecode(data, nil)
+		models, err := quail.WLDDecode2(data, nil)
 		if err != nil {
 			return nil, fmt.Errorf("wld.Decode %s: %w", file, err)
 		}

@@ -8,7 +8,9 @@ import (
 	"strings"
 
 	"github.com/sergeymakinen/go-bmp"
+	"github.com/xackery/quail/common"
 	"github.com/xackery/quail/log"
+	"github.com/xackery/quail/model/metadata/wld"
 	"github.com/xackery/quail/pfs"
 )
 
@@ -27,12 +29,17 @@ func (e *Quail) S3DImport(path string) error {
 				continue
 			}
 
-			log.Debugf("testing %s", file.Name())
+			world := &common.Wld{}
 
-			models, err := WLDDecode(bytes.NewReader(file.Data()), pfs)
+			err = wld.Decode(world, bytes.NewReader(file.Data()))
 			if err != nil {
-				return fmt.Errorf("wldDecode %s: %w", file.Name(), err)
+				return fmt.Errorf("wld decode: %w", err)
 			}
+			models, err := wld.Convert(world)
+			if err != nil {
+				return fmt.Errorf("wld convert: %w", err)
+			}
+
 			e.Models = append(e.Models, models...)
 		}
 	}

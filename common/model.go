@@ -41,6 +41,10 @@ type MaterialProperty struct {
 	Data     []byte
 }
 
+func (m *MaterialProperty) String() string {
+	return fmt.Sprintf("[%s, %d, %s]", m.Name, m.Category, m.Value)
+}
+
 type MaterialAnimation struct {
 	Sleep    uint32
 	Textures []string
