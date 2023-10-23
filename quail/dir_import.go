@@ -340,8 +340,7 @@ func (quail *Quail) dirParseMaterial(path string, name string) error {
 }
 
 func (quail *Quail) dirParseAni(path string, name string) error {
-	ani := &common.Animation{}
-	ani.Header.Name = strings.TrimSuffix(name, ".ani")
+	ani := common.NewAnimation(strings.TrimSuffix(name, ".ani"))
 	aniPath := fmt.Sprintf("%s/%s", path, name)
 	aniFiles, err := os.ReadDir(aniPath)
 	if err != nil {

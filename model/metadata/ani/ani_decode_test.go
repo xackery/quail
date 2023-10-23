@@ -40,7 +40,7 @@ func TestDecode(t *testing.T) {
 				if filepath.Ext(file.Name()) != ".ani" {
 					continue
 				}
-				ani := &common.Animation{}
+				ani := common.NewAnimation("")
 				err = Decode(ani, bytes.NewReader(file.Data()))
 				if err != nil {
 					os.WriteFile(fmt.Sprintf("%s/%s", dirTest, file.Name()), file.Data(), 0644)
