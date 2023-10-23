@@ -25,7 +25,7 @@ func Decode(render *common.ParticleRender, r io.ReadSeeker) error {
 
 	particleCount := dec.Uint32()
 	version := dec.Uint32()
-	render.Version = int(version)
+	render.Header.Version = int(version)
 	if version < 4 {
 		return fmt.Errorf("invalid version %d, wanted 4+", version)
 	}
@@ -58,6 +58,6 @@ func Decode(render *common.ParticleRender, r io.ReadSeeker) error {
 		return fmt.Errorf("decode: %w", dec.Error())
 	}
 
-	log.Debugf("%s (prt) decoded %d entries", render.Name, len(render.Entries))
+	log.Debugf("%s (prt) decoded %d entries", render.Header.Name, len(render.Entries))
 	return nil
 }

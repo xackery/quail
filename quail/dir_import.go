@@ -62,10 +62,9 @@ func (quail *Quail) DirImport(path string) error {
 }
 
 func (quail *Quail) dirParseModel(path string, name string) error {
-	model := &common.Model{
-		FileType: "mod", // default to mod
-	}
-	model.Name = strings.TrimSuffix(name, ".model")
+	model := common.NewModel("")
+	model.FileType = "mod" // default to mod
+	model.Header.Name = strings.TrimSuffix(name, ".model")
 	modelPath := fmt.Sprintf("%s/%s", path, name)
 	modelFiles, err := os.ReadDir(modelPath)
 	if err != nil {
@@ -75,7 +74,7 @@ func (quail *Quail) dirParseModel(path string, name string) error {
 		if mf.Name() == "triangle.txt" {
 			lines, err := helper.ReadFile(fmt.Sprintf("%s/%s", modelPath, mf.Name()))
 			if err != nil {
-				return fmt.Errorf("read model %s triangle.txt: %w", model.Name, err)
+				return fmt.Errorf("read model %s triangle.txt: %w", model.Header.Name, err)
 			}
 			for i, line := range lines {
 				if i == 0 {
@@ -120,7 +119,7 @@ func (quail *Quail) dirParseModel(path string, name string) error {
 		if mf.Name() == "vertex.txt" {
 			lines, err := helper.ReadFile(fmt.Sprintf("%s/%s", modelPath, mf.Name()))
 			if err != nil {
-				return fmt.Errorf("read model %s vertex.txt: %w", model.Name, err)
+				return fmt.Errorf("read model %s vertex.txt: %w", model.Header.Name, err)
 			}
 			for i, line := range lines {
 				if i == 0 {
@@ -161,7 +160,7 @@ func (quail *Quail) dirParseModel(path string, name string) error {
 		if mf.Name() == "bone.txt" {
 			lines, err := helper.ReadFile(fmt.Sprintf("%s/%s", modelPath, mf.Name()))
 			if err != nil {
-				return fmt.Errorf("read model %s bone.txt: %w", model.Name, err)
+				return fmt.Errorf("read model %s bone.txt: %w", model.Header.Name, err)
 			}
 			for i, line := range lines {
 				if i == 0 {
@@ -198,11 +197,11 @@ func (quail *Quail) dirParseModel(path string, name string) error {
 		}
 
 		if mf.Name() == "particle_render.txt" {
-			particleRender := &common.ParticleRender{}
+			particleRender := common.NewParticleRender("")
 
 			lines, err := helper.ReadFile(fmt.Sprintf("%s/%s", modelPath, mf.Name()))
 			if err != nil {
-				return fmt.Errorf("read model %s particle_render.txt: %w", model.Name, err)
+				return fmt.Errorf("read model %s particle_render.txt: %w", model.Header.Name, err)
 			}
 			for i, line := range lines {
 				if i == 0 {
@@ -236,11 +235,11 @@ func (quail *Quail) dirParseModel(path string, name string) error {
 		}
 
 		if mf.Name() == "particle_point.txt" {
-			particlePoint := &common.ParticlePoint{}
+			particlePoint := common.NewParticlePoint("")
 
 			lines, err := helper.ReadFile(fmt.Sprintf("%s/%s", modelPath, mf.Name()))
 			if err != nil {
-				return fmt.Errorf("read model %s particle_point.txt: %w", model.Name, err)
+				return fmt.Errorf("read model %s particle_point.txt: %w", model.Header.Name, err)
 			}
 			for i, line := range lines {
 				if i == 0 {
@@ -255,7 +254,7 @@ func (quail *Quail) dirParseModel(path string, name string) error {
 				}
 
 				if records[0] == "id" {
-					particlePoint.Name = records[1]
+					particlePoint.Header.Name = records[1]
 					continue
 				}
 
@@ -342,7 +341,7 @@ func (quail *Quail) dirParseMaterial(path string, name string) error {
 
 func (quail *Quail) dirParseAni(path string, name string) error {
 	ani := &common.Animation{}
-	ani.Name = strings.TrimSuffix(name, ".ani")
+	ani.Header.Name = strings.TrimSuffix(name, ".ani")
 	aniPath := fmt.Sprintf("%s/%s", path, name)
 	aniFiles, err := os.ReadDir(aniPath)
 	if err != nil {
@@ -353,7 +352,7 @@ func (quail *Quail) dirParseAni(path string, name string) error {
 		if af.Name() == "animation.txt" {
 			lines, err := helper.ReadFile(fmt.Sprintf("%s/%s", aniPath, af.Name()))
 			if err != nil {
-				return fmt.Errorf("read ani %s animation.txt: %w", ani.Name, err)
+				return fmt.Errorf("read ani %s animation.txt: %w", ani.Header.Name, err)
 			}
 			for i, line := range lines {
 				if i == 0 {
@@ -381,7 +380,7 @@ func (quail *Quail) dirParseAni(path string, name string) error {
 		}
 		lines, err := helper.ReadFile(fmt.Sprintf("%s/%s", aniPath, af.Name()))
 		if err != nil {
-			return fmt.Errorf("read ani %s %s: %w", ani.Name, af.Name(), err)
+			return fmt.Errorf("read ani %s %s: %w", ani.Header.Name, af.Name(), err)
 		}
 		for i, line := range lines {
 			if i == 0 {

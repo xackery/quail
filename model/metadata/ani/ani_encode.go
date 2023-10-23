@@ -17,7 +17,7 @@ func Encode(anim *common.Animation, version uint32, w io.Writer) error {
 	modelNames := []string{}
 
 	if len(anim.Bones) > 0 {
-		modelNames = append(modelNames, anim.Name)
+		modelNames = append(modelNames, anim.Header.Name)
 	}
 
 	names, nameData, err := anim.NameBuild(modelNames)
@@ -51,6 +51,6 @@ func Encode(anim *common.Animation, version uint32, w io.Writer) error {
 		return fmt.Errorf("encode: %w", err)
 	}
 
-	log.Debugf("%s encoded %d bones, bone 0 had %d frames", anim.Name, len(anim.Bones), anim.Bones[0].FrameCount)
+	log.Debugf("%s encoded %d bones, bone 0 had %d frames", anim.Header.Name, len(anim.Bones), anim.Bones[0].FrameCount)
 	return nil
 }

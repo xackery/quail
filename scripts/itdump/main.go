@@ -55,10 +55,10 @@ func run() error {
 		}
 
 		for _, model := range q.Models {
-			if !strings.HasPrefix(strings.ToLower(model.Name), "it") {
+			if !strings.HasPrefix(strings.ToLower(model.Header.Name), "it") {
 				continue
 			}
-			fmt.Printf("%s|%s\n", model.Name, filepath.Base(path))
+			fmt.Printf("%s|%s\n", model.Header.Name, filepath.Base(path))
 		}
 
 		return nil

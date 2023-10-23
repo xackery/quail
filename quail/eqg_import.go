@@ -36,12 +36,11 @@ func (e *Quail) EQGImport(path string) error {
 	for _, file := range pfs.Files() {
 		switch filepath.Ext(file.Name()) {
 		case ".zon":
-			e.Zone = &common.Zone{
-				Name: strings.TrimSuffix(strings.ToUpper(file.Name()), ".ZON"),
-			}
+
+			e.Zone = common.NewZone(strings.TrimSuffix(strings.ToUpper(file.Name()), ".ZON"))
 			err = zon.Decode(e.Zone, bytes.NewReader(file.Data()))
 			if e.IsExtensionVersionDump {
-				fmt.Printf("%s|%d|%s|%s\n", filepath.Ext(file.Name()), e.Zone.Version, file.Name(), filepath.Base(path))
+				fmt.Printf("%s|%d|%s|%s\n", filepath.Ext(file.Name()), e.Zone.Header.Version, file.Name(), filepath.Base(path))
 			}
 			if err != nil {
 				return fmt.Errorf("decodeZon %s: %w", file.Name(), err)
@@ -49,12 +48,10 @@ func (e *Quail) EQGImport(path string) error {
 			os.WriteFile(fmt.Sprintf("%s/%s-raw.zon", "testdata", file.Name()), file.Data(), 0644)
 			tag.Write(fmt.Sprintf("%s/%s-raw.zon.tags", "testdata", file.Name()))
 		case ".pts":
-			point := &common.ParticlePoint{
-				Name: strings.TrimSuffix(strings.ToUpper(file.Name()), ".PTS"),
-			}
+			point := common.NewParticlePoint(strings.TrimSuffix(strings.ToUpper(file.Name()), ".PTS"))
 			err = pts.Decode(point, bytes.NewReader(file.Data()))
 			if e.IsExtensionVersionDump {
-				fmt.Printf("%s|%d|%s|%s\n", filepath.Ext(file.Name()), point.Version, file.Name(), filepath.Base(path))
+				fmt.Printf("%s|%d|%s|%s\n", filepath.Ext(file.Name()), point.Header.Version, file.Name(), filepath.Base(path))
 			}
 			if err != nil {
 				return fmt.Errorf("decodePts %s: %w", file.Name(), err)
@@ -63,12 +60,10 @@ func (e *Quail) EQGImport(path string) error {
 			tag.Write(fmt.Sprintf("%s/%s-raw.pts.tags", "testdata", file.Name()))
 			particlePoints = append(particlePoints, point)
 		case ".prt":
-			render := &common.ParticleRender{
-				Name: strings.TrimSuffix(strings.ToUpper(file.Name()), ".PRT"),
-			}
+			render := common.NewParticleRender(strings.TrimSuffix(strings.ToUpper(file.Name()), ".PRT"))
 			err = prt.Decode(render, bytes.NewReader(file.Data()))
 			if e.IsExtensionVersionDump {
-				fmt.Printf("%s|%d|%s|%s\n", filepath.Ext(file.Name()), render.Version, file.Name(), filepath.Base(path))
+				fmt.Printf("%s|%d|%s|%s\n", filepath.Ext(file.Name()), render.Header.Version, file.Name(), filepath.Base(path))
 			}
 			if err != nil {
 				return fmt.Errorf("decodePrt %s: %w", file.Name(), err)
@@ -78,12 +73,10 @@ func (e *Quail) EQGImport(path string) error {
 			tag.Write(fmt.Sprintf("%s/%s-raw.prt.tags", "testdata", file.Name()))
 			particleRenders = append(particleRenders, render)
 		case ".lay":
-			model := &common.Model{
-				Name: strings.TrimSuffix(strings.ToUpper(file.Name()), ".LAY"),
-			}
+			model := common.NewModel(strings.TrimSuffix(strings.ToUpper(file.Name()), ".LAY"))
 			err = lay.Decode(model, bytes.NewReader(file.Data()))
 			if e.IsExtensionVersionDump {
-				fmt.Printf("%s|%d|%s|%s\n", filepath.Ext(file.Name()), model.Version, file.Name(), filepath.Base(path))
+				fmt.Printf("%s|%d|%s|%s\n", filepath.Ext(file.Name()), model.Header.Version, file.Name(), filepath.Base(path))
 			}
 			if err != nil {
 				return fmt.Errorf("decodePrt %s: %w", file.Name(), err)
@@ -97,12 +90,10 @@ func (e *Quail) EQGImport(path string) error {
 			//	return fmt.Errorf("decodeLit %s: %w", file.Name(), err)
 			//}
 		case ".ani":
-			anim := &common.Animation{
-				Name: strings.TrimSuffix(strings.ToUpper(file.Name()), ".ANI"),
-			}
+			anim := common.NewAnimation(strings.TrimSuffix(strings.ToUpper(file.Name()), ".ANI"))
 			err = ani.Decode(anim, bytes.NewReader(file.Data()))
 			if e.IsExtensionVersionDump {
-				fmt.Printf("%s|%d|%s|%s\n", filepath.Ext(file.Name()), anim.Version, file.Name(), filepath.Base(path))
+				fmt.Printf("%s|%d|%s|%s\n", filepath.Ext(file.Name()), anim.Header.Version, file.Name(), filepath.Base(path))
 			}
 			if err != nil {
 				return fmt.Errorf("decodeAni %s: %w", file.Name(), err)
@@ -112,12 +103,10 @@ func (e *Quail) EQGImport(path string) error {
 			tag.Write(fmt.Sprintf("%s/%s-raw.ani.tags", "testdata", file.Name()))
 			e.Animations = append(e.Animations, anim)
 		case ".mod":
-			model := &common.Model{
-				Name: strings.TrimSuffix(strings.ToUpper(file.Name()), ".MOD"),
-			}
+			model := common.NewModel(strings.TrimSuffix(strings.ToUpper(file.Name()), ".MOD"))
 			err = mod.Decode(model, bytes.NewReader(file.Data()))
 			if e.IsExtensionVersionDump {
-				fmt.Printf("%s|%d|%s|%s\n", filepath.Ext(file.Name()), model.Version, file.Name(), filepath.Base(path))
+				fmt.Printf("%s|%d|%s|%s\n", filepath.Ext(file.Name()), model.Header.Version, file.Name(), filepath.Base(path))
 			}
 			if err != nil {
 				return fmt.Errorf("decodeMod %s: %w", file.Name(), err)
@@ -127,12 +116,10 @@ func (e *Quail) EQGImport(path string) error {
 
 			e.Models = append(e.Models, model)
 		case ".ter":
-			model := &common.Model{
-				Name: strings.TrimSuffix(strings.ToUpper(file.Name()), ".MOD"),
-			}
+			model := common.NewModel(strings.TrimSuffix(strings.ToUpper(file.Name()), ".MOD"))
 			err = ter.Decode(model, bytes.NewReader(file.Data()))
 			if e.IsExtensionVersionDump {
-				fmt.Printf("%s|%d|%s|%s\n", filepath.Ext(file.Name()), model.Version, file.Name(), filepath.Base(path))
+				fmt.Printf("%s|%d|%s|%s\n", filepath.Ext(file.Name()), model.Header.Version, file.Name(), filepath.Base(path))
 			}
 			if err != nil {
 				return fmt.Errorf("decodeter %s: %w", file.Name(), err)
@@ -142,12 +129,10 @@ func (e *Quail) EQGImport(path string) error {
 
 			e.Models = append(e.Models, model)
 		case ".mds":
-			model := &common.Model{
-				Name: strings.TrimSuffix(strings.ToUpper(file.Name()), ".MDS"),
-			}
+			model := common.NewModel(strings.TrimSuffix(strings.ToUpper(file.Name()), ".MDS"))
 			err = mds.Decode(model, bytes.NewReader(file.Data()))
 			if e.IsExtensionVersionDump {
-				fmt.Printf("%s|%d|%s|%s\n", filepath.Ext(file.Name()), model.Version, file.Name(), filepath.Base(path))
+				fmt.Printf("%s|%d|%s|%s\n", filepath.Ext(file.Name()), model.Header.Version, file.Name(), filepath.Base(path))
 			}
 			if err != nil {
 				return fmt.Errorf("decodeMds %s: %w", file.Name(), err)
@@ -171,28 +156,28 @@ func (e *Quail) EQGImport(path string) error {
 	for _, point := range particlePoints {
 		isFound := false
 		for _, model := range e.Models {
-			if strings.EqualFold(model.Name, point.Name) {
+			if strings.EqualFold(model.Header.Name, point.Header.Name) {
 				isFound = true
 				model.ParticlePoints = append(model.ParticlePoints, point)
 				break
 			}
 		}
 		if !isFound {
-			log.Warnf("particle point %s not found in model", point.Name)
+			log.Warnf("particle point %s not found in model", point.Header.Name)
 		}
 	}
 
 	for _, render := range particleRenders {
 		isFound := false
 		for _, model := range e.Models {
-			if strings.EqualFold(model.Name, render.Name) {
+			if strings.EqualFold(model.Header.Name, render.Header.Name) {
 				isFound = true
 				model.ParticleRenders = append(model.ParticleRenders, render)
 				break
 			}
 		}
 		if !isFound {
-			log.Warnf("particle render %s not found in model", render.Name)
+			log.Warnf("particle render %s not found in model", render.Header.Name)
 		}
 	}
 

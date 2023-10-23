@@ -50,7 +50,7 @@ func TestDecode(t *testing.T) {
 				if filepath.Ext(file.Name()) != ".pts" {
 					continue
 				}
-				point := &common.ParticlePoint{}
+				point := common.NewParticlePoint("")
 				err = Decode(point, bytes.NewReader(file.Data()))
 				os.WriteFile(fmt.Sprintf("%s/%s", dirTest, file.Name()), file.Data(), 0644)
 				tag.Write(fmt.Sprintf("%s/%s.tags", dirTest, file.Name()))

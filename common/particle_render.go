@@ -1,9 +1,16 @@
 package common
 
 type ParticleRender struct {
-	Version int
-	Name    string
+	Header  *Header
 	Entries []*ParticleRenderEntry
+}
+
+func NewParticleRender(name string) *ParticleRender {
+	return &ParticleRender{
+		Header: &Header{
+			Name: name,
+		},
+	}
 }
 
 // ParticleRender defines what particle to emit on a particle point

@@ -62,7 +62,8 @@ func TestDecode(t *testing.T) {
 				if filepath.Ext(file.Name()) != ".lay" {
 					continue
 				}
-				model := &common.Model{}
+
+				model := common.NewModel("")
 				err = Decode(model, bytes.NewReader(file.Data()))
 				if err != nil {
 					err = os.WriteFile(fmt.Sprintf("%s/%s", dirTest, file.Name()), file.Data(), 0644)

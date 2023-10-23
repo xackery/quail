@@ -205,45 +205,35 @@ func inspectContent(file string, data *bytes.Reader) (interface{}, error) {
 	ext := strings.ToLower(filepath.Ext(file))
 	switch ext {
 	case ".mds":
-		model := &common.Model{
-			Name: strings.TrimSuffix(strings.ToUpper(file), ".MDS"),
-		}
+		model := common.NewModel(strings.TrimSuffix(strings.ToUpper(file), ".MDS"))
 		err = mds.Decode(model, data)
 		if err != nil {
 			return nil, fmt.Errorf("mds.Decode %s: %w", file, err)
 		}
 		return model, nil
 	case ".mod":
-		model := &common.Model{
-			Name: strings.TrimSuffix(strings.ToUpper(file), ".MOD"),
-		}
+		model := common.NewModel(strings.TrimSuffix(strings.ToUpper(file), ".MOD"))
 		err = mod.Decode(model, data)
 		if err != nil {
 			return nil, fmt.Errorf("mod.Decode %s: %w", file, err)
 		}
 		return model, nil
 	case ".pts":
-		point := &common.ParticlePoint{
-			Name: strings.TrimSuffix(strings.ToUpper(file), ".MDS"),
-		}
+		point := common.NewParticlePoint(strings.TrimSuffix(strings.ToUpper(file), ".MDS"))
 		err = pts.Decode(point, data)
 		if err != nil {
 			return nil, fmt.Errorf("pts.Decode %s: %w", file, err)
 		}
 		return point, nil
 	case ".prt":
-		render := &common.ParticleRender{
-			Name: strings.TrimSuffix(strings.ToUpper(file), ".MDS"),
-		}
+		render := common.NewParticleRender(strings.TrimSuffix(strings.ToUpper(file), ".MDS"))
 		err = prt.Decode(render, data)
 		if err != nil {
 			return nil, fmt.Errorf("prt.Decode %s: %w", file, err)
 		}
 		return render, nil
 	case ".zon":
-		zone := &common.Zone{
-			Name: strings.TrimSuffix(strings.ToUpper(file), ".ZON"),
-		}
+		zone := common.NewZone(strings.TrimSuffix(strings.ToUpper(file), ".ZON"))
 		err = zon.Decode(zone, data)
 		if err != nil {
 			return nil, fmt.Errorf("zon.Decode %s: %w", file, err)
@@ -256,7 +246,7 @@ func inspectContent(file string, data *bytes.Reader) (interface{}, error) {
 		}
 		return models, nil
 	case ".lay":
-		model := &common.Model{}
+		model := common.NewModel("")
 		err := lay.Decode(model, data)
 		if err != nil {
 			return nil, fmt.Errorf("lay.Decode %s: %w", file, err)

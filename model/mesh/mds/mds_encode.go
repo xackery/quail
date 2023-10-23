@@ -26,7 +26,7 @@ func Encode(model *common.Model, version uint32, w io.Writer) error {
 	}
 
 	if len(model.Bones) > 0 {
-		modelNames = append(modelNames, model.Name)
+		modelNames = append(modelNames, model.Header.Name)
 	}
 
 	names, nameData, err := model.NameBuild(modelNames)
@@ -78,6 +78,6 @@ func Encode(model *common.Model, version uint32, w io.Writer) error {
 		return fmt.Errorf("encode: %w", err)
 	}
 
-	log.Debugf("%s encoded %d verts, %d triangles, %d bones, %d materials", model.Name, len(model.Vertices), len(model.Triangles), len(model.Bones), len(model.Materials))
+	log.Debugf("%s encoded %d verts, %d triangles, %d bones, %d materials", model.Header.Name, len(model.Vertices), len(model.Triangles), len(model.Bones), len(model.Materials))
 	return nil
 }

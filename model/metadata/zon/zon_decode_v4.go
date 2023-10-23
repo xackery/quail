@@ -21,7 +21,7 @@ func DecodeV4(zone *common.Zone, r io.ReadSeeker) error {
 
 		line := scanner.Text()
 		if strings.HasPrefix(line, "*NAME") {
-			zone.Name = strings.TrimPrefix(line, "*NAME ")
+			zone.Header.Name = strings.TrimPrefix(line, "*NAME ")
 			continue
 		}
 		if strings.HasPrefix(line, "*MINLNG") {
@@ -143,7 +143,7 @@ func DecodeV4(zone *common.Zone, r io.ReadSeeker) error {
 		lineNumber++
 	}
 
-	zone.Version = 4
+	zone.Header.Version = 4
 
 	return nil
 }

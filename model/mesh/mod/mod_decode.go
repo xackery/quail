@@ -26,7 +26,7 @@ func Decode(model *common.Model, r io.ReadSeeker) error {
 
 	tag.New()
 	version := dec.Uint32()
-	model.Version = int(version)
+	model.Header.Version = int(version)
 
 	nameLength := int(dec.Uint32())
 	materialCount := dec.Uint32()
@@ -54,8 +54,8 @@ func Decode(model *common.Model, r io.ReadSeeker) error {
 
 	//log.Debugf("names: %+v", names)
 
-	if model.Name == "" {
-		model.Name = modelNames[0]
+	if model.Header.Name == "" {
+		model.Header.Name = modelNames[0]
 	}
 
 	nameCounter := 0
@@ -219,8 +219,8 @@ func Decode(model *common.Model, r io.ReadSeeker) error {
 		return fmt.Errorf("decode: %w", dec.Error())
 	}
 
-	model.Name = strings.ToLower(model.Name)
+	model.Header.Name = strings.ToLower(model.Header.Name)
 
-	log.Debugf("%s (mod) decoded %d verts, %d triangles, %d bones, %d materials", model.Name, len(model.Vertices), len(model.Triangles), len(model.Bones), len(model.Materials))
+	log.Debugf("%s (mod) decoded %d verts, %d triangles, %d bones, %d materials", model.Header.Name, len(model.Vertices), len(model.Triangles), len(model.Bones), len(model.Materials))
 	return nil
 }

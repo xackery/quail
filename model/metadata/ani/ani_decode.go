@@ -23,7 +23,7 @@ func Decode(animation *common.Animation, r io.ReadSeeker) error {
 	tag.New()
 
 	version := dec.Uint32()
-	animation.Version = int(version)
+	animation.Header.Version = int(version)
 	nameLength := int(dec.Uint32())
 	boneCount := dec.Uint32()
 
@@ -92,6 +92,6 @@ func Decode(animation *common.Animation, r io.ReadSeeker) error {
 		return fmt.Errorf("decode: %w", dec.Error())
 	}
 
-	log.Debugf("%s (ani) decoded %d bones, bone 0 had %d frames", animation.Name, len(animation.Bones), animation.Bones[0].FrameCount)
+	log.Debugf("%s (ani) decoded %d bones, bone 0 had %d frames", animation.Header.Name, len(animation.Bones), animation.Bones[0].FrameCount)
 	return nil
 }

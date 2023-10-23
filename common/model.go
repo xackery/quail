@@ -11,16 +11,35 @@ import (
 
 // Model is a model
 type Model struct {
-	Name            string
-	FileType        string
-	Version         int
-	Vertices        []Vertex
-	Triangles       []Triangle
-	Bones           []Bone
-	Materials       []*Material
-	ParticlePoints  []*ParticlePoint
-	ParticleRenders []*ParticleRender
-	Layers          []*Layer
+	Header          *Header           `yaml:"header"`
+	FileType        string            `yaml:"file_type"`
+	Vertices        []Vertex          `yaml:"vertices"`
+	Triangles       []Triangle        `yaml:"triangles"`
+	Bones           []Bone            `yaml:"bones"`
+	Materials       []*Material       `yaml:"materials"`
+	ParticlePoints  []*ParticlePoint  `yaml:"particle_points"`
+	ParticleRenders []*ParticleRender `yaml:"particle_renders"`
+	Layers          []*Layer          `yaml:"layers"`
+}
+
+// NewModel returns a new model
+func NewModel(name string) *Model {
+	return &Model{
+		Header: &Header{
+			Name: name,
+		},
+	}
+}
+
+func (v *Model) init() {
+	if v.Header == nil {
+		v.Header = &Header{}
+	}
+}
+
+type Header struct {
+	Name    string `yaml:"name"`
+	Version int    `yaml:"version"`
 }
 
 // Material is a material
@@ -30,7 +49,7 @@ type Material struct {
 	ShaderName string
 	Flag       uint32
 	Properties []*MaterialProperty
-	Animation  MaterialAnimation
+	Animation  MaterialAnimation `yaml:"animation,omitempty"`
 }
 
 // MaterialProperty is a material property
@@ -38,7 +57,7 @@ type MaterialProperty struct {
 	Name     string
 	Category uint32
 	Value    string
-	Data     []byte
+	Data     []byte `yaml:"data,omitempty"`
 }
 
 func (m *MaterialProperty) String() string {

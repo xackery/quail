@@ -23,9 +23,9 @@ func Decode(model *common.Model, r io.ReadSeeker) error {
 
 	tag.New()
 
-	model.Version = int(dec.Uint32())
+	model.Header.Version = int(dec.Uint32())
 	versionOffset := 0
-	switch model.Version {
+	switch model.Header.Version {
 	case 2:
 		versionOffset = 52 //32
 	case 3:
@@ -33,11 +33,11 @@ func Decode(model *common.Model, r io.ReadSeeker) error {
 	case 4:
 		versionOffset = 20
 	default:
-		return fmt.Errorf("unknown lay version: %d", model.Version)
+		return fmt.Errorf("unknown lay version: %d", model.Header.Version)
 	}
 
 	nameLength := int(dec.Uint32())
-	materialCount := dec.Uint32()
+	layerCount := dec.Uint32()
 	tag.Add(0, dec.Pos(), "red", "header")
 	nameData := dec.Bytes(int(nameLength))
 	tag.Add(tag.LastPos(), dec.Pos(), "green", "names")
@@ -55,7 +55,7 @@ func Decode(model *common.Model, r io.ReadSeeker) error {
 		chunk = append(chunk, b)
 	}
 
-	for i := 0; i < int(materialCount); i++ {
+	for i := 0; i < int(layerCount); i++ {
 		entryID := dec.Uint32()
 		layer := &common.Layer{}
 

@@ -161,7 +161,7 @@ func (e *PFS) Files() []FileEntry {
 	return e.files
 }
 
-func (e *PFS) WriteFile(name string, data []byte) error {
+func (e *PFS) SetFile(name string, data []byte) error {
 	name = strings.ToLower(name)
 	if len(name) < 3 {
 		return fmt.Errorf("name %s is too short", name)

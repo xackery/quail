@@ -121,8 +121,8 @@ func TestQuail_PFSExportImportExport(t *testing.T) {
 			}
 
 			for i, model := range e.Models {
-				if model.Name != e2.Models[i].Name {
-					t.Fatalf("model name mismatch, %s != %s", model.Name, e2.Models[i].Name)
+				if model.Header.Name != e2.Models[i].Header.Name {
+					t.Fatalf("model name mismatch, %s != %s", model.Header.Name, e2.Models[i].Header.Name)
 				}
 
 				if len(model.Vertices) != len(e2.Models[i].Vertices) {
@@ -250,7 +250,7 @@ func TestQuail_PFSExportImportExport(t *testing.T) {
 			for _, anim := range e.Animations {
 				isFound := false
 				for _, anim2 := range e2.Animations {
-					if anim.Name != anim2.Name {
+					if anim.Header.Name != anim2.Header.Name {
 						continue
 					}
 					isFound = true
@@ -268,7 +268,7 @@ func TestQuail_PFSExportImportExport(t *testing.T) {
 					break
 				}
 				if !isFound {
-					t.Fatalf("animation name mismatch, %s not found", anim.Name)
+					t.Fatalf("animation name mismatch, %s not found", anim.Header.Name)
 				}
 			}
 

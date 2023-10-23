@@ -28,7 +28,7 @@ func Decode(zone *common.Zone, r io.ReadSeeker) error {
 	}
 
 	version := dec.Uint32()
-	zone.Version = int(version)
+	zone.Header.Version = int(version)
 	//if version != 1 {
 	//return fmt.Errorf("version is %d, wanted 1", version)
 	//}
@@ -151,6 +151,6 @@ func Decode(zone *common.Zone, r io.ReadSeeker) error {
 		return fmt.Errorf("decode: %w", dec.Error())
 	}
 
-	log.Debugf("%s (zon) decoded %d model refs, %d object refs, %d regions, %d lights", zone.Name, len(zone.Models), len(zone.Objects), len(zone.Regions), len(zone.Lights))
+	log.Debugf("%s (zon) decoded %d model refs, %d object refs, %d regions, %d lights", zone.Header.Name, len(zone.Models), len(zone.Objects), len(zone.Regions), len(zone.Lights))
 	return nil
 }

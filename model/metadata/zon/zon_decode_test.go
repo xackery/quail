@@ -60,7 +60,7 @@ func TestDecode(t *testing.T) {
 				if filepath.Ext(file.Name()) != ".zon" {
 					continue
 				}
-				zone := &common.Zone{}
+				zone := common.NewZone("")
 
 				err = Decode(zone, bytes.NewReader(file.Data()))
 				os.WriteFile(fmt.Sprintf("%s/%s", dirTest, file.Name()), file.Data(), 0644)

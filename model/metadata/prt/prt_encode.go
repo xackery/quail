@@ -42,6 +42,6 @@ func Encode(render *common.ParticleRender, version uint32, w io.Writer) error {
 		return fmt.Errorf("encode: %w", err)
 	}
 
-	log.Debugf("%s prt encoded %d entries", render.Name, len(render.Entries))
+	log.Debugf("%s prt encoded %d entries", render.Header.Name, len(render.Entries))
 	return nil
 }

@@ -1,6 +1,8 @@
 module github.com/xackery/quail
 
-go 1.20
+go 1.21
+
+toolchain go1.21.3
 
 require (
 	github.com/jmoiron/sqlx v1.3.5
@@ -10,7 +12,7 @@ require (
 	github.com/spf13/viper v1.16.0
 	github.com/xackery/colors v1.0.1
 	github.com/xackery/encdec v0.0.8
-	golang.org/x/image v0.12.0
+	golang.org/x/image v0.13.0
 )
 
 require (

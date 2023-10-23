@@ -37,19 +37,19 @@ func (quail *Quail) DirExport(path string) error {
 
 	for _, model := range quail.Models {
 		if len(model.Triangles) == 0 {
-			fmt.Println("skipping empty triangle model", model.Name)
+			fmt.Println("skipping empty triangle model", model.Header.Name)
 			continue
 		}
-		modelPath := fmt.Sprintf("%s/%s.model", path, model.Name)
+		modelPath := fmt.Sprintf("%s/%s.model", path, model.Header.Name)
 		err = os.MkdirAll(modelPath, 0755)
 		if err != nil {
-			return fmt.Errorf("mkdir %s: %w", model.Name, err)
+			return fmt.Errorf("mkdir %s: %w", model.Header.Name, err)
 		}
 
 		if len(model.Triangles) > 0 {
 			tw, err := os.Create(fmt.Sprintf("%s/triangle.txt", modelPath))
 			if err != nil {
-				return fmt.Errorf("create model %s triangle.txt: %w", model.Name, err)
+				return fmt.Errorf("create model %s triangle.txt: %w", model.Header.Name, err)
 			}
 			defer tw.Close()
 
@@ -63,7 +63,7 @@ func (quail *Quail) DirExport(path string) error {
 		if len(model.Vertices) > 0 {
 			vw, err := os.Create(fmt.Sprintf("%s/vertex.txt", modelPath))
 			if err != nil {
-				return fmt.Errorf("create model %s vertex.txt: %w", model.Name, err)
+				return fmt.Errorf("create model %s vertex.txt: %w", model.Header.Name, err)
 			}
 			defer vw.Close()
 
@@ -82,7 +82,7 @@ func (quail *Quail) DirExport(path string) error {
 			if len(model.Bones) > 0 {
 				bw, err := os.Create(fmt.Sprintf("%s/bone.txt", modelPath))
 				if err != nil {
-					return fmt.Errorf("create model %s bone.txt: %w", model.Name, err)
+					return fmt.Errorf("create model %s bone.txt: %w", model.Header.Name, err)
 				}
 				defer bw.Close()
 
@@ -98,7 +98,7 @@ func (quail *Quail) DirExport(path string) error {
 			if len(model.ParticleRenders) > 0 {
 				prw, err := os.Create(fmt.Sprintf("%s/particle_render.txt", modelPath))
 				if err != nil {
-					return fmt.Errorf("create model %s particle_render.txt: %w", model.Name, err)
+					return fmt.Errorf("create model %s particle_render.txt: %w", model.Header.Name, err)
 				}
 				defer prw.Close()
 
@@ -115,7 +115,7 @@ func (quail *Quail) DirExport(path string) error {
 			if len(model.ParticlePoints) > 0 {
 				ppw, err := os.Create(fmt.Sprintf("%s/particle_point.txt", modelPath))
 				if err != nil {
-					return fmt.Errorf("create model %s particle_point.txt: %w", model.Name, err)
+					return fmt.Errorf("create model %s particle_point.txt: %w", model.Header.Name, err)
 				}
 				defer ppw.Close()
 
@@ -141,7 +141,7 @@ func (quail *Quail) DirExport(path string) error {
 
 			mw, err := os.Create(fmt.Sprintf("%s/property.txt", materialPath))
 			if err != nil {
-				return fmt.Errorf("create model %s material %s property.txt: %w", model.Name, material.Name, err)
+				return fmt.Errorf("create model %s material %s property.txt: %w", model.Header.Name, material.Name, err)
 			}
 			defer mw.Close()
 
@@ -210,10 +210,10 @@ func (quail *Quail) DirExport(path string) error {
 	*/
 	if quail.Zone != nil {
 		zon := quail.Zone
-		zonPath := fmt.Sprintf("%s/%s.zone", path, zon.Name)
+		zonPath := fmt.Sprintf("%s/%s.zone", path, zon.Header.Name)
 		err = os.MkdirAll(zonPath, 0755)
 		if err != nil {
-			return fmt.Errorf("mkdir %s: %w", zon.Name, err)
+			return fmt.Errorf("mkdir %s: %w", zon.Header.Name, err)
 		}
 
 		lw, err := os.Create(fmt.Sprintf("%s/light.txt", zonPath))

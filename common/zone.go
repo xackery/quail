@@ -7,14 +7,21 @@ import (
 
 // Zone is a zone
 type Zone struct {
-	Version int
-	Name    string
+	Header  *Header
 	Models  []string
 	Objects []Object
 	Regions []Region
 	Lights  []Light
 	Lits    []*RGBA
 	V4Info  V4Info
+}
+
+func NewZone(name string) *Zone {
+	return &Zone{
+		Header: &Header{
+			Name: name,
+		},
+	}
 }
 
 type V4Info struct {

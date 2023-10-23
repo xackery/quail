@@ -34,7 +34,7 @@ func convertMesh(world *common.Wld, frag common.FragmentReader) (*common.Model, 
 		return nil, fmt.Errorf("assertion failed, wanted *Mesh, got %T", frag)
 	}
 
-	model.Name = world.Name(d.NameRef)
+	model.Header.Name = world.Name(d.NameRef)
 	model.FileType = "mod"
 	if d.Flags == 0x00018003 {
 		model.FileType = "ter"

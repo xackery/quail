@@ -43,6 +43,6 @@ func Encode(point *common.ParticlePoint, version uint32, w io.Writer) error {
 		return fmt.Errorf("encode: %w", err)
 	}
 
-	log.Debugf("%s pts encoded %d entries", point.Name, len(point.Entries))
+	log.Debugf("%s pts encoded %d entries", point.Header.Name, len(point.Entries))
 	return nil
 }

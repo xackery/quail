@@ -44,14 +44,14 @@ func (e *Quail) S3DImport(path string) error {
 		}
 	}
 
-	if len(e.Models) == 1 && e.Models[0].Name == "" {
-		e.Models[0].Name = strings.TrimSuffix(filepath.Base(path), filepath.Ext(path))
+	if len(e.Models) == 1 && e.Models[0].Header.Name == "" {
+		e.Models[0].Header.Name = strings.TrimSuffix(filepath.Base(path), filepath.Ext(path))
 	}
 
 	materialCount := 0
 	textureCount := 0
 	for _, model := range e.Models {
-		log.Debugf("model %s has %d materials", model.Name, len(model.Materials))
+		log.Debugf("model %s has %d materials", model.Header.Name, len(model.Materials))
 		for _, material := range model.Materials {
 			materialCount++
 			for _, property := range material.Properties {

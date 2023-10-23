@@ -272,8 +272,8 @@ func TestPFS_WriteFile(t *testing.T) {
 				ContentsSummary: tt.fields.ContentsSummary,
 				fileCount:       tt.fields.fileCount,
 			}
-			if err := e.WriteFile(tt.args.name, tt.args.data); (err != nil) != tt.wantErr {
-				t.Errorf("PFS.WriteFile() error = %v, wantErr %v", err, tt.wantErr)
+			if err := e.SetFile(tt.args.name, tt.args.data); (err != nil) != tt.wantErr {
+				t.Errorf("PFS.SetFile() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}

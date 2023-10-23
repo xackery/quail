@@ -50,14 +50,14 @@ func (e *Quail) EQGExport(fileVersion uint32, pfsVersion int, path string) error
 		buf := &bytes.Buffer{}
 		err = zon.Encode(e.Zone, fileVersion, buf)
 		if err != nil {
-			return fmt.Errorf("encodeZon %s: %w", e.Zone.Name, err)
+			return fmt.Errorf("encodeZon %s: %w", e.Zone.Header.Name, err)
 		}
-		os.WriteFile(fmt.Sprintf("%s/%s-raw-out.zon", "testdata", e.Zone.Name), buf.Bytes(), 0644)
-		tag.Write(fmt.Sprintf("%s/%s-raw-out.zon.tags", "testdata", e.Zone.Name))
+		os.WriteFile(fmt.Sprintf("%s/%s-raw-out.zon", "testdata", e.Zone.Header.Name), buf.Bytes(), 0644)
+		tag.Write(fmt.Sprintf("%s/%s-raw-out.zon.tags", "testdata", e.Zone.Header.Name))
 
-		err = pfs.Add(fmt.Sprintf("%s.zon", e.Zone.Name), buf.Bytes())
+		err = pfs.Add(fmt.Sprintf("%s.zon", e.Zone.Header.Name), buf.Bytes())
 		if err != nil {
-			return fmt.Errorf("addZon %s: %w", e.Zone.Name, err)
+			return fmt.Errorf("addZon %s: %w", e.Zone.Header.Name, err)
 		}
 	}
 
@@ -65,15 +65,15 @@ func (e *Quail) EQGExport(fileVersion uint32, pfsVersion int, path string) error
 		buf := &bytes.Buffer{}
 		err = model.Encode(entry, fileVersion, buf)
 		if err != nil {
-			return fmt.Errorf("encodeMod %s: %w", entry.Name, err)
+			return fmt.Errorf("encodeMod %s: %w", entry.Header.Name, err)
 		}
 
-		os.WriteFile(fmt.Sprintf("%s/%s-raw-out.%s", "testdata", entry.Name, entry.FileType), buf.Bytes(), 0644)
-		tag.Write(fmt.Sprintf("%s/%s-raw-out.%s.tags", "testdata", entry.Name, entry.FileType))
+		os.WriteFile(fmt.Sprintf("%s/%s-raw-out.%s", "testdata", entry.Header.Name, entry.FileType), buf.Bytes(), 0644)
+		tag.Write(fmt.Sprintf("%s/%s-raw-out.%s.tags", "testdata", entry.Header.Name, entry.FileType))
 
-		err = pfs.Add(fmt.Sprintf("%s.%s", entry.Name, entry.FileType), buf.Bytes())
+		err = pfs.Add(fmt.Sprintf("%s.%s", entry.Header.Name, entry.FileType), buf.Bytes())
 		if err != nil {
-			return fmt.Errorf("addMod %s: %w", entry.Name, err)
+			return fmt.Errorf("addMod %s: %w", entry.Header.Name, err)
 		}
 		for _, material := range entry.Materials {
 			for _, property := range material.Properties {
@@ -82,7 +82,7 @@ func (e *Quail) EQGExport(fileVersion uint32, pfsVersion int, path string) error
 				}
 				err = pfs.Add(property.Value, property.Data)
 				if err != nil {
-					return fmt.Errorf("model %s addMaterial %s texture %s: %w", entry.Name, material.Name, property.Value, err)
+					return fmt.Errorf("model %s addMaterial %s texture %s: %w", entry.Header.Name, material.Name, property.Value, err)
 				}
 			}
 		}
@@ -92,11 +92,11 @@ func (e *Quail) EQGExport(fileVersion uint32, pfsVersion int, path string) error
 		buf := &bytes.Buffer{}
 		err = ani.Encode(anim, fileVersion, buf)
 		if err != nil {
-			return fmt.Errorf("encodeAni %s: %w", anim.Name, err)
+			return fmt.Errorf("encodeAni %s: %w", anim.Header.Name, err)
 		}
-		err = pfs.Add(fmt.Sprintf("%s.ani", anim.Name), buf.Bytes())
+		err = pfs.Add(fmt.Sprintf("%s.ani", anim.Header.Name), buf.Bytes())
 		if err != nil {
-			return fmt.Errorf("addMds %s: %w", anim.Name, err)
+			return fmt.Errorf("addMds %s: %w", anim.Header.Name, err)
 		}
 	}
 
@@ -105,11 +105,11 @@ func (e *Quail) EQGExport(fileVersion uint32, pfsVersion int, path string) error
 			buf := &bytes.Buffer{}
 			err = prt.Encode(render, 4, buf) // TODO: add support for other versions
 			if err != nil {
-				return fmt.Errorf("encodePtr %s: %w", render.Name, err)
+				return fmt.Errorf("encodePtr %s: %w", render.Header.Name, err)
 			}
-			err = pfs.Add(fmt.Sprintf("%s.prt", render.Name), buf.Bytes())
+			err = pfs.Add(fmt.Sprintf("%s.prt", render.Header.Name), buf.Bytes())
 			if err != nil {
-				return fmt.Errorf("addPtr %s: %w", render.Name, err)
+				return fmt.Errorf("addPtr %s: %w", render.Header.Name, err)
 			}
 		}
 
@@ -117,11 +117,11 @@ func (e *Quail) EQGExport(fileVersion uint32, pfsVersion int, path string) error
 			buf := &bytes.Buffer{}
 			err = pts.Encode(point, fileVersion, buf)
 			if err != nil {
-				return fmt.Errorf("encodePts %s: %w", point.Name, err)
+				return fmt.Errorf("encodePts %s: %w", point.Header.Name, err)
 			}
-			err = pfs.Add(fmt.Sprintf("%s.pts", point.Name), buf.Bytes())
+			err = pfs.Add(fmt.Sprintf("%s.pts", point.Header.Name), buf.Bytes())
 			if err != nil {
-				return fmt.Errorf("addPts %s: %w", point.Name, err)
+				return fmt.Errorf("addPts %s: %w", point.Header.Name, err)
 			}
 		}
 	}

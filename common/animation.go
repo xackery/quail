@@ -10,10 +10,17 @@ import (
 
 // Animation is an animation
 type Animation struct {
-	Version  int
-	Name     string
+	Header   *Header
 	Bones    []*BoneAnimation
 	IsStrict bool
+}
+
+func NewAnimation(name string) *Animation {
+	return &Animation{
+		Header: &Header{
+			Name: name,
+		},
+	}
 }
 
 // NameBuild prepares an EQG-styled name buffer list
