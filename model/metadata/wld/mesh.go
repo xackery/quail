@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"io"
+	"math"
 
 	"github.com/xackery/encdec"
 	"github.com/xackery/quail/common"
@@ -967,6 +968,7 @@ type Mesh struct {
 	TriangleMaterials []MeshTriangleMaterial
 	Triangles         []common.Triangle
 	VertexPieces      []MeshVertexPiece
+	VertexMaterials   []MeshVertexPiece
 	AnimatedBones     []MeshAnimatedBone
 }
 
@@ -989,6 +991,96 @@ func (e *Mesh) FragCode() int {
 }
 
 func (e *Mesh) Encode(w io.Writer) error {
+	enc := encdec.NewEncoder(w, binary.LittleEndian)
+	enc.Int32(e.NameRef)
+	enc.Uint32(e.Flags)
+	enc.Uint32(e.MaterialListRef)
+	enc.Int32(e.AnimationRef)
+	enc.Uint32(0)
+	enc.Uint32(0)
+	enc.Float32(e.Center.X)
+	enc.Float32(e.Center.Y)
+	enc.Float32(e.Center.Z)
+	enc.Uint32(0)
+	enc.Uint32(0)
+	enc.Uint32(0)
+	enc.Float32(e.MaxDistance)
+	enc.Float32(e.Min.X)
+	enc.Float32(e.Min.Y)
+	enc.Float32(e.Min.Z)
+	enc.Float32(e.Max.X)
+	enc.Float32(e.Max.Y)
+	enc.Float32(e.Max.Z)
+	enc.Uint16(uint16(len(e.Vertices)))
+	enc.Uint16(uint16(len(e.Uvs)))
+	enc.Uint16(uint16(len(e.Normals)))
+	enc.Uint16(uint16(len(e.Colors)))
+	enc.Uint16(uint16(len(e.Triangles)))
+	enc.Uint16(uint16(len(e.VertexPieces)))
+	enc.Uint16(uint16(len(e.TriangleMaterials)))
+	enc.Uint16(uint16(len(e.VertexMaterials)))
+	enc.Uint16(uint16(len(e.AnimatedBones)))
+	rawScale := uint16(math.Log2(float64(1 / e.Scale)))
+	enc.Uint16(rawScale)
+	for _, vertex := range e.Vertices {
+		enc.Int16(int16((vertex.Position.X - e.Center.X) * (1 << rawScale)))
+		enc.Int16(int16((vertex.Position.Y - e.Center.Y) * (1 << rawScale)))
+		enc.Int16(int16((vertex.Position.Z - e.Center.Z) * (1 << rawScale)))
+	}
+	for _, uv := range e.Uvs {
+		if isOldWorld {
+			enc.Int16(int16(uv.X * 256))
+			enc.Int16(int16(uv.Y * 256))
+		} else {
+			enc.Int32(int32(uv.X * 256))
+			enc.Int32(int32(uv.Y * 256))
+		}
+	}
+	for _, normal := range e.Normals {
+		enc.Int8(int8(normal.X * 128))
+		enc.Int8(int8(normal.Y * 128))
+		enc.Int8(int8(normal.Z * 128))
+	}
+
+	for _, color := range e.Colors {
+		enc.Uint8(color.R)
+		enc.Uint8(color.G)
+		enc.Uint8(color.B)
+		enc.Uint8(color.A)
+	}
+
+	for _, triangle := range e.Triangles {
+		enc.Uint16(uint16(triangle.Flag & 1))
+		enc.Uint16(uint16(triangle.Index.X))
+		enc.Uint16(uint16(triangle.Index.Y))
+		enc.Uint16(uint16(triangle.Index.Z))
+	}
+
+	for _, vertexPiece := range e.VertexPieces {
+		enc.Int16(vertexPiece.Count)
+		enc.Int16(vertexPiece.Index1)
+	}
+
+	for _, triangleMaterial := range e.TriangleMaterials {
+		enc.Uint16(triangleMaterial.Count)
+		enc.Uint16(triangleMaterial.MaterialID)
+	}
+
+	for _, vertexMaterial := range e.VertexMaterials {
+		enc.Uint16(uint16(vertexMaterial.Count))
+		enc.Uint16(uint16(vertexMaterial.Index1))
+	}
+
+	for _, animatedBone := range e.AnimatedBones {
+		enc.Float32(animatedBone.Position.X)
+		enc.Float32(animatedBone.Position.Y)
+		enc.Float32(animatedBone.Position.Z)
+	}
+
+	if enc.Error() != nil {
+		return enc.Error()
+	}
+
 	return nil
 }
 
@@ -1045,8 +1137,8 @@ func decodeMesh(r io.ReadSeeker) (common.FragmentReader, error) {
 	/// no faces or vertices and I suspect they are there to define attachment points for
 	/// objects (e.g. weapons or shields).
 	vertexPieceCount := dec.Uint16()
-	polygonTextureCount := dec.Uint16() // number of triangle texture entries. faces are grouped together by material and polygon material entries. This tells the client the number of faces using a material.
-	vertexTextureCount := dec.Uint16()  // number of vertex material entries. Vertices are grouped together by material and vertex material entries tell the client how many vertices there are using a material.
+	triangleMaterialCount := dec.Uint16() // number of triangle texture entries. faces are grouped together by material and polygon material entries. This tells the client the number of faces using a material.
+	vertexMaterialCount := dec.Uint16()   // number of vertex material entries. Vertices are grouped together by material and vertex material entries tell the client how many vertices there are using a material.
 
 	meshAnimatedBoneCount := dec.Uint16() // number of entries in meshops. Seems to be used only for animated mob models.
 	rawScale := dec.Uint16()
@@ -1117,18 +1209,18 @@ func decodeMesh(r io.ReadSeeker) (common.FragmentReader, error) {
 		d.VertexPieces = append(d.VertexPieces, vertexPiece)
 	}
 
-	for i := 0; i < int(polygonTextureCount); i++ {
+	for i := 0; i < int(triangleMaterialCount); i++ {
 		d.TriangleMaterials = append(d.TriangleMaterials, MeshTriangleMaterial{
 			Count:      dec.Uint16(),
 			MaterialID: dec.Uint16(),
 		})
 	}
 
-	for i := 0; i < int(vertexTextureCount); i++ {
+	for i := 0; i < int(vertexMaterialCount); i++ {
 		vertexMat := MeshVertexPiece{}
 		vertexMat.Count = dec.Int16()
 		vertexMat.Index1 = dec.Int16()
-		d.VertexPieces = append(d.VertexPieces, vertexMat)
+		d.VertexMaterials = append(d.VertexMaterials, vertexMat)
 	}
 
 	for i := 0; i < int(meshAnimatedBoneCount); i++ {
