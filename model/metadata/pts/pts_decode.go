@@ -31,7 +31,7 @@ func Decode(point *common.ParticlePoint, r io.ReadSeeker) error {
 	tag.Add(0, dec.Pos(), "red", "header")
 
 	for i := 0; i < int(particleCount); i++ {
-		entry := common.ParticlePointEntry{}
+		entry := &common.ParticlePointEntry{}
 		entry.Name = dec.StringZero()
 		entry.NameSuffix = dec.Bytes(64 - len(entry.Name) - 1)
 		entry.BoneName = dec.StringZero()

@@ -2,8 +2,8 @@ package common
 
 // ParticlePoint is a particle point
 type ParticlePoint struct {
-	Header  *Header              `yaml:"header,omitempty"`
-	Entries []ParticlePointEntry `yaml:"entries,omitempty"`
+	Header  *Header               `yaml:"header,omitempty"`
+	Entries []*ParticlePointEntry `yaml:"entries,omitempty"`
 }
 
 func NewParticlePoint(name string) *ParticlePoint {
