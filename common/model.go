@@ -11,15 +11,15 @@ import (
 
 // Model is a model
 type Model struct {
-	Header          *Header           `yaml:"header"`
-	FileType        string            `yaml:"file_type"`
-	Vertices        []Vertex          `yaml:"vertices"`
-	Triangles       []Triangle        `yaml:"triangles"`
-	Bones           []Bone            `yaml:"bones"`
-	Materials       []*Material       `yaml:"materials"`
-	ParticlePoints  []*ParticlePoint  `yaml:"particle_points"`
-	ParticleRenders []*ParticleRender `yaml:"particle_renders"`
-	Layers          []*Layer          `yaml:"layers"`
+	Header          *Header           `yaml:"header,omitempty"`
+	FileType        string            `yaml:"file_type,omitempty"`
+	Vertices        []Vertex          `yaml:"vertices,omitempty"`
+	Triangles       []Triangle        `yaml:"triangles,omitempty"`
+	Bones           []Bone            `yaml:"bones,omitempty"`
+	Materials       []*Material       `yaml:"materials,omitempty"`
+	ParticlePoints  []*ParticlePoint  `yaml:"particle_points,omitempty"`
+	ParticleRenders []*ParticleRender `yaml:"particle_renders,omitempty"`
+	Layers          []*Layer          `yaml:"layers,omitempty"`
 }
 
 // NewModel returns a new model

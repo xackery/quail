@@ -13,7 +13,7 @@ type filer interface {
 }
 
 // FilerByCRC sorts a slice of Filer by CRC32
-type FilerByCRC []FileEntry
+type FilerByCRC []*FileEntry
 
 // Len returns the length of the slice
 func (s FilerByCRC) Len() int {

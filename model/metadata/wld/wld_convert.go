@@ -31,7 +31,11 @@ func convertMesh(world *common.Wld, frag common.FragmentReader) (*common.Model, 
 	if !ok {
 		return nil, fmt.Errorf("assertion failed, wanted *Mesh, got %T", frag)
 	}
-	model := common.NewModel(world.Name(d.NameRef))
+	name := world.Name(d.NameRef)
+	if name == "" {
+		name = "unknown"
+	}
+	model := common.NewModel(name)
 
 	model.FileType = "mod"
 	if d.Flags == 0x00018003 {

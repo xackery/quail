@@ -13,7 +13,7 @@ import (
 func TestPFS_Add(t *testing.T) {
 	type fields struct {
 		name            string
-		files           []FileEntry
+		files           []*FileEntry
 		ContentsSummary string
 		fileCount       int
 	}
@@ -101,7 +101,7 @@ func TestNewFile(t *testing.T) {
 func TestPFS_Remove(t *testing.T) {
 	type fields struct {
 		name            string
-		files           []FileEntry
+		files           []*FileEntry
 		ContentsSummary string
 		fileCount       int
 	}
@@ -114,7 +114,7 @@ func TestPFS_Remove(t *testing.T) {
 		args    args
 		wantErr bool
 	}{
-		{name: "success", fields: fields{files: []FileEntry{{name: "test"}}}, args: args{name: "test"}, wantErr: false},
+		{name: "success", fields: fields{files: []*FileEntry{{name: "test"}}}, args: args{name: "test"}, wantErr: false},
 		{name: "fail", args: args{name: "test"}, wantErr: true},
 	}
 	for _, tt := range tests {
@@ -135,7 +135,7 @@ func TestPFS_Remove(t *testing.T) {
 func TestPFS_Extract(t *testing.T) {
 	type fields struct {
 		name            string
-		files           []FileEntry
+		files           []*FileEntry
 		ContentsSummary string
 		fileCount       int
 	}
@@ -151,7 +151,7 @@ func TestPFS_Extract(t *testing.T) {
 		want    string
 		wantErr bool
 	}{
-		{name: "success", fields: fields{files: []FileEntry{{name: "test", data: []byte("test")}}}, args: args{path: dirTest + "/test.pfs"}, want: "extracted 1", wantErr: false},
+		{name: "success", fields: fields{files: []*FileEntry{{name: "test", data: []byte("test")}}}, args: args{path: dirTest + "/test.pfs"}, want: "extracted 1", wantErr: false},
 		{name: "fail", args: args{path: dirTest + "/test.pfs"}, want: "", wantErr: true},
 	}
 	for _, tt := range tests {
@@ -177,7 +177,7 @@ func TestPFS_Extract(t *testing.T) {
 func TestPFS_File(t *testing.T) {
 	type fields struct {
 		name            string
-		files           []FileEntry
+		files           []*FileEntry
 		ContentsSummary string
 		fileCount       int
 	}
@@ -191,8 +191,8 @@ func TestPFS_File(t *testing.T) {
 		want    []byte
 		wantErr bool
 	}{
-		{"success", fields{files: []FileEntry{{name: "test", data: []byte("test")}}}, args{name: "test"}, []byte("test"), false},
-		{"fail", fields{files: []FileEntry{{name: "test", data: []byte("test")}}}, args{name: ""}, nil, true},
+		{"success", fields{files: []*FileEntry{{name: "test", data: []byte("test")}}}, args{name: "test"}, []byte("test"), false},
+		{"fail", fields{files: []*FileEntry{{name: "test", data: []byte("test")}}}, args{name: ""}, nil, true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -217,7 +217,7 @@ func TestPFS_File(t *testing.T) {
 func TestPFS_Close(t *testing.T) {
 	type fields struct {
 		name            string
-		files           []FileEntry
+		files           []*FileEntry
 		ContentsSummary string
 		fileCount       int
 	}
@@ -246,7 +246,7 @@ func TestPFS_Close(t *testing.T) {
 func TestPFS_WriteFile(t *testing.T) {
 	type fields struct {
 		name            string
-		files           []FileEntry
+		files           []*FileEntry
 		ContentsSummary string
 		fileCount       int
 	}

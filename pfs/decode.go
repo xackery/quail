@@ -86,7 +86,7 @@ func (e *PFS) Decode(r io.ReadSeeker) error {
 		return fmt.Errorf("unknown version")
 	}
 
-	e.files = []FileEntry{}
+	e.files = []*FileEntry{}
 	fileByCRCs := make(map[uint32][]byte)
 	dirNameByCRCs := make(map[uint32]string)
 

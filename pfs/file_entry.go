@@ -7,8 +7,8 @@ type FileEntry struct {
 }
 
 // NewFileEntry creates a new file entry
-func NewFileEntry(name string, data []byte) FileEntry {
-	return FileEntry{
+func NewFileEntry(name string, data []byte) *FileEntry {
+	return &FileEntry{
 		name: name,
 		data: data,
 	}

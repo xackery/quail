@@ -14,7 +14,7 @@ import (
 // PFS represents a modern everquest pfs archive
 type PFS struct {
 	name            string
-	files           []FileEntry
+	files           []*FileEntry
 	ContentsSummary string
 	fileCount       int
 }
@@ -157,7 +157,7 @@ func (e *PFS) Len() int {
 }
 
 // Files returns a string array of every file inside an EQG
-func (e *PFS) Files() []FileEntry {
+func (e *PFS) Files() []*FileEntry {
 	return e.files
 }
 
