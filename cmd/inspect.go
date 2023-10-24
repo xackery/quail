@@ -13,12 +13,14 @@ import (
 	"github.com/xackery/quail/log"
 	"github.com/xackery/quail/model/mesh/mds"
 	"github.com/xackery/quail/model/mesh/mod"
+	"github.com/xackery/quail/model/metadata/ani"
 	"github.com/xackery/quail/model/metadata/lay"
 	"github.com/xackery/quail/model/metadata/prt"
 	"github.com/xackery/quail/model/metadata/pts"
 	"github.com/xackery/quail/model/metadata/zon"
 	"github.com/xackery/quail/pfs"
 	"github.com/xackery/quail/quail"
+	"gopkg.in/yaml.v3"
 )
 
 // inspectCmd represents the inspect command
@@ -64,7 +66,17 @@ var inspectCmd = &cobra.Command{
 			return fmt.Errorf("inspect: %w", err)
 		}
 
-		reflectTraversal(inspected, 0, -1)
+		buf := &bytes.Buffer{}
+		enc := yaml.NewEncoder(buf)
+		enc.SetIndent(2)
+		err = enc.Encode(inspected)
+		if err != nil {
+			return fmt.Errorf("yaml encode: %w", err)
+		}
+
+		log.Infoln(buf.String())
+
+		//reflectTraversal(inspected, 0, -1)
 		return nil
 
 	},
@@ -152,11 +164,11 @@ func reflectTraversal(inspected interface{}, nest int, index int) {
 }
 
 func inspect(path string, file string) (interface{}, error) {
-	if len(file) < 2 {
-		log.Infof("Inspecting %s", filepath.Base(path))
+	/* if len(file) < 2 {
+		//log.Infof("Inspecting %s", filepath.Base(path))
 	} else {
-		log.Infof("Inspecting %s %s", filepath.Base(path), filepath.Base(file))
-	}
+		//log.Infof("Inspecting %s %s", filepath.Base(path), filepath.Base(file))
+	} */
 
 	isValidExt := false
 	exts := []string{".eqg", ".s3d", ".pfs", ".pak"}
@@ -204,6 +216,13 @@ func inspectContent(file string, data *bytes.Reader) (interface{}, error) {
 	var err error
 	ext := strings.ToLower(filepath.Ext(file))
 	switch ext {
+	case ".ani":
+		anim := common.NewAnimation(strings.TrimSuffix(strings.ToUpper(file), ".ANI"))
+		err = ani.Decode(anim, data)
+		if err != nil {
+			return nil, fmt.Errorf("ani.Decode %s: %w", file, err)
+		}
+		return anim, nil
 	case ".mds":
 		model := common.NewModel(strings.TrimSuffix(strings.ToUpper(file), ".MDS"))
 		err = mds.Decode(model, data)
@@ -240,11 +259,11 @@ func inspectContent(file string, data *bytes.Reader) (interface{}, error) {
 		}
 		return zone, nil
 	case ".wld":
-		models, err := quail.WLDDecode2(data, nil)
+		world, err := quail.WLDDecode(data, nil)
 		if err != nil {
 			return nil, fmt.Errorf("wld.Decode %s: %w", file, err)
 		}
-		return models, nil
+		return world, nil
 	case ".lay":
 		model := common.NewModel("")
 		err := lay.Decode(model, data)

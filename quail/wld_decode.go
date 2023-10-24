@@ -10,12 +10,17 @@ import (
 )
 
 // Decode decodes a WLD file
-func WLDDecode2(r io.ReadSeeker, pfs *pfs.PFS) ([]*common.Model, error) {
+func WLDDecode(r io.ReadSeeker, pfs *pfs.PFS) (*common.Wld, error) {
 	world := &common.Wld{}
 	err := wld.Decode(world, r)
 	if err != nil {
 		return nil, fmt.Errorf("wld decode: %w", err)
 	}
 
-	return nil, fmt.Errorf("not implemented")
+	err = wld.Convert(world)
+	if err != nil {
+		return nil, fmt.Errorf("wld convert: %w", err)
+	}
+
+	return world, nil
 }

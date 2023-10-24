@@ -6,20 +6,19 @@ import (
 	"github.com/xackery/quail/common"
 )
 
-func Convert(world *common.Wld) ([]*common.Model, error) {
-	models := []*common.Model{}
-	for i, frag := range world.Fragments {
-		model, err := convertMesh(world, frag)
+func Convert(e *common.Wld) error {
+	e.Models = []*common.Model{}
+	for i, frag := range e.Fragments {
+		model, err := convertMesh(e, frag)
 		if err != nil {
-			return nil, fmt.Errorf("fragment id %d 0x%x (%s): %w", i, frag.FragCode(), common.FragName(frag.FragCode()), err)
+			return fmt.Errorf("fragment id %d 0x%x (%s): %w", i, frag.FragCode(), common.FragName(frag.FragCode()), err)
 		}
 		if model == nil {
 			continue
 		}
-		models = append(models, model)
+		e.Models = append(e.Models, model)
 	}
-
-	return models, nil
+	return nil
 }
 
 func convertMesh(world *common.Wld, frag common.FragmentReader) (*common.Model, error) {

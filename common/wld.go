@@ -1,10 +1,11 @@
 package common
 
 type Wld struct {
-	Version    int
-	IsOldWorld bool
-	Fragments  map[int]FragmentReader
-	names      map[int32]string
+	Version    int                    `yaml:"version"`
+	IsOldWorld bool                   `yaml:"is_old_world"`
+	Fragments  map[int]FragmentReader `yaml:"-"`
+	names      map[int32]string       `yaml:"-"`
+	Models     []*Model               `yaml:"models"`
 }
 
 func (e *Wld) SetNames(names map[int32]string) {
