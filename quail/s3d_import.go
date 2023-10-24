@@ -7,10 +7,9 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/malashin/dds"
 	"github.com/sergeymakinen/go-bmp"
-	"github.com/xackery/quail/common"
 	"github.com/xackery/quail/log"
-	"github.com/xackery/quail/model/metadata/wld"
 	"github.com/xackery/quail/pfs"
 )
 
@@ -18,7 +17,7 @@ import (
 func (e *Quail) S3DImport(path string) error {
 	pfs, err := pfs.NewFile(path)
 	if err != nil {
-		return fmt.Errorf("pfs load: %w", err)
+		return fmt.Errorf("s3d load: %w", err)
 	}
 	defer pfs.Close()
 
@@ -29,18 +28,11 @@ func (e *Quail) S3DImport(path string) error {
 				continue
 			}
 
-			world := &common.Wld{}
-
-			err = wld.Decode(world, bytes.NewReader(file.Data()))
+			world, err := WLDDecode(bytes.NewReader(file.Data()), pfs)
 			if err != nil {
-				return fmt.Errorf("wld decode: %w", err)
+				return fmt.Errorf("wldDecode %s: %w", file.Name(), err)
 			}
-			models, err := wld.Convert(world)
-			if err != nil {
-				return fmt.Errorf("wld convert: %w", err)
-			}
-
-			e.Models = append(e.Models, models...)
+			e.Models = append(e.Models, world.Models...)
 		}
 	}
 
@@ -70,7 +62,21 @@ func (e *Quail) S3DImport(path string) error {
 
 					if string(property.Data[0:3]) == "DDS" {
 						property.Value = strings.TrimSuffix(property.Value, filepath.Ext(property.Value)) + ".dds"
-						material.Name = strings.TrimSuffix(strings.TrimSuffix(material.Name, ".BMP"), ".bmp")
+						// change to png, blender doesn't like EQ dds
+						img, err := dds.Decode(bytes.NewReader(property.Data))
+						if err != nil {
+							return fmt.Errorf("dds decode: %w", err)
+						}
+						buf := new(bytes.Buffer)
+						err = png.Encode(buf, img)
+						if err != nil {
+							return fmt.Errorf("png encode: %w", err)
+						}
+						if strings.HasSuffix(strings.ToLower(material.Name), ".bmp") {
+							material.Name = strings.TrimSuffix(material.Name, ".bmp")
+						}
+						property.Data = buf.Bytes()
+						property.Value = strings.TrimSuffix(property.Value, filepath.Ext(property.Value)) + ".png"
 						continue
 					}
 

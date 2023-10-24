@@ -1,8 +1,8 @@
 package common
 
 type ParticleRender struct {
-	Header  *Header
-	Entries []*ParticleRenderEntry
+	Header  *Header                `yaml:"header,omitempty"`
+	Entries []*ParticleRenderEntry `yaml:"entries,omitempty"`
 }
 
 func NewParticleRender(name string) *ParticleRender {
@@ -15,17 +15,17 @@ func NewParticleRender(name string) *ParticleRender {
 
 // ParticleRender defines what particle to emit on a particle point
 type ParticleRenderEntry struct {
-	ID                  uint32 `json:"id"` //id is actorsemittersnew.edd
-	ID2                 uint32 `json:"id2"`
-	ParticlePoint       string `json:"particlePoint"`
-	ParticlePointSuffix []byte
-	UnknownA1           uint32
-	UnknownA2           uint32
-	UnknownA3           uint32
-	UnknownA4           uint32
-	UnknownA5           uint32
-	Duration            uint32 `json:"duration"`
-	UnknownB            uint32 `json:"unknownb"`
-	UnknownFFFFFFFF     int32  `json:"unknownffffffff"`
-	UnknownC            uint32 `json:"unknownc"`
+	ID                  uint32 `yaml:"id"` //id is actorsemittersnew.edd
+	ID2                 uint32 `yaml:"id2"`
+	ParticlePoint       string `yaml:"particle_point"`
+	ParticlePointSuffix []byte `yaml:"particle_point_suffix,omitempty"`
+	UnknownA1           uint32 `yaml:"unknowna1"`
+	UnknownA2           uint32 `yaml:"unknowna2"`
+	UnknownA3           uint32 `yaml:"unknowna3"`
+	UnknownA4           uint32 `yaml:"unknowna4"`
+	UnknownA5           uint32 `yaml:"unknowna5"`
+	Duration            uint32 `yaml:"duration"`
+	UnknownB            uint32 `yaml:"unknownb"`
+	UnknownFFFFFFFF     int32  `yaml:"unknownffffffff"`
+	UnknownC            uint32 `yaml:"unknownc"`
 }

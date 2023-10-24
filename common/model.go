@@ -13,13 +13,13 @@ import (
 type Model struct {
 	Header          *Header           `yaml:"header,omitempty"`
 	FileType        string            `yaml:"file_type,omitempty"`
-	Vertices        []Vertex          `yaml:"vertices,omitempty"`
-	Triangles       []Triangle        `yaml:"triangles,omitempty"`
-	Bones           []Bone            `yaml:"bones,omitempty"`
 	Materials       []*Material       `yaml:"materials,omitempty"`
 	ParticlePoints  []*ParticlePoint  `yaml:"particle_points,omitempty"`
 	ParticleRenders []*ParticleRender `yaml:"particle_renders,omitempty"`
 	Layers          []*Layer          `yaml:"layers,omitempty"`
+	Bones           []Bone            `yaml:"bones,omitempty"`
+	Vertices        []Vertex          `yaml:"vertices,omitempty"`
+	Triangles       []Triangle        `yaml:"triangles,omitempty"`
 }
 
 // NewModel returns a new model
@@ -44,19 +44,19 @@ type Header struct {
 
 // Material is a material
 type Material struct {
-	ID         int32
-	Name       string
-	ShaderName string
-	Flag       uint32
-	Properties []*MaterialProperty
-	Animation  MaterialAnimation `yaml:"animation,omitempty"`
+	ID         int32               `yaml:"id,omitempty"`
+	Name       string              `yaml:"name"`
+	ShaderName string              `yaml:"shader_name"`
+	Flag       uint32              `yaml:"flag"`
+	Properties []*MaterialProperty `yaml:"properties,omitempty"`
+	Animation  MaterialAnimation   `yaml:"animation,omitempty"`
 }
 
 // MaterialProperty is a material property
 type MaterialProperty struct {
-	Name     string
-	Category uint32
-	Value    string
+	Name     string `yaml:"name"`
+	Category uint32 `yaml:"category"`
+	Value    string `yaml:"value"`
 	Data     []byte `yaml:"data,omitempty"`
 }
 
@@ -65,15 +65,15 @@ func (m *MaterialProperty) String() string {
 }
 
 type MaterialAnimation struct {
-	Sleep    uint32
-	Textures []string
+	Sleep    uint32   `yaml:"sleep"`
+	Textures []string `yaml:"textures,omitempty"`
 }
 
 // Layer is a layer of materials to swap
 type Layer struct {
-	Material string
-	Diffuse  string
-	Normal   string
+	Material string `yaml:"material"`
+	Diffuse  string `yaml:"diffuse"`
+	Normal   string `yaml:"normal"`
 }
 
 func (v Layer) String() string {
@@ -82,9 +82,9 @@ func (v Layer) String() string {
 
 // Vector3 has X,Y,Z defined as float32
 type Vector3 struct {
-	X float32
-	Y float32
-	Z float32
+	X float32 `yaml:"fx"`
+	Y float32 `yaml:"fy"`
+	Z float32 `yaml:"fz"`
 }
 
 // String returns a string representation of the vector
@@ -94,58 +94,58 @@ func (v Vector3) String() string {
 
 // Vector2 has X,Y defined as float32
 type Vector2 struct {
-	X float32
-	Y float32
+	X float32 `yaml:"fx"`
+	Y float32 `yaml:"fy"`
 }
 
 // Vertex is a vertex
 type Vertex struct {
-	Position Vector3
-	Normal   Vector3
-	Tint     RGBA
-	Uv       Vector2
-	Uv2      Vector2
+	Position Vector3 `yaml:"position"`
+	Normal   Vector3 `yaml:"normal"`
+	Tint     RGBA    `yaml:"tint"`
+	Uv       Vector2 `yaml:"uv"`
+	Uv2      Vector2 `yaml:"uv2"`
 }
 
 // RGBA represents R,G,B,A as uint8
 type RGBA struct {
-	R uint8
-	G uint8
-	B uint8
-	A uint8
+	R uint8 `yaml:"r"`
+	G uint8 `yaml:"g"`
+	B uint8 `yaml:"b"`
+	A uint8 `yaml:"a"`
 }
 
 // Triangle is a triangle
 type Triangle struct {
-	Index        UIndex3
-	MaterialName string
-	Flag         uint32
+	Index        UIndex3 `yaml:"index"`
+	MaterialName string  `yaml:"material_name"`
+	Flag         uint32  `yaml:"flag"`
 }
 
 // UIndex3 has X,Y,Z defined as uint32
 type UIndex3 struct {
-	X uint32
-	Y uint32
-	Z uint32
+	X uint32 `yaml:"ux"`
+	Y uint32 `yaml:"uy"`
+	Z uint32 `yaml:"uz"`
 }
 
 // Bone is a bone
 type Bone struct {
-	Name          string
-	Next          int32
-	ChildrenCount uint32
-	ChildIndex    int32
-	Pivot         Vector3
-	Rotation      Quad4
-	Scale         Vector3
+	Name          string  `yaml:"name"`
+	Next          int32   `yaml:"next"`
+	ChildrenCount uint32  `yaml:"children_count"`
+	ChildIndex    int32   `yaml:"child_index"`
+	Pivot         Vector3 `yaml:"pivot"`
+	Rotation      Quad4   `yaml:"rotation"`
+	Scale         Vector3 `yaml:"scale"`
 }
 
 // Quad4  has X,Y,Z,W defined as float32
 type Quad4 struct {
-	X float32
-	Y float32
-	Z float32
-	W float32
+	X float32 `yaml:"fx"`
+	Y float32 `yaml:"fy"`
+	Z float32 `yaml:"fz"`
+	W float32 `yaml:"fw"`
 }
 
 // Normalize a quaternion
@@ -168,17 +168,17 @@ func Normalize(q Quad4) Quad4 {
 }
 
 type BoneAnimation struct {
-	Name       string
-	FrameCount uint32
-	Frames     []*BoneAnimationFrame
+	Name       string                `yaml:"name"`
+	FrameCount uint32                `yaml:"frame_count"`
+	Frames     []*BoneAnimationFrame `yaml:"frames,omitempty"`
 }
 
 // BoneAnimationFrame is a bone animation frame
 type BoneAnimationFrame struct {
-	Milliseconds uint32
-	Translation  Vector3
-	Rotation     Quad4
-	Scale        Vector3
+	Milliseconds uint32  `yaml:"milliseconds"`
+	Translation  Vector3 `yaml:"translation"`
+	Rotation     Quad4   `yaml:"rotation"`
+	Scale        Vector3 `yaml:"scale"`
 }
 
 // NameBuild prepares an EQG-styled name buffer list

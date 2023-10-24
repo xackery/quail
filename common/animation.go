@@ -10,9 +10,9 @@ import (
 
 // Animation is an animation
 type Animation struct {
-	Header   *Header
-	Bones    []*BoneAnimation
-	IsStrict bool
+	Header   *Header          `yaml:"header,omitempty"`
+	Bones    []*BoneAnimation `yaml:"bones,omitempty"`
+	IsStrict bool             `yaml:"is_strict,omitempty"`
 }
 
 func NewAnimation(name string) *Animation {

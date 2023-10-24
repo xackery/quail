@@ -7,13 +7,13 @@ import (
 
 // Zone is a zone
 type Zone struct {
-	Header  *Header
-	Models  []string
-	Objects []Object
-	Regions []Region
-	Lights  []Light
-	Lits    []*RGBA
-	V4Info  V4Info
+	Header  *Header  `yaml:"header,omitempty"`
+	Models  []string `yaml:"models,omitempty"`
+	Objects []Object `yaml:"objects,omitempty"`
+	Regions []Region `yaml:"regions,omitempty"`
+	Lights  []Light  `yaml:"lights,omitempty"`
+	Lits    []*RGBA  `yaml:"lits,omitempty"`
+	V4Info  V4Info   `yaml:"v4info,omitempty"`
 }
 
 func NewZone(name string) *Zone {

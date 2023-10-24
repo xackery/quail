@@ -2,8 +2,8 @@ package common
 
 // ParticlePoint is a particle point
 type ParticlePoint struct {
-	Header  *Header
-	Entries []ParticlePointEntry
+	Header  *Header              `yaml:"header,omitempty"`
+	Entries []ParticlePointEntry `yaml:"entries,omitempty"`
 }
 
 func NewParticlePoint(name string) *ParticlePoint {
@@ -22,11 +22,11 @@ func (p *ParticlePoint) init() {
 
 // ParticlePointEntry is a single entry in a particle point
 type ParticlePointEntry struct {
-	Name        string `json:"name"`
-	NameSuffix  []byte
-	Bone        string `json:"bone"`
-	BoneSuffix  []byte
-	Translation Vector3 `json:"translation"`
-	Rotation    Vector3 `json:"rotation"`
-	Scale       Vector3 `json:"scale"`
+	Name        string  `yaml:"name"`
+	Bone        string  `yaml:"bone"`
+	Translation Vector3 `yaml:"translation"`
+	Rotation    Vector3 `yaml:"rotation"`
+	Scale       Vector3 `yaml:"scale"`
+	NameSuffix  []byte  `yaml:"name_suffix,omitempty"`
+	BoneSuffix  []byte  `yaml:"bone_suffix,omitempty"`
 }
