@@ -909,6 +909,9 @@ func decodeDMSprite(r io.ReadSeeker) (common.FragmentReader, error) {
 
 // DMSpriteRef is DmSprite in libeq, Mesh Reference in openzone, empty in wld, MeshReference in lantern
 type DMSpriteRef struct {
+	NameRef     int32  `yaml:"name_ref"`
+	DMSpriteRef int32  `yaml:"dm_sprite_ref"`
+	Params      uint32 `yaml:"params"`
 }
 
 func (e *DMSpriteRef) FragCode() int {
@@ -916,11 +919,25 @@ func (e *DMSpriteRef) FragCode() int {
 }
 
 func (e *DMSpriteRef) Encode(w io.Writer) error {
+	enc := encdec.NewEncoder(w, binary.LittleEndian)
+	enc.Int32(e.NameRef)
+	enc.Int32(e.DMSpriteRef)
+	enc.Uint32(e.Params)
+	if enc.Error() != nil {
+		return enc.Error()
+	}
 	return nil
 }
 
 func decodeDMSpriteRef(r io.ReadSeeker) (common.FragmentReader, error) {
 	d := &DMSpriteRef{}
+	dec := encdec.NewDecoder(r, binary.LittleEndian)
+	d.NameRef = dec.Int32()
+	d.DMSpriteRef = dec.Int32()
+	d.Params = dec.Uint32()
+	if dec.Error() != nil {
+		return nil, dec.Error()
+	}
 	return d, nil
 }
 

@@ -174,6 +174,10 @@ func decodeTextureRef(r io.ReadSeeker) (common.FragmentReader, error) {
 
 // BlitSprite is BlitSprite in libeq, empty in openzone, BLITSPRITE (ref) in wld, ParticleSprite in lantern
 type BlitSprite struct {
+	NameRef       int32  `yaml:"name_ref"`
+	Flags         uint32 `yaml:"flags"`
+	BlitSpriteRef uint32 `yaml:"blit_sprite_ref"`
+	Unk1          int32  `yaml:"unk1"`
 }
 
 func (e *BlitSprite) FragCode() int {
@@ -181,12 +185,26 @@ func (e *BlitSprite) FragCode() int {
 }
 
 func (e *BlitSprite) Encode(w io.Writer) error {
-	return fmt.Errorf("not implemented")
+	enc := encdec.NewEncoder(w, binary.LittleEndian)
+	enc.Int32(e.NameRef)
+	enc.Uint32(e.Flags)
+	enc.Uint32(e.BlitSpriteRef)
+	enc.Int32(e.Unk1)
+	if enc.Error() != nil {
+		return enc.Error()
+	}
+
+	return nil
 }
 
 func decodeBlitSprite(r io.ReadSeeker) (common.FragmentReader, error) {
 	d := &BlitSprite{}
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
+	d.NameRef = dec.Int32()
+	d.Flags = dec.Uint32()
+	d.BlitSpriteRef = dec.Uint32()
+	d.Unk1 = dec.Int32()
+
 	if dec.Error() != nil {
 		return nil, dec.Error()
 	}

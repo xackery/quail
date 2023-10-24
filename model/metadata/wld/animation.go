@@ -10,12 +10,12 @@ import (
 
 // SkeletonTrack is HierarchialSpriteDef in libeq, SkeletonTrackSet in openzone, HIERARCHIALSPRITE in wld, SkeletonHierarchy in lantern
 type SkeletonTrack struct {
-	NameRef            int32
-	Flags              uint32
-	AnimCount          uint32
-	CollisionVolumeRef uint32
-	CenterOffset       common.Vector3
-	Radius             float32
+	NameRef            int32          `yaml:"name_ref"`
+	Flags              uint32         `yaml:"flags"`
+	AnimCount          uint32         `yaml:"anim_count"`
+	CollisionVolumeRef uint32         `yaml:"collision_volume_ref"`
+	CenterOffset       common.Vector3 `yaml:"center_offset"`
+	Radius             float32        `yaml:"radius"`
 }
 
 func (e *SkeletonTrack) FragCode() int {
