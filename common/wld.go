@@ -1,11 +1,20 @@
 package common
 
 type Wld struct {
-	Version    int                    `yaml:"version"`
+	Header     *Header                `yaml:"header"`
 	IsOldWorld bool                   `yaml:"is_old_world"`
 	Fragments  map[int]FragmentReader `yaml:"-"`
 	names      map[int32]string       `yaml:"-"`
 	Models     []*Model               `yaml:"models"`
+}
+
+func NewWld(name string) *Wld {
+	e := &Wld{
+		Header: &Header{
+			Name: name,
+		},
+	}
+	return e
 }
 
 func (e *Wld) SetNames(names map[int32]string) {

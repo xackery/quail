@@ -34,8 +34,8 @@ func TestDecode(t *testing.T) {
 				t.Fatalf("failed to open wld %s: %s", tt.name, err.Error())
 			}
 
-			wld := &common.Wld{}
-			err = Decode(wld, bytes.NewReader(data))
+			world := common.NewWld("test")
+			err = Decode(world, bytes.NewReader(data))
 			if err != nil {
 				t.Fatalf("failed to decode %s: %s", tt.name, err.Error())
 			}
@@ -68,8 +68,8 @@ func TestDumpFragOffset(t *testing.T) {
 				t.Fatalf("failed to open wld %s: %s", tt.name, err.Error())
 			}
 
-			wld := &common.Wld{}
-			err = Decode(wld, bytes.NewReader(data))
+			world := common.NewWld("test")
+			err = Decode(world, bytes.NewReader(data))
 			if err != nil {
 				t.Fatalf("failed to decode %s: %s", tt.name, err.Error())
 			}
@@ -81,7 +81,7 @@ func TestDumpFragOffset(t *testing.T) {
 			}
 			enc := yaml.NewEncoder(w)
 			enc.SetIndent(2)
-			err = enc.Encode(wld.Fragments)
+			err = enc.Encode(world.Fragments)
 			if err != nil {
 				t.Fatalf("failed to encode %s: %s", tt.name, err.Error())
 			}

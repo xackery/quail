@@ -1023,9 +1023,9 @@ func (e *Mesh) Encode(w io.Writer) error {
 	rawScale := uint16(math.Log2(float64(1 / e.Scale)))
 	enc.Uint16(rawScale)
 	for _, vertex := range e.Vertices {
-		enc.Int16(int16((vertex.Position.X - e.Center.X) * (1 << rawScale)))
-		enc.Int16(int16((vertex.Position.Y - e.Center.Y) * (1 << rawScale)))
-		enc.Int16(int16((vertex.Position.Z - e.Center.Z) * (1 << rawScale)))
+		enc.Int16(int16(int(vertex.Position.X-e.Center.X) * (1 << rawScale)))
+		enc.Int16(int16(int(vertex.Position.Y-e.Center.Y) * (1 << rawScale)))
+		enc.Int16(int16(int(vertex.Position.Z-e.Center.Z) * (1 << rawScale)))
 	}
 	for _, uv := range e.Uvs {
 		if isOldWorld {

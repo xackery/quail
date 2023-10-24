@@ -37,7 +37,7 @@ func TestConvert(t *testing.T) {
 			if err != nil {
 				t.Fatalf("failed to open wld %s: %s", tt.file, err.Error())
 			}
-			world := &common.Wld{}
+			world := common.NewWld("test")
 			err = Decode(world, bytes.NewReader(data))
 			if err != nil {
 				t.Fatalf("failed to decode wld %s: %s", tt.file, err.Error())

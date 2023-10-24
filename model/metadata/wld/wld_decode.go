@@ -28,17 +28,17 @@ func Decode(wld *common.Wld, r io.ReadSeeker) error {
 	if !bytes.Equal(header, validHeader) {
 		return fmt.Errorf("header wanted 0x%x, got 0x%x", validHeader, header)
 	}
-	wld.Version = int(dec.Uint32())
+	wld.Header.Version = int(dec.Uint32())
 
 	wld.IsOldWorld = false
-	switch wld.Version {
+	switch wld.Header.Version {
 	case 0x00015500:
 		wld.IsOldWorld = true
 		isOldWorld = true
 	case 0x1000C800:
 		wld.IsOldWorld = false
 	default:
-		return fmt.Errorf("unknown wld identifier %d", wld.Version)
+		return fmt.Errorf("unknown wld version %d", wld.Header.Version)
 	}
 
 	fragmentCount := dec.Uint32()

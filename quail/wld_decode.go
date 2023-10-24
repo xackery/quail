@@ -11,7 +11,7 @@ import (
 
 // Decode decodes a WLD file
 func WLDDecode(r io.ReadSeeker, pfs *pfs.PFS) (*common.Wld, error) {
-	world := &common.Wld{}
+	world := common.NewWld("")
 	err := wld.Decode(world, r)
 	if err != nil {
 		return nil, fmt.Errorf("wld decode: %w", err)
