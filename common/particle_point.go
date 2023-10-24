@@ -23,7 +23,7 @@ func (p *ParticlePoint) init() {
 // ParticlePointEntry is a single entry in a particle point
 type ParticlePointEntry struct {
 	Name        string  `yaml:"name"`
-	Bone        string  `yaml:"bone"`
+	BoneName    string  `yaml:"bone_name"`
 	Translation Vector3 `yaml:"translation"`
 	Rotation    Vector3 `yaml:"rotation"`
 	Scale       Vector3 `yaml:"scale"`

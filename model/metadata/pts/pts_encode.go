@@ -23,7 +23,7 @@ func Encode(point *common.ParticlePoint, version uint32, w io.Writer) error {
 		enc.StringZero(entry.Name)
 		enc.Bytes(entry.NameSuffix)
 
-		enc.StringZero(entry.Bone)
+		enc.StringZero(entry.BoneName)
 		enc.Bytes(entry.BoneSuffix)
 
 		enc.Float32(entry.Translation.X)

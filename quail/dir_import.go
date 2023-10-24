@@ -260,7 +260,7 @@ func (quail *Quail) dirParseModel(path string, name string) error {
 
 				entry := common.ParticlePointEntry{}
 				entry.Name = records[0]
-				entry.Bone = records[1]
+				entry.BoneName = records[1]
 				vec3 := strings.Split(records[2], ",")
 				entry.Translation.X = helper.ParseFloat32(vec3[0], 0)
 				entry.Translation.Y = helper.ParseFloat32(vec3[1], 0)
