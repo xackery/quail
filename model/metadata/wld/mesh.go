@@ -4,7 +4,6 @@ import (
 	"encoding/binary"
 	"fmt"
 	"io"
-	"math"
 
 	"github.com/xackery/encdec"
 	"github.com/xackery/quail/common"
@@ -944,45 +943,64 @@ func decodeDMSpriteRef(r io.ReadSeeker) (common.FragmentReader, error) {
 
 // Mesh is DmSpriteDef2 in libeq, Mesh in openzone, DMSPRITEDEF2 in wld, Mesh in lantern
 type Mesh struct {
-	NameRef  int32  `yaml:"name_ref"`
-	FileType string `yaml:"file_type"`
-	Flags    uint32 `yaml:"flags"`
-	// A reference to a [MaterialListFragment] fragment. This tells the client which materials this mesh uses.
-	// For zone meshes the [MaterialListFragment] contains all the materials used in the entire zone.
-	// For placeable objects the [MaterialListFragment] contains all of the materials used in that object.
-	MaterialListRef   uint32                 `yaml:"material_list_ref"`
-	AnimationRef      int32                  `yaml:"animation_ref"`
-	Fragment3Ref      int32                  `yaml:"fragment_3_ref"`
-	Fragment4Ref      int32                  `yaml:"fragment_4_ref"` // unknown, usually ref to first texture
-	Center            common.Vector3         `yaml:"center"`
-	Params2           common.UIndex3         `yaml:"params_2"`
-	MaxDistance       float32                `yaml:"max_distance"`
-	Min               common.Vector3         `yaml:"min"`
-	Max               common.Vector3         `yaml:"max"`
+	NameRef int32  `yaml:"name_ref"`
+	Flags   uint32 `yaml:"flags"`
+
+	MaterialListRef uint32 `yaml:"material_list_ref"`
+	AnimationRef    int32  `yaml:"animation_ref"`
+
+	Fragment3Ref int32          `yaml:"fragment_3_ref"`
+	Fragment4Ref int32          `yaml:"fragment_4_ref"` // unknown, usually ref to first texture
+	Center       common.Vector3 `yaml:"center"`
+	Params2      common.UIndex3 `yaml:"params_2"`
+
+	MaxDistance float32        `yaml:"max_distance"`
+	Min         common.Vector3 `yaml:"min"`
+	Max         common.Vector3 `yaml:"max"`
+	// vertexCount
+	// uvCount
+	// normalCount
+	// colorCount
+	// triangleCount
+	// vertexPieceCount
+	// triangleMaterialCount
+	// vertexMaterialCount
+	// meshAnimatedBoneCount
+	RawScale          uint16                 `yaml:"raw_scale"`
 	MeshopCount       uint16                 `yaml:"meshop_count"`
 	Scale             float32                `yaml:"scale"`
-	Vertices          []common.Vertex        `yaml:"vertices"`
-	Normals           []common.UIndex3       `yaml:"normals"`
+	Vertices          [][3]int16             `yaml:"vertices"`
+	UVs               [][2]int16             `yaml:"uvs"`
+	Normals           [][3]int8              `yaml:"normals"`
 	Colors            []common.RGBA          `yaml:"colors"`
+	Triangles         []MeshTriangleEntry    `yaml:"triangles"`
 	TriangleMaterials []MeshTriangleMaterial `yaml:"triangle_materials"`
-	Triangles         []common.Triangle      `yaml:"triangles"`
 	VertexPieces      []MeshVertexPiece      `yaml:"vertex_pieces"`
 	VertexMaterials   []MeshVertexPiece      `yaml:"vertex_materials"`
-	AnimatedBones     []MeshAnimatedBone     `yaml:"animated_bones"`
+	MeshOps           []MeshOpEntry          `yaml:"mesh_ops"`
+}
+
+type MeshTriangleEntry struct {
+	Flags uint16    `yaml:"flags"`
+	Index [3]uint16 `yaml:"indexes"`
 }
 
 type MeshVertexPiece struct {
-	Count  int16
-	Index1 int16
+	Count  int16 `yaml:"count"`
+	Index1 int16 `yaml:"index_1"`
 }
 
 type MeshTriangleMaterial struct {
-	Count      uint16
-	MaterialID uint16
+	Count      uint16 `yaml:"count"`
+	MaterialID uint16 `yaml:"material_id"`
 }
 
-type MeshAnimatedBone struct {
-	Position common.Vector3
+type MeshOpEntry struct {
+	Index1    uint16  `yaml:"index_1"`
+	Index2    uint16  `yaml:"index_2"`
+	Offset    float32 `yaml:"offset"`
+	Param1    uint8   `yaml:"param_1"`
+	TypeField uint8   `yaml:"type_field"`
 }
 
 func (e *Mesh) FragCode() int {
@@ -993,16 +1011,21 @@ func (e *Mesh) Encode(w io.Writer) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
 	enc.Int32(e.NameRef)
 	enc.Uint32(e.Flags)
+
 	enc.Uint32(e.MaterialListRef)
 	enc.Int32(e.AnimationRef)
-	enc.Uint32(0)
-	enc.Uint32(0)
+
+	enc.Int32(e.Fragment3Ref)
+	enc.Int32(e.Fragment4Ref)
+
 	enc.Float32(e.Center.X)
 	enc.Float32(e.Center.Y)
 	enc.Float32(e.Center.Z)
-	enc.Uint32(0)
-	enc.Uint32(0)
-	enc.Uint32(0)
+
+	enc.Uint32(e.Params2.X)
+	enc.Uint32(e.Params2.Y)
+	enc.Uint32(e.Params2.Z)
+
 	enc.Float32(e.MaxDistance)
 	enc.Float32(e.Min.X)
 	enc.Float32(e.Min.Y)
@@ -1010,6 +1033,7 @@ func (e *Mesh) Encode(w io.Writer) error {
 	enc.Float32(e.Max.X)
 	enc.Float32(e.Max.Y)
 	enc.Float32(e.Max.Z)
+
 	enc.Uint16(uint16(len(e.Vertices)))
 	enc.Uint16(uint16(len(e.Vertices)))
 	enc.Uint16(uint16(len(e.Normals)))
@@ -1018,27 +1042,24 @@ func (e *Mesh) Encode(w io.Writer) error {
 	enc.Uint16(uint16(len(e.VertexPieces)))
 	enc.Uint16(uint16(len(e.TriangleMaterials)))
 	enc.Uint16(uint16(len(e.VertexMaterials)))
-	enc.Uint16(uint16(len(e.AnimatedBones)))
-	rawScale := uint16(math.Log2(float64(1 / e.Scale)))
-	enc.Uint16(rawScale)
+	enc.Uint16(uint16(len(e.MeshOps)))
+	enc.Uint16(e.RawScale)
+
 	for _, vertex := range e.Vertices {
-		enc.Int16(int16(int(vertex.Position.X-e.Center.X) * (1 << rawScale)))
-		enc.Int16(int16(int(vertex.Position.Y-e.Center.Y) * (1 << rawScale)))
-		enc.Int16(int16(int(vertex.Position.Z-e.Center.Z) * (1 << rawScale)))
+		enc.Int16(vertex[0])
+		enc.Int16(vertex[1])
+		enc.Int16(vertex[2])
 	}
-	for _, vertex := range e.Vertices {
-		if isOldWorld {
-			enc.Int16(int16(vertex.Uv.X * 256))
-			enc.Int16(int16(vertex.Uv.Y * 256))
-		} else {
-			enc.Int32(int32(vertex.Uv.X * 256))
-			enc.Int32(int32(vertex.Uv.Y * 256))
-		}
+
+	for _, uv := range e.UVs {
+		enc.Int16(uv[0])
+		enc.Int16(uv[1])
 	}
+
 	for _, normal := range e.Normals {
-		enc.Int8(int8(normal.X * 128))
-		enc.Int8(int8(normal.Y * 128))
-		enc.Int8(int8(normal.Z * 128))
+		enc.Int8(normal[0])
+		enc.Int8(normal[1])
+		enc.Int8(normal[2])
 	}
 
 	for _, color := range e.Colors {
@@ -1049,15 +1070,15 @@ func (e *Mesh) Encode(w io.Writer) error {
 	}
 
 	for _, triangle := range e.Triangles {
-		enc.Uint16(uint16(triangle.Flag & 1))
-		enc.Uint16(uint16(triangle.Index.X))
-		enc.Uint16(uint16(triangle.Index.Y))
-		enc.Uint16(uint16(triangle.Index.Z))
+		enc.Uint16(triangle.Flags)
+		enc.Uint16(triangle.Index[0])
+		enc.Uint16(triangle.Index[1])
+		enc.Uint16(triangle.Index[2])
 	}
 
 	for _, vertexPiece := range e.VertexPieces {
-		enc.Int16(vertexPiece.Count)
-		enc.Int16(vertexPiece.Index1)
+		enc.Uint16(uint16(vertexPiece.Count))
+		enc.Uint16(uint16(vertexPiece.Index1))
 	}
 
 	for _, triangleMaterial := range e.TriangleMaterials {
@@ -1070,10 +1091,12 @@ func (e *Mesh) Encode(w io.Writer) error {
 		enc.Uint16(uint16(vertexMaterial.Index1))
 	}
 
-	for _, animatedBone := range e.AnimatedBones {
-		enc.Float32(animatedBone.Position.X)
-		enc.Float32(animatedBone.Position.Y)
-		enc.Float32(animatedBone.Position.Z)
+	for _, meshOp := range e.MeshOps {
+		enc.Uint16(meshOp.Index1)
+		enc.Uint16(meshOp.Index2)
+		enc.Float32(meshOp.Offset)
+		enc.Uint8(meshOp.Param1)
+		enc.Uint8(meshOp.TypeField)
 	}
 
 	if enc.Error() != nil {
@@ -1090,35 +1113,24 @@ func decodeMesh(r io.ReadSeeker) (common.FragmentReader, error) {
 	d.NameRef = dec.Int32()
 	d.Flags = dec.Uint32() // flags, currently unknown, zone meshes are 0x00018003, placeable objects are 0x00014003
 
-	if d.Flags == 0x00018003 {
-		d.FileType = "ter"
-	}
-
-	if d.Flags == 0x00014003 {
-		d.FileType = "mod"
-	}
-
 	d.MaterialListRef = dec.Uint32()
 	d.AnimationRef = dec.Int32() //used by flags/trees only
 
-	_ = dec.Uint32() // unknown, usually empty
-	_ = dec.Uint32() // unknown, This usually seems to reference the first [TextureImagesFragment] fragment in the file.
+	d.Fragment3Ref = dec.Int32() // unknown, usually empty
+	d.Fragment4Ref = dec.Int32() // unknown, This usually seems to reference the first [TextureImagesFragment] fragment in the file.
 
-	// for zone meshes, x coordinate of the center of the mesh
-	// for placeable objects, this seems to define where the vertices will lie relative to the object’s local origin
-	centerX := dec.Float32()
-	centerY := dec.Float32()
-	centerZ := dec.Float32()
+	d.Center.X = dec.Float32() // for zone meshes, x coordinate of the center of the mesh
+	d.Center.Y = dec.Float32() // for zone meshes, x coordinate of the center of the mesh
+	d.Center.Z = dec.Float32()
 
-	_ = dec.Uint32() // unknown, usually empty
-	_ = dec.Uint32() // unknown, usually empty
-	_ = dec.Uint32() // unknown, usually empty
+	d.Params2.X = dec.Uint32() // unknown, usually empty
+	d.Params2.Y = dec.Uint32() // unknown, usually empty
+	d.Params2.Z = dec.Uint32() // unknown, usually empty
 
 	d.MaxDistance = dec.Float32() // Given the values in center, this seems to contain the maximum distance between any vertex and that position. It seems to define a radius from that position within which the mesh lies.
 	d.Min.X = dec.Float32()       // min x, y, and z coords in absolute coords of any vertex in the mesh.
 	d.Min.Y = dec.Float32()
 	d.Min.Z = dec.Float32()
-
 	d.Max.X = dec.Float32() // max x, y, and z coords in absolute coords of any vertex in the mesh.
 	d.Max.Y = dec.Float32()
 	d.Max.Z = dec.Float32()
@@ -1139,69 +1151,42 @@ func decodeMesh(r io.ReadSeeker) (common.FragmentReader, error) {
 	triangleMaterialCount := dec.Uint16() // number of triangle texture entries. faces are grouped together by material and polygon material entries. This tells the client the number of faces using a material.
 	vertexMaterialCount := dec.Uint16()   // number of vertex material entries. Vertices are grouped together by material and vertex material entries tell the client how many vertices there are using a material.
 
-	meshAnimatedBoneCount := dec.Uint16() // number of entries in meshops. Seems to be used only for animated mob models.
-	rawScale := dec.Uint16()
-	scale := float32(1 / float32(int(1)<<rawScale)) // This allows vertex coordinates to be stored as integral values instead of floating-point values, without losing precision based on mesh size. Vertex values are multiplied by (1 shl `scale`) and stored in the vertex entries. FPSCALE is the internal name.
+	meshOpCount := dec.Uint16() // number of entries in meshops. Seems to be used only for animated mob models.
+	d.RawScale = dec.Uint16()
 
-	if vertexCount != uvCount {
-		return nil, fmt.Errorf("vertex count != uv count")
-	}
 	// convert scale back to rawscale
 	//rawScale = uint16(math.Log2(float64(1 / scale)))
 
 	/// Vertices (x, y, z) belonging to this mesh. Each axis should
 	/// be multiplied by (1 shl `scale`) for the final vertex position.
 	for i := 0; i < int(vertexCount); i++ {
-		vert := common.Vertex{}
-		vert.Position.X = float32(centerX) + (float32(dec.Int16()) * scale)
-		vert.Position.Y = float32(centerY) + (float32(dec.Int16()) * scale)
-		vert.Position.Z = float32(centerZ) + (float32(dec.Int16()) * scale)
-		d.Vertices = append(d.Vertices, vert)
+		d.Vertices = append(d.Vertices, [3]int16{dec.Int16(), dec.Int16(), dec.Int16()})
 	}
 
 	for i := 0; i < int(uvCount); i++ {
-		uv := common.Vector2{}
-		if isOldWorld {
-			uv.X = float32(dec.Int16()) / 256
-			uv.Y = float32(dec.Int16()) / 256
-		} else {
-			uv.X = float32(dec.Int32()) / 256
-			uv.Y = float32(dec.Int32()) / 256
-		}
-		d.Vertices[i].Uv = uv
+		d.UVs = append(d.UVs, [2]int16{dec.Int16(), dec.Int16()})
 	}
 
 	for i := 0; i < int(normalCount); i++ {
-		normal := common.Vector3{}
-		normal.X = float32(dec.Int8()) / 128
-		normal.Y = float32(dec.Int8()) / 128
-		normal.Z = float32(dec.Int8()) / 128
-		if i < len(d.Vertices) {
-			d.Vertices[i].Normal = normal
-		}
+		d.Normals = append(d.Normals, [3]int8{dec.Int8(), dec.Int8(), dec.Int8()})
 	}
 
 	for i := 0; i < int(colorCount); i++ {
-		color := common.RGBA{}
-		color.R = dec.Uint8()
-		color.G = dec.Uint8()
-		color.B = dec.Uint8()
-		color.A = dec.Uint8()
-		if i < len(d.Vertices) {
-			d.Vertices[i].Tint = color
+		color := common.RGBA{
+			R: dec.Uint8(),
+			G: dec.Uint8(),
+			B: dec.Uint8(),
+			A: dec.Uint8(),
 		}
+		d.Colors = append(d.Colors, color)
 	}
 
 	for i := 0; i < int(triangleCount); i++ {
-		triangle := common.Triangle{}
-		notSolidFlag := dec.Uint16()
-		if notSolidFlag != 0 {
-			triangle.Flag = 1
-		}
-		triangle.Index.X = uint32(dec.Uint16())
-		triangle.Index.Y = uint32(dec.Uint16())
-		triangle.Index.Z = uint32(dec.Uint16())
-		d.Triangles = append(d.Triangles, triangle)
+		mte := MeshTriangleEntry{}
+		mte.Flags = dec.Uint16()
+		mte.Index = [3]uint16{dec.Uint16(), dec.Uint16(), dec.Uint16()}
+
+		d.Triangles = append(d.Triangles, mte)
 	}
 
 	for i := 0; i < int(vertexPieceCount); i++ {
@@ -1226,12 +1211,14 @@ func decodeMesh(r io.ReadSeeker) (common.FragmentReader, error) {
 		d.VertexMaterials = append(d.VertexMaterials, vertexMat)
 	}
 
-	for i := 0; i < int(meshAnimatedBoneCount); i++ {
-		mab := MeshAnimatedBone{}
-		mab.Position.X = float32(centerX) + (float32(dec.Int16()) * scale)
-		mab.Position.Y = float32(centerY) + (float32(dec.Int16()) * scale)
-		mab.Position.Z = float32(centerZ) + (float32(dec.Int16()) * scale)
-		d.AnimatedBones = append(d.AnimatedBones, mab)
+	for i := 0; i < int(meshOpCount); i++ {
+		d.MeshOps = append(d.MeshOps, MeshOpEntry{
+			Index1:    dec.Uint16(),
+			Index2:    dec.Uint16(),
+			Offset:    dec.Float32(),
+			Param1:    dec.Uint8(),
+			TypeField: dec.Uint8(),
+		})
 	}
 
 	if dec.Error() != nil {
@@ -1252,6 +1239,10 @@ type MeshAnimated struct {
 	Scale       uint16
 	Frames      []MeshAnimatedBone
 	Size6       uint32
+}
+
+type MeshAnimatedBone struct {
+	Position common.Vector3
 }
 
 func (e *MeshAnimated) FragCode() int {

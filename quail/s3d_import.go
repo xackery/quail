@@ -99,6 +99,7 @@ func (e *Quail) S3DImport(path string) error {
 					}
 					property.Value = strings.TrimSuffix(property.Value, filepath.Ext(property.Value)) + ".png"
 					material.Name = strings.TrimSuffix(material.Name, ".bmp")
+					property.Data = buf.Bytes()
 				}
 
 			}

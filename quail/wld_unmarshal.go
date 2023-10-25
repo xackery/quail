@@ -8,6 +8,9 @@ import (
 )
 
 func (e *Quail) WldImport(world *common.Wld) error {
+	if len(world.Fragments) == 0 {
+		return fmt.Errorf("no fragments found")
+	}
 	e.Header = world.Header
 	for i, frag := range world.Fragments {
 		model, err := convertMesh(world, frag)
@@ -31,10 +34,12 @@ func convertMesh(world *common.Wld, frag common.FragmentReader) (*common.Model, 
 	if !ok {
 		return nil, fmt.Errorf("assertion failed, wanted *Mesh, got %T", frag)
 	}
+
 	name := world.Name(d.NameRef)
 	if name == "" {
 		name = "unknown"
 	}
+
 	model := common.NewModel(name)
 
 	model.FileType = "mod"
@@ -44,6 +49,8 @@ func convertMesh(world *common.Wld, frag common.FragmentReader) (*common.Model, 
 	if d.Flags == 0x00014003 {
 		model.FileType = "mod"
 	}
+
+	scale := float32(1 / float32(int(1)<<int(d.RawScale))) // This allows vertex coordinates to be stored as integral values instead of floating-point values, without losing precision based on mesh size. Vertex values are multiplied by (1 shl `scale`) and stored in the vertex entries. FPSCALE is the internal name.
 
 	matListFrag, ok := world.Fragments[int(d.MaterialListRef)]
 	if !ok {
@@ -71,7 +78,6 @@ func convertMesh(world *common.Wld, frag common.FragmentReader) (*common.Model, 
 		srcTexture := &wld.Texture{}
 
 		if srcMaterial.TextureRef > 0 {
-
 			textureRefFrag, ok := world.Fragments[int(srcMaterial.TextureRef)]
 			if !ok {
 				return nil, fmt.Errorf("textureref ref %d not found", srcMaterial.TextureRef)
@@ -122,8 +128,65 @@ func convertMesh(world *common.Wld, frag common.FragmentReader) (*common.Model, 
 		model.Materials = append(model.Materials, dstMaterial)
 	}
 
-	model.Vertices = d.Vertices
-	model.Triangles = d.Triangles
+	for _, vertex := range d.Vertices {
+		model.Vertices = append(model.Vertices, common.Vertex{
+			Position: common.Vector3{
+				X: float32(d.Center.X) + (float32(vertex[0]) * scale),
+				Y: float32(d.Center.Y) + (float32(vertex[1]) * scale),
+				Z: float32(d.Center.Z) + (float32(vertex[2]) * scale),
+			},
+		})
+	}
+
+	for i, normal := range d.Normals {
+		if len(model.Triangles) <= i {
+			for len(model.Triangles) <= i {
+				model.Triangles = append(model.Triangles, common.Triangle{})
+			}
+		}
+		model.Triangles[i].Index = common.UIndex3{
+			X: uint32(normal[0]),
+			Y: uint32(normal[1]),
+			Z: uint32(normal[2]),
+		}
+	}
+
+	for i, triangle := range d.Triangles {
+		if len(model.Triangles) <= i {
+			for len(model.Triangles) <= i {
+				model.Triangles = append(model.Triangles, common.Triangle{})
+			}
+		}
+		model.Triangles[i].Index = common.UIndex3{
+			X: uint32(triangle.Index[0]),
+			Y: uint32(triangle.Index[1]),
+			Z: uint32(triangle.Index[2]),
+		}
+		model.Triangles[i].Flag = uint32(triangle.Flags)
+	}
+
+	for i, color := range d.Colors {
+		if len(model.Vertices) <= i {
+			for len(model.Vertices) <= i {
+				model.Vertices = append(model.Vertices, common.Vertex{})
+			}
+		}
+		model.Vertices[i].Tint = color
+	}
+
+	for i, uv := range d.UVs {
+		if len(model.Vertices) <= i {
+			for len(model.Vertices) <= i {
+				model.Vertices = append(model.Vertices, common.Vertex{})
+			}
+		}
+
+		model.Vertices[i].Uv = common.Vector2{
+			X: float32(uv[0] / 256),
+			Y: float32(uv[1] / 256),
+		}
+	}
+
 	triIndex := 0
 	for i, triangleMat := range d.TriangleMaterials {
 		if int(triangleMat.MaterialID) >= len(model.Materials) {

@@ -50,19 +50,20 @@ func Test_decodeMesh(t *testing.T) {
 
 			got, err := decodeMesh(bytes.NewReader(data))
 			if (err != nil) != tt.wantErr {
-				t.Errorf("decodeMesh() error = %v, wantErr %v", err, tt.wantErr)
+				t.Fatalf("decodeMesh() error = %v, wantErr %v", err, tt.wantErr)
 			}
 
 			d, ok := got.(*Mesh)
 			if !ok {
-				t.Errorf("decodeMesh() got = %T, want %T", got, tt.want)
+				t.Fatalf("decodeMesh() got = %T, want %T", got, tt.want)
 			}
+
 			if d.NameRef != tt.want.(*Mesh).NameRef {
-				t.Errorf("decodeMesh() got = %v, want %v", d.NameRef, tt.want.(*Mesh).NameRef)
+				t.Fatalf("decodeMesh() got = %v, want %v", d.NameRef, tt.want.(*Mesh).NameRef)
 			}
 
 			//if !reflect.DeepEqual(got, tt.want) {
-			//	t.Errorf("decodeMesh() = %v, want %v", got, tt.want)
+			//	t.Fatalf("decodeMesh() = %v, want %v", got, tt.want)
 			//}
 		})
 	}
@@ -94,21 +95,21 @@ func TestMesh_Encode(t *testing.T) {
 			}
 			got, err := decodeMesh(bytes.NewReader(data))
 			if (err != nil) != tt.wantErr {
-				t.Errorf("decodeMesh() error = %v, wantErr %v", err, tt.wantErr)
+				t.Fatalf("decodeMesh() error = %v, wantErr %v", err, tt.wantErr)
 			}
 
 			buf := &bytes.Buffer{}
 			err = got.Encode(buf)
 			if err != nil {
-				t.Errorf("encodeMesh() error = %v", err)
+				t.Fatalf("encodeMesh() error = %v", err)
 			}
 			// create a buf with readseeker
 			got, err = decodeMesh(bytes.NewReader(buf.Bytes()))
 			if (err != nil) != tt.wantErr {
-				t.Errorf("decodeMesh() error = %v, wantErr %v", err, tt.wantErr)
+				t.Fatalf("decodeMesh() error = %v, wantErr %v", err, tt.wantErr)
 			}
 			if got == nil {
-				t.Errorf("decodeMesh() got = nil, want %v", tt.want)
+				t.Fatalf("decodeMesh() got = nil, want %v", tt.want)
 			}
 
 		})

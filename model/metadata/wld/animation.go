@@ -10,12 +10,22 @@ import (
 
 // SkeletonTrack is HierarchialSpriteDef in libeq, SkeletonTrackSet in openzone, HIERARCHIALSPRITE in wld, SkeletonHierarchy in lantern
 type SkeletonTrack struct {
-	NameRef            int32          `yaml:"name_ref"`
-	Flags              uint32         `yaml:"flags"`
-	AnimCount          uint32         `yaml:"anim_count"`
-	CollisionVolumeRef uint32         `yaml:"collision_volume_ref"`
-	CenterOffset       common.Vector3 `yaml:"center_offset"`
-	Radius             float32        `yaml:"radius"`
+	NameRef            int32           `yaml:"name_ref"`
+	Flags              uint32          `yaml:"flags"`
+	CollisionVolumeRef uint32          `yaml:"collision_volume_ref"`
+	CenterOffset       [3]uint32       `yaml:"center_offset"`
+	BoundingRadius     float32         `yaml:"bounding_radius"`
+	Bones              []SkeletonEntry `yaml:"bones"`
+	Skins              []uint32        `yaml:"skins"`
+	SkinLinks          []uint32        `yaml:"skin_links"`
+}
+
+type SkeletonEntry struct {
+	NameRef         int32    `yaml:"name_ref"`
+	Flags           uint32   `yaml:"flags"`
+	TrackRef        uint32   `yaml:"track_ref"`
+	MeshOrSpriteRef uint32   `yaml:"mesh_or_sprite_ref"`
+	SubBones        []uint32 `yaml:"sub_bones"`
 }
 
 func (e *SkeletonTrack) FragCode() int {
@@ -26,16 +36,37 @@ func (e *SkeletonTrack) Encode(w io.Writer) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
 	enc.Int32(e.NameRef)
 	enc.Uint32(e.Flags)
-	enc.Uint32(e.AnimCount)
+	enc.Uint32(uint32(len(e.Bones)))
 	enc.Uint32(e.CollisionVolumeRef)
 	if e.Flags&0x1 != 0 {
-		enc.Float32(e.CenterOffset.X)
-		enc.Float32(e.CenterOffset.Y)
-		enc.Float32(e.CenterOffset.Z)
+		enc.Uint32(e.CenterOffset[0])
+		enc.Uint32(e.CenterOffset[1])
+		enc.Uint32(e.CenterOffset[2])
 	}
 
 	if e.Flags&0x2 != 0 {
-		enc.Float32(e.Radius)
+		enc.Float32(e.BoundingRadius)
+	}
+
+	for _, bone := range e.Bones {
+		enc.Int32(bone.NameRef)
+		enc.Uint32(bone.Flags)
+		enc.Uint32(bone.TrackRef)
+		enc.Uint32(bone.MeshOrSpriteRef)
+		enc.Uint32(uint32(len(bone.SubBones)))
+		for _, subCount := range bone.SubBones {
+			enc.Uint32(subCount)
+		}
+	}
+
+	if e.Flags&0x200 != 0 {
+		enc.Uint32(uint32(len(e.Skins)))
+		for _, skin := range e.Skins {
+			enc.Uint32(skin)
+		}
+		for _, skinLink := range e.SkinLinks {
+			enc.Uint32(skinLink)
+		}
 	}
 
 	if enc.Error() != nil {
@@ -49,16 +80,37 @@ func decodeSkeletonTrack(r io.ReadSeeker) (common.FragmentReader, error) {
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	d.NameRef = dec.Int32()
 	d.Flags = dec.Uint32()
-	d.AnimCount = dec.Uint32()
+	boneCount := dec.Uint32()
 	d.CollisionVolumeRef = dec.Uint32()
 	if d.Flags&0x1 != 0 {
-		d.CenterOffset.X = dec.Float32()
-		d.CenterOffset.Y = dec.Float32()
-		d.CenterOffset.Z = dec.Float32()
+		d.CenterOffset = [3]uint32{dec.Uint32(), dec.Uint32(), dec.Uint32()}
 	}
 
 	if d.Flags&0x2 != 0 {
-		d.Radius = dec.Float32()
+		d.BoundingRadius = dec.Float32()
+	}
+
+	for i := 0; i < int(boneCount); i++ {
+		bone := SkeletonEntry{}
+		bone.NameRef = dec.Int32()
+		bone.Flags = dec.Uint32()
+		bone.TrackRef = dec.Uint32()
+		bone.MeshOrSpriteRef = dec.Uint32()
+		subCount := dec.Uint32()
+		for j := 0; j < int(subCount); j++ {
+			bone.SubBones = append(bone.SubBones, dec.Uint32())
+		}
+		d.Bones = append(d.Bones, bone)
+	}
+
+	if d.Flags&0x200 != 0 {
+		skinCount := dec.Uint32()
+		for i := 0; i < int(skinCount); i++ {
+			d.Skins = append(d.Skins, dec.Uint32())
+		}
+		for i := 0; i < int(skinCount); i++ {
+			d.SkinLinks = append(d.SkinLinks, dec.Uint32())
+		}
 	}
 
 	if dec.Error() != nil {
@@ -103,9 +155,9 @@ func decodeSkeletonTrackRef(r io.ReadSeeker) (common.FragmentReader, error) {
 
 // Track is TrackDef in libeq, Mob Skeleton Piece Track in openzone, TRACKDEFINITION in wld, TrackDefFragment in lantern
 type Track struct {
-	NameRef            int32           `yaml:"name_ref"`
-	Flags              uint32          `yaml:"flags"`
-	SkeletonTransforms []BoneTransform `yaml:"skeleton_transforms"`
+	NameRef       int32           `yaml:"name_ref"`
+	Flags         uint32          `yaml:"flags"`
+	BoneTransform []BoneTransform `yaml:"skeleton_transforms"`
 }
 
 type BoneTransform struct {
@@ -127,8 +179,8 @@ func (e *Track) Encode(w io.Writer) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
 	enc.Int32(e.NameRef)
 	enc.Uint32(e.Flags)
-	enc.Uint32(uint32(len(e.SkeletonTransforms)))
-	for _, ft := range e.SkeletonTransforms {
+	enc.Uint32(uint32(len(e.BoneTransform)))
+	for _, ft := range e.BoneTransform {
 		enc.Int16(int16(ft.RotationDenominator))
 		enc.Int16(int16(ft.RotationX))
 		enc.Int16(int16(ft.RotationY))
@@ -152,8 +204,8 @@ func decodeTrack(r io.ReadSeeker) (common.FragmentReader, error) {
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	d.NameRef = dec.Int32()
 	d.Flags = dec.Uint32()
-	skeletonCount := dec.Uint32()
-	for i := 0; i < int(skeletonCount); i++ {
+	boneCount := dec.Uint32()
+	for i := 0; i < int(boneCount); i++ {
 		ft := BoneTransform{}
 		if d.Flags&0x08 == 0x08 {
 			ft.RotationDenominator = dec.Int16()
@@ -164,6 +216,7 @@ func decodeTrack(r io.ReadSeeker) (common.FragmentReader, error) {
 			ft.TranslationY = dec.Int16()
 			ft.TranslationZ = dec.Int16()
 			ft.TranslationDenominator = dec.Int16()
+			d.BoneTransform = append(d.BoneTransform, ft)
 			continue
 		}
 		ft.TranslationDenominator = int16(dec.Int8())
@@ -174,7 +227,7 @@ func decodeTrack(r io.ReadSeeker) (common.FragmentReader, error) {
 		ft.RotationX = int16(dec.Int8())
 		ft.RotationY = int16(dec.Int8())
 		ft.RotationZ = int16(dec.Int8())
-		d.SkeletonTransforms = append(d.SkeletonTransforms, ft)
+		d.BoneTransform = append(d.BoneTransform, ft)
 
 	}
 
@@ -187,10 +240,10 @@ func decodeTrack(r io.ReadSeeker) (common.FragmentReader, error) {
 
 // TrackRef is a bone in a skeleton. It is Track in libeq, Mob Skeleton Piece Track Reference in openzone, TRACKINSTANCE in wld, TrackDefFragment in lantern
 type TrackRef struct {
-	NameRef  int32
-	TrackRef int32
-	Flags    uint32
-	Sleep    uint32 // if 0x01 is set, this is the number of milliseconds to sleep before starting the animation
+	NameRef  int32  `yaml:"name_ref"`
+	TrackRef int32  `yaml:"track_ref"`
+	Flags    uint32 `yaml:"flags"`
+	Sleep    uint32 `yaml:"sleep"` // if 0x01 is set, this is the number of milliseconds to sleep before starting the animation
 }
 
 func (e *TrackRef) FragCode() int {
