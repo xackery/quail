@@ -103,15 +103,20 @@ func decodeSkeletonTrackRef(r io.ReadSeeker) (common.FragmentReader, error) {
 
 // Track is TrackDef in libeq, Mob Skeleton Piece Track in openzone, TRACKDEFINITION in wld, TrackDefFragment in lantern
 type Track struct {
-	NameRef            int32
-	Flags              uint32
-	SkeletonTransforms []BoneTransform
+	NameRef            int32           `yaml:"name_ref"`
+	Flags              uint32          `yaml:"flags"`
+	SkeletonTransforms []BoneTransform `yaml:"skeleton_transforms"`
 }
 
 type BoneTransform struct {
-	Translation common.Vector3
-	Rotation    common.Quad4
-	Scale       float32
+	TranslationDenominator int16 `yaml:"translation_denominator"`
+	TranslationX           int16 `yaml:"translation_x"`
+	TranslationY           int16 `yaml:"translation_y"`
+	TranslationZ           int16 `yaml:"translation_z"`
+	RotationDenominator    int16 `yaml:"rotation_denominator"`
+	RotationX              int16 `yaml:"rotation_x"`
+	RotationY              int16 `yaml:"rotation_y"`
+	RotationZ              int16 `yaml:"rotation_z"`
 }
 
 func (e *Track) FragCode() int {
@@ -124,14 +129,14 @@ func (e *Track) Encode(w io.Writer) error {
 	enc.Uint32(e.Flags)
 	enc.Uint32(uint32(len(e.SkeletonTransforms)))
 	for _, ft := range e.SkeletonTransforms {
-		enc.Int16(int16(ft.Rotation.W))
-		enc.Int16(int16(ft.Rotation.X))
-		enc.Int16(int16(ft.Rotation.Y))
-		enc.Int16(int16(ft.Rotation.Z))
-		enc.Int16(int16(ft.Translation.X))
-		enc.Int16(int16(ft.Translation.Y))
-		enc.Int16(int16(ft.Translation.Z))
-		enc.Int16(int16(ft.Scale * 256))
+		enc.Int16(int16(ft.RotationDenominator))
+		enc.Int16(int16(ft.RotationX))
+		enc.Int16(int16(ft.RotationY))
+		enc.Int16(int16(ft.RotationZ))
+		enc.Int16(int16(ft.TranslationDenominator))
+		enc.Int16(int16(ft.TranslationX))
+		enc.Int16(int16(ft.TranslationY))
+		enc.Int16(int16(ft.TranslationZ))
 	}
 
 	if enc.Error() != nil {
@@ -149,27 +154,28 @@ func decodeTrack(r io.ReadSeeker) (common.FragmentReader, error) {
 	d.Flags = dec.Uint32()
 	skeletonCount := dec.Uint32()
 	for i := 0; i < int(skeletonCount); i++ {
-		rotDenom := dec.Int16()
-		rotX := dec.Int16()
-		rotY := dec.Int16()
-		rotZ := dec.Int16()
-		shiftX := dec.Int16()
-		shiftY := dec.Int16()
-		shiftZ := dec.Int16()
-		shiftDenom := dec.Int16()
 		ft := BoneTransform{}
-		if shiftDenom != 0 {
-			ft.Scale = float32(shiftDenom) / 256
-			ft.Translation.X = float32(shiftX) / 256
-			ft.Translation.Y = float32(shiftY) / 256
-			ft.Translation.Z = float32(shiftZ) / 256
+		if d.Flags&0x08 == 0x08 {
+			ft.RotationDenominator = dec.Int16()
+			ft.RotationX = dec.Int16()
+			ft.RotationY = dec.Int16()
+			ft.RotationZ = dec.Int16()
+			ft.TranslationX = dec.Int16()
+			ft.TranslationY = dec.Int16()
+			ft.TranslationZ = dec.Int16()
+			ft.TranslationDenominator = dec.Int16()
+			continue
 		}
-		ft.Rotation.X = float32(rotX)
-		ft.Rotation.Y = float32(rotY)
-		ft.Rotation.Z = float32(rotZ)
-		ft.Rotation.W = float32(rotDenom)
-		ft.Rotation = common.Normalize(ft.Rotation)
+		ft.TranslationDenominator = int16(dec.Int8())
+		ft.TranslationX = int16(dec.Int8())
+		ft.TranslationY = int16(dec.Int8())
+		ft.TranslationZ = int16(dec.Int8())
+		ft.RotationDenominator = int16(dec.Int8())
+		ft.RotationX = int16(dec.Int8())
+		ft.RotationY = int16(dec.Int8())
+		ft.RotationZ = int16(dec.Int8())
 		d.SkeletonTransforms = append(d.SkeletonTransforms, ft)
+
 	}
 
 	if dec.Error() != nil {

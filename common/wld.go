@@ -27,8 +27,12 @@ func (e *Wld) SetNames(names map[int32]string) {
 }
 
 func (e *Wld) Name(id int32) string {
+	if id < 0 {
+		id = -id
+	}
 	if e.names == nil {
 		return "!UNK"
 	}
+	//fmt.Println("name: [", e.names[id], "]")
 	return e.names[id]
 }

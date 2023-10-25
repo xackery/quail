@@ -50,7 +50,7 @@ func TestWldImport(t *testing.T) {
 				t.Fatalf("failed to convert wld %s: %s", tt.file, err.Error())
 			}
 
-			if len(world.Models) == 0 {
+			if len(q.Models) == 0 {
 				t.Fatalf("failed to convert wld %s: no models", tt.file)
 			}
 

@@ -944,32 +944,31 @@ func decodeDMSpriteRef(r io.ReadSeeker) (common.FragmentReader, error) {
 
 // Mesh is DmSpriteDef2 in libeq, Mesh in openzone, DMSPRITEDEF2 in wld, Mesh in lantern
 type Mesh struct {
-	NameRef  int32
-	FileType string
-	Flags    uint32
+	NameRef  int32  `yaml:"name_ref"`
+	FileType string `yaml:"file_type"`
+	Flags    uint32 `yaml:"flags"`
 	// A reference to a [MaterialListFragment] fragment. This tells the client which materials this mesh uses.
 	// For zone meshes the [MaterialListFragment] contains all the materials used in the entire zone.
 	// For placeable objects the [MaterialListFragment] contains all of the materials used in that object.
-	MaterialListRef   uint32
-	AnimationRef      int32
-	Fragment3Ref      int32 // unknown, usually empty
-	Fragment4Ref      int32 // unknown, usually ref to first texture
-	Center            common.Vector3
-	Params2           common.UIndex3 // unknown, usually 0,0,0
-	MaxDistance       float32        // radius from center, max distance from center
-	Min               common.Vector3 // min x,y,z
-	Max               common.Vector3 // max x,y,z
-	MeshopCount       uint16         // used for animated mshes
-	Scale             float32        `bin:"ScaleUnmarshal,le"`
-	Vertices          []common.Vertex
-	Uvs               []common.Vector2 `bin:"UvsUnmarshal,le"`
-	Normals           []common.UIndex3 `bin:"NormalsUnmarshal,le"`
-	Colors            []common.RGBA    `bin:"len:ColorCount"`
-	TriangleMaterials []MeshTriangleMaterial
-	Triangles         []common.Triangle
-	VertexPieces      []MeshVertexPiece
-	VertexMaterials   []MeshVertexPiece
-	AnimatedBones     []MeshAnimatedBone
+	MaterialListRef   uint32                 `yaml:"material_list_ref"`
+	AnimationRef      int32                  `yaml:"animation_ref"`
+	Fragment3Ref      int32                  `yaml:"fragment_3_ref"`
+	Fragment4Ref      int32                  `yaml:"fragment_4_ref"` // unknown, usually ref to first texture
+	Center            common.Vector3         `yaml:"center"`
+	Params2           common.UIndex3         `yaml:"params_2"`
+	MaxDistance       float32                `yaml:"max_distance"`
+	Min               common.Vector3         `yaml:"min"`
+	Max               common.Vector3         `yaml:"max"`
+	MeshopCount       uint16                 `yaml:"meshop_count"`
+	Scale             float32                `yaml:"scale"`
+	Vertices          []common.Vertex        `yaml:"vertices"`
+	Normals           []common.UIndex3       `yaml:"normals"`
+	Colors            []common.RGBA          `yaml:"colors"`
+	TriangleMaterials []MeshTriangleMaterial `yaml:"triangle_materials"`
+	Triangles         []common.Triangle      `yaml:"triangles"`
+	VertexPieces      []MeshVertexPiece      `yaml:"vertex_pieces"`
+	VertexMaterials   []MeshVertexPiece      `yaml:"vertex_materials"`
+	AnimatedBones     []MeshAnimatedBone     `yaml:"animated_bones"`
 }
 
 type MeshVertexPiece struct {
@@ -1012,7 +1011,7 @@ func (e *Mesh) Encode(w io.Writer) error {
 	enc.Float32(e.Max.Y)
 	enc.Float32(e.Max.Z)
 	enc.Uint16(uint16(len(e.Vertices)))
-	enc.Uint16(uint16(len(e.Uvs)))
+	enc.Uint16(uint16(len(e.Vertices)))
 	enc.Uint16(uint16(len(e.Normals)))
 	enc.Uint16(uint16(len(e.Colors)))
 	enc.Uint16(uint16(len(e.Triangles)))
@@ -1027,13 +1026,13 @@ func (e *Mesh) Encode(w io.Writer) error {
 		enc.Int16(int16(int(vertex.Position.Y-e.Center.Y) * (1 << rawScale)))
 		enc.Int16(int16(int(vertex.Position.Z-e.Center.Z) * (1 << rawScale)))
 	}
-	for _, uv := range e.Uvs {
+	for _, vertex := range e.Vertices {
 		if isOldWorld {
-			enc.Int16(int16(uv.X * 256))
-			enc.Int16(int16(uv.Y * 256))
+			enc.Int16(int16(vertex.Uv.X * 256))
+			enc.Int16(int16(vertex.Uv.Y * 256))
 		} else {
-			enc.Int32(int32(uv.X * 256))
-			enc.Int32(int32(uv.Y * 256))
+			enc.Int32(int32(vertex.Uv.X * 256))
+			enc.Int32(int32(vertex.Uv.Y * 256))
 		}
 	}
 	for _, normal := range e.Normals {
@@ -1143,6 +1142,10 @@ func decodeMesh(r io.ReadSeeker) (common.FragmentReader, error) {
 	meshAnimatedBoneCount := dec.Uint16() // number of entries in meshops. Seems to be used only for animated mob models.
 	rawScale := dec.Uint16()
 	scale := float32(1 / float32(int(1)<<rawScale)) // This allows vertex coordinates to be stored as integral values instead of floating-point values, without losing precision based on mesh size. Vertex values are multiplied by (1 shl `scale`) and stored in the vertex entries. FPSCALE is the internal name.
+
+	if vertexCount != uvCount {
+		return nil, fmt.Errorf("vertex count != uv count")
+	}
 	// convert scale back to rawscale
 	//rawScale = uint16(math.Log2(float64(1 / scale)))
 
