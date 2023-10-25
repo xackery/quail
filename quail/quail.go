@@ -6,6 +6,7 @@ import (
 )
 
 type Quail struct {
+	Header                 *common.Header
 	Models                 []*common.Model
 	Animations             []*common.Animation
 	Zone                   *common.Zone

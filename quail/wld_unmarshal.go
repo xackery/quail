@@ -8,6 +8,7 @@ import (
 )
 
 func (e *Quail) WldImport(world *common.Wld) error {
+	e.Header = world.Header
 	for i, frag := range world.Fragments {
 		model, err := convertMesh(world, frag)
 		if err != nil {

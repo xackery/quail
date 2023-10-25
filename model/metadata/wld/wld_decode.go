@@ -18,7 +18,6 @@ var (
 
 // Decode decodes a wld file that was prepped by Load
 func Decode(wld *common.Wld, r io.ReadSeeker) error {
-
 	if wld.Fragments == nil {
 		wld.Fragments = make(map[int]common.FragmentReader)
 	}
