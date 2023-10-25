@@ -2,8 +2,6 @@ module github.com/xackery/quail
 
 go 1.21
 
-toolchain go1.21.3
-
 require (
 	github.com/jmoiron/sqlx v1.3.5
 	github.com/mitchellh/go-homedir v1.1.0
