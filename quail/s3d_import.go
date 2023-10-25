@@ -28,9 +28,13 @@ func (e *Quail) S3DImport(path string) error {
 				continue
 			}
 
-			world, err := WLDDecode(bytes.NewReader(file.Data()), pfs)
+			world, err := e.WLDDecode(bytes.NewReader(file.Data()), pfs)
 			if err != nil {
 				return fmt.Errorf("wldDecode %s: %w", file.Name(), err)
+			}
+			err = e.WldImport(world)
+			if err != nil {
+				return fmt.Errorf("wldImport %s: %w", file.Name(), err)
 			}
 			e.Models = append(e.Models, world.Models...)
 		}

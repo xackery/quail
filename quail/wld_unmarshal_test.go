@@ -1,4 +1,4 @@
-package wld
+package quail
 
 import (
 	"bytes"
@@ -7,10 +7,11 @@ import (
 	"testing"
 
 	"github.com/xackery/quail/common"
+	"github.com/xackery/quail/model/metadata/wld"
 	"github.com/xackery/quail/pfs"
 )
 
-func TestConvert(t *testing.T) {
+func TestWldImport(t *testing.T) {
 	eqPath := os.Getenv("EQ_PATH")
 	if eqPath == "" {
 		t.Skip("EQ_PATH not set")
@@ -22,9 +23,9 @@ func TestConvert(t *testing.T) {
 		want      common.FragmentReader
 		wantErr   bool
 	}{
-		{"btp_chr.s3d", "btp_chr.wld", 0, &Mesh{NameRef: 1414544642}, false},
-		{"bac_chr.s3d", "bac_chr.wld", 0, &Mesh{NameRef: 1414544642}, false},
-		{"avi_chr.s3d", "avi_chr.wld", 0, &Mesh{NameRef: 1414544642}, false},
+		{"btp_chr.s3d", "btp_chr.wld", 0, nil, false},
+		{"bac_chr.s3d", "bac_chr.wld", 0, nil, false},
+		{"avi_chr.s3d", "avi_chr.wld", 0, nil, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.file, func(t *testing.T) {
@@ -38,12 +39,13 @@ func TestConvert(t *testing.T) {
 				t.Fatalf("failed to open wld %s: %s", tt.file, err.Error())
 			}
 			world := common.NewWld("test")
-			err = Decode(world, bytes.NewReader(data))
+			err = wld.Decode(world, bytes.NewReader(data))
 			if err != nil {
 				t.Fatalf("failed to decode wld %s: %s", tt.file, err.Error())
 			}
 
-			err = Convert(world)
+			q := New()
+			err = q.WldImport(world)
 			if err != nil {
 				t.Fatalf("failed to convert wld %s: %s", tt.file, err.Error())
 			}

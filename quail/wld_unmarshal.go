@@ -1,15 +1,15 @@
-package wld
+package quail
 
 import (
 	"fmt"
 
 	"github.com/xackery/quail/common"
+	"github.com/xackery/quail/model/metadata/wld"
 )
 
-func Convert(e *common.Wld) error {
-	e.Models = []*common.Model{}
-	for i, frag := range e.Fragments {
-		model, err := convertMesh(e, frag)
+func (e *Quail) WldImport(world *common.Wld) error {
+	for i, frag := range world.Fragments {
+		model, err := convertMesh(world, frag)
 		if err != nil {
 			return fmt.Errorf("fragment id %d 0x%x (%s): %w", i, frag.FragCode(), common.FragName(frag.FragCode()), err)
 		}
@@ -26,7 +26,7 @@ func convertMesh(world *common.Wld, frag common.FragmentReader) (*common.Model, 
 		return nil, nil
 	}
 
-	d, ok := frag.(*Mesh)
+	d, ok := frag.(*wld.Mesh)
 	if !ok {
 		return nil, fmt.Errorf("assertion failed, wanted *Mesh, got %T", frag)
 	}
@@ -49,7 +49,7 @@ func convertMesh(world *common.Wld, frag common.FragmentReader) (*common.Model, 
 		return nil, fmt.Errorf("material list ref %d not found", d.MaterialListRef)
 	}
 
-	matList, ok := matListFrag.(*MaterialList)
+	matList, ok := matListFrag.(*wld.MaterialList)
 	if !ok {
 		return nil, fmt.Errorf("assertion failed, wanted *MaterialList, got %T", matListFrag)
 	}
@@ -62,12 +62,12 @@ func convertMesh(world *common.Wld, frag common.FragmentReader) (*common.Model, 
 			return nil, fmt.Errorf("mat ref %d not found", matRef)
 		}
 
-		srcMaterial, ok := materialFrag.(*Material)
+		srcMaterial, ok := materialFrag.(*wld.Material)
 		if !ok {
 			return nil, fmt.Errorf("assertion failed, wanted *TextureRef, got %T", materialFrag)
 		}
 
-		srcTexture := &Texture{}
+		srcTexture := &wld.Texture{}
 
 		if srcMaterial.TextureRef > 0 {
 
@@ -76,7 +76,7 @@ func convertMesh(world *common.Wld, frag common.FragmentReader) (*common.Model, 
 				return nil, fmt.Errorf("textureref ref %d not found", srcMaterial.TextureRef)
 			}
 
-			textureRef, ok := textureRefFrag.(*TextureRef)
+			textureRef, ok := textureRefFrag.(*wld.TextureRef)
 			if !ok {
 				return nil, fmt.Errorf("assertion failed, wanted *TextureRef, got %T", textureRefFrag)
 			}
@@ -86,7 +86,7 @@ func convertMesh(world *common.Wld, frag common.FragmentReader) (*common.Model, 
 				return nil, fmt.Errorf("texture ref %d not found", textureRef.TextureRef)
 			}
 
-			srcTexture, ok = textureFrag.(*Texture)
+			srcTexture, ok = textureFrag.(*wld.Texture)
 			if !ok {
 				return nil, fmt.Errorf("assertion failed, wanted *Texture, got %T", textureFrag)
 			}
@@ -97,7 +97,7 @@ func convertMesh(world *common.Wld, frag common.FragmentReader) (*common.Model, 
 					return nil, fmt.Errorf("tref ref %d not found", tRef)
 				}
 
-				textureList, ok := textureRefFrag.(*TextureList)
+				textureList, ok := textureRefFrag.(*wld.TextureList)
 				if !ok {
 					return nil, fmt.Errorf("tref assertion failed, wanted *TextureRef, got %T", textureRefFrag)
 				}
