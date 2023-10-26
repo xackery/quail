@@ -181,14 +181,26 @@ func (e *Track) Encode(w io.Writer) error {
 	enc.Uint32(e.Flags)
 	enc.Uint32(uint32(len(e.BoneTransform)))
 	for _, ft := range e.BoneTransform {
-		enc.Int16(int16(ft.RotationDenominator))
-		enc.Int16(int16(ft.RotationX))
-		enc.Int16(int16(ft.RotationY))
-		enc.Int16(int16(ft.RotationZ))
-		enc.Int16(int16(ft.TranslationDenominator))
-		enc.Int16(int16(ft.TranslationX))
-		enc.Int16(int16(ft.TranslationY))
-		enc.Int16(int16(ft.TranslationZ))
+		if e.Flags&0x08 == 0x08 {
+			enc.Int16(ft.RotationDenominator)
+			enc.Int16(ft.RotationX)
+			enc.Int16(ft.RotationY)
+			enc.Int16(ft.RotationZ)
+			enc.Int16(ft.TranslationX)
+			enc.Int16(ft.TranslationY)
+			enc.Int16(ft.TranslationZ)
+			enc.Int16(ft.TranslationDenominator)
+			continue
+		}
+		enc.Int8(int8(ft.TranslationDenominator))
+		enc.Int8(int8(ft.TranslationX))
+		enc.Int8(int8(ft.TranslationY))
+		enc.Int8(int8(ft.TranslationZ))
+		enc.Int8(int8(ft.RotationDenominator))
+		enc.Int8(int8(ft.RotationX))
+		enc.Int8(int8(ft.RotationY))
+		enc.Int8(int8(ft.RotationZ))
+
 	}
 
 	if enc.Error() != nil {

@@ -59,7 +59,7 @@ func (e *TextureList) Encode(w io.Writer) error {
 	enc.Int32(e.NameRef)
 	enc.Int32(int32(len(e.TextureNames) - 1))
 	for _, textureName := range e.TextureNames {
-		enc.StringLenPrefixUint16(string(helper.WriteStringHash(textureName)))
+		enc.StringLenPrefixUint16(string(helper.WriteStringHash(textureName + "\x00")))
 	}
 	if enc.Error() != nil {
 		return enc.Error()

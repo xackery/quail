@@ -220,33 +220,29 @@ func decodeTwoDSpriteRef(r io.ReadSeeker) (common.FragmentReader, error) {
 
 // ThreeDSprite is Sprite3DDef in libeq, Camera in openzone, 3DSPRITEDEF in wld, Camera in lantern
 type ThreeDSprite struct {
-	NameRef       int32
-	Flags         uint32
-	VertexCount   uint32
-	BspNodeCount  uint32
-	SphereListRef uint32
-	CenterOffset  common.Vector3
-	Radius        float32
-	Vertices      []common.Vector3
-	BspNodes      []BspNode
+	NameRef       int32            `yaml:"name_ref"`
+	Flags         uint32           `yaml:"flags"`
+	SphereListRef uint32           `yaml:"sphere_list_ref"`
+	CenterOffset  common.Vector3   `yaml:"center_offset"`
+	Radius        float32          `yaml:"radius"`
+	Vertices      []common.Vector3 `yaml:"vertices"`
+	BspNodes      []BspNode        `yaml:"bsp_nodes"`
 }
 
 type BspNode struct {
-	VertexCount                 uint32
-	FrontTree                   uint32
-	BackTree                    uint32
-	VertexIndexes               []uint32
-	RenderMethod                uint32
-	RenderFlags                 uint32
-	RenderPen                   uint32
-	RenderBrightness            float32
-	RenderScaledAmbient         float32
-	RenderSimpleSpriteReference uint32
-	RenderUVInfoOrigin          common.Vector3
-	RenderUVInfoUAxis           common.Vector3
-	RenderUVInfoVAxis           common.Vector3
-	RenderUVMapEntryCount       uint32
-	RenderUVMapEntries          []common.Vector2
+	FrontTree                   uint32           `yaml:"front_tree"`
+	BackTree                    uint32           `yaml:"back_tree"`
+	VertexIndexes               []uint32         `yaml:"vertex_indexes"`
+	RenderMethod                uint32           `yaml:"render_method"`
+	RenderFlags                 uint32           `yaml:"render_flags"`
+	RenderPen                   uint32           `yaml:"render_pen"`
+	RenderBrightness            float32          `yaml:"render_brightness"`
+	RenderScaledAmbient         float32          `yaml:"render_scaled_ambient"`
+	RenderSimpleSpriteReference uint32           `yaml:"render_simple_sprite_reference"`
+	RenderUVInfoOrigin          common.Vector3   `yaml:"render_uv_info_origin"`
+	RenderUVInfoUAxis           common.Vector3   `yaml:"render_uv_info_u_axis"`
+	RenderUVInfoVAxis           common.Vector3   `yaml:"render_uv_info_v_axis"`
+	RenderUVMapEntries          []common.Vector2 `yaml:"render_uv_map_entries"`
 }
 
 func (e *ThreeDSprite) FragCode() int {
@@ -257,8 +253,8 @@ func (e *ThreeDSprite) Encode(w io.Writer) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
 	enc.Int32(e.NameRef)
 	enc.Uint32(e.Flags)
-	enc.Uint32(e.VertexCount)
-	enc.Uint32(e.BspNodeCount)
+	enc.Uint32(uint32(len(e.Vertices)))
+	enc.Uint32(uint32(len(e.BspNodes)))
 	enc.Uint32(e.SphereListRef)
 	enc.Float32(e.CenterOffset.X)
 	enc.Float32(e.CenterOffset.Y)
@@ -270,41 +266,43 @@ func (e *ThreeDSprite) Encode(w io.Writer) error {
 		enc.Float32(vertex.Z)
 	}
 
-	for _, bspNode := range e.BspNodes {
-		enc.Uint32(bspNode.VertexCount)
-		enc.Uint32(bspNode.FrontTree)
-		enc.Uint32(bspNode.BackTree)
-		for _, vertexIndex := range bspNode.VertexIndexes {
+	for _, node := range e.BspNodes {
+		enc.Uint32(uint32(len(node.VertexIndexes)))
+		enc.Uint32(node.FrontTree)
+		enc.Uint32(node.BackTree)
+		for _, vertexIndex := range node.VertexIndexes {
 			enc.Uint32(vertexIndex)
 		}
-		enc.Uint32(bspNode.RenderMethod)
-		enc.Uint32(bspNode.RenderFlags)
-		if bspNode.RenderFlags&0x01 == 0x01 {
-			enc.Uint32(bspNode.RenderPen)
+
+		enc.Uint32(node.RenderMethod)
+		enc.Uint32(node.RenderFlags)
+
+		if node.RenderFlags&0x01 == 0x01 {
+			enc.Uint32(node.RenderPen)
 		}
-		if bspNode.RenderFlags&0x02 == 0x02 {
-			enc.Float32(bspNode.RenderBrightness)
+		if node.RenderFlags&0x02 == 0x02 {
+			enc.Float32(node.RenderBrightness)
 		}
-		if bspNode.RenderFlags&0x04 == 0x04 {
-			enc.Float32(bspNode.RenderScaledAmbient)
+		if node.RenderFlags&0x04 == 0x04 {
+			enc.Float32(node.RenderScaledAmbient)
 		}
-		if bspNode.RenderFlags&0x08 == 0x08 {
-			enc.Uint32(bspNode.RenderSimpleSpriteReference)
+		if node.RenderFlags&0x08 == 0x08 {
+			enc.Uint32(node.RenderSimpleSpriteReference)
 		}
-		if bspNode.RenderFlags&0x10 == 0x10 {
-			enc.Float32(bspNode.RenderUVInfoOrigin.X)
-			enc.Float32(bspNode.RenderUVInfoOrigin.Y)
-			enc.Float32(bspNode.RenderUVInfoOrigin.Z)
-			enc.Float32(bspNode.RenderUVInfoUAxis.X)
-			enc.Float32(bspNode.RenderUVInfoUAxis.Y)
-			enc.Float32(bspNode.RenderUVInfoUAxis.Z)
-			enc.Float32(bspNode.RenderUVInfoVAxis.X)
-			enc.Float32(bspNode.RenderUVInfoVAxis.Y)
-			enc.Float32(bspNode.RenderUVInfoVAxis.Z)
+		if node.RenderFlags&0x10 == 0x10 {
+			enc.Float32(node.RenderUVInfoOrigin.X)
+			enc.Float32(node.RenderUVInfoOrigin.Y)
+			enc.Float32(node.RenderUVInfoOrigin.Z)
+			enc.Float32(node.RenderUVInfoUAxis.X)
+			enc.Float32(node.RenderUVInfoUAxis.Y)
+			enc.Float32(node.RenderUVInfoUAxis.Z)
+			enc.Float32(node.RenderUVInfoVAxis.X)
+			enc.Float32(node.RenderUVInfoVAxis.Y)
+			enc.Float32(node.RenderUVInfoVAxis.Z)
 		}
-		if bspNode.RenderFlags&0x20 == 0x20 {
-			enc.Uint32(bspNode.RenderUVMapEntryCount)
-			for _, entry := range bspNode.RenderUVMapEntries {
+		if node.RenderFlags&0x20 == 0x20 {
+			enc.Uint32(uint32(len(node.RenderUVMapEntries)))
+			for _, entry := range node.RenderUVMapEntries {
 				enc.Float32(entry.X)
 				enc.Float32(entry.Y)
 			}
@@ -323,63 +321,64 @@ func decodeThreeDSprite(r io.ReadSeeker) (common.FragmentReader, error) {
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	d.NameRef = dec.Int32()
 	d.Flags = dec.Uint32()
-	d.VertexCount = dec.Uint32()
-	d.BspNodeCount = dec.Uint32()
+	vertexCount := dec.Uint32()
+	bspNodeCount := dec.Uint32()
 	d.SphereListRef = dec.Uint32()
 	d.CenterOffset.X = dec.Float32()
 	d.CenterOffset.Y = dec.Float32()
 	d.CenterOffset.Z = dec.Float32()
 	d.Radius = dec.Float32()
-	for i := 0; i < int(d.VertexCount); i++ {
+	for i := 0; i < int(vertexCount); i++ {
 		v := common.Vector3{}
 		v.X = dec.Float32()
 		v.Y = dec.Float32()
 		v.Z = dec.Float32()
 		d.Vertices = append(d.Vertices, v)
 	}
-	for i := 0; i < int(d.BspNodeCount); i++ {
-		b := BspNode{}
-		b.VertexCount = dec.Uint32()
-		b.FrontTree = dec.Uint32()
-		b.BackTree = dec.Uint32()
-		for j := 0; j < int(b.VertexCount); j++ {
-			b.VertexIndexes = append(b.VertexIndexes, dec.Uint32())
+	for i := 0; i < int(bspNodeCount); i++ {
+		node := BspNode{}
+		vertexIndexCount := dec.Uint32()
+		node.FrontTree = dec.Uint32()
+		node.BackTree = dec.Uint32()
+		for j := 0; j < int(vertexIndexCount); j++ {
+			node.VertexIndexes = append(node.VertexIndexes, dec.Uint32())
 		}
-		b.RenderMethod = dec.Uint32()
-		b.RenderFlags = dec.Uint32()
-		if b.RenderFlags&0x01 == 0x01 {
-			b.RenderPen = dec.Uint32()
+		node.RenderMethod = dec.Uint32()
+		node.RenderFlags = dec.Uint32()
+
+		if node.RenderFlags&0x01 == 0x01 {
+			node.RenderPen = dec.Uint32()
 		}
-		if b.RenderFlags&0x02 == 0x02 {
-			b.RenderBrightness = dec.Float32()
+		if node.RenderFlags&0x02 == 0x02 {
+			node.RenderBrightness = dec.Float32()
 		}
-		if b.RenderFlags&0x04 == 0x04 {
-			b.RenderScaledAmbient = dec.Float32()
+		if node.RenderFlags&0x04 == 0x04 {
+			node.RenderScaledAmbient = dec.Float32()
 		}
-		if b.RenderFlags&0x08 == 0x08 {
-			b.RenderSimpleSpriteReference = dec.Uint32()
+		if node.RenderFlags&0x08 == 0x08 {
+			node.RenderSimpleSpriteReference = dec.Uint32()
 		}
-		if b.RenderFlags&0x10 == 0x10 {
-			b.RenderUVInfoOrigin.X = dec.Float32()
-			b.RenderUVInfoOrigin.Y = dec.Float32()
-			b.RenderUVInfoOrigin.Z = dec.Float32()
-			b.RenderUVInfoUAxis.X = dec.Float32()
-			b.RenderUVInfoUAxis.Y = dec.Float32()
-			b.RenderUVInfoUAxis.Z = dec.Float32()
-			b.RenderUVInfoVAxis.X = dec.Float32()
-			b.RenderUVInfoVAxis.Y = dec.Float32()
-			b.RenderUVInfoVAxis.Z = dec.Float32()
+		if node.RenderFlags&0x10 == 0x10 {
+			node.RenderUVInfoOrigin.X = dec.Float32()
+			node.RenderUVInfoOrigin.Y = dec.Float32()
+			node.RenderUVInfoOrigin.Z = dec.Float32()
+			node.RenderUVInfoUAxis.X = dec.Float32()
+			node.RenderUVInfoUAxis.Y = dec.Float32()
+			node.RenderUVInfoUAxis.Z = dec.Float32()
+			node.RenderUVInfoVAxis.X = dec.Float32()
+			node.RenderUVInfoVAxis.Y = dec.Float32()
+			node.RenderUVInfoVAxis.Z = dec.Float32()
 		}
-		if b.RenderFlags&0x20 == 0x20 {
-			b.RenderUVMapEntryCount = dec.Uint32()
-			for j := 0; j < int(b.RenderUVMapEntryCount); j++ {
+		if node.RenderFlags&0x20 == 0x20 {
+			renderUVMapEntryCount := dec.Uint32()
+			for j := 0; j < int(renderUVMapEntryCount); j++ {
 				v := common.Vector2{}
 				v.X = dec.Float32()
 				v.Y = dec.Float32()
-				b.RenderUVMapEntries = append(b.RenderUVMapEntries, v)
+				node.RenderUVMapEntries = append(node.RenderUVMapEntries, v)
 			}
 		}
-		d.BspNodes = append(d.BspNodes, b)
+		d.BspNodes = append(d.BspNodes, node)
 	}
 	if dec.Error() != nil {
 		return nil, dec.Error()

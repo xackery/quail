@@ -12,10 +12,6 @@ import (
 	"github.com/xackery/quail/tag"
 )
 
-var (
-	isOldWorld bool
-)
-
 // Decode decodes a wld file that was prepped by Load
 func Decode(wld *common.Wld, r io.ReadSeeker) error {
 	if wld.Fragments == nil {
@@ -33,7 +29,6 @@ func Decode(wld *common.Wld, r io.ReadSeeker) error {
 	switch wld.Header.Version {
 	case 0x00015500:
 		wld.IsOldWorld = true
-		isOldWorld = true
 	case 0x1000C800:
 		wld.IsOldWorld = false
 	default:
