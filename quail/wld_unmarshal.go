@@ -7,7 +7,7 @@ import (
 	"github.com/xackery/quail/model/metadata/wld"
 )
 
-func (e *Quail) WldImport(world *common.Wld) error {
+func (e *Quail) WldUnmarshal(world *common.Wld) error {
 	if len(world.Fragments) == 0 {
 		return fmt.Errorf("no fragments found")
 	}

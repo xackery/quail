@@ -32,7 +32,7 @@ func (e *Quail) S3DImport(path string) error {
 			if err != nil {
 				return fmt.Errorf("wldDecode %s: %w", file.Name(), err)
 			}
-			err = e.WldImport(world)
+			err = e.WldUnmarshal(world)
 			if err != nil {
 				return fmt.Errorf("wldImport %s: %w", file.Name(), err)
 			}

@@ -11,7 +11,7 @@ import (
 	"github.com/xackery/quail/pfs"
 )
 
-func TestWldImport(t *testing.T) {
+func TestWldUnmarshal(t *testing.T) {
 	eqPath := os.Getenv("EQ_PATH")
 	if eqPath == "" {
 		t.Skip("EQ_PATH not set")
@@ -45,7 +45,7 @@ func TestWldImport(t *testing.T) {
 			}
 
 			q := New()
-			err = q.WldImport(world)
+			err = q.WldUnmarshal(world)
 			if err != nil {
 				t.Fatalf("failed to convert wld %s: %s", tt.file, err.Error())
 			}

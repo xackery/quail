@@ -288,10 +288,9 @@ func decodeMaterial(r io.ReadSeeker) (common.FragmentReader, error) {
 
 // MaterialList is MaterialPalette in libeq, TextureList in openzone, MATERIALPALETTE in wld, MaterialList in lantern
 type MaterialList struct {
-	NameRef       int32
-	Flags         uint32
-	MaterialCount uint32
-	MaterialRefs  []uint32
+	NameRef      int32
+	Flags        uint32
+	MaterialRefs []uint32
 }
 
 func (e *MaterialList) FragCode() int {
@@ -302,7 +301,7 @@ func (e *MaterialList) Encode(w io.Writer) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
 	enc.Int32(e.NameRef)
 	enc.Uint32(e.Flags)
-	enc.Uint32(e.MaterialCount)
+	enc.Uint32(uint32(len(e.MaterialRefs)))
 	for _, materialRef := range e.MaterialRefs {
 		enc.Uint32(materialRef)
 	}
@@ -317,8 +316,8 @@ func decodeMaterialList(r io.ReadSeeker) (common.FragmentReader, error) {
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	d.NameRef = dec.Int32()
 	d.Flags = dec.Uint32()
-	d.MaterialCount = dec.Uint32()
-	for i := 0; i < int(d.MaterialCount); i++ {
+	materialCount := dec.Uint32()
+	for i := 0; i < int(materialCount); i++ {
 		d.MaterialRefs = append(d.MaterialRefs, dec.Uint32())
 	}
 	if dec.Error() != nil {
