@@ -1,8 +1,9 @@
 {
     "recommendations": [
         "xuhpclib-easyview.easyview",
-        "maziac.binary-file-viewer",
+        //"maziac.binary-file-viewer",
         "golang.go",
-        "ms-vscode.hexeditor"
+        "ms-vscode.hexeditor",
+        "notblank00.hexeditor"
     ]
 }

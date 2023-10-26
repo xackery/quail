@@ -16,7 +16,7 @@ jobs:
         with:
           repo_token: "${{secrets.GITHUB_TOKEN}}"
           automatic_release_tag: "${{env.VERSION}}"
-          prerelease: true
+          prerelease: false
           title: "${{env.VERSION}}"
           files: |
             bin/quail-linux

@@ -273,6 +273,6 @@ func inspectContent(file string, data *bytes.Reader) (interface{}, error) {
 		}
 		return model.Layers, nil
 	default:
-		return nil, fmt.Errorf("unknown file type %s", ext)
+		return nil, fmt.Errorf("%s has an unknown file type %s", file, ext)
 	}
 }
