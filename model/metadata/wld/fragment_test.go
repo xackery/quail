@@ -55,8 +55,8 @@ func TestFragment(t *testing.T) {
 			}
 
 			for i := 1; i <= len(fragments); i++ {
-				data := fragments[i-1]
-				r := bytes.NewReader(data)
+				srcData := fragments[i-1]
+				r := bytes.NewReader(srcData)
 
 				dec := encdec.NewDecoder(r, binary.LittleEndian)
 
@@ -73,46 +73,48 @@ func TestFragment(t *testing.T) {
 				}
 
 				buf := bytes.NewBuffer(nil)
-				buf.Write(data[:4])
+				buf.Write(srcData[:4])
 
 				err = frag.Encode(buf)
 				if err != nil {
 					t.Fatalf("frag %d 0x%x (%s) encode: %s", i, fragCode, common.FragName(int(fragCode)), err.Error())
 				}
 
-				//if !reflect.DeepEqual(data, buf.Bytes()) {
-				for i := 0; i < len(buf.Bytes()); i++ {
-					if len(data) <= i {
-						min := 0
-						max := len(data)
-						fmt.Printf("src (%d:%d):\n%s\n", min, max, hex.Dump(data[min:max]))
-						max = len(buf.Bytes())
-						fmt.Printf("dst (%d:%d):\n%s\n", min, max, hex.Dump(buf.Bytes()[min:max]))
+				dstData := buf.Bytes()
 
-						t.Fatalf("frag %d 0x%x (%s) src eof at offset %d (dst is too large by %d bytes)", i, fragCode, common.FragName(int(fragCode)), i, len(buf.Bytes())-len(data))
+				//if !reflect.DeepEqual(data, dstData) {
+				for i := 0; i < len(dstData); i++ {
+					if len(srcData) <= i {
+						min := 0
+						max := len(srcData)
+						fmt.Printf("src (%d:%d):\n%s\n", min, max, hex.Dump(srcData[min:max]))
+						max = len(dstData)
+						fmt.Printf("dst (%d:%d):\n%s\n", min, max, hex.Dump(dstData[min:max]))
+
+						t.Fatalf("frag %d 0x%x (%s) src eof at offset %d (dst is too large by %d bytes)", i, fragCode, common.FragName(int(fragCode)), i, len(dstData)-len(srcData))
 					}
-					if len(buf.Bytes()) <= i {
-						t.Fatalf("frag %d 0x%x (%s) dst eof at offset %d (dst is too small by %d bytes)", i, fragCode, common.FragName(int(fragCode)), i, len(data)-len(buf.Bytes()))
+					if len(dstData) <= i {
+						t.Fatalf("frag %d 0x%x (%s) dst eof at offset %d (dst is too small by %d bytes)", i, fragCode, common.FragName(int(fragCode)), i, len(srcData)-len(dstData))
 					}
-					if buf.Bytes()[i] == data[i] {
+					if dstData[i] == srcData[i] {
 						continue
 					}
-					fmt.Printf("frag %d 0x%x (%s) mismatch at offset %d (src: 0x%x vs dst: 0x%x aka %d)\n", i, fragCode, common.FragName(int(fragCode)), i, data[i], buf.Bytes()[i], buf.Bytes()[i])
+					fmt.Printf("frag %d 0x%x (%s) mismatch at offset %d (src: 0x%x vs dst: 0x%x aka %d)\n", i, fragCode, common.FragName(int(fragCode)), i, srcData[i], dstData[i], dstData[i])
 					max := i + 16
-					if max > len(data) {
-						max = len(data)
+					if max > len(srcData) {
+						max = len(srcData)
 					}
 
 					min := i - 16
 					if min < 0 {
 						min = 0
 					}
-					fmt.Printf("src (%d:%d):\n%s\n", min, max, hex.Dump(data[min:max]))
-					if max > len(buf.Bytes()) {
-						max = len(buf.Bytes())
+					fmt.Printf("src (%d:%d):\n%s\n", min, max, hex.Dump(srcData[min:max]))
+					if max > len(dstData) {
+						max = len(dstData)
 					}
 
-					fmt.Printf("dst (%d:%d):\n%s\n", min, max, hex.Dump(buf.Bytes()[min:max]))
+					fmt.Printf("dst (%d:%d):\n%s\n", min, max, hex.Dump(dstData[min:max]))
 					t.Fatalf("frag %d 0x%x (%s) encode: data mismatch", i, fragCode, common.FragName(int(fragCode)))
 				}
 			}

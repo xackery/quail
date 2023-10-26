@@ -8,7 +8,6 @@ import (
 	"github.com/xackery/encdec"
 	"github.com/xackery/quail/common"
 	"github.com/xackery/quail/dump"
-	"github.com/xackery/quail/log"
 	"github.com/xackery/quail/tag"
 )
 
@@ -92,6 +91,6 @@ func Decode(animation *common.Animation, r io.ReadSeeker) error {
 		return fmt.Errorf("decode: %w", dec.Error())
 	}
 
-	log.Debugf("%s (ani) decoded %d bones, bone 0 had %d frames", animation.Header.Name, len(animation.Bones), animation.Bones[0].FrameCount)
+	//log.Debugf("%s (ani) decoded %d bones, bone 0 had %d frames", animation.Header.Name, len(animation.Bones), animation.Bones[0].FrameCount)
 	return nil
 }

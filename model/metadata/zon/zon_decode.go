@@ -7,7 +7,6 @@ import (
 
 	"github.com/xackery/encdec"
 	"github.com/xackery/quail/common"
-	"github.com/xackery/quail/log"
 	"github.com/xackery/quail/tag"
 )
 
@@ -27,8 +26,7 @@ func Decode(zone *common.Zone, r io.ReadSeeker) error {
 		return DecodeV4(zone, r)
 	}
 
-	version := dec.Uint32()
-	zone.Header.Version = int(version)
+	zone.Header.Version = int(dec.Uint32())
 	//if version != 1 {
 	//return fmt.Errorf("version is %d, wanted 1", version)
 	//}
@@ -151,6 +149,6 @@ func Decode(zone *common.Zone, r io.ReadSeeker) error {
 		return fmt.Errorf("decode: %w", dec.Error())
 	}
 
-	log.Debugf("%s (zon) decoded %d model refs, %d object refs, %d regions, %d lights", zone.Header.Name, len(zone.Models), len(zone.Objects), len(zone.Regions), len(zone.Lights))
+	//log.Debugf("%s (zon) decoded %d model refs, %d object refs, %d regions, %d lights", zone.Header.Name, len(zone.Models), len(zone.Objects), len(zone.Regions), len(zone.Lights))
 	return nil
 }

@@ -7,7 +7,6 @@ import (
 
 	"github.com/xackery/encdec"
 	"github.com/xackery/quail/common"
-	"github.com/xackery/quail/log"
 	"github.com/xackery/quail/tag"
 )
 
@@ -137,6 +136,6 @@ func Encode(zone *common.Zone, version uint32, w io.Writer) error {
 		return fmt.Errorf("encode: %w", err)
 	}
 
-	log.Debugf("%s encoded %d objects, %d regions, %d lights", zone.Header.Name, len(zone.Objects), len(zone.Regions), len(zone.Lights))
+	//log.Debugf("%s encoded %d objects, %d regions, %d lights", zone.Header.Name, len(zone.Objects), len(zone.Regions), len(zone.Lights))
 	return nil
 }

@@ -7,7 +7,6 @@ import (
 
 	"github.com/xackery/encdec"
 	"github.com/xackery/quail/common"
-	"github.com/xackery/quail/log"
 	"github.com/xackery/quail/tag"
 )
 
@@ -58,6 +57,6 @@ func Decode(render *common.ParticleRender, r io.ReadSeeker) error {
 		return fmt.Errorf("decode: %w", dec.Error())
 	}
 
-	log.Debugf("%s (prt) decoded %d entries", render.Header.Name, len(render.Entries))
+	//log.Debugf("%s (prt) decoded %d entries", render.Header.Name, len(render.Entries))
 	return nil
 }
