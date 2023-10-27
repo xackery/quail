@@ -9,6 +9,7 @@ type Zone struct {
 	Lights  []Light  `yaml:"lights,omitempty"`
 	Lits    []*RGBA  `yaml:"lits,omitempty"`
 	V4Info  V4Info   `yaml:"v4info,omitempty"`
+	V4Dat   V4Dat    `yaml:"v4dat,omitempty"`
 	names   map[int32]string
 	nameBuf []byte
 }
@@ -22,16 +23,32 @@ func NewZone(name string) *Zone {
 }
 
 type V4Info struct {
-	MinLng               int
-	MinLat               int
-	MaxLng               int
-	MaxLat               int
-	MinExtents           Vector3
-	MaxExtents           Vector3
-	UnitsPerVert         float32
-	QuadsPerTile         int
-	CoverMapInputSize    int
-	LayeringMapInputSize int
+	MinLng               int     `yaml:"min_lng,omitempty"`
+	MinLat               int     `yaml:"min_lat,omitempty"`
+	MaxLng               int     `yaml:"max_lng,omitempty"`
+	MaxLat               int     `yaml:"max_lat,omitempty"`
+	MinExtents           Vector3 `yaml:"min_extents,omitempty"`
+	MaxExtents           Vector3 `yaml:"max_extents,omitempty"`
+	UnitsPerVert         float32 `yaml:"units_per_vert,omitempty"`
+	QuadsPerTile         int     `yaml:"quads_per_tile,omitempty"`
+	CoverMapInputSize    int     `yaml:"cover_map_input_size,omitempty"`
+	LayeringMapInputSize int     `yaml:"layering_map_input_size,omitempty"`
+}
+
+type V4Dat struct {
+	Unk1            uint32 `yaml:"unk1,omitempty"`
+	Unk2            uint32 `yaml:"unk2,omitempty"`
+	Unk3            uint32 `yaml:"unk3,omitempty"`
+	BaseTileTexture string `yaml:"base_tile_texture,omitempty"`
+	Tiles           []V4DatTile
+}
+
+type V4DatTile struct {
+	Lng     int32    `yaml:"lng,omitempty"`
+	Lat     int32    `yaml:"lat,omitempty"`
+	Unk     uint32   `yaml:"unk,omitempty"`
+	Colors  []uint32 `yaml:"colors,omitempty"`
+	Colors2 []uint32 `yaml:"colors2,omitempty"`
 }
 
 // Object is an object

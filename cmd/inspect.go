@@ -11,6 +11,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/xackery/quail/common"
 	"github.com/xackery/quail/log"
+	"github.com/xackery/quail/model/mesh/dat"
 	"github.com/xackery/quail/model/mesh/mds"
 	"github.com/xackery/quail/model/mesh/mod"
 	"github.com/xackery/quail/model/metadata/ani"
@@ -265,6 +266,13 @@ func inspectContent(file string, data *bytes.Reader) (interface{}, error) {
 			return nil, fmt.Errorf("wld.Decode %s: %w", file, err)
 		}
 		return world, nil
+	case ".dat":
+		zone := common.NewZone(strings.TrimSuffix(strings.ToUpper(file), ".DAT"))
+		err = dat.Decode(zone, data)
+		if err != nil {
+			return nil, fmt.Errorf("dat.Decode %s: %w", file, err)
+		}
+		return zone, nil
 	case ".lay":
 		model := common.NewModel("")
 		err := lay.Decode(model, data)
