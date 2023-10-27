@@ -14,8 +14,10 @@ import (
 	"github.com/xackery/quail/model/mesh/dat"
 	"github.com/xackery/quail/model/mesh/mds"
 	"github.com/xackery/quail/model/mesh/mod"
+	"github.com/xackery/quail/model/mesh/ter"
 	"github.com/xackery/quail/model/metadata/ani"
 	"github.com/xackery/quail/model/metadata/lay"
+	"github.com/xackery/quail/model/metadata/lit"
 	"github.com/xackery/quail/model/metadata/prt"
 	"github.com/xackery/quail/model/metadata/pts"
 	"github.com/xackery/quail/model/metadata/zon"
@@ -252,6 +254,20 @@ func inspectContent(file string, data *bytes.Reader) (interface{}, error) {
 			return nil, fmt.Errorf("prt.Decode %s: %w", file, err)
 		}
 		return render, nil
+	case ".ter":
+		model := common.NewModel(strings.TrimSuffix(strings.ToUpper(file), ".TER"))
+		err = ter.Decode(model, data)
+		if err != nil {
+			return nil, fmt.Errorf("ter.Decode %s: %w", file, err)
+		}
+		return model, nil
+	case ".lit":
+		lits := []*common.RGBA{}
+		err = lit.Decode(lits, data)
+		if err != nil {
+			return nil, fmt.Errorf("dat.Decode %s: %w", file, err)
+		}
+		return lits, nil
 	case ".zon":
 		zone := common.NewZone(strings.TrimSuffix(strings.ToUpper(file), ".ZON"))
 		err = zon.Decode(zone, data)
