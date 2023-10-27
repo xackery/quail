@@ -90,6 +90,7 @@ func TestEncode(t *testing.T) {
 		wantErr bool
 	}{
 		// .prt|3|bat.prt|bat.eqg bat.eqg pfs import: decodePrt bat.prt: invalid version 3, wanted 4+
+		//{name: "bat.eqg"}, // FIXME: v3 or below anim support
 		// .prt|3|btn.prt|btn.eqg btn.eqg pfs import: decodePrt btn.prt: invalid version 3, wanted 4+
 		// .prt|3|chm.prt|chm.eqg chm.eqg pfs import: decodePrt chm.prt: invalid version 3, wanted 4+
 		// .prt|3|clv.prt|clv.eqg clv.eqg pfs import: decodePrt clv.prt: invalid version 3, wanted 4+
@@ -127,7 +128,6 @@ func TestEncode(t *testing.T) {
 				}
 				render := common.NewParticleRender("")
 				err = Decode(render, bytes.NewReader(file.Data()))
-
 				if err != nil {
 					os.WriteFile(fmt.Sprintf("%s/%s", dirTest, file.Name()), file.Data(), 0644)
 					tag.Write(fmt.Sprintf("%s/%s.tags", dirTest, file.Name()))

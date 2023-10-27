@@ -95,10 +95,11 @@ extverdump:
 	go run scripts/extverdump/main.go ../eq > scripts/extverdump/version-rof.
 
 explore-%:
-	rm -rf _*.s3d/
-	rm -rf _*.eqg/
-	go run main.go extract ../eq/$*.s3d
-	wld-cli explore _$*.s3d/$*.wld
+	mkdir -p test/
+	rm -rf test/_*.s3d/
+	rm -rf test/_*.eqg/
+	go run main.go extract ../eq/$*.s3d test/_$*.s3d
+	wld-cli explore test/_$*.s3d/$*.wld
 
 test-cover:
 	go test -coverprofile=coverage.out ./...

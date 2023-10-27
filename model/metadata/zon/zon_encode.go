@@ -1,9 +1,11 @@
 package zon
 
 import (
+	"bytes"
 	"encoding/binary"
 	"fmt"
 	"io"
+	"strings"
 
 	"github.com/xackery/encdec"
 	"github.com/xackery/quail/common"
@@ -12,61 +14,44 @@ import (
 
 // Encode writes a zon file
 func Encode(zone *common.Zone, version uint32, w io.Writer) error {
-
-	modelNames := []string{}
-
-	for _, object := range zone.Objects {
-		modelNames = append(modelNames, object.Name)
-	}
-
-	names, nameData, err := zone.NameBuild(modelNames)
-	if err != nil {
-		return fmt.Errorf("nameBuild: %w", err)
-	}
+	var err error
+	zone.NameClear()
 
 	tag.New()
-	enc := encdec.NewEncoder(w, binary.LittleEndian)
+	wEnc := encdec.NewEncoder(w, binary.LittleEndian)
 	if version >= 4 {
-		enc.String("EQTZ")
+		wEnc.String("EQTZ")
 	} else {
-		enc.String("EQGZ")
+		wEnc.String("EQGZ")
 	}
 
-	enc.Uint32(version)
-	enc.Uint32(uint32(len(nameData)))
-	enc.Uint32(uint32(len(zone.Models)))
-	enc.Uint32(uint32(len(zone.Objects)))
-	enc.Uint32(uint32(len(zone.Regions)))
-	enc.Uint32(uint32(len(zone.Lights)))
+	wEnc.Uint32(version)
 
-	enc.Bytes(nameData)
+	// rest of writer is written later
+	buf := &bytes.Buffer{}
+	enc := encdec.NewEncoder(buf, binary.LittleEndian)
 
-	for _, model := range zone.Models {
-		nameOffset := -1
-		for key, offset := range names {
-			if key == model {
-				nameOffset = int(offset)
-				break
-			}
+	for _, object := range zone.Objects {
+		zone.NameAdd(object.Name)
+		zone.NameAdd(object.ModelName)
+	}
+
+	for i, modelName := range zone.Models {
+		nameOffset := zone.NameIndex(modelName)
+		if nameOffset == -1 {
+			nameOffset = zone.NameAdd(modelName)
 		}
-		//if nameOffset == -1 {
-		//log.Debugf("material %s not found ignoring", o.Name)
-		//}
 		enc.Uint32(uint32(nameOffset))
+		if i == 0 && strings.HasSuffix(strings.ToUpper(modelName), ".TER") {
+			zone.NameAdd(strings.TrimSuffix(modelName, ".TER"))
+		}
 	}
 
-	for i, object := range zone.Objects {
-		enc.Uint32(uint32(i + 1))
-		nameOffset := -1
-		for key, offset := range names {
-			if key == object.Name {
-				nameOffset = int(offset)
-				break
-			}
+	for _, object := range zone.Objects {
+		nameOffset := zone.NameIndex(object.Name)
+		if nameOffset == -1 {
+			nameOffset = zone.NameAdd(object.Name)
 		}
-		//if nameOffset == -1 {
-		//log.Debugf("material %s not found ignoring", o.Name)
-		//}
 		enc.Uint32(uint32(nameOffset))
 
 		enc.Float32(object.Position.X)
@@ -81,16 +66,10 @@ func Encode(zone *common.Zone, version uint32, w io.Writer) error {
 	}
 
 	for _, region := range zone.Regions {
-		nameOffset := -1
-		for key, offset := range names {
-			if key == region.Name {
-				nameOffset = int(offset)
-				break
-			}
+		nameOffset := zone.NameIndex(region.Name)
+		if nameOffset == -1 {
+			nameOffset = zone.NameAdd(region.Name)
 		}
-		//if nameOffset == -1 {
-		//log.Debugf("material %s not found ignoring", o.Name)
-		//}
 		enc.Uint32(uint32(nameOffset))
 
 		enc.Float32(region.Center.X)
@@ -107,16 +86,10 @@ func Encode(zone *common.Zone, version uint32, w io.Writer) error {
 	}
 
 	for _, light := range zone.Lights {
-		nameOffset := -1
-		for key, offset := range names {
-			if key == light.Name {
-				nameOffset = int(offset)
-				break
-			}
+		nameOffset := zone.NameIndex(light.Name)
+		if nameOffset == -1 {
+			nameOffset = zone.NameAdd(light.Name)
 		}
-		//if nameOffset == -1 {
-		//log.Debugf("material %s not found ignoring", o.Name)
-		//}
 		enc.Uint32(uint32(nameOffset))
 
 		enc.Float32(light.Position.X)
@@ -130,6 +103,16 @@ func Encode(zone *common.Zone, version uint32, w io.Writer) error {
 		enc.Float32(light.Radius)
 
 	}
+
+	nameData := zone.NameData()
+	wEnc.Uint32(uint32(len(nameData)))
+	wEnc.Uint32(uint32(len(zone.Models)))
+	wEnc.Uint32(uint32(len(zone.Objects)))
+	wEnc.Uint32(uint32(len(zone.Regions)))
+	wEnc.Uint32(uint32(len(zone.Lights)))
+
+	wEnc.Bytes(nameData)
+	wEnc.Bytes(buf.Bytes()) // write delayed info
 
 	err = enc.Error()
 	if err != nil {

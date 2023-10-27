@@ -39,14 +39,14 @@ func Decode(zone *common.Zone, r io.ReadSeeker) error {
 
 	tag.Add(0, dec.Pos(), "red", "header")
 	nameData := dec.Bytes(int(nameLength))
-	names := make(map[uint32]string)
+	names := make(map[int32]string)
 	namesIndexed := []string{}
 
 	chunk := []byte{}
 	lastOffset := 0
 	for i, b := range nameData {
 		if b == 0 {
-			names[uint32(lastOffset)] = string(chunk)
+			names[int32(lastOffset)] = string(chunk)
 			namesIndexed = append(namesIndexed, string(chunk))
 			chunk = []byte{}
 			lastOffset = i + 1
@@ -56,14 +56,15 @@ func Decode(zone *common.Zone, r io.ReadSeeker) error {
 	}
 	tag.Add(tag.LastPos(), dec.Pos(), "green", fmt.Sprintf("names (%d total)", len(names)))
 
-	var ok bool
+	zone.SetNames(names)
+	//os.WriteFile("src.txt", []byte(fmt.Sprintf("%+v", names)), 0644)
+
 	for i := 0; i < int(modelCount); i++ {
-		nameOffset := dec.Uint32()
-		name, ok := names[nameOffset]
-		if !ok {
+		nameOffset := dec.Int32()
+		if nameOffset < 0 {
 			return fmt.Errorf("model nameOffset %d not found", nameOffset)
 		}
-
+		name := zone.Name(int32(nameOffset))
 		zone.Models = append(zone.Models, name)
 	}
 	tag.AddRand(tag.LastPos(), dec.Pos(), fmt.Sprintf("modelNames (%d total)", modelCount))
@@ -78,11 +79,11 @@ func Decode(zone *common.Zone, r io.ReadSeeker) error {
 
 		object.Name = namesIndexed[nameIndex]
 
-		nameOffset := dec.Uint32()
-		object.ModelName, ok = names[nameOffset]
-		if !ok {
+		nameOffset := dec.Int32()
+		if nameOffset < 0 {
 			return fmt.Errorf("object modelNameOffset %d not found", nameOffset)
 		}
+		object.ModelName = zone.Name(int32(nameOffset))
 
 		object.Position.X = dec.Float32()
 		object.Position.Y = dec.Float32()
@@ -100,11 +101,11 @@ func Decode(zone *common.Zone, r io.ReadSeeker) error {
 	for i := 0; i < int(regionCount); i++ {
 		region := common.Region{}
 
-		nameOffset := dec.Uint32()
-		region.Name, ok = names[nameOffset]
-		if !ok {
+		nameOffset := dec.Int32()
+		if nameOffset < 0 {
 			return fmt.Errorf("region nameOffset %d not found", nameOffset)
 		}
+		region.Name = zone.Name(int32(nameOffset))
 
 		region.Center.X = dec.Float32()
 		region.Center.Y = dec.Float32()
@@ -125,11 +126,11 @@ func Decode(zone *common.Zone, r io.ReadSeeker) error {
 	for i := 0; i < int(lightCount); i++ {
 		light := common.Light{}
 
-		nameOffset := dec.Uint32()
-		light.Name, ok = names[nameOffset]
-		if !ok {
+		nameOffset := dec.Int32()
+		if nameOffset < 0 {
 			return fmt.Errorf("light nameOffset %d not found", nameOffset)
 		}
+		light.Name = zone.Name(int32(nameOffset))
 
 		light.Position.X = dec.Float32()
 		light.Position.Y = dec.Float32()

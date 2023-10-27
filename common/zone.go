@@ -1,10 +1,5 @@
 package common
 
-import (
-	"bytes"
-	"fmt"
-)
-
 // Zone is a zone
 type Zone struct {
 	Header  *Header  `yaml:"header,omitempty"`
@@ -14,6 +9,8 @@ type Zone struct {
 	Lights  []Light  `yaml:"lights,omitempty"`
 	Lits    []*RGBA  `yaml:"lits,omitempty"`
 	V4Info  V4Info   `yaml:"v4info,omitempty"`
+	names   map[int32]string
+	nameBuf []byte
 }
 
 func NewZone(name string) *Zone {
@@ -62,67 +59,64 @@ type Light struct {
 	Radius   float32
 }
 
-// NameBuild prepares an EQG-styled name buffer list
-func (zone *Zone) NameBuild(miscNames []string) (map[string]int32, []byte, error) {
-	var err error
+// SetNames sets the names within a buffer
+func (e *Zone) SetNames(names map[int32]string) {
+	if e.names == nil {
+		e.names = make(map[int32]string)
+	}
+	for k, v := range names {
+		e.names[k] = v
+	}
+}
 
-	names := make(map[string]int32)
-	nameBuf := bytes.NewBuffer(nil)
-	tmpNames := []string{}
+// Name returns the name of an id
+func (e *Zone) Name(id int32) string {
+	if id < 0 {
+		id = -id
+	}
+	if e.names == nil {
+		return "!UNK"
+	}
+	//fmt.Println("name: [", e.names[id], "]")
+	return e.names[id]
+}
 
-	for _, name := range miscNames {
-		isNew := true
-		for key := range names {
-			if key == name {
-				isNew = false
-				break
-			}
-		}
-		if !isNew {
-			continue
-		}
-
-		tmpNames = append(tmpNames, name)
+// NameAdd is used when building a world file, appending new names
+func (e *Zone) NameAdd(name string) int32 {
+	if e.names == nil {
+		e.names = make(map[int32]string)
 	}
 
-	// append materials to tmpNames
-	for _, o := range zone.Objects {
-		tmpNames = append(tmpNames, o.Name)
+	if id := e.NameIndex(name); id != -1 {
+		return id
 	}
+	e.names[int32(len(e.nameBuf))] = name
+	e.nameBuf = append(e.nameBuf, []byte(name)...)
+	e.nameBuf = append(e.nameBuf, 0)
+	return int32(len(e.nameBuf) - len(name) - 1)
+}
 
-	// append regions to tmpNames
-	for _, r := range zone.Regions {
-		tmpNames = append(tmpNames, r.Name)
+// NameIndex returns the index of a name, or -1 if not found
+func (e *Zone) NameIndex(name string) int32 {
+	if e.names == nil {
+		return -1
 	}
-
-	// append lights to tmpNames
-	for _, l := range zone.Lights {
-		tmpNames = append(tmpNames, l.Name)
-	}
-
-	for _, name := range tmpNames {
-		isNew := true
-		for key := range names {
-			if key == name {
-				isNew = false
-				break
-			}
-		}
-		if !isNew {
-			continue
-		}
-
-		names[name] = int32(nameBuf.Len())
-
-		_, err = nameBuf.Write([]byte(name))
-		if err != nil {
-			return nil, nil, fmt.Errorf("write name: %w", err)
-		}
-		_, err = nameBuf.Write([]byte{0})
-		if err != nil {
-			return nil, nil, fmt.Errorf("write 0: %w", err)
+	for k, v := range e.names {
+		if v == name {
+			return k
 		}
 	}
+	return -1
+}
 
-	return names, nameBuf.Bytes(), nil
+// NameData dumps the name cache
+func (e *Zone) NameData() []byte {
+	//os.WriteFile("dst.txt", []byte(fmt.Sprintf("%+v", e.names)), 0644)
+	return e.nameBuf
+}
+
+// NameClear purges names and namebuf, called when encode starts
+func (e *Zone) NameClear() {
+	e.names = make(map[int32]string)
+	e.nameBuf = nil
 }

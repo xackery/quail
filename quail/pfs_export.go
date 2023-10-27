@@ -103,7 +103,7 @@ func (e *Quail) EQGExport(fileVersion uint32, pfsVersion int, path string) error
 	for _, model := range e.Models {
 		for _, render := range model.ParticleRenders {
 			buf := &bytes.Buffer{}
-			err = prt.Encode(render, 4, buf) // TODO: add support for other versions
+			err = prt.Encode(render, 4, buf) // TODO: add support for more than v4 support on export
 			if err != nil {
 				return fmt.Errorf("encodePtr %s: %w", render.Header.Name, err)
 			}
