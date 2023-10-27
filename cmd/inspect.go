@@ -201,7 +201,7 @@ func inspectFile(pfs *pfs.PFS, path string, file string) (interface{}, error) {
 		if err != nil {
 			return nil, err
 		}
-		return inspectContent(filepath.Base(file), bytes.NewReader(data))
+		return inspectContent(filepath.Base(path), bytes.NewReader(data))
 	}
 
 	for _, fe := range pfs.Files() {
