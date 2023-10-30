@@ -55,6 +55,7 @@ func TestDumpFragOffset(t *testing.T) {
 		name string
 	}{
 		{"gequip4"},
+		//{"global_chr"}, // TODO:  anarelion asked mesh of EYE_DMSPRITEDEF check if the eye is just massive 22 units in size, where the other units in that file are just 1-2 units in size
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

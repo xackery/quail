@@ -800,15 +800,15 @@ func decodeDMSprite(r io.ReadSeeker) (common.FragmentReader, error) {
 	d.Something3 = dec.Uint32()
 
 	if vertexCount > 999 {
-		return nil, fmt.Errorf("vertex count misaligned")
+		return nil, fmt.Errorf("vertex count misaligned (%d)", vertexCount)
 	}
 
 	if texCoordCount > 999 {
-		return nil, fmt.Errorf("tex coord count misaligned")
+		return nil, fmt.Errorf("tex coord count misaligned (%d)", texCoordCount)
 	}
 
 	if normalCount > 999 {
-		return nil, fmt.Errorf("normal count misaligned")
+		return nil, fmt.Errorf("normal count misaligned (%d)", normalCount)
 	}
 
 	for i := int16(0); i < vertexCount; i++ {

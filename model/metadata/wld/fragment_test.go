@@ -36,6 +36,7 @@ func TestFragment(t *testing.T) {
 		//{"zel_v2_chr.s3d", "zel_v2_chr.wld", 0}, // mesh
 		//{"wol_v3_chr.s3d", "wol_v3_chr.wld", 0}, // mesh
 		{"globalhuf_chr.s3d", "globalhuf_chr.wld", 0}, // mesh
+		//{"global_chr.s3d", "global_chr.wld", 557}, // mesh
 	}
 	for _, tt := range tests {
 		t.Run(tt.file, func(t *testing.T) {
@@ -84,6 +85,9 @@ func TestFragment(t *testing.T) {
 
 				//if !reflect.DeepEqual(data, dstData) {
 				for i := 0; i < len(dstData); i++ {
+					if tt.fragIndex != 0 && i != tt.fragIndex {
+						break
+					}
 					if len(srcData) <= i {
 						min := 0
 						max := len(srcData)
