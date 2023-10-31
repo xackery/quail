@@ -84,3 +84,13 @@ func FragName(fragCode int) string {
 	}
 	return fmt.Sprintf("unknownFrag%d", fragCode)
 }
+
+// FragIndex returns the index of a fragment
+func FragIndex(name string) int {
+	for k, v := range fragNames {
+		if v == name {
+			return k
+		}
+	}
+	return -1
+}
