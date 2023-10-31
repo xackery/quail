@@ -11,29 +11,29 @@ import (
 
 // TwoDSprite is Sprite2DDef in libeq, Two-Dimensional Object in openzone, 2DSPRITEDEF in wld, Fragment06 in lantern
 type TwoDSprite struct {
-	NameRef                     int32
-	Flags                       uint32
-	TextureCount                uint32
-	PitchCount                  uint32
-	Scale                       common.Vector2
-	SphereRef                   uint32
-	DepthScale                  float32
-	CenterOffset                common.Vector3
-	BoundingRadius              float32
-	CurrentFrameRef             int32
-	Sleep                       uint32
-	Headings                    []uint32
-	RenderMethod                uint32
-	RenderFlags                 uint32
-	RenderPen                   uint32
-	RenderBrightness            float32
-	RenderScaledAmbient         float32
-	RenderSimpleSpriteReference uint32
-	RenderUVInfoOrigin          common.Vector3
-	RenderUVInfoUAxis           common.Vector3
-	RenderUVInfoVAxis           common.Vector3
-	RenderUVMapEntryCount       uint32
-	RenderUVMapEntries          []common.Vector2
+	FragName                    string           `yaml:"frag_name"`
+	NameRef                     int32            `yaml:"name_ref"`
+	Flags                       uint32           `yaml:"flags"`
+	TextureCount                uint32           `yaml:"texture_count"`
+	PitchCount                  uint32           `yaml:"pitch_count"`
+	Scale                       common.Vector2   `yaml:"scale"`
+	SphereRef                   uint32           `yaml:"sphere_ref"`
+	DepthScale                  float32          `yaml:"depth_scale"`
+	CenterOffset                common.Vector3   `yaml:"center_offset"`
+	BoundingRadius              float32          `yaml:"bounding_radius"`
+	CurrentFrameRef             int32            `yaml:"current_frame_ref"`
+	Sleep                       uint32           `yaml:"sleep"`
+	Headings                    []uint32         `yaml:"headings"`
+	RenderMethod                uint32           `yaml:"render_method"`
+	RenderFlags                 uint32           `yaml:"render_flags"`
+	RenderPen                   uint32           `yaml:"render_pen"`
+	RenderBrightness            float32          `yaml:"render_brightness"`
+	RenderScaledAmbient         float32          `yaml:"render_scaled_ambient"`
+	RenderSimpleSpriteReference uint32           `yaml:"render_simple_sprite_reference"`
+	RenderUVInfoOrigin          common.Vector3   `yaml:"render_uv_info_origin"`
+	RenderUVInfoUAxis           common.Vector3   `yaml:"render_uv_info_u_axis"`
+	RenderUVInfoVAxis           common.Vector3   `yaml:"render_uv_info_v_axis"`
+	RenderUVMapEntries          []common.Vector2 `yaml:"render_uv_map_entries"`
 }
 
 func (e *TwoDSprite) FragCode() int {
@@ -96,7 +96,7 @@ func (e *TwoDSprite) Encode(w io.Writer) error {
 			enc.Float32(e.RenderUVInfoVAxis.Z)
 		}
 		if e.RenderFlags&0x20 == 0x20 {
-			enc.Uint32(e.RenderUVMapEntryCount)
+			enc.Uint32(uint32(len(e.RenderUVMapEntries)))
 			for _, entry := range e.RenderUVMapEntries {
 				enc.Float32(entry.X)
 				enc.Float32(entry.Y)
@@ -112,6 +112,7 @@ func (e *TwoDSprite) Encode(w io.Writer) error {
 
 func decodeTwoDSprite(r io.ReadSeeker) (common.FragmentReader, error) {
 	d := &TwoDSprite{}
+	d.FragName = common.FragName(d.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	d.NameRef = dec.Int32()
 	d.Flags = dec.Uint32()
@@ -168,8 +169,8 @@ func decodeTwoDSprite(r io.ReadSeeker) (common.FragmentReader, error) {
 			d.RenderUVInfoVAxis.Z = dec.Float32()
 		}
 		if d.RenderFlags&0x20 == 0x20 {
-			d.RenderUVMapEntryCount = dec.Uint32()
-			for i := uint32(0); i < d.RenderUVMapEntryCount; i++ {
+			renderUVMapEntrycount := dec.Uint32()
+			for i := uint32(0); i < renderUVMapEntrycount; i++ {
 				v := common.Vector2{}
 				v.X = dec.Float32()
 				v.Y = dec.Float32()
@@ -186,9 +187,10 @@ func decodeTwoDSprite(r io.ReadSeeker) (common.FragmentReader, error) {
 
 // TwoDSpriteRef is Sprite2D in libeq, Two-Dimensional Object Reference in openzone, 2DSPRITE (ref) in wld, Fragment07 in lantern
 type TwoDSpriteRef struct {
-	NameRef       int32
-	TwoDSpriteRef uint32
-	Flags         uint32
+	FragName      string `yaml:"frag_name"`
+	NameRef       int32  `yaml:"name_ref"`
+	TwoDSpriteRef uint32 `yaml:"two_d_sprite_ref"`
+	Flags         uint32 `yaml:"flags"`
 }
 
 func (e *TwoDSpriteRef) FragCode() int {
@@ -208,6 +210,7 @@ func (e *TwoDSpriteRef) Encode(w io.Writer) error {
 
 func decodeTwoDSpriteRef(r io.ReadSeeker) (common.FragmentReader, error) {
 	d := &TwoDSpriteRef{}
+	d.FragName = common.FragName(d.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	d.NameRef = dec.Int32()
 	d.TwoDSpriteRef = dec.Uint32()
@@ -220,6 +223,7 @@ func decodeTwoDSpriteRef(r io.ReadSeeker) (common.FragmentReader, error) {
 
 // ThreeDSprite is Sprite3DDef in libeq, Camera in openzone, 3DSPRITEDEF in wld, Camera in lantern
 type ThreeDSprite struct {
+	FragName      string           `yaml:"frag_name"`
 	NameRef       int32            `yaml:"name_ref"`
 	Flags         uint32           `yaml:"flags"`
 	SphereListRef uint32           `yaml:"sphere_list_ref"`
@@ -318,6 +322,7 @@ func (e *ThreeDSprite) Encode(w io.Writer) error {
 
 func decodeThreeDSprite(r io.ReadSeeker) (common.FragmentReader, error) {
 	d := &ThreeDSprite{}
+	d.FragName = common.FragName(d.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	d.NameRef = dec.Int32()
 	d.Flags = dec.Uint32()
@@ -389,6 +394,7 @@ func decodeThreeDSprite(r io.ReadSeeker) (common.FragmentReader, error) {
 
 // ThreeDSpriteRef is Sprite3D in libeq, Camera Reference in openzone, 3DSPRITE (ref) in wld, CameraReference in lantern
 type ThreeDSpriteRef struct {
+	FragName  string `yaml:"frag_name"`
 	NameRef   int32
 	ThreeDRef int32
 	Flags     uint32
@@ -411,6 +417,7 @@ func (e *ThreeDSpriteRef) Encode(w io.Writer) error {
 
 func decodeThreeDSpriteRef(r io.ReadSeeker) (common.FragmentReader, error) {
 	d := &ThreeDSpriteRef{}
+	d.FragName = common.FragName(d.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	d.NameRef = dec.Int32()
 	d.ThreeDRef = dec.Int32()
@@ -423,15 +430,15 @@ func decodeThreeDSpriteRef(r io.ReadSeeker) (common.FragmentReader, error) {
 
 // FourDSprite is Sprite4DDef in libeq, empty in openzone, 4DSPRITEDEF in wld
 type FourDSprite struct {
-	NameRef         int32
-	Flags           uint32
-	FrameCount      uint32
-	PolyRef         int32
-	CenterOffset    common.Vector3
-	Radius          float32
-	CurrentFrame    uint32
-	Sleep           uint32
-	SpriteFragments []uint32
+	FragName        string         `yaml:"frag_name"`
+	NameRef         int32          `yaml:"name_ref"`
+	Flags           uint32         `yaml:"flags"`
+	PolyRef         int32          `yaml:"poly_ref"`
+	CenterOffset    common.Vector3 `yaml:"center_offset"`
+	Radius          float32        `yaml:"radius"`
+	CurrentFrame    uint32         `yaml:"current_frame"`
+	Sleep           uint32         `yaml:"sleep"`
+	SpriteFragments []uint32       `yaml:"sprite_fragments"`
 }
 
 func (e *FourDSprite) FragCode() int {
@@ -442,7 +449,7 @@ func (e *FourDSprite) Encode(w io.Writer) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
 	enc.Int32(e.NameRef)
 	enc.Uint32(e.Flags)
-	enc.Uint32(e.FrameCount)
+	enc.Uint32(uint32(len(e.SpriteFragments)))
 	enc.Int32(e.PolyRef)
 	if e.Flags&0x01 != 0 {
 		enc.Float32(e.CenterOffset.X)
@@ -471,10 +478,11 @@ func (e *FourDSprite) Encode(w io.Writer) error {
 
 func decodeFourDSprite(r io.ReadSeeker) (common.FragmentReader, error) {
 	d := &FourDSprite{}
+	d.FragName = common.FragName(d.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	d.NameRef = dec.Int32()
 	d.Flags = dec.Uint32()
-	d.FrameCount = dec.Uint32()
+	frameCount := dec.Uint32()
 	d.PolyRef = dec.Int32()
 	if d.Flags&0x01 != 0 {
 		d.CenterOffset.X = dec.Float32()
@@ -491,7 +499,7 @@ func decodeFourDSprite(r io.ReadSeeker) (common.FragmentReader, error) {
 		d.Sleep = dec.Uint32()
 	}
 	if d.Flags&0x10 != 0 {
-		for i := uint32(0); i < d.FrameCount; i++ {
+		for i := uint32(0); i < frameCount; i++ {
 			d.SpriteFragments = append(d.SpriteFragments, dec.Uint32())
 		}
 	}
@@ -503,9 +511,10 @@ func decodeFourDSprite(r io.ReadSeeker) (common.FragmentReader, error) {
 
 // FourDSpriteRef is Sprite4D in libeq, empty in openzone, 4DSPRITE (ref) in wld
 type FourDSpriteRef struct {
-	NameRef  int32
-	FourDRef int32
-	Params1  uint32
+	FragName string `yaml:"frag_name"`
+	NameRef  int32  `yaml:"name_ref"`
+	FourDRef int32  `yaml:"four_d_ref"`
+	Params1  uint32 `yaml:"params_1"`
 }
 
 func (e *FourDSpriteRef) FragCode() int {
@@ -525,6 +534,7 @@ func (e *FourDSpriteRef) Encode(w io.Writer) error {
 
 func decodeFourDSpriteRef(r io.ReadSeeker) (common.FragmentReader, error) {
 	d := &FourDSpriteRef{}
+	d.FragName = common.FragName(d.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	d.NameRef = dec.Int32()
 	d.FourDRef = dec.Int32()
@@ -537,19 +547,20 @@ func decodeFourDSpriteRef(r io.ReadSeeker) (common.FragmentReader, error) {
 
 // Polyhedron is PolyhedronDef in libeq, Polygon animation in openzone, POLYHEDRONDEFINITION in wld, Fragment17 in lantern
 type Polyhedron struct {
-	NameRef  int32
-	Flags    uint32
-	Size1    uint32
-	Size2    uint32
-	Params1  float32
-	Params2  float32
-	Entries1 []common.Vector3
-	Entries2 []Entries2
+	FragName string           `yaml:"frag_name"`
+	NameRef  int32            `yaml:"name_ref"`
+	Flags    uint32           `yaml:"flags"`
+	Size1    uint32           `yaml:"size_1"`
+	Size2    uint32           `yaml:"size_2"`
+	Params1  float32          `yaml:"params_1"`
+	Params2  float32          `yaml:"params_2"`
+	Entries1 []common.Vector3 `yaml:"entries_1"`
+	Entries2 []Entries2       `yaml:"entries_2"`
 }
 
 type Entries2 struct {
-	Unk1 uint32
-	Unk2 []uint32
+	Unk1 uint32   `yaml:"unk_1"`
+	Unk2 []uint32 `yaml:"unk_2"`
 }
 
 func (e *Polyhedron) FragCode() int {
@@ -583,6 +594,7 @@ func (e *Polyhedron) Encode(w io.Writer) error {
 
 func decodePolyhedron(r io.ReadSeeker) (common.FragmentReader, error) {
 	d := &Polyhedron{}
+	d.FragName = common.FragName(d.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	d.NameRef = dec.Int32()
 	d.Flags = dec.Uint32()
@@ -613,10 +625,11 @@ func decodePolyhedron(r io.ReadSeeker) (common.FragmentReader, error) {
 
 // PolyhedronRef is Polyhedron in libeq, Polygon Animation Reference in openzone, POLYHEDRON (ref) in wld, Fragment18 in lantern
 type PolyhedronRef struct {
-	NameRef     int32
-	FragmentRef int32
-	Flags       uint32
-	Scale       float32
+	FragName    string  `yaml:"frag_name"`
+	NameRef     int32   `yaml:"name_ref"`
+	FragmentRef int32   `yaml:"fragment_ref"`
+	Flags       uint32  `yaml:"flags"`
+	Scale       float32 `yaml:"scale"`
 }
 
 func (e *PolyhedronRef) FragCode() int {
@@ -637,6 +650,7 @@ func (e *PolyhedronRef) Encode(w io.Writer) error {
 
 func decodePolyhedronRef(r io.ReadSeeker) (common.FragmentReader, error) {
 	d := &PolyhedronRef{}
+	d.FragName = common.FragName(d.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	d.NameRef = dec.Int32()
 	d.FragmentRef = dec.Int32()
@@ -650,54 +664,55 @@ func decodePolyhedronRef(r io.ReadSeeker) (common.FragmentReader, error) {
 
 // DMSprite is DmSpriteDef in libeq, Alternate Mesh in openzone, DMSPRITEDEF in wld, LegacyMesh in lantern
 type DMSprite struct {
-	NameRef           int32
-	Flags             uint32
-	Fragment1Maybe    int16
-	MaterialReference uint32
-	Fragment3         uint32
-	CenterPosition    common.Vector3
-	Params2           uint32
-	Something2        uint32
-	Something3        uint32
-	Verticies         []common.Vector3
-	TexCoords         []common.Vector3
-	Normals           []common.Vector3
-	Colors            []int32
-	Polygons          []SpritePolygon
-	VertexPieces      []SpriteVertexPiece
-	PostVertexFlag    uint32
-	RenderGroups      []SpriteRenderGroup
-	VertexTex         []common.Vector2
-	Size6Pieces       []Size6Entry
+	FragName          string              `yaml:"frag_name"`
+	NameRef           int32               `yaml:"name_ref"`
+	Flags             uint32              `yaml:"flags"`
+	Fragment1Maybe    int16               `yaml:"fragment_1_maybe"`
+	MaterialReference uint32              `yaml:"material_reference"`
+	Fragment3         uint32              `yaml:"fragment_3"`
+	CenterPosition    common.Vector3      `yaml:"center_position"`
+	Params2           uint32              `yaml:"params_2"`
+	Something2        uint32              `yaml:"something_2"`
+	Something3        uint32              `yaml:"something_3"`
+	Verticies         []common.Vector3    `yaml:"verticies"`
+	TexCoords         []common.Vector3    `yaml:"tex_coords"`
+	Normals           []common.Vector3    `yaml:"normals"`
+	Colors            []int32             `yaml:"colors"`
+	Polygons          []SpritePolygon     `yaml:"polygons"`
+	VertexPieces      []SpriteVertexPiece `yaml:"vertex_pieces"`
+	PostVertexFlag    uint32              `yaml:"post_vertex_flag"`
+	RenderGroups      []SpriteRenderGroup `yaml:"render_groups"`
+	VertexTex         []common.Vector2    `yaml:"vertex_tex"`
+	Size6Pieces       []Size6Entry        `yaml:"size_6_pieces"`
 }
 
 type SpritePolygon struct {
-	Flag int16
-	Unk1 int16
-	Unk2 int16
-	Unk3 int16
-	Unk4 int16
-	I1   int16
-	I2   int16
-	I3   int16
+	Flag int16 `yaml:"flag"`
+	Unk1 int16 `yaml:"unk_1"`
+	Unk2 int16 `yaml:"unk_2"`
+	Unk3 int16 `yaml:"unk_3"`
+	Unk4 int16 `yaml:"unk_4"`
+	I1   int16 `yaml:"i_1"`
+	I2   int16 `yaml:"i_2"`
+	I3   int16 `yaml:"i_3"`
 }
 
 type SpriteVertexPiece struct {
-	Count  int16
-	Offset int16
+	Count  int16 `yaml:"count"`
+	Offset int16 `yaml:"offset"`
 }
 
 type SpriteRenderGroup struct {
-	PolygonCount int16
-	MaterialId   int16
+	PolygonCount int16 `yaml:"polygon_count"`
+	MaterialId   int16 `yaml:"material_id"`
 }
 
 type Size6Entry struct {
-	Unk1 uint32
-	Unk2 uint32
-	Unk3 uint32
-	Unk4 uint32
-	Unk5 uint32
+	Unk1 uint32 `yaml:"unk_1"`
+	Unk2 uint32 `yaml:"unk_2"`
+	Unk3 uint32 `yaml:"unk_3"`
+	Unk4 uint32 `yaml:"unk_4"`
+	Unk5 uint32 `yaml:"unk_5"`
 }
 
 func (e *DMSprite) FragCode() int {
@@ -779,6 +794,7 @@ func (e *DMSprite) Encode(w io.Writer) error {
 
 func decodeDMSprite(r io.ReadSeeker) (common.FragmentReader, error) {
 	d := &DMSprite{}
+	d.FragName = common.FragName(d.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	d.NameRef = dec.Int32()
 	d.Flags = dec.Uint32()
@@ -908,6 +924,7 @@ func decodeDMSprite(r io.ReadSeeker) (common.FragmentReader, error) {
 
 // DMSpriteRef is DmSprite in libeq, Mesh Reference in openzone, empty in wld, MeshReference in lantern
 type DMSpriteRef struct {
+	FragName    string `yaml:"frag_name"`
 	NameRef     int32  `yaml:"name_ref"`
 	DMSpriteRef int32  `yaml:"dm_sprite_ref"`
 	Params      uint32 `yaml:"params"`
@@ -930,6 +947,7 @@ func (e *DMSpriteRef) Encode(w io.Writer) error {
 
 func decodeDMSpriteRef(r io.ReadSeeker) (common.FragmentReader, error) {
 	d := &DMSpriteRef{}
+	d.FragName = common.FragName(d.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	d.NameRef = dec.Int32()
 	d.DMSpriteRef = dec.Int32()
@@ -942,8 +960,9 @@ func decodeDMSpriteRef(r io.ReadSeeker) (common.FragmentReader, error) {
 
 // Mesh is DmSpriteDef2 in libeq, Mesh in openzone, DMSPRITEDEF2 in wld, Mesh in lantern
 type Mesh struct {
-	NameRef int32  `yaml:"name_ref"`
-	Flags   uint32 `yaml:"flags"`
+	FragName string `yaml:"frag_name"`
+	NameRef  int32  `yaml:"name_ref"`
+	Flags    uint32 `yaml:"flags"`
 
 	MaterialListRef uint32 `yaml:"material_list_ref"`
 	AnimationRef    int32  `yaml:"animation_ref"`
@@ -1107,7 +1126,7 @@ func (e *Mesh) Encode(w io.Writer) error {
 
 func decodeMesh(r io.ReadSeeker) (common.FragmentReader, error) {
 	d := &Mesh{}
-
+	d.FragName = common.FragName(d.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	d.NameRef = dec.Int32()
 	d.Flags = dec.Uint32() // flags, currently unknown, zone meshes are 0x00018003, placeable objects are 0x00014003
@@ -1229,19 +1248,20 @@ func decodeMesh(r io.ReadSeeker) (common.FragmentReader, error) {
 
 // MeshAnimated is DmTrackDef2 in libeq, Mesh Animated Vertices in openzone, DMTRACKDEF in wld, MeshAnimatedVertices in lantern
 type MeshAnimated struct {
-	NameRef     int32
-	Flags       uint32
-	VertexCount uint16
-	FrameCount  uint16
-	Param1      uint16 // usually contains 100
-	Param2      uint16 // usually contains 0
-	Scale       uint16
-	Frames      []MeshAnimatedBone
-	Size6       uint32
+	FragName    string             `yaml:"frag_name"`
+	NameRef     int32              `yaml:"name_ref"`
+	Flags       uint32             `yaml:"flags"`
+	VertexCount uint16             `yaml:"vertex_count"`
+	FrameCount  uint16             `yaml:"frame_count"`
+	Param1      uint16             `yaml:"param_1"` // usually contains 100
+	Param2      uint16             `yaml:"param_2"` // usually contains 0
+	Scale       uint16             `yaml:"scale"`
+	Frames      []MeshAnimatedBone `yaml:"frames"`
+	Size6       uint32             `yaml:"size_6"`
 }
 
 type MeshAnimatedBone struct {
-	Position common.Vector3
+	Position common.Vector3 `yaml:"position"`
 }
 
 func (e *MeshAnimated) FragCode() int {
@@ -1254,5 +1274,6 @@ func (e *MeshAnimated) Encode(w io.Writer) error {
 
 func decodeMeshAnimated(r io.ReadSeeker) (common.FragmentReader, error) {
 	d := &MeshAnimated{}
+	d.FragName = common.FragName(d.FragCode())
 	return d, nil
 }

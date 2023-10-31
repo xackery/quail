@@ -10,25 +10,26 @@ import (
 
 // ParticleSprite is ParticleSpriteDef in libeq, empty in openzone, PARTICLESPRITEDEF in wld
 type ParticleSprite struct {
-	NameRef                     int32
-	Flags                       uint32
-	VerticesCount               uint32
-	Unknown                     uint32
-	CenterOffset                common.Vector3
-	Radius                      float32
-	Vertices                    []common.Vector3
-	RenderMethod                uint32
-	RenderFlags                 uint32
-	RenderPen                   uint32
-	RenderBrightness            float32
-	RenderScaledAmbient         float32
-	RenderSimpleSpriteReference uint32
-	RenderUVInfoOrigin          common.Vector3
-	RenderUVInfoUAxis           common.Vector3
-	RenderUVInfoVAxis           common.Vector3
-	RenderUVMapEntryCount       uint32
-	RenderUVMapEntries          []common.Vector2
-	Pen                         []uint32
+	FragName                    string           `yaml:"frag_name"`
+	NameRef                     int32            `yaml:"name_ref"`
+	Flags                       uint32           `yaml:"flags"`
+	VerticesCount               uint32           `yaml:"vertices_count"`
+	Unknown                     uint32           `yaml:"unknown"`
+	CenterOffset                common.Vector3   `yaml:"center_offset"`
+	Radius                      float32          `yaml:"radius"`
+	Vertices                    []common.Vector3 `yaml:"vertices"`
+	RenderMethod                uint32           `yaml:"render_method"`
+	RenderFlags                 uint32           `yaml:"render_flags"`
+	RenderPen                   uint32           `yaml:"render_pen"`
+	RenderBrightness            float32          `yaml:"render_brightness"`
+	RenderScaledAmbient         float32          `yaml:"render_scaled_ambient"`
+	RenderSimpleSpriteReference uint32           `yaml:"render_simple_sprite_reference"`
+	RenderUVInfoOrigin          common.Vector3   `yaml:"render_uv_info_origin"`
+	RenderUVInfoUAxis           common.Vector3   `yaml:"render_uv_info_u_axis"`
+	RenderUVInfoVAxis           common.Vector3   `yaml:"render_uv_info_v_axis"`
+	RenderUVMapEntryCount       uint32           `yaml:"render_uv_map_entry_count"`
+	RenderUVMapEntries          []common.Vector2 `yaml:"render_uv_map_entries"`
+	Pen                         []uint32         `yaml:"pen"`
 }
 
 func (e *ParticleSprite) FragCode() int {
@@ -84,6 +85,7 @@ func (e *ParticleSprite) Encode(w io.Writer) error {
 
 func decodeParticleSprite(r io.ReadSeeker) (common.FragmentReader, error) {
 	d := &ParticleSprite{}
+	d.FragName = common.FragName(d.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	d.NameRef = dec.Int32()
 	d.Flags = dec.Uint32()
@@ -136,9 +138,10 @@ func decodeParticleSprite(r io.ReadSeeker) (common.FragmentReader, error) {
 
 // ParticleSpriteRef is ParticleSprite in libeq, empty in openzone, PARTICLESPRITE (ref) in wld
 type ParticleSpriteRef struct {
-	NameRef              int32
-	ParticleSpriteDefRef int32
-	Flags                uint32
+	FragName             string `yaml:"frag_name"`
+	NameRef              int32  `yaml:"name_ref"`
+	ParticleSpriteDefRef int32  `yaml:"particle_sprite_def_ref"`
+	Flags                uint32 `yaml:"flags"`
 }
 
 func (e *ParticleSpriteRef) FragCode() int {
@@ -158,6 +161,7 @@ func (e *ParticleSpriteRef) Encode(w io.Writer) error {
 
 func decodeParticleSpriteRef(r io.ReadSeeker) (common.FragmentReader, error) {
 	d := &ParticleSpriteRef{}
+	d.FragName = common.FragName(d.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	d.NameRef = dec.Int32()
 	d.ParticleSpriteDefRef = dec.Int32()
@@ -170,8 +174,9 @@ func decodeParticleSpriteRef(r io.ReadSeeker) (common.FragmentReader, error) {
 
 // CompositeSprite is empty in libeq, empty in openzone, COMPOSITESPRITEDEF in wld, Actor in lantern
 type CompositeSprite struct {
-	NameRef int32
-	Flags   uint32
+	FragName string `yaml:"frag_name"`
+	NameRef  int32  `yaml:"name_ref"`
+	Flags    uint32 `yaml:"flags"`
 }
 
 func (e *CompositeSprite) FragCode() int {
@@ -190,6 +195,7 @@ func (e *CompositeSprite) Encode(w io.Writer) error {
 
 func decodeCompositeSprite(r io.ReadSeeker) (common.FragmentReader, error) {
 	d := &CompositeSprite{}
+	d.FragName = common.FragName(d.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	d.NameRef = dec.Int32()
 	d.Flags = dec.Uint32()
@@ -201,9 +207,10 @@ func decodeCompositeSprite(r io.ReadSeeker) (common.FragmentReader, error) {
 
 // CompositeSpriteRef is empty in libeq, empty in openzone, COMPOSITESPRITE (ref) in wld
 type CompositeSpriteRef struct {
-	NameRef               int32
-	CompositeSpriteDefRef int32
-	Flags                 uint32
+	FragName              string `yaml:"frag_name"`
+	NameRef               int32  `yaml:"name_ref"`
+	CompositeSpriteDefRef int32  `yaml:"composite_sprite_def_ref"`
+	Flags                 uint32 `yaml:"flags"`
 }
 
 func (e *CompositeSpriteRef) FragCode() int {
@@ -223,6 +230,7 @@ func (e *CompositeSpriteRef) Encode(w io.Writer) error {
 
 func decodeCompositeSpriteRef(r io.ReadSeeker) (common.FragmentReader, error) {
 	d := &CompositeSpriteRef{}
+	d.FragName = common.FragName(d.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	d.NameRef = dec.Int32()
 	d.CompositeSpriteDefRef = dec.Int32()
@@ -235,25 +243,26 @@ func decodeCompositeSpriteRef(r io.ReadSeeker) (common.FragmentReader, error) {
 
 // Model is ActorDef in libeq, Static in openzone, ACTORDEF in wld
 type Model struct {
-	NameRef          int32
-	Flags            uint32
-	CallbackNameRef  int32
-	ActionCount      uint32
-	FragmentRefCount uint32
-	BoundsRef        int32
-	CurrentAction    uint32
-	Offset           common.Vector3
-	Rotation         common.Vector3
-	Unk1             uint32
-	Actions          []Action
-	FragmentRefs     []uint32
-	Unk2             uint32
+	FragName         string         `yaml:"frag_name"`
+	NameRef          int32          `yaml:"name_ref"`
+	Flags            uint32         `yaml:"flags"`
+	CallbackNameRef  int32          `yaml:"callback_name_ref"`
+	ActionCount      uint32         `yaml:"action_count"`
+	FragmentRefCount uint32         `yaml:"fragment_ref_count"`
+	BoundsRef        int32          `yaml:"bounds_ref"`
+	CurrentAction    uint32         `yaml:"current_action"`
+	Offset           common.Vector3 `yaml:"offset"`
+	Rotation         common.Vector3 `yaml:"rotation"`
+	Unk1             uint32         `yaml:"unk1"`
+	Actions          []Action       `yaml:"actions"`
+	FragmentRefs     []uint32       `yaml:"fragment_refs"`
+	Unk2             uint32         `yaml:"unk2"`
 }
 
 type Action struct {
-	LodCount uint32
-	Unk1     uint32
-	Lods     []float32
+	LodCount uint32    `yaml:"lod_count"`
+	Unk1     uint32    `yaml:"unk1"`
+	Lods     []float32 `yaml:"lods"`
 }
 
 func (e *Model) FragCode() int {
@@ -300,6 +309,7 @@ func (e *Model) Encode(w io.Writer) error {
 
 func decodeModel(r io.ReadSeeker) (common.FragmentReader, error) {
 	d := &Model{}
+	d.FragName = common.FragName(d.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	d.NameRef = dec.Int32()
 	d.Flags = dec.Uint32()
@@ -341,18 +351,19 @@ func decodeModel(r io.ReadSeeker) (common.FragmentReader, error) {
 
 // ModelRef is Actor in libeq, Object Location in openzone, ACTORINST in wld, ObjectInstance in lantern
 type ModelRef struct {
-	NameRef        int32
-	ActorDefRef    int32
-	Flags          uint32
-	SphereRef      uint32
-	CurrentAction  uint32
-	Offset         common.Vector3
-	Rotation       common.Vector3
-	Unk1           uint32
-	BoundingRadius float32
-	Scale          float32
-	SoundNameRef   int32
-	Unk2           int32
+	FragName       string         `yaml:"frag_name"`
+	NameRef        int32          `yaml:"name_ref"`
+	ActorDefRef    int32          `yaml:"actor_def_ref"`
+	Flags          uint32         `yaml:"flags"`
+	SphereRef      uint32         `yaml:"sphere_ref"`
+	CurrentAction  uint32         `yaml:"current_action"`
+	Offset         common.Vector3 `yaml:"offset"`
+	Rotation       common.Vector3 `yaml:"rotation"`
+	Unk1           uint32         `yaml:"unk1"`
+	BoundingRadius float32        `yaml:"bounding_radius"`
+	Scale          float32        `yaml:"scale"`
+	SoundNameRef   int32          `yaml:"sound_name_ref"`
+	Unk2           int32          `yaml:"unk2"`
 }
 
 func (e *ModelRef) FragCode() int {
@@ -395,6 +406,7 @@ func (e *ModelRef) Encode(w io.Writer) error {
 
 func decodeModelRef(r io.ReadSeeker) (common.FragmentReader, error) {
 	d := &ModelRef{}
+	d.FragName = common.FragName(d.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	d.NameRef = dec.Int32()
 	d.ActorDefRef = dec.Int32()
@@ -430,8 +442,9 @@ func decodeModelRef(r io.ReadSeeker) (common.FragmentReader, error) {
 
 // Sphere is Sphere in libeq, Zone Unknown in openzone, SPHERE (ref) in wld, Fragment16 in lantern
 type Sphere struct {
-	NameRef int32
-	Radius  float32
+	FragName string  `yaml:"frag_name"`
+	NameRef  int32   `yaml:"name_ref"`
+	Radius   float32 `yaml:"radius"`
 }
 
 func (e *Sphere) FragCode() int {
@@ -450,6 +463,7 @@ func (e *Sphere) Encode(w io.Writer) error {
 
 func decodeSphere(r io.ReadSeeker) (common.FragmentReader, error) {
 	d := &Sphere{}
+	d.FragName = common.FragName(d.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	d.NameRef = dec.Int32()
 	d.Radius = dec.Float32()
@@ -461,12 +475,13 @@ func decodeSphere(r io.ReadSeeker) (common.FragmentReader, error) {
 
 // SphereList is SphereListDef in libeq, empty in openzone, SPHERELISTDEFINITION in wld
 type SphereList struct {
-	NameRef     int32
-	Flags       uint32
-	SphereCount uint32
-	Radius      float32
-	Scale       float32
-	Spheres     []common.Quad4
+	FragName    string         `yaml:"frag_name"`
+	NameRef     int32          `yaml:"name_ref"`
+	Flags       uint32         `yaml:"flags"`
+	SphereCount uint32         `yaml:"sphere_count"`
+	Radius      float32        `yaml:"radius"`
+	Scale       float32        `yaml:"scale"`
+	Spheres     []common.Quad4 `yaml:"spheres"`
 }
 
 func (e *SphereList) FragCode() int {
@@ -494,6 +509,7 @@ func (e *SphereList) Encode(w io.Writer) error {
 
 func decodeSphereList(r io.ReadSeeker) (common.FragmentReader, error) {
 	d := &SphereList{}
+	d.FragName = common.FragName(d.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	d.NameRef = dec.Int32()
 	d.Flags = dec.Uint32()
@@ -517,9 +533,10 @@ func decodeSphereList(r io.ReadSeeker) (common.FragmentReader, error) {
 
 // SphereListRef is SphereList in libeq, empty in openzone, SPHERELIST (ref) in wld
 type SphereListRef struct {
-	NameRef          int32
-	SphereListDefRef int32
-	Params1          uint32
+	FragName         string `yaml:"frag_name"`
+	NameRef          int32  `yaml:"name_ref"`
+	SphereListDefRef int32  `yaml:"sphere_list_def_ref"`
+	Params1          uint32 `yaml:"params1"`
 }
 
 func (e *SphereListRef) FragCode() int {
@@ -539,6 +556,7 @@ func (e *SphereListRef) Encode(w io.Writer) error {
 
 func decodeSphereListRef(r io.ReadSeeker) (common.FragmentReader, error) {
 	d := &SphereListRef{}
+	d.FragName = common.FragName(d.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	d.NameRef = dec.Int32()
 	d.SphereListDefRef = dec.Int32()

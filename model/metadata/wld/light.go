@@ -11,12 +11,13 @@ import (
 
 // Light is LightDef in libeq, Light Source in openzone, LIGHT (ref) in wld, LightSource in lantern
 type Light struct {
-	NameRef         int32
-	Flags           uint32
-	FrameCurrentRef uint32
-	Sleep           uint32
-	LightLevels     []float32
-	Colors          []common.Vector3
+	FragName        string           `yaml:"frag_name"`
+	NameRef         int32            `yaml:"name_ref"`
+	Flags           uint32           `yaml:"flags"`
+	FrameCurrentRef uint32           `yaml:"frame_current_ref"`
+	Sleep           uint32           `yaml:"sleep"`
+	LightLevels     []float32        `yaml:"light_levels"`
+	Colors          []common.Vector3 `yaml:"colors"`
 }
 
 func (e *Light) FragCode() int {
@@ -55,6 +56,7 @@ func (e *Light) Encode(w io.Writer) error {
 
 func decodeLight(r io.ReadSeeker) (common.FragmentReader, error) {
 	d := &Light{}
+	d.FragName = common.FragName(d.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	d.NameRef = dec.Int32()
 	d.Flags = dec.Uint32()
@@ -88,9 +90,10 @@ func decodeLight(r io.ReadSeeker) (common.FragmentReader, error) {
 
 // LightRef is Light in libeq, Light Source Reference in openzone, POINTLIGHTT ?? in wld, LightSourceReference in lantern
 type LightRef struct {
-	NameRef     int32
-	LightDefRef int32
-	Flags       uint32
+	FragName    string `yaml:"frag_name"`
+	NameRef     int32  `yaml:"name_ref"`
+	LightDefRef int32  `yaml:"light_def_ref"`
+	Flags       uint32 `yaml:"flags"`
 }
 
 func (e *LightRef) FragCode() int {
@@ -110,6 +113,7 @@ func (e *LightRef) Encode(w io.Writer) error {
 
 func decodeLightRef(r io.ReadSeeker) (common.FragmentReader, error) {
 	d := &LightRef{}
+	d.FragName = common.FragName(d.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	d.NameRef = dec.Int32()
 	d.LightDefRef = dec.Int32()
@@ -122,8 +126,9 @@ func decodeLightRef(r io.ReadSeeker) (common.FragmentReader, error) {
 
 // PointLightOld is empty in libeq, empty in openzone, POINTLIGHT?? in wld
 type PointLightOld struct {
-	NameRef int32
-	Flags   uint32
+	FragName string `yaml:"frag_name"`
+	NameRef  int32  `yaml:"name_ref"`
+	Flags    uint32 `yaml:"flags"`
 }
 
 func (e *PointLightOld) FragCode() int {
@@ -142,6 +147,7 @@ func (e *PointLightOld) Encode(w io.Writer) error {
 
 func decodePointLightOld(r io.ReadSeeker) (common.FragmentReader, error) {
 	d := &PointLightOld{}
+	d.FragName = common.FragName(d.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	d.NameRef = dec.Int32()
 	d.Flags = dec.Uint32()
@@ -153,8 +159,9 @@ func decodePointLightOld(r io.ReadSeeker) (common.FragmentReader, error) {
 
 // PointLightOldRef is empty in libeq, empty in openzone, empty in wld
 type PointLightOldRef struct {
-	NameRef       int32
-	PointLightRef int32
+	FragName      string `yaml:"frag_name"`
+	NameRef       int32  `yaml:"name_ref"`
+	PointLightRef int32  `yaml:"point_light_ref"`
 }
 
 func (e *PointLightOldRef) FragCode() int {
@@ -173,6 +180,7 @@ func (e *PointLightOldRef) Encode(w io.Writer) error {
 
 func decodePointLightOldRef(r io.ReadSeeker) (common.FragmentReader, error) {
 	d := &PointLightOldRef{}
+	d.FragName = common.FragName(d.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	d.NameRef = dec.Int32()
 	d.PointLightRef = dec.Int32()
@@ -184,6 +192,7 @@ func decodePointLightOldRef(r io.ReadSeeker) (common.FragmentReader, error) {
 
 // DirectionalLigtOld is empty in libeq, empty in openzone, DIRECTIONALLIGHT in wld
 type DirectionalLightOld struct {
+	FragName string `yaml:"frag_name"`
 }
 
 func (e *DirectionalLightOld) FragCode() int {
@@ -196,11 +205,13 @@ func (e *DirectionalLightOld) Encode(w io.Writer) error {
 
 func decodeDirectionalLightOld(r io.ReadSeeker) (common.FragmentReader, error) {
 	d := &DirectionalLightOld{}
+	d.FragName = common.FragName(d.FragCode())
 	return d, nil
 }
 
 // PointLight is PointLight in libeq, Light Info in openzone, POINTLIGHT in wld, LightInstance in lantern
 type PointLight struct {
+	FragName string `yaml:"frag_name"`
 }
 
 func (e *PointLight) FragCode() int {
@@ -213,6 +224,7 @@ func (e *PointLight) Encode(w io.Writer) error {
 
 func decodePointLight(r io.ReadSeeker) (common.FragmentReader, error) {
 	d := &PointLight{}
+	d.FragName = common.FragName(d.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	if dec.Error() != nil {
 		return nil, dec.Error()
@@ -222,6 +234,7 @@ func decodePointLight(r io.ReadSeeker) (common.FragmentReader, error) {
 
 // AmbientLight is AmbientLight in libeq, Ambient Light in openzone, AMBIENTLIGHT in wld, AmbientLight in lantern
 type AmbientLight struct {
+	FragName string `yaml:"frag_name"`
 }
 
 func (e *AmbientLight) FragCode() int {
@@ -234,6 +247,7 @@ func (e *AmbientLight) Encode(w io.Writer) error {
 
 func decodeAmbientLight(r io.ReadSeeker) (common.FragmentReader, error) {
 	d := &AmbientLight{}
+	d.FragName = common.FragName(d.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	if dec.Error() != nil {
 		return nil, dec.Error()
@@ -243,6 +257,7 @@ func decodeAmbientLight(r io.ReadSeeker) (common.FragmentReader, error) {
 
 // DirectionalLight is DirectionalLight in libeq, empty in openzone, DIRECTIONALLIGHT in wld
 type DirectionalLight struct {
+	FragName string `yaml:"frag_name"`
 }
 
 func (e *DirectionalLight) FragCode() int {
@@ -255,6 +270,7 @@ func (e *DirectionalLight) Encode(w io.Writer) error {
 
 func decodeDirectionalLight(r io.ReadSeeker) (common.FragmentReader, error) {
 	d := &DirectionalLight{}
+	d.FragName = common.FragName(d.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	if dec.Error() != nil {
 		return nil, dec.Error()

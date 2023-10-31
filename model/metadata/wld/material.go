@@ -12,6 +12,7 @@ import (
 
 // PaletteFile is DefaultPaletteFile in libeq, empty in openzone, DEFAULTPALETTEFILE in wld
 type PaletteFile struct {
+	FragName   string `yaml:"frag_name"`
 	NameRef    int32  `yaml:"name_ref"`
 	NameLength uint16 `yaml:"name_length"`
 	FileName   string `yaml:"file_name"`
@@ -34,6 +35,7 @@ func (e *PaletteFile) Encode(w io.Writer) error {
 
 func decodePaletteFile(r io.ReadSeeker) (common.FragmentReader, error) {
 	d := &PaletteFile{}
+	d.FragName = common.FragName(d.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	d.NameRef = dec.Int32()
 	d.NameLength = dec.Uint16()
@@ -46,6 +48,7 @@ func decodePaletteFile(r io.ReadSeeker) (common.FragmentReader, error) {
 
 // TextureList is BmInfo in libeq, Texture Bitmap Names in openzone, FRAME and BMINFO in wld, BitmapName in lantern
 type TextureList struct {
+	FragName     string   `yaml:"frag_name"`
 	NameRef      int32    `yaml:"name_ref"`
 	TextureNames []string `yaml:"texture_names"`
 }
@@ -69,6 +72,7 @@ func (e *TextureList) Encode(w io.Writer) error {
 
 func decodeTextureList(r io.ReadSeeker) (common.FragmentReader, error) {
 	d := &TextureList{}
+	d.FragName = common.FragName(d.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	d.NameRef = dec.Int32()
 	textureCount := dec.Int32()
@@ -85,6 +89,7 @@ func decodeTextureList(r io.ReadSeeker) (common.FragmentReader, error) {
 
 // Texture is SimpleSpriteDef in libeq, Texture Bitmap Info in openzone, SIMPLESPRITEDEF in wld, BitmapInfo in lantern
 type Texture struct {
+	FragName       string   `yaml:"frag_name"`
 	NameRef        int32    `yaml:"name_ref"`
 	Flags          uint32   `yaml:"flags"`
 	TextureCurrent uint32   `yaml:"texture_current"`
@@ -118,6 +123,7 @@ func (e *Texture) Encode(w io.Writer) error {
 
 func decodeTexture(r io.ReadSeeker) (common.FragmentReader, error) {
 	d := &Texture{}
+	d.FragName = common.FragName(d.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	d.NameRef = dec.Int32()
 	d.Flags = dec.Uint32()
@@ -139,6 +145,7 @@ func decodeTexture(r io.ReadSeeker) (common.FragmentReader, error) {
 
 // TextureRef is SimpleSprite in libeq, Texture Bitmap Info Reference in openzone, SIMPLESPRITEINST in wld, BitmapInfoReference in lantern
 type TextureRef struct {
+	FragName   string `yaml:"frag_name"`
 	NameRef    int32  `yaml:"name_ref"`
 	TextureRef int16  `yaml:"texture_ref"`
 	Flags      uint32 `yaml:"flags"`
@@ -161,6 +168,7 @@ func (e *TextureRef) Encode(w io.Writer) error {
 
 func decodeTextureRef(r io.ReadSeeker) (common.FragmentReader, error) {
 	d := &TextureRef{}
+	d.FragName = common.FragName(d.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	d.NameRef = dec.Int32()
 	d.TextureRef = dec.Int16()
@@ -173,6 +181,7 @@ func decodeTextureRef(r io.ReadSeeker) (common.FragmentReader, error) {
 
 // BlitSprite is BlitSprite in libeq, empty in openzone, BLITSPRITE (ref) in wld, ParticleSprite in lantern
 type BlitSprite struct {
+	FragName      string `yaml:"frag_name"`
 	NameRef       int32  `yaml:"name_ref"`
 	Flags         uint32 `yaml:"flags"`
 	BlitSpriteRef uint32 `yaml:"blit_sprite_ref"`
@@ -198,6 +207,7 @@ func (e *BlitSprite) Encode(w io.Writer) error {
 
 func decodeBlitSprite(r io.ReadSeeker) (common.FragmentReader, error) {
 	d := &BlitSprite{}
+	d.FragName = common.FragName(d.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	d.NameRef = dec.Int32()
 	d.Flags = dec.Uint32()
@@ -212,6 +222,7 @@ func decodeBlitSprite(r io.ReadSeeker) (common.FragmentReader, error) {
 
 // BlitSpriteRef is BlitSprite in libeq, empty in openzone, BLITSPRITE (ref) in wld, ParticleSpriteReference in lantern
 type BlitSpriteRef struct {
+	FragName string `yaml:"frag_name"`
 }
 
 func (e *BlitSpriteRef) FragCode() int {
@@ -224,6 +235,7 @@ func (e *BlitSpriteRef) Encode(w io.Writer) error {
 
 func decodeBlitSpriteRef(r io.ReadSeeker) (common.FragmentReader, error) {
 	d := &BlitSpriteRef{}
+	d.FragName = common.FragName(d.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	if dec.Error() != nil {
 		return nil, dec.Error()
@@ -233,6 +245,7 @@ func decodeBlitSpriteRef(r io.ReadSeeker) (common.FragmentReader, error) {
 
 // Material is MaterialDef in libeq, Texture in openzone, MATERIALDEFINITION in wld, Material in lantern
 type Material struct {
+	FragName      string    `yaml:"frag_name"`
 	NameRef       int32     `yaml:"name_ref"`
 	Flags         uint32    `yaml:"flags"`
 	RenderMethod  uint32    `yaml:"render_method"`
@@ -268,6 +281,7 @@ func (e *Material) Encode(w io.Writer) error {
 
 func decodeMaterial(r io.ReadSeeker) (common.FragmentReader, error) {
 	d := &Material{}
+	d.FragName = common.FragName(d.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	d.NameRef = dec.Int32()
 	d.Flags = dec.Uint32()
@@ -288,6 +302,7 @@ func decodeMaterial(r io.ReadSeeker) (common.FragmentReader, error) {
 
 // MaterialList is MaterialPalette in libeq, TextureList in openzone, MATERIALPALETTE in wld, MaterialList in lantern
 type MaterialList struct {
+	FragName     string
 	NameRef      int32
 	Flags        uint32
 	MaterialRefs []uint32
@@ -313,6 +328,7 @@ func (e *MaterialList) Encode(w io.Writer) error {
 
 func decodeMaterialList(r io.ReadSeeker) (common.FragmentReader, error) {
 	d := &MaterialList{}
+	d.FragName = common.FragName(d.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	d.NameRef = dec.Int32()
 	d.Flags = dec.Uint32()

@@ -10,6 +10,7 @@ import (
 
 // Default is empty in libeq, empty in openzone, DEFAULT?? in wld
 type Default struct {
+	FragName string `yaml:"frag_name"`
 }
 
 func (e *Default) FragCode() int {
@@ -21,12 +22,15 @@ func (e *Default) Encode(w io.Writer) error {
 }
 
 func decodeDefault(r io.ReadSeeker) (common.FragmentReader, error) {
-	return &Default{}, nil
+	d := &Default{}
+	d.FragName = common.FragName(d.FragCode())
+	return d, nil
 }
 
 // First is GlobalAmbientLightDef in libeq, First Fragment in openzone, empty in wld, GlobalAmbientLight in lantern
 type First struct {
-	NameRef int32
+	FragName string `yaml:"frag_name"`
+	NameRef  int32
 }
 
 func (e *First) FragCode() int {
@@ -45,6 +49,7 @@ func (e *First) Encode(w io.Writer) error {
 
 func decodeFirst(r io.ReadSeeker) (common.FragmentReader, error) {
 	d := &First{}
+	d.FragName = common.FragName(d.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	d.NameRef = dec.Int32()
 	if dec.Error() != nil {
@@ -55,6 +60,7 @@ func decodeFirst(r io.ReadSeeker) (common.FragmentReader, error) {
 
 // UserData is empty in libeq, empty in openzone, USERDATA in wld
 type UserData struct {
+	FragName string `yaml:"frag_name"`
 }
 
 func (e *UserData) FragCode() int {
@@ -66,13 +72,16 @@ func (e *UserData) Encode(w io.Writer) error {
 }
 
 func decodeUserData(r io.ReadSeeker) (common.FragmentReader, error) {
-	return &UserData{}, nil
+	d := &UserData{}
+	d.FragName = common.FragName(d.FragCode())
+	return d, nil
 }
 
 // Sound is empty in libeq, empty in openzone, SOUNDDEFINITION in wld
 type Sound struct {
-	NameRef int32
-	Flags   uint32
+	FragName string `yaml:"frag_name"`
+	NameRef  int32  `yaml:"name_ref"`
+	Flags    uint32 `yaml:"flags"`
 }
 
 func (e *Sound) FragCode() int {
@@ -91,6 +100,7 @@ func (e *Sound) Encode(w io.Writer) error {
 
 func decodeSound(r io.ReadSeeker) (common.FragmentReader, error) {
 	d := &Sound{}
+	d.FragName = common.FragName(d.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	d.NameRef = dec.Int32()
 	d.Flags = dec.Uint32()
@@ -102,8 +112,9 @@ func decodeSound(r io.ReadSeeker) (common.FragmentReader, error) {
 
 // SoundRef is empty in libeq, empty in openzone, SOUNDINSTANCE in wld
 type SoundRef struct {
-	NameRef int32
-	Flags   uint32
+	FragName string `yaml:"frag_name"`
+	NameRef  int32  `yaml:"name_ref"`
+	Flags    uint32 `yaml:"flags"`
 }
 
 func (e *SoundRef) FragCode() int {
@@ -122,6 +133,7 @@ func (e *SoundRef) Encode(w io.Writer) error {
 
 func decodeSoundRef(r io.ReadSeeker) (common.FragmentReader, error) {
 	d := &SoundRef{}
+	d.FragName = common.FragName(d.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	d.NameRef = dec.Int32()
 	d.Flags = dec.Uint32()
@@ -135,17 +147,18 @@ func decodeSoundRef(r io.ReadSeeker) (common.FragmentReader, error) {
 // For serialization, refer to here: https://github.com/knervous/LanternExtractor2/blob/knervous/merged/LanternExtractor/EQ/Wld/DataTypes/BspNode.cs
 // For constructing, refer to here: https://github.com/knervous/LanternExtractor2/blob/920541d15958e90aa91f7446a74226cbf26b829a/LanternExtractor/EQ/Wld/Exporters/GltfWriter.cs#L304
 type WorldTree struct {
-	NameRef   int32
-	NodeCount uint32
-	Nodes     []WorldTreeNode
+	FragName  string          `yaml:"frag_name"`
+	NameRef   int32           `yaml:"name_ref"`
+	NodeCount uint32          `yaml:"node_count"`
+	Nodes     []WorldTreeNode `yaml:"nodes"`
 }
 
 type WorldTreeNode struct {
-	Normal    common.Vector3
-	Distance  float32
-	RegionRef int32
-	FrontRef  int32
-	BackRef   int32
+	Normal    common.Vector3 `yaml:"normal"`
+	Distance  float32        `yaml:"distance"`
+	RegionRef int32          `yaml:"region_ref"`
+	FrontRef  int32          `yaml:"front_ref"`
+	BackRef   int32          `yaml:"back_ref"`
 }
 
 func (e *WorldTree) FragCode() int {
@@ -173,6 +186,7 @@ func (e *WorldTree) Encode(w io.Writer) error {
 
 func decodeWorldTree(r io.ReadSeeker) (common.FragmentReader, error) {
 	d := &WorldTree{}
+	d.FragName = common.FragName(d.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	d.NameRef = dec.Int32()
 	d.NodeCount = dec.Uint32()
@@ -195,38 +209,39 @@ func decodeWorldTree(r io.ReadSeeker) (common.FragmentReader, error) {
 
 // Region is Region in libeq, Bsp Region in openzone, REGION in wld, BspRegion in lantern
 type Region struct {
-	NameRef              int32
-	Flags                uint32
-	AmbientLightRef      int32
-	RegionVertexCount    uint32
-	RegionProximalCount  uint32
-	RenderVertexCount    uint32
-	WallCount            uint32
-	ObstacleCount        uint32
-	CuttingObstacleCount uint32
-	VisibleNodeCount     uint32
-	RegionVertices       []common.Vector3
-	RegionProximals      []common.Vector2
-	RenderVertices       []common.Vector3
-	Walls                []Wall
+	FragName             string           `yaml:"frag_name"`
+	NameRef              int32            `yaml:"name_ref"`
+	Flags                uint32           `yaml:"flags"`
+	AmbientLightRef      int32            `yaml:"ambient_light_ref"`
+	RegionVertexCount    uint32           `yaml:"region_vertex_count"`
+	RegionProximalCount  uint32           `yaml:"region_proximal_count"`
+	RenderVertexCount    uint32           `yaml:"render_vertex_count"`
+	WallCount            uint32           `yaml:"wall_count"`
+	ObstacleCount        uint32           `yaml:"obstacle_count"`
+	CuttingObstacleCount uint32           `yaml:"cutting_obstacle_count"`
+	VisibleNodeCount     uint32           `yaml:"visible_node_count"`
+	RegionVertices       []common.Vector3 `yaml:"region_vertices"`
+	RegionProximals      []common.Vector2 `yaml:"region_proximals"`
+	RenderVertices       []common.Vector3 `yaml:"render_vertices"`
+	Walls                []Wall           `yaml:"walls"`
 }
 
 type Wall struct {
-	Flags                       uint32
-	VertexCount                 uint32
-	RenderMethod                uint32
-	RenderFlags                 uint32
-	RenderPen                   uint32
-	RenderBrightness            float32
-	RenderScaledAmbient         float32
-	RenderSimpleSpriteReference uint32
-	RenderUVInfoOrigin          common.Vector3
-	RenderUVInfoUAxis           common.Vector3
-	RenderUVInfoVAxis           common.Vector3
-	RenderUVMapEntryCount       uint32
-	RenderUVMapEntries          []common.Vector2
-	Normal                      common.Quad4
-	Vertices                    []uint32
+	Flags                       uint32           `yaml:"flags"`
+	VertexCount                 uint32           `yaml:"vertex_count"`
+	RenderMethod                uint32           `yaml:"render_method"`
+	RenderFlags                 uint32           `yaml:"render_flags"`
+	RenderPen                   uint32           `yaml:"render_pen"`
+	RenderBrightness            float32          `yaml:"render_brightness"`
+	RenderScaledAmbient         float32          `yaml:"render_scaled_ambient"`
+	RenderSimpleSpriteReference uint32           `yaml:"render_simple_sprite_reference"`
+	RenderUVInfoOrigin          common.Vector3   `yaml:"render_uv_info_origin"`
+	RenderUVInfoUAxis           common.Vector3   `yaml:"render_uv_info_u_axis"`
+	RenderUVInfoVAxis           common.Vector3   `yaml:"render_uv_info_v_axis"`
+	RenderUVMapEntryCount       uint32           `yaml:"render_uv_map_entry_count"`
+	RenderUVMapEntries          []common.Vector2 `yaml:"render_uv_map_entries"`
+	Normal                      common.Quad4     `yaml:"normal"`
+	Vertices                    []uint32         `yaml:"vertices"`
 }
 
 func (e *Region) FragCode() int {
@@ -298,6 +313,7 @@ func (e *Region) Encode(w io.Writer) error {
 
 func decodeRegion(r io.ReadSeeker) (common.FragmentReader, error) {
 	d := &Region{}
+	d.FragName = common.FragName(d.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	d.NameRef = dec.Int32()
 	d.Flags = dec.Uint32()
@@ -383,6 +399,7 @@ func decodeRegion(r io.ReadSeeker) (common.FragmentReader, error) {
 
 // ActiveGeoRegion is empty in libeq, empty in openzone, ACTIVEGEOMETRYREGION in wld
 type ActiveGeoRegion struct {
+	FragName string `yaml:"frag_name"`
 }
 
 func (e *ActiveGeoRegion) FragCode() int {
@@ -394,11 +411,14 @@ func (e *ActiveGeoRegion) Encode(w io.Writer) error {
 }
 
 func decodeActiveGeoRegion(r io.ReadSeeker) (common.FragmentReader, error) {
-	return &ActiveGeoRegion{}, nil
+	d := &ActiveGeoRegion{}
+	d.FragName = common.FragName(d.FragCode())
+	return d, nil
 }
 
 // SkyRegion is empty in libeq, empty in openzone, SKYREGION in wld
 type SkyRegion struct {
+	FragName string `yaml:"frag_name"`
 }
 
 func (e *SkyRegion) FragCode() int {
@@ -410,11 +430,13 @@ func (e *SkyRegion) Encode(w io.Writer) error {
 }
 
 func decodeSkyRegion(r io.ReadSeeker) (common.FragmentReader, error) {
-	return &SkyRegion{}, nil
+	d := &SkyRegion{}
+	return d, nil
 }
 
 // Zone is Zone in libeq, Region Flag in openzone, ZONE in wld, BspRegionType in lantern
 type Zone struct {
+	FragName string `yaml:"frag_name"`
 }
 
 func (e *Zone) FragCode() int {
@@ -426,11 +448,13 @@ func (e *Zone) Encode(w io.Writer) error {
 }
 
 func decodeZone(r io.ReadSeeker) (common.FragmentReader, error) {
-	return &Zone{}, nil
+	d := &Zone{}
+	return d, nil
 }
 
 // DMTrack is DmTrackDef in libeq, empty in openzone, empty in wld
 type DMTrack struct {
+	FragName string `yaml:"frag_name"`
 }
 
 func (e *DMTrack) FragCode() int {
@@ -442,11 +466,14 @@ func (e *DMTrack) Encode(w io.Writer) error {
 }
 
 func decodeDMTrack(r io.ReadSeeker) (common.FragmentReader, error) {
-	return &DMTrack{}, nil
+	d := &DMTrack{}
+	d.FragName = common.FragName(d.FragCode())
+	return d, nil
 }
 
 // DMTrackRef is DmTrack in libeq, Mesh Animated Vertices Reference in openzone, empty in wld, MeshAnimatedVerticesReference in lantern
 type DMTrackRef struct {
+	FragName string `yaml:"frag_name"`
 }
 
 func (e *DMTrackRef) FragCode() int {
@@ -458,11 +485,13 @@ func (e *DMTrackRef) Encode(w io.Writer) error {
 }
 
 func decodeDMTrackRef(r io.ReadSeeker) (common.FragmentReader, error) {
-	return &DMTrackRef{}, nil
+	d := &DMTrackRef{}
+	return d, nil
 }
 
 // DMRGBTrack is a list of colors, one per vertex, for baked lighting. It is DmRGBTrackDef in libeq, Vertex Color in openzone, empty in wld, VertexColors in lantern
 type DMRGBTrack struct {
+	FragName string `yaml:"frag_name"`
 }
 
 func (e *DMRGBTrack) FragCode() int {
@@ -474,11 +503,13 @@ func (e *DMRGBTrack) Encode(w io.Writer) error {
 }
 
 func decodeDMRGBTrack(r io.ReadSeeker) (common.FragmentReader, error) {
-	return &DMRGBTrack{}, nil
+	d := &DMRGBTrack{}
+	return d, nil
 }
 
 // DMRGBTrackRef is DmRGBTrack in libeq, Vertex Color Reference in openzone, empty in wld, VertexColorsReference in lantern
 type DMRGBTrackRef struct {
+	FragName string `yaml:"frag_name"`
 }
 
 func (e *DMRGBTrackRef) FragCode() int {
@@ -490,11 +521,13 @@ func (e *DMRGBTrackRef) Encode(w io.Writer) error {
 }
 
 func decodeDMRGBTrackRef(r io.ReadSeeker) (common.FragmentReader, error) {
-	return &DMRGBTrackRef{}, nil
+	d := &DMRGBTrackRef{}
+	return d, nil
 }
 
 // ParticleCloud is ParticleCloudDef in libeq, empty in openzone, empty in wld, ParticleCloud in lantern
 type ParticleCloud struct {
+	FragName              string      `yaml:"frag_name"`
 	NameRef               int32       `yaml:"name_ref"`
 	Unk1                  uint32      `yaml:"unk1"`
 	Unk2                  uint32      `yaml:"unk2"`
@@ -559,8 +592,9 @@ func (e *ParticleCloud) Encode(w io.Writer) error {
 }
 
 func decodeParticleCloud(r io.ReadSeeker) (common.FragmentReader, error) {
-	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	d := &ParticleCloud{}
+	d.FragName = common.FragName(d.FragCode())
+	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	d.NameRef = dec.Int32()
 	d.Unk1 = dec.Uint32()
 	d.Unk2 = dec.Uint32()

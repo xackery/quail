@@ -10,6 +10,7 @@ import (
 
 // SkeletonTrack is HierarchialSpriteDef in libeq, SkeletonTrackSet in openzone, HIERARCHIALSPRITE in wld, SkeletonHierarchy in lantern
 type SkeletonTrack struct {
+	FragName           string          `yaml:"frag_name"`
 	NameRef            int32           `yaml:"name_ref"`
 	Flags              uint32          `yaml:"flags"`
 	CollisionVolumeRef uint32          `yaml:"collision_volume_ref"`
@@ -77,6 +78,8 @@ func (e *SkeletonTrack) Encode(w io.Writer) error {
 
 func decodeSkeletonTrack(r io.ReadSeeker) (common.FragmentReader, error) {
 	d := &SkeletonTrack{}
+	d.FragName = common.FragName(d.FragCode())
+
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	d.NameRef = dec.Int32()
 	d.Flags = dec.Uint32()
@@ -121,9 +124,10 @@ func decodeSkeletonTrack(r io.ReadSeeker) (common.FragmentReader, error) {
 
 // SkeletonTrackRef is HierarchialSprite in libeq, SkeletonTrackSetReference in openzone, HIERARCHIALSPRITE (ref) in wld, SkeletonHierarchyReference in lantern
 type SkeletonTrackRef struct {
-	NameRef          int16
-	SkeletonTrackRef int16
-	Flags            uint32
+	FragName         string `yaml:"frag_name"`
+	NameRef          int16  `yaml:"name_ref"`
+	SkeletonTrackRef int16  `yaml:"skeleton_track_ref"`
+	Flags            uint32 `yaml:"flags"`
 }
 
 func (e *SkeletonTrackRef) FragCode() int {
@@ -143,6 +147,7 @@ func (e *SkeletonTrackRef) Encode(w io.Writer) error {
 
 func decodeSkeletonTrackRef(r io.ReadSeeker) (common.FragmentReader, error) {
 	d := &SkeletonTrackRef{}
+	d.FragName = common.FragName(d.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	d.NameRef = dec.Int16()
 	d.Flags = dec.Uint32()
@@ -155,6 +160,7 @@ func decodeSkeletonTrackRef(r io.ReadSeeker) (common.FragmentReader, error) {
 
 // Track is TrackDef in libeq, Mob Skeleton Piece Track in openzone, TRACKDEFINITION in wld, TrackDefFragment in lantern
 type Track struct {
+	FragName      string          `yaml:"frag_name"`
 	NameRef       int32           `yaml:"name_ref"`
 	Flags         uint32          `yaml:"flags"`
 	BoneTransform []BoneTransform `yaml:"skeleton_transforms"`
@@ -212,6 +218,7 @@ func (e *Track) Encode(w io.Writer) error {
 
 func decodeTrack(r io.ReadSeeker) (common.FragmentReader, error) {
 	d := &Track{}
+	d.FragName = common.FragName(d.FragCode())
 
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	d.NameRef = dec.Int32()
@@ -252,6 +259,7 @@ func decodeTrack(r io.ReadSeeker) (common.FragmentReader, error) {
 
 // TrackRef is a bone in a skeleton. It is Track in libeq, Mob Skeleton Piece Track Reference in openzone, TRACKINSTANCE in wld, TrackDefFragment in lantern
 type TrackRef struct {
+	FragName string `yaml:"frag_name"`
 	NameRef  int32  `yaml:"name_ref"`
 	TrackRef int32  `yaml:"track_ref"`
 	Flags    uint32 `yaml:"flags"`
@@ -279,6 +287,7 @@ func (e *TrackRef) Encode(w io.Writer) error {
 
 func decodeTrackRef(r io.ReadSeeker) (common.FragmentReader, error) {
 	d := &TrackRef{}
+	d.FragName = common.FragName(d.FragCode())
 
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	d.NameRef = dec.Int32()
