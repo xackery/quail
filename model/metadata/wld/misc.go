@@ -132,6 +132,8 @@ func decodeSoundRef(r io.ReadSeeker) (common.FragmentReader, error) {
 }
 
 // WorldTree is WorldTree in libeq, BSP Tree in openzone, WORLDTREE in wld, BspTree in lantern
+// For serialization, refer to here: https://github.com/knervous/LanternExtractor2/blob/knervous/merged/LanternExtractor/EQ/Wld/DataTypes/BspNode.cs
+// For constructing, refer to here: https://github.com/knervous/LanternExtractor2/blob/920541d15958e90aa91f7446a74226cbf26b829a/LanternExtractor/EQ/Wld/Exporters/GltfWriter.cs#L304
 type WorldTree struct {
 	NameRef   int32
 	NodeCount uint32
