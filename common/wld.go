@@ -3,10 +3,10 @@ package common
 type Wld struct {
 	Header     *Header                `yaml:"header"`
 	IsOldWorld bool                   `yaml:"is_old_world"`
-	Fragments  map[int]FragmentReader `yaml:"-"`
+	Fragments  map[int]FragmentReader `yaml:"fragments,omitempty"`
 	names      map[int32]string       `yaml:"-"`
 	nameBuf    []byte                 `yaml:"-"`
-	Models     []*Model               `yaml:"models"`
+	Models     []*Model               `yaml:"models,omitempty"`
 }
 
 func NewWld(name string) *Wld {
