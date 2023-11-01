@@ -1,6 +1,3 @@
-/*
-Copyright © 2023 NAME HERE <EMAIL ADDRESS>
-*/
 package cmd
 
 import (
@@ -11,12 +8,9 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
-	"github.com/xackery/quail/common"
 	"github.com/xackery/quail/log"
-	"github.com/xackery/quail/model/mesh/mod"
-	"github.com/xackery/quail/model/metadata/wld"
-	"github.com/xackery/quail/model/metadata/zon"
 	"github.com/xackery/quail/pfs"
+	"github.com/xackery/quail/raw"
 	"gopkg.in/yaml.v3"
 )
 
@@ -157,42 +151,16 @@ var yamlCmd = &cobra.Command{
 		buf := &bytes.Buffer{}
 		if isYamlOut {
 			fmt.Println("Source is", len(srcData), "bytes, turning into yaml...")
-			var data interface{}
-			switch fileFormat {
-			case ".zon":
-				zone := &common.Zone{}
-				err = zon.Decode(zone, bytes.NewReader(srcData))
-				if err != nil {
-					return fmt.Errorf("zon decode: %w", err)
-				}
-				data = zone
-
-			case ".wld":
-				world := common.NewWld(filepath.Base(srcPath))
-				err = wld.Decode(world, bytes.NewReader(srcData))
-				if err != nil {
-					return fmt.Errorf("wld decode: %w", err)
-				}
-				data = world
-			case ".mod":
-				model := common.NewModel(filepath.Base(srcPath))
-				err = mod.Decode(model, bytes.NewReader(srcData))
-				if err != nil {
-					return fmt.Errorf("mod decode: %w", err)
-				}
-				data = model
-			case ".lay":
-				layer := common.NewModel(filepath.Base(srcPath))
-				err = mod.Decode(layer, bytes.NewReader(srcData))
-				if err != nil {
-					return fmt.Errorf("mod decode: %w", err)
-				}
-				data = layer
-			default:
+			reader := raw.New(fileFormat)
+			if reader == nil {
 				return fmt.Errorf("unsupported file format %s", fileFormat)
 			}
+			err = reader.Read(bytes.NewReader(srcData))
+			if err != nil {
+				return fmt.Errorf("read %s: %w", filepath.Base(srcPath), err)
+			}
 
-			err = yaml.NewEncoder(buf).Encode(data)
+			err = yaml.NewEncoder(buf).Encode(reader)
 			if err != nil {
 				return fmt.Errorf("yaml encode %s: %w", fileFormat, err)
 			}
@@ -208,9 +176,9 @@ var yamlCmd = &cobra.Command{
 					return fmt.Errorf("add dst file: %w", err)
 				}
 
-				err = dstArchive.Encode(w)
+				err = dstArchive.Write(w)
 				if err != nil {
-					return fmt.Errorf("encode dst archive: %w", err)
+					return fmt.Errorf("write dst archive: %w", err)
 				}
 				return nil
 			}
@@ -222,52 +190,17 @@ var yamlCmd = &cobra.Command{
 			return nil
 		}
 
-		// yaml to binary
-
-		switch fileFormat {
-		case ".zon":
-			zone := &common.Zone{}
-			err = yaml.Unmarshal(srcData, zone)
-			if err != nil {
-				return fmt.Errorf("yaml unmarshal: %w", err)
-			}
-			err = zon.Encode(zone, uint32(zone.Header.Version), buf)
-			if err != nil {
-				return fmt.Errorf("zon encode: %w", err)
-			}
-		case ".wld":
-			world := &common.Wld{}
-			err = yaml.Unmarshal(srcData, world)
-			if err != nil {
-				return fmt.Errorf("yaml unmarshal: %w", err)
-			}
-			err = wld.Encode(world, buf)
-			if err != nil {
-				return fmt.Errorf("wld encode: %w", err)
-			}
-		case ".mod":
-			model := &common.Model{}
-			err = yaml.Unmarshal(srcData, model)
-			if err != nil {
-				return fmt.Errorf("yaml unmarshal: %w", err)
-			}
-			err = mod.Encode(model, uint32(model.Header.Version), buf)
-			if err != nil {
-				return fmt.Errorf("mod encode: %w", err)
-			}
-		case ".lay":
-			layer := &common.Model{}
-			err = yaml.Unmarshal(srcData, layer)
-			if err != nil {
-				return fmt.Errorf("yaml unmarshal: %w", err)
-			}
-			err = mod.Encode(layer, uint32(layer.Header.Version), buf)
-			if err != nil {
-				return fmt.Errorf("mod encode: %w", err)
-			}
-
-		default:
+		writer := raw.New(fileFormat)
+		if writer == nil {
 			return fmt.Errorf("unsupported file format %s", fileFormat)
+		}
+		err = yaml.Unmarshal(srcData, writer)
+		if err != nil {
+			return fmt.Errorf("yaml unmarshal: %w", err)
+		}
+		err = writer.Write(buf)
+		if err != nil {
+			return fmt.Errorf("write %s: %w", filepath.Base(dstPath), err)
 		}
 
 		log.Infof("Destination is %d bytes, turning into %s...", buf.Len(), fileFormat)
@@ -283,7 +216,7 @@ var yamlCmd = &cobra.Command{
 				return fmt.Errorf("add dst file: %w", err)
 			}
 
-			err = dstArchive.Encode(w)
+			err = dstArchive.Write(w)
 			if err != nil {
 				return fmt.Errorf("encode dst archive: %w", err)
 			}

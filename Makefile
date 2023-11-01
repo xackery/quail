@@ -1,5 +1,5 @@
 NAME := quail
-BUILD_VERSION ?= 2.2.4
+BUILD_VERSION ?= 2.3.0
 EQPATH := ~/Documents/games/EverQuest.app/drive_c/rebuildeq/
 
 # build quail for local OS and windows
@@ -104,3 +104,18 @@ explore-%:
 test-cover:
 	go test -coverprofile=coverage.out ./...
 	go tool cover -html=coverage.out
+
+inspect-%:
+	@echo "quail inspect ../eq/$*"
+	@go run main.go inspect ../eq/$*
+
+yaml-load-%:
+	@echo "quail yaml-out ../eq/$*"
+	cp ../eq/$*.eqg test/$*.eqg
+	@go run main.go yaml test/$*.eqg:$*.lay test/$*.lay.yaml
+
+yaml-save-%:
+	@echo "quail yaml-in ../eq/$*"
+	cp test/$*.eqg test/$*-out.eqg
+	@go run main.go yaml test/$*.lay.yaml test/$*.lay
+	@#go run main.go yaml test/$*.lay.yaml test/$*-out.eqg:$*.lay

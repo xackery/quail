@@ -11,6 +11,7 @@ import (
 	"github.com/sergeymakinen/go-bmp"
 	"github.com/xackery/quail/log"
 	"github.com/xackery/quail/pfs"
+	"github.com/xackery/quail/raw"
 )
 
 // S3DImport imports the quail target to an S3D file
@@ -28,15 +29,15 @@ func (e *Quail) S3DImport(path string) error {
 				continue
 			}
 
-			world, err := e.WLDDecode(bytes.NewReader(file.Data()), pfs)
+			wld := &raw.Wld{}
+			err = wld.Read(bytes.NewReader(file.Data()))
 			if err != nil {
 				return fmt.Errorf("wldDecode %s: %w", file.Name(), err)
 			}
-			err = e.WldUnmarshal(world)
+			err = e.RawRead(wld)
 			if err != nil {
-				return fmt.Errorf("wldImport %s: %w", file.Name(), err)
+				return fmt.Errorf("rawRead %s: %w", file.Name(), err)
 			}
-			e.Models = append(e.Models, world.Models...)
 		}
 	}
 

@@ -9,20 +9,9 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
-	"github.com/xackery/quail/common"
 	"github.com/xackery/quail/log"
-	"github.com/xackery/quail/model/mesh/dat"
-	"github.com/xackery/quail/model/mesh/mds"
-	"github.com/xackery/quail/model/mesh/mod"
-	"github.com/xackery/quail/model/mesh/ter"
-	"github.com/xackery/quail/model/metadata/ani"
-	"github.com/xackery/quail/model/metadata/lay"
-	"github.com/xackery/quail/model/metadata/lit"
-	"github.com/xackery/quail/model/metadata/prt"
-	"github.com/xackery/quail/model/metadata/pts"
-	"github.com/xackery/quail/model/metadata/zon"
 	"github.com/xackery/quail/pfs"
-	"github.com/xackery/quail/quail"
+	"github.com/xackery/quail/raw"
 	"gopkg.in/yaml.v3"
 )
 
@@ -215,88 +204,17 @@ func inspectFile(pfs *pfs.PFS, path string, file string) (interface{}, error) {
 	return nil, fmt.Errorf("%s not found in %s", file, filepath.Base(path))
 }
 
-func inspectContent(file string, data *bytes.Reader) (interface{}, error) {
-	var err error
+func inspectContent(file string, r *bytes.Reader) (interface{}, error) {
+
 	ext := strings.ToLower(filepath.Ext(file))
-	switch ext {
-	case ".ani":
-		anim := common.NewAnimation(strings.TrimSuffix(strings.ToUpper(file), ".ANI"))
-		err = ani.Decode(anim, data)
-		if err != nil {
-			return nil, fmt.Errorf("ani.Decode %s: %w", file, err)
-		}
-		return anim, nil
-	case ".mds":
-		model := common.NewModel(strings.TrimSuffix(strings.ToUpper(file), ".MDS"))
-		err = mds.Decode(model, data)
-		if err != nil {
-			return nil, fmt.Errorf("mds.Decode %s: %w", file, err)
-		}
-		return model, nil
-	case ".mod":
-		model := common.NewModel(strings.TrimSuffix(strings.ToUpper(file), ".MOD"))
-		err = mod.Decode(model, data)
-		if err != nil {
-			return nil, fmt.Errorf("mod.Decode %s: %w", file, err)
-		}
-		return model, nil
-	case ".pts":
-		point := common.NewParticlePoint(strings.TrimSuffix(strings.ToUpper(file), ".MDS"))
-		err = pts.Decode(point, data)
-		if err != nil {
-			return nil, fmt.Errorf("pts.Decode %s: %w", file, err)
-		}
-		return point, nil
-	case ".prt":
-		render := common.NewParticleRender(strings.TrimSuffix(strings.ToUpper(file), ".MDS"))
-		err = prt.Decode(render, data)
-		if err != nil {
-			return nil, fmt.Errorf("prt.Decode %s: %w", file, err)
-		}
-		return render, nil
-	case ".ter":
-		model := common.NewModel(strings.TrimSuffix(strings.ToUpper(file), ".TER"))
-		err = ter.Decode(model, data)
-		if err != nil {
-			return nil, fmt.Errorf("ter.Decode %s: %w", file, err)
-		}
-		return model, nil
-	case ".lit":
-		lits := []*common.RGBA{}
-		err = lit.Decode(lits, data)
-		if err != nil {
-			return nil, fmt.Errorf("dat.Decode %s: %w", file, err)
-		}
-		return lits, nil
-	case ".zon":
-		zone := common.NewZone(strings.TrimSuffix(strings.ToUpper(file), ".ZON"))
-		err = zon.Decode(zone, data)
-		if err != nil {
-			return nil, fmt.Errorf("zon.Decode %s: %w", file, err)
-		}
-		return zone, nil
-	case ".wld":
-		q := quail.New()
-		world, err := q.WLDDecode(data, nil)
-		if err != nil {
-			return nil, fmt.Errorf("wld.Decode %s: %w", file, err)
-		}
-		return world, nil
-	case ".dat":
-		zone := common.NewZone(strings.TrimSuffix(strings.ToUpper(file), ".DAT"))
-		err = dat.Decode(zone, data)
-		if err != nil {
-			return nil, fmt.Errorf("dat.Decode %s: %w", file, err)
-		}
-		return zone, nil
-	case ".lay":
-		model := common.NewModel("")
-		err := lay.Decode(model, data)
-		if err != nil {
-			return nil, fmt.Errorf("lay.Decode %s: %w", file, err)
-		}
-		return model.Layers, nil
-	default:
+	reader := raw.New(ext)
+	if reader == nil {
 		return nil, fmt.Errorf("%s has an unknown file type %s", file, ext)
 	}
+
+	err := reader.Read(r)
+	if err != nil {
+		return nil, fmt.Errorf("%T.Read %s: %w", reader, file, err)
+	}
+	return reader, nil
 }

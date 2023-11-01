@@ -16,6 +16,7 @@
         "*.zon": "hexEditor.hexedit", //"binary-file-viewer.viewer",
         "*.lay": "hexEditor.hexedit", //"binary-file-viewer.viewer",
         "*.pts": "hexEditor.hexedit", //"binary-file-viewer.viewer",
+        "*.prt": "hexEditor.hexedit", //"binary-file-viewer.viewer",
         "*.pprof": "easyview.view",
 
     },

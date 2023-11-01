@@ -3,7 +3,6 @@ module github.com/xackery/quail
 go 1.21
 
 require (
-	github.com/jmoiron/sqlx v1.3.5
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/sergeymakinen/go-bmp v1.0.0-beta.1
 	github.com/spf13/cobra v1.7.0

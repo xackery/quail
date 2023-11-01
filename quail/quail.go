@@ -8,15 +8,7 @@ import (
 
 	"github.com/xackery/quail/common"
 	"github.com/xackery/quail/log"
-	"github.com/xackery/quail/model/mesh/mds"
-	"github.com/xackery/quail/model/mesh/mod"
-	"github.com/xackery/quail/model/mesh/ter"
-	"github.com/xackery/quail/model/metadata/ani"
-	"github.com/xackery/quail/model/metadata/lay"
-	"github.com/xackery/quail/model/metadata/lit"
-	"github.com/xackery/quail/model/metadata/prt"
-	"github.com/xackery/quail/model/metadata/pts"
-	"github.com/xackery/quail/model/metadata/zon"
+	"github.com/xackery/quail/raw"
 )
 
 type Quail struct {
@@ -56,79 +48,75 @@ func Open(name string, r io.ReadSeeker) (interface{}, error) {
 	name = filepath.Base(name)
 	switch ext {
 	case ".zon":
-		zone := common.NewZone(name)
-		err = zon.Decode(zone, r)
+		zon := &raw.Zon{}
+		err = zon.Read(r)
 		if err != nil {
 			return nil, fmt.Errorf("zone.Decode: %w", err)
 		}
-		return zone, nil
+		return zon, nil
 	case ".pts":
-		point := common.NewParticlePoint(name)
-		err = pts.Decode(point, r)
+		pts := &raw.Pts{}
+		err = pts.Read(r)
 		if err != nil {
 			return nil, fmt.Errorf("point.Decode: %w", err)
 		}
-		return point, nil
+		return pts, nil
 	case ".prt":
-		particle := common.NewParticleRender(name)
-		err = prt.Decode(particle, r)
+		prt := &raw.Prt{}
+		err = prt.Read(r)
 		if err != nil {
 			return nil, fmt.Errorf("particle.Decode: %w", err)
 		}
-		return particle, nil
+		return prt, nil
 	case ".lay":
-		model := common.NewModel(name)
-		err = lay.Decode(model, r)
+		lay := &raw.Lay{}
+		err = lay.Read(r)
 		if err != nil {
-			return nil, fmt.Errorf("model.Decode: %w", err)
+			return nil, fmt.Errorf("lay.Decode: %w", err)
 		}
-		return model, nil
+		return lay, nil
 	case ".lit":
-		lits := []*common.RGBA{}
-		err = lit.Decode(lits, r)
+		lit := &raw.Lit{}
+		err = lit.Read(r)
 		if err != nil {
 			return nil, fmt.Errorf("lit.Decode: %w", err)
 		}
-		return lits, nil
+		return lit, nil
 	case ".ani":
-		animation := common.NewAnimation(name)
-		err = ani.Decode(animation, r)
+		ani := &raw.Ani{}
+		err = ani.Read(r)
 		if err != nil {
-			return nil, fmt.Errorf("animation.Decode: %w", err)
+			return nil, fmt.Errorf("ani.Read: %w", err)
 		}
-		return animation, nil
+		return ani, nil
 	case ".mod":
-		model := common.NewModel(name)
-		err = mod.Decode(model, r)
+		mod := &raw.Mod{}
+		err = mod.Read(r)
 		if err != nil {
-			return nil, fmt.Errorf("model.Decode: %w", err)
+			return nil, fmt.Errorf("mod.Read: %w", err)
 		}
-		return model, nil
+		return mod, nil
 	case ".ter":
-		model := common.NewModel(name)
-		err = ter.Decode(model, r)
+		ter := &raw.Ter{}
+		err = ter.Read(r)
 		if err != nil {
 			return nil, fmt.Errorf("terrain.Decode: %w", err)
 		}
-		return model, nil
+		return ter, nil
 	case ".mds":
-		model := common.NewModel(name)
-		err = mds.Decode(model, r)
+		mds := &raw.Mds{}
+		err = mds.Read(r)
 		if err != nil {
-			return nil, fmt.Errorf("model.Decode: %w", err)
+			return nil, fmt.Errorf("mds.Decode: %w", err)
 		}
-		return model, nil
+		return mds, nil
 	case ".wld":
-		q := New()
-		wld, err := q.WLDDecode(r, nil)
+		wld := &raw.Wld{}
+		err = wld.Read(r)
 		if err != nil {
 			return nil, fmt.Errorf("wld.Decode: %w", err)
 		}
-		err = q.WldUnmarshal(wld)
-		if err != nil {
-			return nil, fmt.Errorf("wld.Unmarshal: %w", err)
-		}
-		return q, nil
+		return wld, nil
 	}
 
 	return nil, fmt.Errorf("unknown extension %s", ext)

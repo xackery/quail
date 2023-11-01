@@ -8,12 +8,8 @@ import (
 	"strings"
 
 	"github.com/xackery/quail/log"
-	"github.com/xackery/quail/model"
-	"github.com/xackery/quail/model/metadata/ani"
-	"github.com/xackery/quail/model/metadata/prt"
-	"github.com/xackery/quail/model/metadata/pts"
-	"github.com/xackery/quail/model/metadata/zon"
 	"github.com/xackery/quail/pfs"
+	"github.com/xackery/quail/raw"
 	"github.com/xackery/quail/tag"
 )
 
@@ -48,9 +44,16 @@ func (e *Quail) EQGExport(fileVersion uint32, pfsVersion int, path string) error
 
 	if e.Zone != nil {
 		buf := &bytes.Buffer{}
-		err = zon.Encode(e.Zone, fileVersion, buf)
+
+		zon := &raw.Zon{}
+		err = e.RawWrite(zon)
 		if err != nil {
-			return fmt.Errorf("encodeZon %s: %w", e.Zone.Header.Name, err)
+			return fmt.Errorf("write quail->zon: %w", err)
+		}
+
+		err = zon.Write(buf)
+		if err != nil {
+			return fmt.Errorf("write zon: %w", err)
 		}
 		os.WriteFile(fmt.Sprintf("%s/%s-raw-out.zon", "testdata", e.Zone.Header.Name), buf.Bytes(), 0644)
 		tag.Write(fmt.Sprintf("%s/%s-raw-out.zon.tags", "testdata", e.Zone.Header.Name))
@@ -63,9 +66,19 @@ func (e *Quail) EQGExport(fileVersion uint32, pfsVersion int, path string) error
 
 	for _, entry := range e.Models {
 		buf := &bytes.Buffer{}
-		err = model.Encode(entry, fileVersion, buf)
-		if err != nil {
-			return fmt.Errorf("encodeMod %s: %w", entry.Header.Name, err)
+		switch entry.FileType {
+		case "ter":
+			ter := &raw.Ter{}
+			err = e.RawWrite(ter)
+			if err != nil {
+				return fmt.Errorf("write quail->ter: %w", err)
+			}
+			err = ter.Write(buf)
+			if err != nil {
+				return fmt.Errorf("ter.Write %s: %w", entry.Header.Name, err)
+			}
+		default:
+			return fmt.Errorf("unknown filetype %s", entry.FileType)
 		}
 
 		os.WriteFile(fmt.Sprintf("%s/%s-raw-out.%s", "testdata", entry.Header.Name, entry.FileType), buf.Bytes(), 0644)
@@ -90,7 +103,12 @@ func (e *Quail) EQGExport(fileVersion uint32, pfsVersion int, path string) error
 
 	for _, anim := range e.Animations {
 		buf := &bytes.Buffer{}
-		err = ani.Encode(anim, fileVersion, buf)
+		ani := &raw.Ani{}
+		err = e.RawWrite(ani)
+		if err != nil {
+			return fmt.Errorf("write quail->ani: %w", err)
+		}
+		err = ani.Write(buf)
 		if err != nil {
 			return fmt.Errorf("encodeAni %s: %w", anim.Header.Name, err)
 		}
@@ -103,9 +121,14 @@ func (e *Quail) EQGExport(fileVersion uint32, pfsVersion int, path string) error
 	for _, model := range e.Models {
 		for _, render := range model.ParticleRenders {
 			buf := &bytes.Buffer{}
-			err = prt.Encode(render, 4, buf) // TODO: add support for more than v4 support on export
+			prt := &raw.Prt{}
+			err = e.RawWrite(prt)
 			if err != nil {
-				return fmt.Errorf("encodePtr %s: %w", render.Header.Name, err)
+				return fmt.Errorf("write quail->prt: %w", err)
+			}
+			err = prt.Write(buf)
+			if err != nil {
+				return fmt.Errorf("encodePrt %s: %w", render.Header.Name, err)
 			}
 			err = pfs.Add(fmt.Sprintf("%s.prt", render.Header.Name), buf.Bytes())
 			if err != nil {
@@ -115,7 +138,12 @@ func (e *Quail) EQGExport(fileVersion uint32, pfsVersion int, path string) error
 
 		for _, point := range model.ParticlePoints {
 			buf := &bytes.Buffer{}
-			err = pts.Encode(point, fileVersion, buf)
+			pts := &raw.Pts{}
+			err = e.RawWrite(pts)
+			if err != nil {
+				return fmt.Errorf("write quail->pts: %w", err)
+			}
+			err = pts.Write(buf)
 			if err != nil {
 				return fmt.Errorf("encodePts %s: %w", point.Header.Name, err)
 			}
@@ -132,7 +160,7 @@ func (e *Quail) EQGExport(fileVersion uint32, pfsVersion int, path string) error
 	}
 	defer w.Close()
 
-	err = pfs.Encode(w)
+	err = pfs.Write(w)
 	if err != nil {
 		return fmt.Errorf("encode %s: %w", path, err)
 	}

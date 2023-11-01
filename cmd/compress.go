@@ -147,7 +147,7 @@ func compressPFS(path string, out string) error {
 		return fmt.Errorf("create %s: %w", out, err)
 	}
 	defer w.Close()
-	err = archive.Encode(w)
+	err = archive.Write(w)
 	if err != nil {
 		return fmt.Errorf("encode %s: %w", out, err)
 	}

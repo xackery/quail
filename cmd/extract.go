@@ -119,7 +119,7 @@ func extractPFS(in string, out string, isDir bool) error {
 	if err != nil {
 		return fmt.Errorf("pfs.New: %w", err)
 	}
-	err = a.Decode(f)
+	err = a.Read(f)
 	if err != nil {
 		return fmt.Errorf("decode %s: %w", in, err)
 	}
