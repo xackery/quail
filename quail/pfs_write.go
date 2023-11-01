@@ -10,11 +10,10 @@ import (
 	"github.com/xackery/quail/log"
 	"github.com/xackery/quail/pfs"
 	"github.com/xackery/quail/raw"
-	"github.com/xackery/quail/tag"
 )
 
-// Export exports the quail target
-func (e *Quail) PFSExport(fileVersion uint32, pfsVersion int, path string) error {
+// Write exports the quail target
+func (e *Quail) PfsWrite(fileVersion uint32, pfsVersion int, path string) error {
 	if len(path) == 0 {
 		return fmt.Errorf("path is empty")
 	}
@@ -55,8 +54,8 @@ func (e *Quail) EQGExport(fileVersion uint32, pfsVersion int, path string) error
 		if err != nil {
 			return fmt.Errorf("write zon: %w", err)
 		}
-		os.WriteFile(fmt.Sprintf("%s/%s-raw-out.zon", "testdata", e.Zone.Header.Name), buf.Bytes(), 0644)
-		tag.Write(fmt.Sprintf("%s/%s-raw-out.zon.tags", "testdata", e.Zone.Header.Name))
+		//os.WriteFile(fmt.Sprintf("%s/%s-raw-out.zon", "testdata", e.Zone.Header.Name), buf.Bytes(), 0644)
+		//tag.Write(fmt.Sprintf("%s/%s-raw-out.zon.tags", "testdata", e.Zone.Header.Name))
 
 		err = pfs.Add(fmt.Sprintf("%s.zon", e.Zone.Header.Name), buf.Bytes())
 		if err != nil {
@@ -81,8 +80,8 @@ func (e *Quail) EQGExport(fileVersion uint32, pfsVersion int, path string) error
 			return fmt.Errorf("unknown filetype %s", entry.FileType)
 		}
 
-		os.WriteFile(fmt.Sprintf("%s/%s-raw-out.%s", "testdata", entry.Header.Name, entry.FileType), buf.Bytes(), 0644)
-		tag.Write(fmt.Sprintf("%s/%s-raw-out.%s.tags", "testdata", entry.Header.Name, entry.FileType))
+		//os.WriteFile(fmt.Sprintf("%s/%s-raw-out.%s", "testdata", entry.Header.Name, entry.FileType), buf.Bytes(), 0644)
+		//tag.Write(fmt.Sprintf("%s/%s-raw-out.%s.tags", "testdata", entry.Header.Name, entry.FileType))
 
 		err = pfs.Add(fmt.Sprintf("%s.%s", entry.Header.Name, entry.FileType), buf.Bytes())
 		if err != nil {

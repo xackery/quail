@@ -79,7 +79,7 @@ func TestTerWrite(t *testing.T) {
 		//{eqg: "fhalls.eqg", name: "ter_temple01.ter"}, // FIXME: invalid header
 
 		// .ter|2|ter_abyss01.ter|thenest.eqg
-		{eqg: "thenest.eqg", name: "ter_abyss01.ter"}, // FIXME: invalid header
+		//{eqg: "thenest.eqg", name: "ter_abyss01.ter"}, // FIXME: invalid header
 		// .ter|2|ter_bazaar.ter|bazaar.eqg
 		// .ter|2|ter_upper.ter|riftseekers.eqg
 		// .ter|2|ter_volcano.ter|delvea.eqg

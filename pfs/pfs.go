@@ -11,8 +11,8 @@ import (
 	"github.com/xackery/quail/log"
 )
 
-// PFS represents a modern everquest pfs archive
-type PFS struct {
+// Pfs represents a modern everquest pfs archive
+type Pfs struct {
 	name            string
 	files           []*FileEntry
 	ContentsSummary string
@@ -20,8 +20,8 @@ type PFS struct {
 }
 
 // New creates a new empty instance. Use NewFile to load an archive on creation
-func New(name string) (*PFS, error) {
-	e := &PFS{
+func New(name string) (*Pfs, error) {
+	e := &Pfs{
 		name: name,
 	}
 	if name == "" {
@@ -32,8 +32,8 @@ func New(name string) (*PFS, error) {
 }
 
 // NewFile takes path and loads it as an eqg archive
-func NewFile(path string) (*PFS, error) {
-	e := &PFS{
+func NewFile(path string) (*Pfs, error) {
+	e := &Pfs{
 		name: filepath.Base(path),
 	}
 	r, err := os.Open(path)
@@ -49,7 +49,7 @@ func NewFile(path string) (*PFS, error) {
 }
 
 // Remove deletes an entry in an eqg, if any
-func (e *PFS) Remove(name string) error {
+func (e *Pfs) Remove(name string) error {
 	name = strings.ToLower(name)
 	for i, f := range e.files {
 		if !strings.EqualFold(f.Name(), name) {
@@ -63,7 +63,7 @@ func (e *PFS) Remove(name string) error {
 }
 
 // Add adds a new entry to a eqg
-func (e *PFS) Add(name string, data []byte) error {
+func (e *Pfs) Add(name string, data []byte) error {
 	name = strings.ToLower(name)
 
 	if len(name) < 3 {
@@ -82,7 +82,7 @@ func (e *PFS) Add(name string, data []byte) error {
 }
 
 // Extract places the pfs contents to path
-func (e *PFS) Extract(path string) (string, error) {
+func (e *Pfs) Extract(path string) (string, error) {
 	fi, err := os.Stat(path)
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -117,7 +117,7 @@ func (e *PFS) Extract(path string) (string, error) {
 }
 
 // File returns data of a file
-func (e *PFS) File(name string) ([]byte, error) {
+func (e *Pfs) File(name string) ([]byte, error) {
 	for _, f := range e.files {
 		if f.Name() == name || strings.EqualFold(f.Name(), strings.ToLower(name)) {
 			return f.Data(), nil
@@ -126,7 +126,7 @@ func (e *PFS) File(name string) ([]byte, error) {
 	return nil, fmt.Errorf("read %s: %w", name, os.ErrNotExist)
 }
 
-func (e *PFS) Close() error {
+func (e *Pfs) Close() error {
 	e.ContentsSummary = "\n"
 	for i, fe := range e.files {
 		base := float64(len(fe.Data()))
@@ -152,16 +152,16 @@ func (e *PFS) Close() error {
 	return nil
 }
 
-func (e *PFS) Len() int {
+func (e *Pfs) Len() int {
 	return len(e.files)
 }
 
 // Files returns a string array of every file inside an EQG
-func (e *PFS) Files() []*FileEntry {
+func (e *Pfs) Files() []*FileEntry {
 	return e.files
 }
 
-func (e *PFS) SetFile(name string, data []byte) error {
+func (e *Pfs) SetFile(name string, data []byte) error {
 	name = strings.ToLower(name)
 	if len(name) < 3 {
 		return fmt.Errorf("name %s is too short", name)

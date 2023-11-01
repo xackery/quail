@@ -11,18 +11,19 @@ import (
 
 // Zon is a zone
 type Zon struct {
-	Name    string   `yaml:"name"`
-	Version uint32   `yaml:"version"`
-	Models  []string `yaml:"models"`
-	Objects []Object `yaml:"objects"`
-	Regions []Region `yaml:"regions"`
-	Lights  []Light  `yaml:"lights"`
+	MetaFileName string   `yaml:"file_name"`
+	Version      uint32   `yaml:"version"`
+	Models       []string `yaml:"models"`
+	Objects      []Object `yaml:"objects"`
+	Regions      []Region `yaml:"regions"`
+	Lights       []Light  `yaml:"lights"`
 	//Lits    []*RGBA  `yaml:"lits"`
 	V4Info V4Info `yaml:"v4info"`
 	V4Dat  V4Dat  `yaml:"v4dat"`
 }
 
 type V4Info struct {
+	Name                 string  `yaml:"name"`
 	MinLng               int     `yaml:"min_lng"`
 	MinLat               int     `yaml:"min_lat"`
 	MaxLng               int     `yaml:"max_lng"`
@@ -218,4 +219,14 @@ func (zon *Zon) Read(r io.ReadSeeker) error {
 
 	//log.Debugf("%s (zon) readd %d model refs, %d object refs, %d regions, %d lights", zon.Header.Name, len(zon.Models), len(zon.Objects), len(zon.Regions), len(zon.Lights))
 	return nil
+}
+
+// SetFileName sets the name of the file
+func (zon *Zon) SetFileName(name string) {
+	zon.MetaFileName = name
+}
+
+// FileName returns the name of the file
+func (zon *Zon) FileName() string {
+	return zon.MetaFileName
 }

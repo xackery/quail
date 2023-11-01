@@ -11,8 +11,9 @@ import (
 
 // Prt is a Particle Render
 type Prt struct {
-	Version uint32      `yaml:"version"`
-	Entries []*PrtEntry `yaml:"entries,omitempty"`
+	MetaFileName string      `yaml:"file_name"`
+	Version      uint32      `yaml:"version"`
+	Entries      []*PrtEntry `yaml:"entries,omitempty"`
 }
 
 // PrtEntry is  ParticleRender entry
@@ -80,4 +81,14 @@ func (prt *Prt) Read(r io.ReadSeeker) error {
 
 	//log.Debugf("%s (prt) readd %d entries", render.Header.Name, len(render.Entries))
 	return nil
+}
+
+// SetFileName sets the name of the file
+func (prt *Prt) SetFileName(name string) {
+	prt.MetaFileName = name
+}
+
+// FileName returns the name of the file
+func (prt *Prt) FileName() string {
+	return prt.MetaFileName
 }

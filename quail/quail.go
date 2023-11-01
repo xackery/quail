@@ -18,6 +18,7 @@ type Quail struct {
 	Zone                   *common.Zone
 	materialCache          map[string]*common.Material
 	IsExtensionVersionDump bool
+	Textures               map[string][]byte // Textures are raw texture files
 }
 
 // New returns a new Quail instance

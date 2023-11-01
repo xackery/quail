@@ -1,12 +1,17 @@
 package raw
 
-import "io"
+import (
+	"fmt"
+	"io"
+)
 
 type Reader interface {
 	Read(r io.ReadSeeker) error
+	SetFileName(name string)
 }
 
 type Writer interface {
+	FileName() string
 	Write(w io.Writer) error
 }
 
@@ -101,12 +106,17 @@ type MaterialAnimation struct {
 	Textures []string `yaml:"textures,omitempty"`
 }
 
+// New takes an extension and returns a ReadWriter that can parse it
 func New(ext string) ReadWriter {
 	switch ext {
 	case ".ani":
 		return &Ani{}
+	case ".bmp":
+		return &Bmp{}
 	case ".dat":
 		return &Dat{}
+	case ".dds":
+		return &Dds{}
 	case ".edd":
 		return &Edd{}
 	case ".lay":
@@ -119,6 +129,8 @@ func New(ext string) ReadWriter {
 		return &Mds{}
 	case ".mod":
 		return &Mod{}
+	case ".png":
+		return &Png{}
 	case ".prt":
 		return &Prt{}
 	case ".pts":
@@ -134,4 +146,30 @@ func New(ext string) ReadWriter {
 	default:
 		return nil
 	}
+}
+
+// Read takes an extension and a reader and returns a ReadWriter that can parse it
+func Read(ext string, r io.ReadSeeker) (ReadWriter, error) {
+	reader := New(ext)
+	if reader == nil {
+		return nil, fmt.Errorf("unknown extension %s", ext)
+	}
+	err := reader.Read(r)
+	if err != nil {
+		return nil, err
+	}
+	return reader, nil
+}
+
+// Write takes an extension and a writer and returns a ReadWriter that can parse it
+func Write(ext string, w io.Writer) (ReadWriter, error) {
+	writer := New(ext)
+	if writer == nil {
+		return nil, fmt.Errorf("unknown extension %s", ext)
+	}
+	err := writer.Write(w)
+	if err != nil {
+		return nil, err
+	}
+	return writer, nil
 }

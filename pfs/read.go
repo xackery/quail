@@ -13,8 +13,8 @@ import (
 	"github.com/xackery/quail/log"
 )
 
-// Read will read a PFS archive
-func (e *PFS) Read(r io.ReadSeeker) error {
+// Read will read a Pfs archive
+func (e *Pfs) Read(r io.ReadSeeker) error {
 	var err error
 	type dirEntry struct {
 		crc    uint32

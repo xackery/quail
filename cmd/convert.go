@@ -76,28 +76,28 @@ func execConvert(cmd *cobra.Command, args []string) error {
 	q := quail.New()
 
 	if srcExt == ".quail" {
-		err = q.DirImport(srcPath)
+		err = q.DirRead(srcPath)
 		if err != nil {
-			return fmt.Errorf("dir import: %w", err)
+			return fmt.Errorf("dir read: %w", err)
 		}
 	} else {
-		err = q.PFSImport(srcPath)
+		err = q.PfsRead(srcPath)
 		if err != nil {
-			return fmt.Errorf("pfs import: %w", err)
+			return fmt.Errorf("pfs read: %w", err)
 		}
 	}
 
 	dstExt := filepath.Ext(dstPath)
 	if dstExt == ".quail" {
-		err = q.DirExport(dstPath)
+		err = q.DirWrite(dstPath)
 		if err != nil {
-			return fmt.Errorf("dir export: %w", err)
+			return fmt.Errorf("dir write: %w", err)
 		}
 		return nil
 	}
-	err = q.PFSExport(1, 1, dstPath)
+	err = q.PfsWrite(1, 1, dstPath)
 	if err != nil {
-		return fmt.Errorf("pfs export: %w", err)
+		return fmt.Errorf("pfs write: %w", err)
 	}
 
 	return nil

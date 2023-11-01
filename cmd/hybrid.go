@@ -71,19 +71,19 @@ func hybrid(srcPath, bonePath, outPath string) error {
 	}
 
 	srcQ := quail.New()
-	err = srcQ.PFSImport(srcPath)
+	err = srcQ.PfsRead(srcPath)
 	if err != nil {
-		return fmt.Errorf("src pfs import %s: %w", srcPath, err)
+		return fmt.Errorf("src pfs read %s: %w", srcPath, err)
 	}
 
 	boneQ := quail.New()
-	err = boneQ.PFSImport(bonePath)
+	err = boneQ.PfsRead(bonePath)
 	if err != nil {
-		return fmt.Errorf("bone pfs import %s: %w", bonePath, err)
+		return fmt.Errorf("bone pfs read %s: %w", bonePath, err)
 	}
 
 	boneQ.Models = srcQ.Models
-	err = boneQ.PFSExport(1, 1, outPath)
+	err = boneQ.PfsWrite(1, 1, outPath)
 	if err != nil {
 		return fmt.Errorf("bone pfs export %s: %w", outPath, err)
 	}

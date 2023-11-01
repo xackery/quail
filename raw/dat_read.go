@@ -9,6 +9,7 @@ import (
 )
 
 type Dat struct {
+	MetaFileName    string     `yaml:"file_name"`
 	Version         uint32     `yaml:"version"`
 	Unk1            uint32     `yaml:"unk1"`
 	Unk2            uint32     `yaml:"unk2"`
@@ -87,4 +88,13 @@ func (dat *Dat) Read(r io.ReadSeeker) error {
 	}
 
 	return nil
+}
+
+// SetName sets the name of the file
+func (dat *Dat) SetFileName(name string) {
+	dat.MetaFileName = name
+}
+
+func (dat *Dat) FileName() string {
+	return dat.MetaFileName
 }

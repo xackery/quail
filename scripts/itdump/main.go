@@ -47,7 +47,7 @@ func run() error {
 		//fmt.Println(filepath.Base(path))
 		q := quail.New()
 
-		err = q.PFSImport(path)
+		err = q.PfsRead(path)
 		if err != nil {
 			fmt.Println(filepath.Base(path), "pfs import:", err)
 			return nil

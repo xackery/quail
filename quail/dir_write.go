@@ -8,8 +8,8 @@ import (
 	"github.com/xackery/quail/helper"
 )
 
-// DirExport exports the quail target to a directory
-func (quail *Quail) DirExport(path string) error {
+// DirWrite exports the quail target to a directory
+func (quail *Quail) DirWrite(path string) error {
 
 	path = strings.TrimSuffix(path, ".eqg")
 	path = strings.TrimSuffix(path, ".s3d")

@@ -186,7 +186,7 @@ func inspect(path string, file string) (interface{}, error) {
 	return inspectFile(pfs, path, file)
 }
 
-func inspectFile(pfs *pfs.PFS, path string, file string) (interface{}, error) {
+func inspectFile(pfs *pfs.Pfs, path string, file string) (interface{}, error) {
 	if pfs == nil {
 		data, err := os.ReadFile(path)
 		if err != nil {
@@ -205,16 +205,11 @@ func inspectFile(pfs *pfs.PFS, path string, file string) (interface{}, error) {
 }
 
 func inspectContent(file string, r *bytes.Reader) (interface{}, error) {
-
 	ext := strings.ToLower(filepath.Ext(file))
-	reader := raw.New(ext)
-	if reader == nil {
-		return nil, fmt.Errorf("%s has an unknown file type %s", file, ext)
-	}
-
-	err := reader.Read(r)
+	reader, err := raw.Read(ext, r)
 	if err != nil {
-		return nil, fmt.Errorf("%T.Read %s: %w", reader, file, err)
+		return nil, fmt.Errorf("%s read: %w", ext, err)
 	}
+	reader.SetFileName(filepath.Base(file))
 	return reader, nil
 }

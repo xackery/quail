@@ -10,9 +10,10 @@ import (
 )
 
 type Ani struct {
-	Version  uint32     `yaml:"version"`
-	Bones    []*AniBone `yaml:"bones,omitempty"`
-	IsStrict bool       `yaml:"is_strict,omitempty"`
+	MetaFileName string     `yaml:"file_name"`
+	Version      uint32     `yaml:"version"`
+	Bones        []*AniBone `yaml:"bones,omitempty"`
+	IsStrict     bool       `yaml:"is_strict,omitempty"`
 }
 
 type AniBone struct {
@@ -106,4 +107,13 @@ func (ani *Ani) Read(r io.ReadSeeker) error {
 		return fmt.Errorf("read: %w", dec.Error())
 	}
 	return nil
+}
+
+// SetFileName sets the name of the file
+func (ani *Ani) SetFileName(name string) {
+	ani.MetaFileName = name
+}
+
+func (ani *Ani) FileName() string {
+	return ani.MetaFileName
 }

@@ -9,7 +9,7 @@ import (
 	"github.com/xackery/quail/log"
 )
 
-func TestQuail_DirExport(t *testing.T) {
+func TestQuail_DirWrite(t *testing.T) {
 	eqPath := os.Getenv("EQ_PATH")
 	if eqPath == "" {
 		t.Skip("EQ_PATH not set")
@@ -42,26 +42,24 @@ func TestQuail_DirExport(t *testing.T) {
 		//{name: "valid", args: args{srcPath: "gequip4.s3d"}, wantErr: false},
 	}
 
-	os.RemoveAll("test")
-	os.MkdirAll("test", 0755)
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			quail := &Quail{
 				Models: tt.fields.Models,
 			}
 
-			if err := quail.PFSImport(eqPath + "/" + tt.args.srcPath); err != nil {
-				t.Fatalf("Quail.ImportPFS() error = %+v", err)
+			if err := quail.PfsRead(eqPath + "/" + tt.args.srcPath); err != nil {
+				t.Fatalf("Quail.ReadPfs() error = %+v", err)
 			}
 
-			if err := quail.DirExport(dirTest + "/" + tt.args.srcPath); (err != nil) != tt.wantErr {
-				t.Fatalf("Quail.ExportDir() error = %+v, wantErr %+v", err, tt.wantErr)
+			if err := quail.DirWrite(dirTest + "/" + tt.args.srcPath); (err != nil) != tt.wantErr {
+				t.Fatalf("Quail.WriteDir() error = %+v, wantErr %+v", err, tt.wantErr)
 			}
 		})
 	}
 }
 
-func TestQuail_DirExportPFS(t *testing.T) {
+func TestQuail_DirWritePfs(t *testing.T) {
 	eqPath := os.Getenv("EQ_PATH")
 	if eqPath == "" {
 		t.Skip("EQ_PATH not set")
@@ -90,35 +88,33 @@ func TestQuail_DirExportPFS(t *testing.T) {
 		//{name: "valid", args: args{srcPath: "crushbone.s3d"}, wantErr: false},
 	}
 
-	os.RemoveAll("test")
-	os.MkdirAll("test", 0755)
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			quail := New()
 			quail.Models = tt.fields.Models
 
-			if err := quail.PFSImport(eqPath + "/" + tt.args.srcPath); err != nil {
-				t.Fatalf("Quail.ImportPFS() error = %+v", err)
+			if err := quail.PfsRead(eqPath + "/" + tt.args.srcPath); err != nil {
+				t.Fatalf("Quail.ReadPfs() error = %+v", err)
 			}
 
-			if err := quail.DirExport(dirTest + "/" + tt.args.srcPath); (err != nil) != tt.wantErr {
-				t.Fatalf("Quail.ExportDir() error = %+v, wantErr %+v", err, tt.wantErr)
+			if err := quail.DirWrite(dirTest + "/" + tt.args.srcPath); (err != nil) != tt.wantErr {
+				t.Fatalf("Quail.WriteDir() error = %+v, wantErr %+v", err, tt.wantErr)
 			}
 
 			newPath := dirTest + "/" + tt.args.srcPath[0:len(tt.args.srcPath)-4] + ".quail"
-			if err := quail.DirImport(newPath); err != nil {
-				t.Fatalf("Quail.ImportDir() error = %+v", err)
+			if err := quail.DirRead(newPath); err != nil {
+				t.Fatalf("Quail.ReadDir() error = %+v", err)
 			}
 
-			if err := quail.PFSExport(1, 1, dirTest+"/"+tt.args.srcPath); (err != nil) != tt.wantErr {
-				t.Fatalf("Quail.ExportPFS() error = %+v, wantErr %+v", err, tt.wantErr)
+			if err := quail.PfsWrite(1, 1, dirTest+"/"+tt.args.srcPath); (err != nil) != tt.wantErr {
+				t.Fatalf("Quail.WritePfs() error = %+v, wantErr %+v", err, tt.wantErr)
 			}
 
 		})
 	}
 }
 
-func TestQuail_DirExportImport(t *testing.T) {
+func TestQuail_DirWriteRead(t *testing.T) {
 	eqPath := os.Getenv("EQ_PATH")
 	if eqPath == "" {
 		t.Skip("EQ_PATH not set")
@@ -155,18 +151,18 @@ func TestQuail_DirExportImport(t *testing.T) {
 			e := New()
 			e.Models = tt.fields.Models
 
-			if err := e.PFSImport(eqPath + "/" + tt.args.srcPath); err != nil {
-				t.Fatalf("Quail.ImportPFS() error = %+v", err)
+			if err := e.PfsRead(eqPath + "/" + tt.args.srcPath); err != nil {
+				t.Fatalf("Quail.ReadPfs() error = %+v", err)
 			}
 
-			if err := e.DirExport(dirTest + "/" + tt.args.srcPath); (err != nil) != tt.wantErr {
-				t.Fatalf("Quail.ExportDir() error = %+v, wantErr %+v", err, tt.wantErr)
+			if err := e.DirWrite(dirTest + "/" + tt.args.srcPath); (err != nil) != tt.wantErr {
+				t.Fatalf("Quail.WriteDir() error = %+v, wantErr %+v", err, tt.wantErr)
 			}
 
 			e2 := New()
 
-			if err := e2.DirImport(dirTest + "/" + tt.args.srcPath[0:len(tt.args.srcPath)-4] + ".quail"); (err != nil) != tt.wantErr {
-				t.Fatalf("Quail.ImportDir() error = %+v, wantErr %+v", err, tt.wantErr)
+			if err := e2.DirRead(dirTest + "/" + tt.args.srcPath[0:len(tt.args.srcPath)-4] + ".quail"); (err != nil) != tt.wantErr {
+				t.Fatalf("Quail.ReadDir() error = %+v, wantErr %+v", err, tt.wantErr)
 			}
 
 			if len(e.Models) != len(e2.Models) {

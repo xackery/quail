@@ -10,8 +10,8 @@ import (
 	"github.com/xackery/quail/helper"
 )
 
-// DirImport imports the quail target from a directory
-func (quail *Quail) DirImport(path string) error {
+// DirRead Reads the quail target from a directory
+func (quail *Quail) DirRead(path string) error {
 	fi, err := os.Stat(path)
 	if err != nil {
 		return err

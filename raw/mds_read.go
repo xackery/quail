@@ -11,12 +11,13 @@ import (
 )
 
 type Mds struct {
-	Version   uint32      `yaml:"version"`
-	SubCount  uint32      `yaml:"sub_count"`
-	Materials []*Material `yaml:"materials"`
-	Bones     []*Bone     `yaml:"bones"`
-	Vertices  []*Vertex   `yaml:"vertices"`
-	Triangles []Triangle  `yaml:"triangles"`
+	MetaFileName string      `yaml:"file_name"`
+	Version      uint32      `yaml:"version"`
+	SubCount     uint32      `yaml:"sub_count"`
+	Materials    []*Material `yaml:"materials"`
+	Bones        []*Bone     `yaml:"bones"`
+	Vertices     []*Vertex   `yaml:"vertices"`
+	Triangles    []Triangle  `yaml:"triangles"`
 }
 
 // Read reads a mds file
@@ -189,4 +190,14 @@ func (mds *Mds) Read(r io.ReadSeeker) error {
 	}
 
 	return nil
+}
+
+// SetFileName sets the name of the file
+func (mds *Mds) SetFileName(name string) {
+	mds.MetaFileName = name
+}
+
+// FileName returns the name of the file
+func (mds *Mds) FileName() string {
+	return mds.MetaFileName
 }

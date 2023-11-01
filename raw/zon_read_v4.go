@@ -19,7 +19,7 @@ func (zon *Zon) ReadV4(r io.ReadSeeker) error {
 
 		line := scanner.Text()
 		if strings.HasPrefix(line, "*NAME") {
-			zon.Name = strings.TrimPrefix(line, "*NAME ")
+			zon.V4Info.Name = strings.TrimPrefix(line, "*NAME ")
 			continue
 		}
 		if strings.HasPrefix(line, "*MINLNG") {

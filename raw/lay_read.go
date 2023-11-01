@@ -11,8 +11,9 @@ import (
 
 // Lay is a raw layer struct
 type Lay struct {
-	Version uint32      `yaml:"version"`
-	Entries []*LayEntry `yaml:"entries"`
+	MetaFileName string      `yaml:"file_name"`
+	Version      uint32      `yaml:"version"`
+	Entries      []*LayEntry `yaml:"entries"`
 }
 
 // LayEntry is a raw layer entry struct
@@ -99,4 +100,14 @@ func (lay *Lay) Read(r io.ReadSeeker) error {
 		return fmt.Errorf("read: %w", dec.Error())
 	}
 	return nil
+}
+
+// SetFileName sets the name of the file
+func (lay *Lay) SetFileName(name string) {
+	lay.MetaFileName = name
+}
+
+// FileName returns the name of the file
+func (lay *Lay) FileName() string {
+	return lay.MetaFileName
 }

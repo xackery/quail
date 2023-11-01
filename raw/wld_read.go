@@ -12,9 +12,10 @@ import (
 )
 
 type Wld struct {
-	Version    uint32                 `yaml:"version"`
-	IsOldWorld bool                   `yaml:"is_old_world"`
-	Fragments  map[int]FragmentReader `yaml:"fragments,omitempty"`
+	MetaFileName string                 `yaml:"file_name"`
+	Version      uint32                 `yaml:"version"`
+	IsOldWorld   bool                   `yaml:"is_old_world"`
+	Fragments    map[int]FragmentReader `yaml:"fragments,omitempty"`
 }
 
 // Read reads a wld file that was prepped by Load
@@ -132,4 +133,14 @@ func readFragments(fragmentCount uint32, r io.ReadSeeker) (fragments [][]byte, e
 		return nil, fmt.Errorf("read: %w", dec.Error())
 	}
 	return fragments, nil
+}
+
+// SetFileName sets the name of the file
+func (wld *Wld) SetFileName(name string) {
+	wld.MetaFileName = name
+}
+
+// FileName returns the name of the file
+func (wld *Wld) FileName() string {
+	return wld.MetaFileName
 }

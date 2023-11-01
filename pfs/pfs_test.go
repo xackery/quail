@@ -11,7 +11,7 @@ import (
 	"github.com/xackery/quail/common"
 )
 
-func TestPFS_Add(t *testing.T) {
+func TestPfs_Add(t *testing.T) {
 	type fields struct {
 		name            string
 		files           []*FileEntry
@@ -33,14 +33,14 @@ func TestPFS_Add(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			e := &PFS{
+			e := &Pfs{
 				name:            tt.fields.name,
 				files:           tt.fields.files,
 				ContentsSummary: tt.fields.ContentsSummary,
 				fileCount:       tt.fields.fileCount,
 			}
 			if err := e.Add(tt.args.name, tt.args.data); (err != nil) != tt.wantErr {
-				t.Errorf("PFS.Add() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("Pfs.Add() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
@@ -53,10 +53,10 @@ func TestNew(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    *PFS
+		want    *Pfs
 		wantErr bool
 	}{
-		{name: "success", args: args{name: "test"}, want: &PFS{name: "test"}, wantErr: false},
+		{name: "success", args: args{name: "test"}, want: &Pfs{name: "test"}, wantErr: false},
 		{name: "fail", args: args{name: ""}, want: nil, wantErr: true},
 	}
 	for _, tt := range tests {
@@ -80,7 +80,7 @@ func TestNewFile(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    *PFS
+		want    *Pfs
 		wantErr bool
 	}{
 		{name: "success", args: args{path: ""}, want: nil, wantErr: true},
@@ -99,7 +99,7 @@ func TestNewFile(t *testing.T) {
 	}
 }
 
-func TestPFS_Remove(t *testing.T) {
+func TestPfs_Remove(t *testing.T) {
 	type fields struct {
 		name            string
 		files           []*FileEntry
@@ -120,20 +120,20 @@ func TestPFS_Remove(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			e := &PFS{
+			e := &Pfs{
 				name:            tt.fields.name,
 				files:           tt.fields.files,
 				ContentsSummary: tt.fields.ContentsSummary,
 				fileCount:       tt.fields.fileCount,
 			}
 			if err := e.Remove(tt.args.name); (err != nil) != tt.wantErr {
-				t.Errorf("PFS.Remove() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("Pfs.Remove() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
 }
 
-func TestPFS_Extract(t *testing.T) {
+func TestPfs_Extract(t *testing.T) {
 	type fields struct {
 		name            string
 		files           []*FileEntry
@@ -157,7 +157,7 @@ func TestPFS_Extract(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			e := &PFS{
+			e := &Pfs{
 				name:            tt.fields.name,
 				files:           tt.fields.files,
 				ContentsSummary: tt.fields.ContentsSummary,
@@ -165,17 +165,17 @@ func TestPFS_Extract(t *testing.T) {
 			}
 			got, err := e.Extract(tt.args.path)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("PFS.Extract() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("Pfs.Extract() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !strings.Contains(got, tt.want) {
-				t.Errorf("PFS.Extract() = %v, want %v", got, tt.want)
+				t.Errorf("Pfs.Extract() = %v, want %v", got, tt.want)
 			}
 		})
 	}
 }
 
-func TestPFS_File(t *testing.T) {
+func TestPfs_File(t *testing.T) {
 	type fields struct {
 		name            string
 		files           []*FileEntry
@@ -197,7 +197,7 @@ func TestPFS_File(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			e := &PFS{
+			e := &Pfs{
 				name:            tt.fields.name,
 				files:           tt.fields.files,
 				ContentsSummary: tt.fields.ContentsSummary,
@@ -205,17 +205,17 @@ func TestPFS_File(t *testing.T) {
 			}
 			got, err := e.File(tt.args.name)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("PFS.File() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("Pfs.File() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("PFS.File() = %v, want %v", got, tt.want)
+				t.Errorf("Pfs.File() = %v, want %v", got, tt.want)
 			}
 		})
 	}
 }
 
-func TestPFS_Close(t *testing.T) {
+func TestPfs_Close(t *testing.T) {
 	type fields struct {
 		name            string
 		files           []*FileEntry
@@ -231,20 +231,20 @@ func TestPFS_Close(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			e := &PFS{
+			e := &Pfs{
 				name:            tt.fields.name,
 				files:           tt.fields.files,
 				ContentsSummary: tt.fields.ContentsSummary,
 				fileCount:       tt.fields.fileCount,
 			}
 			if err := e.Close(); (err != nil) != tt.wantErr {
-				t.Errorf("PFS.Close() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("Pfs.Close() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
 }
 
-func TestPFS_WriteFile(t *testing.T) {
+func TestPfs_WriteFile(t *testing.T) {
 	type fields struct {
 		name            string
 		files           []*FileEntry
@@ -267,14 +267,14 @@ func TestPFS_WriteFile(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			e := &PFS{
+			e := &Pfs{
 				name:            tt.fields.name,
 				files:           tt.fields.files,
 				ContentsSummary: tt.fields.ContentsSummary,
 				fileCount:       tt.fields.fileCount,
 			}
 			if err := e.SetFile(tt.args.name, tt.args.data); (err != nil) != tt.wantErr {
-				t.Errorf("PFS.SetFile() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("Pfs.SetFile() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}

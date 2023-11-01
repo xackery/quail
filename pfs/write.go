@@ -10,8 +10,8 @@ import (
 	"github.com/xackery/quail/helper"
 )
 
-// Write will write a PFS archive to w
-func (e *PFS) Write(w io.WriteSeeker) error {
+// Write will write a Pfs archive to w
+func (e *Pfs) Write(w io.WriteSeeker) error {
 	var err error
 
 	type dirEntry struct {

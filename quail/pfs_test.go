@@ -10,7 +10,7 @@ import (
 	"github.com/xackery/quail/log"
 )
 
-func TestQuail_PFSImport(t *testing.T) {
+func TestQuail_PfsRead(t *testing.T) {
 	eqPath := os.Getenv("EQ_PATH")
 	if eqPath == "" {
 		t.Skip("EQ_PATH not set")
@@ -40,14 +40,14 @@ func TestQuail_PFSImport(t *testing.T) {
 			e := &Quail{
 				Models: tt.fields.Models,
 			}
-			if err := e.PFSImport(eqPath + "/" + tt.args.path); (err != nil) != tt.wantErr {
-				t.Fatalf("Quail.ImportPFS() error = %v, wantErr %v", err, tt.wantErr)
+			if err := e.PfsRead(eqPath + "/" + tt.args.path); (err != nil) != tt.wantErr {
+				t.Fatalf("Quail.ImportPfs() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
 }
 
-func TestQuail_PFSExport(t *testing.T) {
+func TestQuail_PfsWrite(t *testing.T) {
 	eqPath := os.Getenv("EQ_PATH")
 	if eqPath == "" {
 		t.Skip("EQ_PATH not set")
@@ -79,21 +79,21 @@ func TestQuail_PFSExport(t *testing.T) {
 				Models: tt.fields.Models,
 			}
 
-			if err := e.PFSImport(eqPath + "/" + tt.args.srcPath); err != nil {
+			if err := e.PfsRead(eqPath + "/" + tt.args.srcPath); err != nil {
 				t.Fatalf("pfs import %s error = %v", tt.args.srcPath, err)
 			}
 
 			//e.Models[0].Bones = []def.Bone{}
 			//e.Models[0].Animations = []def.BoneAnimation{}
 
-			if err := e.PFSExport(tt.args.fileVersion, tt.args.pfsVersion, dirTest+"/"+filepath.Base(tt.args.srcPath)); (err != nil) != tt.wantErr {
+			if err := e.PfsWrite(tt.args.fileVersion, tt.args.pfsVersion, dirTest+"/"+filepath.Base(tt.args.srcPath)); (err != nil) != tt.wantErr {
 				t.Fatalf("pfs export %s error = %v, wantErr %v", tt.args.srcPath, err, tt.wantErr)
 			}
 		})
 	}
 }
 
-func TestQuail_PFSExportImportExport(t *testing.T) {
+func TestQuail_PfsWriteImportExport(t *testing.T) {
 	eqPath := os.Getenv("EQ_PATH")
 	if eqPath == "" {
 		t.Skip("EQ_PATH not set")
@@ -131,23 +131,23 @@ func TestQuail_PFSExportImportExport(t *testing.T) {
 				Models: tt.fields.Models,
 			}
 
-			if err := e.PFSImport(eqPath + "/" + tt.args.srcPath); err != nil {
-				t.Fatalf("Quail.ImportPFS() error = %v", err)
+			if err := e.PfsRead(eqPath + "/" + tt.args.srcPath); err != nil {
+				t.Fatalf("Quail.ImportPfs() error = %v", err)
 			}
 
 			//e.Models[0].Bones = []def.Bone{}
 			//e.Models[0].Animations = []def.BoneAnimation{}
 
-			if err := e.PFSExport(tt.args.fileVersion, tt.args.pfsVersion, dirTest+"/"+filepath.Base(tt.args.srcPath)); (err != nil) != tt.wantErr {
-				t.Fatalf("Quail.ExportPFS() error = %v, wantErr %v", err, tt.wantErr)
+			if err := e.PfsWrite(tt.args.fileVersion, tt.args.pfsVersion, dirTest+"/"+filepath.Base(tt.args.srcPath)); (err != nil) != tt.wantErr {
+				t.Fatalf("Quail.ExportPfs() error = %v, wantErr %v", err, tt.wantErr)
 			}
 
 			e2 := &Quail{
 				Models: tt.fields.Models,
 			}
 
-			if err := e2.PFSImport(dirTest + "/" + filepath.Base(tt.args.srcPath)); err != nil {
-				t.Fatalf("Quail.ImportPFS() error = %v", err)
+			if err := e2.PfsRead(dirTest + "/" + filepath.Base(tt.args.srcPath)); err != nil {
+				t.Fatalf("Quail.ImportPfs() error = %v", err)
 			}
 
 			//e2.Models[0].Bones = []def.Bone{}

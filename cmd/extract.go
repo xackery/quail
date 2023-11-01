@@ -85,24 +85,24 @@ func extract(in string, out string, isDir bool) (bool, error) {
 	var err error
 	switch strings.ToLower(filepath.Ext(in)) {
 	case ".eqg":
-		err = extractPFS(in, out, isDir)
+		err = extractPfs(in, out, isDir)
 		if err != nil {
-			return true, fmt.Errorf("extractPFS: %w", err)
+			return true, fmt.Errorf("extractPfs: %w", err)
 		}
 	case ".s3d":
-		err = extractPFS(in, out, isDir)
+		err = extractPfs(in, out, isDir)
 		if err != nil {
-			return true, fmt.Errorf("extractPFS: %w", err)
+			return true, fmt.Errorf("extractPfs: %w", err)
 		}
 	case ".pfs":
-		err = extractPFS(in, out, isDir)
+		err = extractPfs(in, out, isDir)
 		if err != nil {
-			return true, fmt.Errorf("extractPFS: %w", err)
+			return true, fmt.Errorf("extractPfs: %w", err)
 		}
 	case ".pak":
-		err = extractPFS(in, out, isDir)
+		err = extractPfs(in, out, isDir)
 		if err != nil {
-			return true, fmt.Errorf("extractPFS: %w", err)
+			return true, fmt.Errorf("extractPfs: %w", err)
 		}
 	default:
 		return false, nil
@@ -110,7 +110,7 @@ func extract(in string, out string, isDir bool) (bool, error) {
 	return true, nil
 }
 
-func extractPFS(in string, out string, isDir bool) error {
+func extractPfs(in string, out string, isDir bool) error {
 	f, err := os.Open(in)
 	if err != nil {
 		return err

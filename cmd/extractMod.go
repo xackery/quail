@@ -85,24 +85,24 @@ func extractMod(in string, out string, isDir bool) (bool, error) {
 	var err error
 	switch strings.ToLower(filepath.Ext(in)) {
 	case ".eqg":
-		err = extractModPFS(in, out, isDir)
+		err = extractModPfs(in, out, isDir)
 		if err != nil {
-			return true, fmt.Errorf("extractPFS eqg: %w", err)
+			return true, fmt.Errorf("extractPfs eqg: %w", err)
 		}
 	case ".s3d":
-		err = extractModPFS(in, out, isDir)
+		err = extractModPfs(in, out, isDir)
 		if err != nil {
-			return true, fmt.Errorf("extractPFS s3d: %w", err)
+			return true, fmt.Errorf("extractPfs s3d: %w", err)
 		}
 	case ".pfs":
-		err = extractModPFS(in, out, isDir)
+		err = extractModPfs(in, out, isDir)
 		if err != nil {
-			return true, fmt.Errorf("extractPFS pfs: %w", err)
+			return true, fmt.Errorf("extractPfs pfs: %w", err)
 		}
 	case ".pak":
-		err = extractModPFS(in, out, isDir)
+		err = extractModPfs(in, out, isDir)
 		if err != nil {
-			return true, fmt.Errorf("extractPFS pak: %w", err)
+			return true, fmt.Errorf("extractPfs pak: %w", err)
 		}
 	default:
 		return false, nil
@@ -110,7 +110,7 @@ func extractMod(in string, out string, isDir bool) (bool, error) {
 	return true, nil
 }
 
-func extractModPFS(in string, out string, isDir bool) error {
+func extractModPfs(in string, out string, isDir bool) error {
 	f, err := os.Open(in)
 	if err != nil {
 		return err

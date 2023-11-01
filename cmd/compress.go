@@ -82,23 +82,23 @@ quail compress --path=_soldungb.eqg/ --out=foo.eqg`
 
 func compress(path string, out string) error {
 	if strings.HasSuffix(out, ".eqg") {
-		return compressPFS(path, out)
+		return compressPfs(path, out)
 	}
 	if strings.HasSuffix(out, ".s3d") {
-		return compressPFS(path, out)
+		return compressPfs(path, out)
 	}
 	if strings.HasSuffix(out, ".pfs") {
-		return compressPFS(path, out)
+		return compressPfs(path, out)
 	}
 	if strings.HasSuffix(out, ".pak") {
-		return compressPFS(path, out)
+		return compressPfs(path, out)
 	}
 
 	out = out + ".eqg"
-	return compressPFS(path, out)
+	return compressPfs(path, out)
 }
 
-func compressPFS(path string, out string) error {
+func compressPfs(path string, out string) error {
 	fi, err := os.Stat(path)
 	if err != nil {
 		return fmt.Errorf("path check: %w", err)
@@ -107,7 +107,7 @@ func compressPFS(path string, out string) error {
 		return fmt.Errorf("path invalid, must be a directory (%s)", path)
 	}
 
-	archive := &pfs.PFS{}
+	archive := &pfs.Pfs{}
 	files, err := os.ReadDir(path)
 	if err != nil {
 		return fmt.Errorf("readdir path: %w", err)

@@ -10,10 +10,11 @@ import (
 )
 
 type Ter struct {
-	Version   uint32      `yaml:"version"`
-	Materials []*Material `yaml:"materials"`
-	Vertices  []Vertex    `yaml:"vertices"`
-	Triangles []Triangle  `yaml:"triangles"`
+	MetaFileName string      `yaml:"file_name"`
+	Version      uint32      `yaml:"version"`
+	Materials    []*Material `yaml:"materials"`
+	Vertices     []Vertex    `yaml:"vertices"`
+	Triangles    []Triangle  `yaml:"triangles"`
 }
 
 // Read reads a TER file
@@ -152,4 +153,14 @@ func (ter *Ter) Read(r io.ReadSeeker) error {
 	}
 
 	return nil
+}
+
+// SetFileName sets the name of the file
+func (ter *Ter) SetFileName(name string) {
+	ter.MetaFileName = name
+}
+
+// FileName returns the name of the file
+func (ter *Ter) FileName() string {
+	return ter.MetaFileName
 }

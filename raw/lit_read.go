@@ -6,11 +6,11 @@ import (
 	"io"
 
 	"github.com/xackery/encdec"
-	"github.com/xackery/quail/common"
 )
 
 type Lit struct {
-	Entries []*common.RGBA
+	MetaFileName string  `yaml:"file_name"`
+	Entries      []*RGBA `yaml:"entries"`
 }
 
 // Decode will read a lit
@@ -19,7 +19,7 @@ func (lit *Lit) Read(r io.ReadSeeker) error {
 
 	lightCount := dec.Uint32()
 	for i := 0; i < int(lightCount); i++ {
-		lit.Entries = append(lit.Entries, &common.RGBA{
+		lit.Entries = append(lit.Entries, &RGBA{
 			R: dec.Uint8(),
 			G: dec.Uint8(),
 			B: dec.Uint8(),
@@ -31,4 +31,14 @@ func (lit *Lit) Read(r io.ReadSeeker) error {
 	}
 
 	return nil
+}
+
+// SetFileName sets the name of the file
+func (lit *Lit) SetFileName(name string) {
+	lit.MetaFileName = name
+}
+
+// FileName returns the name of the file
+func (lit *Lit) FileName() string {
+	return lit.MetaFileName
 }

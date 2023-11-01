@@ -1,6 +1,7 @@
 package quail
 
 import (
+	"bytes"
 	"fmt"
 
 	"github.com/xackery/quail/common"
@@ -19,6 +20,14 @@ func (q *Quail) RawRead(in raw.Reader) error {
 		return q.aniRead(val)
 	case *raw.Wld:
 		return q.wldRead(val)
+	case *raw.Dds:
+		return q.ddsRead(val)
+	case *raw.Bmp:
+		return q.bmpRead(val)
+	case *raw.Png:
+		return q.pngRead(val)
+	case *raw.Mod:
+		return q.modRead(val)
 	default:
 		return fmt.Errorf("unknown type %T", val)
 	}
@@ -37,6 +46,7 @@ func (q *Quail) aniRead(in *raw.Ani) error {
 	}
 	q.Header.Version = int(in.Version)
 	q.Header.Name = "animation"
+
 	return nil
 }
 
@@ -251,4 +261,48 @@ func (q *Quail) wldConvertMesh(world *raw.Wld, frag raw.FragmentReader) (*common
 	}
 
 	return model, nil
+}
+
+func (q *Quail) ddsRead(in *raw.Dds) error {
+	if q.Textures == nil {
+		q.Textures = make(map[string][]byte)
+	}
+	buf := &bytes.Buffer{}
+	err := in.Write(buf)
+	if err != nil {
+		return fmt.Errorf("write dds: %w", err)
+	}
+	q.Textures[in.FileName()] = buf.Bytes()
+	return nil
+}
+
+func (q *Quail) bmpRead(in *raw.Bmp) error {
+	if q.Textures == nil {
+		q.Textures = make(map[string][]byte)
+	}
+	buf := &bytes.Buffer{}
+	err := in.Write(buf)
+	if err != nil {
+		return fmt.Errorf("write bmp: %w", err)
+	}
+	q.Textures[in.FileName()] = buf.Bytes()
+	return nil
+}
+
+func (q *Quail) pngRead(in *raw.Png) error {
+	if q.Textures == nil {
+		q.Textures = make(map[string][]byte)
+	}
+	buf := &bytes.Buffer{}
+	err := in.Write(buf)
+	if err != nil {
+		return fmt.Errorf("write png: %w", err)
+	}
+	q.Textures[in.FileName()] = buf.Bytes()
+	return nil
+}
+
+func (q *Quail) modRead(in *raw.Mod) error {
+	// FIXME: this is a stub
+	return nil
 }

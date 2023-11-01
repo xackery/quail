@@ -56,6 +56,12 @@ var yamlCmd = &cobra.Command{
 			return fmt.Errorf("dst path is required")
 		}
 
+		isDirOutput := false
+		fi, err := os.Stat(dstPath)
+		if err == nil && fi.IsDir() {
+			isDirOutput = true
+		}
+
 		isSrcArchive := false
 		srcPathExt := strings.ToLower(filepath.Ext(srcPath))
 		isDstArchive := false
@@ -98,10 +104,10 @@ var yamlCmd = &cobra.Command{
 		if !isSrcArchive && !isDstArchive {
 			fmt.Println("Converting", filepath.Base(srcPath), "to", filepath.Base(dstPath))
 		}
-		var srcArchive *pfs.PFS
-		var dstArchive *pfs.PFS
+		var srcArchive *pfs.Pfs
+		var dstArchive *pfs.Pfs
 		if isSrcArchive {
-			srcArchive = &pfs.PFS{}
+			srcArchive = &pfs.Pfs{}
 			srcArchive, err = pfs.NewFile(srcPath)
 			if err != nil {
 				return fmt.Errorf("open src archive: %w", err)
@@ -109,7 +115,7 @@ var yamlCmd = &cobra.Command{
 		}
 
 		if isDstArchive {
-			dstArchive = &pfs.PFS{}
+			dstArchive = &pfs.Pfs{}
 			dstArchive, err = pfs.NewFile(srcPath)
 			if err != nil {
 				return fmt.Errorf("open dst archive: %w", err)
@@ -151,13 +157,15 @@ var yamlCmd = &cobra.Command{
 		buf := &bytes.Buffer{}
 		if isYamlOut {
 			fmt.Println("Source is", len(srcData), "bytes, turning into yaml...")
-			reader := raw.New(fileFormat)
-			if reader == nil {
-				return fmt.Errorf("unsupported file format %s", fileFormat)
-			}
-			err = reader.Read(bytes.NewReader(srcData))
+
+			reader, err := raw.Read(fileFormat, bytes.NewReader(srcData))
 			if err != nil {
 				return fmt.Errorf("read %s: %w", filepath.Base(srcPath), err)
+			}
+
+			reader.SetFileName(filepath.Base(srcPath))
+			if srcFile != "" {
+				reader.SetFileName(srcFile)
 			}
 
 			err = yaml.NewEncoder(buf).Encode(reader)
@@ -188,6 +196,20 @@ var yamlCmd = &cobra.Command{
 				return fmt.Errorf("write %s: %w", filepath.Base(dstPath), err)
 			}
 			return nil
+		}
+
+		type metaPeek struct {
+			MetaFileName string `yaml:"file_name"`
+		}
+
+		if isDirOutput {
+			meta := &metaPeek{}
+			err = yaml.Unmarshal(srcData, meta)
+			if err != nil {
+				return fmt.Errorf("yaml unmarshal: %w", err)
+			}
+			fileFormat = filepath.Ext(meta.MetaFileName)
+			dstPath = filepath.Join(dstPath, meta.MetaFileName)
 		}
 
 		writer := raw.New(fileFormat)
@@ -228,6 +250,7 @@ var yamlCmd = &cobra.Command{
 			return fmt.Errorf("write %s: %w", filepath.Base(dstPath), err)
 		}
 
+		log.Printf("Wrote %s", filepath.Base(dstPath))
 		return nil
 	},
 }

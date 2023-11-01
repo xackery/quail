@@ -11,8 +11,9 @@ import (
 
 // Pts is a particle point
 type Pts struct {
-	Version uint32
-	Entries []*PtsEntry `yaml:"entries,omitempty"`
+	MetaFileName string `yaml:"file_name"`
+	Version      uint32
+	Entries      []*PtsEntry `yaml:"entries,omitempty"`
 }
 
 // PtsEntry is a single entry in a particle point
@@ -72,4 +73,14 @@ func (pts *Pts) Read(r io.ReadSeeker) error {
 
 	//log.Debugf("%s (pts) readd %d entries", pts.Header.Name, len(pts.Entries))
 	return nil
+}
+
+// SetFileName sets the name of the file
+func (pts *Pts) SetFileName(name string) {
+	pts.MetaFileName = name
+}
+
+// FileName returns the name of the file
+func (pts *Pts) FileName() string {
+	return pts.MetaFileName
 }

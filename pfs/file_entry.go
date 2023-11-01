@@ -1,6 +1,6 @@
 package pfs
 
-// FileEntry represents a file entry in a PFS
+// FileEntry represents a file entry in a Pfs
 type FileEntry struct {
 	name string
 	data []byte

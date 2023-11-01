@@ -17,7 +17,8 @@ LOD,OBJ_FIREPIT_STMFT_LOD2,400
 LOD,OBJ_FIREPIT_STMFT_LOD3,1000
 */
 type Lod struct {
-	Entries []*LodEntry
+	MetaFileName string      `yaml:"file_name"`
+	Entries      []*LodEntry `yaml:"entries"`
 }
 
 type LodEntry struct {
@@ -67,4 +68,14 @@ func (lod *Lod) Read(r io.ReadSeeker) error {
 	}
 
 	return nil
+}
+
+// SetFileName sets the name of the file
+func (lod *Lod) SetFileName(name string) {
+	lod.MetaFileName = name
+}
+
+// FileName returns the name of the file
+func (lod *Lod) FileName() string {
+	return lod.MetaFileName
 }

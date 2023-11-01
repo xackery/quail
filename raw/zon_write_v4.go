@@ -10,7 +10,7 @@ func (zon *Zon) WriteV4(w io.Writer) error {
 	var err error
 	writer := bufio.NewWriter(w)
 	writer.WriteString("*NAME ")
-	writer.WriteString(zon.Name)
+	writer.WriteString(zon.V4Info.Name)
 	writer.WriteString("\n")
 	writer.WriteString("*MINLNG ")
 	writer.WriteString(strconv.Itoa(zon.V4Info.MinLng))
