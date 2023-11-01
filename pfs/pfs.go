@@ -43,7 +43,7 @@ func NewFile(path string) (*PFS, error) {
 	defer r.Close()
 	err = e.Read(r)
 	if err != nil {
-		return nil, fmt.Errorf("decode: %w", err)
+		return nil, fmt.Errorf("read: %w", err)
 	}
 	return e, nil
 }

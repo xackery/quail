@@ -27,21 +27,21 @@ func TestPrtRead(t *testing.T) {
 		wantErr bool
 	}{
 
-		// .prt|3|bat.prt|bat.eqg bat.eqg pfs import: decodePrt bat.prt: invalid version 3, wanted 4+
+		// .prt|3|bat.prt|bat.eqg bat.eqg pfs import: readPrt bat.prt: invalid version 3, wanted 4+
 		//{name: "bat.eqg"},
-		// .prt|3|btn.prt|btn.eqg btn.eqg pfs import: decodePrt btn.prt: invalid version 3, wanted 4+
-		// .prt|3|chm.prt|chm.eqg chm.eqg pfs import: decodePrt chm.prt: invalid version 3, wanted 4+
-		// .prt|3|clv.prt|clv.eqg clv.eqg pfs import: decodePrt clv.prt: invalid version 3, wanted 4+
-		// .prt|3|ddm.prt|ddm.eqg ddm.eqg pfs import: decodePrt ddm.prt: invalid version 3, wanted 4+
-		// .prt|3|dsf.prt|dsf.eqg dsf.eqg pfs import: decodePrt dsf.prt: invalid version 3, wanted 4+
-		// .prt|3|dsg.prt|dsg.eqg dsg.eqg pfs import: decodePrt dsg.prt: invalid version 3, wanted 4+
-		// .prt|3|fra.prt|fra.eqg fra.eqg pfs import: decodePrt fra.prt: invalid version 3, wanted 4+
-		// .prt|3|mch.prt|mch.eqg mch.eqg pfs import: decodePrt mch.prt: invalid version 3, wanted 4+
-		// .prt|3|mur.prt|mur.eqg mur.eqg pfs import: decodePrt mur.prt: invalid version 3, wanted 4+
-		// .prt|3|rtn.prt|rtn.eqg rtn.eqg pfs import: decodePrt rtn.prt: invalid version 3, wanted 4+
-		// .prt|3|scu.prt|scu.eqg scu.eqg pfs import: decodePrt scu.prt: invalid version 3, wanted 4+
-		// .prt|3|tgo.prt|tgo.eqg tgo.eqg pfs import: decodePrt tgo.prt: invalid version 3, wanted 4+
-		// .prt|3|tln.prt|tln.eqg tln.eqg pfs import: decodePrt tln.prt: invalid version 3, wanted 4+
+		// .prt|3|btn.prt|btn.eqg btn.eqg pfs import: readPrt btn.prt: invalid version 3, wanted 4+
+		// .prt|3|chm.prt|chm.eqg chm.eqg pfs import: readPrt chm.prt: invalid version 3, wanted 4+
+		// .prt|3|clv.prt|clv.eqg clv.eqg pfs import: readPrt clv.prt: invalid version 3, wanted 4+
+		// .prt|3|ddm.prt|ddm.eqg ddm.eqg pfs import: readPrt ddm.prt: invalid version 3, wanted 4+
+		// .prt|3|dsf.prt|dsf.eqg dsf.eqg pfs import: readPrt dsf.prt: invalid version 3, wanted 4+
+		// .prt|3|dsg.prt|dsg.eqg dsg.eqg pfs import: readPrt dsg.prt: invalid version 3, wanted 4+
+		// .prt|3|fra.prt|fra.eqg fra.eqg pfs import: readPrt fra.prt: invalid version 3, wanted 4+
+		// .prt|3|mch.prt|mch.eqg mch.eqg pfs import: readPrt mch.prt: invalid version 3, wanted 4+
+		// .prt|3|mur.prt|mur.eqg mur.eqg pfs import: readPrt mur.prt: invalid version 3, wanted 4+
+		// .prt|3|rtn.prt|rtn.eqg rtn.eqg pfs import: readPrt rtn.prt: invalid version 3, wanted 4+
+		// .prt|3|scu.prt|scu.eqg scu.eqg pfs import: readPrt scu.prt: invalid version 3, wanted 4+
+		// .prt|3|tgo.prt|tgo.eqg tgo.eqg pfs import: readPrt tgo.prt: invalid version 3, wanted 4+
+		// .prt|3|tln.prt|tln.eqg tln.eqg pfs import: readPrt tln.prt: invalid version 3, wanted 4+
 		// .prt|4|cnp.prt|cnp.eqg
 		{name: "cnp.eqg"},
 		// .prt|5|aam.prt|aam.eqg
@@ -69,7 +69,7 @@ func TestPrtRead(t *testing.T) {
 				if err != nil {
 					os.WriteFile(fmt.Sprintf("%s/%s", dirTest, file.Name()), file.Data(), 0644)
 					tag.Write(fmt.Sprintf("%s/%s.tags", dirTest, file.Name()))
-					t.Fatalf("failed to decode %s: %s", tt.name, err.Error())
+					t.Fatalf("failed to read %s: %s", tt.name, err.Error())
 				}
 
 			}
@@ -88,21 +88,21 @@ func TestPrtWrite(t *testing.T) {
 		name    string
 		wantErr bool
 	}{
-		// .prt|3|bat.prt|bat.eqg bat.eqg pfs import: decodePrt bat.prt: invalid version 3, wanted 4+
+		// .prt|3|bat.prt|bat.eqg bat.eqg pfs import: readPrt bat.prt: invalid version 3, wanted 4+
 		//{name: "bat.eqg"}, // FIXME: v3 or below anim support
-		// .prt|3|btn.prt|btn.eqg btn.eqg pfs import: decodePrt btn.prt: invalid version 3, wanted 4+
-		// .prt|3|chm.prt|chm.eqg chm.eqg pfs import: decodePrt chm.prt: invalid version 3, wanted 4+
-		// .prt|3|clv.prt|clv.eqg clv.eqg pfs import: decodePrt clv.prt: invalid version 3, wanted 4+
-		// .prt|3|ddm.prt|ddm.eqg ddm.eqg pfs import: decodePrt ddm.prt: invalid version 3, wanted 4+
-		// .prt|3|dsf.prt|dsf.eqg dsf.eqg pfs import: decodePrt dsf.prt: invalid version 3, wanted 4+
-		// .prt|3|dsg.prt|dsg.eqg dsg.eqg pfs import: decodePrt dsg.prt: invalid version 3, wanted 4+
-		// .prt|3|fra.prt|fra.eqg fra.eqg pfs import: decodePrt fra.prt: invalid version 3, wanted 4+
-		// .prt|3|mch.prt|mch.eqg mch.eqg pfs import: decodePrt mch.prt: invalid version 3, wanted 4+
-		// .prt|3|mur.prt|mur.eqg mur.eqg pfs import: decodePrt mur.prt: invalid version 3, wanted 4+
-		// .prt|3|rtn.prt|rtn.eqg rtn.eqg pfs import: decodePrt rtn.prt: invalid version 3, wanted 4+
-		// .prt|3|scu.prt|scu.eqg scu.eqg pfs import: decodePrt scu.prt: invalid version 3, wanted 4+
-		// .prt|3|tgo.prt|tgo.eqg tgo.eqg pfs import: decodePrt tgo.prt: invalid version 3, wanted 4+
-		// .prt|3|tln.prt|tln.eqg tln.eqg pfs import: decodePrt tln.prt: invalid version 3, wanted 4+
+		// .prt|3|btn.prt|btn.eqg btn.eqg pfs import: readPrt btn.prt: invalid version 3, wanted 4+
+		// .prt|3|chm.prt|chm.eqg chm.eqg pfs import: readPrt chm.prt: invalid version 3, wanted 4+
+		// .prt|3|clv.prt|clv.eqg clv.eqg pfs import: readPrt clv.prt: invalid version 3, wanted 4+
+		// .prt|3|ddm.prt|ddm.eqg ddm.eqg pfs import: readPrt ddm.prt: invalid version 3, wanted 4+
+		// .prt|3|dsf.prt|dsf.eqg dsf.eqg pfs import: readPrt dsf.prt: invalid version 3, wanted 4+
+		// .prt|3|dsg.prt|dsg.eqg dsg.eqg pfs import: readPrt dsg.prt: invalid version 3, wanted 4+
+		// .prt|3|fra.prt|fra.eqg fra.eqg pfs import: readPrt fra.prt: invalid version 3, wanted 4+
+		// .prt|3|mch.prt|mch.eqg mch.eqg pfs import: readPrt mch.prt: invalid version 3, wanted 4+
+		// .prt|3|mur.prt|mur.eqg mur.eqg pfs import: readPrt mur.prt: invalid version 3, wanted 4+
+		// .prt|3|rtn.prt|rtn.eqg rtn.eqg pfs import: readPrt rtn.prt: invalid version 3, wanted 4+
+		// .prt|3|scu.prt|scu.eqg scu.eqg pfs import: readPrt scu.prt: invalid version 3, wanted 4+
+		// .prt|3|tgo.prt|tgo.eqg tgo.eqg pfs import: readPrt tgo.prt: invalid version 3, wanted 4+
+		// .prt|3|tln.prt|tln.eqg tln.eqg pfs import: readPrt tln.prt: invalid version 3, wanted 4+
 		// .prt|4|cnp.prt|cnp.eqg
 		{name: "cnp.eqg"},
 		// .prt|5|aam.prt|aam.eqg
@@ -130,7 +130,7 @@ func TestPrtWrite(t *testing.T) {
 				if err != nil {
 					os.WriteFile(fmt.Sprintf("%s/%s", dirTest, file.Name()), file.Data(), 0644)
 					tag.Write(fmt.Sprintf("%s/%s.tags", dirTest, file.Name()))
-					t.Fatalf("failed to decode %s: %s", tt.name, err.Error())
+					t.Fatalf("failed to read %s: %s", tt.name, err.Error())
 				}
 
 				buf := bytes.NewBuffer(nil)

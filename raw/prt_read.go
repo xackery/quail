@@ -32,7 +32,7 @@ type PrtEntry struct {
 	UnknownC        uint32 `yaml:"unknownc"`
 }
 
-// Read decodes a PRT file
+// Read reads a PRT file
 func (prt *Prt) Read(r io.ReadSeeker) error {
 
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
@@ -75,9 +75,9 @@ func (prt *Prt) Read(r io.ReadSeeker) error {
 	}
 
 	if dec.Error() != nil {
-		return fmt.Errorf("decode: %w", dec.Error())
+		return fmt.Errorf("read: %w", dec.Error())
 	}
 
-	//log.Debugf("%s (prt) decoded %d entries", render.Header.Name, len(render.Entries))
+	//log.Debugf("%s (prt) readd %d entries", render.Header.Name, len(render.Entries))
 	return nil
 }

@@ -6,7 +6,6 @@ import (
 	"io"
 
 	"github.com/xackery/encdec"
-	"github.com/xackery/quail/common"
 )
 
 // Write will write a lay file
@@ -28,43 +27,33 @@ func (lay *Lay) Write(w io.Writer) error {
 		return fmt.Errorf("unknown lay version: %d", lay.Version)
 	}
 
-	tmpNames := []string{}
+	NameClear()
 	for _, lay := range lay.Entries {
-		if lay.Material != "" {
-			tmpNames = append(tmpNames, lay.Material)
-		}
-		if lay.Diffuse != "" {
-			tmpNames = append(tmpNames, lay.Diffuse)
-		}
-		if lay.Normal != "" {
-			tmpNames = append(tmpNames, lay.Normal)
-		}
-	}
-	names, nameData, err := common.NameBuild(tmpNames)
-	if err != nil {
-		return fmt.Errorf("nameBuild: %w", err)
+		NameAdd(lay.Material)
+		NameAdd(lay.Diffuse)
+		NameAdd(lay.Normal)
 	}
 
-	enc.Uint32(uint32(len(nameData)))    // nameLength
+	enc.Uint32(uint32(len(NameData())))  // nameLength
 	enc.Uint32(uint32(len(lay.Entries))) //layerCount
-	enc.Bytes(nameData)                  // nameData
+	enc.Bytes(NameData())                // nameData
 
 	for _, layEntry := range lay.Entries {
 		offset := uint32(0xffffffff)
 		if layEntry.Material != "" {
-			offset = uint32(names[layEntry.Material])
+			offset = uint32(NameIndex(layEntry.Material))
 		}
 		enc.Uint32(offset)
 
 		offset = uint32(0xffffffff)
 		if layEntry.Diffuse != "" {
-			offset = uint32(names[layEntry.Diffuse])
+			offset = uint32(NameIndex(layEntry.Diffuse))
 		}
 		enc.Uint32(offset)
 
 		offset = uint32(0xffffffff)
 		if layEntry.Normal != "" {
-			offset = uint32(names[layEntry.Normal])
+			offset = uint32(NameIndex(layEntry.Normal))
 		}
 		enc.Uint32(offset)
 

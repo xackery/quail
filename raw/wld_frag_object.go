@@ -82,7 +82,7 @@ func (e *WldFragParticleSprite) Encode(w io.Writer) error {
 	return nil
 }
 
-func decodeParticleSprite(r io.ReadSeeker) (FragmentReader, error) {
+func readParticleSprite(r io.ReadSeeker) (FragmentReader, error) {
 	d := &WldFragParticleSprite{}
 	d.FragName = FragName(d.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
@@ -158,7 +158,7 @@ func (e *WldFragParticleSpriteRef) Encode(w io.Writer) error {
 	return nil
 }
 
-func decodeParticleSpriteRef(r io.ReadSeeker) (FragmentReader, error) {
+func readParticleSpriteRef(r io.ReadSeeker) (FragmentReader, error) {
 	d := &WldFragParticleSpriteRef{}
 	d.FragName = FragName(d.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
@@ -192,7 +192,7 @@ func (e *WldFragCompositeSprite) Encode(w io.Writer) error {
 	return nil
 }
 
-func decodeCompositeSprite(r io.ReadSeeker) (FragmentReader, error) {
+func readCompositeSprite(r io.ReadSeeker) (FragmentReader, error) {
 	d := &WldFragCompositeSprite{}
 	d.FragName = FragName(d.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
@@ -227,7 +227,7 @@ func (e *WldFragCompositeSpriteRef) Encode(w io.Writer) error {
 	return nil
 }
 
-func decodeCompositeSpriteRef(r io.ReadSeeker) (FragmentReader, error) {
+func readCompositeSpriteRef(r io.ReadSeeker) (FragmentReader, error) {
 	d := &WldFragCompositeSpriteRef{}
 	d.FragName = FragName(d.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
@@ -306,7 +306,7 @@ func (e *WldFragModel) Encode(w io.Writer) error {
 	return nil
 }
 
-func decodeModel(r io.ReadSeeker) (FragmentReader, error) {
+func readModel(r io.ReadSeeker) (FragmentReader, error) {
 	d := &WldFragModel{}
 	d.FragName = FragName(d.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
@@ -403,7 +403,7 @@ func (e *WldFragModelRef) Encode(w io.Writer) error {
 	return nil
 }
 
-func decodeModelRef(r io.ReadSeeker) (FragmentReader, error) {
+func readModelRef(r io.ReadSeeker) (FragmentReader, error) {
 	d := &WldFragModelRef{}
 	d.FragName = FragName(d.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
@@ -460,7 +460,7 @@ func (e *WldFragSphere) Encode(w io.Writer) error {
 	return nil
 }
 
-func decodeSphere(r io.ReadSeeker) (FragmentReader, error) {
+func readSphere(r io.ReadSeeker) (FragmentReader, error) {
 	d := &WldFragSphere{}
 	d.FragName = FragName(d.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
@@ -506,7 +506,7 @@ func (e *WldFragSphereList) Encode(w io.Writer) error {
 	return nil
 }
 
-func decodeSphereList(r io.ReadSeeker) (FragmentReader, error) {
+func readSphereList(r io.ReadSeeker) (FragmentReader, error) {
 	d := &WldFragSphereList{}
 	d.FragName = FragName(d.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
@@ -553,7 +553,7 @@ func (e *WldFragSphereListRef) Encode(w io.Writer) error {
 	return nil
 }
 
-func decodeSphereListRef(r io.ReadSeeker) (FragmentReader, error) {
+func readSphereListRef(r io.ReadSeeker) (FragmentReader, error) {
 	d := &WldFragSphereListRef{}
 	d.FragName = FragName(d.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)

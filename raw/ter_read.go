@@ -16,14 +16,14 @@ type Ter struct {
 	Triangles []Triangle  `yaml:"triangles"`
 }
 
-// Read decodes a TER file
+// Read reads a TER file
 func (ter *Ter) Read(r io.ReadSeeker) error {
 
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 
 	header := dec.StringFixed(4)
 	if header != "EQGT" {
-		return fmt.Errorf("invalid header %s, wanted EQGM", header)
+		return fmt.Errorf("invalid header %s, wanted EQGT", header)
 	}
 
 	tag.New()
@@ -148,7 +148,7 @@ func (ter *Ter) Read(r io.ReadSeeker) error {
 	tag.Add(tag.LastPos(), dec.Pos(), "purple", "triangles")
 
 	if dec.Error() != nil {
-		return fmt.Errorf("decode: %w", dec.Error())
+		return fmt.Errorf("read: %w", dec.Error())
 	}
 
 	return nil

@@ -185,7 +185,7 @@ func (mds *Mds) Read(r io.ReadSeeker) error {
 	}
 
 	if dec.Error() != nil {
-		return fmt.Errorf("decode: %w", dec.Error())
+		return fmt.Errorf("read: %w", dec.Error())
 	}
 
 	return nil

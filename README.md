@@ -31,7 +31,7 @@ Available Commands:
 # EverQuest File Overview
 ## Pfs
 
-Pfs represents packaged files, you can think of them as zip compressed archives but has a special format. They all use the same decoder and encoder.
+Pfs represents packaged files, you can think of them as zip compressed archives but has a special format
 
 Extension|Notes
 ---|---

@@ -29,8 +29,6 @@ func (e *Lay) IsRaw() bool {
 
 // Read takes data
 func (lay *Lay) Read(r io.ReadSeeker) error {
-	var ok bool
-
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 
 	header := dec.StringFixed(4)
@@ -59,12 +57,12 @@ func (lay *Lay) Read(r io.ReadSeeker) error {
 	nameData := dec.Bytes(int(nameLength))
 	tag.Add(tag.LastPos(), dec.Pos(), "green", "names")
 
-	names := make(map[uint32]string)
+	names := make(map[int32]string)
 	chunk := []byte{}
 	lastOffset := 0
 	for i, b := range nameData {
 		if b == 0 {
-			names[uint32(lastOffset)] = string(chunk)
+			names[int32(lastOffset)] = string(chunk)
 			chunk = []byte{}
 			lastOffset = i + 1
 			continue
@@ -72,31 +70,24 @@ func (lay *Lay) Read(r io.ReadSeeker) error {
 		chunk = append(chunk, b)
 	}
 
+	NamesSet(names)
+
 	for i := 0; i < int(layerCount); i++ {
 		entryID := dec.Uint32()
 		layEntry := &LayEntry{}
 
 		if entryID != 0xffffffff {
-			layEntry.Material, ok = names[entryID]
-			if !ok {
-				return fmt.Errorf("%d material 0x%x not found", i, entryID)
-			}
+			layEntry.Material = Name(int32(entryID))
 		}
 
 		entryID = dec.Uint32()
 		if entryID != 0xffffffff {
-			layEntry.Diffuse, ok = names[entryID]
-			if !ok {
-				return fmt.Errorf("%d diffuse 0x%x not found", i, entryID)
-			}
+			layEntry.Diffuse = Name(int32(entryID))
 		}
 
 		entryID = dec.Uint32()
 		if entryID != 0xffffffff {
-			layEntry.Normal, ok = names[entryID]
-			if !ok {
-				return fmt.Errorf("%d normal 0x%x not found", i, entryID)
-			}
+			layEntry.Normal = Name(int32(entryID))
 		}
 		dec.Bytes(versionOffset)
 		//fmt.Println(hex.Dump())
@@ -105,8 +96,7 @@ func (lay *Lay) Read(r io.ReadSeeker) error {
 	}
 
 	if dec.Error() != nil {
-		return fmt.Errorf("decode: %w", dec.Error())
+		return fmt.Errorf("read: %w", dec.Error())
 	}
-
 	return nil
 }

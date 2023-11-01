@@ -17,9 +17,9 @@ type Zon struct {
 	Objects []Object `yaml:"objects"`
 	Regions []Region `yaml:"regions"`
 	Lights  []Light  `yaml:"lights"`
-	Lits    []*RGBA  `yaml:"lits"`
-	V4Info  V4Info   `yaml:"v4info"`
-	V4Dat   V4Dat    `yaml:"v4dat"`
+	//Lits    []*RGBA  `yaml:"lits"`
+	V4Info V4Info `yaml:"v4info"`
+	V4Dat  V4Dat  `yaml:"v4dat"`
 }
 
 type V4Info struct {
@@ -76,7 +76,7 @@ type Light struct {
 	Radius   float32
 }
 
-// Decode decodes a ZON file
+// Decode reads a ZON file
 func (zon *Zon) Read(r io.ReadSeeker) error {
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 
@@ -213,9 +213,9 @@ func (zon *Zon) Read(r io.ReadSeeker) error {
 	}
 
 	if dec.Error() != nil {
-		return fmt.Errorf("decode: %w", dec.Error())
+		return fmt.Errorf("read: %w", dec.Error())
 	}
 
-	//log.Debugf("%s (zon) decoded %d model refs, %d object refs, %d regions, %d lights", zon.Header.Name, len(zon.Models), len(zon.Objects), len(zon.Regions), len(zon.Lights))
+	//log.Debugf("%s (zon) readd %d model refs, %d object refs, %d regions, %d lights", zon.Header.Name, len(zon.Models), len(zon.Objects), len(zon.Regions), len(zon.Lights))
 	return nil
 }

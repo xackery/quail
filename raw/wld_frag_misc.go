@@ -20,7 +20,7 @@ func (e *WldFragDefault) Encode(w io.Writer) error {
 	return nil
 }
 
-func decodeDefault(r io.ReadSeeker) (FragmentReader, error) {
+func readDefault(r io.ReadSeeker) (FragmentReader, error) {
 	d := &WldFragDefault{}
 	d.FragName = FragName(d.FragCode())
 	return d, nil
@@ -46,7 +46,7 @@ func (e *WldFragFirst) Encode(w io.Writer) error {
 	return nil
 }
 
-func decodeFirst(r io.ReadSeeker) (FragmentReader, error) {
+func readFirst(r io.ReadSeeker) (FragmentReader, error) {
 	d := &WldFragFirst{}
 	d.FragName = FragName(d.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
@@ -70,7 +70,7 @@ func (e *WldFragUserData) Encode(w io.Writer) error {
 	return nil
 }
 
-func decodeUserData(r io.ReadSeeker) (FragmentReader, error) {
+func readUserData(r io.ReadSeeker) (FragmentReader, error) {
 	d := &WldFragUserData{}
 	d.FragName = FragName(d.FragCode())
 	return d, nil
@@ -97,7 +97,7 @@ func (e *WldFragSound) Encode(w io.Writer) error {
 	return nil
 }
 
-func decodeSound(r io.ReadSeeker) (FragmentReader, error) {
+func readSound(r io.ReadSeeker) (FragmentReader, error) {
 	d := &WldFragSound{}
 	d.FragName = FragName(d.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
@@ -130,7 +130,7 @@ func (e *WldFragSoundRef) Encode(w io.Writer) error {
 	return nil
 }
 
-func decodeSoundRef(r io.ReadSeeker) (FragmentReader, error) {
+func readSoundRef(r io.ReadSeeker) (FragmentReader, error) {
 	d := &WldFragSoundRef{}
 	d.FragName = FragName(d.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
@@ -183,7 +183,7 @@ func (e *WldFragWorldTree) Encode(w io.Writer) error {
 	return nil
 }
 
-func decodeWorldTree(r io.ReadSeeker) (FragmentReader, error) {
+func readWorldTree(r io.ReadSeeker) (FragmentReader, error) {
 	d := &WldFragWorldTree{}
 	d.FragName = FragName(d.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
@@ -310,7 +310,7 @@ func (e *WldFragRegion) Encode(w io.Writer) error {
 	return nil
 }
 
-func decodeRegion(r io.ReadSeeker) (FragmentReader, error) {
+func readRegion(r io.ReadSeeker) (FragmentReader, error) {
 	d := &WldFragRegion{}
 	d.FragName = FragName(d.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
@@ -409,7 +409,7 @@ func (e *WldFragActiveGeoRegion) Encode(w io.Writer) error {
 	return nil
 }
 
-func decodeActiveGeoRegion(r io.ReadSeeker) (FragmentReader, error) {
+func readActiveGeoRegion(r io.ReadSeeker) (FragmentReader, error) {
 	d := &WldFragActiveGeoRegion{}
 	d.FragName = FragName(d.FragCode())
 	return d, nil
@@ -428,7 +428,7 @@ func (e *WldFragSkyRegion) Encode(w io.Writer) error {
 	return nil
 }
 
-func decodeSkyRegion(r io.ReadSeeker) (FragmentReader, error) {
+func readSkyRegion(r io.ReadSeeker) (FragmentReader, error) {
 	d := &WldFragSkyRegion{}
 	return d, nil
 }
@@ -446,7 +446,7 @@ func (e *WldFragZone) Encode(w io.Writer) error {
 	return nil
 }
 
-func decodeZone(r io.ReadSeeker) (FragmentReader, error) {
+func readZone(r io.ReadSeeker) (FragmentReader, error) {
 	d := &WldFragZone{}
 	return d, nil
 }
@@ -464,7 +464,7 @@ func (e *DMTrack) Encode(w io.Writer) error {
 	return nil
 }
 
-func decodeDMTrack(r io.ReadSeeker) (FragmentReader, error) {
+func readDMTrack(r io.ReadSeeker) (FragmentReader, error) {
 	d := &DMTrack{}
 	d.FragName = FragName(d.FragCode())
 	return d, nil
@@ -483,7 +483,7 @@ func (e *DMTrackRef) Encode(w io.Writer) error {
 	return nil
 }
 
-func decodeDMTrackRef(r io.ReadSeeker) (FragmentReader, error) {
+func readDMTrackRef(r io.ReadSeeker) (FragmentReader, error) {
 	d := &DMTrackRef{}
 	return d, nil
 }
@@ -501,7 +501,7 @@ func (e *WldFragDMRGBTrack) Encode(w io.Writer) error {
 	return nil
 }
 
-func decodeDMRGBTrack(r io.ReadSeeker) (FragmentReader, error) {
+func readDMRGBTrack(r io.ReadSeeker) (FragmentReader, error) {
 	d := &WldFragDMRGBTrack{}
 	return d, nil
 }
@@ -519,7 +519,7 @@ func (e *WldFragDMRGBTrackRef) Encode(w io.Writer) error {
 	return nil
 }
 
-func decodeDMRGBTrackRef(r io.ReadSeeker) (FragmentReader, error) {
+func readDMRGBTrackRef(r io.ReadSeeker) (FragmentReader, error) {
 	d := &WldFragDMRGBTrackRef{}
 	return d, nil
 }
@@ -590,7 +590,7 @@ func (e *ParticleCloud) Encode(w io.Writer) error {
 	return nil
 }
 
-func decodeParticleCloud(r io.ReadSeeker) (FragmentReader, error) {
+func readParticleCloud(r io.ReadSeeker) (FragmentReader, error) {
 	d := &ParticleCloud{}
 	d.FragName = FragName(d.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)

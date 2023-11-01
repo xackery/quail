@@ -53,7 +53,7 @@ func (e *WldFragLight) Encode(w io.Writer) error {
 	return nil
 }
 
-func decodeLight(r io.ReadSeeker) (FragmentReader, error) {
+func readLight(r io.ReadSeeker) (FragmentReader, error) {
 	d := &WldFragLight{}
 	d.FragName = FragName(d.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
@@ -110,7 +110,7 @@ func (e *WldFragLightRef) Encode(w io.Writer) error {
 	return nil
 }
 
-func decodeLightRef(r io.ReadSeeker) (FragmentReader, error) {
+func readLightRef(r io.ReadSeeker) (FragmentReader, error) {
 	d := &WldFragLightRef{}
 	d.FragName = FragName(d.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
@@ -144,7 +144,7 @@ func (e *WldFragPointLightOld) Encode(w io.Writer) error {
 	return nil
 }
 
-func decodePointLightOld(r io.ReadSeeker) (FragmentReader, error) {
+func readPointLightOld(r io.ReadSeeker) (FragmentReader, error) {
 	d := &WldFragPointLightOld{}
 	d.FragName = FragName(d.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
@@ -177,7 +177,7 @@ func (e *WldFragPointLightOldRef) Encode(w io.Writer) error {
 	return nil
 }
 
-func decodePointLightOldRef(r io.ReadSeeker) (FragmentReader, error) {
+func readPointLightOldRef(r io.ReadSeeker) (FragmentReader, error) {
 	d := &WldFragPointLightOldRef{}
 	d.FragName = FragName(d.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
@@ -202,7 +202,7 @@ func (e *WldFragDirectionalLightOld) Encode(w io.Writer) error {
 	return nil
 }
 
-func decodeDirectionalLightOld(r io.ReadSeeker) (FragmentReader, error) {
+func readDirectionalLightOld(r io.ReadSeeker) (FragmentReader, error) {
 	d := &WldFragDirectionalLightOld{}
 	d.FragName = FragName(d.FragCode())
 	return d, nil
@@ -221,7 +221,7 @@ func (e *WldFragPointLight) Encode(w io.Writer) error {
 	return fmt.Errorf("not implemented")
 }
 
-func decodePointLight(r io.ReadSeeker) (FragmentReader, error) {
+func readPointLight(r io.ReadSeeker) (FragmentReader, error) {
 	d := &WldFragPointLight{}
 	d.FragName = FragName(d.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
@@ -244,7 +244,7 @@ func (e *WldFragAmbientLight) Encode(w io.Writer) error {
 	return fmt.Errorf("not implemented")
 }
 
-func decodeAmbientLight(r io.ReadSeeker) (FragmentReader, error) {
+func readAmbientLight(r io.ReadSeeker) (FragmentReader, error) {
 	d := &WldFragAmbientLight{}
 	d.FragName = FragName(d.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
@@ -267,7 +267,7 @@ func (e *WldFragDirectionalLight) Encode(w io.Writer) error {
 	return fmt.Errorf("not implemented")
 }
 
-func decodeDirectionalLight(r io.ReadSeeker) (FragmentReader, error) {
+func readDirectionalLight(r io.ReadSeeker) (FragmentReader, error) {
 	d := &WldFragDirectionalLight{}
 	d.FragName = FragName(d.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)

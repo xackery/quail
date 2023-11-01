@@ -18,7 +18,7 @@ type Mod struct {
 	Triangles []Triangle  `yaml:"triangles"`
 }
 
-// Decode decodes a MOD file
+// Decode reads a MOD file
 func (mod *Mod) Read(r io.ReadSeeker) error {
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 
@@ -168,7 +168,7 @@ func (mod *Mod) Read(r io.ReadSeeker) error {
 	tag.Add(tag.LastPos(), dec.Pos(), "orange", "bones")
 
 	if dec.Error() != nil {
-		return fmt.Errorf("decode: %w", dec.Error())
+		return fmt.Errorf("read: %w", dec.Error())
 	}
 
 	return nil

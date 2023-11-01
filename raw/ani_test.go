@@ -46,7 +46,7 @@ func TestAniRead(t *testing.T) {
 				if err != nil {
 					os.WriteFile(fmt.Sprintf("%s/%s", dirTest, file.Name()), file.Data(), 0644)
 					tag.Write(fmt.Sprintf("%s/%s.tags", dirTest, file.Name()))
-					t.Fatalf("failed to decode %s: %s", tt.name, err.Error())
+					t.Fatalf("failed to read %s: %s", tt.name, err.Error())
 				}
 			}
 		})
@@ -67,8 +67,8 @@ func TestAniWrite(t *testing.T) {
 	}{
 		// .ani|1|sidl_ba_1_tln.ani|tln.eqg
 		//{name: "tln.eqg"},
-		// .ani|2|stnd_ba_1_exo.ani|exo.eqg eye_chr.s3d pfs import: s3d load: decode: dirName for crc 655939147 not found
-		// .ani|2|walk_ba_1_vaf.ani|vaf.eqg valdeholm.eqg pfs import: eqg load: decode: read nameData unexpected EOF
+		// .ani|2|stnd_ba_1_exo.ani|exo.eqg eye_chr.s3d pfs import: s3d load: read: dirName for crc 655939147 not found
+		// .ani|2|walk_ba_1_vaf.ani|vaf.eqg valdeholm.eqg pfs import: eqg load: read: read nameData unexpected EOF
 	}
 
 	for _, tt := range tests {
@@ -87,7 +87,7 @@ func TestAniWrite(t *testing.T) {
 				if err != nil {
 					os.WriteFile(fmt.Sprintf("%s/%s", dirTest, file.Name()), file.Data(), 0644)
 					tag.Write(fmt.Sprintf("%s/%s.tags", dirTest, file.Name()))
-					t.Fatalf("failed to decode %s: %s", tt.name, err.Error())
+					t.Fatalf("failed to read %s: %s", tt.name, err.Error())
 				}
 
 				buf := bytes.NewBuffer(nil)

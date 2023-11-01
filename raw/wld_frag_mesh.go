@@ -109,7 +109,7 @@ func (e *WldFragTwoDSprite) Encode(w io.Writer) error {
 
 }
 
-func decodeTwoDSprite(r io.ReadSeeker) (FragmentReader, error) {
+func readTwoDSprite(r io.ReadSeeker) (FragmentReader, error) {
 	d := &WldFragTwoDSprite{}
 	d.FragName = FragName(d.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
@@ -207,7 +207,7 @@ func (e *WldFragTwoDSpriteRef) Encode(w io.Writer) error {
 	return nil
 }
 
-func decodeTwoDSpriteRef(r io.ReadSeeker) (FragmentReader, error) {
+func readTwoDSpriteRef(r io.ReadSeeker) (FragmentReader, error) {
 	d := &WldFragTwoDSpriteRef{}
 	d.FragName = FragName(d.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
@@ -319,7 +319,7 @@ func (e *WldFragThreeDSprite) Encode(w io.Writer) error {
 	return nil
 }
 
-func decodeThreeDSprite(r io.ReadSeeker) (FragmentReader, error) {
+func readThreeDSprite(r io.ReadSeeker) (FragmentReader, error) {
 	d := &WldFragThreeDSprite{}
 	d.FragName = FragName(d.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
@@ -414,7 +414,7 @@ func (e *WldFragThreeDSpriteRef) Encode(w io.Writer) error {
 	return nil
 }
 
-func decodeThreeDSpriteRef(r io.ReadSeeker) (FragmentReader, error) {
+func readThreeDSpriteRef(r io.ReadSeeker) (FragmentReader, error) {
 	d := &WldFragThreeDSpriteRef{}
 	d.FragName = FragName(d.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
@@ -475,7 +475,7 @@ func (e *WldFragFourDSprite) Encode(w io.Writer) error {
 	return nil
 }
 
-func decodeFourDSprite(r io.ReadSeeker) (FragmentReader, error) {
+func readFourDSprite(r io.ReadSeeker) (FragmentReader, error) {
 	d := &WldFragFourDSprite{}
 	d.FragName = FragName(d.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
@@ -531,7 +531,7 @@ func (e *WldFragFourDSpriteRef) Encode(w io.Writer) error {
 	return nil
 }
 
-func decodeFourDSpriteRef(r io.ReadSeeker) (FragmentReader, error) {
+func readFourDSpriteRef(r io.ReadSeeker) (FragmentReader, error) {
 	d := &WldFragFourDSpriteRef{}
 	d.FragName = FragName(d.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
@@ -591,7 +591,7 @@ func (e *WldFragPolyhedron) Encode(w io.Writer) error {
 	return nil
 }
 
-func decodePolyhedron(r io.ReadSeeker) (FragmentReader, error) {
+func readPolyhedron(r io.ReadSeeker) (FragmentReader, error) {
 	d := &WldFragPolyhedron{}
 	d.FragName = FragName(d.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
@@ -647,7 +647,7 @@ func (e *WldFragPolyhedronRef) Encode(w io.Writer) error {
 	return nil
 }
 
-func decodePolyhedronRef(r io.ReadSeeker) (FragmentReader, error) {
+func readPolyhedronRef(r io.ReadSeeker) (FragmentReader, error) {
 	d := &WldFragPolyhedronRef{}
 	d.FragName = FragName(d.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
@@ -791,7 +791,7 @@ func (e *WldFragDMSprite) Encode(w io.Writer) error {
 	return nil
 }
 
-func decodeDMSprite(r io.ReadSeeker) (FragmentReader, error) {
+func readDMSprite(r io.ReadSeeker) (FragmentReader, error) {
 	d := &WldFragDMSprite{}
 	d.FragName = FragName(d.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
@@ -944,7 +944,7 @@ func (e *WldFragDMSpriteRef) Encode(w io.Writer) error {
 	return nil
 }
 
-func decodeDMSpriteRef(r io.ReadSeeker) (FragmentReader, error) {
+func readDMSpriteRef(r io.ReadSeeker) (FragmentReader, error) {
 	d := &WldFragDMSpriteRef{}
 	d.FragName = FragName(d.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
@@ -1123,7 +1123,7 @@ func (e *WldFragMesh) Encode(w io.Writer) error {
 	return nil
 }
 
-func decodeMesh(r io.ReadSeeker) (FragmentReader, error) {
+func readMesh(r io.ReadSeeker) (FragmentReader, error) {
 	d := &WldFragMesh{}
 	d.FragName = FragName(d.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
@@ -1271,7 +1271,7 @@ func (e *WldFragMeshAnimated) Encode(w io.Writer) error {
 	return nil
 }
 
-func decodeMeshAnimated(r io.ReadSeeker) (FragmentReader, error) {
+func readMeshAnimated(r io.ReadSeeker) (FragmentReader, error) {
 	d := &WldFragMeshAnimated{}
 	d.FragName = FragName(d.FragCode())
 	return d, nil

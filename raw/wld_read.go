@@ -17,7 +17,7 @@ type Wld struct {
 	Fragments  map[int]FragmentReader `yaml:"fragments,omitempty"`
 }
 
-// Read decodes a wld file that was prepped by Load
+// Read reads a wld file that was prepped by Load
 func (wld *Wld) Read(r io.ReadSeeker) error {
 	if wld.Fragments == nil {
 		wld.Fragments = make(map[int]FragmentReader)
@@ -79,14 +79,14 @@ func (wld *Wld) Read(r io.ReadSeeker) error {
 
 		fragCode := dec.Int32()
 
-		decoder, ok := decoders[int(fragCode)]
+		readr, ok := readrs[int(fragCode)]
 		if !ok {
-			return fmt.Errorf("frag %d 0x%x decode: unsupported fragment", i, fragCode)
+			return fmt.Errorf("frag %d 0x%x read: unsupported fragment", i, fragCode)
 		}
 
-		wld.Fragments[int(i)], err = decoder(r)
+		wld.Fragments[int(i)], err = readr(r)
 		if err != nil {
-			return fmt.Errorf("frag %d 0x%x (%s) decode: %w", i, fragCode, FragName(int(fragCode)), err)
+			return fmt.Errorf("frag %d 0x%x (%s) read: %w", i, fragCode, FragName(int(fragCode)), err)
 		}
 
 		//fmt.Println("frag", i, fragCode, FragName(int(fragCode)))
@@ -129,7 +129,7 @@ func readFragments(fragmentCount uint32, r io.ReadSeeker) (fragments [][]byte, e
 	}
 
 	if dec.Error() != nil {
-		return nil, fmt.Errorf("decode: %w", dec.Error())
+		return nil, fmt.Errorf("read: %w", dec.Error())
 	}
 	return fragments, nil
 }

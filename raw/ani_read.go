@@ -103,9 +103,7 @@ func (ani *Ani) Read(r io.ReadSeeker) error {
 	}
 
 	if dec.Error() != nil {
-		return fmt.Errorf("decode: %w", dec.Error())
+		return fmt.Errorf("read: %w", dec.Error())
 	}
-
-	//log.Debugf("%s (ani) decoded %d bones, bone 0 had %d frames", ani.Header.Name, len(ani.Bones), ani.Bones[0].FrameCount)
 	return nil
 }

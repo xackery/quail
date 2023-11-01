@@ -26,7 +26,7 @@ type PtsEntry struct {
 	//BoneSuffix  []byte  `yaml:"bone_suffix,omitempty"`
 }
 
-// Read decodes a PTS file
+// Read reads a PTS file
 func (pts *Pts) Read(r io.ReadSeeker) error {
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 
@@ -67,9 +67,9 @@ func (pts *Pts) Read(r io.ReadSeeker) error {
 	}
 
 	if dec.Error() != nil {
-		return fmt.Errorf("decode: %w", dec.Error())
+		return fmt.Errorf("read: %w", dec.Error())
 	}
 
-	//log.Debugf("%s (pts) decoded %d entries", pts.Header.Name, len(pts.Entries))
+	//log.Debugf("%s (pts) readd %d entries", pts.Header.Name, len(pts.Entries))
 	return nil
 }

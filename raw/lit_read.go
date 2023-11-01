@@ -13,7 +13,7 @@ type Lit struct {
 	Entries []*common.RGBA
 }
 
-// Decode will decode a lit
+// Decode will read a lit
 func (lit *Lit) Read(r io.ReadSeeker) error {
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 
@@ -27,7 +27,7 @@ func (lit *Lit) Read(r io.ReadSeeker) error {
 		})
 	}
 	if dec.Error() != nil {
-		return fmt.Errorf("decode: %w", dec.Error())
+		return fmt.Errorf("read: %w", dec.Error())
 	}
 
 	return nil

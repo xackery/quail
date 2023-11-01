@@ -44,7 +44,7 @@ func TestWldUnmarshal(t *testing.T) {
 			wld := &raw.Wld{}
 			err = wld.Read(bytes.NewReader(data))
 			if err != nil {
-				t.Fatalf("failed to decode wld %s: %s", tt.file, err.Error())
+				t.Fatalf("failed to read wld %s: %s", tt.file, err.Error())
 			}
 
 			q := New()
@@ -58,7 +58,7 @@ func TestWldUnmarshal(t *testing.T) {
 			}
 
 			//if !reflect.DeepEqual(got, tt.want) {
-			//	t.Errorf("decodeMesh() = %v, want %v", got, tt.want)
+			//	t.Errorf("readMesh() = %v, want %v", got, tt.want)
 			//}
 		})
 	}
@@ -92,7 +92,7 @@ func TestWldMarshal(t *testing.T) {
 			wld := &raw.Wld{}
 			err = wld.Read(bytes.NewReader(data))
 			if err != nil {
-				t.Fatalf("failed to decode wld %s: %s", tt.file, err.Error())
+				t.Fatalf("failed to read wld %s: %s", tt.file, err.Error())
 			}
 
 			srcFragments, err := tmpFragments(t, bytes.NewReader(data))
@@ -182,7 +182,7 @@ func tmpFragments(t *testing.T, r io.ReadSeeker) (fragments [][]byte, err error)
 	}
 
 	if dec.Error() != nil {
-		return nil, fmt.Errorf("decode: %w", dec.Error())
+		return nil, fmt.Errorf("read: %w", dec.Error())
 	}
 	return fragments, nil
 }

@@ -36,7 +36,7 @@ func TestDatRead(t *testing.T) {
 		// .dat|?|buriedsea.dat|buriedsea.eqg
 		// .dat|?|commonlands.dat|commonlands.eqg
 		// .dat|?|commonlands.dat|oldcommons.eqg
-		{name: "cryptofshade.dat", pfsName: "cryptofshade.eqg"},
+		{name: "cryptofshade.dat", pfsName: "cryptofshade.eqg"}, // FIXME: incomplete reader
 		// .dat|?|devastation.dat|devastation.eqg
 		// .dat|?|dragonscale.dat|dragonscale.eqg
 		// .dat|?|empyr.dat|empyr.eqg
@@ -157,7 +157,7 @@ func TestDatRead(t *testing.T) {
 				os.WriteFile(fmt.Sprintf("%s/%s", dirTest, file.Name()), file.Data(), 0644)
 				tag.Write(fmt.Sprintf("%s/%s.tags", dirTest, file.Name()))
 				if err != nil {
-					t.Fatalf("failed to decode %s: %s", tt.name, err.Error())
+					t.Fatalf("failed to read %s: %s", tt.name, err.Error())
 				}
 
 			}
@@ -177,7 +177,7 @@ func TestDatWrite(t *testing.T) {
 		pfsName string
 		wantErr bool
 	}{
-		{name: "cryptofshade.dat", pfsName: "cryptofshade.eqg"},
+		{name: "cryptofshade.dat", pfsName: "cryptofshade.eqg"}, // FIXME: incomplete writer
 	}
 
 	for _, tt := range tests {
@@ -196,7 +196,7 @@ func TestDatWrite(t *testing.T) {
 				os.WriteFile(fmt.Sprintf("%s/%s", dirTest, file.Name()), file.Data(), 0644)
 				tag.Write(fmt.Sprintf("%s/%s.tags", dirTest, file.Name()))
 				if err != nil {
-					t.Fatalf("failed to decode %s: %s", tt.name, err.Error())
+					t.Fatalf("failed to read %s: %s", tt.name, err.Error())
 				}
 
 				buf := bytes.NewBuffer(nil)

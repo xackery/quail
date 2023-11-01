@@ -26,15 +26,15 @@ func TestLayRead(t *testing.T) {
 		args    args
 		wantErr bool
 	}{
-		// .lay|2|crs.lay|crs.eqg crs.eqg pfs import: decodePrt crs.lay: 1 names materialID 0x41400000 not found
+		// .lay|2|crs.lay|crs.eqg crs.eqg pfs import: readPrt crs.lay: 1 names materialID 0x41400000 not found
 		{name: "crs.eqg"},
-		// .lay|2|ddv.lay|ddv.eqg ddv.eqg pfs import: decodePrt ddv.lay: 1 names materialID 0x42800000 not found
+		// .lay|2|ddv.lay|ddv.eqg ddv.eqg pfs import: readPrt ddv.lay: 1 names materialID 0x42800000 not found
 		{name: "ddv.eqg"},
-		// .lay|2|prt.lay|prt.eqg prt.eqg pfs import: decodePrt prt.lay: 1 names materialID 0x41400000 not found
+		// .lay|2|prt.lay|prt.eqg prt.eqg pfs import: readPrt prt.lay: 1 names materialID 0x41400000 not found
 		{name: "prt.eqg"},
-		// .lay|2|rkp.lay|rkp.eqg rkp.eqg pfs import: decodePrt rkp.lay: 1 names materialID 0x41400000 not found
+		// .lay|2|rkp.lay|rkp.eqg rkp.eqg pfs import: readPrt rkp.lay: 1 names materialID 0x41400000 not found
 		{name: "rkp.eqg"},
-		// .lay|3|rat.lay|rat.eqg rat.eqg pfs import: decodePrt rat.lay: 1 names materialID 0x420000 not found
+		// .lay|3|rat.lay|rat.eqg rat.eqg pfs import: readPrt rat.lay: 1 names materialID 0x420000 not found
 		{name: "rat.eqg"},
 		// .lay|4|aam.lay|aam.eqg
 		{name: "aam.eqg"},
@@ -48,7 +48,7 @@ func TestLayRead(t *testing.T) {
 		{name: "alg.eqg"},
 		// .lay|4|amy.lay|amy.eqg
 		{name: "amy.eqg"},
-		// .lay|4|cwc.lay|cwc.eqg cwc.eqg pfs import: decodePrt cwc.lay: 0 names colorTexture 0xffffffff not found
+		// .lay|4|cwc.lay|cwc.eqg cwc.eqg pfs import: readPrt cwc.lay: 0 names colorTexture 0xffffffff not found
 		{name: "cwc.eqg"},
 	}
 
@@ -71,10 +71,8 @@ func TestLayRead(t *testing.T) {
 						t.Fatalf("failed to write %s: %s", tt.name, err.Error())
 					}
 					tag.Write(fmt.Sprintf("%s/%s.tags", dirTest, file.Name()))
-					t.Fatalf("failed to decode %s: %s", tt.name, err.Error())
+					t.Fatalf("failed to read %s: %s", tt.name, err.Error())
 				}
-				fmt.Println("decoded", tt.name)
-				fmt.Printf("%+v\n", lay)
 			}
 		})
 	}
@@ -94,15 +92,15 @@ func TestLayWrite(t *testing.T) {
 		args    args
 		wantErr bool
 	}{
-		// .lay|2|crs.lay|crs.eqg crs.eqg pfs import: decodePrt crs.lay: 1 names materialID 0x41400000 not found
+		// .lay|2|crs.lay|crs.eqg crs.eqg pfs import: readPrt crs.lay: 1 names materialID 0x41400000 not found
 		{name: "crs.eqg"},
-		// .lay|2|ddv.lay|ddv.eqg ddv.eqg pfs import: decodePrt ddv.lay: 1 names materialID 0x42800000 not found
+		// .lay|2|ddv.lay|ddv.eqg ddv.eqg pfs import: readPrt ddv.lay: 1 names materialID 0x42800000 not found
 		{name: "ddv.eqg"},
-		// .lay|2|prt.lay|prt.eqg prt.eqg pfs import: decodePrt prt.lay: 1 names materialID 0x41400000 not found
+		// .lay|2|prt.lay|prt.eqg prt.eqg pfs import: readPrt prt.lay: 1 names materialID 0x41400000 not found
 		{name: "prt.eqg"},
-		// .lay|2|rkp.lay|rkp.eqg rkp.eqg pfs import: decodePrt rkp.lay: 1 names materialID 0x41400000 not found
+		// .lay|2|rkp.lay|rkp.eqg rkp.eqg pfs import: readPrt rkp.lay: 1 names materialID 0x41400000 not found
 		{name: "rkp.eqg"},
-		// .lay|3|rat.lay|rat.eqg rat.eqg pfs import: decodePrt rat.lay: 1 names materialID 0x420000 not found
+		// .lay|3|rat.lay|rat.eqg rat.eqg pfs import: readPrt rat.lay: 1 names materialID 0x420000 not found
 		{name: "rat.eqg"},
 		// .lay|4|aam.lay|aam.eqg
 		{name: "aam.eqg"},
@@ -116,7 +114,7 @@ func TestLayWrite(t *testing.T) {
 		{name: "alg.eqg"},
 		// .lay|4|amy.lay|amy.eqg
 		{name: "amy.eqg"},
-		// .lay|4|cwc.lay|cwc.eqg cwc.eqg pfs import: decodePrt cwc.lay: 0 names colorTexture 0xffffffff not found
+		// .lay|4|cwc.lay|cwc.eqg cwc.eqg pfs import: readPrt cwc.lay: 0 names colorTexture 0xffffffff not found
 		{name: "cwc.eqg"},
 	}
 
@@ -139,7 +137,7 @@ func TestLayWrite(t *testing.T) {
 						t.Fatalf("failed to write %s: %s", tt.name, err.Error())
 					}
 					tag.Write(fmt.Sprintf("%s/%s.tags", dirTest, file.Name()))
-					t.Fatalf("failed to decode %s: %s", tt.name, err.Error())
+					t.Fatalf("failed to read %s: %s", tt.name, err.Error())
 				}
 
 				//encode
@@ -149,11 +147,11 @@ func TestLayWrite(t *testing.T) {
 					t.Fatalf("failed to encode %s: %s", tt.name, err.Error())
 				}
 
-				//decode
+				//read
 				lay2 := &Lay{}
 				err = lay2.Read(bytes.NewReader(buf.Bytes()))
 				if err != nil {
-					t.Fatalf("failed to decode %s: %s", tt.name, err.Error())
+					t.Fatalf("failed to read %s: %s", tt.name, err.Error())
 				}
 
 				if len(lay.Entries) != len(lay2.Entries) {

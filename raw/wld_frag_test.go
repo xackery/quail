@@ -62,14 +62,14 @@ func TestFragment(t *testing.T) {
 
 				fragCode := dec.Int32()
 
-				decoder, ok := decoders[int(fragCode)]
+				readr, ok := readrs[int(fragCode)]
 				if !ok {
-					t.Fatalf("frag %d 0x%x decode: unsupported fragment", i, fragCode)
+					t.Fatalf("frag %d 0x%x read: unsupported fragment", i, fragCode)
 				}
 
-				frag, err := decoder(r)
+				frag, err := readr(r)
 				if err != nil {
-					t.Fatalf("frag %d 0x%x (%s) decode: %s", i, fragCode, FragName(int(fragCode)), err.Error())
+					t.Fatalf("frag %d 0x%x (%s) read: %s", i, fragCode, FragName(int(fragCode)), err.Error())
 				}
 
 				buf := bytes.NewBuffer(nil)
@@ -167,7 +167,7 @@ func tmpFragments(t *testing.T, r io.ReadSeeker) (fragments [][]byte, err error)
 	}
 
 	if dec.Error() != nil {
-		return nil, fmt.Errorf("decode: %w", dec.Error())
+		return nil, fmt.Errorf("read: %w", dec.Error())
 	}
 	return fragments, nil
 }

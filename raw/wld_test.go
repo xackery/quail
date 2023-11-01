@@ -37,7 +37,7 @@ func TestWldRead(t *testing.T) {
 			wld := &Wld{}
 			err = wld.Read(bytes.NewReader(data))
 			if err != nil {
-				t.Fatalf("failed to decode %s: %s", tt.name, err.Error())
+				t.Fatalf("failed to read %s: %s", tt.name, err.Error())
 			}
 
 		})
@@ -72,7 +72,7 @@ func TestWldFragOffsetDump(t *testing.T) {
 			wld := &Wld{}
 			err = wld.Read(bytes.NewReader(data))
 			if err != nil {
-				t.Fatalf("failed to decode %s: %s", tt.name, err.Error())
+				t.Fatalf("failed to read %s: %s", tt.name, err.Error())
 			}
 
 			path := fmt.Sprintf("%s/%s.wld.yaml", dirTest, tt.name)

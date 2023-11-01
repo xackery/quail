@@ -32,7 +32,7 @@ func (e *WldFragPaletteFile) Encode(w io.Writer) error {
 	return nil
 }
 
-func decodePaletteFile(r io.ReadSeeker) (FragmentReader, error) {
+func readPaletteFile(r io.ReadSeeker) (FragmentReader, error) {
 	d := &WldFragPaletteFile{}
 	d.FragName = FragName(d.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
@@ -69,7 +69,7 @@ func (e *WldFragTextureList) Encode(w io.Writer) error {
 	return nil
 }
 
-func decodeTextureList(r io.ReadSeeker) (FragmentReader, error) {
+func readTextureList(r io.ReadSeeker) (FragmentReader, error) {
 	d := &WldFragTextureList{}
 	d.FragName = FragName(d.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
@@ -120,7 +120,7 @@ func (e *WldFragTexture) Encode(w io.Writer) error {
 	return nil
 }
 
-func decodeTexture(r io.ReadSeeker) (FragmentReader, error) {
+func readTexture(r io.ReadSeeker) (FragmentReader, error) {
 	d := &WldFragTexture{}
 	d.FragName = FragName(d.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
@@ -165,7 +165,7 @@ func (e *WldFragTextureRef) Encode(w io.Writer) error {
 	return nil
 }
 
-func decodeTextureRef(r io.ReadSeeker) (FragmentReader, error) {
+func readTextureRef(r io.ReadSeeker) (FragmentReader, error) {
 	d := &WldFragTextureRef{}
 	d.FragName = FragName(d.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
@@ -204,7 +204,7 @@ func (e *WldFragBlitSprite) Encode(w io.Writer) error {
 	return nil
 }
 
-func decodeBlitSprite(r io.ReadSeeker) (FragmentReader, error) {
+func readBlitSprite(r io.ReadSeeker) (FragmentReader, error) {
 	d := &WldFragBlitSprite{}
 	d.FragName = FragName(d.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
@@ -232,7 +232,7 @@ func (e *WldFragBlitSpriteRef) Encode(w io.Writer) error {
 	return fmt.Errorf("not implemented")
 }
 
-func decodeBlitSpriteRef(r io.ReadSeeker) (FragmentReader, error) {
+func readBlitSpriteRef(r io.ReadSeeker) (FragmentReader, error) {
 	d := &WldFragBlitSpriteRef{}
 	d.FragName = FragName(d.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
@@ -278,7 +278,7 @@ func (e *WldFragMaterial) Encode(w io.Writer) error {
 	return nil
 }
 
-func decodeMaterial(r io.ReadSeeker) (FragmentReader, error) {
+func readMaterial(r io.ReadSeeker) (FragmentReader, error) {
 	d := &WldFragMaterial{}
 	d.FragName = FragName(d.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
@@ -325,7 +325,7 @@ func (e *WldFragMaterialList) Encode(w io.Writer) error {
 	return nil
 }
 
-func decodeMaterialList(r io.ReadSeeker) (FragmentReader, error) {
+func readMaterialList(r io.ReadSeeker) (FragmentReader, error) {
 	d := &WldFragMaterialList{}
 	d.FragName = FragName(d.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)

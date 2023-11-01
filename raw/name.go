@@ -35,6 +35,9 @@ func NameAdd(name string) int32 {
 	if names == nil {
 		names = make(map[int32]string)
 	}
+	if name == "" {
+		return 0
+	}
 
 	if id := NameIndex(name); id != -1 {
 		return id

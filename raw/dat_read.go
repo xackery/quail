@@ -26,7 +26,7 @@ type DatTile struct {
 	Colors2 []uint32 `yaml:"colors2,omitempty"`
 }
 
-// Decode decodes a v4 zone dat file
+// Decode reads a v4 zone dat file
 // https://github.com/EQEmu/zone-utilities/blob/master/src/common/eqg_v4_loader.cpp#L115
 func (dat *Dat) Read(r io.ReadSeeker) error {
 	dec := encdec.NewDecoder(r, binary.LittleEndian)

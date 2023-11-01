@@ -90,7 +90,7 @@ func (e *Quail) S3DImport(path string) error {
 					}
 					img, err := bmp.Decode(bytes.NewReader(file.Data()))
 					if err != nil {
-						return fmt.Errorf("bmp decode: %w", err)
+						return fmt.Errorf("bmp read: %w", err)
 					}
 					buf := new(bytes.Buffer)
 					// convert to png

@@ -75,7 +75,7 @@ func (e *SkeletonTrack) Encode(w io.Writer) error {
 	return nil
 }
 
-func decodeSkeletonTrack(r io.ReadSeeker) (FragmentReader, error) {
+func readSkeletonTrack(r io.ReadSeeker) (FragmentReader, error) {
 	d := &SkeletonTrack{}
 	d.FragName = FragName(d.FragCode())
 
@@ -144,7 +144,7 @@ func (e *SkeletonTrackRef) Encode(w io.Writer) error {
 	return nil
 }
 
-func decodeSkeletonTrackRef(r io.ReadSeeker) (FragmentReader, error) {
+func readSkeletonTrackRef(r io.ReadSeeker) (FragmentReader, error) {
 	d := &SkeletonTrackRef{}
 	d.FragName = FragName(d.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
@@ -215,7 +215,7 @@ func (e *Track) Encode(w io.Writer) error {
 	return nil
 }
 
-func decodeTrack(r io.ReadSeeker) (FragmentReader, error) {
+func readTrack(r io.ReadSeeker) (FragmentReader, error) {
 	d := &Track{}
 	d.FragName = FragName(d.FragCode())
 
@@ -284,7 +284,7 @@ func (e *TrackRef) Encode(w io.Writer) error {
 	return nil
 }
 
-func decodeTrackRef(r io.ReadSeeker) (FragmentReader, error) {
+func readTrackRef(r io.ReadSeeker) (FragmentReader, error) {
 	d := &TrackRef{}
 	d.FragName = FragName(d.FragCode())
 

@@ -19,11 +19,11 @@ func TestModRead(t *testing.T) {
 		wantErr bool
 	}{
 
-		// .mod|0|obp_fob_tree.mod|oldfieldofbone.eqg oldfieldofbone.eqg pfs import: decodeMod obp_fob_tree.mod: invalid header EQLO, wanted EQGM
-		// .mod|0|obp_fob_tree.mod|oldfieldofboneb.eqg oldfieldofboneb.eqg pfs import: decodeMod obp_fob_tree.mod: invalid header EQLO, wanted EQGM
+		// .mod|0|obp_fob_tree.mod|oldfieldofbone.eqg oldfieldofbone.eqg pfs import: readMod obp_fob_tree.mod: invalid header EQLO, wanted EQGM
+		// .mod|0|obp_fob_tree.mod|oldfieldofboneb.eqg oldfieldofboneb.eqg pfs import: readMod obp_fob_tree.mod: invalid header EQLO, wanted EQGM
 		// .mod|1|arch.mod|dranik.eqg
 		// .mod|1|aro.mod|aro.eqg
-		// .mod|1|col_b04.mod|b04.eqg b04.eqg pfs import: decodeMod col_b04.mod: material shader not found
+		// .mod|1|col_b04.mod|b04.eqg b04.eqg pfs import: readMod col_b04.mod: material shader not found
 		// .mod|2|boulder_lg.mod|broodlands.eqg
 		// .mod|2|et_door01.mod|stillmoona.eqg
 		// .mod|3|.mod|paperbaghat.eqg
