@@ -11,13 +11,22 @@ import (
 )
 
 type Mds struct {
-	MetaFileName string      `yaml:"file_name"`
-	Version      uint32      `yaml:"version"`
-	SubCount     uint32      `yaml:"sub_count"`
-	Materials    []*Material `yaml:"materials"`
-	Bones        []*Bone     `yaml:"bones"`
-	Vertices     []*Vertex   `yaml:"vertices"`
-	Triangles    []Triangle  `yaml:"triangles"`
+	MetaFileName    string               `yaml:"file_name"`
+	Version         uint32               `yaml:"version"`
+	Materials       []*Material          `yaml:"materials"`
+	Bones           []*Bone              `yaml:"bones"`
+	MainNameIndex   int32                `yaml:"main_name_index"`
+	SubNameIndex    int32                `yaml:"sub_name_index"`
+	Vertices        []*Vertex            `yaml:"vertices"`
+	Triangles       []Triangle           `yaml:"triangles"`
+	Subs            []*MdsSub            `yaml:"subs"`
+	BoneAssignments []*MdsBoneAssignment `yaml:"bone_assignments"`
+}
+
+type MdsSub struct {
+}
+
+type MdsBoneAssignment struct {
 }
 
 // Read reads a mds file
@@ -36,7 +45,7 @@ func (mds *Mds) Read(r io.ReadSeeker) error {
 	nameLength := int(dec.Uint32())
 	materialCount := dec.Uint32()
 	boneCount := dec.Uint32()
-	mds.SubCount = dec.Uint32()
+	subCount := dec.Uint32()
 
 	nameData := dec.Bytes(int(nameLength))
 
@@ -112,23 +121,13 @@ func (mds *Mds) Read(r io.ReadSeeker) error {
 		mds.Bones = append(mds.Bones, bone)
 	}
 
-	mainNameIndex := dec.Uint32()
-	// TODO: mainNameIndex is not used?
-	log.Debugf("mainNameIndex: %d", mainNameIndex)
-	_ = mainNameIndex
-
-	subNameIndex := dec.Uint32()
-	// TODO: subNameIndex is not used?
-	log.Debugf("subNameIndex: %d", subNameIndex)
-	_ = subNameIndex
+	mds.MainNameIndex = dec.Int32()
+	mds.SubNameIndex = dec.Int32()
 
 	verticesCount := dec.Uint32()
 	triangleCount := dec.Uint32()
 
 	boneAssignmentCount := dec.Uint32()
-	// TODO: boneAssignmentCount is not used?
-	_ = boneAssignmentCount
-	log.Debugf("boneAssignmentCount: %d", boneAssignmentCount)
 
 	for i := 0; i < int(verticesCount); i++ {
 		v := &Vertex{}
@@ -183,6 +182,14 @@ func (mds *Mds) Read(r io.ReadSeeker) error {
 
 		t.Flag = dec.Uint32()
 		mds.Triangles = append(mds.Triangles, t)
+	}
+
+	for i := 0; i < int(subCount); i++ {
+		// TODO: sub count
+	}
+
+	for i := 0; i < int(boneAssignmentCount); i++ {
+		// TODO: bone assignment count
 	}
 
 	if dec.Error() != nil {
