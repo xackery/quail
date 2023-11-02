@@ -61,7 +61,7 @@ func TestBmpWrite(t *testing.T) {
 	}
 	dirTest := common.DirTest(t)
 
-	// FIXME: ani writer
+	// FIXME: bmp tests
 	tests := []struct {
 		name    string
 		wantErr bool
