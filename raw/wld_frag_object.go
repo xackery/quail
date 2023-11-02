@@ -2,6 +2,7 @@ package raw
 
 import (
 	"encoding/binary"
+	"fmt"
 	"io"
 
 	"github.com/xackery/encdec"
@@ -35,7 +36,7 @@ func (e *WldFragParticleSprite) FragCode() int {
 	return 0x0C
 }
 
-func (e *WldFragParticleSprite) Encode(w io.Writer) error {
+func (e *WldFragParticleSprite) Write(w io.Writer) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
 	enc.Int32(e.NameRef)
 	enc.Uint32(e.Flags)
@@ -82,7 +83,7 @@ func (e *WldFragParticleSprite) Encode(w io.Writer) error {
 	return nil
 }
 
-func readParticleSprite(r io.ReadSeeker) (FragmentReader, error) {
+func (e *WldFragParticleSprite) Read(r io.ReadSeeker) error {
 	d := &WldFragParticleSprite{}
 	d.FragName = FragName(d.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
@@ -129,10 +130,11 @@ func readParticleSprite(r io.ReadSeeker) (FragmentReader, error) {
 		entry.Y = dec.Float32()
 		d.RenderUVMapEntries = append(d.RenderUVMapEntries, entry)
 	}
-	if dec.Error() != nil {
-		return nil, dec.Error()
+	err := dec.Error()
+	if err != nil {
+		return fmt.Errorf("read: %w", err)
 	}
-	return d, nil
+	return nil
 }
 
 // WldFragParticleSpriteRef is ParticleSprite in libeq, empty in openzone, PARTICLESPRITE (ref) in wld
@@ -147,7 +149,7 @@ func (e *WldFragParticleSpriteRef) FragCode() int {
 	return 0x0D
 }
 
-func (e *WldFragParticleSpriteRef) Encode(w io.Writer) error {
+func (e *WldFragParticleSpriteRef) Write(w io.Writer) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
 	enc.Int32(e.NameRef)
 	enc.Int32(e.ParticleSpriteDefRef)
@@ -158,17 +160,18 @@ func (e *WldFragParticleSpriteRef) Encode(w io.Writer) error {
 	return nil
 }
 
-func readParticleSpriteRef(r io.ReadSeeker) (FragmentReader, error) {
+func (e *WldFragParticleSpriteRef) Read(r io.ReadSeeker) error {
 	d := &WldFragParticleSpriteRef{}
 	d.FragName = FragName(d.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	d.NameRef = dec.Int32()
 	d.ParticleSpriteDefRef = dec.Int32()
 	d.Flags = dec.Uint32()
-	if dec.Error() != nil {
-		return nil, dec.Error()
+	err := dec.Error()
+	if err != nil {
+		return fmt.Errorf("read: %w", err)
 	}
-	return d, nil
+	return nil
 }
 
 // WldFragCompositeSprite is empty in libeq, empty in openzone, COMPOSITESPRITEDEF in wld, Actor in lantern
@@ -182,7 +185,7 @@ func (e *WldFragCompositeSprite) FragCode() int {
 	return 0x0E
 }
 
-func (e *WldFragCompositeSprite) Encode(w io.Writer) error {
+func (e *WldFragCompositeSprite) Write(w io.Writer) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
 	enc.Int32(e.NameRef)
 	enc.Uint32(e.Flags)
@@ -192,16 +195,17 @@ func (e *WldFragCompositeSprite) Encode(w io.Writer) error {
 	return nil
 }
 
-func readCompositeSprite(r io.ReadSeeker) (FragmentReader, error) {
+func (e *WldFragCompositeSprite) Read(r io.ReadSeeker) error {
 	d := &WldFragCompositeSprite{}
 	d.FragName = FragName(d.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	d.NameRef = dec.Int32()
 	d.Flags = dec.Uint32()
-	if dec.Error() != nil {
-		return nil, dec.Error()
+	err := dec.Error()
+	if err != nil {
+		return fmt.Errorf("read: %w", err)
 	}
-	return d, nil
+	return nil
 }
 
 // WldFragCompositeSpriteRef is empty in libeq, empty in openzone, COMPOSITESPRITE (ref) in wld
@@ -216,7 +220,7 @@ func (e *WldFragCompositeSpriteRef) FragCode() int {
 	return 0x0F
 }
 
-func (e *WldFragCompositeSpriteRef) Encode(w io.Writer) error {
+func (e *WldFragCompositeSpriteRef) Write(w io.Writer) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
 	enc.Int32(e.NameRef)
 	enc.Int32(e.CompositeSpriteDefRef)
@@ -227,38 +231,39 @@ func (e *WldFragCompositeSpriteRef) Encode(w io.Writer) error {
 	return nil
 }
 
-func readCompositeSpriteRef(r io.ReadSeeker) (FragmentReader, error) {
+func (e *WldFragCompositeSpriteRef) Read(r io.ReadSeeker) error {
 	d := &WldFragCompositeSpriteRef{}
 	d.FragName = FragName(d.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	d.NameRef = dec.Int32()
 	d.CompositeSpriteDefRef = dec.Int32()
 	d.Flags = dec.Uint32()
-	if dec.Error() != nil {
-		return nil, dec.Error()
+	err := dec.Error()
+	if err != nil {
+		return fmt.Errorf("read: %w", err)
 	}
-	return d, nil
+	return nil
 }
 
 // WldFragModel is ActorDef in libeq, Static in openzone, ACTORDEF in wld
 type WldFragModel struct {
-	FragName         string   `yaml:"frag_name"`
-	NameRef          int32    `yaml:"name_ref"`
-	Flags            uint32   `yaml:"flags"`
-	CallbackNameRef  int32    `yaml:"callback_name_ref"`
-	ActionCount      uint32   `yaml:"action_count"`
-	FragmentRefCount uint32   `yaml:"fragment_ref_count"`
-	BoundsRef        int32    `yaml:"bounds_ref"`
-	CurrentAction    uint32   `yaml:"current_action"`
-	Offset           Vector3  `yaml:"offset"`
-	Rotation         Vector3  `yaml:"rotation"`
-	Unk1             uint32   `yaml:"unk1"`
-	Actions          []Action `yaml:"actions"`
-	FragmentRefs     []uint32 `yaml:"fragment_refs"`
-	Unk2             uint32   `yaml:"unk2"`
+	FragName         string               `yaml:"frag_name"`
+	NameRef          int32                `yaml:"name_ref"`
+	Flags            uint32               `yaml:"flags"`
+	CallbackNameRef  int32                `yaml:"callback_name_ref"`
+	ActionCount      uint32               `yaml:"action_count"`
+	FragmentRefCount uint32               `yaml:"fragment_ref_count"`
+	BoundsRef        int32                `yaml:"bounds_ref"`
+	CurrentAction    uint32               `yaml:"current_action"`
+	Offset           Vector3              `yaml:"offset"`
+	Rotation         Vector3              `yaml:"rotation"`
+	Unk1             uint32               `yaml:"unk1"`
+	Actions          []WldFragModelAction `yaml:"actions"`
+	FragmentRefs     []uint32             `yaml:"fragment_refs"`
+	Unk2             uint32               `yaml:"unk2"`
 }
 
-type Action struct {
+type WldFragModelAction struct {
 	LodCount uint32    `yaml:"lod_count"`
 	Unk1     uint32    `yaml:"unk1"`
 	Lods     []float32 `yaml:"lods"`
@@ -268,7 +273,7 @@ func (e *WldFragModel) FragCode() int {
 	return 0x14
 }
 
-func (e *WldFragModel) Encode(w io.Writer) error {
+func (e *WldFragModel) Write(w io.Writer) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
 	enc.Int32(e.NameRef)
 	enc.Uint32(e.Flags)
@@ -306,7 +311,7 @@ func (e *WldFragModel) Encode(w io.Writer) error {
 	return nil
 }
 
-func readModel(r io.ReadSeeker) (FragmentReader, error) {
+func (e *WldFragModel) Read(r io.ReadSeeker) error {
 	d := &WldFragModel{}
 	d.FragName = FragName(d.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
@@ -329,7 +334,7 @@ func readModel(r io.ReadSeeker) (FragmentReader, error) {
 		d.Unk1 = dec.Uint32()
 	}
 	for i := uint32(0); i < d.ActionCount; i++ {
-		var action Action
+		var action WldFragModelAction
 		action.LodCount = dec.Uint32()
 		action.Unk1 = dec.Uint32()
 		for j := uint32(0); j < action.LodCount; j++ {
@@ -342,10 +347,11 @@ func readModel(r io.ReadSeeker) (FragmentReader, error) {
 	}
 	d.Unk2 = dec.Uint32()
 
-	if dec.Error() != nil {
-		return nil, dec.Error()
+	err := dec.Error()
+	if err != nil {
+		return fmt.Errorf("read: %w", err)
 	}
-	return d, nil
+	return nil
 }
 
 // WldFragModelRef is Actor in libeq, Object Location in openzone, ACTORINST in wld, ObjectInstance in lantern
@@ -369,7 +375,7 @@ func (e *WldFragModelRef) FragCode() int {
 	return 0x15
 }
 
-func (e *WldFragModelRef) Encode(w io.Writer) error {
+func (e *WldFragModelRef) Write(w io.Writer) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
 	enc.Int32(e.NameRef)
 	enc.Int32(e.ActorDefRef)
@@ -403,7 +409,7 @@ func (e *WldFragModelRef) Encode(w io.Writer) error {
 	return nil
 }
 
-func readModelRef(r io.ReadSeeker) (FragmentReader, error) {
+func (e *WldFragModelRef) Read(r io.ReadSeeker) error {
 	d := &WldFragModelRef{}
 	d.FragName = FragName(d.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
@@ -433,10 +439,11 @@ func readModelRef(r io.ReadSeeker) (FragmentReader, error) {
 		d.SoundNameRef = dec.Int32()
 	}
 	d.Unk2 = dec.Int32()
-	if dec.Error() != nil {
-		return nil, dec.Error()
+	err := dec.Error()
+	if err != nil {
+		return fmt.Errorf("read: %w", err)
 	}
-	return d, nil
+	return nil
 }
 
 // WldFragSphere is WldFragSphere in libeq, Zone Unknown in openzone, SPHERE (ref) in wld, Fragment16 in lantern
@@ -450,7 +457,7 @@ func (e *WldFragSphere) FragCode() int {
 	return 0x16
 }
 
-func (e *WldFragSphere) Encode(w io.Writer) error {
+func (e *WldFragSphere) Write(w io.Writer) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
 	enc.Int32(e.NameRef)
 	enc.Float32(e.Radius)
@@ -460,16 +467,17 @@ func (e *WldFragSphere) Encode(w io.Writer) error {
 	return nil
 }
 
-func readSphere(r io.ReadSeeker) (FragmentReader, error) {
+func (e *WldFragSphere) Read(r io.ReadSeeker) error {
 	d := &WldFragSphere{}
 	d.FragName = FragName(d.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	d.NameRef = dec.Int32()
 	d.Radius = dec.Float32()
-	if dec.Error() != nil {
-		return nil, dec.Error()
+	err := dec.Error()
+	if err != nil {
+		return fmt.Errorf("read: %w", err)
 	}
-	return d, nil
+	return nil
 }
 
 // WldFragSphereList is SphereListDef in libeq, empty in openzone, SPHERELISTDEFINITION in wld
@@ -487,7 +495,7 @@ func (e *WldFragSphereList) FragCode() int {
 	return 0x19
 }
 
-func (e *WldFragSphereList) Encode(w io.Writer) error {
+func (e *WldFragSphereList) Write(w io.Writer) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
 	enc.Int32(e.NameRef)
 	enc.Uint32(e.Flags)
@@ -506,7 +514,7 @@ func (e *WldFragSphereList) Encode(w io.Writer) error {
 	return nil
 }
 
-func readSphereList(r io.ReadSeeker) (FragmentReader, error) {
+func (e *WldFragSphereList) Read(r io.ReadSeeker) error {
 	d := &WldFragSphereList{}
 	d.FragName = FragName(d.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
@@ -524,10 +532,11 @@ func readSphereList(r io.ReadSeeker) (FragmentReader, error) {
 		d.Spheres = append(d.Spheres, sphere)
 	}
 
-	if dec.Error() != nil {
-		return nil, dec.Error()
+	err := dec.Error()
+	if err != nil {
+		return fmt.Errorf("read: %w", err)
 	}
-	return d, nil
+	return nil
 }
 
 // WldFragSphereListRef is SphereList in libeq, empty in openzone, SPHERELIST (ref) in wld
@@ -542,7 +551,7 @@ func (e *WldFragSphereListRef) FragCode() int {
 	return 0x1A
 }
 
-func (e *WldFragSphereListRef) Encode(w io.Writer) error {
+func (e *WldFragSphereListRef) Write(w io.Writer) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
 	enc.Int32(e.NameRef)
 	enc.Int32(e.SphereListDefRef)
@@ -553,15 +562,16 @@ func (e *WldFragSphereListRef) Encode(w io.Writer) error {
 	return nil
 }
 
-func readSphereListRef(r io.ReadSeeker) (FragmentReader, error) {
+func (e *WldFragSphereListRef) Read(r io.ReadSeeker) error {
 	d := &WldFragSphereListRef{}
 	d.FragName = FragName(d.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	d.NameRef = dec.Int32()
 	d.SphereListDefRef = dec.Int32()
 	d.Params1 = dec.Uint32()
-	if dec.Error() != nil {
-		return nil, dec.Error()
+	err := dec.Error()
+	if err != nil {
+		return fmt.Errorf("read: %w", err)
 	}
-	return d, nil
+	return nil
 }

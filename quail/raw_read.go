@@ -86,7 +86,7 @@ func (q *Quail) wldRead(wld *raw.Wld) error {
 	return nil
 }
 
-func (q *Quail) wldConvertMesh(world *raw.Wld, frag raw.FragmentReader) (*common.Model, error) {
+func (q *Quail) wldConvertMesh(world *raw.Wld, frag raw.FragmentReadWriter) (*common.Model, error) {
 	if frag.FragCode() != 0x36 {
 		return nil, nil
 	}

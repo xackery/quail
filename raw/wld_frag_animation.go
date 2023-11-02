@@ -2,25 +2,26 @@ package raw
 
 import (
 	"encoding/binary"
+	"fmt"
 	"io"
 
 	"github.com/xackery/encdec"
 )
 
-// SkeletonTrack is HierarchialSpriteDef in libeq, SkeletonTrackSet in openzone, HIERARCHIALSPRITE in wld, SkeletonHierarchy in lantern
-type SkeletonTrack struct {
-	FragName           string          `yaml:"frag_name"`
-	NameRef            int32           `yaml:"name_ref"`
-	Flags              uint32          `yaml:"flags"`
-	CollisionVolumeRef uint32          `yaml:"collision_volume_ref"`
-	CenterOffset       [3]uint32       `yaml:"center_offset"`
-	BoundingRadius     float32         `yaml:"bounding_radius"`
-	Bones              []SkeletonEntry `yaml:"bones"`
-	Skins              []uint32        `yaml:"skins"`
-	SkinLinks          []uint32        `yaml:"skin_links"`
+// WldFragSkeletonTrack is HierarchialSpriteDef in libeq, SkeletonTrackSet in openzone, HIERARCHIALSPRITE in wld, SkeletonHierarchy in lantern
+type WldFragSkeletonTrack struct {
+	FragName           string                 `yaml:"frag_name"`
+	NameRef            int32                  `yaml:"name_ref"`
+	Flags              uint32                 `yaml:"flags"`
+	CollisionVolumeRef uint32                 `yaml:"collision_volume_ref"`
+	CenterOffset       [3]uint32              `yaml:"center_offset"`
+	BoundingRadius     float32                `yaml:"bounding_radius"`
+	Bones              []WldFragSkeletonEntry `yaml:"bones"`
+	Skins              []uint32               `yaml:"skins"`
+	SkinLinks          []uint32               `yaml:"skin_links"`
 }
 
-type SkeletonEntry struct {
+type WldFragSkeletonEntry struct {
 	NameRef         int32    `yaml:"name_ref"`
 	Flags           uint32   `yaml:"flags"`
 	TrackRef        uint32   `yaml:"track_ref"`
@@ -28,11 +29,11 @@ type SkeletonEntry struct {
 	SubBones        []uint32 `yaml:"sub_bones"`
 }
 
-func (e *SkeletonTrack) FragCode() int {
+func (e *WldFragSkeletonTrack) FragCode() int {
 	return 0x10
 }
 
-func (e *SkeletonTrack) Encode(w io.Writer) error {
+func (e *WldFragSkeletonTrack) Write(w io.Writer) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
 	enc.Int32(e.NameRef)
 	enc.Uint32(e.Flags)
@@ -75,25 +76,24 @@ func (e *SkeletonTrack) Encode(w io.Writer) error {
 	return nil
 }
 
-func readSkeletonTrack(r io.ReadSeeker) (FragmentReader, error) {
-	d := &SkeletonTrack{}
-	d.FragName = FragName(d.FragCode())
+func (e *WldFragSkeletonTrack) Read(r io.ReadSeeker) error {
+	e.FragName = FragName(e.FragCode())
 
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
-	d.NameRef = dec.Int32()
-	d.Flags = dec.Uint32()
+	e.NameRef = dec.Int32()
+	e.Flags = dec.Uint32()
 	boneCount := dec.Uint32()
-	d.CollisionVolumeRef = dec.Uint32()
-	if d.Flags&0x1 != 0 {
-		d.CenterOffset = [3]uint32{dec.Uint32(), dec.Uint32(), dec.Uint32()}
+	e.CollisionVolumeRef = dec.Uint32()
+	if e.Flags&0x1 != 0 {
+		e.CenterOffset = [3]uint32{dec.Uint32(), dec.Uint32(), dec.Uint32()}
 	}
 
-	if d.Flags&0x2 != 0 {
-		d.BoundingRadius = dec.Float32()
+	if e.Flags&0x2 != 0 {
+		e.BoundingRadius = dec.Float32()
 	}
 
 	for i := 0; i < int(boneCount); i++ {
-		bone := SkeletonEntry{}
+		bone := WldFragSkeletonEntry{}
 		bone.NameRef = dec.Int32()
 		bone.Flags = dec.Uint32()
 		bone.TrackRef = dec.Uint32()
@@ -102,38 +102,38 @@ func readSkeletonTrack(r io.ReadSeeker) (FragmentReader, error) {
 		for j := 0; j < int(subCount); j++ {
 			bone.SubBones = append(bone.SubBones, dec.Uint32())
 		}
-		d.Bones = append(d.Bones, bone)
+		e.Bones = append(e.Bones, bone)
 	}
 
-	if d.Flags&0x200 != 0 {
+	if e.Flags&0x200 != 0 {
 		skinCount := dec.Uint32()
 		for i := 0; i < int(skinCount); i++ {
-			d.Skins = append(d.Skins, dec.Uint32())
+			e.Skins = append(e.Skins, dec.Uint32())
 		}
 		for i := 0; i < int(skinCount); i++ {
-			d.SkinLinks = append(d.SkinLinks, dec.Uint32())
+			e.SkinLinks = append(e.SkinLinks, dec.Uint32())
 		}
 	}
-
-	if dec.Error() != nil {
-		return nil, dec.Error()
+	err := dec.Error()
+	if err != nil {
+		return fmt.Errorf("write: %w", err)
 	}
-	return d, nil
+	return nil
 }
 
-// SkeletonTrackRef is HierarchialSprite in libeq, SkeletonTrackSetReference in openzone, HIERARCHIALSPRITE (ref) in wld, SkeletonHierarchyReference in lantern
-type SkeletonTrackRef struct {
+// WldFragSkeletonTrackRef is HierarchialSprite in libeq, SkeletonTrackSetReference in openzone, HIERARCHIALSPRITE (ref) in wld, SkeletonHierarchyReference in lantern
+type WldFragSkeletonTrackRef struct {
 	FragName         string `yaml:"frag_name"`
 	NameRef          int16  `yaml:"name_ref"`
 	SkeletonTrackRef int16  `yaml:"skeleton_track_ref"`
 	Flags            uint32 `yaml:"flags"`
 }
 
-func (e *SkeletonTrackRef) FragCode() int {
+func (e *WldFragSkeletonTrackRef) FragCode() int {
 	return 0x11
 }
 
-func (e *SkeletonTrackRef) Encode(w io.Writer) error {
+func (e *WldFragSkeletonTrackRef) Write(w io.Writer) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
 	enc.Int16(e.NameRef)
 	enc.Uint32(e.Flags)
@@ -144,28 +144,28 @@ func (e *SkeletonTrackRef) Encode(w io.Writer) error {
 	return nil
 }
 
-func readSkeletonTrackRef(r io.ReadSeeker) (FragmentReader, error) {
-	d := &SkeletonTrackRef{}
-	d.FragName = FragName(d.FragCode())
+func (e *WldFragSkeletonTrackRef) Read(r io.ReadSeeker) error {
+	e.FragName = FragName(e.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
-	d.NameRef = dec.Int16()
-	d.Flags = dec.Uint32()
-	d.SkeletonTrackRef = dec.Int16()
-	if dec.Error() != nil {
-		return nil, dec.Error()
+	e.NameRef = dec.Int16()
+	e.Flags = dec.Uint32()
+	e.SkeletonTrackRef = dec.Int16()
+	err := dec.Error()
+	if err != nil {
+		return fmt.Errorf("write: %w", err)
 	}
-	return d, nil
+	return nil
 }
 
-// Track is TrackDef in libeq, Mob Skeleton Piece Track in openzone, TRACKDEFINITION in wld, TrackDefFragment in lantern
-type Track struct {
-	FragName      string          `yaml:"frag_name"`
-	NameRef       int32           `yaml:"name_ref"`
-	Flags         uint32          `yaml:"flags"`
-	BoneTransform []BoneTransform `yaml:"skeleton_transforms"`
+// WldFragTrack is TrackDef in libeq, Mob Skeleton Piece WldFragTrack in openzone, TRACKDEFINITION in wld, TrackDefFragment in lantern
+type WldFragTrack struct {
+	FragName      string                      `yaml:"frag_name"`
+	NameRef       int32                       `yaml:"name_ref"`
+	Flags         uint32                      `yaml:"flags"`
+	BoneTransform []WldFragTrackBoneTransform `yaml:"skeleton_transforms"`
 }
 
-type BoneTransform struct {
+type WldFragTrackBoneTransform struct {
 	TranslationDenominator int16 `yaml:"translation_denominator"`
 	TranslationX           int16 `yaml:"translation_x"`
 	TranslationY           int16 `yaml:"translation_y"`
@@ -176,11 +176,11 @@ type BoneTransform struct {
 	RotationZ              int16 `yaml:"rotation_z"`
 }
 
-func (e *Track) FragCode() int {
+func (e *WldFragTrack) FragCode() int {
 	return 0x12
 }
 
-func (e *Track) Encode(w io.Writer) error {
+func (e *WldFragTrack) Write(w io.Writer) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
 	enc.Int32(e.NameRef)
 	enc.Uint32(e.Flags)
@@ -215,17 +215,16 @@ func (e *Track) Encode(w io.Writer) error {
 	return nil
 }
 
-func readTrack(r io.ReadSeeker) (FragmentReader, error) {
-	d := &Track{}
-	d.FragName = FragName(d.FragCode())
+func (e *WldFragTrack) Read(r io.ReadSeeker) error {
+	e.FragName = FragName(e.FragCode())
 
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
-	d.NameRef = dec.Int32()
-	d.Flags = dec.Uint32()
+	e.NameRef = dec.Int32()
+	e.Flags = dec.Uint32()
 	boneCount := dec.Uint32()
 	for i := 0; i < int(boneCount); i++ {
-		ft := BoneTransform{}
-		if d.Flags&0x08 == 0x08 {
+		ft := WldFragTrackBoneTransform{}
+		if e.Flags&0x08 == 0x08 {
 			ft.RotationDenominator = dec.Int16()
 			ft.RotationX = dec.Int16()
 			ft.RotationY = dec.Int16()
@@ -234,7 +233,7 @@ func readTrack(r io.ReadSeeker) (FragmentReader, error) {
 			ft.TranslationY = dec.Int16()
 			ft.TranslationZ = dec.Int16()
 			ft.TranslationDenominator = dec.Int16()
-			d.BoneTransform = append(d.BoneTransform, ft)
+			e.BoneTransform = append(e.BoneTransform, ft)
 			continue
 		}
 		ft.TranslationDenominator = int16(dec.Int8())
@@ -245,19 +244,19 @@ func readTrack(r io.ReadSeeker) (FragmentReader, error) {
 		ft.RotationX = int16(dec.Int8())
 		ft.RotationY = int16(dec.Int8())
 		ft.RotationZ = int16(dec.Int8())
-		d.BoneTransform = append(d.BoneTransform, ft)
+		e.BoneTransform = append(e.BoneTransform, ft)
 
 	}
 
-	if dec.Error() != nil {
-		return nil, dec.Error()
+	err := dec.Error()
+	if err != nil {
+		return fmt.Errorf("write: %w", err)
 	}
-
-	return d, nil
+	return nil
 }
 
-// TrackRef is a bone in a skeleton. It is Track in libeq, Mob Skeleton Piece Track Reference in openzone, TRACKINSTANCE in wld, TrackDefFragment in lantern
-type TrackRef struct {
+// WldFragTrackRef is a bone in a skeleton. It is Track in libeq, Mob Skeleton Piece Track Reference in openzone, TRACKINSTANCE in wld, TrackDefFragment in lantern
+type WldFragTrackRef struct {
 	FragName string `yaml:"frag_name"`
 	NameRef  int32  `yaml:"name_ref"`
 	TrackRef int32  `yaml:"track_ref"`
@@ -265,11 +264,11 @@ type TrackRef struct {
 	Sleep    uint32 `yaml:"sleep"` // if 0x01 is set, this is the number of milliseconds to sleep before starting the animation
 }
 
-func (e *TrackRef) FragCode() int {
+func (e *WldFragTrackRef) FragCode() int {
 	return 0x13
 }
 
-func (e *TrackRef) Encode(w io.Writer) error {
+func (e *WldFragTrackRef) Write(w io.Writer) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
 	enc.Int32(e.NameRef)
 	enc.Int32(e.TrackRef)
@@ -284,21 +283,92 @@ func (e *TrackRef) Encode(w io.Writer) error {
 	return nil
 }
 
-func readTrackRef(r io.ReadSeeker) (FragmentReader, error) {
-	d := &TrackRef{}
-	d.FragName = FragName(d.FragCode())
+func (e *WldFragTrackRef) Read(r io.ReadSeeker) error {
+	e.FragName = FragName(e.FragCode())
 
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
-	d.NameRef = dec.Int32()
-	d.TrackRef = dec.Int32()
-	d.Flags = dec.Uint32()
-	if d.Flags&0x01 == 0x01 {
-		d.Sleep = dec.Uint32()
+	e.NameRef = dec.Int32()
+	e.TrackRef = dec.Int32()
+	e.Flags = dec.Uint32()
+	if e.Flags&0x01 == 0x01 {
+		e.Sleep = dec.Uint32()
 	}
 
-	if dec.Error() != nil {
-		return nil, dec.Error()
+	err := dec.Error()
+	if err != nil {
+		return fmt.Errorf("write: %w", err)
 	}
+	return nil
+}
 
-	return d, nil
+// WldFragDMTrack is DmTrackDef in libeq, empty in openzone, empty in wld
+type WldFragDMTrack struct {
+	FragName string `yaml:"frag_name"`
+}
+
+func (e *WldFragDMTrack) FragCode() int {
+	return 0x2E
+}
+
+func (e *WldFragDMTrack) Write(w io.Writer) error {
+	return nil
+}
+
+func (e *WldFragDMTrack) Read(r io.ReadSeeker) error {
+	e.FragName = FragName(e.FragCode())
+	return nil
+}
+
+// WldFragDMTrackRef is DmTrack in libeq, Mesh Animated Vertices Reference in openzone, empty in wld, MeshAnimatedVerticesReference in lantern
+type WldFragDMTrackRef struct {
+	FragName string `yaml:"frag_name"`
+}
+
+func (e *WldFragDMTrackRef) FragCode() int {
+	return 0x2F
+}
+
+func (e *WldFragDMTrackRef) Write(w io.Writer) error {
+	return nil
+}
+
+func (e *WldFragDMTrackRef) Read(r io.ReadSeeker) error {
+	e.FragName = FragName(e.FragCode())
+	return nil
+}
+
+// WldFragDMRGBTrack is a list of colors, one per vertex, for baked lighting. It is DmRGBTrackDef in libeq, Vertex Color in openzone, empty in wld, VertexColors in lantern
+type WldFragDMRGBTrack struct {
+	FragName string `yaml:"frag_name"`
+}
+
+func (e *WldFragDMRGBTrack) FragCode() int {
+	return 0x32
+}
+
+func (e *WldFragDMRGBTrack) Write(w io.Writer) error {
+	return nil
+}
+
+func (e *WldFragDMRGBTrack) Read(r io.ReadSeeker) error {
+	e.FragName = FragName(e.FragCode())
+	return nil
+}
+
+// WldFragDMRGBTrackRef is DmRGBTrack in libeq, Vertex Color Reference in openzone, empty in wld, VertexColorsReference in lantern
+type WldFragDMRGBTrackRef struct {
+	FragName string `yaml:"frag_name"`
+}
+
+func (e *WldFragDMRGBTrackRef) FragCode() int {
+	return 0x33
+}
+
+func (e *WldFragDMRGBTrackRef) Write(w io.Writer) error {
+	return nil
+}
+
+func (e *WldFragDMRGBTrackRef) Read(r io.ReadSeeker) error {
+	e.FragName = FragName(e.FragCode())
+	return nil
 }

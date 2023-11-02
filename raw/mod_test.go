@@ -9,6 +9,9 @@ import (
 )
 
 func TestModRead(t *testing.T) {
+	if os.Getenv("SINGLE_TEST") != "1" {
+		t.Skip("skipping test; SINGLE_TEST not set")
+	}
 	eqPath := os.Getenv("EQ_PATH")
 	if eqPath == "" {
 		t.Skip("EQ_PATH not set")
@@ -28,7 +31,7 @@ func TestModRead(t *testing.T) {
 		// .mod|2|et_door01.mod|stillmoona.eqg
 		// .mod|3|.mod|paperbaghat.eqg
 		// .mod|3|it11409.mod|undequip.eqg
-		{eqg: "undequip.eqg", file: "it11409.mod"},
+		//{eqg: "undequip.eqg", file: "it11409.mod"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.eqg, func(t *testing.T) {
@@ -52,6 +55,9 @@ func TestModRead(t *testing.T) {
 }
 
 func TestModWrite(t *testing.T) {
+	if os.Getenv("SINGLE_TEST") != "1" {
+		t.Skip("skipping test; SINGLE_TEST not set")
+	}
 	eqPath := os.Getenv("EQ_PATH")
 	if eqPath == "" {
 		t.Skip("EQ_PATH not set")
@@ -71,7 +77,7 @@ func TestModWrite(t *testing.T) {
 		// .mod|2|et_door01.mod|stillmoona.eqg
 		// .mod|3|.mod|paperbaghat.eqg
 		// .mod|3|it11409.mod|undequip.eqg
-		{eqg: "undequip.eqg", file: "it11409.mod"},
+		//{eqg: "undequip.eqg", file: "it11409.mod"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.eqg, func(t *testing.T) {

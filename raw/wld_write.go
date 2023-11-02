@@ -12,7 +12,7 @@ import (
 // Write writes wld.Fragments to a .wld writer. Use quail.WldMarshal to convert a Wld to wld.Fragments
 func (wld *Wld) Write(w io.Writer) error {
 	if wld.Fragments == nil {
-		wld.Fragments = make(map[int]FragmentReader)
+		wld.Fragments = make(map[int]FragmentReadWriter)
 	}
 
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
@@ -42,7 +42,7 @@ func (wld *Wld) Write(w io.Writer) error {
 func writeFragments(wld *Wld, w io.Writer) ([]byte, error) {
 	nameBuf := bytes.NewBuffer(nil)
 	for i, frag := range wld.Fragments {
-		err := frag.Encode(w)
+		err := frag.Write(w)
 		if err != nil {
 			return nil, fmt.Errorf("fragment id %d 0x%x (%s): %w", i, frag.FragCode(), FragName(frag.FragCode()), err)
 		}

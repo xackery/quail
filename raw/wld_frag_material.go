@@ -21,7 +21,7 @@ func (e *WldFragPaletteFile) FragCode() int {
 	return 0x01
 }
 
-func (e *WldFragPaletteFile) Encode(w io.Writer) error {
+func (e *WldFragPaletteFile) Write(w io.Writer) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
 	enc.Int32(e.NameRef)
 	enc.Uint16(e.NameLength)
@@ -32,17 +32,18 @@ func (e *WldFragPaletteFile) Encode(w io.Writer) error {
 	return nil
 }
 
-func readPaletteFile(r io.ReadSeeker) (FragmentReader, error) {
+func (e *WldFragPaletteFile) Read(r io.ReadSeeker) error {
 	d := &WldFragPaletteFile{}
 	d.FragName = FragName(d.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	d.NameRef = dec.Int32()
 	d.NameLength = dec.Uint16()
 	d.FileName = dec.StringFixed(int(d.NameLength))
-	if dec.Error() != nil {
-		return nil, dec.Error()
+	err := dec.Error()
+	if err != nil {
+		return fmt.Errorf("read: %w", err)
 	}
-	return d, nil
+	return nil
 }
 
 // WldFragTextureList is BmInfo in libeq, Texture Bitmap Names in openzone, FRAME and BMINFO in wld, BitmapName in lantern
@@ -56,7 +57,7 @@ func (e *WldFragTextureList) FragCode() int {
 	return 0x03
 }
 
-func (e *WldFragTextureList) Encode(w io.Writer) error {
+func (e *WldFragTextureList) Write(w io.Writer) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
 	enc.Int32(e.NameRef)
 	enc.Int32(int32(len(e.TextureNames) - 1))
@@ -69,7 +70,7 @@ func (e *WldFragTextureList) Encode(w io.Writer) error {
 	return nil
 }
 
-func readTextureList(r io.ReadSeeker) (FragmentReader, error) {
+func (e *WldFragTextureList) Read(r io.ReadSeeker) error {
 	d := &WldFragTextureList{}
 	d.FragName = FragName(d.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
@@ -80,10 +81,11 @@ func readTextureList(r io.ReadSeeker) (FragmentReader, error) {
 		nameLength := dec.Uint16()
 		d.TextureNames = append(d.TextureNames, helper.ReadStringHash((dec.Bytes(int(nameLength)))))
 	}
-	if dec.Error() != nil {
-		return nil, dec.Error()
+	err := dec.Error()
+	if err != nil {
+		return fmt.Errorf("read: %w", err)
 	}
-	return d, nil
+	return nil
 }
 
 // WldFragTexture is SimpleSpriteDef in libeq, WldFragTexture Bitmap Info in openzone, SIMPLESPRITEDEF in wld, BitmapInfo in lantern
@@ -100,7 +102,7 @@ func (e *WldFragTexture) FragCode() int {
 	return 0x04
 }
 
-func (e *WldFragTexture) Encode(w io.Writer) error {
+func (e *WldFragTexture) Write(w io.Writer) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
 	enc.Int32(e.NameRef)
 	enc.Uint32(e.Flags)
@@ -120,7 +122,7 @@ func (e *WldFragTexture) Encode(w io.Writer) error {
 	return nil
 }
 
-func readTexture(r io.ReadSeeker) (FragmentReader, error) {
+func (e *WldFragTexture) Read(r io.ReadSeeker) error {
 	d := &WldFragTexture{}
 	d.FragName = FragName(d.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
@@ -136,10 +138,11 @@ func readTexture(r io.ReadSeeker) (FragmentReader, error) {
 	for i := 0; i < int(textureCount); i++ {
 		d.TextureRefs = append(d.TextureRefs, dec.Uint32())
 	}
-	if dec.Error() != nil {
-		return nil, dec.Error()
+	err := dec.Error()
+	if err != nil {
+		return fmt.Errorf("read: %w", err)
 	}
-	return d, nil
+	return nil
 }
 
 // WldFragTextureRef is SimpleSprite in libeq, Texture Bitmap Info Reference in openzone, SIMPLESPRITEINST in wld, BitmapInfoReference in lantern
@@ -154,7 +157,7 @@ func (e *WldFragTextureRef) FragCode() int {
 	return 0x05
 }
 
-func (e *WldFragTextureRef) Encode(w io.Writer) error {
+func (e *WldFragTextureRef) Write(w io.Writer) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
 	enc.Int32(e.NameRef)
 	enc.Int16(e.TextureRef)
@@ -165,17 +168,18 @@ func (e *WldFragTextureRef) Encode(w io.Writer) error {
 	return nil
 }
 
-func readTextureRef(r io.ReadSeeker) (FragmentReader, error) {
+func (e *WldFragTextureRef) Read(r io.ReadSeeker) error {
 	d := &WldFragTextureRef{}
 	d.FragName = FragName(d.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	d.NameRef = dec.Int32()
 	d.TextureRef = dec.Int16()
 	d.Flags = dec.Uint32()
-	if dec.Error() != nil {
-		return nil, dec.Error()
+	err := dec.Error()
+	if err != nil {
+		return fmt.Errorf("read: %w", err)
 	}
-	return d, nil
+	return nil
 }
 
 // WldFragBlitSprite is WldFragBlitSprite in libeq, empty in openzone, BLITSPRITE (ref) in wld, ParticleSprite in lantern
@@ -191,7 +195,7 @@ func (e *WldFragBlitSprite) FragCode() int {
 	return 0x26
 }
 
-func (e *WldFragBlitSprite) Encode(w io.Writer) error {
+func (e *WldFragBlitSprite) Write(w io.Writer) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
 	enc.Int32(e.NameRef)
 	enc.Uint32(e.Flags)
@@ -204,7 +208,7 @@ func (e *WldFragBlitSprite) Encode(w io.Writer) error {
 	return nil
 }
 
-func readBlitSprite(r io.ReadSeeker) (FragmentReader, error) {
+func (e *WldFragBlitSprite) Read(r io.ReadSeeker) error {
 	d := &WldFragBlitSprite{}
 	d.FragName = FragName(d.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
@@ -213,10 +217,11 @@ func readBlitSprite(r io.ReadSeeker) (FragmentReader, error) {
 	d.BlitSpriteRef = dec.Uint32()
 	d.Unk1 = dec.Int32()
 
-	if dec.Error() != nil {
-		return nil, dec.Error()
+	err := dec.Error()
+	if err != nil {
+		return fmt.Errorf("read: %w", err)
 	}
-	return d, nil
+	return nil
 }
 
 // WldFragBlitSpriteRef is BlitSprite in libeq, empty in openzone, BLITSPRITE (ref) in wld, ParticleSpriteReference in lantern
@@ -228,18 +233,19 @@ func (e *WldFragBlitSpriteRef) FragCode() int {
 	return 0x27
 }
 
-func (e *WldFragBlitSpriteRef) Encode(w io.Writer) error {
+func (e *WldFragBlitSpriteRef) Write(w io.Writer) error {
 	return fmt.Errorf("not implemented")
 }
 
-func readBlitSpriteRef(r io.ReadSeeker) (FragmentReader, error) {
+func (e *WldFragBlitSpriteRef) Read(r io.ReadSeeker) error {
 	d := &WldFragBlitSpriteRef{}
 	d.FragName = FragName(d.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
-	if dec.Error() != nil {
-		return nil, dec.Error()
+	err := dec.Error()
+	if err != nil {
+		return fmt.Errorf("read: %w", err)
 	}
-	return d, nil
+	return nil
 }
 
 // WldFragMaterial is MaterialDef in libeq, Texture in openzone, MATERIALDEFINITION in wld, Material in lantern
@@ -259,7 +265,7 @@ func (e *WldFragMaterial) FragCode() int {
 	return 0x30
 }
 
-func (e *WldFragMaterial) Encode(w io.Writer) error {
+func (e *WldFragMaterial) Write(w io.Writer) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
 	enc.Int32(e.NameRef)
 	enc.Uint32(e.Flags)
@@ -278,7 +284,7 @@ func (e *WldFragMaterial) Encode(w io.Writer) error {
 	return nil
 }
 
-func readMaterial(r io.ReadSeeker) (FragmentReader, error) {
+func (e *WldFragMaterial) Read(r io.ReadSeeker) error {
 	d := &WldFragMaterial{}
 	d.FragName = FragName(d.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
@@ -293,10 +299,11 @@ func readMaterial(r io.ReadSeeker) (FragmentReader, error) {
 		d.Pairs[0] = dec.Uint32()
 		d.Pairs[1] = dec.Uint32()
 	}
-	if dec.Error() != nil {
-		return nil, dec.Error()
+	err := dec.Error()
+	if err != nil {
+		return fmt.Errorf("read: %w", err)
 	}
-	return d, nil
+	return nil
 }
 
 // WldFragMaterialList is MaterialPalette in libeq, TextureList in openzone, MATERIALPALETTE in wld, WldFragMaterialList in lantern
@@ -311,7 +318,7 @@ func (e *WldFragMaterialList) FragCode() int {
 	return 0x31
 }
 
-func (e *WldFragMaterialList) Encode(w io.Writer) error {
+func (e *WldFragMaterialList) Write(w io.Writer) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
 	enc.Int32(e.NameRef)
 	enc.Uint32(e.Flags)
@@ -325,7 +332,7 @@ func (e *WldFragMaterialList) Encode(w io.Writer) error {
 	return nil
 }
 
-func readMaterialList(r io.ReadSeeker) (FragmentReader, error) {
+func (e *WldFragMaterialList) Read(r io.ReadSeeker) error {
 	d := &WldFragMaterialList{}
 	d.FragName = FragName(d.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
@@ -335,8 +342,9 @@ func readMaterialList(r io.ReadSeeker) (FragmentReader, error) {
 	for i := 0; i < int(materialCount); i++ {
 		d.MaterialRefs = append(d.MaterialRefs, dec.Uint32())
 	}
-	if dec.Error() != nil {
-		return nil, dec.Error()
+	err := dec.Error()
+	if err != nil {
+		return fmt.Errorf("read: %w", err)
 	}
-	return d, nil
+	return nil
 }

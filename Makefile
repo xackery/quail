@@ -22,10 +22,17 @@ bundle:
 # run tests that aren't flagged for SINGLE_TEST
 .PHONY: test
 test:
-	@echo "test: running tests..."
+	@echo "test: running tests with 30s timeout..."
 	@mkdir -p test
 	@rm -rf test/*
-	@go test ./...
+	@go test -timeout 30s ./...
+
+.PHONY: test-all
+test-all:
+	@echo "test-all: running every test, even ones flagged SINGLE_TEST timeout 120s..."
+	@mkdir -p test
+	@rm -rf test/*
+	@SINGLE_TEST=1 go test -timeout 120s -tags ci ./...
 
 # build all supported os's
 build-all: build-darwin build-windows build-linux build-windows-addon

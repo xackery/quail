@@ -12,16 +12,16 @@ import (
 )
 
 type Wld struct {
-	MetaFileName string                 `yaml:"file_name"`
-	Version      uint32                 `yaml:"version"`
-	IsOldWorld   bool                   `yaml:"is_old_world"`
-	Fragments    map[int]FragmentReader `yaml:"fragments,omitempty"`
+	MetaFileName string                     `yaml:"file_name"`
+	Version      uint32                     `yaml:"version"`
+	IsOldWorld   bool                       `yaml:"is_old_world"`
+	Fragments    map[int]FragmentReadWriter `yaml:"fragments,omitempty"`
 }
 
 // Read reads a wld file that was prepped by Load
 func (wld *Wld) Read(r io.ReadSeeker) error {
 	if wld.Fragments == nil {
-		wld.Fragments = make(map[int]FragmentReader)
+		wld.Fragments = make(map[int]FragmentReadWriter)
 	}
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	header := dec.Bytes(4)
@@ -76,21 +76,13 @@ func (wld *Wld) Read(r io.ReadSeeker) error {
 		data := fragments[i-1]
 		r := bytes.NewReader(data)
 
-		dec := encdec.NewDecoder(r, binary.LittleEndian)
+		reader := NewFrag(r)
 
-		fragCode := dec.Int32()
-
-		readr, ok := readrs[int(fragCode)]
-		if !ok {
-			return fmt.Errorf("frag %d 0x%x read: unsupported fragment", i, fragCode)
-		}
-
-		wld.Fragments[int(i)], err = readr(r)
+		err = reader.Read(r)
 		if err != nil {
-			return fmt.Errorf("frag %d 0x%x (%s) read: %w", i, fragCode, FragName(int(fragCode)), err)
+			return fmt.Errorf("frag %d 0x%x (%s) read: %w", i, reader.FragCode(), FragName(int(reader.FragCode())), err)
 		}
-
-		//fmt.Println("frag", i, fragCode, FragName(int(fragCode)))
+		wld.Fragments[int(i)] = reader
 	}
 
 	return nil

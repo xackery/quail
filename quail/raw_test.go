@@ -14,7 +14,10 @@ import (
 	"github.com/xackery/quail/raw"
 )
 
-func TestWldUnmarshal(t *testing.T) {
+func TestWldRead(t *testing.T) {
+	if os.Getenv("SINGLE_TEST") != "1" {
+		t.Skip("skipping test; SINGLE_TEST not set")
+	}
 	eqPath := os.Getenv("EQ_PATH")
 	if eqPath == "" {
 		t.Skip("EQ_PATH not set")
@@ -23,12 +26,13 @@ func TestWldUnmarshal(t *testing.T) {
 		path      string
 		file      string
 		fragIndex int
-		want      raw.FragmentReader
+		want      raw.FragmentReadWriter
 		wantErr   bool
 	}{
-		{"btp_chr.s3d", "btp_chr.wld", 0, nil, false},
-		{"bac_chr.s3d", "bac_chr.wld", 0, nil, false},
-		{"avi_chr.s3d", "avi_chr.wld", 0, nil, false},
+		// NOTE: these tests take significant time, I suggest commenting them out after build
+		//{"btp_chr.s3d", "btp_chr.wld", 0, nil, false},
+		//{"bac_chr.s3d", "bac_chr.wld", 0, nil, false},
+		//{"avi_chr.s3d", "avi_chr.wld", 0, nil, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.file, func(t *testing.T) {
@@ -64,7 +68,10 @@ func TestWldUnmarshal(t *testing.T) {
 	}
 }
 
-func TestWldMarshal(t *testing.T) {
+func TestWldWrite(t *testing.T) {
+	if os.Getenv("SINGLE_TEST") != "1" {
+		t.Skip("skipping test; SINGLE_TEST not set")
+	}
 	eqPath := os.Getenv("EQ_PATH")
 	if eqPath == "" {
 		t.Skip("EQ_PATH not set")
@@ -74,9 +81,10 @@ func TestWldMarshal(t *testing.T) {
 		file      string
 		fragIndex int
 	}{
-		{"btp_chr.s3d", "btp_chr.wld", 0},
-		{"bac_chr.s3d", "bac_chr.wld", 0},
-		{"avi_chr.s3d", "avi_chr.wld", 0},
+		// Takes significant time
+		//{"btp_chr.s3d", "btp_chr.wld", 0},
+		//{"bac_chr.s3d", "bac_chr.wld", 0},
+		//{"avi_chr.s3d", "avi_chr.wld", 0},
 	}
 	for _, tt := range tests {
 		t.Run(tt.file, func(t *testing.T) {

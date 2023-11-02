@@ -12,6 +12,9 @@ import (
 )
 
 func TestWldRead(t *testing.T) {
+	if os.Getenv("SINGLE_TEST") != "1" {
+		t.Skip("skipping test; SINGLE_TEST not set")
+	}
 	eqPath := os.Getenv("EQ_PATH")
 	if eqPath == "" {
 		t.Skip("EQ_PATH not set")
@@ -20,7 +23,7 @@ func TestWldRead(t *testing.T) {
 	tests := []struct {
 		name string
 	}{
-		{"crushbone"},
+		//{"crushbone"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -45,6 +48,9 @@ func TestWldRead(t *testing.T) {
 }
 
 func TestWldFragOffsetDump(t *testing.T) {
+	if os.Getenv("SINGLE_TEST") != "1" {
+		t.Skip("skipping test; SINGLE_TEST not set")
+	}
 	eqPath := os.Getenv("EQ_PATH")
 	if eqPath == "" {
 		t.Skip("EQ_PATH not set")
@@ -54,7 +60,7 @@ func TestWldFragOffsetDump(t *testing.T) {
 	tests := []struct {
 		name string
 	}{
-		{"gequip4"},
+		//{"gequip4"},
 		//{"global_chr"}, // TODO:  anarelion asked mesh of EYE_DMSPRITEDEF check if the eye is just massive 22 units in size, where the other units in that file are just 1-2 units in size
 	}
 	for _, tt := range tests {

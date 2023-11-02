@@ -63,7 +63,7 @@ func (e *Quail) wldWrite(wld *raw.Wld) error {
 		return fmt.Errorf("wld is nil")
 	}
 	if wld.Fragments == nil {
-		wld.Fragments = make(map[int]raw.FragmentReader)
+		wld.Fragments = make(map[int]raw.FragmentReadWriter)
 	}
 
 	fragIndex := 1
@@ -174,7 +174,7 @@ func (e *Quail) wldWrite(wld *raw.Wld) error {
 		}
 
 		for _, srcTriangle := range model.Triangles {
-			entry := raw.MeshTriangleEntry{
+			entry := raw.WldFragMeshTriangleEntry{
 				Flags: uint16(srcTriangle.Flag),
 				Index: [3]uint16{uint16(srcTriangle.Index.X), uint16(srcTriangle.Index.Y), uint16(srcTriangle.Index.Z)},
 			}
