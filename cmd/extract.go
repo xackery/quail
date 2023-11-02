@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -16,124 +17,106 @@ var extractCmd = &cobra.Command{
 	Short: "Extract an pfs (eqg/s3d/pak/pfs) archive to a _file.ext/ folder",
 	Long:  `Extract an pfs archive`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		path, err := cmd.Flags().GetString("path")
+		var err error
+		defer func() {
+			if err != nil {
+				fmt.Println("Failed:", err)
+				os.Exit(1)
+			}
+		}()
+		srcArchivePath, err := cmd.Flags().GetString("path")
 		if err != nil {
 			return fmt.Errorf("parse path: %w", err)
 		}
-		if path == "" {
+		if srcArchivePath == "" {
 			if len(args) > 0 {
-				path = args[0]
+				srcArchivePath = args[0]
 			} else {
 				return cmd.Usage()
 			}
 		}
-		path = strings.TrimSuffix(path, "/")
-		out, err := cmd.Flags().GetString("out")
+
+		srcArchivePath = strings.TrimSuffix(srcArchivePath, "/")
+		srcFile := ""
+
+		if strings.Contains(srcArchivePath, ":") {
+			srcFile = strings.Split(srcArchivePath, ":")[1]
+			srcArchivePath = strings.Split(srcArchivePath, ":")[0]
+		}
+
+		dstPath, err := cmd.Flags().GetString("out")
 		if err != nil {
 			return fmt.Errorf("parse out: %w", err)
 		}
-		if out == "" {
+		if dstPath == "" && srcFile == "" {
+			dstPath = fmt.Sprintf("./_%s", filepath.Base(srcArchivePath))
 			if len(args) > 1 {
-				out = args[1]
-			} else {
-				out = fmt.Sprintf("./_%s", filepath.Base(path))
+				dstPath = args[1]
 			}
 		}
 
-		fi, err := os.Stat(path)
+		if srcFile != "" {
+			archive, err := pfs.NewFile(srcArchivePath)
+			if err != nil {
+				return fmt.Errorf("pfs.NewFile: %w", err)
+			}
+
+			if dstPath == "" {
+				dstPath = "."
+			}
+
+			di, err := os.Stat(dstPath)
+			if err != nil && !os.IsNotExist(err) {
+				return fmt.Errorf("dst path check: %w", err)
+			}
+			if di != nil && di.IsDir() {
+				dstPath = filepath.Join(dstPath, srcFile)
+			}
+
+			log.Printf("Extracting %s:%s to %s", srcArchivePath, srcFile, dstPath)
+			data, err := archive.File(srcFile)
+			if err != nil {
+				return fmt.Errorf("archive.File: %w", err)
+			}
+			err = os.WriteFile(dstPath, data, 0644)
+			if err != nil {
+				return fmt.Errorf("write %s: %w", dstPath, err)
+			}
+			return nil
+		}
+
+		fi, err := os.Stat(srcArchivePath)
 		if err != nil {
 			return fmt.Errorf("path check: %w", err)
 		}
 		if fi.IsDir() {
-			if strings.Contains(out, "_") {
-				out = fmt.Sprintf("./%s", filepath.Base(path))
-			}
-			files, err := os.ReadDir(path)
-			if err != nil {
-				return err
-			}
-			archiveCount := 0
-			for _, file := range files {
-				if file.IsDir() {
-					continue
-				}
-				ok, err := extract(fmt.Sprintf("%s/%s", path, file.Name()), fmt.Sprintf("%s/_%s", out, file.Name()), true)
-				if err != nil {
-					return err
-				}
-				if !ok {
-					continue
-				}
-				archiveCount++
-			}
-			if archiveCount == 0 {
-				return fmt.Errorf("no archives found")
-			}
-			fmt.Println("extracted", archiveCount, "archives")
-			return nil
+			dstPath = filepath.Join(dstPath, "_"+filepath.Base(srcArchivePath))
 		}
 
-		_, err = extract(path, out, false)
+		log.Printf("Extracting %s to %s", srcArchivePath, dstPath)
+		err = os.MkdirAll(dstPath, 0755)
 		if err != nil {
-			return err
+			return fmt.Errorf("mkdir: %w", err)
 		}
+
+		archive, err := pfs.NewFile(srcArchivePath)
+		if err != nil {
+			return fmt.Errorf("pfs.NewFile: %w", err)
+		}
+
+		fileCount := 0
+		for _, fe := range archive.Files() {
+			fePath := filepath.Join(dstPath, fe.Name())
+			err = os.WriteFile(fePath, fe.Data(), 0644)
+			if err != nil {
+				return fmt.Errorf("write %s: %w", fePath, err)
+			}
+			fileCount++
+		}
+		log.Printf("Extracted %d files", fileCount)
+
 		return nil
 	},
-}
-
-func extract(in string, out string, isDir bool) (bool, error) {
-	var err error
-	switch strings.ToLower(filepath.Ext(in)) {
-	case ".eqg":
-		err = extractPfs(in, out, isDir)
-		if err != nil {
-			return true, fmt.Errorf("extractPfs: %w", err)
-		}
-	case ".s3d":
-		err = extractPfs(in, out, isDir)
-		if err != nil {
-			return true, fmt.Errorf("extractPfs: %w", err)
-		}
-	case ".pfs":
-		err = extractPfs(in, out, isDir)
-		if err != nil {
-			return true, fmt.Errorf("extractPfs: %w", err)
-		}
-	case ".pak":
-		err = extractPfs(in, out, isDir)
-		if err != nil {
-			return true, fmt.Errorf("extractPfs: %w", err)
-		}
-	default:
-		return false, nil
-	}
-	return true, nil
-}
-
-func extractPfs(in string, out string, isDir bool) error {
-	f, err := os.Open(in)
-	if err != nil {
-		return err
-	}
-	a, err := pfs.New("out")
-	if err != nil {
-		return fmt.Errorf("pfs.New: %w", err)
-	}
-	err = a.Read(f)
-	if err != nil {
-		return fmt.Errorf("read %s: %w", in, err)
-	}
-	results, err := a.Extract(out)
-	if err != nil {
-		fmt.Printf("Failed to extract %s: %s\n", filepath.Base(in), err)
-		os.Exit(1)
-	}
-
-	if isDir && len(results) > 64 {
-		results = results[0:64] + " (summarized due to directory extract)"
-	}
-	fmt.Println(filepath.Base(in), results)
-	return nil
 }
 
 func init() {

@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
-	"github.com/xackery/quail/log"
 	"github.com/xackery/quail/pfs"
 	"github.com/xackery/quail/raw"
 	"gopkg.in/yaml.v3"
@@ -56,10 +55,24 @@ var yamlCmd = &cobra.Command{
 			return fmt.Errorf("dst path is required")
 		}
 
-		isDirOutput := false
 		fi, err := os.Stat(dstPath)
 		if err == nil && fi.IsDir() {
-			isDirOutput = true
+
+			data, err := os.ReadFile(srcPath)
+			if err != nil {
+				return fmt.Errorf("read src file: %w", err)
+			}
+
+			type metaPeek struct {
+				MetaFileName string `yaml:"file_name"`
+			}
+
+			meta := &metaPeek{}
+			err = yaml.Unmarshal(data, meta)
+			if err != nil {
+				return fmt.Errorf("yaml unmarshal: %w", err)
+			}
+			dstPath = filepath.Join(dstPath, meta.MetaFileName)
 		}
 
 		isSrcArchive := false
@@ -79,179 +92,17 @@ var yamlCmd = &cobra.Command{
 			return fmt.Errorf("source and destination cannot both be archives")
 		}
 
-		if isSrcArchive && dstPathExt != ".yaml" {
-			return fmt.Errorf("destination or source must be yaml")
-		}
-
-		if isDstArchive && srcPathExt != ".yaml" {
-			return fmt.Errorf("destination or source must be yaml")
-		}
-
-		if dstPathExt == ".yaml" && srcPathExt == ".yaml" {
-			return fmt.Errorf("destination or source must be binary")
-		}
-
-		if dstPathExt != ".yaml" && srcPathExt != ".yaml" {
-			return fmt.Errorf("destination or source must be yaml")
-		}
-
 		if isSrcArchive {
-			fmt.Println("Converting archive", filepath.Base(srcPath), "file", srcFile, "to", filepath.Base(dstPath))
+			return readYamlArchiveFile(srcPath, srcFile, dstPath)
 		}
 		if isDstArchive {
-			fmt.Println("Converting", filepath.Base(srcPath), "to archive", filepath.Base(dstPath), "file", dstFile)
-		}
-		if !isSrcArchive && !isDstArchive {
-			fmt.Println("Converting", filepath.Base(srcPath), "to", filepath.Base(dstPath))
-		}
-		var srcArchive *pfs.Pfs
-		var dstArchive *pfs.Pfs
-		if isSrcArchive {
-			srcArchive = &pfs.Pfs{}
-			srcArchive, err = pfs.NewFile(srcPath)
-			if err != nil {
-				return fmt.Errorf("open src archive: %w", err)
-			}
+			return writeYamlArchiveFile(srcPath, dstPath, dstFile)
 		}
 
-		if isDstArchive {
-			dstArchive = &pfs.Pfs{}
-			dstArchive, err = pfs.NewFile(srcPath)
-			if err != nil {
-				return fmt.Errorf("open dst archive: %w", err)
-			}
+		if dstPathExt == ".yaml" {
+			return writeYamlFile(srcPath, dstPath)
 		}
-
-		var srcData []byte
-
-		if srcArchive != nil && srcFile != "" {
-			srcData, err = srcArchive.File(srcFile)
-			if err != nil {
-				return fmt.Errorf("get src file: %w", err)
-			}
-		}
-		if srcArchive == nil {
-			srcData, err = os.ReadFile(srcPath)
-			if err != nil {
-				return fmt.Errorf("open src file: %w", err)
-			}
-		}
-
-		fileFormat := ""
-		isYamlOut := false
-		if isSrcArchive || srcPathExt != ".yaml" {
-			fileFormat = srcPathExt
-			if srcFile != "" {
-				fileFormat = filepath.Ext(srcFile)
-			}
-
-			isYamlOut = true
-		}
-		if isDstArchive || dstPathExt != ".yaml" {
-			fileFormat = dstPathExt
-			if dstFile != "" {
-				fileFormat = filepath.Ext(dstFile)
-			}
-		}
-
-		buf := &bytes.Buffer{}
-		if isYamlOut {
-			fmt.Println("Source is", len(srcData), "bytes, turning into yaml...")
-
-			reader, err := raw.Read(fileFormat, bytes.NewReader(srcData))
-			if err != nil {
-				return fmt.Errorf("read %s: %w", filepath.Base(srcPath), err)
-			}
-
-			reader.SetFileName(filepath.Base(srcPath))
-			if srcFile != "" {
-				reader.SetFileName(srcFile)
-			}
-
-			err = yaml.NewEncoder(buf).Encode(reader)
-			if err != nil {
-				return fmt.Errorf("yaml encode %s: %w", fileFormat, err)
-			}
-
-			w, err := os.Create(dstPath)
-			if err != nil {
-				return fmt.Errorf("create dst file %s: %w", filepath.Base(dstPath), err)
-			}
-			defer w.Close()
-			if dstArchive != nil && dstFile != "" {
-				err = dstArchive.Add(dstFile, buf.Bytes())
-				if err != nil {
-					return fmt.Errorf("add dst file: %w", err)
-				}
-
-				err = dstArchive.Write(w)
-				if err != nil {
-					return fmt.Errorf("write dst archive: %w", err)
-				}
-				return nil
-			}
-
-			_, err = w.Write(buf.Bytes())
-			if err != nil {
-				return fmt.Errorf("write %s: %w", filepath.Base(dstPath), err)
-			}
-			return nil
-		}
-
-		type metaPeek struct {
-			MetaFileName string `yaml:"file_name"`
-		}
-
-		if isDirOutput {
-			meta := &metaPeek{}
-			err = yaml.Unmarshal(srcData, meta)
-			if err != nil {
-				return fmt.Errorf("yaml unmarshal: %w", err)
-			}
-			fileFormat = filepath.Ext(meta.MetaFileName)
-			dstPath = filepath.Join(dstPath, meta.MetaFileName)
-		}
-
-		writer := raw.New(fileFormat)
-		if writer == nil {
-			return fmt.Errorf("unsupported file format %s", fileFormat)
-		}
-		err = yaml.Unmarshal(srcData, writer)
-		if err != nil {
-			return fmt.Errorf("yaml unmarshal: %w", err)
-		}
-		err = writer.Write(buf)
-		if err != nil {
-			return fmt.Errorf("write %s: %w", filepath.Base(dstPath), err)
-		}
-
-		log.Infof("Destination is %d bytes, turning into %s...", buf.Len(), fileFormat)
-		w, err := os.Create(dstPath)
-		if err != nil {
-			return fmt.Errorf("create dst file: %w", err)
-		}
-		defer w.Close()
-
-		if dstArchive != nil && dstFile != "" {
-			err = dstArchive.Add(dstFile, buf.Bytes())
-			if err != nil {
-				return fmt.Errorf("add dst file: %w", err)
-			}
-
-			err = dstArchive.Write(w)
-			if err != nil {
-				return fmt.Errorf("encode dst archive: %w", err)
-			}
-			return nil
-		}
-
-		_, err = w.Write(buf.Bytes())
-		if err != nil {
-			return fmt.Errorf("write %s: %w", filepath.Base(dstPath), err)
-		}
-
-		log.Printf("Wrote %s", filepath.Base(dstPath))
-		return nil
+		return readYamlFile(srcPath, dstPath)
 	},
 }
 
@@ -259,4 +110,174 @@ func init() {
 	rootCmd.AddCommand(yamlCmd)
 	yamlCmd.PersistentFlags().String("path", "", "path to inspect")
 	yamlCmd.PersistentFlags().String("file", "", "file to inspect inside pfs")
+}
+
+func writeYamlArchiveFile(srcYamlPath string, dstArchivePath string, dstArchiveFile string) error {
+	if srcYamlPath == "" {
+		return fmt.Errorf("src yaml path is required")
+	}
+
+	srcExt := filepath.Ext(srcYamlPath)
+
+	dstExt := filepath.Ext(dstArchivePath)
+	if dstExt != ".s3d" && dstExt != ".pfs" && dstExt != ".pak" && dstExt != ".eqg" {
+		return fmt.Errorf("dst file must be archive")
+	}
+
+	archive, err := pfs.NewFile(dstArchivePath)
+	if err != nil {
+		return fmt.Errorf("open archive: %w", err)
+	}
+
+	reader := raw.New(srcExt)
+	if reader == nil {
+		return fmt.Errorf("unsupported file format %s", srcExt)
+	}
+
+	buf := &bytes.Buffer{}
+	err = yaml.NewDecoder(buf).Decode(reader)
+	if err != nil {
+		return fmt.Errorf("yaml decode: %w", err)
+	}
+
+	err = archive.Add(dstArchiveFile, buf.Bytes())
+	if err != nil {
+		return fmt.Errorf("add archive file: %w", err)
+	}
+
+	w, err := os.Create(dstArchivePath)
+	if err != nil {
+		return fmt.Errorf("create dst file: %w", err)
+	}
+
+	err = archive.Write(w)
+	if err != nil {
+		return fmt.Errorf("write archive: %w", err)
+	}
+
+	return nil
+}
+
+func writeYamlFile(srcYamlPath string, dstPath string) error {
+	if srcYamlPath == "" {
+		return fmt.Errorf("src yaml path is required")
+	}
+
+	srcExt := filepath.Ext(srcYamlPath)
+
+	dstExt := filepath.Ext(dstPath)
+	if dstExt != ".yaml" {
+		return fmt.Errorf("dst file must be yaml")
+	}
+
+	r, err := os.Open(srcYamlPath)
+	if err != nil {
+		return fmt.Errorf("open src file: %w", err)
+	}
+	defer r.Close()
+
+	reader := raw.New(srcExt)
+	if reader == nil {
+		return fmt.Errorf("unsupported file format %s", srcExt)
+	}
+
+	err = yaml.NewDecoder(r).Decode(reader)
+	if err != nil {
+		return fmt.Errorf("yaml decode: %w", err)
+	}
+
+	w, err := os.Create(dstPath)
+	if err != nil {
+		return fmt.Errorf("create dst file: %w", err)
+	}
+	defer w.Close()
+
+	err = reader.Write(w)
+	if err != nil {
+		return fmt.Errorf("write dst file: %w", err)
+	}
+	return nil
+
+}
+
+func readYamlArchiveFile(srcArchivePath string, srcArchiveFile string, dstYamlPath string) error {
+	if srcArchivePath == "" {
+		return fmt.Errorf("src archive path is required")
+	}
+	if srcArchiveFile == "" {
+		return fmt.Errorf("src archive file is required")
+	}
+
+	srcExt := filepath.Ext(srcArchivePath)
+
+	dstExt := filepath.Ext(dstYamlPath)
+	if dstExt != ".yaml" {
+		return fmt.Errorf("dst file must be yaml")
+	}
+
+	archive, err := pfs.NewFile(srcArchivePath)
+	if err != nil {
+		return fmt.Errorf("open archive: %w", err)
+	}
+	defer archive.Close()
+
+	data, err := archive.File(srcArchiveFile)
+	if err != nil {
+		return fmt.Errorf("read archive file: %w", err)
+	}
+
+	reader, err := raw.Read(srcExt, bytes.NewReader(data))
+	if err != nil {
+		return fmt.Errorf("read archive file: %w", err)
+	}
+
+	w, err := os.Create(dstYamlPath)
+	if err != nil {
+		return fmt.Errorf("create dst file: %w", err)
+	}
+	defer w.Close()
+
+	err = yaml.NewEncoder(w).Encode(reader)
+	if err != nil {
+		return fmt.Errorf("yaml encode: %w", err)
+	}
+	return nil
+}
+
+func readYamlFile(srcPath string, dstYamlPath string) error {
+	if srcPath == "" {
+		return fmt.Errorf("src path is required")
+	}
+
+	srcExt := filepath.Ext(srcPath)
+
+	dstExt := filepath.Ext(dstYamlPath)
+	if dstExt != ".yaml" {
+		return fmt.Errorf("dst file must be yaml")
+	}
+
+	r, err := os.Open(srcPath)
+	if err != nil {
+		return fmt.Errorf("open src file: %w", err)
+	}
+	defer r.Close()
+
+	reader, err := raw.Read(srcExt, r)
+	if err != nil {
+		return fmt.Errorf("read src file: %w", err)
+	}
+
+	w, err := os.Create(dstYamlPath)
+	if err != nil {
+		return fmt.Errorf("create dst file: %w", err)
+	}
+	defer w.Close()
+
+	err = yaml.NewEncoder(w).Encode(reader)
+	if err != nil {
+		return fmt.Errorf("yaml encode: %w", err)
+	}
+
+	return nil
+
 }

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"reflect"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -33,6 +32,11 @@ var inspectCmd = &cobra.Command{
 			path = args[0]
 		}
 		file, err := cmd.Flags().GetString("file")
+		if strings.Contains(path, ":") {
+			file = strings.Split(path, ":")[1]
+			path = strings.Split(path, ":")[0]
+		}
+
 		if file == "" {
 			if len(args) >= 2 {
 				file = args[1]
@@ -78,81 +82,6 @@ func init() {
 	rootCmd.AddCommand(inspectCmd)
 	inspectCmd.PersistentFlags().String("path", "", "path to inspect")
 	inspectCmd.PersistentFlags().String("file", "", "file to inspect inside pfs")
-}
-
-func reflectTraversal(inspected interface{}, nest int, index int) {
-	v := reflect.ValueOf(inspected)
-	tv := v.Type()
-
-	if v.Kind() == reflect.Ptr {
-		v = v.Elem()
-		tv = v.Type()
-	}
-
-	if v.Kind() == reflect.Slice {
-		if v.Len() == 0 {
-			log.Infof("%s%s (Empty)", strings.Repeat("  ", nest), tv.Name())
-			return
-		}
-		log.Infof("%s%s:", strings.Repeat("  ", nest), tv.Name())
-		for i := 0; i < v.Len(); i++ {
-			reflectTraversal(v.Index(i).Interface(), nest+1, i)
-		}
-		return
-	}
-
-	if v.Kind() != reflect.Struct {
-		log.Infof("%s%v", strings.Repeat("  ", nest), v.Interface())
-		return
-	}
-
-	for i := 0; i < v.NumField(); i++ {
-		// check if field is exported
-		if tv.Field(i).PkgPath != "" {
-			continue
-		}
-
-		indexStr := ""
-		if index >= 0 {
-			indexStr = fmt.Sprintf("[%d]", index)
-		}
-
-		// is it a slice?
-		if v.Field(i).Kind() == reflect.Slice {
-			s := v.Field(i)
-			if s.Len() == 0 {
-				log.Infof("%s%s %s: (Empty)", strings.Repeat("  ", nest), indexStr, tv.Field(i).Name)
-				continue
-			}
-			log.Infof("%s%s %s:", strings.Repeat("  ", nest), indexStr, tv.Field(i).Name)
-
-			for j := 0; j < s.Len(); j++ {
-				if tv.Field(i).PkgPath != "" {
-					continue
-				}
-
-				if s.Index(j).Kind() == reflect.Uint8 {
-					if j == 0 {
-						fmt.Printf("%s", strings.Repeat("  ", nest+1))
-					}
-					fmt.Printf("0x%02x ", s.Index(j).Interface())
-					if j == s.Len()-1 {
-						fmt.Println()
-					}
-					continue
-				}
-				reflectTraversal(s.Index(j).Interface(), nest+1, j)
-				//log.Infof("  %d %s\t %+v", j, tv.Field(i).Name, s.Index(j).Interface())
-			}
-			continue
-		}
-
-		if tv.Field(i).Name == "MaterialName" {
-			continue
-		}
-
-		log.Infof("%s%s %s: %v", strings.Repeat("  ", nest), indexStr, tv.Field(i).Name, v.Field(i).Interface())
-	}
 }
 
 func inspect(path string, file string) (interface{}, error) {
