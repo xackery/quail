@@ -22,9 +22,11 @@ func (mds *Mds) Write(w io.Writer) error {
 		NameAdd(material.Name)
 		NameAdd(material.ShaderName)
 		for _, prop := range material.Properties {
-			_, err = strconv.Atoi(prop.Value)
-			if err != nil {
+			NameAdd(prop.Name)
+			switch prop.Category {
+			case 2:
 				NameAdd(prop.Value)
+			default:
 			}
 		}
 	}
