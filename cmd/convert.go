@@ -25,6 +25,10 @@ import (
 	"github.com/xackery/quail/quail"
 )
 
+func init() {
+	rootCmd.AddCommand(convertCmd)
+}
+
 // convertCmd represents the convert command
 var convertCmd = &cobra.Command{
 	Use:   "convert",
@@ -33,30 +37,16 @@ var convertCmd = &cobra.Command{
 	RunE:  runConvert,
 }
 
-func init() {
-	rootCmd.AddCommand(convertCmd)
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// convertCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// convertCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-}
-
 func runConvert(cmd *cobra.Command, args []string) error {
-	err := execConvert(cmd, args)
+	err := runConvertE(cmd, args)
 	if err != nil {
-		fmt.Println(err)
+		log.Printf("Failed: %s", err.Error())
 		os.Exit(1)
 	}
 	return nil
 }
 
-func execConvert(cmd *cobra.Command, args []string) error {
+func runConvertE(cmd *cobra.Command, args []string) error {
 	if len(args) < 2 {
 		fmt.Println("Usage: quail convert <src> <dst>")
 		os.Exit(1)

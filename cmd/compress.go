@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -11,65 +12,6 @@ import (
 	"github.com/xackery/quail/pfs"
 )
 
-// compressCmd represents the compress command
-var compressCmd = &cobra.Command{
-	Use:   "compress",
-	Short: "Compress an eqg/s3d/pfs/pak folder named _file.ext/ to a pfs archive",
-	Long:  `Compress is used to take a provided _file.eqg or _file.s3d and compress it based on a folder structure`,
-	RunE: func(cmd *cobra.Command, args []string) error {
-		path, err := cmd.Flags().GetString("path")
-		if err != nil {
-			return fmt.Errorf("parse path: %w", err)
-		}
-		if path == "" {
-			if len(args) < 1 {
-				return cmd.Usage()
-			}
-			path = args[0]
-		}
-		defer func() {
-			if err != nil {
-				fmt.Println("Error:", err)
-				os.Exit(1)
-			}
-		}()
-		out, err := cmd.Flags().GetString("out")
-		if err != nil {
-			return fmt.Errorf("parse out: %w", err)
-		}
-		absPath, err := filepath.Abs(path)
-		if err != nil {
-			return fmt.Errorf("parse absolute path: %w", err)
-		}
-		if out == "" {
-			if len(args) < 2 {
-				out = filepath.Base(absPath)
-			} else {
-				out = args[1]
-			}
-		}
-
-		out = strings.ToLower(out)
-
-		isValid := false
-		for _, ext := range []string{".eqg", ".s3d", ".pfs", ".pak"} {
-			if strings.HasSuffix(out, ext) {
-				isValid = true
-				break
-			}
-		}
-		if !isValid {
-			return fmt.Errorf("out must have a valid extension (.eqg, .s3d, .pfs, .pak)")
-		}
-		out = strings.TrimPrefix(out, "_")
-		err = compress(path, out)
-		if err != nil {
-			return err
-		}
-		return nil
-	},
-}
-
 func init() {
 	rootCmd.AddCommand(compressCmd)
 	compressCmd.PersistentFlags().String("path", "", "path to compress")
@@ -78,6 +20,75 @@ func init() {
 quail compress ./_soldungb.eqg/
 quail compress _soldungb.eqg/ common.eqg
 quail compress --path=_soldungb.eqg/ --out=foo.eqg`
+}
+
+// compressCmd represents the compress command
+var compressCmd = &cobra.Command{
+	Use:   "compress",
+	Short: "Compress an eqg/s3d/pfs/pak folder named _file.ext/ to a pfs archive",
+	Long:  `Compress is used to take a provided _file.eqg or _file.s3d and compress it based on a folder structure`,
+	Run:   runCompress,
+}
+
+func runCompress(cmd *cobra.Command, args []string) {
+	err := runCompressE(cmd, args)
+	if err != nil {
+		log.Printf("Failed: %s", err.Error())
+		os.Exit(1)
+	}
+}
+
+func runCompressE(cmd *cobra.Command, args []string) error {
+	path, err := cmd.Flags().GetString("path")
+	if err != nil {
+		return fmt.Errorf("parse path: %w", err)
+	}
+	if path == "" {
+		if len(args) < 1 {
+			return cmd.Usage()
+		}
+		path = args[0]
+	}
+	defer func() {
+		if err != nil {
+			fmt.Println("Error:", err)
+			os.Exit(1)
+		}
+	}()
+	out, err := cmd.Flags().GetString("out")
+	if err != nil {
+		return fmt.Errorf("parse out: %w", err)
+	}
+	absPath, err := filepath.Abs(path)
+	if err != nil {
+		return fmt.Errorf("parse absolute path: %w", err)
+	}
+	if out == "" {
+		if len(args) < 2 {
+			out = filepath.Base(absPath)
+		} else {
+			out = args[1]
+		}
+	}
+
+	out = strings.ToLower(out)
+
+	isValid := false
+	for _, ext := range []string{".eqg", ".s3d", ".pfs", ".pak"} {
+		if strings.HasSuffix(out, ext) {
+			isValid = true
+			break
+		}
+	}
+	if !isValid {
+		return fmt.Errorf("out must have a valid extension (.eqg, .s3d, .pfs, .pak)")
+	}
+	out = strings.TrimPrefix(out, "_")
+	err = compress(path, out)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func compress(path string, out string) error {

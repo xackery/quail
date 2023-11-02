@@ -3,6 +3,7 @@ package cmd
 import (
 	"bytes"
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -13,103 +14,113 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+func init() {
+	rootCmd.AddCommand(yamlCmd)
+	yamlCmd.PersistentFlags().String("path", "", "path to inspect")
+	yamlCmd.PersistentFlags().String("file", "", "file to inspect inside pfs")
+}
+
 // yamlCmd represents the yaml command
 var yamlCmd = &cobra.Command{
 	Use:   "yaml",
 	Short: "Convert eq types to or from yaml",
 	Long:  `Allows you to convert binary eq types to yaml, and visa versa`,
-	RunE: func(cmd *cobra.Command, args []string) error {
-		srcPath, err := cmd.Flags().GetString("path")
-		if err != nil {
-			return fmt.Errorf("parse path: %w", err)
-		}
-		if srcPath == "" {
-			if len(args) < 1 {
-				return cmd.Usage()
-			}
-			srcPath = args[0]
-		}
-		dstPath, _ := cmd.Flags().GetString("file")
-		if dstPath == "" {
-			if len(args) >= 2 {
-				dstPath = args[1]
-			}
-		}
-
-		srcFile := ""
-		dstFile := ""
-		if strings.Contains(srcPath, ":") {
-			srcFile = strings.Split(srcPath, ":")[1]
-			srcPath = strings.Split(srcPath, ":")[0]
-		}
-		if strings.Contains(dstPath, ":") {
-			dstFile = strings.Split(dstPath, ":")[1]
-			dstPath = strings.Split(dstPath, ":")[0]
-		}
-
-		if srcPath == "" {
-			return fmt.Errorf("src path is required")
-		}
-
-		if dstPath == "" {
-			return fmt.Errorf("dst path is required")
-		}
-
-		fi, err := os.Stat(dstPath)
-		if err == nil && fi.IsDir() {
-
-			data, err := os.ReadFile(srcPath)
-			if err != nil {
-				return fmt.Errorf("read src file: %w", err)
-			}
-
-			type metaPeek struct {
-				MetaFileName string `yaml:"file_name"`
-			}
-
-			meta := &metaPeek{}
-			err = yaml.Unmarshal(data, meta)
-			if err != nil {
-				return fmt.Errorf("yaml unmarshal: %w", err)
-			}
-			dstPath = filepath.Join(dstPath, meta.MetaFileName)
-		}
-
-		isSrcArchive := false
-		srcPathExt := strings.ToLower(filepath.Ext(srcPath))
-		isDstArchive := false
-		dstPathExt := strings.ToLower(filepath.Ext(dstPath))
-		switch srcPathExt {
-		case ".s3d", ".pfs", ".pak", ".eqg":
-			isSrcArchive = true
-		}
-		switch dstPathExt {
-		case ".s3d", ".pfs", ".pak", ".eqg":
-			isDstArchive = true
-		}
-
-		if isSrcArchive && isDstArchive {
-			return fmt.Errorf("source and destination cannot both be archives")
-		}
-
-		if isSrcArchive {
-			return readYamlArchiveFile(srcPath, srcFile, dstPath)
-		}
-		if isDstArchive {
-			return writeYamlArchiveFile(srcPath, dstPath, dstFile)
-		}
-
-		if dstPathExt == ".yaml" {
-			return writeYamlFile(srcPath, dstPath)
-		}
-		return readYamlFile(srcPath, dstPath)
-	},
+	Run:   runYaml,
 }
 
-func init() {
-	rootCmd.AddCommand(yamlCmd)
-	yamlCmd.PersistentFlags().String("path", "", "path to inspect")
-	yamlCmd.PersistentFlags().String("file", "", "file to inspect inside pfs")
+func runYaml(cmd *cobra.Command, args []string) {
+	err := runYamlE(cmd, args)
+	if err != nil {
+		log.Printf("Failed: %s", err.Error())
+		os.Exit(1)
+	}
+}
+
+func runYamlE(cmd *cobra.Command, args []string) error {
+	srcPath, err := cmd.Flags().GetString("path")
+	if err != nil {
+		return fmt.Errorf("parse path: %w", err)
+	}
+	if srcPath == "" {
+		if len(args) < 1 {
+			return cmd.Usage()
+		}
+		srcPath = args[0]
+	}
+	dstPath, _ := cmd.Flags().GetString("file")
+	if dstPath == "" {
+		if len(args) >= 2 {
+			dstPath = args[1]
+		}
+	}
+
+	srcFile := ""
+	dstFile := ""
+	if strings.Contains(srcPath, ":") {
+		srcFile = strings.Split(srcPath, ":")[1]
+		srcPath = strings.Split(srcPath, ":")[0]
+	}
+	if strings.Contains(dstPath, ":") {
+		dstFile = strings.Split(dstPath, ":")[1]
+		dstPath = strings.Split(dstPath, ":")[0]
+	}
+
+	if srcPath == "" {
+		return fmt.Errorf("src path is required")
+	}
+
+	if dstPath == "" {
+		return fmt.Errorf("dst path is required")
+	}
+
+	fi, err := os.Stat(dstPath)
+	if err == nil && fi.IsDir() {
+
+		data, err := os.ReadFile(srcPath)
+		if err != nil {
+			return fmt.Errorf("read src file: %w", err)
+		}
+
+		type metaPeek struct {
+			MetaFileName string `yaml:"file_name"`
+		}
+
+		meta := &metaPeek{}
+		err = yaml.Unmarshal(data, meta)
+		if err != nil {
+			return fmt.Errorf("yaml unmarshal: %w", err)
+		}
+		dstPath = filepath.Join(dstPath, meta.MetaFileName)
+	}
+
+	isSrcArchive := false
+	srcPathExt := strings.ToLower(filepath.Ext(srcPath))
+	isDstArchive := false
+	dstPathExt := strings.ToLower(filepath.Ext(dstPath))
+	switch srcPathExt {
+	case ".s3d", ".pfs", ".pak", ".eqg":
+		isSrcArchive = true
+	}
+	switch dstPathExt {
+	case ".s3d", ".pfs", ".pak", ".eqg":
+		isDstArchive = true
+	}
+
+	if isSrcArchive && isDstArchive {
+		return fmt.Errorf("source and destination cannot both be archives")
+	}
+
+	if isSrcArchive {
+		return readYamlArchiveFile(srcPath, srcFile, dstPath)
+	}
+	if isDstArchive {
+		return writeYamlArchiveFile(srcPath, dstPath, dstFile)
+	}
+
+	if dstPathExt == ".yaml" {
+		return writeYamlFile(srcPath, dstPath)
+	}
+	return readYamlFile(srcPath, dstPath)
 }
 
 func writeYamlArchiveFile(srcYamlPath string, dstArchivePath string, dstArchiveFile string) error {
@@ -123,6 +134,8 @@ func writeYamlArchiveFile(srcYamlPath string, dstArchivePath string, dstArchiveF
 	if dstExt != ".s3d" && dstExt != ".pfs" && dstExt != ".pak" && dstExt != ".eqg" {
 		return fmt.Errorf("dst file must be archive")
 	}
+
+	log.Printf("Converting %s to %s:%s", srcYamlPath, dstArchivePath, dstArchiveFile)
 
 	archive, err := pfs.NewFile(dstArchivePath)
 	if err != nil {
@@ -170,6 +183,8 @@ func writeYamlFile(srcYamlPath string, dstPath string) error {
 		return fmt.Errorf("dst file must be yaml")
 	}
 
+	log.Printf("Converting %s to %s", srcYamlPath, dstPath)
+
 	r, err := os.Open(srcYamlPath)
 	if err != nil {
 		return fmt.Errorf("open src file: %w", err)
@@ -208,12 +223,13 @@ func readYamlArchiveFile(srcArchivePath string, srcArchiveFile string, dstYamlPa
 		return fmt.Errorf("src archive file is required")
 	}
 
-	srcExt := filepath.Ext(srcArchivePath)
+	srcExt := filepath.Ext(srcArchiveFile)
 
 	dstExt := filepath.Ext(dstYamlPath)
 	if dstExt != ".yaml" {
 		return fmt.Errorf("dst file must be yaml")
 	}
+	log.Printf("Converting %s:%s to %s", srcArchivePath, srcArchiveFile, dstYamlPath)
 
 	archive, err := pfs.NewFile(srcArchivePath)
 	if err != nil {
@@ -228,7 +244,7 @@ func readYamlArchiveFile(srcArchivePath string, srcArchiveFile string, dstYamlPa
 
 	reader, err := raw.Read(srcExt, bytes.NewReader(data))
 	if err != nil {
-		return fmt.Errorf("read archive file: %w", err)
+		return fmt.Errorf("read raw file %s: %w", srcArchiveFile, err)
 	}
 
 	w, err := os.Create(dstYamlPath)
@@ -255,6 +271,8 @@ func readYamlFile(srcPath string, dstYamlPath string) error {
 	if dstExt != ".yaml" {
 		return fmt.Errorf("dst file must be yaml")
 	}
+
+	log.Printf("Converting %s to %s", srcPath, dstYamlPath)
 
 	r, err := os.Open(srcPath)
 	if err != nil {

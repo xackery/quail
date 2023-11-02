@@ -14,74 +14,83 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-// inspectCmd represents the inspect command
-var inspectCmd = &cobra.Command{
-	Use:   "inspect",
-	Short: "Inspect an EverQuest asset",
-	Long: `Inspect an EverQuest asset to discover contents within
-`,
-	RunE: func(cmd *cobra.Command, args []string) error {
-		path, err := cmd.Flags().GetString("path")
-		if err != nil {
-			return fmt.Errorf("parse path: %w", err)
-		}
-		if path == "" {
-			if len(args) < 1 {
-				return cmd.Usage()
-			}
-			path = args[0]
-		}
-		file, err := cmd.Flags().GetString("file")
-		if strings.Contains(path, ":") {
-			file = strings.Split(path, ":")[1]
-			path = strings.Split(path, ":")[0]
-		}
-
-		if file == "" {
-			if len(args) >= 2 {
-				file = args[1]
-			}
-		}
-
-		defer func() {
-			if err != nil {
-				fmt.Println("Error:", err)
-				os.Exit(1)
-			}
-		}()
-		fi, err := os.Stat(path)
-		if err != nil {
-			return fmt.Errorf("path check: %w", err)
-		}
-		if fi.IsDir() {
-			return fmt.Errorf("inspect requires a target file, directory provided")
-		}
-
-		inspected, err := inspect(path, file)
-		if err != nil {
-			return fmt.Errorf("inspect: %w", err)
-		}
-
-		buf := &bytes.Buffer{}
-		enc := yaml.NewEncoder(buf)
-		enc.SetIndent(2)
-		err = enc.Encode(inspected)
-		if err != nil {
-			return fmt.Errorf("yaml encode: %w", err)
-		}
-
-		log.Infoln(buf.String())
-
-		//reflectTraversal(inspected, 0, -1)
-		return nil
-
-	},
-}
-
 func init() {
 	rootCmd.AddCommand(inspectCmd)
 	inspectCmd.PersistentFlags().String("path", "", "path to inspect")
 	inspectCmd.PersistentFlags().String("file", "", "file to inspect inside pfs")
+}
+
+// inspectCmd represents the inspect command
+var inspectCmd = &cobra.Command{
+	Use:   "inspect",
+	Short: "Inspect an EverQuest asset",
+	Long:  `Inspect an EverQuest asset to discover contents within`,
+	Run:   runInspect,
+}
+
+func runInspect(cmd *cobra.Command, args []string) {
+	err := runInspectE(cmd, args)
+	if err != nil {
+		log.Printf("Failed: %s", err.Error())
+		os.Exit(1)
+	}
+}
+
+func runInspectE(cmd *cobra.Command, args []string) error {
+	path, err := cmd.Flags().GetString("path")
+	if err != nil {
+		return fmt.Errorf("parse path: %w", err)
+	}
+	if path == "" {
+		if len(args) < 1 {
+			return cmd.Usage()
+		}
+		path = args[0]
+	}
+	file, err := cmd.Flags().GetString("file")
+	if strings.Contains(path, ":") {
+		file = strings.Split(path, ":")[1]
+		path = strings.Split(path, ":")[0]
+	}
+
+	if file == "" {
+		if len(args) >= 2 {
+			file = args[1]
+		}
+	}
+
+	defer func() {
+		if err != nil {
+			fmt.Println("Error:", err)
+			os.Exit(1)
+		}
+	}()
+	fi, err := os.Stat(path)
+	if err != nil {
+		return fmt.Errorf("path check: %w", err)
+	}
+	if fi.IsDir() {
+		return fmt.Errorf("inspect requires a target file, directory provided")
+	}
+
+	inspected, err := inspect(path, file)
+	if err != nil {
+		return fmt.Errorf("inspect: %w", err)
+	}
+
+	buf := &bytes.Buffer{}
+	enc := yaml.NewEncoder(buf)
+	enc.SetIndent(2)
+	err = enc.Encode(inspected)
+	if err != nil {
+		return fmt.Errorf("yaml encode: %w", err)
+	}
+
+	log.Infoln(buf.String())
+
+	//reflectTraversal(inspected, 0, -1)
+	return nil
+
 }
 
 func inspect(path string, file string) (interface{}, error) {

@@ -9,43 +9,53 @@ import (
 	"github.com/xackery/quail/quail"
 )
 
+func init() {
+	rootCmd.AddCommand(hybridCmd)
+}
+
 // hybridCmd represents the hybrid command
 var hybridCmd = &cobra.Command{
 	Use:   "hybrid",
 	Short: "Hybrid merge geometry with existing bone data",
 	Long:  `Hybrid is a temporary hack while animations and bone data isn't yet implemented.`,
-	RunE: func(cmd *cobra.Command, args []string) error {
-		if len(args) < 3 {
-			fmt.Println("Expected 4 arguments, got", len(args))
-			fmt.Println("Usage: quail hybrid <geometry.eqg> <bone.eqg> <out.eqg>")
-			os.Exit(1)
-		}
-		srcPath, err := filepath.Abs(args[0])
-		if err != nil {
-			return fmt.Errorf("parse source path: %w", err)
-		}
-
-		bonePath, err := filepath.Abs(args[1])
-		if err != nil {
-			return fmt.Errorf("parse bone path: %w", err)
-		}
-
-		outPath, err := filepath.Abs(args[2])
-		if err != nil {
-			return fmt.Errorf("parse out path: %w", err)
-		}
-
-		err = hybrid(srcPath, bonePath, outPath)
-		if err != nil {
-			return fmt.Errorf("hybrid: %w", err)
-		}
-
-		return nil
-	},
+	Run:   runHybrid,
 }
 
-func init() {
-	rootCmd.AddCommand(hybridCmd)
+func runHybrid(cmd *cobra.Command, args []string) {
+	err := runHybridE(cmd, args)
+	if err != nil {
+		fmt.Println("Error:", err)
+		os.Exit(1)
+	}
+}
+
+func runHybridE(cmd *cobra.Command, args []string) error {
+	if len(args) < 3 {
+		fmt.Println("Expected 4 arguments, got", len(args))
+		fmt.Println("Usage: quail hybrid <geometry.eqg> <bone.eqg> <out.eqg>")
+		os.Exit(1)
+	}
+	srcPath, err := filepath.Abs(args[0])
+	if err != nil {
+		return fmt.Errorf("parse source path: %w", err)
+	}
+
+	bonePath, err := filepath.Abs(args[1])
+	if err != nil {
+		return fmt.Errorf("parse bone path: %w", err)
+	}
+
+	outPath, err := filepath.Abs(args[2])
+	if err != nil {
+		return fmt.Errorf("parse out path: %w", err)
+	}
+
+	err = hybrid(srcPath, bonePath, outPath)
+	if err != nil {
+		return fmt.Errorf("hybrid: %w", err)
+	}
+
+	return nil
 }
 
 func hybrid(srcPath, bonePath, outPath string) error {
