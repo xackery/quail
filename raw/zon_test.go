@@ -42,7 +42,7 @@ func TestZonRead(t *testing.T) {
 		// .zon|2|arginhiz.zon|arginhiz.eqg
 		//{name: "arginhiz.eqg"},
 		// .zon|2|guardian.zon|guardian.eqg
-		//{name: "guardian.eqg"},
+		{name: "guardian.eqg"}, // FIXME: nameIndex out of range
 		// TODO: zone4 support
 		// .zon|4|arthicrex_te.zon|arthicrex.eqg
 		//{name: "arthicrex.eqg"},
@@ -137,7 +137,7 @@ func TestZonWrite(t *testing.T) {
 		// .zon|1|wallofslaughter.zon|wallofslaughter.eqg
 		//{name: "wallofslaughter.eqg"},
 		// .zon|2|arginhiz.zon|arginhiz.eqg
-		//{name: "arginhiz.eqg"}, // FIXME: nameIndex out of range
+		{name: "arginhiz.eqg"}, // FIXME: nameIndex out of range
 		// .zon|2|guardian.zon|guardian.eqg
 		//{name: "guardian.eqg"},
 	}

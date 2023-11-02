@@ -5,7 +5,6 @@ import (
 	"encoding/binary"
 	"fmt"
 	"io"
-	"strings"
 
 	"github.com/xackery/encdec"
 	"github.com/xackery/quail/tag"
@@ -14,44 +13,61 @@ import (
 // Encode writes a zon file
 func (zon *Zon) Write(w io.Writer) error {
 	var err error
+	if zon.Version >= 4 {
+		return zon.WriteV4(w)
+	}
 	NameClear()
 
 	tag.New()
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
-	if zon.Version >= 4 {
-		enc.String("EQTZ")
-	} else {
-		enc.String("EQGZ")
-	}
+
+	enc.String("EQGZ")
 
 	enc.Uint32(uint32(zon.Version))
 
 	// rest of writer is written later
 	buf := &bytes.Buffer{}
 	subEnc := encdec.NewEncoder(buf, binary.LittleEndian)
+	nameSlice := make([]string, 0)
+
+	for _, modelName := range zon.Models {
+		NameAdd(modelName)
+	}
 
 	for _, object := range zon.Objects {
-		NameAdd(object.Name)
+		isWritten := false
+		for _, name := range nameSlice {
+			if name != object.Name {
+				continue
+			}
+			isWritten = true
+			break
+		}
+		if isWritten {
+			continue
+		}
+
+		nameSlice = append(nameSlice, object.Name)
 		NameAdd(object.ModelName)
 	}
 
-	for i, modelName := range zon.Models {
-		nameOffset := NameIndex(modelName)
-		if nameOffset == -1 {
-			nameOffset = NameAdd(modelName)
-		}
-		subEnc.Uint32(uint32(nameOffset))
-		if i == 0 && strings.HasSuffix(strings.ToUpper(modelName), ".TER") {
-			NameAdd(strings.TrimSuffix(modelName, ".TER"))
-		}
+	for _, region := range zon.Regions {
+		NameAdd(region.Name)
+	}
+
+	for _, modelName := range zon.Models {
+		subEnc.Int32(NameIndex(modelName))
 	}
 
 	for _, object := range zon.Objects {
-		nameOffset := NameIndex(object.Name)
-		if nameOffset == -1 {
-			nameOffset = NameAdd(object.Name)
+		for i, name := range nameSlice {
+			if name != object.Name {
+				continue
+			}
+			subEnc.Int32(int32(i))
+			break
 		}
-		subEnc.Uint32(uint32(nameOffset))
+		subEnc.Int32(NameIndex(object.ModelName))
 
 		subEnc.Float32(object.Position.X)
 		subEnc.Float32(object.Position.Y)
@@ -62,14 +78,19 @@ func (zon *Zon) Write(w io.Writer) error {
 		subEnc.Float32(object.Rotation.Z)
 
 		subEnc.Float32(object.Scale)
+		if zon.Version >= 2 {
+			subEnc.Uint32(uint32(len(object.Lits)))
+			for _, lit := range object.Lits {
+				subEnc.Uint8(lit.R)
+				subEnc.Uint8(lit.G)
+				subEnc.Uint8(lit.B)
+				subEnc.Uint8(lit.A)
+			}
+		}
 	}
 
 	for _, region := range zon.Regions {
-		nameOffset := NameIndex(region.Name)
-		if nameOffset == -1 {
-			nameOffset = NameAdd(region.Name)
-		}
-		subEnc.Uint32(uint32(nameOffset))
+		subEnc.Int32(NameIndex(region.Name))
 
 		subEnc.Float32(region.Center.X)
 		subEnc.Float32(region.Center.Y)
@@ -82,14 +103,13 @@ func (zon *Zon) Write(w io.Writer) error {
 		subEnc.Float32(region.Extent.X)
 		subEnc.Float32(region.Extent.Y)
 		subEnc.Float32(region.Extent.Z)
+
+		//subEnc.Uint32(region.Unk1)
+		//subEnc.Uint32(region.Unk2)
 	}
 
 	for _, light := range zon.Lights {
-		nameOffset := NameIndex(light.Name)
-		if nameOffset == -1 {
-			nameOffset = NameAdd(light.Name)
-		}
-		subEnc.Uint32(uint32(nameOffset))
+		subEnc.Int32(NameIndex(light.Name))
 
 		subEnc.Float32(light.Position.X)
 		subEnc.Float32(light.Position.Y)

@@ -6,7 +6,8 @@ import (
 
 	"github.com/xackery/quail/cmd"
 	"github.com/xackery/quail/log"
-)
+	/* "net/http"         // part of pprof heap
+	_ "net/http/pprof" // part of pprof heap */)
 
 var (
 	// Version is the current version
@@ -16,6 +17,12 @@ var (
 )
 
 func main() {
+
+	/* // pprof heap
+	go func() {
+		fmt.Println(http.ListenAndServe("localhost:6060", nil))
+	}() */
+
 	if Version == "" {
 		Version = fmt.Sprintf("dev-%d-%02d-%02d", time.Now().Year(), time.Now().Month(), time.Now().Day())
 		//fmt.Printf("quail %s\n", Version)

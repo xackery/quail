@@ -17,9 +17,8 @@ type Zon struct {
 	Objects      []Object `yaml:"objects"`
 	Regions      []Region `yaml:"regions"`
 	Lights       []Light  `yaml:"lights"`
-	//Lits    []*RGBA  `yaml:"lits"`
-	V4Info V4Info `yaml:"v4info"`
-	V4Dat  V4Dat  `yaml:"v4dat"`
+	V4Info       V4Info   `yaml:"v4info"`
+	V4Dat        V4Dat    `yaml:"v4dat"`
 }
 
 type V4Info struct {
@@ -54,27 +53,30 @@ type V4DatTile struct {
 
 // Object is an object
 type Object struct {
-	Name      string
-	ModelName string
-	Position  Vector3
-	Rotation  Vector3
-	Scale     float32
+	Name      string  `yaml:"name"`
+	ModelName string  `yaml:"model_name"`
+	Position  Vector3 `yaml:"position"`
+	Rotation  Vector3 `yaml:"rotation"`
+	Scale     float32 `yaml:"scale"`
+	Lits      []*RGBA `yaml:"-"` // used in v2+ zones, omitted since it's huge
 }
 
 // Region is a region
 type Region struct {
-	Name    string
-	Center  Vector3
-	Unknown Vector3
-	Extent  Vector3
+	Name    string  `yaml:"name"`
+	Center  Vector3 `yaml:"center"`
+	Unknown Vector3 `yaml:"unknown"`
+	Extent  Vector3 `yaml:"extent"`
+	Unk1    uint32  `yaml:"unk1"`
+	Unk2    uint32  `yaml:"unk2"`
 }
 
 // Light is a light
 type Light struct {
-	Name     string
-	Position Vector3
-	Color    Vector3
-	Radius   float32
+	Name     string  `yaml:"name"`
+	Position Vector3 `yaml:"position"`
+	Color    Vector3 `yaml:"color"`
+	Radius   float32 `yaml:"radius"`
 }
 
 // Decode reads a ZON file
@@ -94,9 +96,6 @@ func (zon *Zon) Read(r io.ReadSeeker) error {
 	}
 
 	zon.Version = dec.Uint32()
-	//if version != 1 {
-	//return fmt.Errorf("version is %d, wanted 1", version)
-	//}
 
 	nameLength := dec.Uint32()
 	modelCount := dec.Uint32()
@@ -106,15 +105,16 @@ func (zon *Zon) Read(r io.ReadSeeker) error {
 
 	tag.Add(0, dec.Pos(), "red", "header")
 	nameData := dec.Bytes(int(nameLength))
+
 	names := make(map[int32]string)
-	namesIndexed := []string{}
+	nameSlice := []string{}
 
 	chunk := []byte{}
 	lastOffset := 0
 	for i, b := range nameData {
 		if b == 0 {
 			names[int32(lastOffset)] = string(chunk)
-			namesIndexed = append(namesIndexed, string(chunk))
+			nameSlice = append(nameSlice, string(chunk))
 			chunk = []byte{}
 			lastOffset = i + 1
 			continue
@@ -127,30 +127,25 @@ func (zon *Zon) Read(r io.ReadSeeker) error {
 	//os.WriteFile("src.txt", []byte(fmt.Sprintf("%+v", names)), 0644)
 
 	for i := 0; i < int(modelCount); i++ {
-		nameOffset := dec.Int32()
-		if nameOffset < 0 {
-			return fmt.Errorf("model nameOffset %d not found", nameOffset)
-		}
-		name := Name(int32(nameOffset))
+		name := Name(dec.Int32())
 		zon.Models = append(zon.Models, name)
 	}
 	tag.AddRand(tag.LastPos(), dec.Pos(), fmt.Sprintf("modelNames (%d total)", modelCount))
 
 	for i := 0; i < int(objectCount); i++ {
 		object := Object{}
-		nameIndex := dec.Uint32()
+		nameIndex := dec.Int32()
 
-		if nameIndex >= uint32(len(namesIndexed)) {
-			return fmt.Errorf("object nameIndex %d out of range", nameIndex)
+		if nameIndex >= int32(len(nameSlice)) {
+			return fmt.Errorf("%d object nameIndex %d out of range (%d)", i, nameIndex, len(nameSlice))
+		}
+		if nameIndex < 0 {
+			return fmt.Errorf("%d object nameIndex %d less than 0", i, nameIndex)
 		}
 
-		object.Name = namesIndexed[nameIndex]
+		object.Name = nameSlice[nameIndex]
 
-		nameOffset := dec.Int32()
-		if nameOffset < 0 {
-			return fmt.Errorf("object modelNameOffset %d not found", nameOffset)
-		}
-		object.ModelName = Name(int32(nameOffset))
+		object.ModelName = Name(dec.Int32())
 
 		object.Position.X = dec.Float32()
 		object.Position.Y = dec.Float32()
@@ -161,18 +156,26 @@ func (zon *Zon) Read(r io.ReadSeeker) error {
 		object.Rotation.Z = dec.Float32()
 
 		object.Scale = dec.Float32()
-		zon.Objects = append(zon.Objects, object)
 		tag.AddRand(tag.LastPos(), dec.Pos(), fmt.Sprintf("%d|%s", i, object.ModelName))
+		if zon.Version >= 2 {
+			litCount := dec.Uint32()
+			for j := 0; j < int(litCount); j++ {
+				lit := RGBA{}
+				lit.R = dec.Uint8()
+				lit.G = dec.Uint8()
+				lit.B = dec.Uint8()
+				lit.A = dec.Uint8()
+				object.Lits = append(object.Lits, &lit)
+			}
+			tag.AddRand(tag.LastPos(), dec.Pos(), fmt.Sprintf("%d|%s|lit_data", i, object.ModelName))
+		}
+		zon.Objects = append(zon.Objects, object)
 	}
 
 	for i := 0; i < int(regionCount); i++ {
 		region := Region{}
 
-		nameOffset := dec.Int32()
-		if nameOffset < 0 {
-			return fmt.Errorf("region nameOffset %d not found", nameOffset)
-		}
-		region.Name = Name(int32(nameOffset))
+		region.Name = Name(dec.Int32())
 
 		region.Center.X = dec.Float32()
 		region.Center.Y = dec.Float32()
@@ -186,6 +189,9 @@ func (zon *Zon) Read(r io.ReadSeeker) error {
 		region.Extent.Y = dec.Float32()
 		region.Extent.Z = dec.Float32()
 
+		//region.Unk1 = dec.Uint32()
+		//region.Unk2 = dec.Uint32()
+
 		zon.Regions = append(zon.Regions, region)
 		tag.AddRand(tag.LastPos(), dec.Pos(), fmt.Sprintf("%d|%s", i, region.Name))
 	}
@@ -193,11 +199,7 @@ func (zon *Zon) Read(r io.ReadSeeker) error {
 	for i := 0; i < int(lightCount); i++ {
 		light := Light{}
 
-		nameOffset := dec.Int32()
-		if nameOffset < 0 {
-			return fmt.Errorf("light nameOffset %d not found", nameOffset)
-		}
-		light.Name = Name(int32(nameOffset))
+		light.Name = Name(dec.Int32())
 
 		light.Position.X = dec.Float32()
 		light.Position.Y = dec.Float32()
