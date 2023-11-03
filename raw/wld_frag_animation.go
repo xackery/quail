@@ -70,8 +70,9 @@ func (e *WldFragSkeletonTrack) Write(w io.Writer) error {
 		}
 	}
 
-	if enc.Error() != nil {
-		return enc.Error()
+	err := enc.Error()
+	if err != nil {
+		return fmt.Errorf("write: %w", err)
 	}
 	return nil
 }
@@ -138,8 +139,9 @@ func (e *WldFragSkeletonTrackRef) Write(w io.Writer) error {
 	enc.Int16(e.NameRef)
 	enc.Uint32(e.Flags)
 	enc.Int16(e.SkeletonTrackRef)
-	if enc.Error() != nil {
-		return enc.Error()
+	err := enc.Error()
+	if err != nil {
+		return fmt.Errorf("write: %w", err)
 	}
 	return nil
 }
@@ -208,8 +210,9 @@ func (e *WldFragTrack) Write(w io.Writer) error {
 
 	}
 
-	if enc.Error() != nil {
-		return enc.Error()
+	err := enc.Error()
+	if err != nil {
+		return fmt.Errorf("write: %w", err)
 	}
 
 	return nil
@@ -277,8 +280,9 @@ func (e *WldFragTrackRef) Write(w io.Writer) error {
 		enc.Uint32(e.Sleep)
 	}
 
-	if enc.Error() != nil {
-		return enc.Error()
+	err := enc.Error()
+	if err != nil {
+		return fmt.Errorf("write: %w", err)
 	}
 	return nil
 }

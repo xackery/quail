@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/xackery/encdec"
+	"github.com/xackery/quail/log"
 	"github.com/xackery/quail/pfs"
 )
 
@@ -23,19 +24,19 @@ func TestFragment(t *testing.T) {
 		file      string
 		fragIndex int
 	}{
-		//{"gequip4.s3d", "gequip4.wld", 0},
-		//{"gequip3.s3d", "gequip3.wld", 0},
-		//{"gfaydark_obj.s3d", "gfaydark_obj.wld", 0},
-		//{"crushbone.s3d", "crushbone.wld", 112}, // threedpsprite
+		//{"crushbone.s3d", "crushbone.wld", 0}, // threedsprite
 		//{"poknowledge.s3d", "poknowledge.wld", 112}, // threedsprite
-		//{"gequip2.s3d", "gequip2.wld", 22280}, // mesh
-		//{"gequip.s3d", "gequip.wld", 972}, // mesh
-		//{"gfaydark.s3d", "gfaydark.wld", 82}, // mesh
-		//{"frozenshadow.s3d", "frozenshadow.wld", 82}, // mesh
-		//{"zel_v2_chr.s3d", "zel_v2_chr.wld", 0}, // mesh
-		//{"wol_v3_chr.s3d", "wol_v3_chr.wld", 0}, // mesh
-		//{"globalhuf_chr.s3d", "globalhuf_chr.wld", 0}, // mesh // This one mostly works, but takes significant time
-		//{"global_chr.s3d", "global_chr.wld", 557}, // mesh
+		//{"global_chr.s3d", "global_chr.wld", 557}, // tex coord count misaligned
+		//{"gequip.s3d", "gequip.wld", 972}, // BlitSpriteRef
+		//{"gfaydark.s3d", "gfaydark.wld", 82}, // ambientlight
+		//{"frozenshadow.s3d", "frozenshadow.wld", 82}, // ambientlight
+		// {"gequip4.s3d", "gequip4.wld", 0}, // PASS
+		// {"gequip3.s3d", "gequip3.wld", 0}, // PASS
+		//{"gfaydark_obj.s3d", "gfaydark_obj.wld", 0}, // PASS
+		//{"gequip2.s3d", "gequip2.wld", 22280}, // PASS
+		//{"zel_v2_chr.s3d", "zel_v2_chr.wld", 0}, // PASS
+		//{"wol_v3_chr.s3d", "wol_v3_chr.wld", 0}, // PASS
+		//{"globalhuf_chr.s3d", "globalhuf_chr.wld", 0}, // PASS
 	}
 	for _, tt := range tests {
 		t.Run(tt.file, func(t *testing.T) {
@@ -72,17 +73,17 @@ func TestFragment(t *testing.T) {
 
 				err = reader.Write(buf)
 				if err != nil {
-					t.Fatalf("frag %d 0x%x (%s) encode: %s", i, reader.FragCode(), FragName(int(reader.FragCode())), err.Error())
+					t.Fatalf("frag %d 0x%x (%s) write: %s", i, reader.FragCode(), FragName(int(reader.FragCode())), err.Error())
 				}
 
 				dstData := buf.Bytes()
 
 				//if !reflect.DeepEqual(data, dstData) {
-				for i := 0; i < len(dstData); i++ {
+				for j := 0; j < len(dstData); j++ {
 					if tt.fragIndex != 0 && i != tt.fragIndex {
 						break
 					}
-					if len(srcData) <= i {
+					if len(srcData) <= j {
 						min := 0
 						max := len(srcData)
 						fmt.Printf("src (%d:%d):\n%s\n", min, max, hex.Dump(srcData[min:max]))
@@ -91,19 +92,19 @@ func TestFragment(t *testing.T) {
 
 						t.Fatalf("frag %d 0x%x (%s) src eof at offset %d (dst is too large by %d bytes)", i, reader.FragCode(), FragName(int(reader.FragCode())), i, len(dstData)-len(srcData))
 					}
-					if len(dstData) <= i {
+					if len(dstData) <= j {
 						t.Fatalf("frag %d 0x%x (%s) dst eof at offset %d (dst is too small by %d bytes)", i, reader.FragCode(), FragName(int(reader.FragCode())), i, len(srcData)-len(dstData))
 					}
-					if dstData[i] == srcData[i] {
+					if dstData[j] == srcData[j] {
 						continue
 					}
-					fmt.Printf("frag %d 0x%x (%s) mismatch at offset %d (src: 0x%x vs dst: 0x%x aka %d)\n", i, reader.FragCode(), FragName(int(reader.FragCode())), i, srcData[i], dstData[i], dstData[i])
-					max := i + 16
+					fmt.Printf("frag %d 0x%x (%s) mismatch at offset %d (src: 0x%x vs dst: 0x%x aka %d)\n", i, reader.FragCode(), FragName(int(reader.FragCode())), i, srcData[j], dstData[j], dstData[j])
+					max := j + 16
 					if max > len(srcData) {
 						max = len(srcData)
 					}
 
-					min := i - 16
+					min := j - 16
 					if min < 0 {
 						min = 0
 					}
@@ -113,9 +114,10 @@ func TestFragment(t *testing.T) {
 					}
 
 					fmt.Printf("dst (%d:%d):\n%s\n", min, max, hex.Dump(dstData[min:max]))
-					t.Fatalf("frag %d 0x%x (%s) encode: data mismatch", i, reader.FragCode(), FragName(int(reader.FragCode())))
+					t.Fatalf("frag %d 0x%x (%s) write: data mismatch", i, reader.FragCode(), FragName(int(reader.FragCode())))
 				}
 			}
+			log.Debugf("Processed %d fragments", len(fragments))
 		})
 	}
 }

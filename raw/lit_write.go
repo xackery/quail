@@ -2,6 +2,7 @@ package raw
 
 import (
 	"encoding/binary"
+	"fmt"
 	"io"
 
 	"github.com/xackery/encdec"
@@ -16,8 +17,9 @@ func (lit *Lit) Write(w io.Writer) error {
 		enc.Uint8(entry.B)
 		enc.Uint8(entry.A)
 	}
-	if enc.Error() != nil {
-		return enc.Error()
+	err := enc.Error()
+	if err != nil {
+		return fmt.Errorf("write: %w", err)
 	}
 	return nil
 }

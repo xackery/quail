@@ -40,8 +40,9 @@ func (e *WldFragFirst) FragCode() int {
 func (e *WldFragFirst) Write(w io.Writer) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
 	enc.Int32(e.NameRef)
-	if enc.Error() != nil {
-		return enc.Error()
+	err := enc.Error()
+	if err != nil {
+		return fmt.Errorf("write: %w", err)
 	}
 	return nil
 }
@@ -90,8 +91,9 @@ func (e *WldFragSound) Write(w io.Writer) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
 	enc.Int32(e.NameRef)
 	enc.Uint32(e.Flags)
-	if enc.Error() != nil {
-		return enc.Error()
+	err := enc.Error()
+	if err != nil {
+		return fmt.Errorf("write: %w", err)
 	}
 	return nil
 }
@@ -123,8 +125,9 @@ func (e *WldFragSoundRef) Write(w io.Writer) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
 	enc.Int32(e.NameRef)
 	enc.Uint32(e.Flags)
-	if enc.Error() != nil {
-		return enc.Error()
+	err := enc.Error()
+	if err != nil {
+		return fmt.Errorf("write: %w", err)
 	}
 	return nil
 }
@@ -252,8 +255,9 @@ func (e *WldFragParticleCloud) Write(w io.Writer) error {
 	enc.Uint8(e.Color.A)
 
 	enc.Uint32(e.SpriteRef)
-	if enc.Error() != nil {
-		return enc.Error()
+	err := enc.Error()
+	if err != nil {
+		return fmt.Errorf("write: %w", err)
 	}
 
 	return nil

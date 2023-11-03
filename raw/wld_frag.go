@@ -112,7 +112,7 @@ func NewFrag(r io.ReadSeeker) FragmentReadWriter {
 	if err != nil {
 		return nil
 	}
-	r.Seek(0, io.SeekStart)
+	//r.Seek(0, io.SeekStart)
 	switch fragCode {
 	case 0x00:
 		return &WldFragDefault{}

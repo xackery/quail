@@ -102,78 +102,78 @@ func (e *WldFragTwoDSprite) Write(w io.Writer) error {
 			}
 		}
 	}
-	if enc.Error() != nil {
-		return enc.Error()
+	err := enc.Error()
+	if err != nil {
+		return fmt.Errorf("write: %w", err)
 	}
 	return nil
 
 }
 
 func (e *WldFragTwoDSprite) Read(r io.ReadSeeker) error {
-	d := &WldFragTwoDSprite{}
-	d.FragName = FragName(d.FragCode())
+	e.FragName = FragName(e.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
-	d.NameRef = dec.Int32()
-	d.Flags = dec.Uint32()
-	d.TextureCount = dec.Uint32()
-	d.PitchCount = dec.Uint32()
-	d.Scale.X = dec.Float32()
-	d.Scale.Y = dec.Float32()
-	d.SphereRef = dec.Uint32()
-	if d.Flags&0x80 == 0x80 {
-		d.DepthScale = dec.Float32()
+	e.NameRef = dec.Int32()
+	e.Flags = dec.Uint32()
+	e.TextureCount = dec.Uint32()
+	e.PitchCount = dec.Uint32()
+	e.Scale.X = dec.Float32()
+	e.Scale.Y = dec.Float32()
+	e.SphereRef = dec.Uint32()
+	if e.Flags&0x80 == 0x80 {
+		e.DepthScale = dec.Float32()
 	}
-	if d.Flags&0x01 == 0x01 {
-		d.CenterOffset.X = dec.Float32()
-		d.CenterOffset.Y = dec.Float32()
-		d.CenterOffset.Z = dec.Float32()
+	if e.Flags&0x01 == 0x01 {
+		e.CenterOffset.X = dec.Float32()
+		e.CenterOffset.Y = dec.Float32()
+		e.CenterOffset.Z = dec.Float32()
 	}
-	if d.Flags&0x02 == 0x02 {
-		d.BoundingRadius = dec.Float32()
+	if e.Flags&0x02 == 0x02 {
+		e.BoundingRadius = dec.Float32()
 	}
-	if d.Flags&0x04 == 0x04 {
-		d.CurrentFrameRef = dec.Int32()
+	if e.Flags&0x04 == 0x04 {
+		e.CurrentFrameRef = dec.Int32()
 	}
-	if d.Flags&0x08 == 0x08 {
-		d.Sleep = dec.Uint32()
+	if e.Flags&0x08 == 0x08 {
+		e.Sleep = dec.Uint32()
 	}
-	d.Headings = make([]uint32, d.PitchCount)
-	for i := uint32(0); i < d.PitchCount; i++ {
-		d.Headings[i] = dec.Uint32()
+	e.Headings = make([]uint32, e.PitchCount)
+	for i := uint32(0); i < e.PitchCount; i++ {
+		e.Headings[i] = dec.Uint32()
 	}
-	if d.Flags&0x10 == 0x10 {
-		d.RenderMethod = dec.Uint32()
-		d.RenderFlags = dec.Uint32()
-		if d.RenderFlags&0x01 == 0x01 {
-			d.RenderPen = dec.Uint32()
+	if e.Flags&0x10 == 0x10 {
+		e.RenderMethod = dec.Uint32()
+		e.RenderFlags = dec.Uint32()
+		if e.RenderFlags&0x01 == 0x01 {
+			e.RenderPen = dec.Uint32()
 		}
-		if d.RenderFlags&0x02 == 0x02 {
-			d.RenderBrightness = dec.Float32()
+		if e.RenderFlags&0x02 == 0x02 {
+			e.RenderBrightness = dec.Float32()
 		}
-		if d.RenderFlags&0x04 == 0x04 {
-			d.RenderScaledAmbient = dec.Float32()
+		if e.RenderFlags&0x04 == 0x04 {
+			e.RenderScaledAmbient = dec.Float32()
 		}
-		if d.RenderFlags&0x08 == 0x08 {
-			d.RenderSimpleSpriteReference = dec.Uint32()
+		if e.RenderFlags&0x08 == 0x08 {
+			e.RenderSimpleSpriteReference = dec.Uint32()
 		}
-		if d.RenderFlags&0x10 == 0x10 {
-			d.RenderUVInfoOrigin.X = dec.Float32()
-			d.RenderUVInfoOrigin.Y = dec.Float32()
-			d.RenderUVInfoOrigin.Z = dec.Float32()
-			d.RenderUVInfoUAxis.X = dec.Float32()
-			d.RenderUVInfoUAxis.Y = dec.Float32()
-			d.RenderUVInfoUAxis.Z = dec.Float32()
-			d.RenderUVInfoVAxis.X = dec.Float32()
-			d.RenderUVInfoVAxis.Y = dec.Float32()
-			d.RenderUVInfoVAxis.Z = dec.Float32()
+		if e.RenderFlags&0x10 == 0x10 {
+			e.RenderUVInfoOrigin.X = dec.Float32()
+			e.RenderUVInfoOrigin.Y = dec.Float32()
+			e.RenderUVInfoOrigin.Z = dec.Float32()
+			e.RenderUVInfoUAxis.X = dec.Float32()
+			e.RenderUVInfoUAxis.Y = dec.Float32()
+			e.RenderUVInfoUAxis.Z = dec.Float32()
+			e.RenderUVInfoVAxis.X = dec.Float32()
+			e.RenderUVInfoVAxis.Y = dec.Float32()
+			e.RenderUVInfoVAxis.Z = dec.Float32()
 		}
-		if d.RenderFlags&0x20 == 0x20 {
+		if e.RenderFlags&0x20 == 0x20 {
 			renderUVMapEntrycount := dec.Uint32()
 			for i := uint32(0); i < renderUVMapEntrycount; i++ {
 				v := Vector2{}
 				v.X = dec.Float32()
 				v.Y = dec.Float32()
-				d.RenderUVMapEntries = append(d.RenderUVMapEntries, v)
+				e.RenderUVMapEntries = append(e.RenderUVMapEntries, v)
 			}
 		}
 	}
@@ -202,19 +202,19 @@ func (e *WldFragTwoDSpriteRef) Write(w io.Writer) error {
 	enc.Int32(e.NameRef)
 	enc.Uint32(e.TwoDSpriteRef)
 	enc.Uint32(e.Flags)
-	if enc.Error() != nil {
-		return enc.Error()
+	err := enc.Error()
+	if err != nil {
+		return fmt.Errorf("write: %w", err)
 	}
 	return nil
 }
 
 func (e *WldFragTwoDSpriteRef) Read(r io.ReadSeeker) error {
-	d := &WldFragTwoDSpriteRef{}
-	d.FragName = FragName(d.FragCode())
+	e.FragName = FragName(e.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
-	d.NameRef = dec.Int32()
-	d.TwoDSpriteRef = dec.Uint32()
-	d.Flags = dec.Uint32()
+	e.NameRef = dec.Int32()
+	e.TwoDSpriteRef = dec.Uint32()
+	e.Flags = dec.Uint32()
 	err := dec.Error()
 	if err != nil {
 		return fmt.Errorf("read: %w", err)
@@ -314,32 +314,32 @@ func (e *WldFragThreeDSprite) Write(w io.Writer) error {
 
 		}
 	}
-	if enc.Error() != nil {
-		return enc.Error()
+	err := enc.Error()
+	if err != nil {
+		return fmt.Errorf("write: %w", err)
 	}
 
 	return nil
 }
 
 func (e *WldFragThreeDSprite) Read(r io.ReadSeeker) error {
-	d := &WldFragThreeDSprite{}
-	d.FragName = FragName(d.FragCode())
+	e.FragName = FragName(e.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
-	d.NameRef = dec.Int32()
-	d.Flags = dec.Uint32()
+	e.NameRef = dec.Int32()
+	e.Flags = dec.Uint32()
 	vertexCount := dec.Uint32()
 	bspNodeCount := dec.Uint32()
-	d.SphereListRef = dec.Uint32()
-	d.CenterOffset.X = dec.Float32()
-	d.CenterOffset.Y = dec.Float32()
-	d.CenterOffset.Z = dec.Float32()
-	d.Radius = dec.Float32()
+	e.SphereListRef = dec.Uint32()
+	e.CenterOffset.X = dec.Float32()
+	e.CenterOffset.Y = dec.Float32()
+	e.CenterOffset.Z = dec.Float32()
+	e.Radius = dec.Float32()
 	for i := 0; i < int(vertexCount); i++ {
 		v := Vector3{}
 		v.X = dec.Float32()
 		v.Y = dec.Float32()
 		v.Z = dec.Float32()
-		d.Vertices = append(d.Vertices, v)
+		e.Vertices = append(e.Vertices, v)
 	}
 	for i := 0; i < int(bspNodeCount); i++ {
 		node := WldFragThreeDSpriteBspNode{}
@@ -384,7 +384,7 @@ func (e *WldFragThreeDSprite) Read(r io.ReadSeeker) error {
 				node.RenderUVMapEntries = append(node.RenderUVMapEntries, v)
 			}
 		}
-		d.BspNodes = append(d.BspNodes, node)
+		e.BspNodes = append(e.BspNodes, node)
 	}
 	err := dec.Error()
 	if err != nil {
@@ -411,19 +411,19 @@ func (e *WldFragThreeDSpriteRef) Write(w io.Writer) error {
 	enc.Int32(e.NameRef)
 	enc.Int32(e.ThreeDRef)
 	enc.Uint32(e.Flags)
-	if enc.Error() != nil {
-		return enc.Error()
+	err := enc.Error()
+	if err != nil {
+		return fmt.Errorf("write: %w", err)
 	}
 	return nil
 }
 
 func (e *WldFragThreeDSpriteRef) Read(r io.ReadSeeker) error {
-	d := &WldFragThreeDSpriteRef{}
-	d.FragName = FragName(d.FragCode())
+	e.FragName = FragName(e.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
-	d.NameRef = dec.Int32()
-	d.ThreeDRef = dec.Int32()
-	d.Flags = dec.Uint32()
+	e.NameRef = dec.Int32()
+	e.ThreeDRef = dec.Int32()
+	e.Flags = dec.Uint32()
 	err := dec.Error()
 	if err != nil {
 		return fmt.Errorf("read: %w", err)
@@ -473,37 +473,37 @@ func (e *WldFragFourDSprite) Write(w io.Writer) error {
 			enc.Uint32(spriteFragment)
 		}
 	}
-	if enc.Error() != nil {
-		return enc.Error()
+	err := enc.Error()
+	if err != nil {
+		return fmt.Errorf("write: %w", err)
 	}
 	return nil
 }
 
 func (e *WldFragFourDSprite) Read(r io.ReadSeeker) error {
-	d := &WldFragFourDSprite{}
-	d.FragName = FragName(d.FragCode())
+	e.FragName = FragName(e.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
-	d.NameRef = dec.Int32()
-	d.Flags = dec.Uint32()
+	e.NameRef = dec.Int32()
+	e.Flags = dec.Uint32()
 	frameCount := dec.Uint32()
-	d.PolyRef = dec.Int32()
-	if d.Flags&0x01 != 0 {
-		d.CenterOffset.X = dec.Float32()
-		d.CenterOffset.Y = dec.Float32()
-		d.CenterOffset.Z = dec.Float32()
+	e.PolyRef = dec.Int32()
+	if e.Flags&0x01 != 0 {
+		e.CenterOffset.X = dec.Float32()
+		e.CenterOffset.Y = dec.Float32()
+		e.CenterOffset.Z = dec.Float32()
 	}
-	if d.Flags&0x02 != 0 {
-		d.Radius = dec.Float32()
+	if e.Flags&0x02 != 0 {
+		e.Radius = dec.Float32()
 	}
-	if d.Flags&0x04 != 0 {
-		d.CurrentFrame = dec.Uint32()
+	if e.Flags&0x04 != 0 {
+		e.CurrentFrame = dec.Uint32()
 	}
-	if d.Flags&0x08 != 0 {
-		d.Sleep = dec.Uint32()
+	if e.Flags&0x08 != 0 {
+		e.Sleep = dec.Uint32()
 	}
-	if d.Flags&0x10 != 0 {
+	if e.Flags&0x10 != 0 {
 		for i := uint32(0); i < frameCount; i++ {
-			d.SpriteFragments = append(d.SpriteFragments, dec.Uint32())
+			e.SpriteFragments = append(e.SpriteFragments, dec.Uint32())
 		}
 	}
 	err := dec.Error()
@@ -530,19 +530,19 @@ func (e *WldFragFourDSpriteRef) Write(w io.Writer) error {
 	enc.Int32(e.NameRef)
 	enc.Int32(e.FourDRef)
 	enc.Uint32(e.Params1)
-	if enc.Error() != nil {
-		return enc.Error()
+	err := enc.Error()
+	if err != nil {
+		return fmt.Errorf("write: %w", err)
 	}
 	return nil
 }
 
 func (e *WldFragFourDSpriteRef) Read(r io.ReadSeeker) error {
-	d := &WldFragFourDSpriteRef{}
-	d.FragName = FragName(d.FragCode())
+	e.FragName = FragName(e.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
-	d.NameRef = dec.Int32()
-	d.FourDRef = dec.Int32()
-	d.Params1 = dec.Uint32()
+	e.NameRef = dec.Int32()
+	e.FourDRef = dec.Int32()
+	e.Params1 = dec.Uint32()
 	err := dec.Error()
 	if err != nil {
 		return fmt.Errorf("read: %w", err)
@@ -591,36 +591,36 @@ func (e *WldFragPolyhedron) Write(w io.Writer) error {
 			enc.Uint32(unk2)
 		}
 	}
-	if enc.Error() != nil {
-		return enc.Error()
+	err := enc.Error()
+	if err != nil {
+		return fmt.Errorf("write: %w", err)
 	}
 	return nil
 }
 
 func (e *WldFragPolyhedron) Read(r io.ReadSeeker) error {
-	d := &WldFragPolyhedron{}
-	d.FragName = FragName(d.FragCode())
+	e.FragName = FragName(e.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
-	d.NameRef = dec.Int32()
-	d.Flags = dec.Uint32()
-	d.Size1 = dec.Uint32()
-	d.Size2 = dec.Uint32()
-	d.Params1 = dec.Float32()
-	d.Params2 = dec.Float32()
-	for i := uint32(0); i < d.Size1; i++ {
+	e.NameRef = dec.Int32()
+	e.Flags = dec.Uint32()
+	e.Size1 = dec.Uint32()
+	e.Size2 = dec.Uint32()
+	e.Params1 = dec.Float32()
+	e.Params2 = dec.Float32()
+	for i := uint32(0); i < e.Size1; i++ {
 		v := Vector3{}
 		v.X = dec.Float32()
 		v.Y = dec.Float32()
 		v.Z = dec.Float32()
-		d.Entries1 = append(d.Entries1, v)
+		e.Entries1 = append(e.Entries1, v)
 	}
-	for i := uint32(0); i < d.Size2; i++ {
-		e := WldFragPolyhedronEntries2{}
-		e.Unk1 = dec.Uint32()
-		for j := uint32(0); j < d.Size1; j++ {
-			e.Unk2 = append(e.Unk2, dec.Uint32())
+	for i := uint32(0); i < e.Size2; i++ {
+		entry := WldFragPolyhedronEntries2{}
+		entry.Unk1 = dec.Uint32()
+		for j := uint32(0); j < e.Size1; j++ {
+			entry.Unk2 = append(entry.Unk2, dec.Uint32())
 		}
-		d.Entries2 = append(d.Entries2, e)
+		e.Entries2 = append(e.Entries2, entry)
 	}
 	err := dec.Error()
 	if err != nil {
@@ -648,20 +648,20 @@ func (e *WldFragPolyhedronRef) Write(w io.Writer) error {
 	enc.Int32(e.FragmentRef)
 	enc.Uint32(e.Flags)
 	enc.Float32(e.Scale)
-	if enc.Error() != nil {
-		return enc.Error()
+	err := enc.Error()
+	if err != nil {
+		return fmt.Errorf("write: %w", err)
 	}
 	return nil
 }
 
 func (e *WldFragPolyhedronRef) Read(r io.ReadSeeker) error {
-	d := &WldFragPolyhedronRef{}
-	d.FragName = FragName(d.FragCode())
+	e.FragName = FragName(e.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
-	d.NameRef = dec.Int32()
-	d.FragmentRef = dec.Int32()
-	d.Flags = dec.Uint32()
-	d.Scale = dec.Float32()
+	e.NameRef = dec.Int32()
+	e.FragmentRef = dec.Int32()
+	e.Flags = dec.Uint32()
+	e.Scale = dec.Float32()
 	err := dec.Error()
 	if err != nil {
 		return fmt.Errorf("read: %w", err)
@@ -793,34 +793,34 @@ func (e *WldFragDMSprite) Write(w io.Writer) error {
 		enc.Float32(vertexTex.X)
 		enc.Float32(vertexTex.Y)
 	}
-	if enc.Error() != nil {
-		return enc.Error()
+	err := enc.Error()
+	if err != nil {
+		return fmt.Errorf("write: %w", err)
 	}
 	return nil
 }
 
 func (e *WldFragDMSprite) Read(r io.ReadSeeker) error {
-	d := &WldFragDMSprite{}
-	d.FragName = FragName(d.FragCode())
+	e.FragName = FragName(e.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
-	d.NameRef = dec.Int32()
-	d.Flags = dec.Uint32()
+	e.NameRef = dec.Int32()
+	e.Flags = dec.Uint32()
 	vertexCount := dec.Int16()
 	texCoordCount := dec.Uint32()
 	normalCount := dec.Uint32()
 	colorCount := dec.Uint32()
 	polygonCount := dec.Uint32()
 	size6 := dec.Uint32()
-	d.Fragment1Maybe = dec.Int16()
+	e.Fragment1Maybe = dec.Int16()
 	vertexPieceCount := dec.Uint32()
-	d.MaterialReference = dec.Uint32()
-	d.Fragment3 = dec.Uint32()
-	d.CenterPosition.X = dec.Float32()
-	d.CenterPosition.Y = dec.Float32()
-	d.CenterPosition.Z = dec.Float32()
-	d.Params2 = dec.Uint32()
-	d.Something2 = dec.Uint32()
-	d.Something3 = dec.Uint32()
+	e.MaterialReference = dec.Uint32()
+	e.Fragment3 = dec.Uint32()
+	e.CenterPosition.X = dec.Float32()
+	e.CenterPosition.Y = dec.Float32()
+	e.CenterPosition.Z = dec.Float32()
+	e.Params2 = dec.Uint32()
+	e.Something2 = dec.Uint32()
+	e.Something3 = dec.Uint32()
 
 	if vertexCount > 999 {
 		return fmt.Errorf("vertex count misaligned (%d)", vertexCount)
@@ -839,7 +839,7 @@ func (e *WldFragDMSprite) Read(r io.ReadSeeker) error {
 		v.X = dec.Float32()
 		v.Y = dec.Float32()
 		v.Z = dec.Float32()
-		d.Verticies = append(d.Verticies, v)
+		e.Verticies = append(e.Verticies, v)
 	}
 
 	for i := uint32(0); i < texCoordCount; i++ {
@@ -847,7 +847,7 @@ func (e *WldFragDMSprite) Read(r io.ReadSeeker) error {
 		v.X = dec.Float32()
 		v.Y = dec.Float32()
 		v.Z = dec.Float32()
-		d.TexCoords = append(d.TexCoords, v)
+		e.TexCoords = append(e.TexCoords, v)
 	}
 
 	for i := uint32(0); i < normalCount; i++ {
@@ -855,11 +855,11 @@ func (e *WldFragDMSprite) Read(r io.ReadSeeker) error {
 		v.X = dec.Float32()
 		v.Y = dec.Float32()
 		v.Z = dec.Float32()
-		d.Normals = append(d.Normals, v)
+		e.Normals = append(e.Normals, v)
 	}
 
 	for i := uint32(0); i < colorCount; i++ {
-		d.Colors = append(d.Colors, dec.Int32())
+		e.Colors = append(e.Colors, dec.Int32())
 	}
 
 	for i := uint32(0); i < polygonCount; i++ {
@@ -872,7 +872,7 @@ func (e *WldFragDMSprite) Read(r io.ReadSeeker) error {
 		p.I1 = dec.Int16()
 		p.I2 = dec.Int16()
 		p.I3 = dec.Int16()
-		d.Polygons = append(d.Polygons, p)
+		e.Polygons = append(e.Polygons, p)
 	}
 
 	for i := uint32(0); i < size6; i++ {
@@ -882,41 +882,41 @@ func (e *WldFragDMSprite) Read(r io.ReadSeeker) error {
 		s.Unk3 = dec.Uint32()
 		s.Unk4 = dec.Uint32()
 		s.Unk5 = dec.Uint32()
-		d.Size6Pieces = append(d.Size6Pieces, s)
+		e.Size6Pieces = append(e.Size6Pieces, s)
 	}
 
 	for i := uint32(0); i < vertexPieceCount; i++ {
 		v := WldFragDMSpriteVertexPiece{}
 		v.Count = dec.Int16()
 		v.Offset = dec.Int16()
-		d.VertexPieces = append(d.VertexPieces, v)
+		e.VertexPieces = append(e.VertexPieces, v)
 	}
 
-	if d.Flags&9 != 0 {
-		d.PostVertexFlag = dec.Uint32()
+	if e.Flags&9 != 0 {
+		e.PostVertexFlag = dec.Uint32()
 	}
 
-	if d.Flags&11 != 0 {
+	if e.Flags&11 != 0 {
 		spriteRenderGroupCount := dec.Uint32()
 		for i := uint32(0); i < spriteRenderGroupCount; i++ {
 			s := WldFragDMSpriteRenderGroup{}
 			s.PolygonCount = dec.Int16()
 			s.MaterialId = dec.Int16()
-			d.RenderGroups = append(d.RenderGroups, s)
+			e.RenderGroups = append(e.RenderGroups, s)
 		}
 	}
 
-	if d.Flags&12 != 0 {
+	if e.Flags&12 != 0 {
 		spriteVertexCount := dec.Uint32()
 		for i := uint32(0); i < spriteVertexCount; i++ {
 			v := Vector2{}
 			v.X = dec.Float32()
 			v.Y = dec.Float32()
-			d.VertexTex = append(d.VertexTex, v)
+			e.VertexTex = append(e.VertexTex, v)
 		}
 	}
 
-	if d.Flags&13 != 0 {
+	if e.Flags&13 != 0 {
 		dec.Uint32()
 		dec.Uint32()
 		dec.Uint32()
@@ -947,19 +947,19 @@ func (e *WldFragDMSpriteRef) Write(w io.Writer) error {
 	enc.Int32(e.NameRef)
 	enc.Int32(e.DMSpriteRef)
 	enc.Uint32(e.Params)
-	if enc.Error() != nil {
-		return enc.Error()
+	err := enc.Error()
+	if err != nil {
+		return fmt.Errorf("write: %w", err)
 	}
 	return nil
 }
 
 func (e *WldFragDMSpriteRef) Read(r io.ReadSeeker) error {
-	d := &WldFragDMSpriteRef{}
-	d.FragName = FragName(d.FragCode())
+	e.FragName = FragName(e.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
-	d.NameRef = dec.Int32()
-	d.DMSpriteRef = dec.Int32()
-	d.Params = dec.Uint32()
+	e.NameRef = dec.Int32()
+	e.DMSpriteRef = dec.Int32()
+	e.Params = dec.Uint32()
 	err := dec.Error()
 	if err != nil {
 		return fmt.Errorf("read: %w", err)
@@ -1126,41 +1126,41 @@ func (e *WldFragMesh) Write(w io.Writer) error {
 		enc.Uint8(meshOp.TypeField)
 	}
 
-	if enc.Error() != nil {
-		return enc.Error()
+	err := enc.Error()
+	if err != nil {
+		return fmt.Errorf("write: %w", err)
 	}
 
 	return nil
 }
 
 func (e *WldFragMesh) Read(r io.ReadSeeker) error {
-	d := &WldFragMesh{}
-	d.FragName = FragName(d.FragCode())
+	e.FragName = FragName(e.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
-	d.NameRef = dec.Int32()
-	d.Flags = dec.Uint32() // flags, currently unknown, zone meshes are 0x00018003, placeable objects are 0x00014003
+	e.NameRef = dec.Int32()
+	e.Flags = dec.Uint32() // flags, currently unknown, zone meshes are 0x00018003, placeable objects are 0x00014003
 
-	d.MaterialListRef = dec.Uint32()
-	d.AnimationRef = dec.Int32() //used by flags/trees only
+	e.MaterialListRef = dec.Uint32()
+	e.AnimationRef = dec.Int32() //used by flags/trees only
 
-	d.Fragment3Ref = dec.Int32() // unknown, usually empty
-	d.Fragment4Ref = dec.Int32() // unknown, This usually seems to reference the first [TextureImagesFragment] fragment in the file.
+	e.Fragment3Ref = dec.Int32() // unknown, usually empty
+	e.Fragment4Ref = dec.Int32() // unknown, This usually seems to reference the first [TextureImagesFragment] fragment in the file.
 
-	d.Center.X = dec.Float32() // for zone meshes, x coordinate of the center of the mesh
-	d.Center.Y = dec.Float32() // for zone meshes, x coordinate of the center of the mesh
-	d.Center.Z = dec.Float32()
+	e.Center.X = dec.Float32() // for zone meshes, x coordinate of the center of the mesh
+	e.Center.Y = dec.Float32() // for zone meshes, x coordinate of the center of the mesh
+	e.Center.Z = dec.Float32()
 
-	d.Params2.X = dec.Uint32() // unknown, usually empty
-	d.Params2.Y = dec.Uint32() // unknown, usually empty
-	d.Params2.Z = dec.Uint32() // unknown, usually empty
+	e.Params2.X = dec.Uint32() // unknown, usually empty
+	e.Params2.Y = dec.Uint32() // unknown, usually empty
+	e.Params2.Z = dec.Uint32() // unknown, usually empty
 
-	d.MaxDistance = dec.Float32() // Given the values in center, this seems to contain the maximum distance between any vertex and that position. It seems to define a radius from that position within which the mesh lies.
-	d.Min.X = dec.Float32()       // min x, y, and z coords in absolute coords of any vertex in the mesh.
-	d.Min.Y = dec.Float32()
-	d.Min.Z = dec.Float32()
-	d.Max.X = dec.Float32() // max x, y, and z coords in absolute coords of any vertex in the mesh.
-	d.Max.Y = dec.Float32()
-	d.Max.Z = dec.Float32()
+	e.MaxDistance = dec.Float32() // Given the values in center, this seems to contain the maximum distance between any vertex and that position. It seems to define a radius from that position within which the mesh lies.
+	e.Min.X = dec.Float32()       // min x, y, and z coords in absolute coords of any vertex in the mesh.
+	e.Min.Y = dec.Float32()
+	e.Min.Z = dec.Float32()
+	e.Max.X = dec.Float32() // max x, y, and z coords in absolute coords of any vertex in the mesh.
+	e.Max.Y = dec.Float32()
+	e.Max.Z = dec.Float32()
 
 	vertexCount := dec.Uint16()   // number of vertices in the mesh (called position_count in libeq)
 	uvCount := dec.Uint16()       // number of uv in the mesh (called texture_coordinate_count in libeq)
@@ -1179,7 +1179,7 @@ func (e *WldFragMesh) Read(r io.ReadSeeker) error {
 	vertexMaterialCount := dec.Uint16()   // number of vertex material entries. Vertices are grouped together by material and vertex material entries tell the client how many vertices there are using a material.
 
 	meshOpCount := dec.Uint16() // number of entries in meshops. Seems to be used only for animated mob models.
-	d.RawScale = dec.Uint16()
+	e.RawScale = dec.Uint16()
 
 	// convert scale back to rawscale
 	//rawScale = uint16(math.Log2(float64(1 / scale)))
@@ -1187,15 +1187,15 @@ func (e *WldFragMesh) Read(r io.ReadSeeker) error {
 	/// Vertices (x, y, z) belonging to this mesh. Each axis should
 	/// be multiplied by (1 shl `scale`) for the final vertex position.
 	for i := 0; i < int(vertexCount); i++ {
-		d.Vertices = append(d.Vertices, [3]int16{dec.Int16(), dec.Int16(), dec.Int16()})
+		e.Vertices = append(e.Vertices, [3]int16{dec.Int16(), dec.Int16(), dec.Int16()})
 	}
 
 	for i := 0; i < int(uvCount); i++ {
-		d.UVs = append(d.UVs, [2]int16{dec.Int16(), dec.Int16()})
+		e.UVs = append(e.UVs, [2]int16{dec.Int16(), dec.Int16()})
 	}
 
 	for i := 0; i < int(normalCount); i++ {
-		d.Normals = append(d.Normals, [3]int8{dec.Int8(), dec.Int8(), dec.Int8()})
+		e.Normals = append(e.Normals, [3]int8{dec.Int8(), dec.Int8(), dec.Int8()})
 	}
 
 	for i := 0; i < int(colorCount); i++ {
@@ -1205,7 +1205,7 @@ func (e *WldFragMesh) Read(r io.ReadSeeker) error {
 			B: dec.Uint8(),
 			A: dec.Uint8(),
 		}
-		d.Colors = append(d.Colors, color)
+		e.Colors = append(e.Colors, color)
 	}
 
 	for i := 0; i < int(triangleCount); i++ {
@@ -1213,7 +1213,7 @@ func (e *WldFragMesh) Read(r io.ReadSeeker) error {
 		mte.Flags = dec.Uint16()
 		mte.Index = [3]uint16{dec.Uint16(), dec.Uint16(), dec.Uint16()}
 
-		d.Triangles = append(d.Triangles, mte)
+		e.Triangles = append(e.Triangles, mte)
 	}
 
 	for i := 0; i < int(vertexPieceCount); i++ {
@@ -1221,11 +1221,11 @@ func (e *WldFragMesh) Read(r io.ReadSeeker) error {
 		vertexPiece.Count = dec.Int16()
 		vertexPiece.Index1 = dec.Int16()
 
-		d.VertexPieces = append(d.VertexPieces, vertexPiece)
+		e.VertexPieces = append(e.VertexPieces, vertexPiece)
 	}
 
 	for i := 0; i < int(triangleMaterialCount); i++ {
-		d.TriangleMaterials = append(d.TriangleMaterials, WldFragMeshTriangleMaterial{
+		e.TriangleMaterials = append(e.TriangleMaterials, WldFragMeshTriangleMaterial{
 			Count:      dec.Uint16(),
 			MaterialID: dec.Uint16(),
 		})
@@ -1235,11 +1235,11 @@ func (e *WldFragMesh) Read(r io.ReadSeeker) error {
 		vertexMat := WldFragMeshVertexPiece{}
 		vertexMat.Count = dec.Int16()
 		vertexMat.Index1 = dec.Int16()
-		d.VertexMaterials = append(d.VertexMaterials, vertexMat)
+		e.VertexMaterials = append(e.VertexMaterials, vertexMat)
 	}
 
 	for i := 0; i < int(meshOpCount); i++ {
-		d.MeshOps = append(d.MeshOps, WldFragMeshOpEntry{
+		e.MeshOps = append(e.MeshOps, WldFragMeshOpEntry{
 			Index1:    dec.Uint16(),
 			Index2:    dec.Uint16(),
 			Offset:    dec.Float32(),
@@ -1283,8 +1283,7 @@ func (e *WldFragMeshAnimated) Write(w io.Writer) error {
 }
 
 func (e *WldFragMeshAnimated) Read(r io.ReadSeeker) error {
-	d := &WldFragMeshAnimated{}
-	d.FragName = FragName(d.FragCode())
+	e.FragName = FragName(e.FragCode())
 	return nil
 }
 
@@ -1323,19 +1322,19 @@ func (e *WldFragWorldTree) Write(w io.Writer) error {
 		enc.Int32(node.FrontRef)
 		enc.Int32(node.BackRef)
 	}
-	if enc.Error() != nil {
-		return enc.Error()
+	err := enc.Error()
+	if err != nil {
+		return fmt.Errorf("write: %w", err)
 	}
 	return nil
 }
 
 func (e *WldFragWorldTree) Read(r io.ReadSeeker) error {
-	d := &WldFragWorldTree{}
-	d.FragName = FragName(d.FragCode())
+	e.FragName = FragName(e.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
-	d.NameRef = dec.Int32()
-	d.NodeCount = dec.Uint32()
-	for i := uint32(0); i < d.NodeCount; i++ {
+	e.NameRef = dec.Int32()
+	e.NodeCount = dec.Uint32()
+	for i := uint32(0); i < e.NodeCount; i++ {
 		node := WorldTreeNode{}
 		node.Normal.X = dec.Float32()
 		node.Normal.Y = dec.Float32()
@@ -1344,7 +1343,7 @@ func (e *WldFragWorldTree) Read(r io.ReadSeeker) error {
 		node.RegionRef = dec.Int32()
 		node.FrontRef = dec.Int32()
 		node.BackRef = dec.Int32()
-		d.Nodes = append(d.Nodes, node)
+		e.Nodes = append(e.Nodes, node)
 	}
 	err := dec.Error()
 	if err != nil {
@@ -1451,56 +1450,56 @@ func (e *WldFragRegion) Write(w io.Writer) error {
 			enc.Uint32(vertex)
 		}
 	}
-	if enc.Error() != nil {
-		return enc.Error()
+	err := enc.Error()
+	if err != nil {
+		return fmt.Errorf("write: %w", err)
 	}
 	return nil
 }
 
 func (e *WldFragRegion) Read(r io.ReadSeeker) error {
-	d := &WldFragRegion{}
-	d.FragName = FragName(d.FragCode())
+	e.FragName = FragName(e.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
-	d.NameRef = dec.Int32()
-	d.Flags = dec.Uint32()
-	d.AmbientLightRef = dec.Int32()
-	d.RegionVertexCount = dec.Uint32()
-	d.RegionProximalCount = dec.Uint32()
-	d.RenderVertexCount = dec.Uint32()
-	d.WallCount = dec.Uint32()
-	d.ObstacleCount = dec.Uint32()
-	d.CuttingObstacleCount = dec.Uint32()
-	d.VisibleNodeCount = dec.Uint32()
-	d.RegionVertices = make([]Vector3, d.RegionVertexCount)
-	for i := uint32(0); i < d.RegionVertexCount; i++ {
-		d.RegionVertices[i] = Vector3{
+	e.NameRef = dec.Int32()
+	e.Flags = dec.Uint32()
+	e.AmbientLightRef = dec.Int32()
+	e.RegionVertexCount = dec.Uint32()
+	e.RegionProximalCount = dec.Uint32()
+	e.RenderVertexCount = dec.Uint32()
+	e.WallCount = dec.Uint32()
+	e.ObstacleCount = dec.Uint32()
+	e.CuttingObstacleCount = dec.Uint32()
+	e.VisibleNodeCount = dec.Uint32()
+	e.RegionVertices = make([]Vector3, e.RegionVertexCount)
+	for i := uint32(0); i < e.RegionVertexCount; i++ {
+		e.RegionVertices[i] = Vector3{
 			X: dec.Float32(),
 			Y: dec.Float32(),
 			Z: dec.Float32(),
 		}
 	}
-	d.RegionProximals = make([]Vector2, d.RegionProximalCount)
-	for i := uint32(0); i < d.RegionProximalCount; i++ {
-		d.RegionProximals[i] = Vector2{
+	e.RegionProximals = make([]Vector2, e.RegionProximalCount)
+	for i := uint32(0); i < e.RegionProximalCount; i++ {
+		e.RegionProximals[i] = Vector2{
 			X: dec.Float32(),
 			Y: dec.Float32(),
 		}
 	}
-	if d.WallCount != 0 {
-		d.RenderVertexCount = 0
+	if e.WallCount != 0 {
+		e.RenderVertexCount = 0
 	}
 
-	d.RenderVertices = make([]Vector3, d.RenderVertexCount)
-	for i := uint32(0); i < d.RenderVertexCount; i++ {
-		d.RenderVertices[i] = Vector3{
+	e.RenderVertices = make([]Vector3, e.RenderVertexCount)
+	for i := uint32(0); i < e.RenderVertexCount; i++ {
+		e.RenderVertices[i] = Vector3{
 			X: dec.Float32(),
 			Y: dec.Float32(),
 			Z: dec.Float32(),
 		}
 	}
 
-	d.Walls = make([]Wall, d.WallCount)
-	for i := uint32(0); i < d.WallCount; i++ {
+	e.Walls = make([]Wall, e.WallCount)
+	for i := uint32(0); i < e.WallCount; i++ {
 		wall := Wall{}
 		wall.Flags = dec.Uint32()
 		wall.VertexCount = dec.Uint32()
@@ -1534,7 +1533,7 @@ func (e *WldFragRegion) Read(r io.ReadSeeker) error {
 		for i := uint32(0); i < wall.VertexCount; i++ {
 			wall.Vertices[i] = dec.Uint32()
 		}
-		d.Walls[i] = wall
+		e.Walls[i] = wall
 	}
 
 	err := dec.Error()

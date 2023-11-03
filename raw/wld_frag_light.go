@@ -47,8 +47,9 @@ func (e *WldFragLight) Write(w io.Writer) error {
 			enc.Float32(color.Z)
 		}
 	}
-	if enc.Error() != nil {
-		return enc.Error()
+	err := enc.Error()
+	if err != nil {
+		return fmt.Errorf("write: %w", err)
 	}
 	return nil
 }
@@ -104,8 +105,9 @@ func (e *WldFragLightRef) Write(w io.Writer) error {
 	enc.Int32(e.NameRef)
 	enc.Int32(e.LightDefRef)
 	enc.Uint32(e.Flags)
-	if enc.Error() != nil {
-		return enc.Error()
+	err := enc.Error()
+	if err != nil {
+		return fmt.Errorf("write: %w", err)
 	}
 	return nil
 }
@@ -138,8 +140,9 @@ func (e *WldFragPointLightOld) Write(w io.Writer) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
 	enc.Int32(e.NameRef)
 	enc.Uint32(e.Flags)
-	if enc.Error() != nil {
-		return enc.Error()
+	err := enc.Error()
+	if err != nil {
+		return fmt.Errorf("write: %w", err)
 	}
 	return nil
 }
@@ -171,8 +174,9 @@ func (e *WldFragPointLightOldRef) Write(w io.Writer) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
 	enc.Int32(e.NameRef)
 	enc.Int32(e.PointLightRef)
-	if enc.Error() != nil {
-		return enc.Error()
+	err := enc.Error()
+	if err != nil {
+		return fmt.Errorf("write: %w", err)
 	}
 	return nil
 }

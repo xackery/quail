@@ -60,8 +60,9 @@ func (lay *Lay) Write(w io.Writer) error {
 		enc.Bytes(versionPadding)
 	}
 
-	if enc.Error() != nil {
-		return fmt.Errorf("encode: %w", enc.Error())
+	err := enc.Error()
+	if err != nil {
+		return fmt.Errorf("write: %w", err)
 	}
 
 	return nil

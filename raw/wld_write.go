@@ -32,8 +32,9 @@ func (wld *Wld) Write(w io.Writer) error {
 	enc.Bytes(nameData)
 	enc.Bytes(fragBuf.Bytes())
 
-	if enc.Error() != nil {
-		return fmt.Errorf("encode: %w", enc.Error())
+	err = enc.Error()
+	if err != nil {
+		return fmt.Errorf("write: %w", err)
 	}
 	return nil
 }

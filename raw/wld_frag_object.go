@@ -77,58 +77,58 @@ func (e *WldFragParticleSprite) Write(w io.Writer) error {
 		enc.Float32(entry.X)
 		enc.Float32(entry.Y)
 	}
-	if enc.Error() != nil {
-		return enc.Error()
+	err := enc.Error()
+	if err != nil {
+		return fmt.Errorf("write: %w", err)
 	}
 	return nil
 }
 
 func (e *WldFragParticleSprite) Read(r io.ReadSeeker) error {
-	d := &WldFragParticleSprite{}
-	d.FragName = FragName(d.FragCode())
+	e.FragName = FragName(e.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
-	d.NameRef = dec.Int32()
-	d.Flags = dec.Uint32()
-	d.VerticesCount = dec.Uint32()
-	d.Unknown = dec.Uint32()
-	if d.Flags&0x01 != 0 { // has center offset
-		d.CenterOffset.X = dec.Float32()
-		d.CenterOffset.Y = dec.Float32()
-		d.CenterOffset.Z = dec.Float32()
+	e.NameRef = dec.Int32()
+	e.Flags = dec.Uint32()
+	e.VerticesCount = dec.Uint32()
+	e.Unknown = dec.Uint32()
+	if e.Flags&0x01 != 0 { // has center offset
+		e.CenterOffset.X = dec.Float32()
+		e.CenterOffset.Y = dec.Float32()
+		e.CenterOffset.Z = dec.Float32()
 	}
-	if d.Flags&0x02 != 0 { // has radius
-		d.Radius = dec.Float32()
+	if e.Flags&0x02 != 0 { // has radius
+		e.Radius = dec.Float32()
 	}
-	if d.VerticesCount > 0 { // has vertices
-		for i := uint32(0); i < d.VerticesCount; i++ {
+	if e.VerticesCount > 0 { // has vertices
+		for i := uint32(0); i < e.VerticesCount; i++ {
 			var vertex Vector3
 			vertex.X = dec.Float32()
 			vertex.Y = dec.Float32()
 			vertex.Z = dec.Float32()
-			d.Vertices = append(d.Vertices, vertex)
+			e.Vertices = append(e.Vertices, vertex)
 		}
 	}
-	d.RenderMethod = dec.Uint32()
-	d.RenderFlags = dec.Uint32()
-	d.RenderPen = dec.Uint32()
-	d.RenderBrightness = dec.Float32()
-	d.RenderScaledAmbient = dec.Float32()
-	d.RenderSimpleSpriteReference = dec.Uint32()
-	d.RenderUVInfoOrigin.X = dec.Float32()
-	d.RenderUVInfoOrigin.Y = dec.Float32()
-	d.RenderUVInfoOrigin.Z = dec.Float32()
-	d.RenderUVInfoUAxis.X = dec.Float32()
-	d.RenderUVInfoUAxis.Y = dec.Float32()
-	d.RenderUVInfoUAxis.Z = dec.Float32()
-	d.RenderUVInfoVAxis.X = dec.Float32()
-	d.RenderUVInfoVAxis.Y = dec.Float32()
-	d.RenderUVInfoVAxis.Z = dec.Float32()
-	d.RenderUVMapEntryCount = dec.Uint32()
-	for i := uint32(0); i < d.RenderUVMapEntryCount; i++ {
+	e.RenderMethod = dec.Uint32()
+	e.RenderFlags = dec.Uint32()
+	e.RenderPen = dec.Uint32()
+	e.RenderBrightness = dec.Float32()
+	e.RenderScaledAmbient = dec.Float32()
+	e.RenderSimpleSpriteReference = dec.Uint32()
+	e.RenderUVInfoOrigin.X = dec.Float32()
+	e.RenderUVInfoOrigin.Y = dec.Float32()
+	e.RenderUVInfoOrigin.Z = dec.Float32()
+	e.RenderUVInfoUAxis.X = dec.Float32()
+	e.RenderUVInfoUAxis.Y = dec.Float32()
+	e.RenderUVInfoUAxis.Z = dec.Float32()
+	e.RenderUVInfoVAxis.X = dec.Float32()
+	e.RenderUVInfoVAxis.Y = dec.Float32()
+	e.RenderUVInfoVAxis.Z = dec.Float32()
+	e.RenderUVMapEntryCount = dec.Uint32()
+	for i := uint32(0); i < e.RenderUVMapEntryCount; i++ {
 		var entry Vector2
 		entry.X = dec.Float32()
 		entry.Y = dec.Float32()
-		d.RenderUVMapEntries = append(d.RenderUVMapEntries, entry)
+		e.RenderUVMapEntries = append(e.RenderUVMapEntries, entry)
 	}
 	err := dec.Error()
 	if err != nil {
@@ -154,19 +154,19 @@ func (e *WldFragParticleSpriteRef) Write(w io.Writer) error {
 	enc.Int32(e.NameRef)
 	enc.Int32(e.ParticleSpriteDefRef)
 	enc.Uint32(e.Flags)
-	if enc.Error() != nil {
-		return enc.Error()
+	err := enc.Error()
+	if err != nil {
+		return fmt.Errorf("write: %w", err)
 	}
 	return nil
 }
 
 func (e *WldFragParticleSpriteRef) Read(r io.ReadSeeker) error {
-	d := &WldFragParticleSpriteRef{}
-	d.FragName = FragName(d.FragCode())
+	e.FragName = FragName(e.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
-	d.NameRef = dec.Int32()
-	d.ParticleSpriteDefRef = dec.Int32()
-	d.Flags = dec.Uint32()
+	e.NameRef = dec.Int32()
+	e.ParticleSpriteDefRef = dec.Int32()
+	e.Flags = dec.Uint32()
 	err := dec.Error()
 	if err != nil {
 		return fmt.Errorf("read: %w", err)
@@ -189,18 +189,18 @@ func (e *WldFragCompositeSprite) Write(w io.Writer) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
 	enc.Int32(e.NameRef)
 	enc.Uint32(e.Flags)
-	if enc.Error() != nil {
-		return enc.Error()
+	err := enc.Error()
+	if err != nil {
+		return fmt.Errorf("write: %w", err)
 	}
 	return nil
 }
 
 func (e *WldFragCompositeSprite) Read(r io.ReadSeeker) error {
-	d := &WldFragCompositeSprite{}
-	d.FragName = FragName(d.FragCode())
+	e.FragName = FragName(e.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
-	d.NameRef = dec.Int32()
-	d.Flags = dec.Uint32()
+	e.NameRef = dec.Int32()
+	e.Flags = dec.Uint32()
 	err := dec.Error()
 	if err != nil {
 		return fmt.Errorf("read: %w", err)
@@ -225,19 +225,19 @@ func (e *WldFragCompositeSpriteRef) Write(w io.Writer) error {
 	enc.Int32(e.NameRef)
 	enc.Int32(e.CompositeSpriteDefRef)
 	enc.Uint32(e.Flags)
-	if enc.Error() != nil {
-		return enc.Error()
+	err := enc.Error()
+	if err != nil {
+		return fmt.Errorf("write: %w", err)
 	}
 	return nil
 }
 
 func (e *WldFragCompositeSpriteRef) Read(r io.ReadSeeker) error {
-	d := &WldFragCompositeSpriteRef{}
-	d.FragName = FragName(d.FragCode())
+	e.FragName = FragName(e.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
-	d.NameRef = dec.Int32()
-	d.CompositeSpriteDefRef = dec.Int32()
-	d.Flags = dec.Uint32()
+	e.NameRef = dec.Int32()
+	e.CompositeSpriteDefRef = dec.Int32()
+	e.Flags = dec.Uint32()
 	err := dec.Error()
 	if err != nil {
 		return fmt.Errorf("read: %w", err)
@@ -305,47 +305,47 @@ func (e *WldFragModel) Write(w io.Writer) error {
 		enc.Uint32(fragmentRef)
 	}
 	enc.Uint32(e.Unk2)
-	if enc.Error() != nil {
-		return enc.Error()
+	err := enc.Error()
+	if err != nil {
+		return fmt.Errorf("write: %w", err)
 	}
 	return nil
 }
 
 func (e *WldFragModel) Read(r io.ReadSeeker) error {
-	d := &WldFragModel{}
-	d.FragName = FragName(d.FragCode())
+	e.FragName = FragName(e.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
-	d.NameRef = dec.Int32()
-	d.Flags = dec.Uint32()
-	d.CallbackNameRef = dec.Int32()
-	d.ActionCount = dec.Uint32()
-	d.FragmentRefCount = dec.Uint32()
-	d.BoundsRef = dec.Int32()
-	if d.Flags&0x1 == 0x1 {
-		d.CurrentAction = dec.Uint32()
+	e.NameRef = dec.Int32()
+	e.Flags = dec.Uint32()
+	e.CallbackNameRef = dec.Int32()
+	e.ActionCount = dec.Uint32()
+	e.FragmentRefCount = dec.Uint32()
+	e.BoundsRef = dec.Int32()
+	if e.Flags&0x1 == 0x1 {
+		e.CurrentAction = dec.Uint32()
 	}
-	if d.Flags&0x2 == 0x2 {
-		d.Offset.X = dec.Float32()
-		d.Offset.Y = dec.Float32()
-		d.Offset.Z = dec.Float32()
-		d.Rotation.X = dec.Float32()
-		d.Rotation.Y = dec.Float32()
-		d.Rotation.Z = dec.Float32()
-		d.Unk1 = dec.Uint32()
+	if e.Flags&0x2 == 0x2 {
+		e.Offset.X = dec.Float32()
+		e.Offset.Y = dec.Float32()
+		e.Offset.Z = dec.Float32()
+		e.Rotation.X = dec.Float32()
+		e.Rotation.Y = dec.Float32()
+		e.Rotation.Z = dec.Float32()
+		e.Unk1 = dec.Uint32()
 	}
-	for i := uint32(0); i < d.ActionCount; i++ {
+	for i := uint32(0); i < e.ActionCount; i++ {
 		var action WldFragModelAction
 		action.LodCount = dec.Uint32()
 		action.Unk1 = dec.Uint32()
 		for j := uint32(0); j < action.LodCount; j++ {
 			action.Lods = append(action.Lods, dec.Float32())
 		}
-		d.Actions = append(d.Actions, action)
+		e.Actions = append(e.Actions, action)
 	}
-	for i := uint32(0); i < d.FragmentRefCount; i++ {
-		d.FragmentRefs = append(d.FragmentRefs, dec.Uint32())
+	for i := uint32(0); i < e.FragmentRefCount; i++ {
+		e.FragmentRefs = append(e.FragmentRefs, dec.Uint32())
 	}
-	d.Unk2 = dec.Uint32()
+	e.Unk2 = dec.Uint32()
 
 	err := dec.Error()
 	if err != nil {
@@ -403,42 +403,42 @@ func (e *WldFragModelRef) Write(w io.Writer) error {
 		enc.Int32(e.SoundNameRef)
 	}
 	enc.Int32(e.Unk2)
-	if enc.Error() != nil {
-		return enc.Error()
+	err := enc.Error()
+	if err != nil {
+		return fmt.Errorf("write: %w", err)
 	}
 	return nil
 }
 
 func (e *WldFragModelRef) Read(r io.ReadSeeker) error {
-	d := &WldFragModelRef{}
-	d.FragName = FragName(d.FragCode())
+	e.FragName = FragName(e.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
-	d.NameRef = dec.Int32()
-	d.ActorDefRef = dec.Int32()
-	d.Flags = dec.Uint32()
-	d.SphereRef = dec.Uint32()
-	if d.Flags&0x1 == 0x1 {
-		d.CurrentAction = dec.Uint32()
+	e.NameRef = dec.Int32()
+	e.ActorDefRef = dec.Int32()
+	e.Flags = dec.Uint32()
+	e.SphereRef = dec.Uint32()
+	if e.Flags&0x1 == 0x1 {
+		e.CurrentAction = dec.Uint32()
 	}
-	if d.Flags&0x2 == 0x2 {
-		d.Offset.X = dec.Float32()
-		d.Offset.Y = dec.Float32()
-		d.Offset.Z = dec.Float32()
-		d.Rotation.X = dec.Float32()
-		d.Rotation.Y = dec.Float32()
-		d.Rotation.Z = dec.Float32()
-		d.Unk1 = dec.Uint32()
+	if e.Flags&0x2 == 0x2 {
+		e.Offset.X = dec.Float32()
+		e.Offset.Y = dec.Float32()
+		e.Offset.Z = dec.Float32()
+		e.Rotation.X = dec.Float32()
+		e.Rotation.Y = dec.Float32()
+		e.Rotation.Z = dec.Float32()
+		e.Unk1 = dec.Uint32()
 	}
-	if d.Flags&0x4 == 0x4 {
-		d.BoundingRadius = dec.Float32()
+	if e.Flags&0x4 == 0x4 {
+		e.BoundingRadius = dec.Float32()
 	}
-	if d.Flags&0x8 == 0x8 {
-		d.Scale = dec.Float32()
+	if e.Flags&0x8 == 0x8 {
+		e.Scale = dec.Float32()
 	}
-	if d.Flags&0x10 == 0x10 {
-		d.SoundNameRef = dec.Int32()
+	if e.Flags&0x10 == 0x10 {
+		e.SoundNameRef = dec.Int32()
 	}
-	d.Unk2 = dec.Int32()
+	e.Unk2 = dec.Int32()
 	err := dec.Error()
 	if err != nil {
 		return fmt.Errorf("read: %w", err)
@@ -461,18 +461,18 @@ func (e *WldFragSphere) Write(w io.Writer) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
 	enc.Int32(e.NameRef)
 	enc.Float32(e.Radius)
-	if enc.Error() != nil {
-		return enc.Error()
+	err := enc.Error()
+	if err != nil {
+		return fmt.Errorf("write: %w", err)
 	}
 	return nil
 }
 
 func (e *WldFragSphere) Read(r io.ReadSeeker) error {
-	d := &WldFragSphere{}
-	d.FragName = FragName(d.FragCode())
+	e.FragName = FragName(e.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
-	d.NameRef = dec.Int32()
-	d.Radius = dec.Float32()
+	e.NameRef = dec.Int32()
+	e.Radius = dec.Float32()
 	err := dec.Error()
 	if err != nil {
 		return fmt.Errorf("read: %w", err)
@@ -508,28 +508,28 @@ func (e *WldFragSphereList) Write(w io.Writer) error {
 		enc.Float32(sphere.Z)
 		enc.Float32(sphere.W)
 	}
-	if enc.Error() != nil {
-		return enc.Error()
+	err := enc.Error()
+	if err != nil {
+		return fmt.Errorf("write: %w", err)
 	}
 	return nil
 }
 
 func (e *WldFragSphereList) Read(r io.ReadSeeker) error {
-	d := &WldFragSphereList{}
-	d.FragName = FragName(d.FragCode())
+	e.FragName = FragName(e.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
-	d.NameRef = dec.Int32()
-	d.Flags = dec.Uint32()
-	d.SphereCount = dec.Uint32()
-	d.Radius = dec.Float32()
-	d.Scale = dec.Float32()
-	for i := uint32(0); i < d.SphereCount; i++ {
+	e.NameRef = dec.Int32()
+	e.Flags = dec.Uint32()
+	e.SphereCount = dec.Uint32()
+	e.Radius = dec.Float32()
+	e.Scale = dec.Float32()
+	for i := uint32(0); i < e.SphereCount; i++ {
 		var sphere Quad4
 		sphere.X = dec.Float32()
 		sphere.Y = dec.Float32()
 		sphere.Z = dec.Float32()
 		sphere.W = dec.Float32()
-		d.Spheres = append(d.Spheres, sphere)
+		e.Spheres = append(e.Spheres, sphere)
 	}
 
 	err := dec.Error()
@@ -556,19 +556,19 @@ func (e *WldFragSphereListRef) Write(w io.Writer) error {
 	enc.Int32(e.NameRef)
 	enc.Int32(e.SphereListDefRef)
 	enc.Uint32(e.Params1)
-	if enc.Error() != nil {
-		return enc.Error()
+	err := enc.Error()
+	if err != nil {
+		return fmt.Errorf("write: %w", err)
 	}
 	return nil
 }
 
 func (e *WldFragSphereListRef) Read(r io.ReadSeeker) error {
-	d := &WldFragSphereListRef{}
-	d.FragName = FragName(d.FragCode())
+	e.FragName = FragName(e.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
-	d.NameRef = dec.Int32()
-	d.SphereListDefRef = dec.Int32()
-	d.Params1 = dec.Uint32()
+	e.NameRef = dec.Int32()
+	e.SphereListDefRef = dec.Int32()
+	e.Params1 = dec.Uint32()
 	err := dec.Error()
 	if err != nil {
 		return fmt.Errorf("read: %w", err)

@@ -26,19 +26,19 @@ func (e *WldFragPaletteFile) Write(w io.Writer) error {
 	enc.Int32(e.NameRef)
 	enc.Uint16(e.NameLength)
 	enc.String(e.FileName)
-	if enc.Error() != nil {
-		return enc.Error()
+	err := enc.Error()
+	if err != nil {
+		return fmt.Errorf("write: %w", err)
 	}
 	return nil
 }
 
 func (e *WldFragPaletteFile) Read(r io.ReadSeeker) error {
-	d := &WldFragPaletteFile{}
-	d.FragName = FragName(d.FragCode())
+	e.FragName = FragName(e.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
-	d.NameRef = dec.Int32()
-	d.NameLength = dec.Uint16()
-	d.FileName = dec.StringFixed(int(d.NameLength))
+	e.NameRef = dec.Int32()
+	e.NameLength = dec.Uint16()
+	e.FileName = dec.StringFixed(int(e.NameLength))
 	err := dec.Error()
 	if err != nil {
 		return fmt.Errorf("read: %w", err)
@@ -64,22 +64,22 @@ func (e *WldFragTextureList) Write(w io.Writer) error {
 	for _, textureName := range e.TextureNames {
 		enc.StringLenPrefixUint16(string(helper.WriteStringHash(textureName + "\x00")))
 	}
-	if enc.Error() != nil {
-		return enc.Error()
+	err := enc.Error()
+	if err != nil {
+		return fmt.Errorf("write: %w", err)
 	}
 	return nil
 }
 
 func (e *WldFragTextureList) Read(r io.ReadSeeker) error {
-	d := &WldFragTextureList{}
-	d.FragName = FragName(d.FragCode())
+	e.FragName = FragName(e.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
-	d.NameRef = dec.Int32()
+	e.NameRef = dec.Int32()
 	textureCount := dec.Int32()
 
 	for i := 0; i < int(textureCount+1); i++ {
 		nameLength := dec.Uint16()
-		d.TextureNames = append(d.TextureNames, helper.ReadStringHash((dec.Bytes(int(nameLength)))))
+		e.TextureNames = append(e.TextureNames, helper.ReadStringHash((dec.Bytes(int(nameLength)))))
 	}
 	err := dec.Error()
 	if err != nil {
@@ -116,27 +116,27 @@ func (e *WldFragTexture) Write(w io.Writer) error {
 	for _, textureRef := range e.TextureRefs {
 		enc.Uint32(textureRef)
 	}
-	if enc.Error() != nil {
-		return enc.Error()
+	err := enc.Error()
+	if err != nil {
+		return fmt.Errorf("write: %w", err)
 	}
 	return nil
 }
 
 func (e *WldFragTexture) Read(r io.ReadSeeker) error {
-	d := &WldFragTexture{}
-	d.FragName = FragName(d.FragCode())
+	e.FragName = FragName(e.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
-	d.NameRef = dec.Int32()
-	d.Flags = dec.Uint32()
-	textureCount := dec.Uint32()
-	if d.Flags&0x20 != 0 {
-		d.TextureCurrent = dec.Uint32()
+	e.NameRef = dec.Int32()
+	e.Flags = dec.Uint32()
+	textureRefCount := dec.Uint32()
+	if e.Flags&0x20 != 0 {
+		e.TextureCurrent = dec.Uint32()
 	}
-	if d.Flags&0x08 != 0 && d.Flags&0x10 != 0 {
-		d.Sleep = dec.Uint32()
+	if e.Flags&0x08 != 0 && e.Flags&0x10 != 0 {
+		e.Sleep = dec.Uint32()
 	}
-	for i := 0; i < int(textureCount); i++ {
-		d.TextureRefs = append(d.TextureRefs, dec.Uint32())
+	for i := 0; i < int(textureRefCount); i++ {
+		e.TextureRefs = append(e.TextureRefs, dec.Uint32())
 	}
 	err := dec.Error()
 	if err != nil {
@@ -162,19 +162,19 @@ func (e *WldFragTextureRef) Write(w io.Writer) error {
 	enc.Int32(e.NameRef)
 	enc.Int16(e.TextureRef)
 	enc.Uint32(e.Flags)
-	if enc.Error() != nil {
-		return enc.Error()
+	err := enc.Error()
+	if err != nil {
+		return fmt.Errorf("write: %w", err)
 	}
 	return nil
 }
 
 func (e *WldFragTextureRef) Read(r io.ReadSeeker) error {
-	d := &WldFragTextureRef{}
-	d.FragName = FragName(d.FragCode())
+	e.FragName = FragName(e.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
-	d.NameRef = dec.Int32()
-	d.TextureRef = dec.Int16()
-	d.Flags = dec.Uint32()
+	e.NameRef = dec.Int32()
+	e.TextureRef = dec.Int16()
+	e.Flags = dec.Uint32()
 	err := dec.Error()
 	if err != nil {
 		return fmt.Errorf("read: %w", err)
@@ -201,21 +201,21 @@ func (e *WldFragBlitSprite) Write(w io.Writer) error {
 	enc.Uint32(e.Flags)
 	enc.Uint32(e.BlitSpriteRef)
 	enc.Int32(e.Unk1)
-	if enc.Error() != nil {
-		return enc.Error()
+	err := enc.Error()
+	if err != nil {
+		return fmt.Errorf("write: %w", err)
 	}
 
 	return nil
 }
 
 func (e *WldFragBlitSprite) Read(r io.ReadSeeker) error {
-	d := &WldFragBlitSprite{}
-	d.FragName = FragName(d.FragCode())
+	e.FragName = FragName(e.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
-	d.NameRef = dec.Int32()
-	d.Flags = dec.Uint32()
-	d.BlitSpriteRef = dec.Uint32()
-	d.Unk1 = dec.Int32()
+	e.NameRef = dec.Int32()
+	e.Flags = dec.Uint32()
+	e.BlitSpriteRef = dec.Uint32()
+	e.Unk1 = dec.Int32()
 
 	err := dec.Error()
 	if err != nil {
@@ -238,8 +238,7 @@ func (e *WldFragBlitSpriteRef) Write(w io.Writer) error {
 }
 
 func (e *WldFragBlitSpriteRef) Read(r io.ReadSeeker) error {
-	d := &WldFragBlitSpriteRef{}
-	d.FragName = FragName(d.FragCode())
+	e.FragName = FragName(e.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	err := dec.Error()
 	if err != nil {
@@ -278,26 +277,26 @@ func (e *WldFragMaterial) Write(w io.Writer) error {
 		enc.Uint32(e.Pairs[0])
 		enc.Uint32(e.Pairs[1])
 	}
-	if enc.Error() != nil {
-		return enc.Error()
+	err := enc.Error()
+	if err != nil {
+		return fmt.Errorf("write: %w", err)
 	}
 	return nil
 }
 
 func (e *WldFragMaterial) Read(r io.ReadSeeker) error {
-	d := &WldFragMaterial{}
-	d.FragName = FragName(d.FragCode())
+	e.FragName = FragName(e.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
-	d.NameRef = dec.Int32()
-	d.Flags = dec.Uint32()
-	d.RenderMethod = dec.Uint32()
-	d.RGBPen = dec.Uint32()
-	d.Brightness = dec.Float32()
-	d.ScaledAmbient = dec.Float32()
-	d.TextureRef = dec.Uint32()
-	if d.Flags&0x1 != 0 {
-		d.Pairs[0] = dec.Uint32()
-		d.Pairs[1] = dec.Uint32()
+	e.NameRef = dec.Int32()
+	e.Flags = dec.Uint32()
+	e.RenderMethod = dec.Uint32()
+	e.RGBPen = dec.Uint32()
+	e.Brightness = dec.Float32()
+	e.ScaledAmbient = dec.Float32()
+	e.TextureRef = dec.Uint32()
+	if e.Flags&0x1 != 0 {
+		e.Pairs[0] = dec.Uint32()
+		e.Pairs[1] = dec.Uint32()
 	}
 	err := dec.Error()
 	if err != nil {
@@ -326,21 +325,21 @@ func (e *WldFragMaterialList) Write(w io.Writer) error {
 	for _, materialRef := range e.MaterialRefs {
 		enc.Uint32(materialRef)
 	}
-	if enc.Error() != nil {
-		return enc.Error()
+	err := enc.Error()
+	if err != nil {
+		return fmt.Errorf("write: %w", err)
 	}
 	return nil
 }
 
 func (e *WldFragMaterialList) Read(r io.ReadSeeker) error {
-	d := &WldFragMaterialList{}
-	d.FragName = FragName(d.FragCode())
+	e.FragName = FragName(e.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
-	d.NameRef = dec.Int32()
-	d.Flags = dec.Uint32()
+	e.NameRef = dec.Int32()
+	e.Flags = dec.Uint32()
 	materialCount := dec.Uint32()
 	for i := 0; i < int(materialCount); i++ {
-		d.MaterialRefs = append(d.MaterialRefs, dec.Uint32())
+		e.MaterialRefs = append(e.MaterialRefs, dec.Uint32())
 	}
 	err := dec.Error()
 	if err != nil {
