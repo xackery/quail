@@ -19,29 +19,47 @@ func NewByteSeeker() *ByteSeeker {
 }
 
 func (b *ByteSeeker) Bytes() []byte {
+	if b.Buffer == nil {
+		b.Buffer = bytes.NewBuffer(nil)
+	}
 	return b.Buffer.Bytes()
 }
 
 func (b *ByteSeeker) Len() int {
+	if b.Buffer == nil {
+		b.Buffer = bytes.NewBuffer(nil)
+	}
 	return b.Buffer.Len()
 }
 
 func (b *ByteSeeker) Cap() int {
+	if b.Buffer == nil {
+		b.Buffer = bytes.NewBuffer(nil)
+	}
 	return b.Buffer.Cap()
 }
 
 func (b *ByteSeeker) Reset() {
+	if b.Buffer == nil {
+		b.Buffer = bytes.NewBuffer(nil)
+	}
 	b.Buffer.Reset()
 	b.offset = 0
 }
 
 func (b *ByteSeeker) Write(p []byte) (n int, err error) {
+	if b.Buffer == nil {
+		b.Buffer = bytes.NewBuffer(nil)
+	}
 	n, err = b.Buffer.Write(p)
 	b.offset += int64(n)
 	return
 }
 
 func (b *ByteSeeker) WriteByte(c byte) error {
+	if b.Buffer == nil {
+		b.Buffer = bytes.NewBuffer(nil)
+	}
 	err := b.Buffer.WriteByte(c)
 	if err == nil {
 		b.offset++
@@ -50,12 +68,18 @@ func (b *ByteSeeker) WriteByte(c byte) error {
 }
 
 func (b *ByteSeeker) WriteString(s string) (n int, err error) {
+	if b.Buffer == nil {
+		b.Buffer = bytes.NewBuffer(nil)
+	}
 	n, err = b.Buffer.WriteString(s)
 	b.offset += int64(n)
 	return
 }
 
 func (b *ByteSeeker) Seek(offset int64, whence int) (int64, error) {
+	if b.Buffer == nil {
+		b.Buffer = bytes.NewBuffer(nil)
+	}
 	var err error
 	switch whence {
 	case io.SeekStart:
@@ -71,12 +95,18 @@ func (b *ByteSeeker) Seek(offset int64, whence int) (int64, error) {
 }
 
 func (b *ByteSeeker) Read(p []byte) (n int, err error) {
+	if b.Buffer == nil {
+		b.Buffer = bytes.NewBuffer(nil)
+	}
 	n, err = b.Buffer.Read(p)
 	b.offset += int64(n)
 	return
 }
 
 func (b *ByteSeeker) ReadByte() (c byte, err error) {
+	if b.Buffer == nil {
+		b.Buffer = bytes.NewBuffer(nil)
+	}
 	c, err = b.Buffer.ReadByte()
 	if err == nil {
 		b.offset++
@@ -85,6 +115,9 @@ func (b *ByteSeeker) ReadByte() (c byte, err error) {
 }
 
 func (b *ByteSeeker) ReadRune() (r rune, size int, err error) {
+	if b.Buffer == nil {
+		b.Buffer = bytes.NewBuffer(nil)
+	}
 	r, size, err = b.Buffer.ReadRune()
 	if err == nil {
 		b.offset += int64(size)
@@ -93,12 +126,18 @@ func (b *ByteSeeker) ReadRune() (r rune, size int, err error) {
 }
 
 func (b *ByteSeeker) ReadFrom(r io.Reader) (n int64, err error) {
+	if b.Buffer == nil {
+		b.Buffer = bytes.NewBuffer(nil)
+	}
 	n, err = b.Buffer.ReadFrom(r)
 	b.offset += n
 	return
 }
 
 func (b *ByteSeeker) ReadString(delim byte) (line string, err error) {
+	if b.Buffer == nil {
+		b.Buffer = bytes.NewBuffer(nil)
+	}
 	line, err = b.Buffer.ReadString(delim)
 	b.offset += int64(len(line))
 	return

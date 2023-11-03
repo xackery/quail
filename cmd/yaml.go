@@ -111,16 +111,32 @@ func runYamlE(cmd *cobra.Command, args []string) error {
 	}
 
 	if isSrcArchive {
-		return readYamlArchiveFile(srcPath, srcFile, dstPath)
+		err = readYamlArchiveFile(srcPath, srcFile, dstPath)
+		if err != nil {
+			return fmt.Errorf("eqg->yaml read: %w", err)
+		}
+		return nil
 	}
 	if isDstArchive {
-		return writeYamlArchiveFile(srcPath, dstPath, dstFile)
+		err = writeYamlArchiveFile(srcPath, dstPath, dstFile)
+		if err != nil {
+			return fmt.Errorf("yaml->eqg write: %w", err)
+		}
+		return nil
 	}
 
 	if dstPathExt == ".yaml" {
-		return writeYamlFile(srcPath, dstPath)
+		err = readYamlFile(srcPath, dstPath)
+		if err != nil {
+			return fmt.Errorf("eqFile->yaml read: %w", err)
+		}
+		return nil
 	}
-	return readYamlFile(srcPath, dstPath)
+	err = writeYamlFile(srcPath, dstPath)
+	if err != nil {
+		return fmt.Errorf("yaml->eqFile write: %w", err)
+	}
+	return nil
 }
 
 func writeYamlArchiveFile(srcYamlPath string, dstArchivePath string, dstArchiveFile string) error {
@@ -177,11 +193,10 @@ func writeYamlFile(srcYamlPath string, dstPath string) error {
 	}
 
 	srcExt := filepath.Ext(srcYamlPath)
-
-	dstExt := filepath.Ext(dstPath)
-	if dstExt != ".yaml" {
-		return fmt.Errorf("dst file must be yaml")
+	if srcExt != ".yaml" {
+		return fmt.Errorf("src file must be yaml")
 	}
+	dstExt := filepath.Ext(dstPath)
 
 	log.Printf("Converting %s to %s", srcYamlPath, dstPath)
 
@@ -191,9 +206,9 @@ func writeYamlFile(srcYamlPath string, dstPath string) error {
 	}
 	defer r.Close()
 
-	reader := raw.New(srcExt)
+	reader := raw.New(dstExt)
 	if reader == nil {
-		return fmt.Errorf("unsupported file format %s", srcExt)
+		return fmt.Errorf("unsupported file format %s", dstExt)
 	}
 
 	err = yaml.NewDecoder(r).Decode(reader)
