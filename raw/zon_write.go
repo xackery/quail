@@ -37,7 +37,7 @@ func (zon *Zon) Write(w io.Writer) error {
 	for _, object := range zon.Objects {
 		isWritten := false
 		for _, name := range nameSlice {
-			if name != object.Name {
+			if name != object.ModelName {
 				continue
 			}
 			isWritten = true
@@ -47,8 +47,8 @@ func (zon *Zon) Write(w io.Writer) error {
 			continue
 		}
 
-		nameSlice = append(nameSlice, object.Name)
-		NameAdd(object.ModelName)
+		nameSlice = append(nameSlice, object.ModelName)
+		NameAdd(object.InstanceName)
 	}
 
 	for _, region := range zon.Regions {
@@ -61,13 +61,13 @@ func (zon *Zon) Write(w io.Writer) error {
 
 	for _, object := range zon.Objects {
 		for i, name := range nameSlice {
-			if name != object.Name {
+			if name != object.ModelName {
 				continue
 			}
 			subEnc.Int32(int32(i))
 			break
 		}
-		subEnc.Int32(NameIndex(object.ModelName))
+		subEnc.Int32(NameIndex(object.InstanceName))
 
 		subEnc.Float32(object.Position.Y) //  y before x
 		subEnc.Float32(object.Position.X)

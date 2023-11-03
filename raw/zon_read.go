@@ -53,12 +53,12 @@ type V4DatTile struct {
 
 // Object is an object
 type Object struct {
-	Name      string  `yaml:"name"`
-	ModelName string  `yaml:"model_name"`
-	Position  Vector3 `yaml:"position"`
-	Rotation  Vector3 `yaml:"rotation"`
-	Scale     float32 `yaml:"scale"`
-	Lits      []*RGBA `yaml:"-"` // used in v2+ zones, omitted since it's huge
+	ModelName    string  `yaml:"model_name"`
+	InstanceName string  `yaml:"instance_name"`
+	Position     Vector3 `yaml:"position"`
+	Rotation     Vector3 `yaml:"rotation"`
+	Scale        float32 `yaml:"scale"`
+	Lits         []*RGBA `yaml:"-"` // used in v2+ zones, omitted since it's huge
 }
 
 // Region is a region
@@ -107,14 +107,12 @@ func (zon *Zon) Read(r io.ReadSeeker) error {
 	nameData := dec.Bytes(int(nameLength))
 
 	names := make(map[int32]string)
-	nameSlice := []string{}
 
 	chunk := []byte{}
 	lastOffset := 0
 	for i, b := range nameData {
 		if b == 0 {
 			names[int32(lastOffset)] = string(chunk)
-			nameSlice = append(nameSlice, string(chunk))
 			chunk = []byte{}
 			lastOffset = i + 1
 			continue
@@ -136,16 +134,16 @@ func (zon *Zon) Read(r io.ReadSeeker) error {
 		object := Object{}
 		nameIndex := dec.Int32()
 
-		if nameIndex >= int32(len(nameSlice)) {
-			return fmt.Errorf("%d object nameIndex %d out of range (%d)", i, nameIndex, len(nameSlice))
+		if nameIndex >= int32(len(zon.Models)) {
+			return fmt.Errorf("%d object nameIndex %d out of range (%d)", i, nameIndex, len(zon.Models))
 		}
 		if nameIndex < 0 {
 			return fmt.Errorf("%d object nameIndex %d less than 0", i, nameIndex)
 		}
 
-		object.Name = nameSlice[nameIndex]
+		object.ModelName = zon.Models[nameIndex]
 
-		object.ModelName = Name(dec.Int32())
+		object.InstanceName = Name(dec.Int32())
 
 		object.Position.Y = dec.Float32() // y before x
 		object.Position.X = dec.Float32()
@@ -156,7 +154,7 @@ func (zon *Zon) Read(r io.ReadSeeker) error {
 		object.Rotation.Z = dec.Float32()
 
 		object.Scale = dec.Float32()
-		tag.AddRand(tag.LastPos(), dec.Pos(), fmt.Sprintf("%d|%s", i, object.ModelName))
+		tag.AddRand(tag.LastPos(), dec.Pos(), fmt.Sprintf("%d|%s", i, object.InstanceName))
 		if zon.Version >= 2 {
 			litCount := dec.Uint32()
 			for j := 0; j < int(litCount); j++ {
@@ -167,7 +165,7 @@ func (zon *Zon) Read(r io.ReadSeeker) error {
 				lit.A = dec.Uint8()
 				object.Lits = append(object.Lits, &lit)
 			}
-			tag.AddRand(tag.LastPos(), dec.Pos(), fmt.Sprintf("%d|%s|lit_data", i, object.ModelName))
+			tag.AddRand(tag.LastPos(), dec.Pos(), fmt.Sprintf("%d|%s|lit_data", i, object.InstanceName))
 		}
 		zon.Objects = append(zon.Objects, object)
 	}
