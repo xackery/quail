@@ -111,14 +111,14 @@ func runYamlE(cmd *cobra.Command, args []string) error {
 	}
 
 	if isSrcArchive {
-		err = readYamlArchiveFile(srcPath, srcFile, dstPath)
+		err = archiveToYamlConvert(srcPath, srcFile, dstPath)
 		if err != nil {
 			return fmt.Errorf("eqg->yaml read: %w", err)
 		}
 		return nil
 	}
 	if isDstArchive {
-		err = writeYamlArchiveFile(srcPath, dstPath, dstFile)
+		err = yamlToArchiveConvert(srcPath, dstPath, dstFile)
 		if err != nil {
 			return fmt.Errorf("yaml->eqg write: %w", err)
 		}
@@ -126,20 +126,20 @@ func runYamlE(cmd *cobra.Command, args []string) error {
 	}
 
 	if dstPathExt == ".yaml" {
-		err = readYamlFile(srcPath, dstPath)
+		err = fileToYamlConvert(srcPath, dstPath)
 		if err != nil {
 			return fmt.Errorf("eqFile->yaml read: %w", err)
 		}
 		return nil
 	}
-	err = writeYamlFile(srcPath, dstPath)
+	err = yamlToFileConvert(srcPath, dstPath)
 	if err != nil {
 		return fmt.Errorf("yaml->eqFile write: %w", err)
 	}
 	return nil
 }
 
-func writeYamlArchiveFile(srcYamlPath string, dstArchivePath string, dstArchiveFile string) error {
+func yamlToArchiveConvert(srcYamlPath string, dstArchivePath string, dstArchiveFile string) error {
 	if srcYamlPath == "" {
 		return fmt.Errorf("src yaml path is required")
 	}
@@ -187,7 +187,7 @@ func writeYamlArchiveFile(srcYamlPath string, dstArchivePath string, dstArchiveF
 	return nil
 }
 
-func writeYamlFile(srcYamlPath string, dstPath string) error {
+func yamlToFileConvert(srcYamlPath string, dstPath string) error {
 	if srcYamlPath == "" {
 		return fmt.Errorf("src yaml path is required")
 	}
@@ -230,7 +230,7 @@ func writeYamlFile(srcYamlPath string, dstPath string) error {
 
 }
 
-func readYamlArchiveFile(srcArchivePath string, srcArchiveFile string, dstYamlPath string) error {
+func archiveToYamlConvert(srcArchivePath string, srcArchiveFile string, dstYamlPath string) error {
 	if srcArchivePath == "" {
 		return fmt.Errorf("src archive path is required")
 	}
@@ -275,7 +275,7 @@ func readYamlArchiveFile(srcArchivePath string, srcArchiveFile string, dstYamlPa
 	return nil
 }
 
-func readYamlFile(srcPath string, dstYamlPath string) error {
+func fileToYamlConvert(srcPath string, dstYamlPath string) error {
 	if srcPath == "" {
 		return fmt.Errorf("src path is required")
 	}
