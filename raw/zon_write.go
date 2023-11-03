@@ -28,26 +28,12 @@ func (zon *Zon) Write(w io.Writer) error {
 	// rest of writer is written later
 	buf := &bytes.Buffer{}
 	subEnc := encdec.NewEncoder(buf, binary.LittleEndian)
-	nameSlice := make([]string, 0)
 
 	for _, modelName := range zon.Models {
 		NameAdd(modelName)
 	}
 
 	for _, object := range zon.Objects {
-		isWritten := false
-		for _, name := range nameSlice {
-			if name != object.ModelName {
-				continue
-			}
-			isWritten = true
-			break
-		}
-		if isWritten {
-			continue
-		}
-
-		nameSlice = append(nameSlice, object.ModelName)
 		NameAdd(object.InstanceName)
 	}
 
@@ -60,12 +46,17 @@ func (zon *Zon) Write(w io.Writer) error {
 	}
 
 	for _, object := range zon.Objects {
-		for i, name := range nameSlice {
+		isFound := false
+		for i, name := range zon.Models {
 			if name != object.ModelName {
 				continue
 			}
 			subEnc.Int32(int32(i))
+			isFound = true
 			break
+		}
+		if !isFound {
+			return fmt.Errorf("object %s ref to model %s not found", object.InstanceName, object.ModelName)
 		}
 		subEnc.Int32(NameIndex(object.InstanceName))
 
