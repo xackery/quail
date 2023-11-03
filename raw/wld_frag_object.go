@@ -446,7 +446,7 @@ func (e *WldFragModelRef) Read(r io.ReadSeeker) error {
 	return nil
 }
 
-// WldFragSphere is WldFragSphere in libeq, Zone Unknown in openzone, SPHERE (ref) in wld, Fragment16 in lantern
+// WldFragSphere is Sphere in libeq, Zone Unknown in openzone, SPHERE (ref) in wld, Fragment16 in lantern
 type WldFragSphere struct {
 	FragName string  `yaml:"frag_name"`
 	NameRef  int32   `yaml:"name_ref"`

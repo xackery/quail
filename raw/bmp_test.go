@@ -26,7 +26,6 @@ func TestBmpRead(t *testing.T) {
 		args    args
 		wantErr bool
 	}{
-		// TODO: add bmp tests
 		// .ani|1|sidl_ba_1_tln.ani|tln.eqg
 		{name: "tln.eqg"},
 		// .ani|2|stnd_ba_1_exo.ani|exo.eqg eye_chr.s3d pfs import: s3d load: decode: dirName for crc 655939147 not found

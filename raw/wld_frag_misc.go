@@ -179,7 +179,7 @@ func (e *WldFragSkyRegion) Read(r io.ReadSeeker) error {
 	return nil
 }
 
-// WldFragZone is WldFragZone in libeq, Region Flag in openzone, ZONE in wld, BspRegionType in lantern
+// WldFragZone is Zone in libeq, Region Flag in openzone, ZONE in wld, BspRegionType in lantern
 type WldFragZone struct {
 	FragName string `yaml:"frag_name"`
 }

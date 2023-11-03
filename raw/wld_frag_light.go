@@ -211,7 +211,7 @@ func (e *WldFragDirectionalLightOld) Read(r io.ReadSeeker) error {
 	return nil
 }
 
-// WldFragPointLight is WldFragPointLight in libeq, Light Info in openzone, POINTLIGHT in wld, LightInstance in lantern
+// WldFragPointLight is PointLight in libeq, Light Info in openzone, POINTLIGHT in wld, LightInstance in lantern
 type WldFragPointLight struct {
 	FragName string `yaml:"frag_name"`
 }
@@ -234,9 +234,12 @@ func (e *WldFragPointLight) Read(r io.ReadSeeker) error {
 	return nil
 }
 
-// WldFragAmbientLight is WldFragAmbientLight in libeq, Ambient Light in openzone, AMBIENTLIGHT in wld, WldFragAmbientLight in lantern
+// WldFragAmbientLight is AmbientLight in libeq, Ambient Light in openzone, AMBIENTLIGHT in wld, WldFragAmbientLight in lantern
 type WldFragAmbientLight struct {
-	FragName string `yaml:"frag_name"`
+	FragName string   `yaml:"frag_name"`
+	NameRef  int32    `yaml:"name_ref"`
+	Flags    uint32   `yaml:"flags"`
+	Regions  []uint32 `yaml:"regions"`
 }
 
 func (e *WldFragAmbientLight) FragCode() int {
@@ -244,12 +247,30 @@ func (e *WldFragAmbientLight) FragCode() int {
 }
 
 func (e *WldFragAmbientLight) Write(w io.Writer) error {
-	return fmt.Errorf("not implemented")
+	enc := encdec.NewEncoder(w, binary.LittleEndian)
+	enc.Int32(e.NameRef)
+	enc.Uint32(e.Flags)
+	enc.Uint32(uint32(len(e.Regions)))
+	for _, region := range e.Regions {
+		enc.Uint32(region)
+	}
+	err := enc.Error()
+	if err != nil {
+		return fmt.Errorf("write: %w", err)
+	}
+	return nil
 }
 
 func (e *WldFragAmbientLight) Read(r io.ReadSeeker) error {
 	e.FragName = FragName(e.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
+	e.NameRef = dec.Int32()
+	e.Flags = dec.Uint32()
+	regionCount := dec.Uint32()
+	for i := uint32(0); i < regionCount; i++ {
+		e.Regions = append(e.Regions, dec.Uint32())
+	}
+
 	err := dec.Error()
 	if err != nil {
 		return fmt.Errorf("read: %w", err)
@@ -257,7 +278,7 @@ func (e *WldFragAmbientLight) Read(r io.ReadSeeker) error {
 	return nil
 }
 
-// WldFragDirectionalLight is WldFragDirectionalLight in libeq, empty in openzone, DIRECTIONALLIGHT in wld
+// WldFragDirectionalLight is DirectionalLight in libeq, empty in openzone, DIRECTIONALLIGHT in wld
 type WldFragDirectionalLight struct {
 	FragName string `yaml:"frag_name"`
 }

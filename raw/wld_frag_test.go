@@ -10,8 +10,10 @@ import (
 	"testing"
 
 	"github.com/xackery/encdec"
+	"github.com/xackery/quail/common"
 	"github.com/xackery/quail/log"
 	"github.com/xackery/quail/pfs"
+	"github.com/xackery/quail/tag"
 )
 
 func TestFragment(t *testing.T) {
@@ -19,24 +21,27 @@ func TestFragment(t *testing.T) {
 	if eqPath == "" {
 		t.Skip("EQ_PATH not set")
 	}
+	dirTest := common.DirTest(t)
 	tests := []struct {
 		path      string
 		file      string
 		fragIndex int
+		isDump    bool
 	}{
-		//{"crushbone.s3d", "crushbone.wld", 0}, // threedsprite
-		//{"poknowledge.s3d", "poknowledge.wld", 112}, // threedsprite
-		//{"global_chr.s3d", "global_chr.wld", 557}, // tex coord count misaligned
-		//{"gequip.s3d", "gequip.wld", 972}, // BlitSpriteRef
-		//{"gfaydark.s3d", "gfaydark.wld", 82}, // ambientlight
-		//{"frozenshadow.s3d", "frozenshadow.wld", 82}, // ambientlight
-		// {"gequip4.s3d", "gequip4.wld", 0}, // PASS
-		// {"gequip3.s3d", "gequip3.wld", 0}, // PASS
-		//{"gfaydark_obj.s3d", "gfaydark_obj.wld", 0}, // PASS
-		//{"gequip2.s3d", "gequip2.wld", 22280}, // PASS
-		//{"zel_v2_chr.s3d", "zel_v2_chr.wld", 0}, // PASS
-		//{"wol_v3_chr.s3d", "wol_v3_chr.wld", 0}, // PASS
-		//{"globalhuf_chr.s3d", "globalhuf_chr.wld", 0}, // PASS
+		//{path: "global_chr.s3d", file: "global_chr.wld", fragIndex: 557}, // tex coord count misaligned
+		//{path: "gequip.s3d", file: "gequip.wld", fragIndex: 0}, // Mesh
+		//{path: "gfaydark.s3d", file: "gfaydark.wld", fragIndex: 0}, // Mesh
+		//{path: "frozenshadow.s3d", file: "frozenshadow.wld", fragIndex: 0}, // Mesh
+		//{path: "crushbone.s3d", file: "crushbone.wld", fragIndex: 2916, isDump: true}, // PASS
+		//{path: "crushbone.s3d", file: "crushbone.wld", fragIndex: 0}, // PASS
+		//{path: "poknowledge.s3d", file: "poknowledge.wld", fragIndex: 0}, // PASS
+		// {path: "gequip4.s3d", file: "gequip4.wld", fragIndex: 0}, // PASS
+		// {path: "gequip3.s3d", file: "gequip3.wld", fragIndex: 0}, // PASS
+		//{path: "gfaydark_obj.s3d", file: "gfaydark_obj.wld", fragIndex: 0}, // PASS
+		//{path: "gequip2.s3d", file: "gequip2.wld", fragIndex: 22280}, // PASS
+		//{path: "zel_v2_chr.s3d", file: "zel_v2_chr.wld", fragIndex: 0}, // PASS
+		//{path: "wol_v3_chr.s3d", file: "wol_v3_chr.wld", fragIndex: 0}, // PASS
+		//{path: "globalhuf_chr.s3d", file: "globalhuf_chr.wld", fragIndex: 0}, // PASS
 	}
 	for _, tt := range tests {
 		t.Run(tt.file, func(t *testing.T) {
@@ -56,6 +61,9 @@ func TestFragment(t *testing.T) {
 			}
 
 			for i := 1; i <= len(fragments); i++ {
+				if tt.fragIndex != 0 && i != tt.fragIndex {
+					continue
+				}
 				srcData := fragments[i-1]
 				r := bytes.NewReader(srcData)
 				reader := NewFrag(r)
@@ -68,7 +76,12 @@ func TestFragment(t *testing.T) {
 					t.Fatalf("frag %d 0x%x (%s) read: %s", i, reader.FragCode(), FragName(int(reader.FragCode())), err.Error())
 				}
 
-				buf := bytes.NewBuffer(nil)
+				if tt.isDump {
+					os.WriteFile(fmt.Sprintf("%s/%s.src.hex", dirTest, tt.file), srcData, 0644)
+					tag.Write(fmt.Sprintf("%s/%s.src.hex.tags", dirTest, tt.file))
+				}
+
+				buf := common.NewByteSeeker()
 				buf.Write(srcData[:4])
 
 				err = reader.Write(buf)
@@ -77,6 +90,11 @@ func TestFragment(t *testing.T) {
 				}
 
 				dstData := buf.Bytes()
+
+				if tt.isDump {
+					os.WriteFile(fmt.Sprintf("%s/%s.dst.hex", dirTest, tt.file), dstData, 0644)
+					tag.Write(fmt.Sprintf("%s/%s.dst.hex.tags", dirTest, tt.file))
+				}
 
 				//if !reflect.DeepEqual(data, dstData) {
 				for j := 0; j < len(dstData); j++ {
@@ -116,6 +134,10 @@ func TestFragment(t *testing.T) {
 					fmt.Printf("dst (%d:%d):\n%s\n", min, max, hex.Dump(dstData[min:max]))
 					t.Fatalf("frag %d 0x%x (%s) write: data mismatch", i, reader.FragCode(), FragName(int(reader.FragCode())))
 				}
+			}
+			if tt.fragIndex != 0 {
+				log.Debugf("Processed 1 fragment @ %d", tt.fragIndex)
+				return
 			}
 			log.Debugf("Processed %d fragments", len(fragments))
 		})

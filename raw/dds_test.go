@@ -60,7 +60,7 @@ func TestDdsWrite(t *testing.T) {
 	}
 	dirTest := common.DirTest(t)
 
-	// FIXME: ani writer
+	// FIXME: dds writer
 	tests := []struct {
 		name    string
 		wantErr bool

@@ -182,7 +182,7 @@ func (e *WldFragTextureRef) Read(r io.ReadSeeker) error {
 	return nil
 }
 
-// WldFragBlitSprite is WldFragBlitSprite in libeq, empty in openzone, BLITSPRITE (ref) in wld, ParticleSprite in lantern
+// WldFragBlitSprite is BlitSprite in libeq, empty in openzone, BLITSPRITE (ref) in wld, ParticleSprite in lantern
 type WldFragBlitSprite struct {
 	FragName      string `yaml:"frag_name"`
 	NameRef       int32  `yaml:"name_ref"`

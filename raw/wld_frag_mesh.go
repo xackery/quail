@@ -6,6 +6,7 @@ import (
 	"io"
 
 	"github.com/xackery/encdec"
+	"github.com/xackery/quail/tag"
 )
 
 // WldFragTwoDSprite is Sprite2DDef in libeq, Two-Dimensional Object in openzone, 2DSPRITEDEF in wld, Fragment06 in lantern
@@ -238,12 +239,12 @@ type WldFragThreeDSpriteBspNode struct {
 	FrontTree                   uint32    `yaml:"front_tree"`
 	BackTree                    uint32    `yaml:"back_tree"`
 	VertexIndexes               []uint32  `yaml:"vertex_indexes"`
-	RenderMethod                uint32    `yaml:"render_method"`
-	RenderFlags                 uint32    `yaml:"render_flags"`
-	RenderPen                   uint32    `yaml:"render_pen"`
-	RenderBrightness            float32   `yaml:"render_brightness"`
-	RenderScaledAmbient         float32   `yaml:"render_scaled_ambient"`
-	RenderSimpleSpriteReference uint32    `yaml:"render_simple_sprite_reference"`
+	RenderMethod                uint8     `yaml:"render_method"`
+	RenderFlags                 uint8     `yaml:"render_flags"`
+	RenderPen                   uint8     `yaml:"render_pen"`
+	RenderBrightness            uint8     `yaml:"render_brightness"`
+	RenderScaledAmbient         uint8     `yaml:"render_scaled_ambient"`
+	RenderSimpleSpriteReference uint8     `yaml:"render_simple_sprite_reference"`
 	RenderUVInfoOrigin          Vector3   `yaml:"render_uv_info_origin"`
 	RenderUVInfoUAxis           Vector3   `yaml:"render_uv_info_u_axis"`
 	RenderUVInfoVAxis           Vector3   `yaml:"render_uv_info_v_axis"`
@@ -265,12 +266,13 @@ func (e *WldFragThreeDSprite) Write(w io.Writer) error {
 	enc.Float32(e.CenterOffset.Y)
 	enc.Float32(e.CenterOffset.Z)
 	enc.Float32(e.Radius)
+	tag.AddRand(tag.LastPos(), enc.Pos(), "header")
 	for _, vertex := range e.Vertices {
 		enc.Float32(vertex.X)
 		enc.Float32(vertex.Y)
 		enc.Float32(vertex.Z)
 	}
-
+	tag.AddRandf(tag.LastPos(), enc.Pos(), "verts=%d", len(e.Vertices))
 	for _, node := range e.BspNodes {
 		enc.Uint32(uint32(len(node.VertexIndexes)))
 		enc.Uint32(node.FrontTree)
@@ -279,20 +281,21 @@ func (e *WldFragThreeDSprite) Write(w io.Writer) error {
 			enc.Uint32(vertexIndex)
 		}
 
-		enc.Uint32(node.RenderMethod)
-		enc.Uint32(node.RenderFlags)
+		enc.Uint8(node.RenderMethod)
+		enc.Uint8(node.RenderFlags)
+		tag.AddRandf(tag.LastPos(), enc.Pos(), "renderFlags=%d", node.RenderFlags)
 
 		if node.RenderFlags&0x01 == 0x01 {
-			enc.Uint32(node.RenderPen)
+			enc.Uint8(node.RenderPen)
 		}
 		if node.RenderFlags&0x02 == 0x02 {
-			enc.Float32(node.RenderBrightness)
+			enc.Uint8(node.RenderBrightness)
 		}
 		if node.RenderFlags&0x04 == 0x04 {
-			enc.Float32(node.RenderScaledAmbient)
+			enc.Uint8(node.RenderScaledAmbient)
 		}
 		if node.RenderFlags&0x08 == 0x08 {
-			enc.Uint32(node.RenderSimpleSpriteReference)
+			enc.Uint8(node.RenderSimpleSpriteReference)
 		}
 		if node.RenderFlags&0x10 == 0x10 {
 			enc.Float32(node.RenderUVInfoOrigin.X)
@@ -304,6 +307,7 @@ func (e *WldFragThreeDSprite) Write(w io.Writer) error {
 			enc.Float32(node.RenderUVInfoVAxis.X)
 			enc.Float32(node.RenderUVInfoVAxis.Y)
 			enc.Float32(node.RenderUVInfoVAxis.Z)
+			tag.AddRandf(tag.LastPos(), enc.Pos(), "renderUVInfoOrigin=%f,%f,%f", node.RenderUVInfoOrigin.X, node.RenderUVInfoOrigin.Y, node.RenderUVInfoOrigin.Z)
 		}
 		if node.RenderFlags&0x20 == 0x20 {
 			enc.Uint32(uint32(len(node.RenderUVMapEntries)))
@@ -311,8 +315,9 @@ func (e *WldFragThreeDSprite) Write(w io.Writer) error {
 				enc.Float32(entry.X)
 				enc.Float32(entry.Y)
 			}
-
+			tag.AddRandf(tag.LastPos(), enc.Pos(), "renderUVMapEntryCount=%d", len(node.RenderUVMapEntries))
 		}
+		tag.AddRandf(tag.LastPos(), enc.Pos(), "bspNode")
 	}
 	err := enc.Error()
 	if err != nil {
@@ -334,6 +339,7 @@ func (e *WldFragThreeDSprite) Read(r io.ReadSeeker) error {
 	e.CenterOffset.Y = dec.Float32()
 	e.CenterOffset.Z = dec.Float32()
 	e.Radius = dec.Float32()
+	tag.AddRand(tag.LastPos(), dec.Pos(), "header")
 	for i := 0; i < int(vertexCount); i++ {
 		v := Vector3{}
 		v.X = dec.Float32()
@@ -341,6 +347,7 @@ func (e *WldFragThreeDSprite) Read(r io.ReadSeeker) error {
 		v.Z = dec.Float32()
 		e.Vertices = append(e.Vertices, v)
 	}
+	tag.AddRandf(tag.LastPos(), dec.Pos(), "verts=%d", vertexCount)
 	for i := 0; i < int(bspNodeCount); i++ {
 		node := WldFragThreeDSpriteBspNode{}
 		vertexIndexCount := dec.Uint32()
@@ -349,20 +356,20 @@ func (e *WldFragThreeDSprite) Read(r io.ReadSeeker) error {
 		for j := 0; j < int(vertexIndexCount); j++ {
 			node.VertexIndexes = append(node.VertexIndexes, dec.Uint32())
 		}
-		node.RenderMethod = dec.Uint32()
-		node.RenderFlags = dec.Uint32()
+		node.RenderMethod = dec.Uint8()
+		node.RenderFlags = dec.Uint8()
 
 		if node.RenderFlags&0x01 == 0x01 {
-			node.RenderPen = dec.Uint32()
+			node.RenderPen = dec.Uint8()
 		}
 		if node.RenderFlags&0x02 == 0x02 {
-			node.RenderBrightness = dec.Float32()
+			node.RenderBrightness = dec.Uint8()
 		}
 		if node.RenderFlags&0x04 == 0x04 {
-			node.RenderScaledAmbient = dec.Float32()
+			node.RenderScaledAmbient = dec.Uint8()
 		}
 		if node.RenderFlags&0x08 == 0x08 {
-			node.RenderSimpleSpriteReference = dec.Uint32()
+			node.RenderSimpleSpriteReference = dec.Uint8()
 		}
 		if node.RenderFlags&0x10 == 0x10 {
 			node.RenderUVInfoOrigin.X = dec.Float32()
@@ -382,9 +389,11 @@ func (e *WldFragThreeDSprite) Read(r io.ReadSeeker) error {
 				v.X = dec.Float32()
 				v.Y = dec.Float32()
 				node.RenderUVMapEntries = append(node.RenderUVMapEntries, v)
+
 			}
 		}
 		e.BspNodes = append(e.BspNodes, node)
+		tag.AddRandf(tag.LastPos(), dec.Pos(), "%d bspNode", i)
 	}
 	err := dec.Error()
 	if err != nil {
@@ -1287,7 +1296,7 @@ func (e *WldFragMeshAnimated) Read(r io.ReadSeeker) error {
 	return nil
 }
 
-// WldFragWorldTree is WldFragWorldTree in libeq, BSP Tree in openzone, WORLDTREE in wld, BspTree in lantern
+// WldFragWorldTree is WorldTree in libeq, BSP Tree in openzone, WORLDTREE in wld, BspTree in lantern
 // For serialization, refer to here: https://github.com/knervous/LanternExtractor2/blob/knervous/merged/LanternExtractor/EQ/Wld/DataTypes/BspNode.cs
 // For constructing, refer to here: https://github.com/knervous/LanternExtractor2/blob/920541d15958e90aa91f7446a74226cbf26b829a/LanternExtractor/EQ/Wld/Exporters/GltfWriter.cs#L304
 type WldFragWorldTree struct {
@@ -1352,7 +1361,7 @@ func (e *WldFragWorldTree) Read(r io.ReadSeeker) error {
 	return nil
 }
 
-// WldFragRegion is WldFragRegion in libeq, Bsp WldFragRegion in openzone, REGION in wld, BspRegion in lantern
+// WldFragRegion is Region in libeq, Bsp WldFragRegion in openzone, REGION in wld, BspRegion in lantern
 type WldFragRegion struct {
 	FragName             string    `yaml:"frag_name"`
 	NameRef              int32     `yaml:"name_ref"`
