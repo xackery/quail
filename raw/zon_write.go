@@ -69,8 +69,8 @@ func (zon *Zon) Write(w io.Writer) error {
 		}
 		subEnc.Int32(NameIndex(object.ModelName))
 
+		subEnc.Float32(object.Position.Y) //  y before x
 		subEnc.Float32(object.Position.X)
-		subEnc.Float32(object.Position.Y)
 		subEnc.Float32(object.Position.Z)
 
 		subEnc.Float32(object.Rotation.X)

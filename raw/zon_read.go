@@ -147,8 +147,8 @@ func (zon *Zon) Read(r io.ReadSeeker) error {
 
 		object.ModelName = Name(dec.Int32())
 
+		object.Position.Y = dec.Float32() // y before x
 		object.Position.X = dec.Float32()
-		object.Position.Y = dec.Float32()
 		object.Position.Z = dec.Float32()
 
 		object.Rotation.X = dec.Float32()

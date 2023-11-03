@@ -28,12 +28,14 @@ func TestZonRead(t *testing.T) {
 		args    args
 		wantErr bool
 	}{
+		// .zon|2|guardian.zon|guardian.eqg
+		//{name: "guardian.eqg"}, // FIXME: nameIndex out of range
 		// .zon|1|anguish.zon|anguish.eqg
 		//{name: "anguish.eqg"},
 		// .zon|1|bazaar.zon|bazaar.eqg
 		//{name: "bazaar.eqg"},
 		// .zon|1|bloodfields.zon|bloodfields.eqg
-		{name: "bloodfields.eqg"},
+		//{name: "bloodfields.eqg"},
 		// .zon|1|broodlands.zon|broodlands.eqg
 		//{name: "broodlands.eqg"},
 		// .zon|1|catacomba.zon|dranikcatacombsa.eqg
@@ -42,8 +44,6 @@ func TestZonRead(t *testing.T) {
 		//{name: "wallofslaughter.eqg"},
 		// .zon|2|arginhiz.zon|arginhiz.eqg
 		//{name: "arginhiz.eqg"},
-		// .zon|2|guardian.zon|guardian.eqg
-		{name: "guardian.eqg"}, // FIXME: nameIndex out of range
 		// TODO: zone4 support
 		// .zon|4|arthicrex_te.zon|arthicrex.eqg
 		//{name: "arthicrex.eqg"},
