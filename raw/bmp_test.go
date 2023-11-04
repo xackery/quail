@@ -2,7 +2,6 @@ package raw
 
 import (
 	"bytes"
-	"encoding/hex"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -26,10 +25,10 @@ func TestBmpRead(t *testing.T) {
 		args    args
 		wantErr bool
 	}{
-		// .ani|1|sidl_ba_1_tln.ani|tln.eqg
+		// .bmp|1|sidl_ba_1_tln.bmp|tln.eqg
 		{name: "tln.eqg"},
-		// .ani|2|stnd_ba_1_exo.ani|exo.eqg eye_chr.s3d pfs import: s3d load: decode: dirName for crc 655939147 not found
-		// .ani|2|walk_ba_1_vaf.ani|vaf.eqg valdeholm.eqg pfs import: eqg load: decode: read nameData unexpected EOF
+		// .bmp|2|stnd_ba_1_exo.bmp|exo.eqg eye_chr.s3d pfs import: s3d load: decode: dirName for crc 655939147 not found
+		// .bmp|2|walk_ba_1_vaf.bmp|vaf.eqg valdeholm.eqg pfs import: eqg load: decode: read nameData unexpected EOF
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -38,11 +37,11 @@ func TestBmpRead(t *testing.T) {
 				t.Fatalf("failed to open pfs %s: %s", tt.name, err.Error())
 			}
 			for _, file := range pfs.Files() {
-				if filepath.Ext(file.Name()) != ".ani" {
+				if filepath.Ext(file.Name()) != ".bmp" {
 					continue
 				}
-				ani := &Ani{}
-				err = ani.Read(bytes.NewReader(file.Data()))
+				bmp := &Bmp{}
+				err = bmp.Read(bytes.NewReader(file.Data()))
 				if err != nil {
 					os.WriteFile(fmt.Sprintf("%s/%s", dirTest, file.Name()), file.Data(), 0644)
 					tag.Write(fmt.Sprintf("%s/%s.tags", dirTest, file.Name()))
@@ -60,15 +59,11 @@ func TestBmpWrite(t *testing.T) {
 	}
 	dirTest := common.DirTest(t)
 
-	// FIXME: bmp tests
 	tests := []struct {
 		name    string
 		wantErr bool
 	}{
-		// .ani|1|sidl_ba_1_tln.ani|tln.eqg
-		//{name: "tln.eqg"},
-		// .ani|2|stnd_ba_1_exo.ani|exo.eqg eye_chr.s3d pfs import: s3d load: read: dirName for crc 655939147 not found
-		// .ani|2|walk_ba_1_vaf.ani|vaf.eqg valdeholm.eqg pfs import: eqg load: read: read nameData unexpected EOF
+		{name: "gequip2.s3d"},
 	}
 
 	for _, tt := range tests {
@@ -77,12 +72,13 @@ func TestBmpWrite(t *testing.T) {
 			if err != nil {
 				t.Fatalf("failed to open eqg %s: %s", tt.name, err.Error())
 			}
+			matchCount := 0
 			for _, file := range pfs.Files() {
-				if filepath.Ext(file.Name()) != ".ani" {
+				if filepath.Ext(file.Name()) != ".bmp" {
 					continue
 				}
-				ani := &Ani{}
-				err = ani.Read(bytes.NewReader(file.Data()))
+				bmp := &Bmp{}
+				err = bmp.Read(bytes.NewReader(file.Data()))
 
 				if err != nil {
 					os.WriteFile(fmt.Sprintf("%s/%s", dirTest, file.Name()), file.Data(), 0644)
@@ -91,7 +87,7 @@ func TestBmpWrite(t *testing.T) {
 				}
 
 				buf := bytes.NewBuffer(nil)
-				err = ani.Write(buf)
+				err = bmp.Write(buf)
 				if err != nil {
 					t.Fatalf("failed to encode %s: %s", tt.name, err.Error())
 				}
@@ -99,42 +95,14 @@ func TestBmpWrite(t *testing.T) {
 				srcData := file.Data()
 				dstData := buf.Bytes()
 
-				for i := 0; i < len(srcData); i++ {
-					if len(dstData) <= i {
-						min := 0
-						max := len(srcData)
-						fmt.Printf("src (%d:%d):\n%s\n", min, max, hex.Dump(srcData[min:max]))
-						max = len(dstData)
-						fmt.Printf("dst (%d:%d):\n%s\n", min, max, hex.Dump(dstData[min:max]))
-
-						t.Fatalf("%s src eof at offset %d (dst is too large by %d bytes)", tt.name, i, len(dstData)-len(srcData))
-					}
-					if len(dstData) <= i {
-						t.Fatalf("%s dst eof at offset %d (dst is too small by %d bytes)", tt.name, i, len(srcData)-len(dstData))
-					}
-					if srcData[i] == dstData[i] {
-						continue
-					}
-
-					fmt.Printf("%s mismatch at offset %d (src: 0x%x vs dst: 0x%x aka %d)\n", tt.name, i, srcData[i], dstData[i], dstData[i])
-					max := i + 16
-					if max > len(srcData) {
-						max = len(srcData)
-					}
-
-					min := i - 16
-					if min < 0 {
-						min = 0
-					}
-					fmt.Printf("src (%d:%d):\n%s\n", min, max, hex.Dump(srcData[min:max]))
-					if max > len(dstData) {
-						max = len(dstData)
-					}
-
-					fmt.Printf("dst (%d:%d):\n%s\n", min, max, hex.Dump(dstData[min:max]))
-					t.Fatalf("%s encode: data mismatch", tt.name)
+				err = common.ByteCompareTest(srcData, dstData)
+				if err != nil {
+					t.Fatalf("%s failed byteCompare: %s", tt.name, err)
 				}
+
+				matchCount++
 			}
+			fmt.Printf("matchCount for %s: %d\n", tt.name, matchCount)
 		})
 	}
 }

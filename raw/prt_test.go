@@ -139,44 +139,13 @@ func TestPrtWrite(t *testing.T) {
 					t.Fatalf("failed to encode %s: %s", tt.name, err.Error())
 				}
 
-				/* srcData := file.Data()
+				srcData := file.Data()
 				dstData := buf.Bytes()
 
-				for i := 0; i < len(srcData); i++ {
-					if len(dstData) <= i {
-						min := 0
-						max := len(srcData)
-						fmt.Printf("src (%d:%d):\n%s\n", min, max, hex.Dump(srcData[min:max]))
-						max = len(dstData)
-						fmt.Printf("dst (%d:%d):\n%s\n", min, max, hex.Dump(dstData[min:max]))
-
-						t.Fatalf("%s src eof at offset %d (dst is too large by %d bytes)", tt.name, i, len(dstData)-len(srcData))
-					}
-					if len(dstData) <= i {
-						t.Fatalf("%s dst eof at offset %d (dst is too small by %d bytes)", tt.name, i, len(srcData)-len(dstData))
-					}
-					if srcData[i] == dstData[i] {
-						continue
-					}
-
-					fmt.Printf("%s mismatch at offset %d (src: 0x%x vs dst: 0x%x aka %d)\n", tt.name, i, srcData[i], dstData[i], dstData[i])
-					max := i + 16
-					if max > len(srcData) {
-						max = len(srcData)
-					}
-
-					min := i - 16
-					if min < 0 {
-						min = 0
-					}
-					fmt.Printf("src (%d:%d):\n%s\n", min, max, hex.Dump(srcData[min:max]))
-					if max > len(dstData) {
-						max = len(dstData)
-					}
-
-					fmt.Printf("dst (%d:%d):\n%s\n", min, max, hex.Dump(dstData[min:max]))
-					t.Fatalf("%s encode: data mismatch", tt.name)
-				} */
+				err = common.ByteCompareTest(srcData, dstData)
+				if err != nil {
+					t.Fatalf("%s failed byteCompare: %s", tt.name, err)
+				}
 			}
 		})
 	}

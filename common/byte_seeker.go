@@ -5,41 +5,41 @@ import (
 	"io"
 )
 
-// ByteSeeker is used primarily for tag systems in tests, it isn't efficient otherwise
-type ByteSeeker struct {
+// ByteSeekerTest is used primarily for tag systems in tests, it isn't efficient otherwise
+type ByteSeekerTest struct {
 	io.Seeker
 	*bytes.Buffer
 	offset int64
 }
 
-func NewByteSeeker() *ByteSeeker {
-	return &ByteSeeker{
+func NewByteSeekerTest() *ByteSeekerTest {
+	return &ByteSeekerTest{
 		Buffer: bytes.NewBuffer(nil),
 	}
 }
 
-func (b *ByteSeeker) Bytes() []byte {
+func (b *ByteSeekerTest) Bytes() []byte {
 	if b.Buffer == nil {
 		b.Buffer = bytes.NewBuffer(nil)
 	}
 	return b.Buffer.Bytes()
 }
 
-func (b *ByteSeeker) Len() int {
+func (b *ByteSeekerTest) Len() int {
 	if b.Buffer == nil {
 		b.Buffer = bytes.NewBuffer(nil)
 	}
 	return b.Buffer.Len()
 }
 
-func (b *ByteSeeker) Cap() int {
+func (b *ByteSeekerTest) Cap() int {
 	if b.Buffer == nil {
 		b.Buffer = bytes.NewBuffer(nil)
 	}
 	return b.Buffer.Cap()
 }
 
-func (b *ByteSeeker) Reset() {
+func (b *ByteSeekerTest) Reset() {
 	if b.Buffer == nil {
 		b.Buffer = bytes.NewBuffer(nil)
 	}
@@ -47,7 +47,7 @@ func (b *ByteSeeker) Reset() {
 	b.offset = 0
 }
 
-func (b *ByteSeeker) Write(p []byte) (n int, err error) {
+func (b *ByteSeekerTest) Write(p []byte) (n int, err error) {
 	if b.Buffer == nil {
 		b.Buffer = bytes.NewBuffer(nil)
 	}
@@ -56,7 +56,7 @@ func (b *ByteSeeker) Write(p []byte) (n int, err error) {
 	return
 }
 
-func (b *ByteSeeker) WriteByte(c byte) error {
+func (b *ByteSeekerTest) WriteByte(c byte) error {
 	if b.Buffer == nil {
 		b.Buffer = bytes.NewBuffer(nil)
 	}
@@ -67,7 +67,7 @@ func (b *ByteSeeker) WriteByte(c byte) error {
 	return err
 }
 
-func (b *ByteSeeker) WriteString(s string) (n int, err error) {
+func (b *ByteSeekerTest) WriteString(s string) (n int, err error) {
 	if b.Buffer == nil {
 		b.Buffer = bytes.NewBuffer(nil)
 	}
@@ -76,7 +76,7 @@ func (b *ByteSeeker) WriteString(s string) (n int, err error) {
 	return
 }
 
-func (b *ByteSeeker) Seek(offset int64, whence int) (int64, error) {
+func (b *ByteSeekerTest) Seek(offset int64, whence int) (int64, error) {
 	if b.Buffer == nil {
 		b.Buffer = bytes.NewBuffer(nil)
 	}
@@ -94,7 +94,7 @@ func (b *ByteSeeker) Seek(offset int64, whence int) (int64, error) {
 	return b.offset, err
 }
 
-func (b *ByteSeeker) Read(p []byte) (n int, err error) {
+func (b *ByteSeekerTest) Read(p []byte) (n int, err error) {
 	if b.Buffer == nil {
 		b.Buffer = bytes.NewBuffer(nil)
 	}
@@ -103,7 +103,7 @@ func (b *ByteSeeker) Read(p []byte) (n int, err error) {
 	return
 }
 
-func (b *ByteSeeker) ReadByte() (c byte, err error) {
+func (b *ByteSeekerTest) ReadByte() (c byte, err error) {
 	if b.Buffer == nil {
 		b.Buffer = bytes.NewBuffer(nil)
 	}
@@ -114,7 +114,7 @@ func (b *ByteSeeker) ReadByte() (c byte, err error) {
 	return
 }
 
-func (b *ByteSeeker) ReadRune() (r rune, size int, err error) {
+func (b *ByteSeekerTest) ReadRune() (r rune, size int, err error) {
 	if b.Buffer == nil {
 		b.Buffer = bytes.NewBuffer(nil)
 	}
@@ -125,7 +125,7 @@ func (b *ByteSeeker) ReadRune() (r rune, size int, err error) {
 	return
 }
 
-func (b *ByteSeeker) ReadFrom(r io.Reader) (n int64, err error) {
+func (b *ByteSeekerTest) ReadFrom(r io.Reader) (n int64, err error) {
 	if b.Buffer == nil {
 		b.Buffer = bytes.NewBuffer(nil)
 	}
@@ -134,7 +134,7 @@ func (b *ByteSeeker) ReadFrom(r io.Reader) (n int64, err error) {
 	return
 }
 
-func (b *ByteSeeker) ReadString(delim byte) (line string, err error) {
+func (b *ByteSeekerTest) ReadString(delim byte) (line string, err error) {
 	if b.Buffer == nil {
 		b.Buffer = bytes.NewBuffer(nil)
 	}
