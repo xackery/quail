@@ -55,12 +55,12 @@ func (ani *Ani) Read(r io.ReadSeeker) error {
 	nameData := dec.Bytes(int(nameLength))
 	tag.Add(tag.LastPos(), dec.Pos(), "green", "names")
 
-	names := make(map[uint32]string)
+	names := make(map[int32]string)
 	chunk := []byte{}
 	lastOffset := 0
 	for i, b := range nameData {
 		if b == 0 {
-			names[uint32(lastOffset)] = string(chunk)
+			names[int32(lastOffset)] = string(chunk)
 			chunk = []byte{}
 			lastOffset = i + 1
 			continue
@@ -68,12 +68,13 @@ func (ani *Ani) Read(r io.ReadSeeker) error {
 		chunk = append(chunk, b)
 	}
 
+	NamesSet(names)
+
 	for i := 0; i < int(boneCount); i++ {
 		bone := &AniBone{}
 		frameCount := dec.Uint32()
 
-		nameOffset := dec.Uint32()
-		bone.Name = names[nameOffset]
+		bone.Name = Name(dec.Int32())
 
 		for j := 0; j < int(frameCount); j++ {
 			frame := &AniBoneFrame{}
@@ -103,8 +104,9 @@ func (ani *Ani) Read(r io.ReadSeeker) error {
 		ani.Bones = append(ani.Bones, bone)
 	}
 
-	if dec.Error() != nil {
-		return fmt.Errorf("read: %w", dec.Error())
+	err := dec.Error()
+	if err != nil {
+		return fmt.Errorf("read: %w", err)
 	}
 	return nil
 }

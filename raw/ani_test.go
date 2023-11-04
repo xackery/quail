@@ -2,7 +2,6 @@ package raw
 
 import (
 	"bytes"
-	"encoding/hex"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -60,13 +59,12 @@ func TestAniWrite(t *testing.T) {
 	}
 	dirTest := common.DirTest(t)
 
-	// FIXME: ani writer
 	tests := []struct {
 		name    string
 		wantErr bool
 	}{
 		// .ani|1|sidl_ba_1_tln.ani|tln.eqg
-		//{name: "tln.eqg"},
+		{name: "tln.eqg"},
 		// .ani|2|stnd_ba_1_exo.ani|exo.eqg eye_chr.s3d pfs import: s3d load: read: dirName for crc 655939147 not found
 		// .ani|2|walk_ba_1_vaf.ani|vaf.eqg valdeholm.eqg pfs import: eqg load: read: read nameData unexpected EOF
 	}
@@ -93,47 +91,37 @@ func TestAniWrite(t *testing.T) {
 				buf := bytes.NewBuffer(nil)
 				err = ani.Write(buf)
 				if err != nil {
-					t.Fatalf("failed to encode %s: %s", tt.name, err.Error())
+					t.Fatalf("failed to read %s: %s", tt.name, err.Error())
 				}
 
-				srcData := file.Data()
-				dstData := buf.Bytes()
-
-				for i := 0; i < len(srcData); i++ {
-					if len(dstData) <= i {
-						min := 0
-						max := len(srcData)
-						fmt.Printf("src (%d:%d):\n%s\n", min, max, hex.Dump(srcData[min:max]))
-						max = len(dstData)
-						fmt.Printf("dst (%d:%d):\n%s\n", min, max, hex.Dump(dstData[min:max]))
-
-						t.Fatalf("%s src eof at offset %d (dst is too large by %d bytes)", tt.name, i, len(dstData)-len(srcData))
-					}
-					if len(dstData) <= i {
-						t.Fatalf("%s dst eof at offset %d (dst is too small by %d bytes)", tt.name, i, len(srcData)-len(dstData))
-					}
-					if srcData[i] == dstData[i] {
-						continue
-					}
-
-					fmt.Printf("%s mismatch at offset %d (src: 0x%x vs dst: 0x%x aka %d)\n", tt.name, i, srcData[i], dstData[i], dstData[i])
-					max := i + 16
-					if max > len(srcData) {
-						max = len(srcData)
-					}
-
-					min := i - 16
-					if min < 0 {
-						min = 0
-					}
-					fmt.Printf("src (%d:%d):\n%s\n", min, max, hex.Dump(srcData[min:max]))
-					if max > len(dstData) {
-						max = len(dstData)
-					}
-
-					fmt.Printf("dst (%d:%d):\n%s\n", min, max, hex.Dump(dstData[min:max]))
-					t.Fatalf("%s encode: data mismatch", tt.name)
+				ani2 := &Ani{}
+				err = ani2.Read(bytes.NewReader(buf.Bytes()))
+				if err != nil {
+					t.Fatalf("failed to write %s: %s", tt.name, err.Error())
 				}
+
+				if ani.IsStrict != ani2.IsStrict {
+					t.Fatalf("IsStrict mismatch: %t != %t", ani.IsStrict, ani2.IsStrict)
+				}
+
+				if ani.Version != ani2.Version {
+					t.Fatalf("Version mismatch: %d != %d", ani.Version, ani2.Version)
+				}
+
+				if len(ani.Bones) != len(ani2.Bones) {
+					t.Fatalf("Bone count mismatch: %d != %d", len(ani.Bones), len(ani2.Bones))
+				}
+
+				for i, bone := range ani.Bones {
+					if len(bone.Frames) != len(ani2.Bones[i].Frames) {
+						t.Fatalf("Bone frame count mismatch: %d != %d", len(bone.Frames), len(ani2.Bones[i].Frames))
+					}
+
+					if bone.Name != ani2.Bones[i].Name {
+						t.Fatalf("Bone name mismatch: %s != %s", bone.Name, ani2.Bones[i].Name)
+					}
+				}
+
 			}
 		})
 	}
