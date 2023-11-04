@@ -97,7 +97,7 @@ func TestBmpWrite(t *testing.T) {
 
 				err = common.ByteCompareTest(srcData, dstData)
 				if err != nil {
-					t.Fatalf("%s failed byteCompare: %s", tt.name, err)
+					t.Fatalf("%s byteCompare: %s", tt.name, err)
 				}
 
 				matchCount++

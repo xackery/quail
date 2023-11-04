@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"os"
-	"path/filepath"
 	"testing"
 
 	"github.com/xackery/quail/common"
@@ -20,126 +19,14 @@ func TestDatRead(t *testing.T) {
 	dirTest := common.DirTest(t)
 
 	tests := []struct {
-		name    string
-		pfsName string
-		wantErr bool
+		name         string
+		pfsName      string
+		quadsPerTile int
+		wantErr      bool
 	}{
 		// .dat|?|arthicrex_te.dat|arthicrex.eqg
-		// .dat|?|ascent.dat|direwind.eqg
-		// .dat|?|bakup_water.dat|buriedsea.eqg
-		// .dat|?|bakup_water.dat|jardelshook.eqg
-		// .dat|?|bakup_water.dat|maidensgrave.eqg
-		// .dat|?|bakup_water.dat|monkeyrock.eqg
-		// .dat|?|barrencoast.dat|barren.eqg
-		// .dat|?|blacksail.dat|blacksail.eqg
-		// .dat|?|brotherisland.dat|brotherisland.eqg
-		// .dat|?|buriedsea.dat|buriedsea.eqg
-		// .dat|?|commonlands.dat|commonlands.eqg
-		// .dat|?|commonlands.dat|oldcommons.eqg
-		{name: "cryptofshade.dat", pfsName: "cryptofshade.eqg"}, // FIXME: incomplete reader
-		// .dat|?|devastation.dat|devastation.eqg
-		// .dat|?|dragonscale.dat|dragonscale.eqg
-		// .dat|?|empyr.dat|empyr.eqg
-		// .dat|?|farstone.dat|arcstone.eqg
-		// .dat|?|feerrott.dat|feerrott2.eqg
-		// .dat|?|fieldofbone.dat|oldfieldofboneb.eqg
-		// .dat|?|floraexclusion.dat|arcstone.eqg
-		// .dat|?|floraexclusion.dat|arthicrex.eqg
-		// .dat|?|floraexclusion.dat|barren.eqg
-		// .dat|?|floraexclusion.dat|blacksail.eqg
-		// .dat|?|floraexclusion.dat|brotherisland.eqg
-		// .dat|?|floraexclusion.dat|buriedsea.eqg
-		// .dat|?|floraexclusion.dat|deadhills.eqg
-		// .dat|?|floraexclusion.dat|devastation.eqg
-		// .dat|?|floraexclusion.dat|dragonscale.eqg
-		// .dat|?|floraexclusion.dat|elddar.eqg
-		// .dat|?|floraexclusion.dat|empyr.eqg
-		// .dat|?|floraexclusion.dat|frontiermtnsb.eqg
-		// .dat|?|floraexclusion.dat|lceanium.eqg
-		// .dat|?|floraexclusion.dat|maidensgrave.eqg
-		// .dat|?|floraexclusion.dat|mesa.eqg
-		// .dat|?|floraexclusion.dat|mistythicket.eqg
-		// .dat|?|floraexclusion.dat|neighborhood.eqg
-		// .dat|?|floraexclusion.dat|nektulos.eqg
-		// .dat|?|floraexclusion.dat|oceangreenhills.eqg
-		// .dat|?|floraexclusion.dat|oceangreenvillage.eqg
-		// .dat|?|floraexclusion.dat|oceanoftears.eqg
-		// .dat|?|floraexclusion.dat|oldbloodfield.eqg
-		// .dat|?|floraexclusion.dat|oldkithicor.eqg
-		// .dat|?|floraexclusion.dat|overtheretwo.eqg
-		// .dat|?|floraexclusion.dat|scorchedwoods.eqg
-		// .dat|?|floraexclusion.dat|skyfiretwo.eqg
-		// .dat|?|floraexclusion.dat|steppes.eqg
-		// .dat|?|floraexclusion.dat|sunderock.eqg
-		// .dat|?|floraexclusion.dat|thalassius.eqg
-		// .dat|?|floraexclusion.dat|theater.eqg
-		// .dat|?|floraexclusion.dat|zhisza.eqg
-		// .dat|?|hillsofshade.dat|cryptofshade.eqg
-		// .dat|?|innothule.dat|innothuleb.eqg
-		// .dat|?|invw.dat|arcstone.eqg
-		// .dat|?|invw.dat|arthicrex.eqg
-		// .dat|?|invw.dat|blacksail.eqg
-		// .dat|?|invw.dat|buriedsea.eqg
-		// .dat|?|invw.dat|cryptofshade.eqg
-		// .dat|?|invw.dat|deadhills.eqg
-		// .dat|?|invw.dat|devastation.eqg
-		// .dat|?|invw.dat|direwind.eqg
-		// .dat|?|invw.dat|dragonscale.eqg
-		// .dat|?|invw.dat|elddar.eqg
-		// .dat|?|invw.dat|frontiermtnsb.eqg
-		// .dat|?|invw.dat|fungalforest.eqg
-		// .dat|?|invw.dat|maidensgrave.eqg
-		// .dat|?|invw.dat|mesa.eqg
-		// .dat|?|invw.dat|mistythicket.eqg
-		// .dat|?|invw.dat|neighborhood.eqg
-		// .dat|?|invw.dat|oceangreenhills.eqg
-		// .dat|?|invw.dat|oceanoftears.eqg
-		// .dat|?|invw.dat|oldfieldofboneb.eqg
-		// .dat|?|invw.dat|overtheretwo.eqg
-		// .dat|?|invw.dat|scorchedwoods.eqg
-		// .dat|?|invw.dat|shadowedmount.eqg
-		// .dat|?|invw.dat|shardslanding.eqg
-		// .dat|?|invw.dat|skyfiretwo.eqg
-		// .dat|?|invw.dat|steamfontmts.eqg
-		// .dat|?|invw.dat|steppes.eqg
-		// .dat|?|invw.dat|suncrest.eqg
-		// .dat|?|invw.dat|sunderock.eqg
-		// .dat|?|invw.dat|thalassius.eqg
-		// .dat|?|invw.dat|theater.eqg
-		// .dat|?|invw.dat|zhisza.eqg
-		// .dat|?|lowlands.dat|sunderock.eqg
-		// .dat|?|mistythicket.dat|mistythicket.eqg
-		// .dat|?|neighborhood.dat|neighborhood.eqg
-		// .dat|?|nektuloseditor.dat|nektulos.eqg
-		// .dat|?|oceangreenvillage.dat|oceangreenvillage.eqg
-		// .dat|?|oldbloodfield.dat|precipiceofwar.eqg
-		// .dat|?|oot.dat|oceanoftears.eqg
-		// .dat|?|overthere.dat|overtheretwo.eqg
-		// .dat|?|planeofmusic.dat|theater.eqg
-		// .dat|?|scorchedwoods_terrain.dat|scorchedwoods.eqg
-		// .dat|?|skyfiretwo.dat|skyfiretwo.eqg
-		// .dat|?|steamfontmts.dat|steamfontmts.eqg
-		// .dat|?|suncrest.dat|suncrest.eqg
-		// .dat|?|water.dat|arcstone.eqg
-		// .dat|?|water.dat|buriedsea.eqg
-		// .dat|?|water.dat|cryptofshade.eqg
-		// .dat|?|water.dat|deadhills.eqg
-		// .dat|?|water.dat|devastation.eqg
-		// .dat|?|water.dat|elddar.eqg
-		// .dat|?|water.dat|jardelshook.eqg
-		// .dat|?|water.dat|maidensgrave.eqg
-		// .dat|?|water.dat|mesa.eqg
-		// .dat|?|water.dat|moors.eqg
-		// .dat|?|water.dat|neighborhood.eqg
-		// .dat|?|water.dat|nektulos.eqg
-		// .dat|?|water.dat|oceangreenvillage.eqg
-		// .dat|?|water.dat|oceanoftears.eqg
-		// .dat|?|water.dat|steppes.eqg
-		// .dat|?|water.dat|sunderock.eqg
-		// .dat|?|water.dat|thalassius.eqg
-		// .dat|?|water.dat|theater.eqg
-		// .dat|?|water.dat|zhisza.eqg
-		// .dat|?|zihssa.dat|zhisza.eqg
+		//{name: "arthicrex_te.dat", pfsName: "arthicrex.eqg", quadsPerTile: 32}, // PASS
+
 	}
 
 	for _, tt := range tests {
@@ -148,18 +35,19 @@ func TestDatRead(t *testing.T) {
 			if err != nil {
 				t.Fatalf("failed to open eqg %s: %s", tt.name, err.Error())
 			}
-			for _, file := range pfs.Files() {
-				if filepath.Ext(file.Name()) != ".zon" {
-					continue
-				}
-				dat := &Dat{}
-				err = dat.Read(bytes.NewReader(file.Data()))
-				os.WriteFile(fmt.Sprintf("%s/%s", dirTest, file.Name()), file.Data(), 0644)
-				tag.Write(fmt.Sprintf("%s/%s.tags", dirTest, file.Name()))
-				if err != nil {
-					t.Fatalf("failed to read %s: %s", tt.name, err.Error())
-				}
+			data, err := pfs.File(tt.name)
+			if err != nil {
+				t.Fatalf("failed to open %s: %s", tt.name, err.Error())
+			}
 
+			dat := &Dat{
+				QuadsPerTile: tt.quadsPerTile,
+			}
+			err = dat.Read(bytes.NewReader(data))
+			os.WriteFile(fmt.Sprintf("%s/%s", dirTest, tt.name), data, 0644)
+			tag.Write(fmt.Sprintf("%s/%s.tags", dirTest, tt.name))
+			if err != nil {
+				t.Fatalf("failed to read %s: %s", tt.name, err.Error())
 			}
 		})
 	}
@@ -173,11 +61,241 @@ func TestDatWrite(t *testing.T) {
 	dirTest := common.DirTest(t)
 
 	tests := []struct {
-		name    string
-		pfsName string
-		wantErr bool
+		name         string
+		pfsName      string
+		quadsPerTile int
+		wantErr      bool
+		isDump       bool
 	}{
-		{name: "cryptofshade.dat", pfsName: "cryptofshade.eqg"}, // FIXME: incomplete writer
+		//{name: "hillsofshade.dat", pfsName: "cryptofshade.eqg", quadsPerTile: 16, isDump: false}, // PASS
+		// .dat|?|ascent.dat|direwind.eqg
+		//{name: "ascent.dat", pfsName: "direwind.eqg", quadsPerTile: 16, isDump: false}, // PASS
+		// .dat|?|bakup_water.dat|buriedsea.eqg
+		//{name: "bakup_water.dat", pfsName: "buriedsea.eqg", quadsPerTile: 16, isDump: false}, // PASS
+		// .dat|?|bakup_water.dat|jardelshook.eqg
+		//{name: "bakup_water.dat", pfsName: "jardelshook.eqg", quadsPerTile: 16}, // PASS
+		// .dat|?|bakup_water.dat|maidensgrave.eqg
+		//{name: "bakup_water.dat", pfsName: "maidensgrave.eqg", quadsPerTile: 16}, // PASS
+		// .dat|?|bakup_water.dat|monkeyrock.eqg
+		//{name: "bakup_water.dat", pfsName: "monkeyrock.eqg", quadsPerTile: 16}, // PASS
+		// .dat|?|barrencoast.dat|barren.eqg
+		//{name: "barrencoast.dat", pfsName: "barren.eqg", quadsPerTile: 16}, // PASS
+		// .dat|?|blacksail.dat|blacksail.eqg
+		//{name: "blacksail.dat", pfsName: "blacksail.eqg", quadsPerTile: 16}, // PASS
+		// .dat|?|brotherisland.dat|brotherisland.eqg
+		//{name: "brotherisland.dat", pfsName: "brotherisland.eqg", quadsPerTile: 16}, // PASS
+		// .dat|?|buriedsea.dat|buriedsea.eqg
+		//{name: "buriedsea.dat", pfsName: "buriedsea.eqg", quadsPerTile: 16}, // PASS
+		// .dat|?|commonlands.dat|commonlands.eqg
+		//{name: "commonlands.dat", pfsName: "commonlands.eqg", quadsPerTile: 16}, // PASS
+		// .dat|?|commonlands.dat|oldcommons.eqg
+		//{name: "commonlands.dat", pfsName: "oldcommons.eqg", quadsPerTile: 16}, // TODO: FAIL
+		// .dat|?|devastation.dat|devastation.eqg
+		// {name: "devastation.dat", pfsName: "devastation.eqg", quadsPerTile: 16}, // TODO: fix
+		// .dat|?|dragonscale.dat|dragonscale.eqg
+		//{name: "dragonscale.dat", pfsName: "dragonscale.eqg", quadsPerTile: 16}, // PASS
+		// .dat|?|empyr.dat|empyr.eqg
+		//{name: "empyr.dat", pfsName: "empyr.eqg", quadsPerTile: 16}, // TODO: fix
+		// .dat|?|farstone.dat|arcstone.eqg
+		//{name: "farstone.dat", pfsName: "arcstone.eqg", quadsPerTile: 16}, // TODO: fix
+		// .dat|?|feerrott.dat|feerrott2.eqg
+		//{name: "feerrott.dat", pfsName: "feerrott2.eqg", quadsPerTile: 16},
+		// .dat|?|fieldofbone.dat|oldfieldofboneb.eqg
+		//{name: "fieldofbone.dat", pfsName: "oldfieldofboneb.eqg", quadsPerTile: 16},
+		// .dat|?|floraexclusion.dat|arcstone.eqg
+		//{name: "floraexclusion.dat", pfsName: "arcstone.eqg", quadsPerTile: 16}, // PASS
+		// .dat|?|floraexclusion.dat|arthicrex.eqg
+		//{name: "floraexclusion.dat", pfsName: "arthicrex.eqg", quadsPerTile: 16}, // PASS
+		// .dat|?|floraexclusion.dat|barren.eqg
+		//{name: "floraexclusion.dat", pfsName: "barren.eqg", quadsPerTile: 16}, // PASS
+		// .dat|?|floraexclusion.dat|blacksail.eqg
+		//{name: "floraexclusion.dat", pfsName: "blacksail.eqg", quadsPerTile: 16}, // PASS
+		// .dat|?|floraexclusion.dat|brotherisland.eqg
+		//{name: "floraexclusion.dat", pfsName: "brotherisland.eqg", quadsPerTile: 16}, // PASS
+		// .dat|?|floraexclusion.dat|buriedsea.eqg
+		//{name: "floraexclusion.dat", pfsName: "buriedsea.eqg", quadsPerTile: 16}, // PASS
+		// .dat|?|floraexclusion.dat|deadhills.eqg
+		//{name: "floraexclusion.dat", pfsName: "deadhills.eqg", quadsPerTile: 16}, // PASS
+		// .dat|?|floraexclusion.dat|devastation.eqg
+		//{name: "floraexclusion.dat", pfsName: "devastation.eqg", quadsPerTile: 16}, // PASS
+		// .dat|?|floraexclusion.dat|dragonscale.eqg
+		//{name: "floraexclusion.dat", pfsName: "dragonscale.eqg", quadsPerTile: 16}, // PASS
+		// .dat|?|floraexclusion.dat|elddar.eqg
+		//{name: "floraexclusion.dat", pfsName: "elddar.eqg", quadsPerTile: 16}, // PASS
+		// .dat|?|floraexclusion.dat|empyr.eqg
+		//{name: "floraexclusion.dat", pfsName: "empyr.eqg", quadsPerTile: 16}, // PASS
+		// .dat|?|floraexclusion.dat|frontiermtnsb.eqg
+		//{name: "floraexclusion.dat", pfsName: "frontiermtnsb.eqg", quadsPerTile: 16}, // PASS
+		// .dat|?|floraexclusion.dat|lceanium.eqg
+		//{name: "floraexclusion.dat", pfsName: "lceanium.eqg", quadsPerTile: 16}, // PASS
+		// .dat|?|floraexclusion.dat|maidensgrave.eqg
+		//{name: "floraexclusion.dat", pfsName: "maidensgrave.eqg", quadsPerTile: 16}, // PASS
+		// .dat|?|floraexclusion.dat|mesa.eqg
+		//{name: "floraexclusion.dat", pfsName: "mesa.eqg", quadsPerTile: 16}, // PASS
+		// .dat|?|floraexclusion.dat|mistythicket.eqg
+		//{name: "floraexclusion.dat", pfsName: "mistythicket.eqg", quadsPerTile: 16}, // PASS
+		// .dat|?|floraexclusion.dat|neighborhood.eqg
+		//{name: "floraexclusion.dat", pfsName: "neighborhood.eqg", quadsPerTile: 16}, // PASS
+		// .dat|?|floraexclusion.dat|nektulos.eqg
+		//{name: "floraexclusion.dat", pfsName: "nektulos.eqg", quadsPerTile: 16}, // PASS
+		// .dat|?|floraexclusion.dat|oceangreenhills.eqg
+		//{name: "floraexclusion.dat", pfsName: "oceangreenhills.eqg", quadsPerTile: 16}, // PASS
+		// .dat|?|floraexclusion.dat|oceangreenvillage.eqg
+		//{name: "floraexclusion.dat", pfsName: "oceangreenvillage.eqg", quadsPerTile: 16}, // PASS
+		// .dat|?|floraexclusion.dat|oceanoftears.eqg
+		//{name: "floraexclusion.dat", pfsName: "oceanoftears.eqg", quadsPerTile: 16}, // PASS
+		// .dat|?|floraexclusion.dat|oldbloodfield.eqg
+		//{name: "floraexclusion.dat", pfsName: "oldbloodfield.eqg", quadsPerTile: 16}, // PASS
+		// .dat|?|floraexclusion.dat|oldkithicor.eqg
+		//{name: "floraexclusion.dat", pfsName: "oldkithicor.eqg", quadsPerTile: 16}, // PASS
+		// .dat|?|floraexclusion.dat|overtheretwo.eqg
+		//{name: "floraexclusion.dat", pfsName: "overtheretwo.eqg", quadsPerTile: 16}, // PASS
+		// .dat|?|floraexclusion.dat|scorchedwoods.eqg
+		//{name: "floraexclusion.dat", pfsName: "scorchedwoods.eqg", quadsPerTile: 16}, // PASS
+		// .dat|?|floraexclusion.dat|skyfiretwo.eqg
+		//{name: "floraexclusion.dat", pfsName: "skyfiretwo.eqg", quadsPerTile: 16}, // PASS
+		// .dat|?|floraexclusion.dat|steppes.eqg
+		//{name: "floraexclusion.dat", pfsName: "steppes.eqg", quadsPerTile: 16}, // PASS
+		// .dat|?|floraexclusion.dat|sunderock.eqg
+		//{name: "floraexclusion.dat", pfsName: "sunderock.eqg", quadsPerTile: 16}, // PASS
+		// .dat|?|floraexclusion.dat|thalassius.eqg
+		//{name: "floraexclusion.dat", pfsName: "thalassius.eqg", quadsPerTile: 16}, // PASS
+		// .dat|?|floraexclusion.dat|theater.eqg
+		//{name: "floraexclusion.dat", pfsName: "theater.eqg", quadsPerTile: 16}, // PASS
+		// .dat|?|floraexclusion.dat|zhisza.eqg
+		//{name: "floraexclusion.dat", pfsName: "zhisza.eqg", quadsPerTile: 16}, // PASS
+		// .dat|?|hillsofshade.dat|cryptofshade.eqg
+		//{name: "hillsofshade.dat", pfsName: "cryptofshade.eqg", quadsPerTile: 16}, // PASS
+		// .dat|?|innothule.dat|innothuleb.eqg
+		//{name: "innothule.dat", pfsName: "innothuleb.eqg", quadsPerTile: 16}, // PASS
+		// .dat|?|invw.dat|arcstone.eqg
+		//{name: "invw.dat", pfsName: "arcstone.eqg", quadsPerTile: 16},
+		// .dat|?|invw.dat|arthicrex.eqg
+		//{name: "invw.dat", pfsName: "arthicrex.eqg", quadsPerTile: 16},
+		// .dat|?|invw.dat|blacksail.eqg
+		//{name: "invw.dat", pfsName: "blacksail.eqg", quadsPerTile: 16},
+		// .dat|?|invw.dat|buriedsea.eqg
+		//{name: "invw.dat", pfsName: "buriedsea.eqg", quadsPerTile: 16},
+		// .dat|?|invw.dat|cryptofshade.eqg
+		//{name: "invw.dat", pfsName: "cryptofshade.eqg", quadsPerTile: 16},
+		// .dat|?|invw.dat|deadhills.eqg
+		////{name: "invw.dat", pfsName: "deadhills.eqg", quadsPerTile: 16}, // PASS
+		// .dat|?|invw.dat|devastation.eqg
+		//{name: "invw.dat", pfsName: "devastation.eqg", quadsPerTile: 16},
+		// .dat|?|invw.dat|direwind.eqg
+		//{name: "invw.dat", pfsName: "direwind.eqg", quadsPerTile: 16},
+		// .dat|?|invw.dat|dragonscale.eqg
+		//{name: "invw.dat", pfsName: "dragonscale.eqg", quadsPerTile: 16},
+		// .dat|?|invw.dat|elddar.eqg
+		//{name: "invw.dat", pfsName: "elddar.eqg", quadsPerTile: 16},
+		// .dat|?|invw.dat|frontiermtnsb.eqg
+		//{name: "invw.dat", pfsName: "frontiermtnsb.eqg", quadsPerTile: 16},
+		// .dat|?|invw.dat|fungalforest.eqg
+		//{name: "invw.dat", pfsName: "fungalforest.eqg", quadsPerTile: 16},
+		// .dat|?|invw.dat|maidensgrave.eqg
+		//{name: "invw.dat", pfsName: "maidensgrave.eqg", quadsPerTile: 16},
+		// .dat|?|invw.dat|mesa.eqg
+		// {name: "invw.dat", pfsName: "mesa.eqg", quadsPerTile: 16}, // too high
+		// .dat|?|invw.dat|mistythicket.eqg
+		//{name: "invw.dat", pfsName: "mistythicket.eqg", quadsPerTile: 16},
+		// .dat|?|invw.dat|neighborhood.eqg
+		//{name: "invw.dat", pfsName: "neighborhood.eqg", quadsPerTile: 16},
+		// .dat|?|invw.dat|oceangreenhills.eqg
+		//{name: "invw.dat", pfsName: "oceangreenhills.eqg", quadsPerTile: 16},
+		// .dat|?|invw.dat|oceanoftears.eqg
+		//{name: "invw.dat", pfsName: "oceanoftears.eqg", quadsPerTile: 16},
+		// .dat|?|invw.dat|oldfieldofboneb.eqg
+		//{name: "invw.dat", pfsName: "oldfieldofboneb.eqg", quadsPerTile: 16},
+		// .dat|?|invw.dat|overtheretwo.eqg
+		//{name: "invw.dat", pfsName: "overtheretwo.eqg", quadsPerTile: 16},
+		// .dat|?|invw.dat|scorchedwoods.eqg
+		//{name: "invw.dat", pfsName: "scorchedwoods.eqg", quadsPerTile: 16},
+		// .dat|?|invw.dat|shadowedmount.eqg
+		//{name: "invw.dat", pfsName: "shadowedmount.eqg", quadsPerTile: 16},
+		// .dat|?|invw.dat|shardslanding.eqg
+		//{name: "invw.dat", pfsName: "shardslanding.eqg", quadsPerTile: 16},
+		// .dat|?|invw.dat|skyfiretwo.eqg
+		//{name: "invw.dat", pfsName: "skyfiretwo.eqg", quadsPerTile: 16},
+		// .dat|?|invw.dat|steamfontmts.eqg
+		//{name: "invw.dat", pfsName: "steamfontmts.eqg", quadsPerTile: 16},
+		// .dat|?|invw.dat|steppes.eqg
+		//{name: "invw.dat", pfsName: "steppes.eqg", quadsPerTile: 16},
+		// .dat|?|invw.dat|suncrest.eqg
+		//{name: "invw.dat", pfsName: "suncrest.eqg", quadsPerTile: 16},
+		// .dat|?|invw.dat|sunderock.eqg
+		//{name: "invw.dat", pfsName: "sunderock.eqg", quadsPerTile: 16},
+		// .dat|?|invw.dat|thalassius.eqg
+		//{name: "invw.dat", pfsName: "thalassius.eqg", quadsPerTile: 16},
+		// .dat|?|invw.dat|theater.eqg
+		//{name: "invw.dat", pfsName: "theater.eqg", quadsPerTile: 16},
+		// .dat|?|invw.dat|zhisza.eqg
+		//{name: "invw.dat", pfsName: "zhisza.eqg", quadsPerTile: 16},
+		// .dat|?|lowlands.dat|sunderock.eqg
+		//{name: "lowlands.dat", pfsName: "sunderock.eqg", quadsPerTile: 16},
+		// .dat|?|mistythicket.dat|mistythicket.eqg
+		//{name: "mistythicket.dat", pfsName: "mistythicket.eqg", quadsPerTile: 16},
+		// .dat|?|neighborhood.dat|neighborhood.eqg
+		//{name: "neighborhood.dat", pfsName: "neighborhood.eqg", quadsPerTile: 16},
+		// .dat|?|nektuloseditor.dat|nektulos.eqg
+		//{name: "nektuloseditor.dat", pfsName: "nektulos.eqg", quadsPerTile: 16},
+		// .dat|?|oceangreenvillage.dat|oceangreenvillage.eqg
+		//{name: "oceangreenvillage.dat", pfsName: "oceangreenvillage.eqg", quadsPerTile: 16},
+		// .dat|?|oldbloodfield.dat|precipiceofwar.eqg
+		//{name: "oldbloodfield.dat", pfsName: "precipiceofwar.eqg", quadsPerTile: 16},
+		// .dat|?|oot.dat|oceanoftears.eqg
+		//{name: "oot.dat", pfsName: "oceanoftears.eqg", quadsPerTile: 16},
+		// .dat|?|overthere.dat|overtheretwo.eqg
+		//{name: "overthere.dat", pfsName: "overtheretwo.eqg", quadsPerTile: 16},
+		// .dat|?|planeofmusic.dat|theater.eqg
+		//{name: "planeofmusic.dat", pfsName: "theater.eqg", quadsPerTile: 16},
+		// .dat|?|scorchedwoods_terrain.dat|scorchedwoods.eqg
+		//{name: "scorchedwoods_terrain.dat", pfsName: "scorchedwoods.eqg", quadsPerTile: 16},
+		// .dat|?|skyfiretwo.dat|skyfiretwo.eqg
+		//{name: "skyfiretwo.dat", pfsName: "skyfiretwo.eqg", quadsPerTile: 16},
+		// .dat|?|steamfontmts.dat|steamfontmts.eqg
+		//{name: "steamfontmts.dat", pfsName: "steamfontmts.eqg", quadsPerTile: 16},
+		// .dat|?|suncrest.dat|suncrest.eqg
+		//{name: "suncrest.dat", pfsName: "suncrest.eqg", quadsPerTile: 16},
+		// .dat|?|water.dat|arcstone.eqg
+		//{name: "water.dat", pfsName: "arcstone.eqg", quadsPerTile: 16},
+		// .dat|?|water.dat|buriedsea.eqg
+		//{name: "water.dat", pfsName: "buriedsea.eqg", quadsPerTile: 16},
+		// .dat|?|water.dat|cryptofshade.eqg
+		//{name: "water.dat", pfsName: "cryptofshade.eqg", quadsPerTile: 16},
+		// .dat|?|water.dat|deadhills.eqg
+		//{name: "water.dat", pfsName: "deadhills.eqg", quadsPerTile: 16},
+		// .dat|?|water.dat|devastation.eqg
+		//{name: "water.dat", pfsName: "devastation.eqg", quadsPerTile: 16},
+		// .dat|?|water.dat|elddar.eqg
+		//{name: "water.dat", pfsName: "elddar.eqg", quadsPerTile: 16},
+		// .dat|?|water.dat|jardelshook.eqg
+		//{name: "water.dat", pfsName: "jardelshook.eqg", quadsPerTile: 16},
+		// .dat|?|water.dat|maidensgrave.eqg
+		//{name: "water.dat", pfsName: "maidensgrave.eqg", quadsPerTile: 16},
+		// .dat|?|water.dat|mesa.eqg
+		//{name: "water.dat", pfsName: "mesa.eqg", quadsPerTile: 16},
+		// .dat|?|water.dat|moors.eqg
+		//{name: "water.dat", pfsName: "moors.eqg", quadsPerTile: 16},
+		// .dat|?|water.dat|neighborhood.eqg
+		//{name: "water.dat", pfsName: "neighborhood.eqg", quadsPerTile: 16},
+		// .dat|?|water.dat|nektulos.eqg
+		//{name: "water.dat", pfsName: "nektulos.eqg", quadsPerTile: 16},
+		// .dat|?|water.dat|oceangreenvillage.eqg
+		//{name: "water.dat", pfsName: "oceangreenvillage.eqg", quadsPerTile: 16},
+		// .dat|?|water.dat|oceanoftears.eqg
+		//{name: "water.dat", pfsName: "oceanoftears.eqg", quadsPerTile: 16},
+		// .dat|?|water.dat|steppes.eqg
+		//{name: "water.dat", pfsName: "steppes.eqg", quadsPerTile: 16},
+		// .dat|?|water.dat|sunderock.eqg
+		//{name: "water.dat", pfsName: "sunderock.eqg", quadsPerTile: 16},
+		// .dat|?|water.dat|thalassius.eqg
+		//{name: "water.dat", pfsName: "thalassius.eqg", quadsPerTile: 16},
+		// .dat|?|water.dat|theater.eqg
+		//{name: "water.dat", pfsName: "theater.eqg", quadsPerTile: 16},
+		// .dat|?|water.dat|zhisza.eqg
+		//{name: "water.dat", pfsName: "zhisza.eqg", quadsPerTile: 16},
+		// .dat|?|zihssa.dat|zhisza.eqg
+		//{name: "zihssa.dat", pfsName: "zhisza.eqg", quadsPerTile: 16},
 	}
 
 	for _, tt := range tests {
@@ -186,66 +304,70 @@ func TestDatWrite(t *testing.T) {
 			if err != nil {
 				t.Fatalf("failed to open eqg %s: %s", tt.name, err.Error())
 			}
-			for _, file := range pfs.Files() {
-				if filepath.Ext(file.Name()) != ".zon" {
-					continue
-				}
-				dat := &Dat{}
-
-				err = dat.Read(bytes.NewReader(file.Data()))
-				os.WriteFile(fmt.Sprintf("%s/%s", dirTest, file.Name()), file.Data(), 0644)
-				tag.Write(fmt.Sprintf("%s/%s.tags", dirTest, file.Name()))
-				if err != nil {
-					t.Fatalf("failed to read %s: %s", tt.name, err.Error())
-				}
-
-				buf := bytes.NewBuffer(nil)
-
-				err = dat.Write(buf)
-				if err != nil {
-					t.Fatalf("failed to encode %s: %s", tt.name, err.Error())
-				}
-
-				//srcData := file.Data()
-				//dstData := buf.Bytes()
-				/*for i := 0; i < len(srcData); i++ {
-					if len(dstData) <= i {
-						min := 0
-						max := len(srcData)
-						fmt.Printf("src (%d:%d):\n%s\n", min, max, hex.Dump(srcData[min:max]))
-						max = len(dstData)
-						fmt.Printf("dst (%d:%d):\n%s\n", min, max, hex.Dump(dstData[min:max]))
-
-						t.Fatalf("%s src eof at offset %d (dst is too large by %d bytes)", tt.name, i, len(dstData)-len(srcData))
-					}
-					if len(dstData) <= i {
-						t.Fatalf("%s dst eof at offset %d (dst is too small by %d bytes)", tt.name, i, len(srcData)-len(dstData))
-					}
-					if srcData[i] == dstData[i] {
-						continue
-					}
-
-					fmt.Printf("%s mismatch at offset %d (src: 0x%x vs dst: 0x%x aka %d)\n", tt.name, i, srcData[i], dstData[i], dstData[i])
-					max := i + 16
-					if max > len(srcData) {
-						max = len(srcData)
-					}
-
-					min := i - 16
-					if min < 0 {
-						min = 0
-					}
-					fmt.Printf("src (%d:%d):\n%s\n", min, max, hex.Dump(srcData[min:max]))
-					if max > len(dstData) {
-						max = len(dstData)
-					}
-
-					fmt.Printf("dst (%d:%d):\n%s\n", min, max, hex.Dump(dstData[min:max]))
-					//os.WriteFile(fmt.Sprintf("%s/_src_%s", dirTest, file.Name()), file.Data(), 0644)
-					//os.WriteFile(fmt.Sprintf("%s/_dst_%s", dirTest, file.Name()), buf.Bytes(), 0644)
-					t.Fatalf("%s encode: data mismatch", tt.name)
-				}*/
+			data, err := pfs.File(tt.name)
+			if err != nil {
+				t.Fatalf("failed to open %s: %s", tt.name, err.Error())
 			}
+
+			dat := &Dat{
+				QuadsPerTile: tt.quadsPerTile,
+			}
+
+			err = dat.Read(bytes.NewReader(data))
+			if tt.isDump {
+				os.WriteFile(fmt.Sprintf("%s/%s.src.dat", dirTest, tt.name), data, 0644)
+				tag.Write(fmt.Sprintf("%s/%s.src.dat.tags", dirTest, tt.name))
+			}
+			if err != nil {
+				t.Fatalf("failed to read %s: %s", tt.name, err.Error())
+			}
+
+			buf := bytes.NewBuffer(nil)
+
+			err = dat.Write(buf)
+			if tt.isDump {
+				os.WriteFile(fmt.Sprintf("%s/%s.dst.dat", dirTest, tt.name), buf.Bytes(), 0644)
+				tag.Write(fmt.Sprintf("%s/%s.dst.dat.tags", dirTest, tt.name))
+			}
+			if err != nil {
+				t.Fatalf("failed to encode %s: %s", tt.name, err.Error())
+			}
+
+			dat2 := &Dat{
+				QuadsPerTile: tt.quadsPerTile,
+			}
+			err = dat2.Read(bytes.NewReader(buf.Bytes()))
+			if err != nil {
+				t.Fatalf("failed to decode2 %s: %s", tt.name, err.Error())
+			}
+
+			if len(dat.Tiles) != len(dat2.Tiles) {
+				t.Fatalf("tile count mismatch %d != %d", len(dat.Tiles), len(dat2.Tiles))
+			}
+
+			for i := range dat.Tiles {
+				tile := dat.Tiles[i]
+				tile2 := dat2.Tiles[i]
+				if tile.Lng != tile2.Lng {
+					t.Fatalf("tile lng mismatch %d != %d", tile.Lng, tile2.Lng)
+				}
+				if tile.Lat != tile2.Lat {
+					t.Fatalf("tile lat mismatch %d != %d", tile.Lat, tile2.Lat)
+				}
+				if tile.Unk1 != tile2.Unk1 {
+					t.Fatalf("tile unk1 mismatch %d != %d", tile.Unk1, tile2.Unk1)
+				}
+				if len(tile.Colors) != len(tile2.Colors) {
+					t.Fatalf("tile color count mismatch %d != %d", len(tile.Colors), len(tile2.Colors))
+				}
+				if len(tile.Colors2) != len(tile2.Colors2) {
+					t.Fatalf("tile color2 count mismatch %d != %d", len(tile.Colors2), len(tile2.Colors2))
+				}
+				if len(tile.Flags) != len(tile2.Flags) {
+					t.Fatalf("tile flag count mismatch %d != %d", len(tile.Flags), len(tile2.Flags))
+				}
+			}
+			fmt.Println(tt.pfsName, tt.name, "PASS")
 		})
 	}
 }

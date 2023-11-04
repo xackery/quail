@@ -59,7 +59,6 @@ func TestDdsWrite(t *testing.T) {
 	}
 	dirTest := common.DirTest(t)
 
-	// FIXME: dds writer
 	tests := []struct {
 		name    string
 		wantErr bool
@@ -100,7 +99,7 @@ func TestDdsWrite(t *testing.T) {
 
 				err = common.ByteCompareTest(srcData, dstData)
 				if err != nil {
-					t.Fatalf("%s failed byteCompare: %s", tt.name, err)
+					t.Fatalf("%s byteCompare: %s", tt.name, err)
 				}
 			}
 		})

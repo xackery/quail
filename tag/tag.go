@@ -11,10 +11,10 @@ import (
 )
 
 var (
-	mu        sync.RWMutex
-	lastPos   int64
-	tags      []tag
-	lastColor string
+	mu             sync.RWMutex
+	lastPos        int64
+	tags           []tag
+	lastColorIndex int
 )
 
 type tag struct {
@@ -95,27 +95,28 @@ func AddRand(from, to int64, caption string) {
 	colors := []string{
 		"red",
 		"green",
-		"blue",
 		"yellow",
-		"orange",
+		"teal",
 		"purple",
 		"pink",
 		"brown",
 		"gray",
+		"orange",
+		"blue",
 	}
 	if from < 0 {
 		from = 0
 	}
-	// pick one randomly
-	color := colors[from%int64(len(colors))]
-	if color == lastColor {
-		color = colors[(from+1)%int64(len(colors))]
+	colorIndex := lastColorIndex + 1
+	if colorIndex >= len(colors) {
+		colorIndex = 0
 	}
-	lastColor = color
+	color := colors[colorIndex]
+	lastColorIndex = colorIndex
 
 	tags = append(tags, tag{
 		From:    from,
-		To:      to,
+		To:      to - 1,
 		Color:   color,
 		Caption: caption,
 	})
@@ -148,6 +149,7 @@ func Write(path string) error {
 	defer w.Close()
 
 	enc := json.NewEncoder(w)
+	enc.SetIndent("", "  ")
 	err = enc.Encode(tags)
 	if err != nil {
 		return fmt.Errorf("encode: %w", err)

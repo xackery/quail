@@ -3,7 +3,6 @@ package raw
 import (
 	"bytes"
 	"encoding/binary"
-	"encoding/hex"
 	"fmt"
 	"io"
 	"os"
@@ -81,7 +80,7 @@ func TestFragment(t *testing.T) {
 					tag.Write(fmt.Sprintf("%s/%s.src.hex.tags", dirTest, tt.file))
 				}
 
-				buf := common.NewByteSeeker()
+				buf := common.NewByteSeekerTest()
 				buf.Write(srcData[:4])
 
 				err = reader.Write(buf)
@@ -96,43 +95,9 @@ func TestFragment(t *testing.T) {
 					tag.Write(fmt.Sprintf("%s/%s.dst.hex.tags", dirTest, tt.file))
 				}
 
-				//if !reflect.DeepEqual(data, dstData) {
-				for j := 0; j < len(dstData); j++ {
-					if tt.fragIndex != 0 && i != tt.fragIndex {
-						break
-					}
-					if len(srcData) <= j {
-						min := 0
-						max := len(srcData)
-						fmt.Printf("src (%d:%d):\n%s\n", min, max, hex.Dump(srcData[min:max]))
-						max = len(dstData)
-						fmt.Printf("dst (%d:%d):\n%s\n", min, max, hex.Dump(dstData[min:max]))
-
-						t.Fatalf("frag %d 0x%x (%s) src eof at offset %d (dst is too large by %d bytes)", i, reader.FragCode(), FragName(int(reader.FragCode())), i, len(dstData)-len(srcData))
-					}
-					if len(dstData) <= j {
-						t.Fatalf("frag %d 0x%x (%s) dst eof at offset %d (dst is too small by %d bytes)", i, reader.FragCode(), FragName(int(reader.FragCode())), i, len(srcData)-len(dstData))
-					}
-					if dstData[j] == srcData[j] {
-						continue
-					}
-					fmt.Printf("frag %d 0x%x (%s) mismatch at offset %d (src: 0x%x vs dst: 0x%x aka %d)\n", i, reader.FragCode(), FragName(int(reader.FragCode())), i, srcData[j], dstData[j], dstData[j])
-					max := j + 16
-					if max > len(srcData) {
-						max = len(srcData)
-					}
-
-					min := j - 16
-					if min < 0 {
-						min = 0
-					}
-					fmt.Printf("src (%d:%d):\n%s\n", min, max, hex.Dump(srcData[min:max]))
-					if max > len(dstData) {
-						max = len(dstData)
-					}
-
-					fmt.Printf("dst (%d:%d):\n%s\n", min, max, hex.Dump(dstData[min:max]))
-					t.Fatalf("frag %d 0x%x (%s) write: data mismatch", i, reader.FragCode(), FragName(int(reader.FragCode())))
+				err := common.ByteCompareTest(srcData, dstData)
+				if err != nil {
+					t.Fatalf("frag %d 0x%x (%s) mismatch: %s", i, reader.FragCode(), FragName(int(reader.FragCode())), err.Error())
 				}
 			}
 			if tt.fragIndex != 0 {

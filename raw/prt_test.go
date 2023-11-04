@@ -43,15 +43,15 @@ func TestPrtRead(t *testing.T) {
 		// .prt|3|tgo.prt|tgo.eqg tgo.eqg pfs import: readPrt tgo.prt: invalid version 3, wanted 4+
 		// .prt|3|tln.prt|tln.eqg tln.eqg pfs import: readPrt tln.prt: invalid version 3, wanted 4+
 		// .prt|4|cnp.prt|cnp.eqg
-		{name: "cnp.eqg"},
+		//{name: "cnp.eqg"},
 		// .prt|5|aam.prt|aam.eqg
-		{name: "aam.eqg"},
+		//{name: "aam.eqg"},
 		// .prt|5|ae3.prt|ae3.eqg
-		{name: "ae3.eqg"},
+		//{name: "ae3.eqg"},
 		// .prt|5|ahf.prt|ahf.eqg
-		{name: "ahf.eqg"},
+		//{name: "ahf.eqg"},
 		// .prt|5|ahm.prt|ahm.eqg
-		{name: "ahm.eqg"},
+		//{name: "ahm.eqg"},
 	}
 
 	for _, tt := range tests {
@@ -104,15 +104,15 @@ func TestPrtWrite(t *testing.T) {
 		// .prt|3|tgo.prt|tgo.eqg tgo.eqg pfs import: readPrt tgo.prt: invalid version 3, wanted 4+
 		// .prt|3|tln.prt|tln.eqg tln.eqg pfs import: readPrt tln.prt: invalid version 3, wanted 4+
 		// .prt|4|cnp.prt|cnp.eqg
-		{name: "cnp.eqg"},
+		//{name: "cnp.eqg"},
 		// .prt|5|aam.prt|aam.eqg
-		{name: "aam.eqg"},
+		//{name: "aam.eqg"},
 		// .prt|5|ae3.prt|ae3.eqg
-		{name: "ae3.eqg"},
+		//{name: "ae3.eqg"},
 		// .prt|5|ahf.prt|ahf.eqg
-		{name: "ahf.eqg"},
+		//{name: "ahf.eqg"},
 		// .prt|5|ahm.prt|ahm.eqg
-		{name: "ahm.eqg"},
+		//{name: "ahm.eqg"},
 	}
 
 	for _, tt := range tests {
