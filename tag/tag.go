@@ -103,6 +103,9 @@ func AddRand(from, to int64, caption string) {
 		"brown",
 		"gray",
 	}
+	if from < 0 {
+		from = 0
+	}
 	// pick one randomly
 	color := colors[from%int64(len(colors))]
 	if color == lastColor {
