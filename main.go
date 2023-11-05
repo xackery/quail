@@ -25,7 +25,7 @@ func main() {
 
 	if Version == "" {
 		Version = fmt.Sprintf("dev-%d-%02d-%02d", time.Now().Year(), time.Now().Month(), time.Now().Day())
-		//fmt.Printf("quail %s\n", Version)
+		fmt.Printf("quail %s\n", Version)
 	}
 	if ShowVersion == "1" {
 		fmt.Printf("quail %s\n", Version)

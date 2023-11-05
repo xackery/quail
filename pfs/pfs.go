@@ -81,6 +81,18 @@ func (e *Pfs) Add(name string, data []byte) error {
 	return nil
 }
 
+func (e *Pfs) Set(name string, data []byte) error {
+	name = strings.ToLower(name)
+	for _, fe := range e.files {
+		if fe.Name() != name {
+			continue
+		}
+		return fe.SetData(data)
+	}
+	e.files = append(e.files, NewFileEntry(name, data))
+	return nil
+}
+
 // Extract places the pfs contents to path
 func (e *Pfs) Extract(path string) (string, error) {
 	fi, err := os.Stat(path)

@@ -144,12 +144,14 @@ func yamlToArchiveConvert(srcYamlPath string, dstArchivePath string, dstArchiveF
 		return fmt.Errorf("src yaml path is required")
 	}
 
-	srcExt := filepath.Ext(srcYamlPath)
+	//srcExt := filepath.Ext(srcYamlPath)
 
-	dstExt := filepath.Ext(dstArchivePath)
-	if dstExt != ".s3d" && dstExt != ".pfs" && dstExt != ".pak" && dstExt != ".eqg" {
+	dstArchiveExt := filepath.Ext(dstArchivePath)
+	if dstArchiveExt != ".s3d" && dstArchiveExt != ".pfs" && dstArchiveExt != ".pak" && dstArchiveExt != ".eqg" {
 		return fmt.Errorf("dst file must be archive")
 	}
+
+	dstExt := filepath.Ext(dstArchiveFile)
 
 	log.Printf("Converting %s to %s:%s", srcYamlPath, dstArchivePath, dstArchiveFile)
 
@@ -160,16 +162,26 @@ func yamlToArchiveConvert(srcYamlPath string, dstArchivePath string, dstArchiveF
 
 	reader := raw.New(dstExt)
 	if reader == nil {
-		return fmt.Errorf("unsupported file format %s", srcExt)
+		return fmt.Errorf("unsupported file format %s", dstExt)
 	}
 
-	buf := &bytes.Buffer{}
-	err = yaml.NewDecoder(buf).Decode(reader)
+	r, err := os.Open(srcYamlPath)
+	if err != nil {
+		return fmt.Errorf("open src file: %w", err)
+	}
+	defer r.Close()
+	err = yaml.NewDecoder(r).Decode(reader)
 	if err != nil {
 		return fmt.Errorf("yaml decode: %w", err)
 	}
 
-	err = archive.Add(dstArchiveFile, buf.Bytes())
+	buf := &bytes.Buffer{}
+	err = reader.Write(buf)
+	if err != nil {
+		return fmt.Errorf("write raw file %s: %w", dstArchiveFile, err)
+	}
+
+	err = archive.Set(dstArchiveFile, buf.Bytes())
 	if err != nil {
 		return fmt.Errorf("add archive file: %w", err)
 	}
@@ -261,6 +273,7 @@ func archiveToYamlConvert(srcArchivePath string, srcArchiveFile string, dstYamlP
 	if err != nil {
 		return fmt.Errorf("read raw file %s: %w", srcArchiveFile, err)
 	}
+	reader.SetFileName(srcArchiveFile)
 
 	w, err := os.Create(dstYamlPath)
 	if err != nil {
@@ -299,6 +312,7 @@ func fileToYamlConvert(srcPath string, dstYamlPath string) error {
 	if err != nil {
 		return fmt.Errorf("read src file: %w", err)
 	}
+	reader.SetFileName(filepath.Base(srcPath))
 
 	w, err := os.Create(dstYamlPath)
 	if err != nil {
