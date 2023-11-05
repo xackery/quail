@@ -24,12 +24,12 @@ func (mod *Mod) Read(r io.ReadSeeker) error {
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 
 	header := dec.StringFixed(4)
-	if header != "EQGM" {
-		return fmt.Errorf("invalid header %s, wanted EQGM", header)
-	}
 
 	tag.New()
 	mod.Version = dec.Uint32()
+	if header != "EQGM" {
+		return fmt.Errorf("invalid header %s on version %d, wanted EQGM", header, mod.Version)
+	}
 
 	nameLength := int(dec.Uint32())
 	materialCount := dec.Uint32()

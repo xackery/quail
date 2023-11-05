@@ -25,10 +25,10 @@ func TestPngRead(t *testing.T) {
 		args    args
 		wantErr bool
 	}{
-		// .ani|1|sidl_ba_1_tln.ani|tln.eqg
-		{name: "tln.eqg"},
-		// .ani|2|stnd_ba_1_exo.ani|exo.eqg eye_chr.s3d pfs import: s3d load: decode: dirName for crc 655939147 not found
-		// .ani|2|walk_ba_1_vaf.ani|vaf.eqg valdeholm.eqg pfs import: eqg load: decode: read nameData unexpected EOF
+		// .png|1|sidl_ba_1_tln.png|tln.eqg
+		//{name: "tln.eqg"},
+		// .png|2|stnd_ba_1_exo.png|exo.eqg eye_chr.s3d pfs import: s3d load: decode: dirName for crc 655939147 not found
+		// .png|2|walk_ba_1_vaf.png|vaf.eqg valdeholm.eqg pfs import: eqg load: decode: read nameData unexpected EOF
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -37,11 +37,11 @@ func TestPngRead(t *testing.T) {
 				t.Fatalf("failed to open pfs %s: %s", tt.name, err.Error())
 			}
 			for _, file := range pfs.Files() {
-				if filepath.Ext(file.Name()) != ".ani" {
+				if filepath.Ext(file.Name()) != ".png" {
 					continue
 				}
-				ani := &Ani{}
-				err = ani.Read(bytes.NewReader(file.Data()))
+				png := &Png{}
+				err = png.Read(bytes.NewReader(file.Data()))
 				if err != nil {
 					os.WriteFile(fmt.Sprintf("%s/%s", dirTest, file.Name()), file.Data(), 0644)
 					tag.Write(fmt.Sprintf("%s/%s.tags", dirTest, file.Name()))
@@ -59,15 +59,14 @@ func TestPngWrite(t *testing.T) {
 	}
 	dirTest := common.DirTest(t)
 
-	// FIXME: png writer
 	tests := []struct {
 		name    string
 		wantErr bool
 	}{
-		// .ani|1|sidl_ba_1_tln.ani|tln.eqg
+		// .png|1|sidl_ba_1_tln.png|tln.eqg
 		//{name: "tln.eqg"},
-		// .ani|2|stnd_ba_1_exo.ani|exo.eqg eye_chr.s3d pfs import: s3d load: read: dirName for crc 655939147 not found
-		// .ani|2|walk_ba_1_vaf.ani|vaf.eqg valdeholm.eqg pfs import: eqg load: read: read nameData unexpected EOF
+		// .png|2|stnd_ba_1_exo.png|exo.eqg eye_chr.s3d pfs import: s3d load: read: dirName for crc 655939147 not found
+		// .png|2|walk_ba_1_vaf.png|vaf.eqg valdeholm.eqg pfs import: eqg load: read: read nameData unexpected EOF
 	}
 
 	for _, tt := range tests {
@@ -77,11 +76,11 @@ func TestPngWrite(t *testing.T) {
 				t.Fatalf("failed to open eqg %s: %s", tt.name, err.Error())
 			}
 			for _, file := range pfs.Files() {
-				if filepath.Ext(file.Name()) != ".ani" {
+				if filepath.Ext(file.Name()) != ".png" {
 					continue
 				}
-				ani := &Ani{}
-				err = ani.Read(bytes.NewReader(file.Data()))
+				png := &Png{}
+				err = png.Read(bytes.NewReader(file.Data()))
 
 				if err != nil {
 					os.WriteFile(fmt.Sprintf("%s/%s", dirTest, file.Name()), file.Data(), 0644)
@@ -90,7 +89,7 @@ func TestPngWrite(t *testing.T) {
 				}
 
 				buf := bytes.NewBuffer(nil)
-				err = ani.Write(buf)
+				err = png.Write(buf)
 				if err != nil {
 					t.Fatalf("failed to encode %s: %s", tt.name, err.Error())
 				}

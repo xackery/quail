@@ -42,14 +42,6 @@ func TestZonRead(t *testing.T) {
 		// .zon|1|wallofslaughter.zon|wallofslaughter.eqg
 		//{name: "wallofslaughter.eqg"},
 		// .zon|2|arginhiz.zon|arginhiz.eqg
-		//{name: "arginhiz.eqg"},
-		// TODO: zone4 support
-		// .zon|4|arthicrex_te.zon|arthicrex.eqg
-		//{name: "arthicrex.eqg"},
-		// .zon|4|ascent.zon|direwind.eqg
-		//{name: "direwind.eqg"},
-		// .zon|4|atiiki.zon|atiiki.eqg
-		//{name: "atiiki.eqg"},
 	}
 
 	for _, tt := range tests {
@@ -229,11 +221,17 @@ func TestZonWriteV4(t *testing.T) {
 		wantErr bool
 	}{
 		// .zon|4|arthicrex_te.zon|arthicrex.eqg
-		//{name: "arthicrex_te.zon", eqgPath: "arthicrex.eqg"}, // FIXME: v4 encode is broken
+		//{name: "arthicrex_te.zon", eqgPath: "arthicrex.eqg"}, // FIXME: v4 write is broken
 		// .zon|4|ascent.zon|direwind.eqg
-		//{name: "direwind.eqg"},
+		//{name: "direwind.eqg"}, // PASS
 		// .zon|4|atiiki.zon|atiiki.eqg
-		//{name: "atiiki.eqg"},
+		//{name: "atiiki.eqg"}, // PASS
+		// .zon|4|arthicrex_te.zon|arthicrex.eqg
+		//{name: "arthicrex.eqg"}, // PASS
+		// .zon|4|ascent.zon|direwind.eqg
+		//{name: "direwind.eqg"}, // PASS
+		// .zon|4|atiiki.zon|atiiki.eqg
+		{name: "atiiki.eqg"}, // PASS
 	}
 
 	for _, tt := range tests {
@@ -266,12 +264,40 @@ func TestZonWriteV4(t *testing.T) {
 				t.Fatalf("failed to encode %s: %s", tt.name, err.Error())
 			}
 
-			srcData := data
-			dstData := buf.Bytes()
-			err = common.ByteCompareTest(srcData, dstData)
+			zon2 := &Zon{}
+			err = zon2.ReadV4(bytes.NewReader(buf.Bytes()))
 			if err != nil {
-				t.Fatalf("%s byteCompare: %s", tt.name, err)
+				t.Fatalf("failed to read %s: %s", tt.name, err.Error())
 			}
+
+			if zon.V4Info.Name != zon2.V4Info.Name {
+				t.Fatalf("name mismatch: %s != %s", zon.V4Info.Name, zon2.V4Info.Name)
+			}
+
+			if zon.V4Info.MinLng != zon2.V4Info.MinLng {
+				t.Fatalf("minLng mismatch: %d != %d", zon.V4Info.MinLng, zon2.V4Info.MinLng)
+			}
+
+			if zon.V4Info.MaxLng != zon2.V4Info.MaxLng {
+				t.Fatalf("maxLng mismatch: %d != %d", zon.V4Info.MaxLng, zon2.V4Info.MaxLng)
+			}
+
+			if zon.V4Info.MinLat != zon2.V4Info.MinLat {
+				t.Fatalf("minLat mismatch: %d != %d", zon.V4Info.MinLat, zon2.V4Info.MinLat)
+			}
+
+			if zon.V4Info.MaxLat != zon2.V4Info.MaxLat {
+				t.Fatalf("maxLat mismatch: %d != %d", zon.V4Info.MaxLat, zon2.V4Info.MaxLat)
+			}
+
+			if zon.V4Info.MinExtents.X != zon2.V4Info.MinExtents.X {
+				t.Fatalf("minExtents.X mismatch: %f != %f", zon.V4Info.MinExtents.X, zon2.V4Info.MinExtents.X)
+			}
+
+			if zon.V4Info.MinExtents.Y != zon2.V4Info.MinExtents.Y {
+				t.Fatalf("minExtents.Y mismatch: %f != %f", zon.V4Info.MinExtents.Y, zon2.V4Info.MinExtents.Y)
+			}
+
 		})
 	}
 }

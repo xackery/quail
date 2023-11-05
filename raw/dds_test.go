@@ -64,7 +64,7 @@ func TestDdsWrite(t *testing.T) {
 		wantErr bool
 	}{
 		// .dds|1|sidl_ba_1_tln.dds|tln.eqg
-		{name: "tln.eqg"},
+		{name: "tln.eqg"}, // PASS
 		// .dds|2|stnd_ba_1_exo.dds|exo.eqg eye_chr.s3d pfs import: s3d load: read: dirName for crc 655939147 not found
 		// .dds|2|walk_ba_1_vaf.dds|vaf.eqg valdeholm.eqg pfs import: eqg load: read: read nameData unexpected EOF
 	}

@@ -19,6 +19,7 @@ func TestLodRead(t *testing.T) {
 	}
 	dirTest := common.DirTest(t)
 
+	// TODO: add lod
 	tests := []struct {
 		name    string
 		lodName string

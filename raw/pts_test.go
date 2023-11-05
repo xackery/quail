@@ -76,7 +76,7 @@ func TestPtsWrite(t *testing.T) {
 		isDump  bool
 	}{
 		// .pts|1|aam.pts|aam.eqg
-		// {name: "aam.eqg", isDump: true}, // PASS
+		//{name: "aam.eqg", isDump: true}, // PASS
 		// .pts|1|ae3.pts|ae3.eqg
 		// {name: "ae3.eqg"}, // PASS
 		// .pts|1|ahf.pts|ahf.eqg

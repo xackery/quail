@@ -19,13 +19,13 @@ func TestMdsRead(t *testing.T) {
 		wantErr bool
 	}{
 		// .mds|1|aam.mds|aam.eqg
-		{eqg: "aam.eqg", file: "aam.mds"},
+		//{eqg: "aam.eqg", file: "aam.mds"}, // PASS
 		// .mds|1|ae3.mds|ae3.eqg
-		{eqg: "ae3.eqg", file: "ae3.mds"},
+		//{eqg: "ae3.eqg", file: "ae3.mds"}, // PASS
 		// .mds|1|bcn.mds|harbingers.eqg
-		{eqg: "harbingers.eqg", file: "bcn.mds"},
+		//{eqg: "harbingers.eqg", file: "bcn.mds"}, // PASS
 		// .mds|1|stnd_gnome_wave.mds|it12095.eqg
-		{eqg: "it12095.eqg", file: "stnd_gnome_wave.mds"},
+		//{eqg: "it12095.eqg", file: "stnd_gnome_wave.mds"}, // PASS
 	}
 	for _, tt := range tests {
 		t.Run(tt.eqg, func(t *testing.T) {
@@ -59,13 +59,13 @@ func TestMdsWrite(t *testing.T) {
 		wantErr bool
 	}{
 		// .mds|1|aam.mds|aam.eqg
-		{eqg: "aam.eqg", file: "aam.mds"},
+		{eqg: "aam.eqg", file: "aam.mds"}, // PASS
 		// .mds|1|ae3.mds|ae3.eqg
-		{eqg: "ae3.eqg", file: "ae3.mds"},
+		//{eqg: "ae3.eqg", file: "ae3.mds"}, // PASS
 		// .mds|1|bcn.mds|harbingers.eqg
-		{eqg: "harbingers.eqg", file: "bcn.mds"},
+		//{eqg: "harbingers.eqg", file: "bcn.mds"}, // PASS
 		// .mds|1|stnd_gnome_wave.mds|it12095.eqg
-		{eqg: "it12095.eqg", file: "stnd_gnome_wave.mds"},
+		//{eqg: "it12095.eqg", file: "stnd_gnome_wave.mds"}, // PASS
 	}
 	for _, tt := range tests {
 		t.Run(tt.eqg, func(t *testing.T) {

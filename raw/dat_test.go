@@ -25,7 +25,7 @@ func TestDatRead(t *testing.T) {
 		wantErr      bool
 	}{
 		// .dat|?|arthicrex_te.dat|arthicrex.eqg
-		//{name: "arthicrex_te.dat", pfsName: "arthicrex.eqg", quadsPerTile: 32}, // PASS
+		// {name: "arthicrex_te.dat", pfsName: "arthicrex.eqg", quadsPerTile: 32}, // PASS
 
 	}
 

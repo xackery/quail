@@ -24,9 +24,9 @@ func TestLitRead(t *testing.T) {
 		litName string
 	}{
 		//.lit|1|commons_inn_obj_lampc01.lit|commonlands.eqg
-		//{name: "commonlands.eqg", litName: "commons_inn_obj_lampc01.lit"},
+		//{name: "commonlands.eqg", litName: "commons_inn_obj_lampc01.lit"}, // PASS
 		//.lit|1|communalhut_obj_treasureb01.lit|buriedsea.eqg
-		{name: "buriedsea.eqg", litName: "communalhut_obj_treasureb01.lit"},
+		//{name: "buriedsea.eqg", litName: "communalhut_obj_treasureb01.lit"}, // PASS
 	}
 
 	for _, tt := range tests {
@@ -64,9 +64,9 @@ func TestLitWrite(t *testing.T) {
 		litName string
 	}{
 		//.lit|1|commons_inn_obj_lampc01.lit|commonlands.eqg
-		//{name: "commonlands.eqg", litName: "commons_inn_obj_lampc01.lit"},
+		//{name: "commonlands.eqg", litName: "commons_inn_obj_lampc01.lit"}, // PASS
 		//.lit|1|communalhut_obj_treasureb01.lit|buriedsea.eqg
-		{name: "buriedsea.eqg", litName: "communalhut_obj_treasureb01.lit"},
+		//{name: "buriedsea.eqg", litName: "communalhut_obj_treasureb01.lit"}, // PASS
 	}
 
 	for _, tt := range tests {

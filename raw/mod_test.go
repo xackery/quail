@@ -23,15 +23,23 @@ func TestModRead(t *testing.T) {
 	}{
 
 		// .mod|0|obp_fob_tree.mod|oldfieldofbone.eqg oldfieldofbone.eqg pfs import: readMod obp_fob_tree.mod: invalid header EQLO, wanted EQGM
+		//{eqg: "oldfieldofbone.eqg", file: "obp_fob_tree.mod"}, // TODO: EQLO v4 .mod?
 		// .mod|0|obp_fob_tree.mod|oldfieldofboneb.eqg oldfieldofboneb.eqg pfs import: readMod obp_fob_tree.mod: invalid header EQLO, wanted EQGM
+		//{eqg: "oldfieldofboneb.eqg", file: "obp_fob_tree.mod"}, // TODO: EQLO v4 .mod
 		// .mod|1|arch.mod|dranik.eqg
+		//{eqg: "dranik.eqg", file: "arch.mod"}, // PASS
 		// .mod|1|aro.mod|aro.eqg
+		//{eqg: "aro.eqg", file: "aro.mod"}, // PASS
 		// .mod|1|col_b04.mod|b04.eqg b04.eqg pfs import: readMod col_b04.mod: material shader not found
+		//{eqg: "b04.eqg", file: "col_b04.mod"}, // PASS
 		// .mod|2|boulder_lg.mod|broodlands.eqg
+		//{eqg: "broodlands.eqg", file: "boulder_lg.mod"}, // PASS
 		// .mod|2|et_door01.mod|stillmoona.eqg
+		//{eqg: "stillmoona.eqg", file: "et_door01.mod"}, // PASS
 		// .mod|3|.mod|paperbaghat.eqg
+		//{eqg: "paperbaghat.eqg", file: ".mod"}, // PASS
 		// .mod|3|it11409.mod|undequip.eqg
-		//{eqg: "undequip.eqg", file: "it11409.mod"},
+		//{eqg: "undequip.eqg", file: "it11409.mod"}, // PASS
 	}
 	for _, tt := range tests {
 		t.Run(tt.eqg, func(t *testing.T) {
@@ -69,15 +77,25 @@ func TestModWrite(t *testing.T) {
 	}{
 
 		// .mod|0|obp_fob_tree.mod|oldfieldofbone.eqg oldfieldofbone.eqg pfs import: readMod obp_fob_tree.mod: invalid header EQLO, wanted EQGM
+		//{eqg: "oldfieldofbone.eqg", file: "obp_fob_tree.mod"}, // TODO: EQLO v4 .mod?
 		// .mod|0|obp_fob_tree.mod|oldfieldofboneb.eqg oldfieldofboneb.eqg pfs import: readMod obp_fob_tree.mod: invalid header EQLO, wanted EQGM
+		//{eqg: "oldfieldofboneb.eqg", file: "obp_fob_tree.mod"}, // TODO: EQLO v4 .mod
 		// .mod|1|arch.mod|dranik.eqg
+		//{eqg: "dranik.eqg", file: "arch.mod"}, // PASS
 		// .mod|1|aro.mod|aro.eqg
+		//{eqg: "aro.eqg", file: "aro.mod"}, // PASS
 		// .mod|1|col_b04.mod|b04.eqg b04.eqg pfs import: readMod col_b04.mod: material shader not found
+		//{eqg: "b04.eqg", file: "col_b04.mod"}, // PASS
 		// .mod|2|boulder_lg.mod|broodlands.eqg
+		//{eqg: "broodlands.eqg", file: "boulder_lg.mod"}, // PASS
 		// .mod|2|et_door01.mod|stillmoona.eqg
+		//{eqg: "stillmoona.eqg", file: "et_door01.mod"}, // PASS
 		// .mod|3|.mod|paperbaghat.eqg
+		//{eqg: "paperbaghat.eqg", file: ".mod"}, // PASS
 		// .mod|3|it11409.mod|undequip.eqg
+		//{eqg: "undequip.eqg", file: "it11409.mod"}, // PASS
 		//{eqg: "undequip.eqg", file: "it11409.mod"},
+		{eqg: "undequip.eqg", file: "it11409.mod"}, // PASS
 	}
 	for _, tt := range tests {
 		t.Run(tt.eqg, func(t *testing.T) {

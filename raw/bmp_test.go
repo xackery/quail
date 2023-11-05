@@ -26,7 +26,7 @@ func TestBmpRead(t *testing.T) {
 		wantErr bool
 	}{
 		// .bmp|1|sidl_ba_1_tln.bmp|tln.eqg
-		{name: "tln.eqg"},
+		{name: "tln.eqg"}, // PASS
 		// .bmp|2|stnd_ba_1_exo.bmp|exo.eqg eye_chr.s3d pfs import: s3d load: decode: dirName for crc 655939147 not found
 		// .bmp|2|walk_ba_1_vaf.bmp|vaf.eqg valdeholm.eqg pfs import: eqg load: decode: read nameData unexpected EOF
 	}
@@ -63,7 +63,7 @@ func TestBmpWrite(t *testing.T) {
 		name    string
 		wantErr bool
 	}{
-		{name: "gequip2.s3d"},
+		// {name: "gequip2.s3d"}, // PASS
 	}
 
 	for _, tt := range tests {

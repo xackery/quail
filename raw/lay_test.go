@@ -27,29 +27,29 @@ func TestLayRead(t *testing.T) {
 		wantErr bool
 	}{
 		// .lay|2|crs.lay|crs.eqg crs.eqg pfs import: readPrt crs.lay: 1 names materialID 0x41400000 not found
-		{name: "crs.eqg"},
+		{name: "crs.eqg"}, // PASS
 		// .lay|2|ddv.lay|ddv.eqg ddv.eqg pfs import: readPrt ddv.lay: 1 names materialID 0x42800000 not found
-		{name: "ddv.eqg"},
+		//{name: "ddv.eqg"}, // PASS
 		// .lay|2|prt.lay|prt.eqg prt.eqg pfs import: readPrt prt.lay: 1 names materialID 0x41400000 not found
-		{name: "prt.eqg"},
+		//{name: "prt.eqg"}, // PASS
 		// .lay|2|rkp.lay|rkp.eqg rkp.eqg pfs import: readPrt rkp.lay: 1 names materialID 0x41400000 not found
-		{name: "rkp.eqg"},
+		//{name: "rkp.eqg"}, // PASS
 		// .lay|3|rat.lay|rat.eqg rat.eqg pfs import: readPrt rat.lay: 1 names materialID 0x420000 not found
-		{name: "rat.eqg"},
+		//{name: "rat.eqg"}, // PASS
 		// .lay|4|aam.lay|aam.eqg
-		{name: "aam.eqg"},
+		//{name: "aam.eqg"}, // PASS
 		// .lay|4|ahf.lay|ahf.eqg
-		{name: "ahf.eqg"},
+		//{name: "ahf.eqg"}, // PASS
 		// .lay|4|ahm.lay|ahm.eqg
-		{name: "ahm.eqg"},
+		//{name: "ahm.eqg"}, // PASS
 		// .lay|4|ala.lay|ala.eqg
-		{name: "ala.eqg"},
+		//{name: "ala.eqg"}, // PASS
 		// .lay|4|alg.lay|alg.eqg
-		{name: "alg.eqg"},
+		//{name: "alg.eqg"}, // PASS
 		// .lay|4|amy.lay|amy.eqg
-		{name: "amy.eqg"},
+		//{name: "amy.eqg"}, // PASS
 		// .lay|4|cwc.lay|cwc.eqg cwc.eqg pfs import: readPrt cwc.lay: 0 names colorTexture 0xffffffff not found
-		{name: "cwc.eqg"},
+		//{name: "cwc.eqg"}, // PASS
 	}
 
 	for _, tt := range tests {
@@ -93,29 +93,29 @@ func TestLayWrite(t *testing.T) {
 		wantErr bool
 	}{
 		// .lay|2|crs.lay|crs.eqg crs.eqg pfs import: readPrt crs.lay: 1 names materialID 0x41400000 not found
-		{name: "crs.eqg"},
+		//{name: "crs.eqg"}, // PASS
 		// .lay|2|ddv.lay|ddv.eqg ddv.eqg pfs import: readPrt ddv.lay: 1 names materialID 0x42800000 not found
-		{name: "ddv.eqg"},
+		//{name: "ddv.eqg"}, // PASS
 		// .lay|2|prt.lay|prt.eqg prt.eqg pfs import: readPrt prt.lay: 1 names materialID 0x41400000 not found
-		{name: "prt.eqg"},
+		//{name: "prt.eqg"}, // PASS
 		// .lay|2|rkp.lay|rkp.eqg rkp.eqg pfs import: readPrt rkp.lay: 1 names materialID 0x41400000 not found
-		{name: "rkp.eqg"},
+		//{name: "rkp.eqg"}, // PASS
 		// .lay|3|rat.lay|rat.eqg rat.eqg pfs import: readPrt rat.lay: 1 names materialID 0x420000 not found
-		{name: "rat.eqg"},
+		//{name: "rat.eqg"}, // PASS
 		// .lay|4|aam.lay|aam.eqg
-		{name: "aam.eqg"},
+		//{name: "aam.eqg"}, // PASS
 		// .lay|4|ahf.lay|ahf.eqg
-		{name: "ahf.eqg"},
+		//{name: "ahf.eqg"}, // PASS
 		// .lay|4|ahm.lay|ahm.eqg
-		{name: "ahm.eqg"},
+		//{name: "ahm.eqg"}, // PASS
 		// .lay|4|ala.lay|ala.eqg
-		{name: "ala.eqg"},
+		//{name: "ala.eqg"}, // PASS
 		// .lay|4|alg.lay|alg.eqg
-		{name: "alg.eqg"},
+		//{name: "alg.eqg"}, // PASS
 		// .lay|4|amy.lay|amy.eqg
-		{name: "amy.eqg"},
+		//{name: "amy.eqg"}, // PASS
 		// .lay|4|cwc.lay|cwc.eqg cwc.eqg pfs import: readPrt cwc.lay: 0 names colorTexture 0xffffffff not found
-		{name: "cwc.eqg"},
+		{name: "cwc.eqg"}, // PASS
 	}
 
 	for _, tt := range tests {

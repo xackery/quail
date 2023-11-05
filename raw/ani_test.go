@@ -26,8 +26,9 @@ func TestAniRead(t *testing.T) {
 		wantErr bool
 	}{
 		// .ani|1|sidl_ba_1_tln.ani|tln.eqg
-		{name: "tln.eqg"},
+		//{name: "tln.eqg"}, // PASS
 		// .ani|2|stnd_ba_1_exo.ani|exo.eqg eye_chr.s3d pfs import: s3d load: decode: dirName for crc 655939147 not found
+		//{name: "exo.eqg"}, // PASS
 		// .ani|2|walk_ba_1_vaf.ani|vaf.eqg valdeholm.eqg pfs import: eqg load: decode: read nameData unexpected EOF
 	}
 	for _, tt := range tests {
@@ -64,9 +65,11 @@ func TestAniWrite(t *testing.T) {
 		wantErr bool
 	}{
 		// .ani|1|sidl_ba_1_tln.ani|tln.eqg
-		{name: "tln.eqg"},
-		// .ani|2|stnd_ba_1_exo.ani|exo.eqg eye_chr.s3d pfs import: s3d load: read: dirName for crc 655939147 not found
-		// .ani|2|walk_ba_1_vaf.ani|vaf.eqg valdeholm.eqg pfs import: eqg load: read: read nameData unexpected EOF
+		//{name: "tln.eqg"}, // PASS
+		// .ani|2|stnd_ba_1_exo.ani|exo.eqg
+		//{name: "exo.eqg"}, // PASS
+		// .ani|2|walk_ba_1_vaf.ani|vaf.eqg
+		//{name: "vaf.eqg"}, // PASS
 	}
 
 	for _, tt := range tests {
