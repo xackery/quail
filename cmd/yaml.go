@@ -158,7 +158,7 @@ func yamlToArchiveConvert(srcYamlPath string, dstArchivePath string, dstArchiveF
 		return fmt.Errorf("open archive: %w", err)
 	}
 
-	reader := raw.New(srcExt)
+	reader := raw.New(dstExt)
 	if reader == nil {
 		return fmt.Errorf("unsupported file format %s", srcExt)
 	}
