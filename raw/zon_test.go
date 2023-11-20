@@ -28,19 +28,19 @@ func TestZonRead(t *testing.T) {
 		wantErr bool
 	}{
 		// .zon|2|guardian.zon|guardian.eqg
-		//{name: "guardian.eqg"}, // FIXME: nameIndex out of range
+		//{name: "guardian.eqg"}, // PASS
 		// .zon|1|anguish.zon|anguish.eqg
-		//{name: "anguish.eqg"},
+		//{name: "anguish.eqg"}, // PASS
 		// .zon|1|bazaar.zon|bazaar.eqg
-		//{name: "bazaar.eqg"},
+		//{name: "bazaar.eqg"}, // PASS
 		// .zon|1|bloodfields.zon|bloodfields.eqg
-		//{name: "bloodfields.eqg"},
+		//{name: "bloodfields.eqg"}, // PASS
 		// .zon|1|broodlands.zon|broodlands.eqg
-		//{name: "broodlands.eqg"},
+		//{name: "broodlands.eqg"}, // PASS
 		// .zon|1|catacomba.zon|dranikcatacombsa.eqg
-		//{name: "dranikcatacombsa.eqg"},
+		//{name: "dranikcatacombsa.eqg"}, // PASS
 		// .zon|1|wallofslaughter.zon|wallofslaughter.eqg
-		//{name: "wallofslaughter.eqg"},
+		//{name: "wallofslaughter.eqg"}, // PASS
 		// .zon|2|arginhiz.zon|arginhiz.eqg
 	}
 
@@ -68,40 +68,6 @@ func TestZonRead(t *testing.T) {
 	}
 }
 
-func TestZonReadV3(t *testing.T) {
-	eqPath := os.Getenv("EQ_PATH")
-	if eqPath == "" {
-		t.Skip("EQ_PATH not set")
-	}
-	dirTest := common.DirTest(t)
-	type args struct {
-	}
-
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		//{name: "fallen.zon"}, // FIXME: nameIndex out of range
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			data, err := os.ReadFile(fmt.Sprintf("%s/%s", eqPath, tt.name))
-			if err != nil {
-				t.Fatalf("failed to open %s: %s", tt.name, err.Error())
-			}
-			zon := &Zon{}
-			err = zon.Read(bytes.NewReader(data))
-			if err != nil {
-				os.WriteFile(fmt.Sprintf("%s/%s", dirTest, tt.name), data, 0644)
-				tag.Write(fmt.Sprintf("%s/%s.tags", dirTest, tt.name))
-				t.Fatalf("failed to read %s: %s", tt.name, err.Error())
-			}
-		})
-	}
-}
-
 func TestZonWrite(t *testing.T) {
 	eqPath := os.Getenv("EQ_PATH")
 	if eqPath == "" {
@@ -116,23 +82,25 @@ func TestZonWrite(t *testing.T) {
 		args    args
 		wantErr bool
 	}{
+
 		// .zon|1|anguish.zon|anguish.eqg
-		//{name: "anguish.eqg"},
+		// {name: "anguish.eqg"}, // TODO: mismatch
 		// .zon|1|bazaar.zon|bazaar.eqg
-		//{name: "bazaar.eqg"},
+		//{name: "bazaar.eqg"}, // TODO: mismatch
 		// .zon|1|bloodfields.zon|bloodfields.eqg
-		//{name: "bloodfields.eqg"},
+		//{name: "bloodfields.eqg"}, // TODO: mismatch
 		// .zon|1|broodlands.zon|broodlands.eqg
-		//{name: "broodlands.eqg"},
+		//{name: "broodlands.eqg"}, // TODO: mismatch
 		// .zon|1|catacomba.zon|dranikcatacombsa.eqg
-		//{name: "dranikcatacombsa.eqg"},
+		//{name: "dranikcatacombsa.eqg"}, // TODO: mismatch
 		// .zon|1|wallofslaughter.zon|wallofslaughter.eqg
-		//{name: "wallofslaughter.eqg"},
+		//{name: "wallofslaughter.eqg"}, // TODO: mismatch
 		// .zon|2|arginhiz.zon|arginhiz.eqg
-		//{name: "arginhiz.eqg"},
-		//{name: "arginhiz.zon"},
+		//{name: "arginhiz.eqg"}, // TODO: mismatch
 		// .zon|2|guardian.zon|guardian.eqg
-		//{name: "guardian.eqg"},
+		//{name: "guardian.eqg"}, // TODO: v2 zone mismatch
+		// .zon|2|guardian.zon|guardian.eqg
+		//{name: "fallen.zon"}, // TODO: v2 zone mismatch
 	}
 
 	var err error

@@ -29,5 +29,25 @@
         "**/.git": true,
         "**/test_data": true,
     },
-    "window.title": "quail"
+    "window.title": "quail",
+    "workbench.colorCustomizations": {
+        "activityBar.activeBackground": "#00283c",
+        "activityBar.background": "#00283c",
+        "activityBar.foreground": "#e7e7e7",
+        "activityBar.inactiveForeground": "#e7e7e799",
+        "activityBarBadge.background": "#bf007f",
+        "activityBarBadge.foreground": "#e7e7e7",
+        "commandCenter.border": "#e7e7e799",
+        "sash.hoverBorder": "#00283c",
+        "statusBar.background": "#000609",
+        "statusBar.foreground": "#e7e7e7",
+        "statusBarItem.hoverBackground": "#00283c",
+        "statusBarItem.remoteBackground": "#000609",
+        "statusBarItem.remoteForeground": "#e7e7e7",
+        "titleBar.activeBackground": "#000609",
+        "titleBar.activeForeground": "#e7e7e7",
+        "titleBar.inactiveBackground": "#00060999",
+        "titleBar.inactiveForeground": "#e7e7e799"
+    },
+    "peacock.color": "#000609"
 }
