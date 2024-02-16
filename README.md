@@ -104,3 +104,5 @@ At the root of the repo, you'll see a file called `.env_default`. Copy it to the
 [gltf writer for wld fragments in lantern](https://github.com/vermadas/LanternExtractor/blob/vermadas/multi_inject/LanternExtractor/EQ/Wld/Exporters/GltfWriter.cs)
 
 [fragment overview ref](https://github.com/cjab/libeq/blob/0aff154702fe122fa726fb7fbb43a079d8f3a138/crates/libeq_wld/docs/README.md)
+
+[eq-sage ref](https://gitlab.com/knervous/eq-sage/-/tree/master/src/lib?ref_type=heads)
