@@ -2,64 +2,67 @@ NAME := quail
 BUILD_VERSION ?= 2.3.0
 EQPATH := ~/Documents/games/EverQuest.app/drive_c/rebuildeq/
 
-# build quail for local OS and windows
-build:
+.PHONY: help
+help: ## Display this help
+	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n"} /^[a-zA-Z_0-9-]+:.*?##/ { printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
+
+##@ Build
+.PHONY: build
+build: ## build quail for local OS and windows
 	@echo "build: building to bin/quail..."
 	go build main.go
 	-mv main bin/quail
 
-# run quail
-run:
+.PHONY: run
+run: ## run quail
 	@echo "run: running..."
 	go run main.go
 
-# bundle quail with windows icon
-bundle:
+bundle: ## bundle quail with windows icon
 	@echo "if go-winres is not found, run go install github.com/tc-hib/go-winres@latest"
 	@echo "bundle: setting quail icon"
 	go-winres simply --icon quail.png
 
-# run tests that aren't flagged for SINGLE_TEST
 .PHONY: test
-test:
+test: ## run tests that aren't flagged for SINGLE_TEST
 	@echo "test: running tests with 30s timeout..."
 	@mkdir -p test
 	@rm -rf test/*
 	@go test -timeout 30s ./...
 
 .PHONY: test-all
-test-all:
+test-all: ## test all, including SINGLE_TEST
 	@echo "test-all: running every test, even ones flagged SINGLE_TEST timeout 120s..."
 	@mkdir -p test
 	@rm -rf test/*
 	@SINGLE_TEST=1 go test -timeout 120s -tags ci ./...
 
-# build all supported os's
-build-all: build-darwin build-windows build-linux build-windows-addon
+build-all: build-darwin build-windows build-linux build-windows-addon ## build all supported os's
 
-build-darwin:
+
+build-darwin: ## build darwin
 	@echo "build-darwin: ${BUILD_VERSION}"
 	@CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -trimpath -buildmode=pie -ldflags="-X main.Version=${BUILD_VERSION} -s -w" -o bin/${NAME}-darwin main.go
 
-build-linux:
+build-linux: ## build linux
 	@echo "build-linux: ${BUILD_VERSION}"
 	@CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -trimpath -ldflags="-X main.Version=${BUILD_VERSION} -s -w" -o bin/${NAME}-linux main.go
 
-build-windows:
+build-windows: ## build windows
 	@echo "build-windows: ${BUILD_VERSION}"
 	@CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -trimpath -buildmode=pie -ldflags="-X main.Version=${BUILD_VERSION} -s -w" -o bin/${NAME}.exe main.go
 
-build-windows-addon:
+build-windows-addon: ## build windows blender addon
 	@echo "build-windows-addon: ${BUILD_VERSION}"
 	@CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -trimpath -buildmode=pie -ldflags="-X main.Version=${BUILD_VERSION} -X main.ShowVersion=1 -s -w" -o bin/${NAME}-addon.exe main.go
 
-# used by xackery, build darwin copy and move to blender path
-build-copy: build-darwin
+build-copy: build-darwin ## used by xackery, build darwin copy and move to blender path
 	@echo "copying to quail-addons..."
 	cp bin/quail-darwin "/Users/xackery/Library/Application Support/Blender/3.4/scripts/addons/quail-addon/quail-darwin"
 
-# run pprof and dump 4 snapshots of heap
-profile-heap:
+##@ Profiling
+
+profile-heap: ## run pprof and dump 4 snapshots of heap
 	@echo "profile-heap: running pprof watcher for 2 minutes with snapshots 0 to 3..."
 	@-mkdir -p bin
 	curl http://localhost:6060/debug/pprof/heap > bin/heap.0.pprof
@@ -70,26 +73,22 @@ profile-heap:
 	sleep 30
 	curl http://localhost:6060/debug/pprof/heap > bin/heap.3.pprof
 
-# peek at a heap
-profile-heap-%:
+profile-heap-%: ## peek at a heap e.g. profile-heap-0
 	@echo "profile-heap-$*: use top20, svg, or list *word* for pprof commands, ctrl+c when done"
 	go tool pprof bin/heap.$*.pprof
 
-# run a trace on quail
-profile-trace:
+profile-trace: ## run a trace on quail
 	@echo "profile-trace: getting trace data, this can show memory leaks and other issues..."
 	curl http://localhost:6060/debug/pprof/trace > bin/trace.out
 	go tool trace bin/trace.out
 
-# run sanitization against golang
-sanitize:
+sanitize: ## run sanitization against golang
 	@echo "sanitize: checking for errors"
 	rm -rf vendor/
 	go vet -tags ci ./...
 	test -z $(goimports -e -d . | tee /dev/stderr)
 	-go install github.com/fzipp/gocyclo/cmd/gocyclo@latest
 	gocyclo -over 99 .
-	golint -set_exit_status $(go list -tags ci ./...)
 	staticcheck -go 1.14 ./...
 	go test -tags ci -covermode=atomic -coverprofile=coverage.out ./...
     coverage=`go tool cover -func coverage.out | grep total | tr -s '\t' | cut -f 3 | grep -o '[^%]*'`
@@ -98,30 +97,33 @@ sanitize:
 set-version-%:
 	@echo "VERSION=${BUILD_VERSION}.$*" >> $$GITHUB_ENV
 
-extverdump:
+##@ Tools
+
+extverdump: ## dump extensions
 	go run scripts/extverdump/main.go ../eq > scripts/extverdump/version-rof.
 
-explore-%:
+explore-%: ## shortcut for wld-cli to explore a file
 	mkdir -p test/
 	rm -rf test/_*.s3d/
 	rm -rf test/_*.eqg/
 	go run main.go extract ../eq/$*.s3d test/_$*.s3d
 	wld-cli explore test/_$*.s3d/$*.wld
 
-test-cover:
+test-cover: ## test coverage %'s
 	go test -coverprofile=coverage.out ./...
 	go tool cover -html=coverage.out
 
-inspect-%:
+inspect-%: ## inspect a file
 	@echo "quail inspect ../eq/$*"
 	@go run main.go inspect ../eq/$*
 
-yaml-load-%:
+.PHONY: yaml-load-%
+yaml-load-%: ## load a yaml file
 	@echo "quail yaml-out ../eq/$*"
 	cp ../eq/$*.eqg test/$*.eqg
 	@go run main.go yaml test/$*.eqg:$*.lay test/$*.lay.yaml
 
-yaml-save-%:
+yaml-save-%: ## save a yaml file
 	@echo "quail yaml-in ../eq/$*"
 	cp test/$*.eqg test/$*-out.eqg
 	@go run main.go yaml test/$*.lay.yaml test/$*.lay

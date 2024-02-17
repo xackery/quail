@@ -63,7 +63,7 @@ func TestBmpWrite(t *testing.T) {
 		name    string
 		wantErr bool
 	}{
-		// {name: "gequip2.s3d"}, // PASS
+		//{name: "gequip2.s3d"}, // PASS
 	}
 
 	for _, tt := range tests {

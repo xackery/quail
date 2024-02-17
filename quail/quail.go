@@ -46,7 +46,7 @@ func SetLogLevel(level int) {
 func Open(name string, r io.ReadSeeker) (interface{}, error) {
 	var err error
 	ext := strings.ToLower(filepath.Ext(name))
-	name = filepath.Base(name)
+	//name = filepath.Base(name)
 	switch ext {
 	case ".zon":
 		zon := &raw.Zon{}
