@@ -17,7 +17,7 @@ func TestLodRead(t *testing.T) {
 	if eqPath == "" {
 		t.Skip("EQ_PATH not set")
 	}
-	dirTest := common.DirTest(t)
+	dirTest := common.DirTest()
 
 	// TODO: add lod
 	tests := []struct {
@@ -53,7 +53,7 @@ func TestLodWrite(t *testing.T) {
 	if eqPath == "" {
 		t.Skip("EQ_PATH not set")
 	}
-	dirTest := common.DirTest(t)
+	dirTest := common.DirTest()
 
 	tests := []struct {
 		name    string

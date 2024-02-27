@@ -140,7 +140,7 @@ func TestPfs_Extract(t *testing.T) {
 		ContentsSummary string
 		fileCount       int
 	}
-	dirTest := common.DirTest(t)
+	dirTest := common.DirTest()
 	fmt.Println(dirTest)
 	type args struct {
 		path string

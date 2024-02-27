@@ -17,7 +17,7 @@ func TestDdsRead(t *testing.T) {
 	if eqPath == "" {
 		t.Skip("EQ_PATH not set")
 	}
-	dirTest := common.DirTest(t)
+	dirTest := common.DirTest()
 	type args struct {
 	}
 	tests := []struct {
@@ -57,7 +57,7 @@ func TestDdsWrite(t *testing.T) {
 	if eqPath == "" {
 		t.Skip("EQ_PATH not set")
 	}
-	dirTest := common.DirTest(t)
+	dirTest := common.DirTest()
 
 	tests := []struct {
 		name    string

@@ -17,7 +17,7 @@ func TestBmpRead(t *testing.T) {
 	if eqPath == "" {
 		t.Skip("EQ_PATH not set")
 	}
-	dirTest := common.DirTest(t)
+	dirTest := common.DirTest()
 	type args struct {
 	}
 	tests := []struct {
@@ -57,13 +57,21 @@ func TestBmpWrite(t *testing.T) {
 	if eqPath == "" {
 		t.Skip("EQ_PATH not set")
 	}
-	dirTest := common.DirTest(t)
+	dirTest := common.DirTest()
 
 	tests := []struct {
 		name    string
 		wantErr bool
 	}{
-		//{name: "gequip2.s3d"}, // PASS
+		{name: "gequip2.s3d"},
+	}
+	if !common.IsTestExtensive() {
+		tests = []struct {
+			name    string
+			wantErr bool
+		}{
+			{name: "gequip2.s3d"}, // pass
+		}
 	}
 
 	for _, tt := range tests {

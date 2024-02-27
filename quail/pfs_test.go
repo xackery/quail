@@ -52,7 +52,7 @@ func TestQuail_PfsWrite(t *testing.T) {
 	if eqPath == "" {
 		t.Skip("EQ_PATH not set")
 	}
-	dirTest := common.DirTest(t)
+	dirTest := common.DirTest()
 	type fields struct {
 		Models []*common.Model
 	}
@@ -98,7 +98,7 @@ func TestQuail_PfsWriteImportExport(t *testing.T) {
 	if eqPath == "" {
 		t.Skip("EQ_PATH not set")
 	}
-	dirTest := common.DirTest(t)
+	dirTest := common.DirTest()
 	type fields struct {
 		Models []*common.Model
 	}

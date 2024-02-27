@@ -17,7 +17,7 @@ func TestAniRead(t *testing.T) {
 	if eqPath == "" {
 		t.Skip("EQ_PATH not set")
 	}
-	dirTest := common.DirTest(t)
+	dirTest := common.DirTest()
 	type args struct {
 	}
 	tests := []struct {
@@ -26,10 +26,20 @@ func TestAniRead(t *testing.T) {
 		wantErr bool
 	}{
 		// .ani|1|sidl_ba_1_tln.ani|tln.eqg
-		//{name: "tln.eqg"}, // PASS
+		{name: "tln.eqg"}, // PASS
 		// .ani|2|stnd_ba_1_exo.ani|exo.eqg eye_chr.s3d pfs import: s3d load: decode: dirName for crc 655939147 not found
-		//{name: "exo.eqg"}, // PASS
+		{name: "exo.eqg"}, // PASS
 		// .ani|2|walk_ba_1_vaf.ani|vaf.eqg valdeholm.eqg pfs import: eqg load: decode: read nameData unexpected EOF
+		{name: "vaf.eqg"}, // PASS
+	}
+	if !common.IsTestExtensive() {
+		tests = []struct {
+			name    string
+			args    args
+			wantErr bool
+		}{
+			{name: "exo.eqg"}, // PASS
+		}
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -58,7 +68,7 @@ func TestAniWrite(t *testing.T) {
 	if eqPath == "" {
 		t.Skip("EQ_PATH not set")
 	}
-	dirTest := common.DirTest(t)
+	dirTest := common.DirTest()
 
 	tests := []struct {
 		name    string

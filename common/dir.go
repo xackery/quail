@@ -4,11 +4,22 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"testing"
 )
 
+func IsTestExtensive() bool {
+	return os.Getenv("IS_TEST_EXTENSIVE") == "1"
+}
+
+func IsTest() bool {
+	return os.Getenv("IS_TEST") == "1"
+
+}
+
 // TestDir returns a testing directory
-func DirTest(t *testing.T) string {
+func DirTest() string {
+	if !IsTest() {
+		return "."
+	}
 	path := "go.mod"
 
 	// look for go.mod
@@ -23,18 +34,18 @@ func DirTest(t *testing.T) string {
 				path = "../../../go.mod"
 				_, err = os.Stat(path)
 				if err != nil {
-					t.Fatalf("failed to find go.mod: %s", err.Error())
+					return "."
 				}
 			}
 		}
 	}
 	dir, err := filepath.Abs(strings.ReplaceAll(path, "go.mod", "") + "/test")
 	if err != nil {
-		t.Fatalf("failed to get test path: %s", err.Error())
+		return "."
 	}
 	err = os.MkdirAll(dir, 0755)
 	if err != nil {
-		t.Fatalf("failed to create test path: %s", err.Error())
+		return "."
 	}
 	return dir
 }

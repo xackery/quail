@@ -17,7 +17,7 @@ func TestTerRead(t *testing.T) {
 	if eqPath == "" {
 		t.Skip("EQ_PATH not set")
 	}
-	dirTest := common.DirTest(t)
+	dirTest := common.DirTest()
 	type args struct {
 	}
 
@@ -69,7 +69,7 @@ func TestTerWrite(t *testing.T) {
 	if eqPath == "" {
 		t.Skip("EQ_PATH not set")
 	}
-	//dirTest := common.DirTest(t)
+	//dirTest := common.DirTest()
 
 	tests := []struct {
 		eqg  string
