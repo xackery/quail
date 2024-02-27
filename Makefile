@@ -101,7 +101,7 @@ set-version-%:
 ##@ Tools
 
 extverdump: ## dump extensions
-	go run scripts/extverdump/main.go ../` > scripts/extverdump/version-rof.
+	source .env && go run scripts/extverdump/main.go $$EQ_PATH > scripts/extverdump/version-rof.
 
 explore-%: ## shortcut for wld-cli to explore a file
 	mkdir -p test/
