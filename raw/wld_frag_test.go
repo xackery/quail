@@ -20,13 +20,82 @@ func TestFragment(t *testing.T) {
 	if eqPath == "" {
 		t.Skip("EQ_PATH not set")
 	}
-	dirTest := common.DirTest(t)
+	dirTest := common.DirTest()
 	tests := []struct {
 		path      string
 		file      string
 		fragIndex int
 		isDump    bool
 	}{
+		// 0x00 Default
+		// 0x01 PaletteFile
+		// 0x02 UserData
+		// OK 0x03 TextureList bminfo
+		{path: "global_chr.s3d", file: "global_chr.wld", fragIndex: 1},
+		// OK 0x04 Texture SimpleSpriteDef
+		{path: "global_chr.s3d", file: "global_chr.wld", fragIndex: 2},
+		// OK 0x05 TextureRef SimpleSprite
+		{path: "global_chr.s3d", file: "global_chr.wld", fragIndex: 3},
+		// 0x06 TwoDSprite
+
+		// 0x07 TwoDSpriteRef
+		// 0x08 ThreeDSprite
+		// 0x09 ThreeDSpriteRef
+		// 0x0A FourDSprite
+		// 0x0B FourDSpriteRef
+		// 0x0C ParticleSprite
+		// 0x0D ParticleSpriteRef
+		// 0x0E CompositeSprite
+		// 0x0F CompositeSpriteRef
+		// 0x10 SkeletonTrack
+		{path: "globalelm_chr.s3d", file: "globalelm_chr.wld", fragIndex: 324},
+		// 0x11 SkeletonTrackRef
+		{path: "globalelm_chr.s3d", file: "globalelm_chr.wld", fragIndex: 1367},
+		// 0x12 Track
+		{path: "globalelm_chr.s3d", file: "globalelm_chr.wld", fragIndex: 1437},
+		// 0x13 TrackRef
+		{path: "globalelm_chr.s3d", file: "globalelm_chr.wld", fragIndex: 1436},
+		// 0x14 Model
+		{path: "globalelm_chr.s3d", file: "globalelm_chr.wld", fragIndex: 1368},
+		// 0x15 ModelRef
+		// 0x16 Sphere
+		// 0x17 Polyhedron
+		// 0x18 PolyhedronRef
+		// 0x19 SphereList
+		// 0x1A SphereListRef
+		// 0x1B Light
+		// 0x1C LightRef
+		// 0x1D PointLightOld
+		// 0x1E PointLightOldRef
+		// 0x1F Sound
+		// 0x20 SoundRef
+		// 0x21 WorldTree
+		// 0x22 Region
+		// 0x23 ActiveGeoRegion
+		// 0x24 SkyRegion
+		// 0x25 DirectionalLightOld
+		// 0x26 BlitSprite
+		// 0x27 BlitSpriteRef
+		// 0x28 PointLight
+		// 0x29 Zone
+		// 0x2A AmbientLight
+		// 0x2B DirectionalLight
+		// 0x2C DMSprite
+		// 0x2D DMSpriteRef
+		{path: "globalelm_chr.s3d", file: "globalelm_chr.wld", fragIndex: 321},
+		// 0x2E DMTrack
+		{path: "globalelm_chr.s3d", file: "globalelm_chr.wld", fragIndex: 1369},
+		// 0x2F DMTrackRef
+		// OK 0x30 Material MaterialDef
+		{path: "global_chr.s3d", file: "global_chr.wld", fragIndex: 4},
+		// 0x31 MaterialList
+		// 0x32 DMRGBTrack
+		// 0x33 DMRGBTrackRef
+		// 0x34 ParticleCloud
+		// 0x35 First
+		// 0x36 Mesh
+		{path: "globalelm_chr.s3d", file: "globalelm_chr.wld", fragIndex: 110},
+		// 0x37 MeshAnimated
 		//{path: "global_chr.s3d", file: "global_chr.wld", fragIndex: 557}, // tex coord count misaligned
 		//{path: "gequip.s3d", file: "gequip.wld", fragIndex: 0}, // Mesh
 		//{path: "gfaydark.s3d", file: "gfaydark.wld", fragIndex: 0}, // Mesh
@@ -41,6 +110,16 @@ func TestFragment(t *testing.T) {
 		//{path: "zel_v2_chr.s3d", file: "zel_v2_chr.wld", fragIndex: 0}, // PASS
 		//{path: "wol_v3_chr.s3d", file: "wol_v3_chr.wld", fragIndex: 0}, // PASS
 		//{path: "globalhuf_chr.s3d", file: "globalhuf_chr.wld", fragIndex: 0}, // PASS
+	}
+	if !common.IsTestExtensive() {
+		tests = []struct {
+			path      string
+			file      string
+			fragIndex int
+			isDump    bool
+		}{
+			{path: "global_chr.s3d", file: "global_chr.wld", fragIndex: 4},
+		}
 	}
 	for _, tt := range tests {
 		t.Run(tt.file, func(t *testing.T) {

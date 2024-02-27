@@ -1,6 +1,7 @@
 NAME := quail
 BUILD_VERSION ?= 2.3.0
-EQPATH := ~/Documents/games/EverQuest.app/drive_c/rebuildeq/
+
+SHELL := /bin/bash
 
 .PHONY: help
 help: ## Display this help
@@ -35,7 +36,7 @@ test-all: ## test all, including SINGLE_TEST
 	@echo "test-all: running every test, even ones flagged SINGLE_TEST timeout 120s..."
 	@mkdir -p test
 	@rm -rf test/*
-	@SINGLE_TEST=1 go test -timeout 120s -tags ci ./...
+	@IS_TEST_EXTENSIVE=1 SINGLE_TEST=1 go test -timeout 120s -tags ci ./...
 
 build-all: build-darwin build-windows build-linux build-windows-addon ## build all supported os's
 
@@ -100,13 +101,13 @@ set-version-%:
 ##@ Tools
 
 extverdump: ## dump extensions
-	go run scripts/extverdump/main.go ../eq > scripts/extverdump/version-rof.
+	go run scripts/extverdump/main.go ../` > scripts/extverdump/version-rof.
 
 explore-%: ## shortcut for wld-cli to explore a file
 	mkdir -p test/
 	rm -rf test/_*.s3d/
 	rm -rf test/_*.eqg/
-	go run main.go extract ../eq/$*.s3d test/_$*.s3d
+	source .env && go run main.go extract $$EQ_PATH/$*.s3d test/_$*.s3d
 	wld-cli explore test/_$*.s3d/$*.wld
 
 test-cover: ## test coverage %'s
