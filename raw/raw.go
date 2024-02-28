@@ -143,6 +143,8 @@ func New(ext string) ReadWriter {
 		return &Wld{}
 	case ".zon":
 		return &Zon{}
+	case ".env":
+		return &Unk{}
 	default:
 		return nil
 	}

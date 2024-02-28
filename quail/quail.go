@@ -118,6 +118,7 @@ func Open(name string, r io.ReadSeeker) (interface{}, error) {
 			return nil, fmt.Errorf("wld.Decode: %w", err)
 		}
 		return wld, nil
+
 	}
 
 	return nil, fmt.Errorf("unknown extension %s", ext)

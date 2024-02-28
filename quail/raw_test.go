@@ -10,6 +10,7 @@ import (
 
 	"github.com/xackery/encdec"
 
+	"github.com/xackery/quail/common"
 	"github.com/xackery/quail/pfs"
 	"github.com/xackery/quail/raw"
 )
@@ -29,21 +30,31 @@ func TestWldRead(t *testing.T) {
 		want      raw.FragmentReadWriter
 		wantErr   bool
 	}{
-		// NOTE: these tests take significant time, I suggest commenting them out after build
-		//{"btp_chr.s3d", "btp_chr.wld", 0, nil, false},
-		//{"bac_chr.s3d", "bac_chr.wld", 0, nil, false},
-		//{"avi_chr.s3d", "avi_chr.wld", 0, nil, false},
+		{"btp_chr.s3d", "btp_chr.wld", 0, nil, false},
+		{"bac_chr.s3d", "bac_chr.wld", 0, nil, false},
+		{"avi_chr.s3d", "avi_chr.wld", 0, nil, false},
+	}
+	if !common.IsTestExtensive() {
+		tests = []struct {
+			path      string
+			file      string
+			fragIndex int
+			want      raw.FragmentReadWriter
+			wantErr   bool
+		}{
+			{"ael_chr.s3d", "ael_chr.wld", 0, nil, false},
+		}
 	}
 	for _, tt := range tests {
 		t.Run(tt.file, func(t *testing.T) {
 			pfs, err := pfs.NewFile(fmt.Sprintf("%s/%s", eqPath, tt.path))
 			if err != nil {
-				t.Fatalf("failed to open s3d %s: %s", tt.file, err.Error())
+				t.Fatalf("failed to open pfs %s: %s", tt.file, err.Error())
 			}
 			defer pfs.Close()
 			data, err := pfs.File(tt.file)
 			if err != nil {
-				t.Fatalf("failed to open wld %s: %s", tt.file, err.Error())
+				t.Fatalf("failed to open pfs %s: %s", tt.file, err.Error())
 			}
 			wld := &raw.Wld{}
 			err = wld.Read(bytes.NewReader(data))
