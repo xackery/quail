@@ -25,6 +25,17 @@ func (q *Quail) wldRead(wld *raw.Wld) error {
 			if err != nil {
 				return fmt.Errorf("fragment %d: %w", i, err)
 			}
+		case 0x14: // Model
+			d, ok := frag.(*raw.WldFragModel)
+			if !ok {
+				return fmt.Errorf("assertion failed, wanted *Mesh, got %T", frag)
+			}
+
+			name := raw.Name(d.NameRef)
+			if name == "" {
+				name = "unknown"
+			}
+			fmt.Println("added model", name)
 		case 0x36: // Mesh
 			model, err := q.wldConvertMesh(wld, frag)
 			if err != nil {
@@ -33,7 +44,7 @@ func (q *Quail) wldRead(wld *raw.Wld) error {
 			if model != nil {
 				q.Models = append(q.Models, model)
 			}
-			fmt.Println("added model", model.Header.Name)
+			fmt.Println("added mesh", model.Header.Name)
 		default:
 		}
 	}
