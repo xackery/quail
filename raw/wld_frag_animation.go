@@ -161,10 +161,10 @@ func (e *WldFragSkeletonTrackRef) Read(r io.ReadSeeker) error {
 
 // WldFragTrack is TrackDef in libeq, Mob Skeleton Piece WldFragTrack in openzone, TRACKDEFINITION in wld, TrackDefFragment in lantern
 type WldFragTrack struct {
-	FragName      string                      `yaml:"frag_name"`
-	NameRef       int32                       `yaml:"name_ref"`
-	Flags         uint32                      `yaml:"flags"`
-	BoneTransform []WldFragTrackBoneTransform `yaml:"skeleton_transforms"`
+	FragName       string                      `yaml:"frag_name"`
+	NameRef        int32                       `yaml:"name_ref"`
+	Flags          uint32                      `yaml:"flags"`
+	BoneTransforms []WldFragTrackBoneTransform `yaml:"skeleton_transforms"`
 }
 
 type WldFragTrackBoneTransform struct {
@@ -186,8 +186,8 @@ func (e *WldFragTrack) Write(w io.Writer) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
 	enc.Int32(e.NameRef)
 	enc.Uint32(e.Flags)
-	enc.Uint32(uint32(len(e.BoneTransform)))
-	for _, ft := range e.BoneTransform {
+	enc.Uint32(uint32(len(e.BoneTransforms)))
+	for _, ft := range e.BoneTransforms {
 		if e.Flags&0x08 == 0x08 {
 			enc.Int16(ft.RotationDenominator)
 			enc.Int16(ft.RotationX)
@@ -236,7 +236,7 @@ func (e *WldFragTrack) Read(r io.ReadSeeker) error {
 			ft.TranslationY = dec.Int16()
 			ft.TranslationZ = dec.Int16()
 			ft.TranslationDenominator = dec.Int16()
-			e.BoneTransform = append(e.BoneTransform, ft)
+			e.BoneTransforms = append(e.BoneTransforms, ft)
 			continue
 		}
 		ft.TranslationDenominator = int16(dec.Int8())
@@ -247,7 +247,7 @@ func (e *WldFragTrack) Read(r io.ReadSeeker) error {
 		ft.RotationX = int16(dec.Int8())
 		ft.RotationY = int16(dec.Int8())
 		ft.RotationZ = int16(dec.Int8())
-		e.BoneTransform = append(e.BoneTransform, ft)
+		e.BoneTransforms = append(e.BoneTransforms, ft)
 
 	}
 

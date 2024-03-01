@@ -42,7 +42,7 @@ func TestWldRead(t *testing.T) {
 			want      raw.FragmentReadWriter
 			wantErr   bool
 		}{
-			{"ael_chr.s3d", "ael_chr.wld", 0, nil, false},
+			{"globalfroglok_chr.s3d", "globalfroglok_chr.wld", 0, nil, false},
 		}
 	}
 	for _, tt := range tests {

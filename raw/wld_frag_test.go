@@ -86,6 +86,7 @@ func TestFragment(t *testing.T) {
 		// 0x2E DMTrack
 		{path: "globalelm_chr.s3d", file: "globalelm_chr.wld", fragIndex: 1369},
 		// 0x2F DMTrackRef
+		{path: "globalfroglok_chr.s3d", file: "globalfroglok_chr.wld", fragIndex: 77},
 		// OK 0x30 Material MaterialDef
 		{path: "global_chr.s3d", file: "global_chr.wld", fragIndex: 4},
 		// 0x31 MaterialList

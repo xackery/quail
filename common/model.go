@@ -138,6 +138,8 @@ type Bone struct {
 	Pivot         Vector3 `yaml:"pivot"`
 	Rotation      Quad4   `yaml:"rotation"`
 	Scale         Vector3 `yaml:"scale"`
+	Flags         uint32  `yaml:"flags"`
+	Children      []int   `yaml:"children,omitempty"` // used by wld
 }
 
 // Quad4  has X,Y,Z,W defined as float32

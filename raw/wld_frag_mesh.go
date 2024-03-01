@@ -6,6 +6,7 @@ import (
 	"io"
 
 	"github.com/xackery/encdec"
+	"github.com/xackery/quail/log"
 	"github.com/xackery/quail/tag"
 )
 
@@ -836,7 +837,9 @@ func (e *WldFragDMSprite) Read(r io.ReadSeeker) error {
 	}
 
 	if texCoordCount > 999 {
-		return fmt.Errorf("tex coord count misaligned (%d)", texCoordCount)
+		log.Warnf("texCoordCount > 999: %d", texCoordCount)
+		return nil
+		//return fmt.Errorf("tex coord count misaligned (%d)", texCoordCount)
 	}
 
 	if normalCount > 999 {
