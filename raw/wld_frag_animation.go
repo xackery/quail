@@ -26,13 +26,13 @@ type WldFragHierarchialSpriteDef struct {
 type WldFragSkeletonEntry struct {
 	NameRef         int32    `yaml:"name_ref"`
 	Flags           uint32   `yaml:"flags"`
-	TrackRef        uint32   `yaml:"track_ref"`
+	Track           uint32   `yaml:"track_ref"`
 	MeshOrSpriteRef uint32   `yaml:"mesh_or_sprite_ref"`
 	SubBones        []uint32 `yaml:"sub_bones"`
 }
 
 func (e *WldFragHierarchialSpriteDef) FragCode() int {
-	return 0x10
+	return FragCodeHierarchialSpriteDef
 }
 
 func (e *WldFragHierarchialSpriteDef) Write(w io.Writer) error {
@@ -54,7 +54,7 @@ func (e *WldFragHierarchialSpriteDef) Write(w io.Writer) error {
 	for _, bone := range e.Bones {
 		enc.Int32(bone.NameRef)
 		enc.Uint32(bone.Flags)
-		enc.Uint32(bone.TrackRef)
+		enc.Uint32(bone.Track)
 		enc.Uint32(bone.MeshOrSpriteRef)
 		enc.Uint32(uint32(len(bone.SubBones)))
 		for _, subCount := range bone.SubBones {
@@ -99,7 +99,7 @@ func (e *WldFragHierarchialSpriteDef) Read(r io.ReadSeeker) error {
 		bone := WldFragSkeletonEntry{}
 		bone.NameRef = dec.Int32()
 		bone.Flags = dec.Uint32()
-		bone.TrackRef = dec.Uint32()
+		bone.Track = dec.Uint32()
 		bone.MeshOrSpriteRef = dec.Uint32()
 		subCount := dec.Uint32()
 		for j := 0; j < int(subCount); j++ {
@@ -126,21 +126,21 @@ func (e *WldFragHierarchialSpriteDef) Read(r io.ReadSeeker) error {
 
 // WldFragHierarchialSprite is HierarchialSprite in libeq, SkeletonTrackSetReference in openzone, HIERARCHIALSPRITE (ref) in wld, SkeletonHierarchyReference in lantern
 type WldFragHierarchialSprite struct {
-	FragName         string `yaml:"frag_name"`
-	NameRef          int16  `yaml:"name_ref"`
-	SkeletonTrackRef int16  `yaml:"skeleton_track_ref"`
-	Flags            uint32 `yaml:"flags"`
+	FragName      string `yaml:"frag_name"`
+	NameRef       int16  `yaml:"name_ref"`
+	SkeletonTrack int16  `yaml:"skeleton_track_ref"`
+	Flags         uint32 `yaml:"flags"`
 }
 
 func (e *WldFragHierarchialSprite) FragCode() int {
-	return 0x11
+	return FragCodeHierarchialSprite
 }
 
 func (e *WldFragHierarchialSprite) Write(w io.Writer) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
 	enc.Int16(e.NameRef)
 	enc.Uint32(e.Flags)
-	enc.Int16(e.SkeletonTrackRef)
+	enc.Int16(e.SkeletonTrack)
 	err := enc.Error()
 	if err != nil {
 		return fmt.Errorf("write: %w", err)
@@ -153,7 +153,7 @@ func (e *WldFragHierarchialSprite) Read(r io.ReadSeeker) error {
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	e.NameRef = dec.Int16()
 	e.Flags = dec.Uint32()
-	e.SkeletonTrackRef = dec.Int16()
+	e.SkeletonTrack = dec.Int16()
 	err := dec.Error()
 	if err != nil {
 		return fmt.Errorf("write: %w", err)
@@ -181,7 +181,7 @@ type WldFragTrackBoneTransform struct {
 }
 
 func (e *WldFragTrackDef) FragCode() int {
-	return 0x12
+	return FragCodeTrackDef
 }
 
 func (e *WldFragTrackDef) Write(w io.Writer) error {
@@ -264,19 +264,19 @@ func (e *WldFragTrackDef) Read(r io.ReadSeeker) error {
 type WldFragTrack struct {
 	FragName string `yaml:"frag_name"`
 	NameRef  int32  `yaml:"name_ref"`
-	TrackRef int32  `yaml:"track_ref"`
+	Track    int32  `yaml:"track_ref"`
 	Flags    uint32 `yaml:"flags"`
 	Sleep    uint32 `yaml:"sleep"` // if 0x01 is set, this is the number of milliseconds to sleep before starting the animation
 }
 
 func (e *WldFragTrack) FragCode() int {
-	return 0x13
+	return FragCodeTrack
 }
 
 func (e *WldFragTrack) Write(w io.Writer) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
 	enc.Int32(e.NameRef)
-	enc.Int32(e.TrackRef)
+	enc.Int32(e.Track)
 	enc.Uint32(e.Flags)
 	if e.Flags&0x01 == 0x01 {
 		enc.Uint32(e.Sleep)
@@ -294,7 +294,7 @@ func (e *WldFragTrack) Read(r io.ReadSeeker) error {
 
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	e.NameRef = dec.Int32()
-	e.TrackRef = dec.Int32()
+	e.Track = dec.Int32()
 	e.Flags = dec.Uint32()
 	if e.Flags&0x01 == 0x01 {
 		e.Sleep = dec.Uint32()
@@ -308,12 +308,30 @@ func (e *WldFragTrack) Read(r io.ReadSeeker) error {
 }
 
 // WldFragDMTrack is DmTrackDef in libeq, empty in openzone, empty in wld
+type WldFragDMTrackDef struct {
+	FragName string `yaml:"frag_name"`
+}
+
+func (e *WldFragDMTrackDef) FragCode() int {
+	return FragCodeDMTrackDef
+}
+
+func (e *WldFragDMTrackDef) Write(w io.Writer) error {
+	return nil
+}
+
+func (e *WldFragDMTrackDef) Read(r io.ReadSeeker) error {
+	e.FragName = FragName(e.FragCode())
+	return nil
+}
+
+// WldFragDMTrack is DmTrack in libeq, Mesh Animated Vertices Reference in openzone, empty in wld, MeshAnimatedVerticesReference in lantern
 type WldFragDMTrack struct {
 	FragName string `yaml:"frag_name"`
 }
 
 func (e *WldFragDMTrack) FragCode() int {
-	return 0x2E
+	return FragCodeDMTrack
 }
 
 func (e *WldFragDMTrack) Write(w io.Writer) error {
@@ -325,56 +343,38 @@ func (e *WldFragDMTrack) Read(r io.ReadSeeker) error {
 	return nil
 }
 
-// WldFragDMTrackRef is DmTrack in libeq, Mesh Animated Vertices Reference in openzone, empty in wld, MeshAnimatedVerticesReference in lantern
-type WldFragDMTrackRef struct {
+// WldFragDmRGBTrackDef is a list of colors, one per vertex, for baked lighting. It is DmRGBTrackDef in libeq, Vertex Color in openzone, empty in wld, VertexColors in lantern
+type WldFragDmRGBTrackDef struct {
 	FragName string `yaml:"frag_name"`
 }
 
-func (e *WldFragDMTrackRef) FragCode() int {
-	return 0x2F
+func (e *WldFragDmRGBTrackDef) FragCode() int {
+	return FragCodeDmRGBTrackDef
 }
 
-func (e *WldFragDMTrackRef) Write(w io.Writer) error {
+func (e *WldFragDmRGBTrackDef) Write(w io.Writer) error {
 	return nil
 }
 
-func (e *WldFragDMTrackRef) Read(r io.ReadSeeker) error {
+func (e *WldFragDmRGBTrackDef) Read(r io.ReadSeeker) error {
 	e.FragName = FragName(e.FragCode())
 	return nil
 }
 
-// WldFragVertexColor is a list of colors, one per vertex, for baked lighting. It is DmRGBTrackDef in libeq, Vertex Color in openzone, empty in wld, VertexColors in lantern
-type WldFragVertexColor struct {
+// WldFragDmRGBTrack is DmRGBTrack in libeq, Vertex Color Reference in openzone, empty in wld, VertexColorsReference in lantern
+type WldFragDmRGBTrack struct {
 	FragName string `yaml:"frag_name"`
 }
 
-func (e *WldFragVertexColor) FragCode() int {
-	return 0x32
+func (e *WldFragDmRGBTrack) FragCode() int {
+	return FragCodeDmRGBTrack
 }
 
-func (e *WldFragVertexColor) Write(w io.Writer) error {
+func (e *WldFragDmRGBTrack) Write(w io.Writer) error {
 	return nil
 }
 
-func (e *WldFragVertexColor) Read(r io.ReadSeeker) error {
-	e.FragName = FragName(e.FragCode())
-	return nil
-}
-
-// WldFragVertexColorReference is DmRGBTrack in libeq, Vertex Color Reference in openzone, empty in wld, VertexColorsReference in lantern
-type WldFragVertexColorReference struct {
-	FragName string `yaml:"frag_name"`
-}
-
-func (e *WldFragVertexColorReference) FragCode() int {
-	return 0x33
-}
-
-func (e *WldFragVertexColorReference) Write(w io.Writer) error {
-	return nil
-}
-
-func (e *WldFragVertexColorReference) Read(r io.ReadSeeker) error {
+func (e *WldFragDmRGBTrack) Read(r io.ReadSeeker) error {
 	e.FragName = FragName(e.FragCode())
 	return nil
 }

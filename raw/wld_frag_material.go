@@ -18,7 +18,7 @@ type WldFragDefaultPaletteFile struct {
 }
 
 func (e *WldFragDefaultPaletteFile) FragCode() int {
-	return 0x01
+	return FragCodeDefaultPaletteFile
 }
 
 func (e *WldFragDefaultPaletteFile) Write(w io.Writer) error {
@@ -54,7 +54,7 @@ type WldFragBMInfo struct {
 }
 
 func (e *WldFragBMInfo) FragCode() int {
-	return 0x03
+	return FragCodeBMInfo
 }
 
 func (e *WldFragBMInfo) Write(w io.Writer) error {
@@ -99,7 +99,7 @@ type WldFragSimpleSpriteDef struct {
 }
 
 func (e *WldFragSimpleSpriteDef) FragCode() int {
-	return 0x04
+	return FragCodeSimpleSpriteDef
 }
 
 func (e *WldFragSimpleSpriteDef) Write(w io.Writer) error {
@@ -154,7 +154,7 @@ type WldFragSimpleSprite struct {
 }
 
 func (e *WldFragSimpleSprite) FragCode() int {
-	return 0x05
+	return FragCodeSimpleSprite
 }
 
 func (e *WldFragSimpleSprite) Write(w io.Writer) error {
@@ -182,8 +182,8 @@ func (e *WldFragSimpleSprite) Read(r io.ReadSeeker) error {
 	return nil
 }
 
-// WldFragParticleSprite is BlitSprite in libeq, empty in openzone, BLITSPRITE (ref) in wld, ParticleSprite in lantern
-type WldFragParticleSprite struct {
+// WldFragBlitSpriteDef is BlitSprite in libeq, empty in openzone, BLITSPRITE (ref) in wld, ParticleSprite in lantern
+type WldFragBlitSpriteDef struct {
 	FragName      string `yaml:"frag_name"`
 	NameRef       int32  `yaml:"name_ref"`
 	Flags         uint32 `yaml:"flags"`
@@ -191,11 +191,11 @@ type WldFragParticleSprite struct {
 	Unk1          int32  `yaml:"unk1"`
 }
 
-func (e *WldFragParticleSprite) FragCode() int {
-	return 0x26
+func (e *WldFragBlitSpriteDef) FragCode() int {
+	return FragCodeBlitSprite
 }
 
-func (e *WldFragParticleSprite) Write(w io.Writer) error {
+func (e *WldFragBlitSpriteDef) Write(w io.Writer) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
 	enc.Int32(e.NameRef)
 	enc.Uint32(e.Flags)
@@ -209,7 +209,7 @@ func (e *WldFragParticleSprite) Write(w io.Writer) error {
 	return nil
 }
 
-func (e *WldFragParticleSprite) Read(r io.ReadSeeker) error {
+func (e *WldFragBlitSpriteDef) Read(r io.ReadSeeker) error {
 	e.FragName = FragName(e.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	e.NameRef = dec.Int32()
@@ -224,20 +224,20 @@ func (e *WldFragParticleSprite) Read(r io.ReadSeeker) error {
 	return nil
 }
 
-// WldFragParticleSpriteReference is BlitSprite in libeq, empty in openzone, BLITSPRITE (ref) in wld, ParticleSpriteReference in lantern
-type WldFragParticleSpriteReference struct {
+// WldFragBlitSprite is BlitSprite in libeq, empty in openzone, BLITSPRITE (ref) in wld, ParticleSpriteReference in lantern
+type WldFragBlitSprite struct {
 	FragName string `yaml:"frag_name"`
 }
 
-func (e *WldFragParticleSpriteReference) FragCode() int {
-	return 0x27
+func (e *WldFragBlitSprite) FragCode() int {
+	return FragCodeBlitSprite
 }
 
-func (e *WldFragParticleSpriteReference) Write(w io.Writer) error {
+func (e *WldFragBlitSprite) Write(w io.Writer) error {
 	return fmt.Errorf("not implemented")
 }
 
-func (e *WldFragParticleSpriteReference) Read(r io.ReadSeeker) error {
+func (e *WldFragBlitSprite) Read(r io.ReadSeeker) error {
 	e.FragName = FragName(e.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	err := dec.Error()
@@ -261,7 +261,7 @@ type WldFragMaterialDef struct {
 }
 
 func (e *WldFragMaterialDef) FragCode() int {
-	return 0x30
+	return FragCodeMaterialDef
 }
 
 func (e *WldFragMaterialDef) Write(w io.Writer) error {
@@ -305,19 +305,19 @@ func (e *WldFragMaterialDef) Read(r io.ReadSeeker) error {
 	return nil
 }
 
-// WldFragMaterialList is MaterialPalette in libeq, TextureList in openzone, MATERIALPALETTE in wld, WldFragMaterialList in lantern
-type WldFragMaterialList struct {
+// WldFragMaterialPalette is MaterialPalette in libeq, TextureList in openzone, MATERIALPALETTE in wld, WldFragMaterialPalette in lantern
+type WldFragMaterialPalette struct {
 	FragName     string
 	NameRef      int32
 	Flags        uint32
 	MaterialRefs []uint32
 }
 
-func (e *WldFragMaterialList) FragCode() int {
-	return 0x31
+func (e *WldFragMaterialPalette) FragCode() int {
+	return FragCodeMaterialPalette
 }
 
-func (e *WldFragMaterialList) Write(w io.Writer) error {
+func (e *WldFragMaterialPalette) Write(w io.Writer) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
 	enc.Int32(e.NameRef)
 	enc.Uint32(e.Flags)
@@ -332,7 +332,7 @@ func (e *WldFragMaterialList) Write(w io.Writer) error {
 	return nil
 }
 
-func (e *WldFragMaterialList) Read(r io.ReadSeeker) error {
+func (e *WldFragMaterialPalette) Read(r io.ReadSeeker) error {
 	e.FragName = FragName(e.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	e.NameRef = dec.Int32()

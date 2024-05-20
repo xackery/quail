@@ -56,7 +56,7 @@ func (q *Quail) wldConvertMesh(world *raw.Wld, frag raw.FragmentReadWriter) (*co
 		return nil, nil
 	}
 
-	d, ok := frag.(*raw.WldFragMesh)
+	d, ok := frag.(*raw.WldFragDmSpriteDef2)
 	if !ok {
 		return nil, fmt.Errorf("assertion failed, wanted *Mesh, got %T", frag)
 	}
@@ -83,7 +83,7 @@ func (q *Quail) wldConvertMesh(world *raw.Wld, frag raw.FragmentReadWriter) (*co
 		return nil, fmt.Errorf("material list ref %d not found", d.MaterialListRef)
 	}
 
-	matList, ok := matListFrag.(*raw.WldFragMaterialList)
+	matList, ok := matListFrag.(*raw.WldFragMaterialPalette)
 	if !ok {
 		return nil, fmt.Errorf("assertion failed, wanted *MaterialList, got %T", matListFrag)
 	}
@@ -270,10 +270,10 @@ func (q *Quail) wldConvertSkeletonTrack(world *raw.Wld, frag raw.FragmentReadWri
 			}
 		}
 
-		if bone.TrackRef > 0 {
-			trackFragRef, ok := world.Fragments[int(bone.TrackRef)]
+		if bone.Track > 0 {
+			trackFragRef, ok := world.Fragments[int(bone.Track)]
 			if !ok {
-				return fmt.Errorf("bone %d on skeleton %s track ref %d not found", i, name, bone.TrackRef)
+				return fmt.Errorf("bone %d on skeleton %s track ref %d not found", i, name, bone.Track)
 			}
 
 			trackRef, ok := trackFragRef.(*raw.WldFragTrack)
@@ -281,9 +281,9 @@ func (q *Quail) wldConvertSkeletonTrack(world *raw.Wld, frag raw.FragmentReadWri
 				return fmt.Errorf("assertion failed, wanted *TrackRef, got %T", trackFragRef)
 			}
 
-			trackFrag, ok := world.Fragments[int(trackRef.TrackRef)]
+			trackFrag, ok := world.Fragments[int(trackRef.Track)]
 			if !ok {
-				return fmt.Errorf("bone %d on skeleton %s track %d not found", i, name, trackRef.TrackRef)
+				return fmt.Errorf("bone %d on skeleton %s track %d not found", i, name, trackRef.Track)
 			}
 
 			track, ok := trackFrag.(*raw.WldFragTrackDef)

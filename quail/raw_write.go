@@ -78,9 +78,9 @@ func (e *Quail) wldWrite(wld *raw.Wld) error {
 	//material materialdef
 
 	for _, model := range e.Models {
-		mesh := &raw.WldFragMesh{}
+		mesh := &raw.WldFragDmSpriteDef2{}
 
-		materialList := &raw.WldFragMaterialList{}
+		materialList := &raw.WldFragMaterialPalette{}
 		for _, srcMat := range model.Materials {
 			matRef, ok := materials[srcMat.Name]
 			if ok {
