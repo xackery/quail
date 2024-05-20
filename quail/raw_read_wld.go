@@ -78,9 +78,9 @@ func (q *Quail) wldConvertMesh(world *raw.Wld, frag raw.FragmentReadWriter) (*co
 
 	scale := float32(1 / float32(int(1)<<int(d.RawScale))) // This allows vertex coordinates to be stored as integral values instead of floating-point values, without losing precision based on mesh size. Vertex values are multiplied by (1 shl `scale`) and stored in the vertex entries. FPSCALE is the internal name.
 
-	matListFrag, ok := world.Fragments[int(d.MaterialListRef)]
+	matListFrag, ok := world.Fragments[int(d.MaterialPaletteRef)]
 	if !ok {
-		return nil, fmt.Errorf("material list ref %d not found", d.MaterialListRef)
+		return nil, fmt.Errorf("material list ref %d not found", d.MaterialPaletteRef)
 	}
 
 	matList, ok := matListFrag.(*raw.WldFragMaterialPalette)
@@ -103,10 +103,10 @@ func (q *Quail) wldConvertMesh(world *raw.Wld, frag raw.FragmentReadWriter) (*co
 
 		srcTexture := &raw.WldFragSimpleSpriteDef{}
 
-		if srcMaterial.TextureRef > 0 {
-			textureRefFrag, ok := world.Fragments[int(srcMaterial.TextureRef)]
+		if srcMaterial.SpriteInstanceRef > 0 {
+			textureRefFrag, ok := world.Fragments[int(srcMaterial.SpriteInstanceRef)]
 			if !ok {
-				return nil, fmt.Errorf("textureref ref %d not found", srcMaterial.TextureRef)
+				return nil, fmt.Errorf("textureref ref %d not found", srcMaterial.SpriteInstanceRef)
 			}
 
 			textureRef, ok := textureRefFrag.(*raw.WldFragSimpleSprite)
@@ -114,9 +114,9 @@ func (q *Quail) wldConvertMesh(world *raw.Wld, frag raw.FragmentReadWriter) (*co
 				return nil, fmt.Errorf("assertion failed, wanted *TextureRef, got %T", textureRefFrag)
 			}
 
-			textureFrag, ok := world.Fragments[int(textureRef.TextureRef)]
+			textureFrag, ok := world.Fragments[int(textureRef.SpriteRef)]
 			if !ok {
-				return nil, fmt.Errorf("texture ref %d not found", textureRef.TextureRef)
+				return nil, fmt.Errorf("texture ref %d not found", textureRef.SpriteRef)
 			}
 
 			srcTexture, ok = textureFrag.(*raw.WldFragSimpleSpriteDef)
@@ -124,7 +124,7 @@ func (q *Quail) wldConvertMesh(world *raw.Wld, frag raw.FragmentReadWriter) (*co
 				return nil, fmt.Errorf("assertion failed, wanted *Texture, got %T", textureFrag)
 			}
 
-			for _, tRef := range srcTexture.TextureRefs {
+			for _, tRef := range srcTexture.BitmapRefs {
 				textureRefFrag, ok = world.Fragments[int(tRef)]
 				if !ok {
 					return nil, fmt.Errorf("tref ref %d not found", tRef)
@@ -292,12 +292,12 @@ func (q *Quail) wldConvertSkeletonTrack(world *raw.Wld, frag raw.FragmentReadWri
 			}
 
 			for _, boneTransform := range track.BoneTransforms {
-				newBone.Pivot.X = float32(boneTransform.TranslationX)
-				newBone.Pivot.Y = float32(boneTransform.TranslationY)
-				newBone.Pivot.Z = float32(boneTransform.TranslationZ)
-				newBone.Rotation.X = float32(boneTransform.RotationX)
-				newBone.Rotation.Y = float32(boneTransform.RotationY)
-				newBone.Rotation.Z = float32(boneTransform.RotationZ)
+				newBone.Pivot.X = float32(boneTransform.RotateX)
+				newBone.Pivot.Y = float32(boneTransform.RotateY)
+				newBone.Pivot.Z = float32(boneTransform.RotateZ)
+				newBone.Rotation.X = float32(boneTransform.ShiftX)
+				newBone.Rotation.Y = float32(boneTransform.ShiftY)
+				newBone.Rotation.Z = float32(boneTransform.ShiftZ)
 			}
 			newBone.Flags = bone.Flags
 		}

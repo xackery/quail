@@ -220,7 +220,7 @@ type WldFragParticleCloudDef struct {
 	SpawnRate             uint32  `yaml:"spawn_rate"`
 	SpawnScale            float32 `yaml:"spawn_scale"`
 	Color                 RGBA    `yaml:"color"`
-	SpriteRef             uint32  `yaml:"sprite_ref"`
+	ParticleRef           uint32  `yaml:"particle_ref"`
 }
 
 func (e *WldFragParticleCloudDef) FragCode() int {
@@ -254,7 +254,7 @@ func (e *WldFragParticleCloudDef) Write(w io.Writer) error {
 	enc.Uint8(e.Color.B)
 	enc.Uint8(e.Color.A)
 
-	enc.Uint32(e.SpriteRef)
+	enc.Uint32(e.ParticleRef)
 	err := enc.Error()
 	if err != nil {
 		return fmt.Errorf("write: %w", err)
@@ -287,7 +287,7 @@ func (e *WldFragParticleCloudDef) Read(r io.ReadSeeker) error {
 	e.SpawnRate = dec.Uint32()
 	e.SpawnScale = dec.Float32()
 	e.Color = RGBA{R: dec.Uint8(), G: dec.Uint8(), B: dec.Uint8(), A: dec.Uint8()}
-	e.SpriteRef = dec.Uint32()
+	e.ParticleRef = dec.Uint32()
 	err := dec.Error()
 	if err != nil {
 		return fmt.Errorf("read: %w", err)

@@ -985,8 +985,8 @@ type WldFragDmSpriteDef2 struct {
 	NameRef  int32  `yaml:"name_ref"`
 	Flags    uint32 `yaml:"flags"`
 
-	MaterialListRef uint32 `yaml:"material_list_ref"`
-	AnimationRef    int32  `yaml:"animation_ref"`
+	MaterialPaletteRef uint32 `yaml:"material_palette_ref"`
+	AnimationRef       int32  `yaml:"animation_ref"`
 
 	Fragment3Ref int32   `yaml:"fragment_3_ref"`
 	Fragment4Ref int32   `yaml:"fragment_4_ref"` // unknown, usually ref to first texture
@@ -1051,7 +1051,7 @@ func (e *WldFragDmSpriteDef2) Write(w io.Writer) error {
 	enc.Int32(e.NameRef)
 	enc.Uint32(e.Flags)
 
-	enc.Uint32(e.MaterialListRef)
+	enc.Uint32(e.MaterialPaletteRef)
 	enc.Int32(e.AnimationRef)
 
 	enc.Int32(e.Fragment3Ref)
@@ -1152,7 +1152,7 @@ func (e *WldFragDmSpriteDef2) Read(r io.ReadSeeker) error {
 	e.NameRef = dec.Int32()
 	e.Flags = dec.Uint32() // flags, currently unknown, zone meshes are 0x00018003, placeable objects are 0x00014003
 
-	e.MaterialListRef = dec.Uint32()
+	e.MaterialPaletteRef = dec.Uint32()
 	e.AnimationRef = dec.Int32() //used by flags/trees only
 
 	e.Fragment3Ref = dec.Int32() // unknown, usually empty

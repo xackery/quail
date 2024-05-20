@@ -48,10 +48,10 @@ func (e *Wad) WLDRead(r io.ReadSeeker) error {
 			sprite := &Sprite{
 				Tag:          raw.Name(spriteDef.NameRef),
 				Flags:        spriteDef.Flags,
-				CurrentFrame: spriteDef.TextureCurrent,
+				CurrentFrame: spriteDef.CurrentFrame,
 				Sleep:        spriteDef.Sleep,
 			}
-			for _, frame := range spriteDef.TextureRefs {
+			for _, frame := range spriteDef.BitmapRefs {
 				bmInfo, ok := bmInfoRefs[int(frame)]
 				if !ok {
 					return fmt.Errorf("decode frag %d: no bitmap ref %d found", i, int(frame))
@@ -67,7 +67,7 @@ func (e *Wad) WLDRead(r io.ReadSeeker) error {
 			if !ok {
 				return fmt.Errorf("decode frag %d: expected *WldFragSimpleSprite, got %T", i, fragment)
 			}
-			ref := int(spriteInst.TextureRef)
+			ref := int(spriteInst.SpriteRef)
 			sprite, ok := spriteRefs[ref]
 			if !ok {
 				return fmt.Errorf("decode frag %d: no sprite ref %d found", i, ref)
@@ -86,9 +86,9 @@ func (e *Wad) WLDRead(r io.ReadSeeker) error {
 				return fmt.Errorf("decode frag %d: expected *WldFragMaterialDef, got %T", i, fragment)
 			}
 
-			spriteInst, ok := spriteInstRefs[int(material.TextureRef)]
+			spriteInst, ok := spriteInstRefs[int(material.SpriteInstanceRef)]
 			if !ok {
-				return fmt.Errorf("decode frag %d material: no sprite inst ref %d found", i, int(material.TextureRef))
+				return fmt.Errorf("decode frag %d material: no sprite inst ref %d found", i, int(material.SpriteInstanceRef))
 			}
 
 			mat := &SpriteInstanceMaterial{

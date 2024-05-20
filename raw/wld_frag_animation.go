@@ -170,14 +170,14 @@ type WldFragTrackDef struct {
 }
 
 type WldFragTrackBoneTransform struct {
-	TranslationDenominator int16 `yaml:"translation_denominator"`
-	TranslationX           int16 `yaml:"translation_x"`
-	TranslationY           int16 `yaml:"translation_y"`
-	TranslationZ           int16 `yaml:"translation_z"`
-	RotationDenominator    int16 `yaml:"rotation_denominator"`
-	RotationX              int16 `yaml:"rotation_x"`
-	RotationY              int16 `yaml:"rotation_y"`
-	RotationZ              int16 `yaml:"rotation_z"`
+	RotateDenominator int16 `yaml:"rotate_denominator"`
+	RotateX           int16 `yaml:"rotate_x"`
+	RotateY           int16 `yaml:"rotate_y"`
+	RotateZ           int16 `yaml:"rotate_z"`
+	ShiftDenominator  int16 `yaml:"shift_denominator"`
+	ShiftX            int16 `yaml:"shift_x"`
+	ShiftY            int16 `yaml:"shift_y"`
+	ShiftZ            int16 `yaml:"shift_z"`
 }
 
 func (e *WldFragTrackDef) FragCode() int {
@@ -191,24 +191,24 @@ func (e *WldFragTrackDef) Write(w io.Writer) error {
 	enc.Uint32(uint32(len(e.BoneTransforms)))
 	for _, ft := range e.BoneTransforms {
 		if e.Flags&0x08 == 0x08 {
-			enc.Int16(ft.RotationDenominator)
-			enc.Int16(ft.RotationX)
-			enc.Int16(ft.RotationY)
-			enc.Int16(ft.RotationZ)
-			enc.Int16(ft.TranslationX)
-			enc.Int16(ft.TranslationY)
-			enc.Int16(ft.TranslationZ)
-			enc.Int16(ft.TranslationDenominator)
+			enc.Int16(ft.ShiftDenominator)
+			enc.Int16(ft.ShiftX)
+			enc.Int16(ft.ShiftY)
+			enc.Int16(ft.ShiftZ)
+			enc.Int16(ft.RotateX)
+			enc.Int16(ft.RotateY)
+			enc.Int16(ft.RotateZ)
+			enc.Int16(ft.RotateDenominator)
 			continue
 		}
-		enc.Int8(int8(ft.TranslationDenominator))
-		enc.Int8(int8(ft.TranslationX))
-		enc.Int8(int8(ft.TranslationY))
-		enc.Int8(int8(ft.TranslationZ))
-		enc.Int8(int8(ft.RotationDenominator))
-		enc.Int8(int8(ft.RotationX))
-		enc.Int8(int8(ft.RotationY))
-		enc.Int8(int8(ft.RotationZ))
+		enc.Int8(int8(ft.RotateDenominator))
+		enc.Int8(int8(ft.RotateX))
+		enc.Int8(int8(ft.RotateY))
+		enc.Int8(int8(ft.RotateZ))
+		enc.Int8(int8(ft.ShiftDenominator))
+		enc.Int8(int8(ft.ShiftX))
+		enc.Int8(int8(ft.ShiftY))
+		enc.Int8(int8(ft.ShiftZ))
 
 	}
 
@@ -230,25 +230,25 @@ func (e *WldFragTrackDef) Read(r io.ReadSeeker) error {
 	for i := 0; i < int(boneCount); i++ {
 		ft := WldFragTrackBoneTransform{}
 		if e.Flags&0x08 == 0x08 {
-			ft.RotationDenominator = dec.Int16()
-			ft.RotationX = dec.Int16()
-			ft.RotationY = dec.Int16()
-			ft.RotationZ = dec.Int16()
-			ft.TranslationX = dec.Int16()
-			ft.TranslationY = dec.Int16()
-			ft.TranslationZ = dec.Int16()
-			ft.TranslationDenominator = dec.Int16()
+			ft.ShiftDenominator = dec.Int16()
+			ft.ShiftX = dec.Int16()
+			ft.ShiftY = dec.Int16()
+			ft.ShiftZ = dec.Int16()
+			ft.RotateX = dec.Int16()
+			ft.RotateY = dec.Int16()
+			ft.RotateZ = dec.Int16()
+			ft.RotateDenominator = dec.Int16()
 			e.BoneTransforms = append(e.BoneTransforms, ft)
 			continue
 		}
-		ft.TranslationDenominator = int16(dec.Int8())
-		ft.TranslationX = int16(dec.Int8())
-		ft.TranslationY = int16(dec.Int8())
-		ft.TranslationZ = int16(dec.Int8())
-		ft.RotationDenominator = int16(dec.Int8())
-		ft.RotationX = int16(dec.Int8())
-		ft.RotationY = int16(dec.Int8())
-		ft.RotationZ = int16(dec.Int8())
+		ft.RotateDenominator = int16(dec.Int8())
+		ft.RotateX = int16(dec.Int8())
+		ft.RotateY = int16(dec.Int8())
+		ft.RotateZ = int16(dec.Int8())
+		ft.ShiftDenominator = int16(dec.Int8())
+		ft.ShiftX = int16(dec.Int8())
+		ft.ShiftY = int16(dec.Int8())
+		ft.ShiftZ = int16(dec.Int8())
 		e.BoneTransforms = append(e.BoneTransforms, ft)
 
 	}
