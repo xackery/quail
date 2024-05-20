@@ -149,11 +149,11 @@ func New(ext string) ReadWriter {
 	case ".env":
 		return &Unk{}
 	case ".txt":
-		return &Unk{}
+		return &Txt{}
 	case ".sps": // map file, safely ignored
-		return &Unk{}
+		return &Txt{}
 	case ".mdf": // model definition file, safely ignored
-		return &Unk{}
+		return &Txt{}
 	default:
 		return nil
 	}
