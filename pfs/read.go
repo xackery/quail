@@ -186,7 +186,7 @@ func (e *Pfs) Read(r io.ReadSeeker) error {
 	for crc, data := range fileByCRCs {
 		dirName, ok := dirNameByCRCs[crc]
 		if !ok {
-			log.Warnf("dirName for crc %d not found", crc)
+			//log.Warnf("dirName for crc %d not found", crc)
 			continue
 			//return fmt.Errorf("dirName for crc %d not found", crc)
 		}

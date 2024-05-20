@@ -12,6 +12,11 @@ type Png struct {
 	Data         string `yaml:"data"`
 }
 
+// Identity returns the type of the struct
+func (png *Png) Identity() string {
+	return "png"
+}
+
 func (png *Png) Read(r io.ReadSeeker) error {
 	data, err := io.ReadAll(r)
 	if err != nil {

@@ -9,6 +9,11 @@ type Tog struct {
 	Entries      []*TogEntry `yaml:"entries"`
 }
 
+// Identity returns the type of the struct
+func (tog *Tog) Identity() string {
+	return "Tog"
+}
+
 type TogEntry struct {
 	Position [3]float32 `yaml:"position"`
 	Rotation [3]float32 `yaml:"rotation"`

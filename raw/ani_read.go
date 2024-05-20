@@ -16,6 +16,10 @@ type Ani struct {
 	IsStrict     bool       `yaml:"is_strict,omitempty"`
 }
 
+func (ani *Ani) Identity() string {
+	return "ani"
+}
+
 type AniBone struct {
 	Name   string          `yaml:"name"`
 	Frames []*AniBoneFrame `yaml:"frames,omitempty"`

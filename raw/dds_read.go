@@ -11,6 +11,11 @@ type Dds struct {
 	Data         string `yaml:"data"`
 }
 
+// Identity returns the type of the struct
+func (dds *Dds) Identity() string {
+	return "dds"
+}
+
 func (dds *Dds) Read(r io.ReadSeeker) error {
 	data, err := io.ReadAll(r)
 	if err != nil {

@@ -10,8 +10,8 @@ import (
 	"github.com/xackery/quail/tag"
 )
 
-// WldFragTwoDSprite is Sprite2DDef in libeq, Two-Dimensional Object in openzone, 2DSPRITEDEF in wld, Fragment06 in lantern
-type WldFragTwoDSprite struct {
+// WldFragSprite2DDef is Sprite2DDef in libeq, Two-Dimensional Object in openzone, 2DSPRITEDEF in wld, Fragment06 in lantern
+type WldFragSprite2DDef struct {
 	FragName                    string    `yaml:"frag_name"`
 	NameRef                     int32     `yaml:"name_ref"`
 	Flags                       uint32    `yaml:"flags"`
@@ -37,11 +37,11 @@ type WldFragTwoDSprite struct {
 	RenderUVMapEntries          []Vector2 `yaml:"render_uv_map_entries"`
 }
 
-func (e *WldFragTwoDSprite) FragCode() int {
+func (e *WldFragSprite2DDef) FragCode() int {
 	return 0x06
 }
 
-func (e *WldFragTwoDSprite) Write(w io.Writer) error {
+func (e *WldFragSprite2DDef) Write(w io.Writer) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
 	enc.Int32(e.NameRef)
 	enc.Uint32(e.Flags)
@@ -112,7 +112,7 @@ func (e *WldFragTwoDSprite) Write(w io.Writer) error {
 
 }
 
-func (e *WldFragTwoDSprite) Read(r io.ReadSeeker) error {
+func (e *WldFragSprite2DDef) Read(r io.ReadSeeker) error {
 	e.FragName = FragName(e.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	e.NameRef = dec.Int32()
@@ -187,19 +187,19 @@ func (e *WldFragTwoDSprite) Read(r io.ReadSeeker) error {
 
 }
 
-// WldFragTwoDSpriteRef is Sprite2D in libeq, Two-Dimensional Object Reference in openzone, 2DSPRITE (ref) in wld, Fragment07 in lantern
-type WldFragTwoDSpriteRef struct {
+// WldFragSprite2D is Sprite2D in libeq, Two-Dimensional Object Reference in openzone, 2DSPRITE (ref) in wld, Fragment07 in lantern
+type WldFragSprite2D struct {
 	FragName      string `yaml:"frag_name"`
 	NameRef       int32  `yaml:"name_ref"`
 	TwoDSpriteRef uint32 `yaml:"two_d_sprite_ref"`
 	Flags         uint32 `yaml:"flags"`
 }
 
-func (e *WldFragTwoDSpriteRef) FragCode() int {
+func (e *WldFragSprite2D) FragCode() int {
 	return 0x07
 }
 
-func (e *WldFragTwoDSpriteRef) Write(w io.Writer) error {
+func (e *WldFragSprite2D) Write(w io.Writer) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
 	enc.Int32(e.NameRef)
 	enc.Uint32(e.TwoDSpriteRef)
@@ -211,7 +211,7 @@ func (e *WldFragTwoDSpriteRef) Write(w io.Writer) error {
 	return nil
 }
 
-func (e *WldFragTwoDSpriteRef) Read(r io.ReadSeeker) error {
+func (e *WldFragSprite2D) Read(r io.ReadSeeker) error {
 	e.FragName = FragName(e.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	e.NameRef = dec.Int32()
@@ -224,8 +224,8 @@ func (e *WldFragTwoDSpriteRef) Read(r io.ReadSeeker) error {
 	return nil
 }
 
-// WldFragThreeDSprite is Sprite3DDef in libeq, Camera in openzone, 3DSPRITEDEF in wld, Camera in lantern
-type WldFragThreeDSprite struct {
+// WldFragSprite3DDef is Sprite3DDef in libeq, Camera in openzone, 3DSPRITEDEF in wld, Camera in lantern
+type WldFragSprite3DDef struct {
 	FragName      string                       `yaml:"frag_name"`
 	NameRef       int32                        `yaml:"name_ref"`
 	Flags         uint32                       `yaml:"flags"`
@@ -252,11 +252,11 @@ type WldFragThreeDSpriteBspNode struct {
 	RenderUVMapEntries          []Vector2 `yaml:"render_uv_map_entries"`
 }
 
-func (e *WldFragThreeDSprite) FragCode() int {
+func (e *WldFragSprite3DDef) FragCode() int {
 	return 0x08
 }
 
-func (e *WldFragThreeDSprite) Write(w io.Writer) error {
+func (e *WldFragSprite3DDef) Write(w io.Writer) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
 	enc.Int32(e.NameRef)
 	enc.Uint32(e.Flags)
@@ -328,7 +328,7 @@ func (e *WldFragThreeDSprite) Write(w io.Writer) error {
 	return nil
 }
 
-func (e *WldFragThreeDSprite) Read(r io.ReadSeeker) error {
+func (e *WldFragSprite3DDef) Read(r io.ReadSeeker) error {
 	e.FragName = FragName(e.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	e.NameRef = dec.Int32()
@@ -404,19 +404,19 @@ func (e *WldFragThreeDSprite) Read(r io.ReadSeeker) error {
 
 }
 
-// WldFragThreeDSpriteRef is Sprite3D in libeq, Camera Reference in openzone, 3DSPRITE (ref) in wld, CameraReference in lantern
-type WldFragThreeDSpriteRef struct {
+// WldFragSprite3D is Sprite3D in libeq, Camera Reference in openzone, 3DSPRITE (ref) in wld, CameraReference in lantern
+type WldFragSprite3D struct {
 	FragName  string `yaml:"frag_name"`
 	NameRef   int32
 	ThreeDRef int32
 	Flags     uint32
 }
 
-func (e *WldFragThreeDSpriteRef) FragCode() int {
+func (e *WldFragSprite3D) FragCode() int {
 	return 0x09
 }
 
-func (e *WldFragThreeDSpriteRef) Write(w io.Writer) error {
+func (e *WldFragSprite3D) Write(w io.Writer) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
 	enc.Int32(e.NameRef)
 	enc.Int32(e.ThreeDRef)
@@ -428,7 +428,7 @@ func (e *WldFragThreeDSpriteRef) Write(w io.Writer) error {
 	return nil
 }
 
-func (e *WldFragThreeDSpriteRef) Read(r io.ReadSeeker) error {
+func (e *WldFragSprite3D) Read(r io.ReadSeeker) error {
 	e.FragName = FragName(e.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	e.NameRef = dec.Int32()
@@ -441,8 +441,8 @@ func (e *WldFragThreeDSpriteRef) Read(r io.ReadSeeker) error {
 	return nil
 }
 
-// WldFragFourDSprite is Sprite4DDef in libeq, empty in openzone, 4DSPRITEDEF in wld
-type WldFragFourDSprite struct {
+// WldFragSprite4DDef is Sprite4DDef in libeq, empty in openzone, 4DSPRITEDEF in wld
+type WldFragSprite4DDef struct {
 	FragName        string   `yaml:"frag_name"`
 	NameRef         int32    `yaml:"name_ref"`
 	Flags           uint32   `yaml:"flags"`
@@ -454,11 +454,11 @@ type WldFragFourDSprite struct {
 	SpriteFragments []uint32 `yaml:"sprite_fragments"`
 }
 
-func (e *WldFragFourDSprite) FragCode() int {
+func (e *WldFragSprite4DDef) FragCode() int {
 	return 0x0A
 }
 
-func (e *WldFragFourDSprite) Write(w io.Writer) error {
+func (e *WldFragSprite4DDef) Write(w io.Writer) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
 	enc.Int32(e.NameRef)
 	enc.Uint32(e.Flags)
@@ -490,7 +490,7 @@ func (e *WldFragFourDSprite) Write(w io.Writer) error {
 	return nil
 }
 
-func (e *WldFragFourDSprite) Read(r io.ReadSeeker) error {
+func (e *WldFragSprite4DDef) Read(r io.ReadSeeker) error {
 	e.FragName = FragName(e.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	e.NameRef = dec.Int32()
@@ -523,19 +523,19 @@ func (e *WldFragFourDSprite) Read(r io.ReadSeeker) error {
 	return nil
 }
 
-// WldFragFourDSpriteRef is Sprite4D in libeq, empty in openzone, 4DSPRITE (ref) in wld
-type WldFragFourDSpriteRef struct {
+// WldFragSprite4D is Sprite4D in libeq, empty in openzone, 4DSPRITE (ref) in wld
+type WldFragSprite4D struct {
 	FragName string `yaml:"frag_name"`
 	NameRef  int32  `yaml:"name_ref"`
 	FourDRef int32  `yaml:"four_d_ref"`
 	Params1  uint32 `yaml:"params_1"`
 }
 
-func (e *WldFragFourDSpriteRef) FragCode() int {
+func (e *WldFragSprite4D) FragCode() int {
 	return 0x0B
 }
 
-func (e *WldFragFourDSpriteRef) Write(w io.Writer) error {
+func (e *WldFragSprite4D) Write(w io.Writer) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
 	enc.Int32(e.NameRef)
 	enc.Int32(e.FourDRef)
@@ -547,7 +547,7 @@ func (e *WldFragFourDSpriteRef) Write(w io.Writer) error {
 	return nil
 }
 
-func (e *WldFragFourDSpriteRef) Read(r io.ReadSeeker) error {
+func (e *WldFragSprite4D) Read(r io.ReadSeeker) error {
 	e.FragName = FragName(e.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	e.NameRef = dec.Int32()
@@ -1268,8 +1268,8 @@ func (e *WldFragMesh) Read(r io.ReadSeeker) error {
 
 }
 
-// WldFragMeshAnimated is DmTrackDef2 in libeq, Mesh Animated Vertices in openzone, DMTRACKDEF in wld, MeshAnimatedVertices in lantern
-type WldFragMeshAnimated struct {
+// WldFragMeshAnimatedVertices is DmTrackDef2 in libeq, Mesh Animated Vertices in openzone, DMTRACKDEF in wld, MeshAnimatedVertices in lantern
+type WldFragMeshAnimatedVertices struct {
 	FragName    string                    `yaml:"frag_name"`
 	NameRef     int32                     `yaml:"name_ref"`
 	Flags       uint32                    `yaml:"flags"`
@@ -1286,23 +1286,23 @@ type WldFragMeshAnimatedBone struct {
 	Position Vector3 `yaml:"position"`
 }
 
-func (e *WldFragMeshAnimated) FragCode() int {
+func (e *WldFragMeshAnimatedVertices) FragCode() int {
 	return 0x37
 }
 
-func (e *WldFragMeshAnimated) Write(w io.Writer) error {
+func (e *WldFragMeshAnimatedVertices) Write(w io.Writer) error {
 	return nil
 }
 
-func (e *WldFragMeshAnimated) Read(r io.ReadSeeker) error {
+func (e *WldFragMeshAnimatedVertices) Read(r io.ReadSeeker) error {
 	e.FragName = FragName(e.FragCode())
 	return nil
 }
 
-// WldFragWorldTree is WorldTree in libeq, BSP Tree in openzone, WORLDTREE in wld, BspTree in lantern
+// WldFragBspTree is WorldTree in libeq, BSP Tree in openzone, WORLDTREE in wld, BspTree in lantern
 // For serialization, refer to here: https://github.com/knervous/LanternExtractor2/blob/knervous/merged/LanternExtractor/EQ/Wld/DataTypes/BspNode.cs
 // For constructing, refer to here: https://github.com/knervous/LanternExtractor2/blob/920541d15958e90aa91f7446a74226cbf26b829a/LanternExtractor/EQ/Wld/Exporters/GltfWriter.cs#L304
-type WldFragWorldTree struct {
+type WldFragBspTree struct {
 	FragName  string          `yaml:"frag_name"`
 	NameRef   int32           `yaml:"name_ref"`
 	NodeCount uint32          `yaml:"node_count"`
@@ -1317,11 +1317,11 @@ type WorldTreeNode struct {
 	BackRef   int32   `yaml:"back_ref"`
 }
 
-func (e *WldFragWorldTree) FragCode() int {
+func (e *WldFragBspTree) FragCode() int {
 	return 0x21
 }
 
-func (e *WldFragWorldTree) Write(w io.Writer) error {
+func (e *WldFragBspTree) Write(w io.Writer) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
 	enc.Int32(e.NameRef)
 	enc.Uint32(e.NodeCount)
@@ -1341,7 +1341,7 @@ func (e *WldFragWorldTree) Write(w io.Writer) error {
 	return nil
 }
 
-func (e *WldFragWorldTree) Read(r io.ReadSeeker) error {
+func (e *WldFragBspTree) Read(r io.ReadSeeker) error {
 	e.FragName = FragName(e.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	e.NameRef = dec.Int32()
@@ -1364,8 +1364,8 @@ func (e *WldFragWorldTree) Read(r io.ReadSeeker) error {
 	return nil
 }
 
-// WldFragRegion is Region in libeq, Bsp WldFragRegion in openzone, REGION in wld, BspRegion in lantern
-type WldFragRegion struct {
+// WldFragBspRegion is Region in libeq, Bsp WldFragBspRegion in openzone, REGION in wld, BspRegion in lantern
+type WldFragBspRegion struct {
 	FragName             string    `yaml:"frag_name"`
 	NameRef              int32     `yaml:"name_ref"`
 	Flags                uint32    `yaml:"flags"`
@@ -1401,11 +1401,11 @@ type Wall struct {
 	Vertices                    []uint32  `yaml:"vertices"`
 }
 
-func (e *WldFragRegion) FragCode() int {
+func (e *WldFragBspRegion) FragCode() int {
 	return 0x22
 }
 
-func (e *WldFragRegion) Write(w io.Writer) error {
+func (e *WldFragBspRegion) Write(w io.Writer) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
 	enc.Int32(e.NameRef)
 	enc.Uint32(e.Flags)
@@ -1469,7 +1469,7 @@ func (e *WldFragRegion) Write(w io.Writer) error {
 	return nil
 }
 
-func (e *WldFragRegion) Read(r io.ReadSeeker) error {
+func (e *WldFragBspRegion) Read(r io.ReadSeeker) error {
 	e.FragName = FragName(e.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	e.NameRef = dec.Int32()

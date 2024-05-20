@@ -26,7 +26,7 @@ func (q *Quail) wldRead(wld *raw.Wld) error {
 				return fmt.Errorf("fragment %d: %w", i, err)
 			}
 		case 0x14: // Model
-			d, ok := frag.(*raw.WldFragModel)
+			d, ok := frag.(*raw.WldFragActorDef)
 			if !ok {
 				return fmt.Errorf("assertion failed, wanted *Mesh, got %T", frag)
 			}
@@ -96,12 +96,12 @@ func (q *Quail) wldConvertMesh(world *raw.Wld, frag raw.FragmentReadWriter) (*co
 			return nil, fmt.Errorf("mat ref %d not found", matRef)
 		}
 
-		srcMaterial, ok := materialFrag.(*raw.WldFragMaterial)
+		srcMaterial, ok := materialFrag.(*raw.WldFragMaterialDef)
 		if !ok {
 			return nil, fmt.Errorf("assertion failed, wanted *TextureRef, got %T", materialFrag)
 		}
 
-		srcTexture := &raw.WldFragTexture{}
+		srcTexture := &raw.WldFragSimpleSpriteDef{}
 
 		if srcMaterial.TextureRef > 0 {
 			textureRefFrag, ok := world.Fragments[int(srcMaterial.TextureRef)]
@@ -109,7 +109,7 @@ func (q *Quail) wldConvertMesh(world *raw.Wld, frag raw.FragmentReadWriter) (*co
 				return nil, fmt.Errorf("textureref ref %d not found", srcMaterial.TextureRef)
 			}
 
-			textureRef, ok := textureRefFrag.(*raw.WldFragTextureRef)
+			textureRef, ok := textureRefFrag.(*raw.WldFragSimpleSprite)
 			if !ok {
 				return nil, fmt.Errorf("assertion failed, wanted *TextureRef, got %T", textureRefFrag)
 			}
@@ -119,7 +119,7 @@ func (q *Quail) wldConvertMesh(world *raw.Wld, frag raw.FragmentReadWriter) (*co
 				return nil, fmt.Errorf("texture ref %d not found", textureRef.TextureRef)
 			}
 
-			srcTexture, ok = textureFrag.(*raw.WldFragTexture)
+			srcTexture, ok = textureFrag.(*raw.WldFragSimpleSpriteDef)
 			if !ok {
 				return nil, fmt.Errorf("assertion failed, wanted *Texture, got %T", textureFrag)
 			}
@@ -130,7 +130,7 @@ func (q *Quail) wldConvertMesh(world *raw.Wld, frag raw.FragmentReadWriter) (*co
 					return nil, fmt.Errorf("tref ref %d not found", tRef)
 				}
 
-				textureList, ok := textureRefFrag.(*raw.WldFragTextureList)
+				textureList, ok := textureRefFrag.(*raw.WldFragBMInfo)
 				if !ok {
 					return nil, fmt.Errorf("tref assertion failed, wanted *TextureRef, got %T", textureRefFrag)
 				}
@@ -233,7 +233,7 @@ func (q *Quail) wldConvertSkeletonTrack(world *raw.Wld, frag raw.FragmentReadWri
 		return nil
 	}
 
-	d, ok := frag.(*raw.WldFragSkeletonTrack)
+	d, ok := frag.(*raw.WldFragHierarchialSpriteDef)
 	if !ok {
 		return fmt.Errorf("assertion failed, wanted *SkeletonTrack, got %T", frag)
 	}
@@ -276,7 +276,7 @@ func (q *Quail) wldConvertSkeletonTrack(world *raw.Wld, frag raw.FragmentReadWri
 				return fmt.Errorf("bone %d on skeleton %s track ref %d not found", i, name, bone.TrackRef)
 			}
 
-			trackRef, ok := trackFragRef.(*raw.WldFragTrackRef)
+			trackRef, ok := trackFragRef.(*raw.WldFragTrack)
 			if !ok {
 				return fmt.Errorf("assertion failed, wanted *TrackRef, got %T", trackFragRef)
 			}
@@ -286,7 +286,7 @@ func (q *Quail) wldConvertSkeletonTrack(world *raw.Wld, frag raw.FragmentReadWri
 				return fmt.Errorf("bone %d on skeleton %s track %d not found", i, name, trackRef.TrackRef)
 			}
 
-			track, ok := trackFrag.(*raw.WldFragTrack)
+			track, ok := trackFrag.(*raw.WldFragTrackDef)
 			if !ok {
 				return fmt.Errorf("assertion failed, wanted *Track, got %T", trackFrag)
 			}

@@ -19,6 +19,10 @@ type Mod struct {
 	Triangles    []Triangle  `yaml:"triangles"`
 }
 
+func (mod *Mod) Identity() string {
+	return "mod"
+}
+
 // Decode reads a MOD file
 func (mod *Mod) Read(r io.ReadSeeker) error {
 	dec := encdec.NewDecoder(r, binary.LittleEndian)

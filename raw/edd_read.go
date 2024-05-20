@@ -1,11 +1,18 @@
 package raw
 
-import "io"
+import (
+	"io"
+)
 
 // Edd contations particle definitions used by prt
 // examples are in eq root, actoremittersnew.edd, environmentemittersnew.edd, spellsnew.edd
 type Edd struct {
 	MetaFileName string `yaml:"file_name"`
+}
+
+// Identity returns the type of the struct
+func (edd *Edd) Identity() string {
+	return "edd"
 }
 
 func (edd *Edd) Read(r io.ReadSeeker) error {

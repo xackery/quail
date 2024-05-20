@@ -16,6 +16,11 @@ type Lay struct {
 	Entries      []*LayEntry `yaml:"entries"`
 }
 
+// Identity notes this is a lay file
+func (lay *Lay) Identity() string {
+	return "lay"
+}
+
 // LayEntry is a raw layer entry struct
 type LayEntry struct {
 	Material string `yaml:"material"`

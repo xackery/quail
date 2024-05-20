@@ -21,6 +21,11 @@ type Lod struct {
 	Entries      []*LodEntry `yaml:"entries"`
 }
 
+// Identity returns the type of the struct
+func (lod *Lod) Identity() string {
+	return "lod"
+}
+
 type LodEntry struct {
 	Category   string
 	ObjectName string

@@ -20,6 +20,10 @@ type Dat struct {
 	Tiles           []*DatTile `yaml:"tiles"`
 }
 
+func (dat *Dat) Identity() string {
+	return "dat"
+}
+
 type DatTile struct {
 	Lng               int32                `yaml:"lng"`
 	Lat               int32                `yaml:"lat"`

@@ -18,6 +18,10 @@ type Wld struct {
 	Fragments    map[int]FragmentReadWriter `yaml:"fragments,omitempty"`
 }
 
+func (wld *Wld) Identity() string {
+	return "wld"
+}
+
 // Read reads a wld file that was prepped by Load
 func (wld *Wld) Read(r io.ReadSeeker) error {
 	if wld.Fragments == nil {
@@ -42,7 +46,7 @@ func (wld *Wld) Read(r io.ReadSeeker) error {
 	}
 
 	fragmentCount := dec.Uint32()
-	_ = dec.Uint32() //unk1
+	_ = dec.Uint32() //bspRegionCount
 	_ = dec.Uint32() //unk2
 	hashSize := dec.Uint32()
 	_ = dec.Uint32() //unk3

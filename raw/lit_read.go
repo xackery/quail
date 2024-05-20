@@ -13,6 +13,11 @@ type Lit struct {
 	Entries      []*RGBA `yaml:"entries"`
 }
 
+// Identity returns the type of the struct
+func (lit *Lit) Identity() string {
+	return "lit"
+}
+
 // Decode will read a lit
 func (lit *Lit) Read(r io.ReadSeeker) error {
 	dec := encdec.NewDecoder(r, binary.LittleEndian)

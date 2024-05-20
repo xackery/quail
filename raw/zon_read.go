@@ -21,6 +21,10 @@ type Zon struct {
 	V4Dat        V4Dat    `yaml:"v4dat"`
 }
 
+func (zon *Zon) Identity() string {
+	return "zon"
+}
+
 type V4Info struct {
 	Name                 string  `yaml:"name"`
 	MinLng               int     `yaml:"min_lng"`

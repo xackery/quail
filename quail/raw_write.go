@@ -88,7 +88,7 @@ func (e *Quail) wldWrite(wld *raw.Wld) error {
 				continue
 			}
 
-			dstMat := &raw.WldFragMaterial{}
+			dstMat := &raw.WldFragMaterialDef{}
 			for _, srcProp := range srcMat.Properties {
 				if !strings.Contains(srcProp.Name, "texture") {
 					continue
@@ -98,14 +98,14 @@ func (e *Quail) wldWrite(wld *raw.Wld) error {
 					ext := filepath.Ext(srcProp.Value)
 					baseName := strings.TrimSuffix(srcProp.Value, ext)
 
-					dstTextureList := &raw.WldFragTextureList{ // aka BmInfo
+					dstTextureList := &raw.WldFragBMInfo{ // aka BmInfo
 						NameRef:      raw.NameAdd(baseName),
 						TextureNames: []string{srcProp.Value},
 					}
 					wld.Fragments[fragIndex] = dstTextureList
 					fragIndex++
 
-					texture := &raw.WldFragTexture{ // aka SimpleSpriteDef
+					texture := &raw.WldFragSimpleSpriteDef{ // aka SimpleSpriteDef
 						NameRef:        raw.NameAdd(srcProp.Value),
 						Flags:          0x00000000,
 						TextureCurrent: 0,
@@ -116,7 +116,7 @@ func (e *Quail) wldWrite(wld *raw.Wld) error {
 					wld.Fragments[fragIndex] = texture
 					fragIndex++
 
-					textureRefInst := &raw.WldFragTextureRef{ // aka SimpleSprite
+					textureRefInst := &raw.WldFragSimpleSprite{ // aka SimpleSprite
 						NameRef:    raw.NameAdd(srcProp.Value),
 						TextureRef: int16(fragIndex - 1),
 						Flags:      0x00000000,

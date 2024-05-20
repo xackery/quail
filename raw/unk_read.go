@@ -11,6 +11,11 @@ type Unk struct {
 	Data         []byte `yaml:"data,omitempty"`
 }
 
+// Identity returns the type of the struct
+func (unk *Unk) Identity() string {
+	return "unk"
+}
+
 func (unk *Unk) Read(r io.ReadSeeker) error {
 	buf := &bytes.Buffer{}
 	_, err := buf.ReadFrom(r)

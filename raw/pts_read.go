@@ -16,6 +16,11 @@ type Pts struct {
 	Entries      []*PtsEntry `yaml:"entries,omitempty"`
 }
 
+// Identity returns the type of the struct
+func (pts *Pts) Identity() string {
+	return "pts"
+}
+
 // PtsEntry is a single entry in a particle point
 type PtsEntry struct {
 	Name        string  `yaml:"name"`

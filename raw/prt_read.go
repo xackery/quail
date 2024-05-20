@@ -16,6 +16,11 @@ type Prt struct {
 	Entries      []*PrtEntry `yaml:"entries,omitempty"`
 }
 
+// Identity returns the type of the struct
+func (prt *Prt) Identity() string {
+	return "prt"
+}
+
 // PrtEntry is  ParticleRender entry
 type PrtEntry struct {
 	ID            uint32 `yaml:"id"` //id is actorsemittersnew.edd

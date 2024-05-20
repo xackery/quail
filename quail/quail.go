@@ -112,6 +112,21 @@ func Open(name string, r io.ReadSeeker) (interface{}, error) {
 		}
 		return mds, nil
 	case ".wld":
+		header := make([]byte, 4)
+		_, err = r.Read(header)
+		if err != nil {
+			return nil, fmt.Errorf("read header: %w", err)
+		}
+		r.Seek(0, io.SeekStart)
+		if string(header) != "\x02\x3D\x50\x54" {
+			wldAscii := &raw.WldAscii{}
+			err = wldAscii.Read(r)
+			if err != nil {
+				return nil, fmt.Errorf("wldAscii.Decode: %w", err)
+			}
+			return wldAscii, nil
+		}
+
 		wld := &raw.Wld{}
 		err = wld.Read(r)
 		if err != nil {

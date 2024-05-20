@@ -11,6 +11,11 @@ type Bmp struct {
 	Data         string `yaml:"data"`
 }
 
+// Identity returns the type of the struct
+func (bmp *Bmp) Identity() string {
+	return "bmp"
+}
+
 func (bmp *Bmp) Read(r io.ReadSeeker) error {
 	//var err error
 	//dec := encdec.NewDecoder(r, binary.LittleEndian)

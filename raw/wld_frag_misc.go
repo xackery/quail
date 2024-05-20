@@ -179,20 +179,20 @@ func (e *WldFragSkyRegion) Read(r io.ReadSeeker) error {
 	return nil
 }
 
-// WldFragZone is Zone in libeq, Region Flag in openzone, ZONE in wld, BspRegionType in lantern
-type WldFragZone struct {
+// WldFragRegionType is Zone in libeq, Region Flag in openzone, ZONE in wld, BspRegionType in lantern
+type WldFragRegionType struct {
 	FragName string `yaml:"frag_name"`
 }
 
-func (e *WldFragZone) FragCode() int {
+func (e *WldFragRegionType) FragCode() int {
 	return 0x29
 }
 
-func (e *WldFragZone) Write(w io.Writer) error {
+func (e *WldFragRegionType) Write(w io.Writer) error {
 	return nil
 }
 
-func (e *WldFragZone) Read(r io.ReadSeeker) error {
+func (e *WldFragRegionType) Read(r io.ReadSeeker) error {
 	return nil
 }
 

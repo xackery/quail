@@ -3,14 +3,17 @@ package raw
 import (
 	"fmt"
 	"io"
+	"strings"
 )
 
 type Reader interface {
+	Identity() string
 	Read(r io.ReadSeeker) error
 	SetFileName(name string)
 }
 
 type Writer interface {
+	Identity() string
 	FileName() string
 	Write(w io.Writer) error
 }
@@ -164,6 +167,15 @@ func Read(ext string, r io.ReadSeeker) (ReadWriter, error) {
 	}
 	err := reader.Read(r)
 	if err != nil {
+		if ext == ".wld" && strings.Contains(err.Error(), "header wanted 0x023d5054") {
+			r.Seek(0, io.SeekStart)
+			reader = &WldAscii{}
+			err = reader.Read(r)
+			if err != nil {
+				return nil, err
+			}
+			return reader, nil
+		}
 		return nil, err
 	}
 	return reader, nil

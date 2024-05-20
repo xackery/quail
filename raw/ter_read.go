@@ -17,6 +17,11 @@ type Ter struct {
 	Triangles    []Triangle  `yaml:"triangles"`
 }
 
+// Identity returns the type of the struct
+func (ter *Ter) Identity() string {
+	return "ter"
+}
+
 // Read reads a TER file
 func (ter *Ter) Read(r io.ReadSeeker) error {
 

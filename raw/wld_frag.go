@@ -27,23 +27,23 @@ type FragmentWriter interface {
 var (
 	fragNames = map[int]string{
 		0:  "Default",
-		1:  "PaletteFile",
+		1:  "DefaultPaletteFile",
 		2:  "UserData",
-		3:  "TextureList",
-		4:  "Texture",
-		5:  "TextureRef",
-		6:  "TwoDSprite",
-		7:  "TwoDSpriteRef",
-		8:  "ThreeDSprite",
-		9:  "ThreeDSpriteRef",
-		10: "FourDSprite",
-		11: "FourDSpriteRef",
-		12: "ParticleSprite",
+		3:  "BMInfo",
+		4:  "SimpleSpriteDef",
+		5:  "SimpleSprite",
+		6:  "Sprite2DDef",
+		7:  "Sprite2D",
+		8:  "Sprite3DDef",
+		9:  "Sprite3D",
+		10: "Sprite4DDef",
+		11: "Sprite4D",
+		12: "ParticleSpriteDef",
 		13: "ParticleSpriteRef",
 		14: "CompositeSprite",
 		15: "CompositeSpriteRef",
-		16: "SkeletonTrack",
-		17: "SkeletonTrackRef",
+		16: "HierarchialSpriteDef",
+		17: "HierarchialSprite",
 		18: "Track",
 		19: "TrackRef",
 		20: "Model",
@@ -117,29 +117,29 @@ func NewFrag(r io.ReadSeeker) FragmentReadWriter {
 	case 0x00:
 		return &WldFragDefault{}
 	case 0x01:
-		return &WldFragPaletteFile{}
+		return &WldFragDefaultPaletteFile{}
 	case 0x02:
 		return &WldFragUserData{}
 	case 0x03:
-		return &WldFragTextureList{}
+		return &WldFragBMInfo{}
 	case 0x04:
-		return &WldFragTexture{}
+		return &WldFragSimpleSpriteDef{}
 	case 0x05:
-		return &WldFragTextureRef{}
+		return &WldFragSimpleSprite{}
 	case 0x06:
-		return &WldFragTwoDSprite{}
+		return &WldFragSprite2DDef{}
 	case 0x07:
-		return &WldFragTwoDSpriteRef{}
+		return &WldFragSprite2D{}
 	case 0x08:
-		return &WldFragThreeDSprite{}
+		return &WldFragSprite3DDef{}
 	case 0x09:
-		return &WldFragThreeDSpriteRef{}
+		return &WldFragSprite3D{}
 	case 0x0A:
-		return &WldFragFourDSprite{}
+		return &WldFragSprite4DDef{}
 	case 0x0B:
-		return &WldFragFourDSpriteRef{}
+		return &WldFragSprite4D{}
 	case 0x0C:
-		return &WldFragParticleSprite{}
+		return &WldFragParticleSpriteDef{}
 	case 0x0D:
 		return &WldFragParticleSpriteRef{}
 	case 0x0E:
@@ -147,17 +147,17 @@ func NewFrag(r io.ReadSeeker) FragmentReadWriter {
 	case 0x0F:
 		return &WldFragCompositeSpriteRef{}
 	case 0x10:
-		return &WldFragSkeletonTrack{}
+		return &WldFragHierarchialSpriteDef{}
 	case 0x11:
-		return &WldFragSkeletonTrackRef{}
+		return &WldFragHierarchialSprite{}
 	case 0x12:
-		return &WldFragTrack{}
+		return &WldFragTrackDef{}
 	case 0x13:
-		return &WldFragTrackRef{}
+		return &WldFragTrack{}
 	case 0x14:
-		return &WldFragModel{}
+		return &WldFragActorDef{}
 	case 0x15:
-		return &WldFragModelRef{}
+		return &WldFragActorInstance{}
 	case 0x16:
 		return &WldFragSphere{}
 	case 0x17:
@@ -169,9 +169,9 @@ func NewFrag(r io.ReadSeeker) FragmentReadWriter {
 	case 0x1A:
 		return &WldFragSphereListRef{}
 	case 0x1B:
-		return &WldFragLight{}
+		return &WldFragLightSource{}
 	case 0x1C:
-		return &WldFragLightRef{}
+		return &WldFragLightSourceReference{}
 	case 0x1D:
 		return &WldFragPointLightOld{}
 	case 0x1E:
@@ -181,9 +181,9 @@ func NewFrag(r io.ReadSeeker) FragmentReadWriter {
 	case 0x20:
 		return &WldFragSoundRef{}
 	case 0x21:
-		return &WldFragWorldTree{}
+		return &WldFragBspTree{}
 	case 0x22:
-		return &WldFragRegion{}
+		return &WldFragBspRegion{}
 	case 0x23:
 		return &WldFragActiveGeoRegion{}
 	case 0x24:
@@ -191,15 +191,15 @@ func NewFrag(r io.ReadSeeker) FragmentReadWriter {
 	case 0x25:
 		return &WldFragDirectionalLightOld{}
 	case 0x26:
-		return &WldFragBlitSprite{}
+		return &WldFragParticleSprite{}
 	case 0x27:
-		return &WldFragBlitSpriteRef{}
+		return &WldFragParticleSpriteReference{}
 	case 0x28:
-		return &WldFragPointLight{}
+		return &WldFragLightInstance{}
 	case 0x29:
-		return &WldFragZone{}
+		return &WldFragRegionType{}
 	case 0x2A:
-		return &WldFragAmbientLight{}
+		return &WldFragGlobalAmbientLight{}
 	case 0x2B:
 		return &WldFragDirectionalLight{}
 	case 0x2C:
@@ -211,13 +211,13 @@ func NewFrag(r io.ReadSeeker) FragmentReadWriter {
 	case 0x2F:
 		return &WldFragDMTrackRef{}
 	case 0x30:
-		return &WldFragMaterial{}
+		return &WldFragMaterialDef{}
 	case 0x31:
 		return &WldFragMaterialList{}
 	case 0x32:
-		return &WldFragDMRGBTrack{}
+		return &WldFragVertexColor{}
 	case 0x33:
-		return &WldFragDMRGBTrackRef{}
+		return &WldFragVertexColorReference{}
 	case 0x34:
 		return &WldFragParticleCloud{}
 	case 0x35:
@@ -225,7 +225,7 @@ func NewFrag(r io.ReadSeeker) FragmentReadWriter {
 	case 0x36:
 		return &WldFragMesh{}
 	case 0x37:
-		return &WldFragMeshAnimated{}
+		return &WldFragMeshAnimatedVertices{}
 	}
 	return nil
 }

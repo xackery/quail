@@ -23,10 +23,18 @@ type Mds struct {
 	BoneAssignments []*MdsBoneAssignment `yaml:"bone_assignments"`
 }
 
+func (mds *Mds) Identity() string {
+	return "mds"
+}
+
 type MdsSub struct {
 }
 
 type MdsBoneAssignment struct {
+}
+
+func (mds *Mds) String() string {
+	return "mds"
 }
 
 // Read reads a mds file
