@@ -81,6 +81,9 @@ func (wld *Wld) Read(r io.ReadSeeker) error {
 		r := bytes.NewReader(data)
 
 		reader := NewFrag(r)
+		if reader == nil {
+			return fmt.Errorf("unknown fragment at offset %d", i)
+		}
 
 		err = reader.Read(r)
 		if err != nil {

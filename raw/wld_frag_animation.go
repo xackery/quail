@@ -24,11 +24,11 @@ type WldFragHierarchialSpriteDef struct {
 }
 
 type WldFragSkeletonEntry struct {
-	NameRef         int32    `yaml:"name_ref"`
-	Flags           uint32   `yaml:"flags"`
-	Track           uint32   `yaml:"track_ref"`
-	MeshOrSpriteRef uint32   `yaml:"mesh_or_sprite_ref"`
-	SubBones        []uint32 `yaml:"sub_bones"`
+	NameRef                   int32    `yaml:"name_ref"`
+	Flags                     uint32   `yaml:"flags"`
+	TrackRef                  uint32   `yaml:"track_ref"`
+	MeshOrSpriteOrParticleRef uint32   `yaml:"mesh_or_sprite_or_particle_ref"`
+	SubBones                  []uint32 `yaml:"sub_bones"`
 }
 
 func (e *WldFragHierarchialSpriteDef) FragCode() int {
@@ -54,8 +54,8 @@ func (e *WldFragHierarchialSpriteDef) Write(w io.Writer) error {
 	for _, bone := range e.Bones {
 		enc.Int32(bone.NameRef)
 		enc.Uint32(bone.Flags)
-		enc.Uint32(bone.Track)
-		enc.Uint32(bone.MeshOrSpriteRef)
+		enc.Uint32(bone.TrackRef)
+		enc.Uint32(bone.MeshOrSpriteOrParticleRef)
 		enc.Uint32(uint32(len(bone.SubBones)))
 		for _, subCount := range bone.SubBones {
 			enc.Uint32(subCount)
@@ -99,8 +99,8 @@ func (e *WldFragHierarchialSpriteDef) Read(r io.ReadSeeker) error {
 		bone := WldFragSkeletonEntry{}
 		bone.NameRef = dec.Int32()
 		bone.Flags = dec.Uint32()
-		bone.Track = dec.Uint32()
-		bone.MeshOrSpriteRef = dec.Uint32()
+		bone.TrackRef = dec.Uint32()
+		bone.MeshOrSpriteOrParticleRef = dec.Uint32()
 		subCount := dec.Uint32()
 		for j := 0; j < int(subCount); j++ {
 			bone.SubBones = append(bone.SubBones, dec.Uint32())
@@ -126,10 +126,10 @@ func (e *WldFragHierarchialSpriteDef) Read(r io.ReadSeeker) error {
 
 // WldFragHierarchialSprite is HierarchialSprite in libeq, SkeletonTrackSetReference in openzone, HIERARCHIALSPRITE (ref) in wld, SkeletonHierarchyReference in lantern
 type WldFragHierarchialSprite struct {
-	FragName      string `yaml:"frag_name"`
-	NameRef       int16  `yaml:"name_ref"`
-	SkeletonTrack int16  `yaml:"skeleton_track_ref"`
-	Flags         uint32 `yaml:"flags"`
+	FragName             string `yaml:"frag_name"`
+	NameRef              int16  `yaml:"name_ref"`
+	HierarchialSpriteRef int16  `yaml:"hierarchial_sprite_ref"`
+	Flags                uint32 `yaml:"flags"`
 }
 
 func (e *WldFragHierarchialSprite) FragCode() int {
@@ -140,7 +140,7 @@ func (e *WldFragHierarchialSprite) Write(w io.Writer) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
 	enc.Int16(e.NameRef)
 	enc.Uint32(e.Flags)
-	enc.Int16(e.SkeletonTrack)
+	enc.Int16(e.HierarchialSpriteRef)
 	err := enc.Error()
 	if err != nil {
 		return fmt.Errorf("write: %w", err)
@@ -153,7 +153,7 @@ func (e *WldFragHierarchialSprite) Read(r io.ReadSeeker) error {
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	e.NameRef = dec.Int16()
 	e.Flags = dec.Uint32()
-	e.SkeletonTrack = dec.Int16()
+	e.HierarchialSpriteRef = dec.Int16()
 	err := dec.Error()
 	if err != nil {
 		return fmt.Errorf("write: %w", err)

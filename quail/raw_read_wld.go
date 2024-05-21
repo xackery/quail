@@ -258,10 +258,10 @@ func (q *Quail) wldConvertSkeletonTrack(world *raw.Wld, frag raw.FragmentReadWri
 
 		var boneModel *common.Model
 
-		if bone.MeshOrSpriteRef > 0 {
-			modelName := raw.Name(int32(bone.MeshOrSpriteRef))
+		if bone.MeshOrSpriteOrParticleRef > 0 {
+			modelName := raw.Name(int32(bone.MeshOrSpriteOrParticleRef))
 			if modelName == "" {
-				return fmt.Errorf("bone %d on skeleton %s mesh ref %d not found", i, name, bone.MeshOrSpriteRef)
+				return fmt.Errorf("bone %d on skeleton %s mesh ref %d not found", i, name, bone.MeshOrSpriteOrParticleRef)
 			}
 
 			boneModel = q.ModelByName(modelName)
@@ -270,10 +270,10 @@ func (q *Quail) wldConvertSkeletonTrack(world *raw.Wld, frag raw.FragmentReadWri
 			}
 		}
 
-		if bone.Track > 0 {
-			trackFragRef, ok := world.Fragments[int(bone.Track)]
+		if bone.TrackRef > 0 {
+			trackFragRef, ok := world.Fragments[int(bone.TrackRef)]
 			if !ok {
-				return fmt.Errorf("bone %d on skeleton %s track ref %d not found", i, name, bone.Track)
+				return fmt.Errorf("bone %d on skeleton %s track ref %d not found", i, name, bone.TrackRef)
 			}
 
 			trackRef, ok := trackFragRef.(*raw.WldFragTrack)

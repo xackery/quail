@@ -8,8 +8,8 @@ import (
 	"github.com/xackery/encdec"
 )
 
-// WldFragLight is LightDef in libeq, WldFragLight Source in openzone, LIGHT (ref) in wld, LightSource in lantern
-type WldFragLight struct {
+// WldFragLightDef is LightDef in libeq, WldFragLightDef Source in openzone, LIGHT (ref) in wld, LightSource in lantern
+type WldFragLightDef struct {
 	FragName        string    `yaml:"frag_name"`
 	NameRef         int32     `yaml:"name_ref"`
 	Flags           uint32    `yaml:"flags"`
@@ -19,11 +19,11 @@ type WldFragLight struct {
 	Colors          []Vector3 `yaml:"colors"`
 }
 
-func (e *WldFragLight) FragCode() int {
-	return FragCodeLight
+func (e *WldFragLightDef) FragCode() int {
+	return FragCodeLightDef
 }
 
-func (e *WldFragLight) Write(w io.Writer) error {
+func (e *WldFragLightDef) Write(w io.Writer) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
 	enc.Int32(e.NameRef)
 	enc.Uint32(e.Flags)
@@ -54,7 +54,7 @@ func (e *WldFragLight) Write(w io.Writer) error {
 	return nil
 }
 
-func (e *WldFragLight) Read(r io.ReadSeeker) error {
+func (e *WldFragLightDef) Read(r io.ReadSeeker) error {
 	e.FragName = FragName(e.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	e.NameRef = dec.Int32()
@@ -88,19 +88,19 @@ func (e *WldFragLight) Read(r io.ReadSeeker) error {
 	return nil
 }
 
-// WldFragLightDef is Light in libeq, Light Source Reference in openzone, POINTLIGHTT ?? in wld, LightSourceReference in lantern
-type WldFragLightDef struct {
+// WldFragLight is Light in libeq, Light Source Reference in openzone, POINTLIGHTT ?? in wld, LightSourceReference in lantern
+type WldFragLight struct {
 	FragName    string `yaml:"frag_name"`
 	NameRef     int32  `yaml:"name_ref"`
 	LightDefRef int32  `yaml:"light_def_ref"`
 	Flags       uint32 `yaml:"flags"`
 }
 
-func (e *WldFragLightDef) FragCode() int {
-	return FragCodeLightDef
+func (e *WldFragLight) FragCode() int {
+	return FragCodeLight
 }
 
-func (e *WldFragLightDef) Write(w io.Writer) error {
+func (e *WldFragLight) Write(w io.Writer) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
 	enc.Int32(e.NameRef)
 	enc.Int32(e.LightDefRef)
@@ -112,7 +112,7 @@ func (e *WldFragLightDef) Write(w io.Writer) error {
 	return nil
 }
 
-func (e *WldFragLightDef) Read(r io.ReadSeeker) error {
+func (e *WldFragLight) Read(r io.ReadSeeker) error {
 	e.FragName = FragName(e.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	e.NameRef = dec.Int32()
@@ -213,7 +213,14 @@ func (e *WldFragDirectionalLightOld) Read(r io.ReadSeeker) error {
 
 // WldFragPointLight is PointLight in libeq, Light Info in openzone, POINTLIGHT in wld, LightInstance in lantern
 type WldFragPointLight struct {
-	FragName string `yaml:"frag_name"`
+	FragName string  `yaml:"frag_name"`
+	NameRef  int32   `yaml:"name_ref"`
+	LightRef int32   `yaml:"light_ref"`
+	Flags    uint32  `yaml:"flags"`
+	X        float32 `yaml:"x"`
+	Y        float32 `yaml:"y"`
+	Z        float32 `yaml:"z"`
+	Radius   float32 `yaml:"radius"`
 }
 
 func (e *WldFragPointLight) FragCode() int {
@@ -221,12 +228,32 @@ func (e *WldFragPointLight) FragCode() int {
 }
 
 func (e *WldFragPointLight) Write(w io.Writer) error {
-	return fmt.Errorf("not implemented")
+	enc := encdec.NewEncoder(w, binary.LittleEndian)
+	enc.Int32(e.NameRef)
+	enc.Int32(e.LightRef)
+	enc.Uint32(e.Flags)
+	enc.Float32(e.X)
+	enc.Float32(e.Y)
+	enc.Float32(e.Z)
+	enc.Float32(e.Radius)
+	err := enc.Error()
+	if err != nil {
+		return fmt.Errorf("write: %w", err)
+	}
+	return nil
 }
 
 func (e *WldFragPointLight) Read(r io.ReadSeeker) error {
 	e.FragName = FragName(e.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
+	e.NameRef = dec.Int32()
+	e.LightRef = dec.Int32()
+	e.Flags = dec.Uint32()
+	e.X = dec.Float32()
+	e.Y = dec.Float32()
+	e.Z = dec.Float32()
+	e.Radius = dec.Float32()
+
 	err := dec.Error()
 	if err != nil {
 		return fmt.Errorf("read: %w", err)
@@ -238,6 +265,7 @@ func (e *WldFragPointLight) Read(r io.ReadSeeker) error {
 type WldFragAmbientLight struct {
 	FragName string   `yaml:"frag_name"`
 	NameRef  int32    `yaml:"name_ref"`
+	LightRef int32    `yaml:"light_ref"`
 	Flags    uint32   `yaml:"flags"`
 	Regions  []uint32 `yaml:"regions"`
 }
@@ -249,6 +277,7 @@ func (e *WldFragAmbientLight) FragCode() int {
 func (e *WldFragAmbientLight) Write(w io.Writer) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
 	enc.Int32(e.NameRef)
+	enc.Int32(e.LightRef)
 	enc.Uint32(e.Flags)
 	enc.Uint32(uint32(len(e.Regions)))
 	for _, region := range e.Regions {

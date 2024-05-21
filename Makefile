@@ -110,6 +110,13 @@ explore-%: ## shortcut for wld-cli to explore a file
 	source .env && go run main.go extract $$EQ_PATH/$*.s3d test/_$*.s3d
 	wld-cli explore test/_$*.s3d/$*.wld
 
+extract-%: ## extract a file
+	mkdir -p test/
+	rm -rf test/_*.s3d/
+	rm -rf test/_*.eqg/
+	source .env && go run main.go extract $$EQ_PATH/$*.s3d test/_$*.s3d
+	wld-cli extract test/_$*.s3d/$*.wld -f json test/_$*.wld.json
+
 test-cover: ## test coverage %'s
 	go test -coverprofile=coverage.out ./...
 	go tool cover -html=coverage.out

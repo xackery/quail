@@ -228,9 +228,9 @@ func NewFrag(r io.ReadSeeker) FragmentReadWriter {
 	case FragCodeSphereList:
 		return &WldFragSphereList{}
 	case FragCodeLight:
-		return &WldFragLight{}
-	case FragCodeLightDef:
 		return &WldFragLightDef{}
+	case FragCodeLightDef:
+		return &WldFragLight{}
 	case FragCodePointLightOld:
 		return &WldFragPointLightOld{}
 	case FragCodePointLightOldDef:

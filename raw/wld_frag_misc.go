@@ -181,7 +181,11 @@ func (e *WldFragSkyRegion) Read(r io.ReadSeeker) error {
 
 // WldFragZone is Zone in libeq, Region Flag in openzone, ZONE in wld, BspRegionType in lantern
 type WldFragZone struct {
-	FragName string `yaml:"frag_name"`
+	FragName string  `yaml:"frag_name"`
+	NameRef  int32   `yaml:"name_ref"`
+	Flags    uint32  `yaml:"flags"`
+	Regions  []int32 `yaml:"regions"`
+	UserData string  `yaml:"user_data"`
 }
 
 func (e *WldFragZone) FragCode() int {
@@ -193,6 +197,26 @@ func (e *WldFragZone) Write(w io.Writer) error {
 }
 
 func (e *WldFragZone) Read(r io.ReadSeeker) error {
+	e.FragName = FragName(e.FragCode())
+
+	dec := encdec.NewDecoder(r, binary.LittleEndian)
+	e.NameRef = dec.Int32()
+	e.Flags = dec.Uint32()
+	regionCount := dec.Uint32()
+	e.Regions = make([]int32, 0)
+	for i := uint32(0); i < regionCount; i++ {
+		region := dec.Int32()
+		e.Regions = append(e.Regions, region)
+	}
+	userDataSize := dec.Uint32()
+	if userDataSize > 0 {
+		e.UserData = dec.StringFixed(int(userDataSize))
+	}
+	err := dec.Error()
+	if err != nil {
+		return fmt.Errorf("read: %w", err)
+	}
+
 	return nil
 }
 

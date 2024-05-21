@@ -406,10 +406,10 @@ func (e *WldFragSprite3DDef) Read(r io.ReadSeeker) error {
 
 // WldFragSprite3D is Sprite3D in libeq, Camera Reference in openzone, 3DSPRITE (ref) in wld, CameraReference in lantern
 type WldFragSprite3D struct {
-	FragName  string `yaml:"frag_name"`
-	NameRef   int32
-	ThreeDRef int32
-	Flags     uint32
+	FragName       string `yaml:"frag_name"`
+	NameRef        int32
+	Sprite3DDefRef int32
+	Flags          uint32
 }
 
 func (e *WldFragSprite3D) FragCode() int {
@@ -419,7 +419,7 @@ func (e *WldFragSprite3D) FragCode() int {
 func (e *WldFragSprite3D) Write(w io.Writer) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
 	enc.Int32(e.NameRef)
-	enc.Int32(e.ThreeDRef)
+	enc.Int32(e.Sprite3DDefRef)
 	enc.Uint32(e.Flags)
 	err := enc.Error()
 	if err != nil {
@@ -432,7 +432,7 @@ func (e *WldFragSprite3D) Read(r io.ReadSeeker) error {
 	e.FragName = FragName(e.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	e.NameRef = dec.Int32()
-	e.ThreeDRef = dec.Int32()
+	e.Sprite3DDefRef = dec.Int32()
 	e.Flags = dec.Uint32()
 	err := dec.Error()
 	if err != nil {
@@ -691,7 +691,7 @@ type WldFragDMSpriteDef struct {
 	Params2           uint32                         `yaml:"params_2"`
 	Something2        uint32                         `yaml:"something_2"`
 	Something3        uint32                         `yaml:"something_3"`
-	Verticies         []Vector3                      `yaml:"verticies"`
+	Vertices          []Vector3                      `yaml:"verticies"`
 	TexCoords         []Vector3                      `yaml:"tex_coords"`
 	Normals           []Vector3                      `yaml:"normals"`
 	Colors            []int32                        `yaml:"colors"`
@@ -749,7 +749,7 @@ func (e *WldFragDMSpriteDef) Write(w io.Writer) error {
 	enc.Uint32(e.Params2)
 	enc.Uint32(e.Something2)
 	enc.Uint32(e.Something3)
-	for _, vertex := range e.Verticies {
+	for _, vertex := range e.Vertices {
 		enc.Float32(vertex.X)
 		enc.Float32(vertex.Y)
 		enc.Float32(vertex.Z)
@@ -851,7 +851,7 @@ func (e *WldFragDMSpriteDef) Read(r io.ReadSeeker) error {
 		v.X = dec.Float32()
 		v.Y = dec.Float32()
 		v.Z = dec.Float32()
-		e.Verticies = append(e.Verticies, v)
+		e.Vertices = append(e.Vertices, v)
 	}
 
 	for i := uint32(0); i < texCoordCount; i++ {
