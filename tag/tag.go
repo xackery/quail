@@ -7,6 +7,7 @@ import (
 	"os"
 	"sync"
 
+	"github.com/xackery/encdec"
 	"github.com/xackery/quail/log"
 )
 
@@ -15,6 +16,7 @@ var (
 	lastPos        int64
 	tags           []tag
 	lastColorIndex int
+	coder          encdec.Coder
 )
 
 type tag struct {
@@ -32,6 +34,38 @@ func New() {
 	mu.Lock()
 	defer mu.Unlock()
 	tags = []tag{}
+}
+
+func NewWithCoder(c encdec.Coder) {
+	if flag.Lookup("test.v") == nil {
+		return
+	}
+	mu.Lock()
+	defer mu.Unlock()
+	tags = []tag{}
+	coder = c
+	lastPos = coder.Pos()
+}
+
+func SetCoder(c encdec.Coder) {
+	if flag.Lookup("test.v") == nil {
+		return
+	}
+	mu.Lock()
+	defer mu.Unlock()
+	coder = c
+	lastPos = coder.Pos()
+}
+
+// Mark requires coder to be set, but smartly marks from last position to current position
+func Mark(color string, caption string) {
+	if flag.Lookup("test.v") == nil {
+		return
+	}
+	if coder == nil {
+		panic("mark requires a coder to be set")
+	}
+	Add(lastPos, coder.Pos(), color, caption)
 }
 
 // LastPos returns the last position
@@ -52,6 +86,7 @@ func Close() {
 	mu.Lock()
 	defer mu.Unlock()
 	tags = []tag{}
+	coder = nil
 }
 
 // Add creates a new tag

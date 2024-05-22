@@ -72,7 +72,7 @@ func (mds *Mds) Read(r io.ReadSeeker) error {
 		chunk = append(chunk, b)
 	}
 
-	NamesSet(names)
+	NameSet(names)
 
 	//model.Header.Name = lastElement
 

@@ -1,4 +1,4 @@
-package wad
+package ascii
 
 import (
 	"fmt"

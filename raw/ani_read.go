@@ -72,7 +72,7 @@ func (ani *Ani) Read(r io.ReadSeeker) error {
 		chunk = append(chunk, b)
 	}
 
-	NamesSet(names)
+	NameSet(names)
 
 	for i := 0; i < int(boneCount); i++ {
 		bone := &AniBone{}

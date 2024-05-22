@@ -134,6 +134,10 @@ func TestPfs_Remove(t *testing.T) {
 }
 
 func TestPfs_Extract(t *testing.T) {
+	eqPath := os.Getenv("EQ_PATH")
+	if eqPath == "" {
+		t.Skip("EQ_PATH not set")
+	}
 	type fields struct {
 		name            string
 		files           []*FileEntry

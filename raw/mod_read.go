@@ -57,7 +57,7 @@ func (mod *Mod) Read(r io.ReadSeeker) error {
 		chunk = append(chunk, b)
 	}
 
-	NamesSet(names)
+	NameSet(names)
 
 	//log.Debugf("names: %+v", names)
 

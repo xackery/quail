@@ -10,7 +10,6 @@ import (
 
 // WldFragParticleSpriteDef is ParticleSpriteDef in libeq, empty in openzone, PARTICLESPRITEDEF in wld
 type WldFragParticleSpriteDef struct {
-	FragName                    string    `yaml:"frag_name"`
 	NameRef                     int32     `yaml:"name_ref"`
 	Flags                       uint32    `yaml:"flags"`
 	VerticesCount               uint32    `yaml:"vertices_count"`
@@ -85,7 +84,6 @@ func (e *WldFragParticleSpriteDef) Write(w io.Writer) error {
 }
 
 func (e *WldFragParticleSpriteDef) Read(r io.ReadSeeker) error {
-	e.FragName = FragName(e.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	e.NameRef = dec.Int32()
 	e.Flags = dec.Uint32()
@@ -139,7 +137,6 @@ func (e *WldFragParticleSpriteDef) Read(r io.ReadSeeker) error {
 
 // WldFragParticleSprite is ParticleSprite in libeq, empty in openzone, PARTICLESPRITE (ref) in wld
 type WldFragParticleSprite struct {
-	FragName             string `yaml:"frag_name"`
 	NameRef              int32  `yaml:"name_ref"`
 	ParticleSpriteDefRef int32  `yaml:"particle_sprite_def_ref"`
 	Flags                uint32 `yaml:"flags"`
@@ -162,7 +159,6 @@ func (e *WldFragParticleSprite) Write(w io.Writer) error {
 }
 
 func (e *WldFragParticleSprite) Read(r io.ReadSeeker) error {
-	e.FragName = FragName(e.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	e.NameRef = dec.Int32()
 	e.ParticleSpriteDefRef = dec.Int32()
@@ -176,9 +172,8 @@ func (e *WldFragParticleSprite) Read(r io.ReadSeeker) error {
 
 // WldFragCompositeSpriteDef is empty in libeq, empty in openzone, COMPOSITESPRITEDEF in wld, Actor in lantern
 type WldFragCompositeSpriteDef struct {
-	FragName string `yaml:"frag_name"`
-	NameRef  int32  `yaml:"name_ref"`
-	Flags    uint32 `yaml:"flags"`
+	NameRef int32  `yaml:"name_ref"`
+	Flags   uint32 `yaml:"flags"`
 }
 
 func (e *WldFragCompositeSpriteDef) FragCode() int {
@@ -197,7 +192,6 @@ func (e *WldFragCompositeSpriteDef) Write(w io.Writer) error {
 }
 
 func (e *WldFragCompositeSpriteDef) Read(r io.ReadSeeker) error {
-	e.FragName = FragName(e.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	e.NameRef = dec.Int32()
 	e.Flags = dec.Uint32()
@@ -210,7 +204,6 @@ func (e *WldFragCompositeSpriteDef) Read(r io.ReadSeeker) error {
 
 // WldFragCompositeSprite is empty in libeq, empty in openzone, COMPOSITESPRITE (ref) in wld
 type WldFragCompositeSprite struct {
-	FragName              string `yaml:"frag_name"`
 	NameRef               int32  `yaml:"name_ref"`
 	CompositeSpriteDefRef int32  `yaml:"composite_sprite_def_ref"`
 	Flags                 uint32 `yaml:"flags"`
@@ -233,7 +226,6 @@ func (e *WldFragCompositeSprite) Write(w io.Writer) error {
 }
 
 func (e *WldFragCompositeSprite) Read(r io.ReadSeeker) error {
-	e.FragName = FragName(e.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	e.NameRef = dec.Int32()
 	e.CompositeSpriteDefRef = dec.Int32()
@@ -247,7 +239,6 @@ func (e *WldFragCompositeSprite) Read(r io.ReadSeeker) error {
 
 // WldFragActorDef is ActorDef in libeq, Static in openzone, ACTORDEF in wld
 type WldFragActorDef struct {
-	FragName         string               `yaml:"frag_name"`
 	NameRef          int32                `yaml:"name_ref"`
 	Flags            uint32               `yaml:"flags"`
 	CallbackNameRef  int32                `yaml:"callback_name_ref"`
@@ -313,7 +304,6 @@ func (e *WldFragActorDef) Write(w io.Writer) error {
 }
 
 func (e *WldFragActorDef) Read(r io.ReadSeeker) error {
-	e.FragName = FragName(e.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	e.NameRef = dec.Int32()
 	e.Flags = dec.Uint32()
@@ -356,7 +346,6 @@ func (e *WldFragActorDef) Read(r io.ReadSeeker) error {
 
 // WldFragActor is Actor in libeq, Object Location in openzone, ACTORINST in wld, ObjectInstance in lantern
 type WldFragActor struct {
-	FragName       string  `yaml:"frag_name"`
 	NameRef        int32   `yaml:"name_ref"`
 	ActorDefRef    int32   `yaml:"actor_def_ref"`
 	Flags          uint32  `yaml:"flags"`
@@ -411,7 +400,6 @@ func (e *WldFragActor) Write(w io.Writer) error {
 }
 
 func (e *WldFragActor) Read(r io.ReadSeeker) error {
-	e.FragName = FragName(e.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	e.NameRef = dec.Int32()
 	e.ActorDefRef = dec.Int32()
@@ -448,9 +436,8 @@ func (e *WldFragActor) Read(r io.ReadSeeker) error {
 
 // WldFragSphere is Sphere in libeq, Zone Unknown in openzone, SPHERE (ref) in wld, Fragment16 in lantern
 type WldFragSphere struct {
-	FragName string  `yaml:"frag_name"`
-	NameRef  int32   `yaml:"name_ref"`
-	Radius   float32 `yaml:"radius"`
+	NameRef int32   `yaml:"name_ref"`
+	Radius  float32 `yaml:"radius"`
 }
 
 func (e *WldFragSphere) FragCode() int {
@@ -469,7 +456,6 @@ func (e *WldFragSphere) Write(w io.Writer) error {
 }
 
 func (e *WldFragSphere) Read(r io.ReadSeeker) error {
-	e.FragName = FragName(e.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	e.NameRef = dec.Int32()
 	e.Radius = dec.Float32()
@@ -482,7 +468,6 @@ func (e *WldFragSphere) Read(r io.ReadSeeker) error {
 
 // WldFragSphereListDef is SphereListDef in libeq, empty in openzone, SPHERELISTDEFINITION in wld
 type WldFragSphereListDef struct {
-	FragName    string  `yaml:"frag_name"`
 	NameRef     int32   `yaml:"name_ref"`
 	Flags       uint32  `yaml:"flags"`
 	SphereCount uint32  `yaml:"sphere_count"`
@@ -516,7 +501,6 @@ func (e *WldFragSphereListDef) Write(w io.Writer) error {
 }
 
 func (e *WldFragSphereListDef) Read(r io.ReadSeeker) error {
-	e.FragName = FragName(e.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	e.NameRef = dec.Int32()
 	e.Flags = dec.Uint32()
@@ -541,7 +525,6 @@ func (e *WldFragSphereListDef) Read(r io.ReadSeeker) error {
 
 // WldFragSphereList is SphereList in libeq, empty in openzone, SPHERELIST (ref) in wld
 type WldFragSphereList struct {
-	FragName         string `yaml:"frag_name"`
 	NameRef          int32  `yaml:"name_ref"`
 	SphereListDefRef int32  `yaml:"sphere_list_def_ref"`
 	Params1          uint32 `yaml:"params1"`
@@ -564,7 +547,6 @@ func (e *WldFragSphereList) Write(w io.Writer) error {
 }
 
 func (e *WldFragSphereList) Read(r io.ReadSeeker) error {
-	e.FragName = FragName(e.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	e.NameRef = dec.Int32()
 	e.SphereListDefRef = dec.Int32()

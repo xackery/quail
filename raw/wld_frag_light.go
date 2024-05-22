@@ -10,7 +10,6 @@ import (
 
 // WldFragLightDef is LightDef in libeq, WldFragLightDef Source in openzone, LIGHT (ref) in wld, LightSource in lantern
 type WldFragLightDef struct {
-	FragName        string    `yaml:"frag_name"`
 	NameRef         int32     `yaml:"name_ref"`
 	Flags           uint32    `yaml:"flags"`
 	FrameCurrentRef uint32    `yaml:"frame_current_ref"`
@@ -55,7 +54,6 @@ func (e *WldFragLightDef) Write(w io.Writer) error {
 }
 
 func (e *WldFragLightDef) Read(r io.ReadSeeker) error {
-	e.FragName = FragName(e.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	e.NameRef = dec.Int32()
 	e.Flags = dec.Uint32()
@@ -90,7 +88,6 @@ func (e *WldFragLightDef) Read(r io.ReadSeeker) error {
 
 // WldFragLight is Light in libeq, Light Source Reference in openzone, POINTLIGHTT ?? in wld, LightSourceReference in lantern
 type WldFragLight struct {
-	FragName    string `yaml:"frag_name"`
 	NameRef     int32  `yaml:"name_ref"`
 	LightDefRef int32  `yaml:"light_def_ref"`
 	Flags       uint32 `yaml:"flags"`
@@ -113,7 +110,6 @@ func (e *WldFragLight) Write(w io.Writer) error {
 }
 
 func (e *WldFragLight) Read(r io.ReadSeeker) error {
-	e.FragName = FragName(e.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	e.NameRef = dec.Int32()
 	e.LightDefRef = dec.Int32()
@@ -127,9 +123,8 @@ func (e *WldFragLight) Read(r io.ReadSeeker) error {
 
 // WldFragPointLightOld is empty in libeq, empty in openzone, POINTLIGHT?? in wld
 type WldFragPointLightOld struct {
-	FragName string `yaml:"frag_name"`
-	NameRef  int32  `yaml:"name_ref"`
-	Flags    uint32 `yaml:"flags"`
+	NameRef int32  `yaml:"name_ref"`
+	Flags   uint32 `yaml:"flags"`
 }
 
 func (e *WldFragPointLightOld) FragCode() int {
@@ -148,7 +143,6 @@ func (e *WldFragPointLightOld) Write(w io.Writer) error {
 }
 
 func (e *WldFragPointLightOld) Read(r io.ReadSeeker) error {
-	e.FragName = FragName(e.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	e.NameRef = dec.Int32()
 	e.Flags = dec.Uint32()
@@ -161,9 +155,8 @@ func (e *WldFragPointLightOld) Read(r io.ReadSeeker) error {
 
 // WldFragPointLightOldDef is empty in libeq, empty in openzone, empty in wld
 type WldFragPointLightOldDef struct {
-	FragName      string `yaml:"frag_name"`
-	NameRef       int32  `yaml:"name_ref"`
-	PointLightRef int32  `yaml:"point_light_ref"`
+	NameRef       int32 `yaml:"name_ref"`
+	PointLightRef int32 `yaml:"point_light_ref"`
 }
 
 func (e *WldFragPointLightOldDef) FragCode() int {
@@ -182,7 +175,6 @@ func (e *WldFragPointLightOldDef) Write(w io.Writer) error {
 }
 
 func (e *WldFragPointLightOldDef) Read(r io.ReadSeeker) error {
-	e.FragName = FragName(e.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	e.NameRef = dec.Int32()
 	e.PointLightRef = dec.Int32()
@@ -195,7 +187,6 @@ func (e *WldFragPointLightOldDef) Read(r io.ReadSeeker) error {
 
 // DirectionalLigtOld is empty in libeq, empty in openzone, DIRECTIONALLIGHT in wld
 type WldFragDirectionalLightOld struct {
-	FragName string `yaml:"frag_name"`
 }
 
 func (e *WldFragDirectionalLightOld) FragCode() int {
@@ -207,13 +198,11 @@ func (e *WldFragDirectionalLightOld) Write(w io.Writer) error {
 }
 
 func (e *WldFragDirectionalLightOld) Read(r io.ReadSeeker) error {
-	e.FragName = FragName(e.FragCode())
 	return nil
 }
 
 // WldFragPointLight is PointLight in libeq, Light Info in openzone, POINTLIGHT in wld, LightInstance in lantern
 type WldFragPointLight struct {
-	FragName string  `yaml:"frag_name"`
 	NameRef  int32   `yaml:"name_ref"`
 	LightRef int32   `yaml:"light_ref"`
 	Flags    uint32  `yaml:"flags"`
@@ -244,7 +233,6 @@ func (e *WldFragPointLight) Write(w io.Writer) error {
 }
 
 func (e *WldFragPointLight) Read(r io.ReadSeeker) error {
-	e.FragName = FragName(e.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	e.NameRef = dec.Int32()
 	e.LightRef = dec.Int32()
@@ -263,7 +251,6 @@ func (e *WldFragPointLight) Read(r io.ReadSeeker) error {
 
 // WldFragAmbientLight is AmbientLight in libeq, Ambient Light in openzone, AMBIENTLIGHT in wld, WldFragAmbientLight in lantern
 type WldFragAmbientLight struct {
-	FragName string   `yaml:"frag_name"`
 	NameRef  int32    `yaml:"name_ref"`
 	LightRef int32    `yaml:"light_ref"`
 	Flags    uint32   `yaml:"flags"`
@@ -291,7 +278,6 @@ func (e *WldFragAmbientLight) Write(w io.Writer) error {
 }
 
 func (e *WldFragAmbientLight) Read(r io.ReadSeeker) error {
-	e.FragName = FragName(e.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	e.NameRef = dec.Int32()
 	e.Flags = dec.Uint32()
@@ -309,7 +295,6 @@ func (e *WldFragAmbientLight) Read(r io.ReadSeeker) error {
 
 // WldFragDirectionalLight is DirectionalLight in libeq, empty in openzone, DIRECTIONALLIGHT in wld
 type WldFragDirectionalLight struct {
-	FragName string `yaml:"frag_name"`
 }
 
 func (e *WldFragDirectionalLight) FragCode() int {
@@ -321,7 +306,6 @@ func (e *WldFragDirectionalLight) Write(w io.Writer) error {
 }
 
 func (e *WldFragDirectionalLight) Read(r io.ReadSeeker) error {
-	e.FragName = FragName(e.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	err := dec.Error()
 	if err != nil {

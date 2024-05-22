@@ -1,10 +1,15 @@
-// vwld is Virtual World file format, it is used to make binary world more human readable and editable
-package vwld
+// virtual is Virtual World file format, it is used to make binary world more human readable and editable
+package virtual
 
-import "github.com/xackery/quail/raw"
+import (
+	"fmt"
+	"strings"
 
-// VWld is a struct representing a VWld file
-type VWld struct {
+	"github.com/xackery/quail/raw"
+)
+
+// Wld is a struct representing a Wld file
+type Wld struct {
 	FileName              string
 	GlobalAmbientLight    string
 	Version               uint32
@@ -45,7 +50,7 @@ type Bitmap struct {
 	SimpleSprite    SpriteInstance
 }
 
-func (wld *VWld) bitmapByFragID(fragID uint32) *Bitmap {
+func (wld *Wld) bitmapByFragID(fragID uint32) *Bitmap {
 	for _, bitmap := range wld.Bitmaps {
 		if bitmap.fragID == fragID {
 			return bitmap
@@ -54,7 +59,7 @@ func (wld *VWld) bitmapByFragID(fragID uint32) *Bitmap {
 	return nil
 }
 
-func (wld *VWld) bitmapByTag(tag string) *Bitmap {
+func (wld *Wld) bitmapByTag(tag string) *Bitmap {
 	for _, bitmap := range wld.Bitmaps {
 		if bitmap.Tag == tag {
 			return bitmap
@@ -72,7 +77,18 @@ type Sprite struct {
 	Bitmaps      []string
 }
 
-func (wld *VWld) spriteByFragID(fragID uint32) *Sprite {
+func (e *Sprite) Ascii() string {
+	// spk usually
+
+	out := "SIMPLESPRITEDEF\n"
+	out += fmt.Sprintf("\tSIMPLESPRITETAG \"%s\"\n", e.Tag)
+	out += fmt.Sprintf("\tNUMFRAMES %d\n", 1)
+	out += fmt.Sprintf("\tBMINFO %s\n", strings.Join(e.Bitmaps, ` `))
+	out += "ENDSIMPLESPRITEDEF\n\n"
+	return out
+}
+
+func (wld *Wld) spriteByFragID(fragID uint32) *Sprite {
 	for _, sprite := range wld.Sprites {
 		if sprite.fragID == fragID {
 			return sprite
@@ -81,7 +97,7 @@ func (wld *VWld) spriteByFragID(fragID uint32) *Sprite {
 	return nil
 }
 
-func (wld *VWld) spriteByTag(tag string) *Sprite {
+func (wld *Wld) spriteByTag(tag string) *Sprite {
 	for _, sprite := range wld.Sprites {
 		if sprite.Tag == tag {
 			return sprite
@@ -97,7 +113,7 @@ type SpriteInstance struct {
 	Sprite string
 }
 
-func (wld *VWld) spriteInstanceByFragID(fragID uint32) *SpriteInstance {
+func (wld *Wld) spriteInstanceByFragID(fragID uint32) *SpriteInstance {
 	for _, spriteInstance := range wld.SpriteInstances {
 		if spriteInstance.fragID == fragID {
 			return spriteInstance
@@ -106,7 +122,7 @@ func (wld *VWld) spriteInstanceByFragID(fragID uint32) *SpriteInstance {
 	return nil
 }
 
-func (wld *VWld) spriteInstanceByTag(tag string) *SpriteInstance {
+func (wld *Wld) spriteInstanceByTag(tag string) *SpriteInstance {
 	for _, spriteInstance := range wld.SpriteInstances {
 		if spriteInstance.Tag == tag {
 			return spriteInstance
@@ -117,15 +133,32 @@ func (wld *VWld) spriteInstanceByTag(tag string) *SpriteInstance {
 
 // Particle is also known as BlitSpriteDef
 type Particle struct {
-	fragID           uint32
-	Tag              string
-	Flags            uint32
-	SpriteTag        string
-	Unknown          int32
-	ParticleCloudDef ParticleInstance
+	fragID         uint32
+	Tag            string
+	Flags          uint32
+	SpriteTag      string
+	Unknown        int32
+	spriteInstance *SpriteInstance
 }
 
-func (wld *VWld) particleByFragID(fragID uint32) *Particle {
+func (e *Particle) Ascii() string {
+	// SPK usually
+	out := "PARTICLEDEFINITION\n"
+	out += fmt.Sprintf("\tTAG \"%s\"\n", e.Tag)
+	if e.spriteInstance != nil {
+		out += "\tSIMPLESPRITEINST\n"
+		out += fmt.Sprintf("\t\tTAG %s\n", e.spriteInstance.Tag)
+		if e.spriteInstance.Flags != 0 {
+			out += fmt.Sprintf("\t\tFLAGS %d\n", e.spriteInstance.Flags)
+		}
+		out += "\tENDSIMPLESPRITEINST\n"
+	}
+	out += "ENDPARTICLEDEFINITION\n\n"
+	return out
+
+}
+
+func (wld *Wld) particleByFragID(fragID uint32) *Particle {
 	for _, particle := range wld.Particles {
 		if particle.fragID == fragID {
 			return particle
@@ -134,7 +167,7 @@ func (wld *VWld) particleByFragID(fragID uint32) *Particle {
 	return nil
 }
 
-func (wld *VWld) particleByTag(tag string) *Particle {
+func (wld *Wld) particleByTag(tag string) *Particle {
 	for _, particle := range wld.Particles {
 		if particle.Tag == tag {
 			return particle
@@ -166,10 +199,14 @@ type ParticleInstance struct {
 	SpawnRate             uint32   `yaml:"spawn_rate"`
 	SpawnScale            float32  `yaml:"spawn_scale"`
 	Color                 raw.RGBA `yaml:"color"`
-	Particle              string   `yaml:"particle"`
+	particle              *Particle
 }
 
-func (wld *VWld) particleInstanceByFragID(fragID uint32) *ParticleInstance {
+func (e *ParticleInstance) Ascii() string {
+	return ""
+}
+
+func (wld *Wld) particleInstanceByFragID(fragID uint32) *ParticleInstance {
 	for _, particleInstance := range wld.ParticleInstances {
 		if particleInstance.fragID == fragID {
 			return particleInstance
@@ -178,7 +215,7 @@ func (wld *VWld) particleInstanceByFragID(fragID uint32) *ParticleInstance {
 	return nil
 }
 
-func (wld *VWld) particleInstanceByTag(tag string) *ParticleInstance {
+func (wld *Wld) particleInstanceByTag(tag string) *ParticleInstance {
 	for _, particleInstance := range wld.ParticleInstances {
 		if particleInstance.Tag == tag {
 			return particleInstance
@@ -189,19 +226,43 @@ func (wld *VWld) particleInstanceByTag(tag string) *ParticleInstance {
 
 // Material is a struct representing a material
 type Material struct {
-	fragID        uint32
-	Tag           string
-	Flags         uint32    `yaml:"flags"`
-	RenderMethod  uint32    `yaml:"render_method"`
-	RGBPen        uint32    `yaml:"rgb_pen"`
-	Brightness    float32   `yaml:"brightness"`
-	ScaledAmbient float32   `yaml:"scaled_ambient"`
-	Texture       string    `yaml:"texture"`
-	Pairs         [2]uint32 `yaml:"pairs"`
-	Palette       MaterialInstance
+	fragID         uint32
+	Tag            string
+	Flags          uint32  `yaml:"flags"`
+	RenderMethod   uint32  `yaml:"render_method"`
+	RGBPen         uint32  `yaml:"rgb_pen"`
+	Brightness     float32 `yaml:"brightness"`
+	ScaledAmbient  float32 `yaml:"scaled_ambient"`
+	Texture        string  `yaml:"texture"`
+	spriteInstance *SpriteInstance
+	Pairs          [2]uint32 `yaml:"pairs"`
+	Palette        MaterialInstance
 }
 
-func (wld *VWld) materialByFragID(fragID uint32) *Material {
+func (e *Material) Ascii() string {
+	// SPK usually
+	out := "MATERIALDEFINITION\n"
+	out += fmt.Sprintf("\tTAG \"%s\"\n", e.Tag)
+	out += fmt.Sprintf("\tRENDERMETHOD %s\n", renderMethod(e.RenderMethod))
+	out += fmt.Sprintf("\tRGBPEN %d %d %d\n", (e.RGBPen>>16)&0xFF, (e.RGBPen>>8)&0xFF, e.RGBPen&0xFF)
+	out += fmt.Sprintf("\tBRIGHTNESS %0.6f\n", e.Brightness)
+	out += fmt.Sprintf("\tSCALEDAMBIENT %0.6f\n", e.ScaledAmbient)
+
+	if e.spriteInstance != nil {
+		out += "\tSIMPLESPRITEINST\n"
+		out += fmt.Sprintf("\t\tTAG %s\n", e.spriteInstance.Tag)
+		if e.spriteInstance.Flags != 0 {
+			out += fmt.Sprintf("\t\tFLAGS %d\n", e.spriteInstance.Flags)
+		}
+		out += "\tENDSIMPLESPRITEINST\n"
+	}
+	out += fmt.Sprintf("\tTEXTURE \"%s\" // likely simplespriteref?\n", e.Texture)
+	out += fmt.Sprintf("\tPAIRS %d %d\n", e.Pairs[0], e.Pairs[1])
+	out += "ENDMATERIALDEFINITION\n\n"
+	return out
+}
+
+func (wld *Wld) materialByFragID(fragID uint32) *Material {
 	for _, material := range wld.Materials {
 		if material.fragID == fragID {
 			return material
@@ -210,7 +271,7 @@ func (wld *VWld) materialByFragID(fragID uint32) *Material {
 	return nil
 }
 
-func (wld *VWld) materialByTag(tag string) *Material {
+func (wld *Wld) materialByTag(tag string) *Material {
 	for _, material := range wld.Materials {
 		if material.Tag == tag {
 			return material
@@ -227,7 +288,7 @@ type MaterialInstance struct {
 	Materials []string
 }
 
-func (wld *VWld) materialInstanceByFragID(fragID uint32) *MaterialInstance {
+func (wld *Wld) materialInstanceByFragID(fragID uint32) *MaterialInstance {
 	for _, materialInstance := range wld.MaterialInstances {
 		if materialInstance.fragID == fragID {
 			return materialInstance
@@ -236,7 +297,7 @@ func (wld *VWld) materialInstanceByFragID(fragID uint32) *MaterialInstance {
 	return nil
 }
 
-func (wld *VWld) materialInstanceByTag(tag string) *MaterialInstance {
+func (wld *Wld) materialInstanceByTag(tag string) *MaterialInstance {
 	for _, materialInstance := range wld.MaterialInstances {
 		if materialInstance.Tag == tag {
 			return materialInstance
@@ -268,7 +329,7 @@ type Mesh struct {
 	Triangles         []raw.Triangle `yaml:"triangles"`
 }
 
-func (wld *VWld) meshByFragID(fragID uint32) *Mesh {
+func (wld *Wld) meshByFragID(fragID uint32) *Mesh {
 	for _, mesh := range wld.Meshes {
 		if mesh.fragID == fragID {
 			return mesh
@@ -277,7 +338,7 @@ func (wld *VWld) meshByFragID(fragID uint32) *Mesh {
 	return nil
 }
 
-func (wld *VWld) meshByTag(tag string) *Mesh {
+func (wld *Wld) meshByTag(tag string) *Mesh {
 	for _, mesh := range wld.Meshes {
 		if mesh.Tag == tag {
 			return mesh
@@ -293,7 +354,7 @@ type MeshInstance struct {
 	Params uint32
 }
 
-func (wld *VWld) meshInstanceByFragID(fragID uint32) *MeshInstance {
+func (wld *Wld) meshInstanceByFragID(fragID uint32) *MeshInstance {
 	for _, meshInstance := range wld.MeshInstances {
 		if meshInstance.fragID == fragID {
 			return meshInstance
@@ -302,7 +363,7 @@ func (wld *VWld) meshInstanceByFragID(fragID uint32) *MeshInstance {
 	return nil
 }
 
-func (wld *VWld) meshInstanceByTag(tag string) *MeshInstance {
+func (wld *Wld) meshInstanceByTag(tag string) *MeshInstance {
 	for _, meshInstance := range wld.MeshInstances {
 		if meshInstance.Tag == tag {
 			return meshInstance
@@ -363,7 +424,7 @@ type AlternateMeshSize6Entry struct {
 	Unk5 uint32 `yaml:"unk_5"`
 }
 
-func (wld *VWld) alternateMeshByFragID(fragID uint32) *AlternateMesh {
+func (wld *Wld) alternateMeshByFragID(fragID uint32) *AlternateMesh {
 	for _, alternateMesh := range wld.AlternateMeshes {
 		if alternateMesh.fragID == fragID {
 			return alternateMesh
@@ -372,7 +433,7 @@ func (wld *VWld) alternateMeshByFragID(fragID uint32) *AlternateMesh {
 	return nil
 }
 
-func (wld *VWld) alternateMeshByTag(tag string) *AlternateMesh {
+func (wld *Wld) alternateMeshByTag(tag string) *AlternateMesh {
 	for _, alternateMesh := range wld.AlternateMeshes {
 		if alternateMesh.Tag == tag {
 			return alternateMesh
@@ -398,7 +459,7 @@ type AnimationTransform struct {
 	ShiftDenominator  int16
 }
 
-func (wld *VWld) animationByFragID(fragID uint32) *Animation {
+func (wld *Wld) animationByFragID(fragID uint32) *Animation {
 	for _, animation := range wld.Animations {
 		if animation.fragID == fragID {
 			return animation
@@ -407,7 +468,7 @@ func (wld *VWld) animationByFragID(fragID uint32) *Animation {
 	return nil
 }
 
-func (wld *VWld) animationByTag(tag string) *Animation {
+func (wld *Wld) animationByTag(tag string) *Animation {
 	for _, animation := range wld.Animations {
 		if animation.Tag == tag {
 			return animation
@@ -424,7 +485,7 @@ type AnimationInstance struct {
 	Sleep     uint32
 }
 
-func (wld *VWld) animationInstanceByFragID(fragID uint32) *AnimationInstance {
+func (wld *Wld) animationInstanceByFragID(fragID uint32) *AnimationInstance {
 	for _, animationInstance := range wld.AnimationInstances {
 		if animationInstance.fragID == fragID {
 			return animationInstance
@@ -433,7 +494,7 @@ func (wld *VWld) animationInstanceByFragID(fragID uint32) *AnimationInstance {
 	return nil
 }
 
-func (wld *VWld) animationInstanceByTag(tag string) *AnimationInstance {
+func (wld *Wld) animationInstanceByTag(tag string) *AnimationInstance {
 	for _, animationInstance := range wld.AnimationInstances {
 		if animationInstance.Tag == tag {
 			return animationInstance
@@ -446,7 +507,7 @@ type Actor struct {
 	fragID           uint32
 	Tag              string
 	Flags            uint32
-	CallbackTagRef   int32       `yaml:"callback_tag_ref"`
+	CallbackTag      string      `yaml:"callback_tag"`
 	ActionCount      uint32      `yaml:"action_count"`
 	FragmentRefCount uint32      `yaml:"fragment_ref_count"`
 	BoundsRef        int32       `yaml:"bounds_ref"`
@@ -459,13 +520,26 @@ type Actor struct {
 	Unk2             uint32   `yaml:"unk2"`
 }
 
+func (e *Actor) Ascii() string {
+	// spk usually
+
+	out := "ACTORDEF\n"
+	out += fmt.Sprintf("\tACTORTAG \"%s\"\n", e.Tag)
+	out += fmt.Sprintf("\tCALLBACK %d\n", e.CallbackTag)
+	//out += fmt.Sprintf("\tLODCOUNT %d\n", e.LodCount)
+	//out += fmt.Sprintf("\tUNK1 %d\n", e.Unk1)
+	out += "ENDACTORDEF\n\n"
+	return out
+
+}
+
 type ActorAction struct {
 	LodCount uint32    `yaml:"lod_count"`
 	Unk1     uint32    `yaml:"unk1"`
 	Lods     []float32 `yaml:"lods"`
 }
 
-func (wld *VWld) actorByFragID(fragID uint32) *Actor {
+func (wld *Wld) actorByFragID(fragID uint32) *Actor {
 	for _, actor := range wld.Actors {
 		if actor.fragID == fragID {
 			return actor
@@ -474,7 +548,7 @@ func (wld *VWld) actorByFragID(fragID uint32) *Actor {
 	return nil
 }
 
-func (wld *VWld) actorByTag(tag string) *Actor {
+func (wld *Wld) actorByTag(tag string) *Actor {
 	for _, actor := range wld.Actors {
 		if actor.Tag == tag {
 			return actor
@@ -499,7 +573,7 @@ type ActorInstance struct {
 	Unk2           int32       `yaml:"unk2"`
 }
 
-func (wld *VWld) actorInstanceByFragID(fragID uint32) *ActorInstance {
+func (wld *Wld) actorInstanceByFragID(fragID uint32) *ActorInstance {
 	for _, actorInstance := range wld.ActorInstances {
 		if actorInstance.fragID == fragID {
 			return actorInstance
@@ -508,7 +582,7 @@ func (wld *VWld) actorInstanceByFragID(fragID uint32) *ActorInstance {
 	return nil
 }
 
-func (wld *VWld) actorInstanceByTag(tag string) *ActorInstance {
+func (wld *Wld) actorInstanceByTag(tag string) *ActorInstance {
 	for _, actorInstance := range wld.ActorInstances {
 		if actorInstance.Tag == tag {
 			return actorInstance
@@ -537,7 +611,7 @@ type SkeletonEntry struct {
 	SubBones     []uint32 `yaml:"sub_bones"`
 }
 
-func (wld *VWld) skeletonByFragID(fragID uint32) *Skeleton {
+func (wld *Wld) skeletonByFragID(fragID uint32) *Skeleton {
 	for _, skeleton := range wld.Skeletons {
 		if skeleton.fragID == fragID {
 			return skeleton
@@ -546,7 +620,7 @@ func (wld *VWld) skeletonByFragID(fragID uint32) *Skeleton {
 	return nil
 }
 
-func (wld *VWld) skeletonByTag(tag string) *Skeleton {
+func (wld *Wld) skeletonByTag(tag string) *Skeleton {
 	for _, skeleton := range wld.Skeletons {
 		if skeleton.Tag == tag {
 			return skeleton
@@ -562,7 +636,7 @@ type SkeletonInstance struct {
 	Flags    uint32
 }
 
-func (wld *VWld) skeletonInstanceByFragID(fragID uint32) *SkeletonInstance {
+func (wld *Wld) skeletonInstanceByFragID(fragID uint32) *SkeletonInstance {
 	for _, skeletonInstance := range wld.SkeletonInstances {
 		if skeletonInstance.fragID == fragID {
 			return skeletonInstance
@@ -571,7 +645,7 @@ func (wld *VWld) skeletonInstanceByFragID(fragID uint32) *SkeletonInstance {
 	return nil
 }
 
-func (wld *VWld) skeletonInstanceByTag(tag string) *SkeletonInstance {
+func (wld *Wld) skeletonInstanceByTag(tag string) *SkeletonInstance {
 	for _, skeletonInstance := range wld.SkeletonInstances {
 		if skeletonInstance.Tag == tag {
 			return skeletonInstance
@@ -589,7 +663,7 @@ type Light struct {
 	Colors          []raw.Vector3
 }
 
-func (wld *VWld) lightByFragID(fragID uint32) *Light {
+func (wld *Wld) lightByFragID(fragID uint32) *Light {
 	for _, light := range wld.Lights {
 		if light.fragID == fragID {
 			return light
@@ -598,7 +672,7 @@ func (wld *VWld) lightByFragID(fragID uint32) *Light {
 	return nil
 }
 
-func (wld *VWld) lightByTag(tag string) *Light {
+func (wld *Wld) lightByTag(tag string) *Light {
 	for _, light := range wld.Lights {
 		if light.Tag == tag {
 			return light
@@ -614,7 +688,7 @@ type LightInstance struct {
 	Flags  uint32
 }
 
-func (wld *VWld) lightInstanceByFragID(fragID uint32) *LightInstance {
+func (wld *Wld) lightInstanceByFragID(fragID uint32) *LightInstance {
 	for _, lightInstance := range wld.LightInstances {
 		if lightInstance.fragID == fragID {
 			return lightInstance
@@ -623,7 +697,7 @@ func (wld *VWld) lightInstanceByFragID(fragID uint32) *LightInstance {
 	return nil
 }
 
-func (wld *VWld) lightInstanceByTag(tag string) *LightInstance {
+func (wld *Wld) lightInstanceByTag(tag string) *LightInstance {
 	for _, lightInstance := range wld.LightInstances {
 		if lightInstance.Tag == tag {
 			return lightInstance
@@ -659,7 +733,7 @@ type CameraBspNode struct {
 	RenderUVMapEntries          []raw.Vector2 `yaml:"render_uv_map_entries"`
 }
 
-func (wld *VWld) cameraByFragID(fragID uint32) *Camera {
+func (wld *Wld) cameraByFragID(fragID uint32) *Camera {
 	for _, camera := range wld.Cameras {
 		if camera.fragID == fragID {
 			return camera
@@ -668,7 +742,7 @@ func (wld *VWld) cameraByFragID(fragID uint32) *Camera {
 	return nil
 }
 
-func (wld *VWld) cameraByTag(tag string) *Camera {
+func (wld *Wld) cameraByTag(tag string) *Camera {
 	for _, camera := range wld.Cameras {
 		if camera.Tag == tag {
 			return camera
@@ -684,7 +758,7 @@ type CameraInstance struct {
 	Flags     uint32
 }
 
-func (wld *VWld) cameraInstanceByFragID(fragID uint32) *CameraInstance {
+func (wld *Wld) cameraInstanceByFragID(fragID uint32) *CameraInstance {
 	for _, cameraInstance := range wld.CameraInstances {
 		if cameraInstance.fragID == fragID {
 			return cameraInstance
@@ -693,7 +767,7 @@ func (wld *VWld) cameraInstanceByFragID(fragID uint32) *CameraInstance {
 	return nil
 }
 
-func (wld *VWld) cameraInstanceByTag(tag string) *CameraInstance {
+func (wld *Wld) cameraInstanceByTag(tag string) *CameraInstance {
 	for _, cameraInstance := range wld.CameraInstances {
 		if cameraInstance.Tag == tag {
 			return cameraInstance
@@ -716,7 +790,7 @@ type BspTreeNode struct {
 	Back      *BspTreeNode
 }
 
-func (wld *VWld) bspTreeByFragID(fragID uint32) *BspTree {
+func (wld *Wld) bspTreeByFragID(fragID uint32) *BspTree {
 	for _, bspTree := range wld.BspTrees {
 		if bspTree.fragID == fragID {
 			return bspTree
@@ -725,7 +799,7 @@ func (wld *VWld) bspTreeByFragID(fragID uint32) *BspTree {
 	return nil
 }
 
-func (wld *VWld) bspTreeByTag(tag string) *BspTree {
+func (wld *Wld) bspTreeByTag(tag string) *BspTree {
 	for _, bspTree := range wld.BspTrees {
 		if bspTree.Tag == tag {
 			return bspTree
@@ -770,7 +844,7 @@ type RegionWall struct {
 	Vertices                    []uint32      `yaml:"vertices"`
 }
 
-func (wld *VWld) regionByFragID(fragID uint32) *Region {
+func (wld *Wld) regionByFragID(fragID uint32) *Region {
 	for _, region := range wld.Regions {
 		if region.fragID == fragID {
 			return region
@@ -779,7 +853,7 @@ func (wld *VWld) regionByFragID(fragID uint32) *Region {
 	return nil
 }
 
-func (wld *VWld) regionByTag(tag string) *Region {
+func (wld *Wld) regionByTag(tag string) *Region {
 	for _, region := range wld.Regions {
 		if region.Tag == tag {
 			return region
@@ -796,7 +870,7 @@ type RegionInstance struct {
 	UserData   string
 }
 
-func (wld *VWld) regionInstanceByFragID(fragID uint32) *RegionInstance {
+func (wld *Wld) regionInstanceByFragID(fragID uint32) *RegionInstance {
 	for _, regionInstance := range wld.RegionInstances {
 		if regionInstance.fragID == fragID {
 			return regionInstance
@@ -805,7 +879,7 @@ func (wld *VWld) regionInstanceByFragID(fragID uint32) *RegionInstance {
 	return nil
 }
 
-func (wld *VWld) regionInstanceByTag(tag string) *RegionInstance {
+func (wld *Wld) regionInstanceByTag(tag string) *RegionInstance {
 	for _, regionInstance := range wld.RegionInstances {
 		if regionInstance.Tag == tag {
 			return regionInstance
@@ -822,7 +896,7 @@ type AmbientLightInstance struct {
 	RegionTags []string
 }
 
-func (wld *VWld) ambientLightInstanceByFragID(fragID uint32) *AmbientLightInstance {
+func (wld *Wld) ambientLightInstanceByFragID(fragID uint32) *AmbientLightInstance {
 	for _, ambientLightInstance := range wld.AmbientLightInstances {
 		if ambientLightInstance.fragID == fragID {
 			return ambientLightInstance
@@ -831,7 +905,7 @@ func (wld *VWld) ambientLightInstanceByFragID(fragID uint32) *AmbientLightInstan
 	return nil
 }
 
-func (wld *VWld) ambientLightInstanceByTag(tag string) *AmbientLightInstance {
+func (wld *Wld) ambientLightInstanceByTag(tag string) *AmbientLightInstance {
 	for _, ambientLightInstance := range wld.AmbientLightInstances {
 		if ambientLightInstance.Tag == tag {
 			return ambientLightInstance
@@ -851,7 +925,7 @@ type PointLightInstance struct {
 	Radius           float32
 }
 
-func (wld *VWld) pointLightInstanceByFragID(fragID uint32) *PointLightInstance {
+func (wld *Wld) pointLightInstanceByFragID(fragID uint32) *PointLightInstance {
 	for _, pointLightInstance := range wld.PointLightInstances {
 		if pointLightInstance.fragID == fragID {
 			return pointLightInstance
@@ -866,7 +940,7 @@ type Sphere struct {
 	Radius float32
 }
 
-func (wld *VWld) sphereByFragID(fragID uint32) *Sphere {
+func (wld *Wld) sphereByFragID(fragID uint32) *Sphere {
 	for _, sphere := range wld.Spheres {
 		if sphere.fragID == fragID {
 			return sphere
@@ -875,7 +949,7 @@ func (wld *VWld) sphereByFragID(fragID uint32) *Sphere {
 	return nil
 }
 
-func (wld *VWld) sphereByTag(tag string) *Sphere {
+func (wld *Wld) sphereByTag(tag string) *Sphere {
 	for _, sphere := range wld.Spheres {
 		if sphere.Tag == tag {
 			return sphere

@@ -1,4 +1,4 @@
-package vwld
+package virtual
 
 import (
 	"fmt"
@@ -7,7 +7,7 @@ import (
 	"github.com/xackery/quail/raw"
 )
 
-func (wld *VWld) Write(w io.Writer) error {
+func (wld *Wld) Write(w io.Writer) error {
 	var err error
 
 	fragIndex := 1

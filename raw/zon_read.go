@@ -125,7 +125,7 @@ func (zon *Zon) Read(r io.ReadSeeker) error {
 	}
 	tag.Add(tag.LastPos(), dec.Pos(), "green", fmt.Sprintf("names (%d total)", len(names)))
 
-	NamesSet(names)
+	NameSet(names)
 	//os.WriteFile("src.txt", []byte(fmt.Sprintf("%+v", names)), 0644)
 
 	for i := 0; i < int(modelCount); i++ {

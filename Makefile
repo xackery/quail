@@ -1,5 +1,5 @@
 NAME := quail
-BUILD_VERSION ?= 2.3.0
+BUILD_VERSION ?= 2.4
 
 SHELL := /bin/bash
 
@@ -117,6 +117,17 @@ extract-%: ## extract a file
 	source .env && go run main.go extract $$EQ_PATH/$*.s3d test/_$*.s3d
 	wld-cli extract test/_$*.s3d/$*.wld -f json test/_$*.wld.json
 
+extractobj-%: ## extract a file
+	mkdir -p test/
+	rm -rf test/_*.s3d/
+	rm -rf test/_*.eqg/
+	source .env && go run main.go extract $$EQ_PATH/$*.s3d test/_$*.s3d
+	wld-cli extract test/_$*.s3d/objects.wld -f json test/_$*.objects.wld.json
+
+compressobj-%: ## compress a file
+	mkdir -p test/
+	wld-cli create test/_$*.objects.wld.json -f json test/_$*.objects.wld
+
 test-cover: ## test coverage %'s
 	go test -coverprofile=coverage.out ./...
 	go tool cover -html=coverage.out
@@ -136,3 +147,7 @@ yaml-save-%: ## save a yaml file
 	cp test/$*.eqg test/$*-out.eqg
 	@go run main.go yaml test/$*.lay.yaml test/$*.lay
 	@#go run main.go yaml test/$*.lay.yaml test/$*-out.eqg:$*.lay
+
+
+biodiffwld-%:
+	biodiff test/$*.src.wld test/$*.dst.wld

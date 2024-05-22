@@ -1,4 +1,4 @@
-package vwld
+package virtual
 
 import (
 	"bytes"
@@ -43,7 +43,7 @@ func TestVWldRead(t *testing.T) {
 				t.Fatalf("failed to read %s: %s", tt.name, err.Error())
 			}
 
-			vwld := &VWld{}
+			vwld := &Wld{}
 			err = vwld.Read(wld)
 			if err != nil {
 				t.Fatalf("failed to convert %s: %s", tt.name, err.Error())
@@ -69,9 +69,9 @@ func TestVWldWrite(t *testing.T) {
 	}{
 		//{baseName: "gequip4"},
 		//{baseName: "global_chr"}, // TODO:  anarelion asked mesh of EYE_DMSPRITEDEF check if the eye is just massive 22 units in size, where the other units in that file are just 1-2 units in size
-		//{baseName: "load2"},
+		{baseName: "load2"},
 		//{baseName: "load2", wldName: "lights.wld"},
-		{baseName: "load2", wldName: "objects.wld"},
+		//{baseName: "load2", wldName: "objects.wld"},
 		//{baseName: "neriakc"},
 		//{baseName: "westwastes"},
 		//{baseName: "globalfroglok_chr"},
@@ -109,15 +109,9 @@ func TestVWldWrite(t *testing.T) {
 			if err != nil {
 				t.Fatalf("failed to open wld %s: %s", baseName, err.Error())
 			}
-			w, err := os.Create(fmt.Sprintf("%s/%s.src.wld", dirTest, baseName))
+			err = os.WriteFile(fmt.Sprintf("%s/%s.src.wld", dirTest, baseName), data, 0644)
 			if err != nil {
-				t.Fatalf("failed to create %s: %s", baseName, err.Error())
-			}
-			defer w.Close()
-
-			_, err = w.Write(data)
-			if err != nil {
-				t.Fatalf("failed to write %s: %s", baseName, err.Error())
+				t.Fatalf("failed to write wld %s: %s", baseName, err.Error())
 			}
 
 			wld := &raw.Wld{}
@@ -138,19 +132,14 @@ func TestVWldWrite(t *testing.T) {
 				}
 			}
 
-			vwld := &VWld{}
+			vwld := &Wld{}
 			err = vwld.Read(wld)
 			if err != nil {
 				t.Fatalf("failed to convert %s: %s", baseName, err.Error())
 			}
 
-			err = vwld.Write(w)
-			if err != nil {
-				t.Fatalf("failed to write %s: %s", baseName, err.Error())
-			}
-
 			buf := bytes.NewBuffer(nil)
-			err = wld.Write(buf)
+			err = vwld.Write(buf)
 			if err != nil {
 				t.Fatalf("failed to write %s: %s", baseName, err.Error())
 			}

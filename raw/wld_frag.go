@@ -98,7 +98,7 @@ const (
 	FragCodeSprite3D              = 0x09 // 9 3DSPRITE (property of ACTORDEF)
 	FragCodeSprite4DDef           = 0x0A // 10
 	FragCodeSprite4D              = 0x0B // 11
-	FragCodeParticleSpriteDef     = 0x0C // 12
+	FragCodeParticleSpriteDef     = 0x0C // 12 PARTICLESPRITEDEF
 	FragCodeParticleSprite        = 0x0D // 13
 	FragCodeCompositeSpriteDef    = 0x0E // 14
 	FragCodeCompositeSprite       = 0x0F // 15

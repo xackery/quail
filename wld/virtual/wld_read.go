@@ -1,4 +1,4 @@
-package vwld
+package virtual
 
 import (
 	"fmt"
@@ -6,7 +6,7 @@ import (
 	"github.com/xackery/quail/raw"
 )
 
-func (wld *VWld) Read(src *raw.Wld) error {
+func (wld *Wld) Read(src *raw.Wld) error {
 	wld.FileName = src.FileName()
 	wld.Version = src.Version
 	for i := 1; i < len(src.Fragments); i++ {
@@ -109,7 +109,7 @@ func (wld *VWld) Read(src *raw.Wld) error {
 				fragID:    uint32(i),
 				Tag:       tag,
 				Flags:     fragData.Flags,
-				SpriteTag: raw.Name(int32(fragData.BlitSpriteRef)),
+				SpriteTag: raw.Name(int32(fragData.SpriteInstanceRef)),
 				Unknown:   fragData.Unknown,
 			}
 			wld.Particles = append(wld.Particles, particle)
@@ -152,7 +152,7 @@ func (wld *VWld) Read(src *raw.Wld) error {
 				SpawnRate:             fragData.SpawnRate,
 				SpawnScale:            fragData.SpawnScale,
 				Color:                 fragData.Color,
-				Particle:              particle.Tag,
+				particle:              particle,
 			}
 
 			wld.ParticleInstances = append(wld.ParticleInstances, &particleInstance)
@@ -176,14 +176,15 @@ func (wld *VWld) Read(src *raw.Wld) error {
 			}
 
 			material := &Material{
-				fragID:        uint32(i),
-				Tag:           tag,
-				Flags:         fragData.Flags,
-				RenderMethod:  fragData.RenderMethod,
-				RGBPen:        fragData.RGBPen,
-				Brightness:    fragData.Brightness,
-				ScaledAmbient: fragData.ScaledAmbient,
-				Pairs:         fragData.Pairs,
+				fragID:         uint32(i),
+				Tag:            tag,
+				Flags:          fragData.Flags,
+				RenderMethod:   fragData.RenderMethod,
+				RGBPen:         fragData.RGBPen,
+				Brightness:     fragData.Brightness,
+				ScaledAmbient:  fragData.ScaledAmbient,
+				Pairs:          fragData.Pairs,
+				spriteInstance: spriteInstance,
 			}
 			if spriteInstance != nil {
 				material.Texture = spriteInstance.Tag
@@ -431,7 +432,7 @@ func (wld *VWld) Read(src *raw.Wld) error {
 				fragID:           uint32(i),
 				Tag:              tag,
 				Flags:            fragData.Flags,
-				CallbackTagRef:   fragData.CallbackNameRef,
+				CallbackTag:      raw.Name(fragData.CallbackNameRef),
 				ActionCount:      fragData.ActionCount,
 				FragmentRefCount: fragData.FragmentRefCount,
 				BoundsRef:        fragData.BoundsRef,

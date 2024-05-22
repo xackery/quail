@@ -1,4 +1,4 @@
-package wad
+package ascii
 
 type nameBuilder struct {
 	names   map[int32]string

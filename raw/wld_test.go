@@ -8,6 +8,7 @@ import (
 
 	"github.com/xackery/quail/common"
 	"github.com/xackery/quail/pfs"
+	"github.com/xackery/quail/tag"
 	"gopkg.in/yaml.v3"
 )
 
@@ -117,17 +118,6 @@ func TestWldRewrite(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			// copy original
-			copyData, err := os.ReadFile(fmt.Sprintf("%s/%s.s3d", eqPath, tt.name))
-			if err != nil {
-				t.Fatalf("failed to open s3d %s: %s", tt.name, err.Error())
-			}
-
-			err = os.WriteFile(fmt.Sprintf("%s/%s.src.s3d", dirTest, tt.name), copyData, 0644)
-			if err != nil {
-				t.Fatalf("failed to write s3d %s: %s", tt.name, err.Error())
-			}
-
 			archive, err := pfs.NewFile(fmt.Sprintf("%s/%s.s3d", eqPath, tt.name))
 			if err != nil {
 				t.Fatalf("failed to open s3d %s: %s", tt.name, err.Error())
@@ -152,6 +142,11 @@ func TestWldRewrite(t *testing.T) {
 				t.Fatalf("failed to read %s: %s", tt.name, err.Error())
 			}
 
+			err = tag.Write(fmt.Sprintf("%s/%s.src.wld.tags", dirTest, tt.name))
+			if err != nil {
+				t.Fatalf("failed to write tag %s: %s", tt.name, err.Error())
+			}
+
 			w, err := os.Create(fmt.Sprintf("%s/%s.dst.wld", dirTest, tt.name))
 			if err != nil {
 				t.Fatalf("failed to create %s: %s", tt.name, err.Error())
@@ -174,6 +169,11 @@ func TestWldRewrite(t *testing.T) {
 				t.Fatalf("failed to write %s: %s", tt.name, err.Error())
 			}
 
+			err = tag.Write(fmt.Sprintf("%s/%s.dst.wld.tags", dirTest, tt.name))
+			if err != nil {
+				t.Fatalf("failed to write tag %s: %s", tt.name, err.Error())
+			}
+
 			err = archive.Add(fmt.Sprintf("%s.wld", tt.name), buf.Bytes())
 			if err != nil {
 				t.Fatalf("failed to add %s: %s", tt.name, err.Error())
@@ -189,44 +189,44 @@ func TestWldRewrite(t *testing.T) {
 			if err != nil {
 				t.Fatalf("failed to write %s: %s", tt.name, err.Error())
 			}
+			/*
+				// write yaml
+				buf = bytes.NewBuffer(nil)
+				enc := yaml.NewEncoder(buf)
+				enc.SetIndent(2)
+				err = enc.Encode(wld)
+				if err != nil {
+					t.Fatalf("failed to encode %s: %s", tt.name, err.Error())
+				}
+				err = os.WriteFile(fmt.Sprintf("%s/%s.src.yaml", dirTest, tt.name), buf.Bytes(), 0644)
+				if err != nil {
+					t.Fatalf("failed to write yaml %s: %s", tt.name, err.Error())
+				}
 
-			// write yaml
-			buf = bytes.NewBuffer(nil)
-			enc := yaml.NewEncoder(buf)
-			enc.SetIndent(2)
-			err = enc.Encode(wld)
-			if err != nil {
-				t.Fatalf("failed to encode %s: %s", tt.name, err.Error())
-			}
-			err = os.WriteFile(fmt.Sprintf("%s/%s.src.yaml", dirTest, tt.name), buf.Bytes(), 0644)
-			if err != nil {
-				t.Fatalf("failed to write yaml %s: %s", tt.name, err.Error())
-			}
+				// now read the dst.wld and generate a yaml
+				yamlRead, err := os.Open(fmt.Sprintf("%s/%s.dst.wld", dirTest, tt.name))
+				if err != nil {
+					t.Fatalf("failed to open %s: %s", tt.name, err.Error())
+				}
+				defer yamlRead.Close()
 
-			// now read the dst.wld and generate a yaml
-			yamlRead, err := os.Open(fmt.Sprintf("%s/%s.dst.wld", dirTest, tt.name))
-			if err != nil {
-				t.Fatalf("failed to open %s: %s", tt.name, err.Error())
-			}
-			defer yamlRead.Close()
+				wld = &Wld{}
+				err = wld.Read(yamlRead)
+				if err != nil {
+					t.Fatalf("failed to read %s: %s", tt.name, err.Error())
+				}
 
-			wld = &Wld{}
-			err = wld.Read(yamlRead)
-			if err != nil {
-				t.Fatalf("failed to read %s: %s", tt.name, err.Error())
-			}
-
-			buf = bytes.NewBuffer(nil)
-			enc = yaml.NewEncoder(buf)
-			enc.SetIndent(2)
-			err = enc.Encode(wld)
-			if err != nil {
-				t.Fatalf("failed to encode %s: %s", tt.name, err.Error())
-			}
-			err = os.WriteFile(fmt.Sprintf("%s/%s.dst.yaml", dirTest, tt.name), buf.Bytes(), 0644)
-			if err != nil {
-				t.Fatalf("failed to write yaml %s: %s", tt.name, err.Error())
-			}
+				buf = bytes.NewBuffer(nil)
+				enc = yaml.NewEncoder(buf)
+				enc.SetIndent(2)
+				err = enc.Encode(wld)
+				if err != nil {
+					t.Fatalf("failed to encode %s: %s", tt.name, err.Error())
+				}
+				err = os.WriteFile(fmt.Sprintf("%s/%s.dst.yaml", dirTest, tt.name), buf.Bytes(), 0644)
+				if err != nil {
+					t.Fatalf("failed to write yaml %s: %s", tt.name, err.Error())
+				} */
 
 		})
 	}

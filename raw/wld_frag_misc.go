@@ -10,7 +10,6 @@ import (
 
 // WldFragDefault is empty in libeq, empty in openzone, DEFAULT?? in wld
 type WldFragDefault struct {
-	FragName string `yaml:"frag_name"`
 }
 
 func (e *WldFragDefault) FragCode() int {
@@ -22,14 +21,12 @@ func (e *WldFragDefault) Write(w io.Writer) error {
 }
 
 func (e *WldFragDefault) Read(r io.ReadSeeker) error {
-	e.FragName = FragName(e.FragCode())
 	return nil
 }
 
 // WldFragGlobalAmbientLightDef is GlobalAmbientLightDef in libeq, WldFragGlobalAmbientLightDef Fragment in openzone, empty in wld, GlobalAmbientLight in lantern
 type WldFragGlobalAmbientLightDef struct {
-	FragName string `yaml:"frag_name"`
-	NameRef  int32
+	NameRef int32
 }
 
 func (e *WldFragGlobalAmbientLightDef) FragCode() int {
@@ -48,7 +45,6 @@ func (e *WldFragGlobalAmbientLightDef) Write(w io.Writer) error {
 }
 
 func (e *WldFragGlobalAmbientLightDef) Read(r io.ReadSeeker) error {
-	e.FragName = FragName(e.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	e.NameRef = dec.Int32()
 	err := dec.Error()
@@ -60,7 +56,6 @@ func (e *WldFragGlobalAmbientLightDef) Read(r io.ReadSeeker) error {
 
 // WldFragUserData is empty in libeq, empty in openzone, USERDATA in wld
 type WldFragUserData struct {
-	FragName string `yaml:"frag_name"`
 }
 
 func (e *WldFragUserData) FragCode() int {
@@ -72,15 +67,13 @@ func (e *WldFragUserData) Write(w io.Writer) error {
 }
 
 func (e *WldFragUserData) Read(r io.ReadSeeker) error {
-	e.FragName = FragName(e.FragCode())
 	return nil
 }
 
 // WldFragSound is empty in libeq, empty in openzone, SOUNDDEFINITION in wld
 type WldFragSound struct {
-	FragName string `yaml:"frag_name"`
-	NameRef  int32  `yaml:"name_ref"`
-	Flags    uint32 `yaml:"flags"`
+	NameRef int32  `yaml:"name_ref"`
+	Flags   uint32 `yaml:"flags"`
 }
 
 func (e *WldFragSound) FragCode() int {
@@ -99,7 +92,6 @@ func (e *WldFragSound) Write(w io.Writer) error {
 }
 
 func (e *WldFragSound) Read(r io.ReadSeeker) error {
-	e.FragName = FragName(e.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	e.NameRef = dec.Int32()
 	e.Flags = dec.Uint32()
@@ -112,9 +104,8 @@ func (e *WldFragSound) Read(r io.ReadSeeker) error {
 
 // WldFragSoundDef is empty in libeq, empty in openzone, SOUNDINSTANCE in wld
 type WldFragSoundDef struct {
-	FragName string `yaml:"frag_name"`
-	NameRef  int32  `yaml:"name_ref"`
-	Flags    uint32 `yaml:"flags"`
+	NameRef int32  `yaml:"name_ref"`
+	Flags   uint32 `yaml:"flags"`
 }
 
 func (e *WldFragSoundDef) FragCode() int {
@@ -133,7 +124,6 @@ func (e *WldFragSoundDef) Write(w io.Writer) error {
 }
 
 func (e *WldFragSoundDef) Read(r io.ReadSeeker) error {
-	e.FragName = FragName(e.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	e.NameRef = dec.Int32()
 	e.Flags = dec.Uint32()
@@ -146,7 +136,6 @@ func (e *WldFragSoundDef) Read(r io.ReadSeeker) error {
 
 // WldFragActiveGeoRegion is empty in libeq, empty in openzone, ACTIVEGEOMETRYREGION in wld
 type WldFragActiveGeoRegion struct {
-	FragName string `yaml:"frag_name"`
 }
 
 func (e *WldFragActiveGeoRegion) FragCode() int {
@@ -158,13 +147,11 @@ func (e *WldFragActiveGeoRegion) Write(w io.Writer) error {
 }
 
 func (e *WldFragActiveGeoRegion) Read(r io.ReadSeeker) error {
-	e.FragName = FragName(e.FragCode())
 	return nil
 }
 
 // WldFragSkyRegion is empty in libeq, empty in openzone, SKYREGION in wld
 type WldFragSkyRegion struct {
-	FragName string `yaml:"frag_name"`
 }
 
 func (e *WldFragSkyRegion) FragCode() int {
@@ -181,7 +168,6 @@ func (e *WldFragSkyRegion) Read(r io.ReadSeeker) error {
 
 // WldFragZone is Zone in libeq, Region Flag in openzone, ZONE in wld, BspRegionType in lantern
 type WldFragZone struct {
-	FragName string  `yaml:"frag_name"`
 	NameRef  int32   `yaml:"name_ref"`
 	Flags    uint32  `yaml:"flags"`
 	Regions  []int32 `yaml:"regions"`
@@ -197,7 +183,6 @@ func (e *WldFragZone) Write(w io.Writer) error {
 }
 
 func (e *WldFragZone) Read(r io.ReadSeeker) error {
-	e.FragName = FragName(e.FragCode())
 
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	e.NameRef = dec.Int32()
@@ -222,7 +207,6 @@ func (e *WldFragZone) Read(r io.ReadSeeker) error {
 
 // WldFragParticleCloudDef is ParticleCloudDef in libeq, empty in openzone, empty in wld, WldFragParticleCloudDef in lantern
 type WldFragParticleCloudDef struct {
-	FragName              string  `yaml:"frag_name"`
 	NameRef               int32   `yaml:"name_ref"`
 	Unk1                  uint32  `yaml:"unk1"`
 	Unk2                  uint32  `yaml:"unk2"`
@@ -288,7 +272,6 @@ func (e *WldFragParticleCloudDef) Write(w io.Writer) error {
 }
 
 func (e *WldFragParticleCloudDef) Read(r io.ReadSeeker) error {
-	e.FragName = FragName(e.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	e.NameRef = dec.Int32()
 	e.Unk1 = dec.Uint32()

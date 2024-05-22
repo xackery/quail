@@ -76,7 +76,7 @@ func (lay *Lay) Read(r io.ReadSeeker) error {
 		chunk = append(chunk, b)
 	}
 
-	NamesSet(names)
+	NameSet(names)
 
 	for i := 0; i < int(layerCount); i++ {
 		entryID := dec.Uint32()

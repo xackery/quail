@@ -11,7 +11,6 @@ import (
 
 // WldFragDefaultPaletteFile is DefaultPaletteFile in libeq, empty in openzone, DEFAULTPALETTEFILE in wld
 type WldFragDefaultPaletteFile struct {
-	FragName   string `yaml:"frag_name"`
 	NameRef    int32  `yaml:"name_ref"`
 	NameLength uint16 `yaml:"name_length"`
 	FileName   string `yaml:"file_name"`
@@ -34,7 +33,6 @@ func (e *WldFragDefaultPaletteFile) Write(w io.Writer) error {
 }
 
 func (e *WldFragDefaultPaletteFile) Read(r io.ReadSeeker) error {
-	e.FragName = FragName(e.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	e.NameRef = dec.Int32()
 	e.NameLength = dec.Uint16()
@@ -48,7 +46,6 @@ func (e *WldFragDefaultPaletteFile) Read(r io.ReadSeeker) error {
 
 // WldFragBMInfo is BmInfo in libeq, Texture Bitmap Names in openzone, FRAME and BMINFO in wld, BitmapName in lantern
 type WldFragBMInfo struct {
-	FragName     string   `yaml:"frag_name"`
 	NameRef      int32    `yaml:"name_ref"`
 	TextureNames []string `yaml:"texture_names"`
 }
@@ -72,7 +69,6 @@ func (e *WldFragBMInfo) Write(w io.Writer) error {
 }
 
 func (e *WldFragBMInfo) Read(r io.ReadSeeker) error {
-	e.FragName = FragName(e.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	e.NameRef = dec.Int32()
 	textureCount := dec.Int32()
@@ -90,7 +86,6 @@ func (e *WldFragBMInfo) Read(r io.ReadSeeker) error {
 
 // WldFragSimpleSpriteDef is SimpleSpriteDef in libeq, WldFragSimpleSpriteDef Bitmap Info in openzone, SIMPLESPRITEDEF in wld, BitmapInfo in lantern
 type WldFragSimpleSpriteDef struct {
-	FragName     string   `yaml:"frag_name"`
 	NameRef      int32    `yaml:"name_ref"`
 	Flags        uint32   `yaml:"flags"`
 	CurrentFrame int32    `yaml:"current_frame"`
@@ -124,7 +119,6 @@ func (e *WldFragSimpleSpriteDef) Write(w io.Writer) error {
 }
 
 func (e *WldFragSimpleSpriteDef) Read(r io.ReadSeeker) error {
-	e.FragName = FragName(e.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	e.NameRef = dec.Int32()
 	e.Flags = dec.Uint32()
@@ -147,7 +141,6 @@ func (e *WldFragSimpleSpriteDef) Read(r io.ReadSeeker) error {
 
 // WldFragSimpleSprite is SimpleSprite in libeq, Texture Bitmap Info Reference in openzone, SIMPLESPRITEINST in wld, BitmapInfoReference in lantern
 type WldFragSimpleSprite struct {
-	FragName  string `yaml:"frag_name"`
 	NameRef   int32  `yaml:"name_ref"`
 	SpriteRef int16  `yaml:"sprite_ref"`
 	Flags     uint32 `yaml:"flags"`
@@ -170,7 +163,6 @@ func (e *WldFragSimpleSprite) Write(w io.Writer) error {
 }
 
 func (e *WldFragSimpleSprite) Read(r io.ReadSeeker) error {
-	e.FragName = FragName(e.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	e.NameRef = dec.Int32()
 	e.SpriteRef = dec.Int16()
@@ -184,11 +176,10 @@ func (e *WldFragSimpleSprite) Read(r io.ReadSeeker) error {
 
 // WldFragBlitSpriteDef is BlitSprite in libeq, empty in openzone, BLITSPRITE (ref) in wld, ParticleSprite in lantern
 type WldFragBlitSpriteDef struct {
-	FragName      string `yaml:"frag_name"`
-	NameRef       int32  `yaml:"name_ref"`
-	Flags         uint32 `yaml:"flags"`
-	BlitSpriteRef uint32 `yaml:"blit_sprite_ref"`
-	Unknown       int32  `yaml:"unknown"`
+	NameRef           int32  `yaml:"name_ref"`
+	Flags             uint32 `yaml:"flags"`
+	SpriteInstanceRef uint32 `yaml:"sprite_instance_ref"`
+	Unknown           int32  `yaml:"unknown"`
 }
 
 func (e *WldFragBlitSpriteDef) FragCode() int {
@@ -199,7 +190,7 @@ func (e *WldFragBlitSpriteDef) Write(w io.Writer) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
 	enc.Int32(e.NameRef)
 	enc.Uint32(e.Flags)
-	enc.Uint32(e.BlitSpriteRef)
+	enc.Uint32(e.SpriteInstanceRef)
 	enc.Int32(e.Unknown)
 	err := enc.Error()
 	if err != nil {
@@ -210,11 +201,10 @@ func (e *WldFragBlitSpriteDef) Write(w io.Writer) error {
 }
 
 func (e *WldFragBlitSpriteDef) Read(r io.ReadSeeker) error {
-	e.FragName = FragName(e.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	e.NameRef = dec.Int32()
 	e.Flags = dec.Uint32()
-	e.BlitSpriteRef = dec.Uint32()
+	e.SpriteInstanceRef = dec.Uint32()
 	e.Unknown = dec.Int32()
 
 	err := dec.Error()
@@ -226,7 +216,6 @@ func (e *WldFragBlitSpriteDef) Read(r io.ReadSeeker) error {
 
 // WldFragBlitSprite is BlitSprite in libeq, empty in openzone, BLITSPRITE (ref) in wld, ParticleSpriteReference in lantern
 type WldFragBlitSprite struct {
-	FragName string `yaml:"frag_name"`
 }
 
 func (e *WldFragBlitSprite) FragCode() int {
@@ -238,7 +227,6 @@ func (e *WldFragBlitSprite) Write(w io.Writer) error {
 }
 
 func (e *WldFragBlitSprite) Read(r io.ReadSeeker) error {
-	e.FragName = FragName(e.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	err := dec.Error()
 	if err != nil {
@@ -249,7 +237,6 @@ func (e *WldFragBlitSprite) Read(r io.ReadSeeker) error {
 
 // WldFragMaterialDef is MaterialDef in libeq, Texture in openzone, MATERIALDEFINITION in wld, Material in lantern
 type WldFragMaterialDef struct {
-	FragName          string    `yaml:"frag_name"`
 	NameRef           int32     `yaml:"name_ref"`
 	Flags             uint32    `yaml:"flags"`
 	RenderMethod      uint32    `yaml:"render_method"`
@@ -285,7 +272,6 @@ func (e *WldFragMaterialDef) Write(w io.Writer) error {
 }
 
 func (e *WldFragMaterialDef) Read(r io.ReadSeeker) error {
-	e.FragName = FragName(e.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	e.NameRef = dec.Int32()
 	e.Flags = dec.Uint32()
@@ -307,7 +293,6 @@ func (e *WldFragMaterialDef) Read(r io.ReadSeeker) error {
 
 // WldFragMaterialPalette is MaterialPalette in libeq, TextureList in openzone, MATERIALPALETTE in wld, WldFragMaterialPalette in lantern
 type WldFragMaterialPalette struct {
-	FragName     string
 	NameRef      int32
 	Flags        uint32
 	MaterialRefs []uint32
@@ -333,7 +318,6 @@ func (e *WldFragMaterialPalette) Write(w io.Writer) error {
 }
 
 func (e *WldFragMaterialPalette) Read(r io.ReadSeeker) error {
-	e.FragName = FragName(e.FragCode())
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	e.NameRef = dec.Int32()
 	e.Flags = dec.Uint32()

@@ -28,12 +28,14 @@ func (wld *Wld) Read(r io.ReadSeeker) error {
 		wld.Fragments = make(map[int]FragmentReadWriter)
 	}
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
+	tag.NewWithCoder(dec)
 	header := dec.Bytes(4)
 	validHeader := []byte{0x02, 0x3D, 0x50, 0x54}
 	if !bytes.Equal(header, validHeader) {
 		return fmt.Errorf("header wanted 0x%x, got 0x%x", validHeader, header)
 	}
 	wld.Version = dec.Uint32()
+	tag.Mark("red", "header")
 
 	wld.IsOldWorld = false
 	switch wld.Version {
@@ -46,20 +48,26 @@ func (wld *Wld) Read(r io.ReadSeeker) error {
 	}
 
 	fragmentCount := dec.Uint32()
+	tag.Mark("blue", "fragcount")
+
 	_ = dec.Uint32() //bspRegionCount
 	_ = dec.Uint32() //unk2
 	hashSize := dec.Uint32()
+	tag.Mark("green", "hashsize")
 	_ = dec.Uint32() //unk3
-	tag.Add(tag.LastPos(), dec.Pos(), "red", "header")
 	hashRaw := dec.Bytes(int(hashSize))
 	nameData := helper.ReadStringHash(hashRaw)
+	tag.Mark("green", "namedata")
 
-	names := make(map[int32]string)
+	names = []*nameEntry{}
 	chunk := []rune{}
 	lastOffset := 0
 	for i, b := range nameData {
 		if b == 0 {
-			names[int32(lastOffset)] = string(chunk)
+			names = append(names, &nameEntry{name: string(chunk), offset: lastOffset})
+
+			nameBuf = append(nameBuf, []byte(string(chunk))...)
+			nameBuf = append(nameBuf, 0)
 			chunk = []rune{}
 			lastOffset = i + 1
 			continue
@@ -67,15 +75,12 @@ func (wld *Wld) Read(r io.ReadSeeker) error {
 		chunk = append(chunk, b)
 	}
 
-	NamesSet(names)
-	tag.Add(tag.LastPos(), dec.Pos(), "green", "namedata")
-
 	fragments, err := readFragments(fragmentCount, r)
 	if err != nil {
 		return fmt.Errorf("load: %w", err)
 	}
+	tag.Mark("blue", "fragments")
 
-	tag.New()
 	for i := uint32(1); i <= fragmentCount; i++ {
 		data := fragments[i-1]
 		r := bytes.NewReader(data)
