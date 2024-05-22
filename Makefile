@@ -1,5 +1,5 @@
 NAME := quail
-BUILD_VERSION ?= 2.4
+BUILD_VERSION ?= 1.4
 
 SHELL := /bin/bash
 
