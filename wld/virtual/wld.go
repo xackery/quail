@@ -525,7 +525,7 @@ func (e *Actor) Ascii() string {
 
 	out := "ACTORDEF\n"
 	out += fmt.Sprintf("\tACTORTAG \"%s\"\n", e.Tag)
-	out += fmt.Sprintf("\tCALLBACK %d\n", e.CallbackTag)
+	out += fmt.Sprintf("\tCALLBACK %s\n", e.CallbackTag)
 	//out += fmt.Sprintf("\tLODCOUNT %d\n", e.LodCount)
 	//out += fmt.Sprintf("\tUNK1 %d\n", e.Unk1)
 	out += "ENDACTORDEF\n\n"
