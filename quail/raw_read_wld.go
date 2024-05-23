@@ -8,23 +8,23 @@ import (
 )
 
 func (q *Quail) wldRead(wld *raw.Wld) error {
-	var err error
+	//var err error
 	if len(wld.Fragments) == 0 {
 		return fmt.Errorf("no fragments found")
 	}
 	maxFragments := len(wld.Fragments)
 	for i := 1; i < maxFragments; i++ {
-		frag, ok := wld.Fragments[i]
-		if !ok {
+		frag := wld.Fragments[i-1]
+		if frag == nil {
 			return fmt.Errorf("fragment %d not found", i)
 		}
 
 		switch frag.FragCode() {
 		case 0x10: // SkeletonTrack
-			err = q.wldConvertSkeletonTrack(wld, frag)
+			/* err = q.wldConvertSkeletonTrack(wld, frag)
 			if err != nil {
 				return fmt.Errorf("fragment %d: %w", i, err)
-			}
+			} */
 		case 0x14: // Model
 			d, ok := frag.(*raw.WldFragActorDef)
 			if !ok {
@@ -37,20 +37,21 @@ func (q *Quail) wldRead(wld *raw.Wld) error {
 			}
 			fmt.Println("added model", name)
 		case 0x36: // Mesh
-			model, err := q.wldConvertMesh(wld, frag)
+			/* model, err := q.wldConvertMesh(wld, frag)
 			if err != nil {
 				return fmt.Errorf("fragment %d: %w", i, err)
 			}
 			if model != nil {
 				q.Models = append(q.Models, model)
 			}
-			fmt.Println("added mesh", model.Header.Name)
+			fmt.Println("added mesh", model.Header.Name) */
 		default:
 		}
 	}
 	return nil
 }
 
+/*
 func (q *Quail) wldConvertMesh(world *raw.Wld, frag raw.FragmentReadWriter) (*common.Model, error) {
 	if frag.FragCode() != 0x36 {
 		return nil, nil
@@ -226,8 +227,8 @@ func (q *Quail) wldConvertMesh(world *raw.Wld, frag raw.FragmentReadWriter) (*co
 	}
 
 	return model, nil
-}
-
+} */
+/*
 func (q *Quail) wldConvertSkeletonTrack(world *raw.Wld, frag raw.FragmentReadWriter) error {
 	if frag.FragCode() != 0x10 {
 		return nil
@@ -316,7 +317,7 @@ func (q *Quail) wldConvertSkeletonTrack(world *raw.Wld, frag raw.FragmentReadWri
 
 	fmt.Println("added skeleton track", name, "bones", len(d.Bones))
 	return nil
-}
+} */
 
 func (q *Quail) ModelByName(name string) *common.Model {
 	for _, model := range q.Models {

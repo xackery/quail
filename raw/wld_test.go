@@ -111,9 +111,13 @@ func TestWldRewrite(t *testing.T) {
 
 	tests := []struct {
 		name string
+		wld  string
 	}{
-		{"gequip4"},
-		//{"global_chr"}, // TODO:  anarelion asked mesh of EYE_DMSPRITEDEF check if the eye is just massive 22 units in size, where the other units in that file are just 1-2 units in size
+		//{name: "gequip4"},
+		//{name:"global_chr"}, // TODO:  anarelion asked mesh of EYE_DMSPRITEDEF check if the eye is just massive 22 units in size, where the other units in that file are just 1-2 units in size
+		//{name: "load2", wld: "objects.wld"},
+		//{name: "load2", wld: "lights.wld"},
+		{name: "load2"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -124,10 +128,14 @@ func TestWldRewrite(t *testing.T) {
 			}
 			defer archive.Close()
 
+			wldName := fmt.Sprintf("%s.wld", tt.name)
+			if tt.wld != "" {
+				wldName = tt.wld
+			}
 			// get wld
-			data, err := archive.File(fmt.Sprintf("%s.wld", tt.name))
+			data, err := archive.File(wldName)
 			if err != nil {
-				t.Fatalf("failed to open wld %s: %s", tt.name, err.Error())
+				t.Fatalf("failed to open wld %s: %s", wldName, err.Error())
 			}
 
 			// write wld
@@ -153,6 +161,20 @@ func TestWldRewrite(t *testing.T) {
 			}
 			defer w.Close()
 
+			/* 	actor, ok := wld.Fragments[0].(*WldFragActor)
+			if !ok {
+				t.Fatalf("failed to cast %s: %s", tt.name, err.Error())
+			}
+			actor.NameRef = 0
+			NameClear()
+			NameAdd("")
+			NameAdd("BOX_ACTORDEF")
+			actor.Offset.X = 0
+			actor.Offset.Y = 0
+			actor.Offset.Z = 0
+
+			wld.Fragments = []FragmentReadWriter{actor}
+			*/
 			err = wld.Write(w)
 			if err != nil {
 				t.Fatalf("failed to write %s: %s", tt.name, err.Error())

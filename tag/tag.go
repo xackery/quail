@@ -68,6 +68,17 @@ func Mark(color string, caption string) {
 	Add(lastPos, coder.Pos(), color, caption)
 }
 
+// MarkRand requires coder to be set, but smartly marks from last position to current position
+func MarkRand(caption string) {
+	if flag.Lookup("test.v") == nil {
+		return
+	}
+	if coder == nil {
+		panic("mark requires a coder to be set")
+	}
+	AddRand(lastPos, coder.Pos(), caption)
+}
+
 // LastPos returns the last position
 func LastPos() int64 {
 	if flag.Lookup("test.v") == nil {

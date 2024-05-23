@@ -17,7 +17,7 @@ func (wld *Wld) Write(w io.Writer) error {
 	out := &raw.Wld{
 		MetaFileName: wld.FileName,
 		Version:      wld.Version,
-		Fragments:    make(map[int]raw.FragmentReadWriter),
+		Fragments:    []raw.FragmentReadWriter{},
 	}
 	for i := 0; i < len(wld.SpriteInstances); i++ {
 		spriteInstance := wld.SpriteInstances[i]

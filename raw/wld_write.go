@@ -15,7 +15,7 @@ import (
 func (wld *Wld) Write(w io.Writer) error {
 	var err error
 	if wld.Fragments == nil {
-		wld.Fragments = make(map[int]FragmentReadWriter)
+		wld.Fragments = []FragmentReadWriter{}
 	}
 
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
@@ -27,32 +27,41 @@ func (wld *Wld) Write(w io.Writer) error {
 	enc.Uint32(uint32(len(wld.Fragments)))
 	tag.Mark("blue", "fragcount")
 
-	enc.Uint32(0) //bspRegionCount
-	enc.Uint32(0) //unk2
+	enc.Uint32(wld.BspRegionCount) //bspRegionCount
+	tag.Mark("green", "bspRegionCount")
+	enc.Uint32(wld.Unk2) //unk2
+	tag.Mark("lime", "unk2")
 
 	totalFragSize := 0
-	fragBuf := bytes.NewBuffer(nil)
-	for i, frag := range wld.Fragments {
-		buf := bytes.NewBuffer(nil)
-		err := frag.Write(buf)
+	totalFragBuf := bytes.NewBuffer(nil)
+	for i := range wld.Fragments {
+		frag := wld.Fragments[i]
+		fragBuf := bytes.NewBuffer(nil)
+		chunkBuf := bytes.NewBuffer(nil)
+		chunkEnc := encdec.NewEncoder(chunkBuf, binary.LittleEndian)
+
+		err := frag.Write(fragBuf)
 		if err != nil {
 			return fmt.Errorf("write fragment id %d 0x%x (%s): %w", i, frag.FragCode(), FragName(frag.FragCode()), err)
 		}
-		enc.Uint32(uint32(buf.Len()))       //fragSize
-		enc.Uint32(uint32(frag.FragCode())) //fragCode
-		totalFragSize += buf.Len()
-		fragBuf.Write(buf.Bytes())
+		chunkEnc.Uint32(uint32(fragBuf.Len()))
+		chunkEnc.Uint32(uint32(frag.FragCode()))
+		chunkEnc.Bytes(fragBuf.Bytes())
+
+		totalFragSize += fragBuf.Len()
+		totalFragBuf.Write(chunkBuf.Bytes())
 	}
 
 	nameData := NameData()
 	enc.Uint32(uint32(len(nameData))) //hashSize
 	tag.Mark("green", "hashsize")
 
-	enc.Uint32(0) //unk3
+	enc.Uint32(wld.Unk3) //unk3
+	tag.Mark("lime", "unk3")
 	hashRaw := helper.WriteStringHash(string(nameData))
 	enc.Bytes(hashRaw) //hashRaw
-	tag.Mark("green", "namedata")
-	enc.Bytes(fragBuf.Bytes())
+	tag.Mark("red", "namehash")
+	enc.Bytes(totalFragBuf.Bytes())
 	tag.Mark("blue", "fragments")
 	err = enc.Error()
 	if err != nil {

@@ -40,9 +40,6 @@ func Deflate(in []byte) ([]byte, error) {
 		pos += sz
 
 		w.Close()
-		if err != nil {
-			return nil, fmt.Errorf("close: %w", err)
-		}
 
 		/*err = binary.Write(out, binary.LittleEndian, adler32.Checksum(buf.Bytes()))
 		if err != nil {

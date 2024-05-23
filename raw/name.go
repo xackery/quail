@@ -1,5 +1,7 @@
 package raw
 
+import "github.com/xackery/quail/helper"
+
 var (
 	names   = []*nameEntry{}
 	nameBuf = []byte{}
@@ -82,7 +84,7 @@ func NameIndex(name string) int32 {
 
 // NameData is used during writing, dumps the name cache
 func NameData() []byte {
-	return nameBuf
+	return helper.WriteStringHash(string(nameBuf))
 }
 
 // NameClear purges names and namebuf, called when encode starts

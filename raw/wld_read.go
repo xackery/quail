@@ -12,10 +12,13 @@ import (
 )
 
 type Wld struct {
-	MetaFileName string                     `yaml:"file_name"`
-	Version      uint32                     `yaml:"version"`
-	IsOldWorld   bool                       `yaml:"is_old_world"`
-	Fragments    map[int]FragmentReadWriter `yaml:"fragments,omitempty"`
+	MetaFileName   string               `yaml:"file_name"`
+	Version        uint32               `yaml:"version"`
+	IsOldWorld     bool                 `yaml:"is_old_world"`
+	Fragments      []FragmentReadWriter `yaml:"fragments,omitempty"`
+	BspRegionCount uint32               `yaml:"bsp_region_count"`
+	Unk2           uint32               `yaml:"unk2"`
+	Unk3           uint32               `yaml:"unk3"`
 }
 
 func (wld *Wld) Identity() string {
@@ -25,7 +28,7 @@ func (wld *Wld) Identity() string {
 // Read reads a wld file that was prepped by Load
 func (wld *Wld) Read(r io.ReadSeeker) error {
 	if wld.Fragments == nil {
-		wld.Fragments = make(map[int]FragmentReadWriter)
+		wld.Fragments = []FragmentReadWriter{}
 	}
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	tag.NewWithCoder(dec)
@@ -50,30 +53,39 @@ func (wld *Wld) Read(r io.ReadSeeker) error {
 	fragmentCount := dec.Uint32()
 	tag.Mark("blue", "fragcount")
 
-	_ = dec.Uint32() //bspRegionCount
-	_ = dec.Uint32() //unk2
+	wld.BspRegionCount = dec.Uint32() //bspRegionCount
+	tag.Mark("green", "bspRegionCount")
+	wld.Unk2 = dec.Uint32() //unk2
+	tag.Mark("lime", "unk2")
 	hashSize := dec.Uint32()
 	tag.Mark("green", "hashsize")
-	_ = dec.Uint32() //unk3
+	wld.Unk3 = dec.Uint32() //unk3
+	tag.Mark("lime", "unk3")
 	hashRaw := dec.Bytes(int(hashSize))
 	nameData := helper.ReadStringHash(hashRaw)
-	tag.Mark("green", "namedata")
+	tag.Mark("red", "namehash")
 
 	names = []*nameEntry{}
 	chunk := []rune{}
 	lastOffset := 0
+	//nameBuf = []byte{}
 	for i, b := range nameData {
 		if b == 0 {
 			names = append(names, &nameEntry{name: string(chunk), offset: lastOffset})
 
-			nameBuf = append(nameBuf, []byte(string(chunk))...)
-			nameBuf = append(nameBuf, 0)
+			//nameBuf = append(nameBuf, []byte(string(chunk))...)
+			//nameBuf = append(nameBuf, 0)
 			chunk = []rune{}
 			lastOffset = i + 1
 			continue
 		}
+		if i == len(nameData)-1 {
+			break // some times there's garbage at the end
+		}
 		chunk = append(chunk, b)
 	}
+
+	nameBuf = hashRaw
 
 	fragments, err := readFragments(fragmentCount, r)
 	if err != nil {
@@ -94,7 +106,8 @@ func (wld *Wld) Read(r io.ReadSeeker) error {
 		if err != nil {
 			return fmt.Errorf("frag %d 0x%x (%s) read: %w", i, reader.FragCode(), FragName(int(reader.FragCode())), err)
 		}
-		wld.Fragments[int(i)] = reader
+		wld.Fragments = append(wld.Fragments, reader)
+
 	}
 
 	return nil

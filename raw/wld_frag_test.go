@@ -134,7 +134,7 @@ func TestFragment(t *testing.T) {
 				t.Fatalf("failed to open wld %s: %s", tt.file, err.Error())
 			}
 
-			fragments, err := tmpFragments(t, bytes.NewReader(data))
+			fragments, err := tmpFragments(bytes.NewReader(data))
 			if err != nil {
 				t.Fatalf("failed to read fragments: %s", err.Error())
 			}
@@ -147,7 +147,7 @@ func TestFragment(t *testing.T) {
 				r := bytes.NewReader(srcData)
 				reader := NewFrag(r)
 				if reader == nil {
-					t.Fatalf("frag %d 0x%x (%s) read: unsupported fragment", i, reader.FragCode(), FragName(int(reader.FragCode())))
+					t.Fatalf("frag %d read: unsupported fragment", i)
 				}
 
 				err = reader.Read(r)
@@ -189,7 +189,7 @@ func TestFragment(t *testing.T) {
 	}
 }
 
-func tmpFragments(t *testing.T, r io.ReadSeeker) (fragments [][]byte, err error) {
+func tmpFragments(r io.ReadSeeker) (fragments [][]byte, err error) {
 
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	_ = dec.Bytes(4)

@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/xackery/quail/helper"
-	"github.com/xackery/quail/log"
 )
 
 // Pfs represents a modern everquest pfs archive
@@ -76,7 +75,7 @@ func (e *Pfs) Add(name string, data []byte) error {
 		}
 	}
 
-	log.Debugf("EQG adding %s (%d bytes)", name, len(data))
+	//log.Debugf("EQG adding %s (%d bytes)", name, len(data))
 	e.files = append(e.files, NewFileEntry(name, data))
 	return nil
 }
