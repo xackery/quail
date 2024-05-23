@@ -6,11 +6,8 @@ import (
 	"fmt"
 	"io"
 	"strings"
-	"time"
 
-	"github.com/xackery/quail/dump"
 	"github.com/xackery/quail/helper"
-	"github.com/xackery/quail/log"
 )
 
 // Read will read a Pfs archive
@@ -65,13 +62,11 @@ func (e *Pfs) Read(r io.ReadSeeker) error {
 		return fmt.Errorf("seek start: %w", err)
 	}
 
-	dump.Hex(dirOffset, fmt.Sprintf("dirOffset=0x%x", dirOffset))
 	pfsHeader := [4]byte{}
 	err = binary.Read(r, binary.LittleEndian, &pfsHeader)
 	if err != nil {
 		return fmt.Errorf("write header magic: %w", err)
 	}
-	dump.Hex(pfsHeader, "header=%s", string(pfsHeader[0:]))
 	if pfsHeader != [4]byte{'P', 'F', 'S', ' '} {
 		return fmt.Errorf("header mismatch")
 	}
@@ -81,7 +76,6 @@ func (e *Pfs) Read(r io.ReadSeeker) error {
 	if err != nil {
 		return fmt.Errorf("write header version: %w", err)
 	}
-	dump.Hex(version, "version=%d", version)
 	if uint32(0x00020000) != version {
 		return fmt.Errorf("unknown version")
 	}
@@ -111,9 +105,6 @@ func (e *Pfs) Read(r io.ReadSeeker) error {
 		}
 		entry := dirEntries[entryIndex]
 
-		var firstByte byte
-		var lastByte byte
-
 		data := []byte{}
 		currentSize := 0
 		for entry.size > uint32(currentSize) {
@@ -132,9 +123,6 @@ func (e *Pfs) Read(r io.ReadSeeker) error {
 			if err != nil {
 				return fmt.Errorf("read inflate size %d: %w", i, err)
 			}
-			if currentSize == 0 {
-				firstByte = deflateData[0]
-			}
 
 			chunkData, err := helper.Inflate(deflateData, int(inflateSize))
 			if err != nil {
@@ -142,14 +130,6 @@ func (e *Pfs) Read(r io.ReadSeeker) error {
 			}
 			currentSize += int(inflateSize)
 			data = append(data, chunkData...)
-			lastByte = deflateData[len(deflateData)-1]
-			if entry.size < 16 {
-				dump.Hex(deflateData, "%dchunk=(%d bytes)", i, len(data))
-			}
-		}
-
-		if entry.size >= 16 {
-			dump.Hex([]byte{firstByte, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, lastByte}, "%dchunk=(%d bytes)", i, len(data))
 		}
 
 		nameBuf := bytes.NewBuffer(data)
@@ -196,16 +176,6 @@ func (e *Pfs) Read(r io.ReadSeeker) error {
 		e.files = append(e.files, NewFileEntry(dirName, data))
 	}
 
-	dump.Hex(fileCount, "fileCount=%d", fileCount)
-	for i, entry := range dirEntries {
-		name := dirNameByCRCs[entry.crc]
-		if entry.crc == 0x61580AC9 {
-			name = "dir list"
-		}
-		dump.Hex(entry.crc, "%dcrc=%d (%s)", i, entry.crc, name)
-		dump.Hex(entry.offset, "%doffset=0x%x", i, entry.offset)
-		dump.Hex(entry.size, "%dsize=%d", i, entry.size)
-	}
 	r.Seek(int64(4+(len(dirEntries)*12)), io.SeekCurrent)
 
 	steveFooter := [5]byte{}
@@ -214,13 +184,8 @@ func (e *Pfs) Read(r io.ReadSeeker) error {
 		if err != io.EOF {
 			return fmt.Errorf("read steveFooter: %w", err)
 		}
-		if dump.IsActive() {
-			log.Warnf("inspect: warning: STEVE footer missing, can be ignored")
-			return nil
-		}
 		return nil
 	}
-	dump.Hex(steveFooter, "steveFooter")
 	if steveFooter != [5]byte{'S', 'T', 'E', 'V', 'E'} {
 		return fmt.Errorf("steve footer not STEVE")
 	}
@@ -229,8 +194,6 @@ func (e *Pfs) Read(r io.ReadSeeker) error {
 	if err != nil {
 		return fmt.Errorf("read dateFooter: %w", err)
 	}
-
-	dump.Hex(dateFooter, "dateFooter=%s", time.Unix(int64(dateFooter), 0).Format(time.RFC3339))
 
 	e.fileCount = len(e.files)
 	return nil
