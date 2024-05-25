@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"fmt"
 	"os"
+	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/xackery/quail/common"
@@ -250,6 +252,106 @@ func TestWldRewrite(t *testing.T) {
 					t.Fatalf("failed to write yaml %s: %s", tt.name, err.Error())
 				} */
 
+		})
+	}
+}
+
+func TestWldVsWldCli(t *testing.T) {
+	if os.Getenv("SINGLE_TEST") != "1" {
+		t.Skip("skipping test; SINGLE_TEST not set")
+	}
+	eqPath := os.Getenv("EQ_PATH")
+	if eqPath == "" {
+		t.Skip("EQ_PATH not set")
+	}
+	dirTest := common.DirTest()
+
+	tests := []struct {
+		name string
+	}{
+		{name: "load2"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			archive, err := pfs.NewFile(fmt.Sprintf("%s/%s.s3d", eqPath, tt.name))
+			if err != nil {
+				t.Fatalf("failed to open s3d %s: %s", tt.name, err.Error())
+			}
+			defer archive.Close()
+
+			wldName := fmt.Sprintf("%s.wld", tt.name)
+
+			// get wld
+			data, err := archive.File(wldName)
+			if err != nil {
+				t.Fatalf("failed to open wld %s: %s", wldName, err.Error())
+			}
+
+			wld := &Wld{}
+			err = wld.Read(bytes.NewReader(data))
+			if err != nil {
+				t.Fatalf("failed to read %s: %s", tt.name, err.Error())
+			}
+
+			rawFrags := [][]byte{}
+			dirs, err := os.ReadDir(filepath.Join(dirTest, fmt.Sprintf("_%s.s3d", tt.name)))
+			if err != nil {
+				t.Fatalf("failed to read dir %s: %s", tt.name, err.Error())
+			}
+			for _, dir := range dirs {
+				if dir.IsDir() {
+					continue
+				}
+				if !strings.HasSuffix(dir.Name(), ".frag") {
+					continue
+				}
+
+				data, err := os.ReadFile(filepath.Join(dirTest, fmt.Sprintf("_%s.s3d", tt.name), dir.Name()))
+				if err != nil {
+					t.Fatalf("failed to read file %s: %s", dir.Name(), err.Error())
+				}
+				rawFrags = append(rawFrags, data)
+			}
+
+			for i := 0; i < len(wld.Fragments); i++ {
+				if i >= len(rawFrags) {
+					t.Fatalf("failed to find frag %d", i)
+				}
+				buf := bytes.NewBuffer(nil)
+				src := wld.Fragments[i]
+				dst := rawFrags[i]
+
+				err = src.Write(buf)
+				if err != nil {
+					t.Fatalf("failed to write frag %d: %s", i, err.Error())
+				}
+
+				// TODO: fix dmspritedef2
+				if src.FragCode() == 0x36 {
+					continue
+				}
+				if src.FragCode() == 0x22 {
+					continue
+				}
+
+				err = common.ByteCompareTest(buf.Bytes(), dst)
+				if err != nil {
+					// write them both out as src/dst for comparison
+					wErr := os.WriteFile(fmt.Sprintf("%s/src.frag", dirTest), buf.Bytes(), 0644)
+					if wErr != nil {
+						t.Fatalf("failed to write src frag %d: %s", i+1, wErr.Error())
+					}
+					wErr = os.WriteFile(fmt.Sprintf("%s/dst.frag", dirTest), dst, 0644)
+					if wErr != nil {
+						t.Fatalf("failed to write dst frag %d: %s", i+1, wErr.Error())
+					}
+
+					t.Fatalf("failed to compare frag %d %s (0x%x): %s", i+1, FragName(src.FragCode()), src.FragCode(), err.Error())
+				}
+
+				//fmt.Printf("frag %s %d (%d bytes) matches\n", FragName(wld.Fragments[i].FragCode()), i, len(buf.Bytes()))
+			}
 		})
 	}
 }

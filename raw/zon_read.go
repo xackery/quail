@@ -6,6 +6,7 @@ import (
 	"io"
 
 	"github.com/xackery/encdec"
+	"github.com/xackery/quail/model"
 	"github.com/xackery/quail/tag"
 )
 
@@ -26,17 +27,17 @@ func (zon *Zon) Identity() string {
 }
 
 type V4Info struct {
-	Name                 string  `yaml:"name"`
-	MinLng               int     `yaml:"min_lng"`
-	MinLat               int     `yaml:"min_lat"`
-	MaxLng               int     `yaml:"max_lng"`
-	MaxLat               int     `yaml:"max_lat"`
-	MinExtents           Vector3 `yaml:"min_extents"`
-	MaxExtents           Vector3 `yaml:"max_extents"`
-	UnitsPerVert         float32 `yaml:"units_per_vert"`
-	QuadsPerTile         int     `yaml:"quads_per_tile"`
-	CoverMapInputSize    int     `yaml:"cover_map_input_size"`
-	LayeringMapInputSize int     `yaml:"layering_map_input_size"`
+	Name                 string        `yaml:"name"`
+	MinLng               int           `yaml:"min_lng"`
+	MinLat               int           `yaml:"min_lat"`
+	MaxLng               int           `yaml:"max_lng"`
+	MaxLat               int           `yaml:"max_lat"`
+	MinExtents           model.Vector3 `yaml:"min_extents"`
+	MaxExtents           model.Vector3 `yaml:"max_extents"`
+	UnitsPerVert         float32       `yaml:"units_per_vert"`
+	QuadsPerTile         int           `yaml:"quads_per_tile"`
+	CoverMapInputSize    int           `yaml:"cover_map_input_size"`
+	LayeringMapInputSize int           `yaml:"layering_map_input_size"`
 }
 
 type V4Dat struct {
@@ -57,30 +58,30 @@ type V4DatTile struct {
 
 // Object is an object
 type Object struct {
-	ModelName    string  `yaml:"model_name"`
-	InstanceName string  `yaml:"instance_name"`
-	Position     Vector3 `yaml:"position"`
-	Rotation     Vector3 `yaml:"rotation"`
-	Scale        float32 `yaml:"scale"`
-	Lits         []*RGBA `yaml:"-"` // used in v2+ zones, omitted since it's huge
+	ModelName    string        `yaml:"model_name"`
+	InstanceName string        `yaml:"instance_name"`
+	Position     model.Vector3 `yaml:"position"`
+	Rotation     model.Vector3 `yaml:"rotation"`
+	Scale        float32       `yaml:"scale"`
+	Lits         []*model.RGBA `yaml:"-"` // used in v2+ zones, omitted since it's huge
 }
 
 // Region is a region
 type Region struct {
-	Name    string  `yaml:"name"`
-	Center  Vector3 `yaml:"center"`
-	Unknown Vector3 `yaml:"unknown"`
-	Extent  Vector3 `yaml:"extent"`
-	Unk1    uint32  `yaml:"unk1"`
-	Unk2    uint32  `yaml:"unk2"`
+	Name    string        `yaml:"name"`
+	Center  model.Vector3 `yaml:"center"`
+	Unknown model.Vector3 `yaml:"unknown"`
+	Extent  model.Vector3 `yaml:"extent"`
+	Unk1    uint32        `yaml:"unk1"`
+	Unk2    uint32        `yaml:"unk2"`
 }
 
 // Light is a light
 type Light struct {
-	Name     string  `yaml:"name"`
-	Position Vector3 `yaml:"position"`
-	Color    Vector3 `yaml:"color"`
-	Radius   float32 `yaml:"radius"`
+	Name     string        `yaml:"name"`
+	Position model.Vector3 `yaml:"position"`
+	Color    model.Vector3 `yaml:"color"`
+	Radius   float32       `yaml:"radius"`
 }
 
 // Decode reads a ZON file
@@ -162,7 +163,7 @@ func (zon *Zon) Read(r io.ReadSeeker) error {
 		if zon.Version >= 2 {
 			litCount := dec.Uint32()
 			for j := 0; j < int(litCount); j++ {
-				lit := RGBA{}
+				lit := model.RGBA{}
 				lit.R = dec.Uint8()
 				lit.G = dec.Uint8()
 				lit.B = dec.Uint8()

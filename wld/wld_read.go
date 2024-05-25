@@ -1,9 +1,10 @@
-package virtual
+package wld
 
 import (
 	"fmt"
 
 	"github.com/xackery/quail/raw"
+	"github.com/xackery/quail/raw/rawfrag"
 )
 
 func (wld *Wld) Read(src *raw.Wld) error {
@@ -14,8 +15,8 @@ func (wld *Wld) Read(src *raw.Wld) error {
 		//log.Println("Fragment: ", raw.FragName(fragment.FragCode()), i)
 
 		switch fragment.FragCode() {
-		case raw.FragCodeGlobalAmbientLightDef: // turns to globalambientlight
-			fragData, ok := fragment.(*raw.WldFragGlobalAmbientLightDef)
+		case rawfrag.FragCodeGlobalAmbientLightDef: // turns to globalambientlight
+			fragData, ok := fragment.(*rawfrag.WldFragGlobalAmbientLightDef)
 			if !ok {
 				return fmt.Errorf("invalid globalambientlightdef fragment at offset %d", i)
 			}
@@ -29,8 +30,8 @@ func (wld *Wld) Read(src *raw.Wld) error {
 				return fmt.Errorf("multiple globalambientlight found at offset %d", i)
 			}
 			wld.GlobalAmbientLight = tag
-		case raw.FragCodeBMInfo: // turns to bitmap
-			fragData, ok := fragment.(*raw.WldFragBMInfo)
+		case rawfrag.FragCodeBMInfo: // turns to bitmap
+			fragData, ok := fragment.(*rawfrag.WldFragBMInfo)
 			if !ok {
 				return fmt.Errorf("invalid bminfo fragment at offset %d", i)
 			}
@@ -45,8 +46,8 @@ func (wld *Wld) Read(src *raw.Wld) error {
 				Textures: fragData.TextureNames,
 			}
 			wld.Bitmaps = append(wld.Bitmaps, bitmap)
-		case raw.FragCodeSimpleSpriteDef: // turns to sprite
-			fragData, ok := fragment.(*raw.WldFragSimpleSpriteDef)
+		case rawfrag.FragCodeSimpleSpriteDef: // turns to sprite
+			fragData, ok := fragment.(*rawfrag.WldFragSimpleSpriteDef)
 			if !ok {
 				return fmt.Errorf("invalid simplespritedef fragmentat offset %d", i)
 			}
@@ -72,8 +73,8 @@ func (wld *Wld) Read(src *raw.Wld) error {
 				sprite.Bitmaps = append(sprite.Bitmaps, bitmap.Tag)
 			}
 			wld.Sprites = append(wld.Sprites, &sprite)
-		case raw.FragCodeSimpleSprite: // turns to spriteinstance
-			fragData, ok := fragment.(*raw.WldFragSimpleSprite)
+		case rawfrag.FragCodeSimpleSprite: // turns to spriteinstance
+			fragData, ok := fragment.(*rawfrag.WldFragSimpleSprite)
 			if !ok {
 				return fmt.Errorf("invalid simplesprite fragment at offset %d", i)
 			}
@@ -94,8 +95,8 @@ func (wld *Wld) Read(src *raw.Wld) error {
 				Sprite: sprite.Tag,
 			}
 			wld.SpriteInstances = append(wld.SpriteInstances, &spriteInstance)
-		case raw.FragCodeBlitSpriteDef: // turns to particle
-			fragData, ok := fragment.(*raw.WldFragBlitSpriteDef)
+		case rawfrag.FragCodeBlitSpriteDef: // turns to particle
+			fragData, ok := fragment.(*rawfrag.WldFragBlitSpriteDef)
 			if !ok {
 				return fmt.Errorf("invalid blitspritedef fragment at offset %d", i)
 			}
@@ -113,8 +114,8 @@ func (wld *Wld) Read(src *raw.Wld) error {
 				Unknown:   fragData.Unknown,
 			}
 			wld.Particles = append(wld.Particles, particle)
-		case raw.FragCodeParticleCloudDef: // turns to particleinstance
-			fragData, ok := fragment.(*raw.WldFragParticleCloudDef)
+		case rawfrag.FragCodeParticleCloudDef: // turns to particleinstance
+			fragData, ok := fragment.(*rawfrag.WldFragParticleCloudDef)
 			if !ok {
 				return fmt.Errorf("invalid particleclouddef fragment at offset %d", i)
 			}
@@ -156,8 +157,8 @@ func (wld *Wld) Read(src *raw.Wld) error {
 			}
 
 			wld.ParticleInstances = append(wld.ParticleInstances, &particleInstance)
-		case raw.FragCodeMaterialDef: // turns to material
-			fragData, ok := fragment.(*raw.WldFragMaterialDef)
+		case rawfrag.FragCodeMaterialDef: // turns to material
+			fragData, ok := fragment.(*rawfrag.WldFragMaterialDef)
 			if !ok {
 				return fmt.Errorf("invalid materialdef fragment at offset %d", i)
 			}
@@ -168,10 +169,10 @@ func (wld *Wld) Read(src *raw.Wld) error {
 			}
 
 			var spriteInstance *SpriteInstance
-			if fragData.SpriteInstanceRef > 0 {
-				spriteInstance = wld.spriteInstanceByFragID(fragData.SpriteInstanceRef)
+			if fragData.SimpleSpriteRef > 0 {
+				spriteInstance = wld.spriteInstanceByFragID(fragData.SimpleSpriteRef)
 				if spriteInstance == nil {
-					return fmt.Errorf("materialdef %s refers to missing spriteInstance %d at offset %d", tag, fragData.SpriteInstanceRef, i)
+					return fmt.Errorf("materialdef %s refers to missing spriteInstance %d at offset %d", tag, fragData.SimpleSpriteRef, i)
 				}
 			}
 
@@ -183,7 +184,8 @@ func (wld *Wld) Read(src *raw.Wld) error {
 				RGBPen:         fragData.RGBPen,
 				Brightness:     fragData.Brightness,
 				ScaledAmbient:  fragData.ScaledAmbient,
-				Pairs:          fragData.Pairs,
+				Pair1:          fragData.Pair1,
+				Pair2:          fragData.Pair2,
 				spriteInstance: spriteInstance,
 			}
 			if spriteInstance != nil {
@@ -191,8 +193,8 @@ func (wld *Wld) Read(src *raw.Wld) error {
 			}
 
 			wld.Materials = append(wld.Materials, material)
-		case raw.FragCodeMaterialPalette: // turns to materialinstance
-			fragData, ok := fragment.(*raw.WldFragMaterialPalette)
+		case rawfrag.FragCodeMaterialPalette: // turns to materialinstance
+			fragData, ok := fragment.(*rawfrag.WldFragMaterialPalette)
 			if !ok {
 				return fmt.Errorf("invalid materialpalette fragment at offset %d", i)
 			}
@@ -214,8 +216,8 @@ func (wld *Wld) Read(src *raw.Wld) error {
 			}
 
 			wld.MaterialInstances = append(wld.MaterialInstances, &materialInstance)
-		case raw.FragCodeDmSpriteDef2: // turns to mesh
-			fragData, ok := fragment.(*raw.WldFragDmSpriteDef2)
+		case rawfrag.FragCodeDmSpriteDef2: // turns to mesh
+			fragData, ok := fragment.(*rawfrag.WldFragDmSpriteDef2)
 			if !ok {
 				return fmt.Errorf("invalid dmspritedef2 fragment at offset %d", i)
 			}
@@ -251,8 +253,8 @@ func (wld *Wld) Read(src *raw.Wld) error {
 			}
 
 			wld.Meshes = append(wld.Meshes, mesh)
-		case raw.FragCodeTrackDef: // turns to animation
-			fragData, ok := fragment.(*raw.WldFragTrackDef)
+		case rawfrag.FragCodeTrackDef: // turns to animation
+			fragData, ok := fragment.(*rawfrag.WldFragTrackDef)
 			if !ok {
 				return fmt.Errorf("invalid trackdef fragment at offset %d", i)
 			}
@@ -279,8 +281,8 @@ func (wld *Wld) Read(src *raw.Wld) error {
 				})
 			}
 			wld.Animations = append(wld.Animations, animation)
-		case raw.FragCodeTrack: // turns to animationinstance
-			fragData, ok := fragment.(*raw.WldFragTrack)
+		case rawfrag.FragCodeTrack: // turns to animationinstance
+			fragData, ok := fragment.(*rawfrag.WldFragTrack)
 			if !ok {
 				return fmt.Errorf("invalid track fragment at offset %d", i)
 			}
@@ -303,8 +305,8 @@ func (wld *Wld) Read(src *raw.Wld) error {
 				Sleep:     fragData.Sleep,
 			}
 			wld.AnimationInstances = append(wld.AnimationInstances, &animationInstance)
-		case raw.FragCodeDMSprite: // turns to meshinstance
-			fragData, ok := fragment.(*raw.WldFragDMSprite)
+		case rawfrag.FragCodeDMSprite: // turns to meshinstance
+			fragData, ok := fragment.(*rawfrag.WldFragDMSprite)
 			if !ok {
 				return fmt.Errorf("invalid dmsprite fragment at offset %d", i)
 			}
@@ -340,8 +342,8 @@ func (wld *Wld) Read(src *raw.Wld) error {
 				Params: fragData.Params,
 			}
 			wld.MeshInstances = append(wld.MeshInstances, &meshInstance)
-		case raw.FragCodeDMSpriteDef: // turns to alternatemesh
-			fragData, ok := fragment.(*raw.WldFragDMSpriteDef)
+		case rawfrag.FragCodeDMSpriteDef: // turns to alternatemesh
+			fragData, ok := fragment.(*rawfrag.WldFragDMSpriteDef)
 			if !ok {
 				return fmt.Errorf("invalid dmspritedef fragment at offset %d", i)
 			}
@@ -417,8 +419,8 @@ func (wld *Wld) Read(src *raw.Wld) error {
 			}
 
 			wld.AlternateMeshes = append(wld.AlternateMeshes, alternateMesh)
-		case raw.FragCodeActorDef: // turns to actor
-			fragData, ok := fragment.(*raw.WldFragActorDef)
+		case rawfrag.FragCodeActorDef: // turns to actor
+			fragData, ok := fragment.(*rawfrag.WldFragActorDef)
 			if !ok {
 				return fmt.Errorf("invalid actordef fragment at offset %d", i)
 			}
@@ -453,8 +455,8 @@ func (wld *Wld) Read(src *raw.Wld) error {
 			}
 
 			wld.Actors = append(wld.Actors, actor)
-		case raw.FragCodeActor: // turns to actorinstance
-			fragData, ok := fragment.(*raw.WldFragActor)
+		case rawfrag.FragCodeActor: // turns to actorinstance
+			fragData, ok := fragment.(*rawfrag.WldFragActor)
 			if !ok {
 				return fmt.Errorf("invalid actor fragment at offset %d", i)
 			}
@@ -490,8 +492,8 @@ func (wld *Wld) Read(src *raw.Wld) error {
 			}
 
 			wld.ActorInstances = append(wld.ActorInstances, &actorInstance)
-		case raw.FragCodeHierarchialSpriteDef: // turns to skeleton
-			fragData, ok := fragment.(*raw.WldFragHierarchialSpriteDef)
+		case rawfrag.FragCodeHierarchialSpriteDef: // turns to skeleton
+			fragData, ok := fragment.(*rawfrag.WldFragHierarchialSpriteDef)
 			if !ok {
 				return fmt.Errorf("invalid hierarchialspritedef fragment at offset %d", i)
 			}
@@ -552,8 +554,8 @@ func (wld *Wld) Read(src *raw.Wld) error {
 				skeleton.Bones = append(skeleton.Bones, entry)
 			}
 			wld.Skeletons = append(wld.Skeletons, skeleton)
-		case raw.FragCodeHierarchialSprite: // turns to skeletoninstance
-			fragData, ok := fragment.(*raw.WldFragHierarchialSprite)
+		case rawfrag.FragCodeHierarchialSprite: // turns to skeletoninstance
+			fragData, ok := fragment.(*rawfrag.WldFragHierarchialSprite)
 			if !ok {
 				return fmt.Errorf("invalid hierarchialsprite fragment at offset %d", i)
 			}
@@ -582,8 +584,8 @@ func (wld *Wld) Read(src *raw.Wld) error {
 				Flags:    fragData.Flags,
 			}
 			wld.SkeletonInstances = append(wld.SkeletonInstances, &skeletonInstance)
-		case raw.FragCodeLightDef: // turns to light
-			fragData, ok := fragment.(*raw.WldFragLightDef)
+		case rawfrag.FragCodeLightDef: // turns to light
+			fragData, ok := fragment.(*rawfrag.WldFragLightDef)
 			if !ok {
 				return fmt.Errorf("invalid lightdef fragment at offset %d", i)
 			}
@@ -602,8 +604,8 @@ func (wld *Wld) Read(src *raw.Wld) error {
 				Colors:          fragData.Colors,
 			}
 			wld.Lights = append(wld.Lights, light)
-		case raw.FragCodeLight: // turns to lightinstance
-			fragData, ok := fragment.(*raw.WldFragLight)
+		case rawfrag.FragCodeLight: // turns to lightinstance
+			fragData, ok := fragment.(*rawfrag.WldFragLight)
 			if !ok {
 				return fmt.Errorf("invalid light fragment at offset %d", i)
 			}
@@ -634,8 +636,8 @@ func (wld *Wld) Read(src *raw.Wld) error {
 			}
 
 			wld.LightInstances = append(wld.LightInstances, &lightInstance)
-		case raw.FragCodeSprite3DDef: // turns to camera
-			fragData, ok := fragment.(*raw.WldFragSprite3DDef)
+		case rawfrag.FragCodeSprite3DDef: // turns to camera
+			fragData, ok := fragment.(*rawfrag.WldFragSprite3DDef)
 			if !ok {
 				return fmt.Errorf("invalid sprite3ddef fragment at offset %d", i)
 			}
@@ -674,8 +676,8 @@ func (wld *Wld) Read(src *raw.Wld) error {
 
 				wld.Cameras = append(wld.Cameras, camera)
 			}
-		case raw.FragCodeSprite3D: // turns to camerainstance
-			fragData, ok := fragment.(*raw.WldFragSprite3D)
+		case rawfrag.FragCodeSprite3D: // turns to camerainstance
+			fragData, ok := fragment.(*rawfrag.WldFragSprite3D)
 			if !ok {
 				return fmt.Errorf("invalid sprite3d fragment at offset %d", i)
 			}
@@ -707,8 +709,8 @@ func (wld *Wld) Read(src *raw.Wld) error {
 
 			wld.CameraInstances = append(wld.CameraInstances, &cameraInstance)
 
-		case raw.FragCodeSphere: // turns to sphere
-			fragData, ok := fragment.(*raw.WldFragSphere)
+		case rawfrag.FragCodeSphere: // turns to sphere
+			fragData, ok := fragment.(*rawfrag.WldFragSphere)
 			if !ok {
 				return fmt.Errorf("invalid sphere fragment at offset %d", i)
 			}
@@ -725,8 +727,8 @@ func (wld *Wld) Read(src *raw.Wld) error {
 			}
 
 			wld.Spheres = append(wld.Spheres, sphere)
-		case raw.FragCodeZone: // turns to regioninstance
-			fragData, ok := fragment.(*raw.WldFragZone)
+		case rawfrag.FragCodeZone: // turns to regioninstance
+			fragData, ok := fragment.(*rawfrag.WldFragZone)
 			if !ok {
 				return fmt.Errorf("invalid zone fragment at offset %d", i)
 			}
@@ -753,8 +755,8 @@ func (wld *Wld) Read(src *raw.Wld) error {
 
 			wld.RegionInstances = append(wld.RegionInstances, &regionInstance)
 
-		case raw.FragCodeWorldTree: // turns to bsptree
-			fragData, ok := fragment.(*raw.WldFragWorldTree)
+		case rawfrag.FragCodeWorldTree: // turns to bsptree
+			fragData, ok := fragment.(*rawfrag.WldFragWorldTree)
 			if !ok {
 				return fmt.Errorf("invalid worldtree fragment at offset %d", i)
 			}
@@ -809,8 +811,8 @@ func (wld *Wld) Read(src *raw.Wld) error {
 			}
 
 			wld.BspTrees = append(wld.BspTrees, bspTree)
-		case raw.FragCodeRegion: // turns to region
-			fragData, ok := fragment.(*raw.WldFragRegion)
+		case rawfrag.FragCodeRegion: // turns to region
+			fragData, ok := fragment.(*rawfrag.WldFragRegion)
 			if !ok {
 				return fmt.Errorf("invalid region fragment at offset %d", i)
 			}
@@ -821,20 +823,20 @@ func (wld *Wld) Read(src *raw.Wld) error {
 			}
 
 			region := &Region{
-				fragID:               uint32(i),
-				Tag:                  tag,
-				Flags:                fragData.Flags,
-				AmbientLightRef:      fragData.AmbientLightRef,
-				RegionVertexCount:    fragData.RegionVertexCount,
-				RegionProximalCount:  fragData.RegionProximalCount,
-				RenderVertexCount:    fragData.RenderVertexCount,
-				WallCount:            fragData.WallCount,
-				ObstacleCount:        fragData.ObstacleCount,
+				fragID:          uint32(i),
+				Tag:             tag,
+				Flags:           fragData.Flags,
+				AmbientLightRef: fragData.AmbientLightRef,
+				//RegionVertexCount:    fragData.RegionVertexCount,
+				//RegionProximalCount:  fragData.RegionProximalCount,
+				//RenderVertexCount:    fragData.RenderVertexCount,
+				//WallCount:            fragData.WallCount,
+				//ObstacleCount:        fragData.ObstacleCount,
 				CuttingObstacleCount: fragData.CuttingObstacleCount,
-				VisibleNodeCount:     fragData.VisibleNodeCount,
-				RegionVertices:       fragData.RegionVertices,
-				RegionProximals:      fragData.RegionProximals,
-				RenderVertices:       fragData.RenderVertices,
+				//VisibleNodeCount:     fragData.VisibleNodeCount,
+				RegionVertices:  fragData.RegionVertices,
+				RegionProximals: fragData.RegionProximals,
+				RenderVertices:  fragData.RenderVertices,
 			}
 
 			for _, wall := range fragData.Walls {
@@ -858,8 +860,8 @@ func (wld *Wld) Read(src *raw.Wld) error {
 			}
 
 			wld.Regions = append(wld.Regions, region)
-		case raw.FragCodeAmbientLight: // turns to ambientlightinstance
-			fragData, ok := fragment.(*raw.WldFragAmbientLight)
+		case rawfrag.FragCodeAmbientLight: // turns to ambientlightinstance
+			fragData, ok := fragment.(*rawfrag.WldFragAmbientLight)
 			if !ok {
 				return fmt.Errorf("invalid ambientlight fragment at offset %d", i)
 			}
@@ -895,8 +897,8 @@ func (wld *Wld) Read(src *raw.Wld) error {
 			}
 
 			wld.AmbientLightInstances = append(wld.AmbientLightInstances, &ambientLightInstance)
-		case raw.FragCodePointLight: // turns to pointlightinstance
-			fragData, ok := fragment.(*raw.WldFragPointLight)
+		case rawfrag.FragCodePointLight: // turns to pointlightinstance
+			fragData, ok := fragment.(*rawfrag.WldFragPointLight)
 			if !ok {
 				return fmt.Errorf("invalid pointlight fragment at offset %d", i)
 			}

@@ -1,9 +1,11 @@
-package raw
+package rawfrag
 
 import (
+	"bytes"
 	"encoding/binary"
 	"fmt"
 	"io"
+	"strings"
 
 	"github.com/xackery/encdec"
 	"github.com/xackery/quail/helper"
@@ -55,16 +57,26 @@ func (e *WldFragBMInfo) FragCode() int {
 }
 
 func (e *WldFragBMInfo) Write(w io.Writer) error {
-	enc := encdec.NewEncoder(w, binary.LittleEndian)
+	buf := &bytes.Buffer{}
+	enc := encdec.NewEncoder(buf, binary.LittleEndian)
+
 	enc.Int32(e.NameRef)
 	enc.Int32(int32(len(e.TextureNames) - 1))
-	for _, textureName := range e.TextureNames {
-		enc.StringLenPrefixUint16(string(helper.WriteStringHash(textureName + "\x00")))
-	}
+	enc.StringLenPrefixUint16(string(helper.WriteStringHash(strings.Join(e.TextureNames, ""))))
+
+	paddingSize := (4 - buf.Len()%4) % 4
+	enc.Bytes(make([]byte, paddingSize))
+
 	err := enc.Error()
 	if err != nil {
 		return fmt.Errorf("write: %w", err)
 	}
+
+	_, err = buf.WriteTo(w)
+	if err != nil {
+		return fmt.Errorf("write: %w", err)
+	}
+
 	return nil
 }
 
@@ -155,6 +167,7 @@ func (e *WldFragSimpleSprite) Write(w io.Writer) error {
 	enc.Int32(e.NameRef)
 	enc.Int16(e.SpriteRef)
 	enc.Uint32(e.Flags)
+	enc.Bytes(make([]byte, 2)) // TODO: why 2 extra bytes?
 	err := enc.Error()
 	if err != nil {
 		return fmt.Errorf("write: %w", err)
@@ -237,14 +250,15 @@ func (e *WldFragBlitSprite) Read(r io.ReadSeeker) error {
 
 // WldFragMaterialDef is MaterialDef in libeq, Texture in openzone, MATERIALDEFINITION in wld, Material in lantern
 type WldFragMaterialDef struct {
-	NameRef           int32     `yaml:"name_ref"`
-	Flags             uint32    `yaml:"flags"`
-	RenderMethod      uint32    `yaml:"render_method"`
-	RGBPen            uint32    `yaml:"rgb_pen"`
-	Brightness        float32   `yaml:"brightness"`
-	ScaledAmbient     float32   `yaml:"scaled_ambient"`
-	SpriteInstanceRef uint32    `yaml:"sprite_instance_ref"`
-	Pairs             [2]uint32 `yaml:"pairs"`
+	NameRef         int32   `yaml:"name_ref"`
+	Flags           uint32  `yaml:"flags"`
+	RenderMethod    uint32  `yaml:"render_method"`
+	RGBPen          uint32  `yaml:"rgb_pen"`
+	Brightness      float32 `yaml:"brightness"`
+	ScaledAmbient   float32 `yaml:"scaled_ambient"`
+	SimpleSpriteRef uint32  `yaml:"sprite_instance_ref"`
+	Pair1           uint32
+	Pair2           float32
 }
 
 func (e *WldFragMaterialDef) FragCode() int {
@@ -259,10 +273,10 @@ func (e *WldFragMaterialDef) Write(w io.Writer) error {
 	enc.Uint32(e.RGBPen)
 	enc.Float32(e.Brightness)
 	enc.Float32(e.ScaledAmbient)
-	enc.Uint32(e.SpriteInstanceRef)
-	if e.Flags&0x1 != 0 {
-		enc.Uint32(e.Pairs[0])
-		enc.Uint32(e.Pairs[1])
+	enc.Uint32(e.SimpleSpriteRef)
+	if e.Flags&0x2 != 0 {
+		enc.Uint32(e.Pair1)
+		enc.Float32(e.Pair2)
 	}
 	err := enc.Error()
 	if err != nil {
@@ -279,10 +293,10 @@ func (e *WldFragMaterialDef) Read(r io.ReadSeeker) error {
 	e.RGBPen = dec.Uint32()
 	e.Brightness = dec.Float32()
 	e.ScaledAmbient = dec.Float32()
-	e.SpriteInstanceRef = dec.Uint32()
-	if e.Flags&0x1 != 0 {
-		e.Pairs[0] = dec.Uint32()
-		e.Pairs[1] = dec.Uint32()
+	e.SimpleSpriteRef = dec.Uint32()
+	if e.Flags&0x2 != 0 {
+		e.Pair1 = dec.Uint32()
+		e.Pair2 = dec.Float32()
 	}
 	err := dec.Error()
 	if err != nil {

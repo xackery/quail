@@ -128,6 +128,14 @@ compressobj-%: ## compress a file
 	mkdir -p test/
 	wld-cli create test/_$*.objects.wld.json -f json test/_$*.objects.wld
 
+
+extractfrag-%: ## extract a file
+	mkdir -p test/
+	rm -rf test/_*.s3d/
+	rm -rf test/_*.eqg/
+	source .env && go run main.go extract $$EQ_PATH/$*.s3d test/_$*.s3d
+	wld-cli extract test/_$*.s3d/$*.wld test/_$*.s3d/
+
 test-cover: ## test coverage %'s
 	go test -coverprofile=coverage.out ./...
 	go tool cover -html=coverage.out
@@ -151,3 +159,6 @@ yaml-save-%: ## save a yaml file
 
 biodiffwld-%:
 	biodiff test/$*.src.wld test/$*.dst.wld
+
+biodifftest:
+	biodiff test/src.frag test/dst.frag

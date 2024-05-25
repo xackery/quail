@@ -1,10 +1,12 @@
-package virtual
+package wld
 
 import (
 	"fmt"
 	"io"
 
+	"github.com/xackery/quail/model"
 	"github.com/xackery/quail/raw"
+	"github.com/xackery/quail/raw/rawfrag"
 )
 
 func (wld *Wld) Write(w io.Writer) error {
@@ -17,7 +19,7 @@ func (wld *Wld) Write(w io.Writer) error {
 	out := &raw.Wld{
 		MetaFileName: wld.FileName,
 		Version:      wld.Version,
-		Fragments:    []raw.FragmentReadWriter{},
+		Fragments:    []model.FragmentReadWriter{},
 	}
 	for i := 0; i < len(wld.SpriteInstances); i++ {
 		spriteInstance := wld.SpriteInstances[i]
@@ -40,7 +42,7 @@ func (wld *Wld) Write(w io.Writer) error {
 				}
 
 				nameRef := raw.NameAdd(bmInfo.Tag)
-				out.Fragments[fragIndex] = &raw.WldFragBMInfo{
+				out.Fragments[fragIndex] = &rawfrag.WldFragBMInfo{
 					NameRef:      nameRef,
 					TextureNames: bmInfo.Textures,
 				}
@@ -49,7 +51,7 @@ func (wld *Wld) Write(w io.Writer) error {
 			}
 
 			nameRef := raw.NameAdd(sprite.Tag)
-			out.Fragments[fragIndex] = &raw.WldFragSimpleSpriteDef{
+			out.Fragments[fragIndex] = &rawfrag.WldFragSimpleSpriteDef{
 				NameRef:      nameRef,
 				Flags:        sprite.Flags,
 				CurrentFrame: sprite.CurrentFrame,
@@ -60,7 +62,7 @@ func (wld *Wld) Write(w io.Writer) error {
 		}
 
 		nameRef := raw.NameAdd(spriteInstance.Tag)
-		out.Fragments[fragIndex] = &raw.WldFragSimpleSprite{
+		out.Fragments[fragIndex] = &rawfrag.WldFragSimpleSprite{
 			NameRef:   nameRef,
 			SpriteRef: int16(sprite.fragID),
 			Flags:     spriteInstance.Flags,

@@ -6,6 +6,7 @@ import (
 	"io"
 
 	"github.com/xackery/encdec"
+	"github.com/xackery/quail/model"
 	"github.com/xackery/quail/tag"
 )
 
@@ -23,11 +24,11 @@ func (pts *Pts) Identity() string {
 
 // PtsEntry is a single entry in a particle point
 type PtsEntry struct {
-	Name        string  `yaml:"name"`
-	BoneName    string  `yaml:"bone_name"`
-	Translation Vector3 `yaml:"translation"`
-	Rotation    Vector3 `yaml:"rotation"`
-	Scale       Vector3 `yaml:"scale"`
+	Name        string        `yaml:"name"`
+	BoneName    string        `yaml:"bone_name"`
+	Translation model.Vector3 `yaml:"translation"`
+	Rotation    model.Vector3 `yaml:"rotation"`
+	Scale       model.Vector3 `yaml:"scale"`
 	//NameSuffix  []byte  `yaml:"name_suffix,omitempty"`
 	//BoneSuffix  []byte  `yaml:"bone_suffix,omitempty"`
 }

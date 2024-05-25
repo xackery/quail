@@ -8,6 +8,7 @@ import (
 
 	"github.com/xackery/encdec"
 	"github.com/xackery/quail/helper"
+	"github.com/xackery/quail/model"
 	"github.com/xackery/quail/tag"
 )
 
@@ -15,7 +16,7 @@ import (
 func (wld *Wld) Write(w io.Writer) error {
 	var err error
 	if wld.Fragments == nil {
-		wld.Fragments = []FragmentReadWriter{}
+		wld.Fragments = []model.FragmentReadWriter{}
 	}
 
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
@@ -49,6 +50,7 @@ func (wld *Wld) Write(w io.Writer) error {
 		chunkEnc.Bytes(fragBuf.Bytes())
 
 		totalFragSize += fragBuf.Len()
+
 		totalFragBuf.Write(chunkBuf.Bytes())
 	}
 

@@ -7,6 +7,7 @@ import (
 
 	"github.com/xackery/encdec"
 	"github.com/xackery/quail/log"
+	"github.com/xackery/quail/model"
 	"github.com/xackery/quail/tag"
 )
 
@@ -102,9 +103,9 @@ func (mod *Mod) Read(r io.ReadSeeker) error {
 		v.Normal.Y = dec.Float32()
 		v.Normal.Z = dec.Float32()
 		if mod.Version <= 2 {
-			v.Tint = RGBA{R: 128, G: 128, B: 128, A: 255}
+			v.Tint = model.RGBA{R: 128, G: 128, B: 128, A: 255}
 		} else {
-			v.Tint = RGBA{R: dec.Uint8(), G: dec.Uint8(), B: dec.Uint8(), A: dec.Uint8()}
+			v.Tint = model.RGBA{R: dec.Uint8(), G: dec.Uint8(), B: dec.Uint8(), A: dec.Uint8()}
 		}
 		v.Uv.X = dec.Float32()
 		v.Uv.Y = dec.Float32()

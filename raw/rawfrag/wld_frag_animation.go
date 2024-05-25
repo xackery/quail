@@ -1,4 +1,4 @@
-package raw
+package rawfrag
 
 import (
 	"encoding/binary"

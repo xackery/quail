@@ -1,4 +1,4 @@
-package raw
+package rawfrag
 
 import (
 	"encoding/binary"
@@ -6,29 +6,30 @@ import (
 	"io"
 
 	"github.com/xackery/encdec"
+	"github.com/xackery/quail/model"
 )
 
 // WldFragParticleSpriteDef is ParticleSpriteDef in libeq, empty in openzone, PARTICLESPRITEDEF in wld
 type WldFragParticleSpriteDef struct {
-	NameRef                     int32     `yaml:"name_ref"`
-	Flags                       uint32    `yaml:"flags"`
-	VerticesCount               uint32    `yaml:"vertices_count"`
-	Unknown                     uint32    `yaml:"unknown"`
-	CenterOffset                Vector3   `yaml:"center_offset"`
-	Radius                      float32   `yaml:"radius"`
-	Vertices                    []Vector3 `yaml:"vertices"`
-	RenderMethod                uint32    `yaml:"render_method"`
-	RenderFlags                 uint32    `yaml:"render_flags"`
-	RenderPen                   uint32    `yaml:"render_pen"`
-	RenderBrightness            float32   `yaml:"render_brightness"`
-	RenderScaledAmbient         float32   `yaml:"render_scaled_ambient"`
-	RenderSimpleSpriteReference uint32    `yaml:"render_simple_sprite_reference"`
-	RenderUVInfoOrigin          Vector3   `yaml:"render_uv_info_origin"`
-	RenderUVInfoUAxis           Vector3   `yaml:"render_uv_info_u_axis"`
-	RenderUVInfoVAxis           Vector3   `yaml:"render_uv_info_v_axis"`
-	RenderUVMapEntryCount       uint32    `yaml:"render_uv_map_entry_count"`
-	RenderUVMapEntries          []Vector2 `yaml:"render_uv_map_entries"`
-	Pen                         []uint32  `yaml:"pen"`
+	NameRef                     int32           `yaml:"name_ref"`
+	Flags                       uint32          `yaml:"flags"`
+	VerticesCount               uint32          `yaml:"vertices_count"`
+	Unknown                     uint32          `yaml:"unknown"`
+	CenterOffset                model.Vector3   `yaml:"center_offset"`
+	Radius                      float32         `yaml:"radius"`
+	Vertices                    []model.Vector3 `yaml:"vertices"`
+	RenderMethod                uint32          `yaml:"render_method"`
+	RenderFlags                 uint32          `yaml:"render_flags"`
+	RenderPen                   uint32          `yaml:"render_pen"`
+	RenderBrightness            float32         `yaml:"render_brightness"`
+	RenderScaledAmbient         float32         `yaml:"render_scaled_ambient"`
+	RenderSimpleSpriteReference uint32          `yaml:"render_simple_sprite_reference"`
+	RenderUVInfoOrigin          model.Vector3   `yaml:"render_uv_info_origin"`
+	RenderUVInfoUAxis           model.Vector3   `yaml:"render_uv_info_u_axis"`
+	RenderUVInfoVAxis           model.Vector3   `yaml:"render_uv_info_v_axis"`
+	RenderUVMapEntryCount       uint32          `yaml:"render_uv_map_entry_count"`
+	RenderUVMapEntries          []model.Vector2 `yaml:"render_uv_map_entries"`
+	Pen                         []uint32        `yaml:"pen"`
 }
 
 func (e *WldFragParticleSpriteDef) FragCode() int {
@@ -99,7 +100,7 @@ func (e *WldFragParticleSpriteDef) Read(r io.ReadSeeker) error {
 	}
 	if e.VerticesCount > 0 { // has vertices
 		for i := uint32(0); i < e.VerticesCount; i++ {
-			var vertex Vector3
+			var vertex model.Vector3
 			vertex.X = dec.Float32()
 			vertex.Y = dec.Float32()
 			vertex.Z = dec.Float32()
@@ -123,7 +124,7 @@ func (e *WldFragParticleSpriteDef) Read(r io.ReadSeeker) error {
 	e.RenderUVInfoVAxis.Z = dec.Float32()
 	e.RenderUVMapEntryCount = dec.Uint32()
 	for i := uint32(0); i < e.RenderUVMapEntryCount; i++ {
-		var entry Vector2
+		var entry model.Vector2
 		entry.X = dec.Float32()
 		entry.Y = dec.Float32()
 		e.RenderUVMapEntries = append(e.RenderUVMapEntries, entry)
@@ -246,8 +247,8 @@ type WldFragActorDef struct {
 	FragmentRefCount uint32               `yaml:"fragment_ref_count"`
 	BoundsRef        int32                `yaml:"bounds_ref"`
 	CurrentAction    uint32               `yaml:"current_action"`
-	Offset           Vector3              `yaml:"offset"`
-	Rotation         Vector3              `yaml:"rotation"`
+	Offset           model.Vector3        `yaml:"offset"`
+	Rotation         model.Vector3        `yaml:"rotation"`
 	Unk1             uint32               `yaml:"unk1"`
 	Actions          []WldFragModelAction `yaml:"actions"`
 	FragmentRefs     []uint32             `yaml:"fragment_refs"`
@@ -346,18 +347,18 @@ func (e *WldFragActorDef) Read(r io.ReadSeeker) error {
 
 // WldFragActor is Actor in libeq, Object Location in openzone, ACTORINST in wld, ObjectInstance in lantern
 type WldFragActor struct {
-	NameRef        int32   `yaml:"name_ref"`
-	ActorDefRef    int32   `yaml:"actor_def_ref"`
-	Flags          uint32  `yaml:"flags"`
-	SphereRef      uint32  `yaml:"sphere_ref"`
-	CurrentAction  uint32  `yaml:"current_action"`
-	Offset         Vector3 `yaml:"offset"`
-	Rotation       Vector3 `yaml:"rotation"`
-	Unk1           uint32  `yaml:"unk1"`
-	BoundingRadius float32 `yaml:"bounding_radius"`
-	Scale          float32 `yaml:"scale"`
-	SoundNameRef   int32   `yaml:"sound_name_ref"`
-	Unk2           int32   `yaml:"unk2"`
+	NameRef        int32         `yaml:"name_ref"`
+	ActorDefRef    int32         `yaml:"actor_def_ref"`
+	Flags          uint32        `yaml:"flags"`
+	SphereRef      uint32        `yaml:"sphere_ref"`
+	CurrentAction  uint32        `yaml:"current_action"`
+	Offset         model.Vector3 `yaml:"offset"`
+	Rotation       model.Vector3 `yaml:"rotation"`
+	Unk1           uint32        `yaml:"unk1"`
+	BoundingRadius float32       `yaml:"bounding_radius"`
+	Scale          float32       `yaml:"scale"`
+	SoundNameRef   int32         `yaml:"sound_name_ref"`
+	Unk2           int32         `yaml:"unk2"`
 }
 
 func (e *WldFragActor) FragCode() int {
@@ -468,12 +469,12 @@ func (e *WldFragSphere) Read(r io.ReadSeeker) error {
 
 // WldFragSphereListDef is SphereListDef in libeq, empty in openzone, SPHERELISTDEFINITION in wld
 type WldFragSphereListDef struct {
-	NameRef     int32   `yaml:"name_ref"`
-	Flags       uint32  `yaml:"flags"`
-	SphereCount uint32  `yaml:"sphere_count"`
-	Radius      float32 `yaml:"radius"`
-	Scale       float32 `yaml:"scale"`
-	Spheres     []Quad4 `yaml:"spheres"`
+	NameRef     int32         `yaml:"name_ref"`
+	Flags       uint32        `yaml:"flags"`
+	SphereCount uint32        `yaml:"sphere_count"`
+	Radius      float32       `yaml:"radius"`
+	Scale       float32       `yaml:"scale"`
+	Spheres     []model.Quad4 `yaml:"spheres"`
 }
 
 func (e *WldFragSphereListDef) FragCode() int {
@@ -508,7 +509,7 @@ func (e *WldFragSphereListDef) Read(r io.ReadSeeker) error {
 	e.Radius = dec.Float32()
 	e.Scale = dec.Float32()
 	for i := uint32(0); i < e.SphereCount; i++ {
-		var sphere Quad4
+		var sphere model.Quad4
 		sphere.X = dec.Float32()
 		sphere.Y = dec.Float32()
 		sphere.Z = dec.Float32()

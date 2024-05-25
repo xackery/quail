@@ -1,4 +1,4 @@
-package raw
+package rawfrag
 
 import (
 	"encoding/binary"
@@ -6,6 +6,8 @@ import (
 	"io"
 
 	"github.com/xackery/encdec"
+	"github.com/xackery/quail/helper"
+	"github.com/xackery/quail/model"
 )
 
 // WldFragDefault is empty in libeq, empty in openzone, DEFAULT?? in wld
@@ -168,10 +170,10 @@ func (e *WldFragSkyRegion) Read(r io.ReadSeeker) error {
 
 // WldFragZone is Zone in libeq, Region Flag in openzone, ZONE in wld, BspRegionType in lantern
 type WldFragZone struct {
-	NameRef  int32   `yaml:"name_ref"`
-	Flags    uint32  `yaml:"flags"`
-	Regions  []int32 `yaml:"regions"`
-	UserData string  `yaml:"user_data"`
+	NameRef  int32    `yaml:"name_ref"`
+	Flags    uint32   `yaml:"flags"`
+	Regions  []uint32 `yaml:"regions"`
+	UserData string   `yaml:"user_data"`
 }
 
 func (e *WldFragZone) FragCode() int {
@@ -179,6 +181,27 @@ func (e *WldFragZone) FragCode() int {
 }
 
 func (e *WldFragZone) Write(w io.Writer) error {
+	enc := encdec.NewEncoder(w, binary.LittleEndian)
+	userData := helper.WriteStringHash(e.UserData)
+
+	paddingSize := (4 - (len(userData) % 4)) % 4
+
+	enc.Int32(e.NameRef)
+	enc.Uint32(e.Flags)
+	enc.Uint32(uint32(len(e.Regions)))
+	for _, region := range e.Regions {
+		enc.Uint32(region)
+	}
+	if len(e.UserData) > 0 {
+		enc.Uint32(uint32(len(userData)))
+		enc.Bytes(userData)
+		enc.Bytes(make([]byte, paddingSize))
+	}
+	err := enc.Error()
+	if err != nil {
+		return fmt.Errorf("write: %w", err)
+	}
+
 	return nil
 }
 
@@ -188,14 +211,14 @@ func (e *WldFragZone) Read(r io.ReadSeeker) error {
 	e.NameRef = dec.Int32()
 	e.Flags = dec.Uint32()
 	regionCount := dec.Uint32()
-	e.Regions = make([]int32, 0)
+	e.Regions = make([]uint32, 0)
 	for i := uint32(0); i < regionCount; i++ {
-		region := dec.Int32()
+		region := dec.Uint32()
 		e.Regions = append(e.Regions, region)
 	}
 	userDataSize := dec.Uint32()
 	if userDataSize > 0 {
-		e.UserData = dec.StringFixed(int(userDataSize))
+		e.UserData = helper.ReadStringHash([]byte(dec.StringFixed(int(userDataSize))))
 	}
 	err := dec.Error()
 	if err != nil {
@@ -207,28 +230,28 @@ func (e *WldFragZone) Read(r io.ReadSeeker) error {
 
 // WldFragParticleCloudDef is ParticleCloudDef in libeq, empty in openzone, empty in wld, WldFragParticleCloudDef in lantern
 type WldFragParticleCloudDef struct {
-	NameRef               int32   `yaml:"name_ref"`
-	Unk1                  uint32  `yaml:"unk1"`
-	Unk2                  uint32  `yaml:"unk2"`
-	ParticleMovement      uint32  `yaml:"particle_movement"` // 0x01 sphere, 0x02 plane, 0x03 stream, 0x04 none
-	Flags                 uint32  //Flag 1, High Opacity, Flag 3, Follows Item
-	SimultaneousParticles uint32  `yaml:"simultaneous_particles"`
-	Unk6                  uint32  `yaml:"unk6"`
-	Unk7                  uint32  `yaml:"unk7"`
-	Unk8                  uint32  `yaml:"unk8"`
-	Unk9                  uint32  `yaml:"unk9"`
-	Unk10                 uint32  `yaml:"unk10"`
-	SpawnRadius           float32 `yaml:"spawn_radius"` // sphere radius
-	SpawnAngle            float32 `yaml:"spawn_angle"`  // cone angle
-	SpawnLifespan         uint32  `yaml:"spawn_lifespan"`
-	SpawnVelocity         float32 `yaml:"spawn_velocity"`
-	SpawnNormalZ          float32 `yaml:"spawn_normal_z"`
-	SpawnNormalX          float32 `yaml:"spawn_normal_x"`
-	SpawnNormalY          float32 `yaml:"spawn_normal_y"`
-	SpawnRate             uint32  `yaml:"spawn_rate"`
-	SpawnScale            float32 `yaml:"spawn_scale"`
-	Color                 RGBA    `yaml:"color"`
-	ParticleRef           uint32  `yaml:"particle_ref"`
+	NameRef               int32      `yaml:"name_ref"`
+	Unk1                  uint32     `yaml:"unk1"`
+	Unk2                  uint32     `yaml:"unk2"`
+	ParticleMovement      uint32     `yaml:"particle_movement"` // 0x01 sphere, 0x02 plane, 0x03 stream, 0x04 none
+	Flags                 uint32     //Flag 1, High Opacity, Flag 3, Follows Item
+	SimultaneousParticles uint32     `yaml:"simultaneous_particles"`
+	Unk6                  uint32     `yaml:"unk6"`
+	Unk7                  uint32     `yaml:"unk7"`
+	Unk8                  uint32     `yaml:"unk8"`
+	Unk9                  uint32     `yaml:"unk9"`
+	Unk10                 uint32     `yaml:"unk10"`
+	SpawnRadius           float32    `yaml:"spawn_radius"` // sphere radius
+	SpawnAngle            float32    `yaml:"spawn_angle"`  // cone angle
+	SpawnLifespan         uint32     `yaml:"spawn_lifespan"`
+	SpawnVelocity         float32    `yaml:"spawn_velocity"`
+	SpawnNormalZ          float32    `yaml:"spawn_normal_z"`
+	SpawnNormalX          float32    `yaml:"spawn_normal_x"`
+	SpawnNormalY          float32    `yaml:"spawn_normal_y"`
+	SpawnRate             uint32     `yaml:"spawn_rate"`
+	SpawnScale            float32    `yaml:"spawn_scale"`
+	Color                 model.RGBA `yaml:"color"`
+	ParticleRef           uint32     `yaml:"particle_ref"`
 }
 
 func (e *WldFragParticleCloudDef) FragCode() int {
@@ -293,7 +316,7 @@ func (e *WldFragParticleCloudDef) Read(r io.ReadSeeker) error {
 	e.SpawnNormalY = dec.Float32()
 	e.SpawnRate = dec.Uint32()
 	e.SpawnScale = dec.Float32()
-	e.Color = RGBA{R: dec.Uint8(), G: dec.Uint8(), B: dec.Uint8(), A: dec.Uint8()}
+	e.Color = model.RGBA{R: dec.Uint8(), G: dec.Uint8(), B: dec.Uint8(), A: dec.Uint8()}
 	e.ParticleRef = dec.Uint32()
 	err := dec.Error()
 	if err != nil {

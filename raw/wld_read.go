@@ -8,17 +8,18 @@ import (
 
 	"github.com/xackery/encdec"
 	"github.com/xackery/quail/helper"
+	"github.com/xackery/quail/model"
 	"github.com/xackery/quail/tag"
 )
 
 type Wld struct {
-	MetaFileName   string               `yaml:"file_name"`
-	Version        uint32               `yaml:"version"`
-	IsOldWorld     bool                 `yaml:"is_old_world"`
-	Fragments      []FragmentReadWriter `yaml:"fragments,omitempty"`
-	BspRegionCount uint32               `yaml:"bsp_region_count"`
-	Unk2           uint32               `yaml:"unk2"`
-	Unk3           uint32               `yaml:"unk3"`
+	MetaFileName   string                     `yaml:"file_name"`
+	Version        uint32                     `yaml:"version"`
+	IsOldWorld     bool                       `yaml:"is_old_world"`
+	Fragments      []model.FragmentReadWriter `yaml:"fragments,omitempty"`
+	BspRegionCount uint32                     `yaml:"bsp_region_count"`
+	Unk2           uint32                     `yaml:"unk2"`
+	Unk3           uint32                     `yaml:"unk3"`
 }
 
 func (wld *Wld) Identity() string {
@@ -28,7 +29,7 @@ func (wld *Wld) Identity() string {
 // Read reads a wld file that was prepped by Load
 func (wld *Wld) Read(r io.ReadSeeker) error {
 	if wld.Fragments == nil {
-		wld.Fragments = []FragmentReadWriter{}
+		wld.Fragments = []model.FragmentReadWriter{}
 	}
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	tag.NewWithCoder(dec)

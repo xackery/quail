@@ -1,4 +1,4 @@
-package raw
+package rawfrag
 
 import (
 	"encoding/binary"
@@ -6,23 +6,8 @@ import (
 	"io"
 
 	"github.com/xackery/encdec"
+	"github.com/xackery/quail/model"
 )
-
-// FragmentReadWriter is used to read a fragment in wld format
-type FragmentReadWriter interface {
-	FragmentReader
-	FragmentWriter
-}
-
-type FragmentReader interface {
-	Read(w io.ReadSeeker) error
-	FragCode() int
-}
-
-// FragmentWriter2 is used to write a fragment in wld format
-type FragmentWriter interface {
-	Write(w io.Writer) error
-}
 
 var (
 	fragNames = map[int]string{
@@ -164,7 +149,7 @@ func FragIndex(name string) int {
 }
 
 // NewFrag takes a reader, analyzes the first 4 bytes, and returns a new fragment struct based on it
-func NewFrag(r io.ReadSeeker) FragmentReadWriter {
+func NewFrag(r io.ReadSeeker) model.FragmentReadWriter {
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	fragCode := dec.Int32()
 	err := dec.Error()

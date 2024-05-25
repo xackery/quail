@@ -6,7 +6,9 @@ import (
 	"strings"
 
 	"github.com/xackery/quail/common"
+	"github.com/xackery/quail/model"
 	"github.com/xackery/quail/raw"
+	"github.com/xackery/quail/raw/rawfrag"
 )
 
 func (e *Quail) RawWrite(out raw.Writer) error {
@@ -63,7 +65,7 @@ func (e *Quail) wldWrite(wld *raw.Wld) error {
 		return fmt.Errorf("wld is nil")
 	}
 	if wld.Fragments == nil {
-		wld.Fragments = []raw.FragmentReadWriter{}
+		wld.Fragments = []model.FragmentReadWriter{}
 	}
 
 	fragIndex := 1
@@ -77,18 +79,18 @@ func (e *Quail) wldWrite(wld *raw.Wld) error {
 	//textureref simplesprite
 	//material materialdef
 
-	for _, model := range e.Models {
-		mesh := &raw.WldFragDmSpriteDef2{}
+	for _, mod := range e.Models {
+		mesh := &rawfrag.WldFragDmSpriteDef2{}
 
-		materialList := &raw.WldFragMaterialPalette{}
-		for _, srcMat := range model.Materials {
+		materialList := &rawfrag.WldFragMaterialPalette{}
+		for _, srcMat := range mod.Materials {
 			matRef, ok := materials[srcMat.Name]
 			if ok {
 				materialList.MaterialRefs = append(materialList.MaterialRefs, uint32(matRef))
 				continue
 			}
 
-			dstMat := &raw.WldFragMaterialDef{}
+			dstMat := &rawfrag.WldFragMaterialDef{}
 			for _, srcProp := range srcMat.Properties {
 				if !strings.Contains(srcProp.Name, "texture") {
 					continue
@@ -98,14 +100,14 @@ func (e *Quail) wldWrite(wld *raw.Wld) error {
 					ext := filepath.Ext(srcProp.Value)
 					baseName := strings.TrimSuffix(srcProp.Value, ext)
 
-					dstTextureList := &raw.WldFragBMInfo{ // aka BmInfo
+					dstTextureList := &rawfrag.WldFragBMInfo{ // aka BmInfo
 						NameRef:      raw.NameAdd(baseName),
 						TextureNames: []string{srcProp.Value},
 					}
 					wld.Fragments[fragIndex] = dstTextureList
 					fragIndex++
 
-					texture := &raw.WldFragSimpleSpriteDef{ // aka SimpleSpriteDef
+					texture := &rawfrag.WldFragSimpleSpriteDef{ // aka SimpleSpriteDef
 						NameRef:      raw.NameAdd(srcProp.Value),
 						Flags:        0x00000000,
 						CurrentFrame: 0,
@@ -116,7 +118,7 @@ func (e *Quail) wldWrite(wld *raw.Wld) error {
 					wld.Fragments[fragIndex] = texture
 					fragIndex++
 
-					textureRefInst := &raw.WldFragSimpleSprite{ // aka SimpleSprite
+					textureRefInst := &rawfrag.WldFragSimpleSprite{ // aka SimpleSprite
 						NameRef:   raw.NameAdd(srcProp.Value),
 						SpriteRef: int16(fragIndex - 1),
 						Flags:     0x00000000,
@@ -129,7 +131,7 @@ func (e *Quail) wldWrite(wld *raw.Wld) error {
 					textureRef = fragIndex - 1
 				}
 
-				dstMat.SpriteInstanceRef = uint32(textureRef)
+				dstMat.SimpleSpriteRef = uint32(textureRef)
 				dstMat.NameRef = raw.NameAdd(srcMat.Name)
 				dstMat.Flags = 2
 				dstMat.RenderMethod = 0x00000001
@@ -144,14 +146,14 @@ func (e *Quail) wldWrite(wld *raw.Wld) error {
 
 			materialList.NameRef = raw.NameAdd(srcMat.Name)
 			materialList.Flags = 0x00014003
-			if model.FileType == "ter" {
+			if mod.FileType == "ter" {
 				materialList.Flags = 0x00018003
 			}
 			wld.Fragments[fragIndex] = materialList
 			fragIndex++
 			mesh.MaterialPaletteRef = uint32(fragIndex - 1)
 		}
-		mesh.NameRef = raw.NameAdd(model.Header.Name)
+		mesh.NameRef = raw.NameAdd(mod.Header.Name)
 		mesh.Flags = 0x00014003
 
 		mesh.AnimationRef = 0 // for anims later
@@ -166,15 +168,15 @@ func (e *Quail) wldWrite(wld *raw.Wld) error {
 		mesh.RawScale = 13
 		scale := float32(1 / float32(int(1)<<int(mesh.RawScale)))
 
-		for _, srcVert := range model.Vertices {
+		for _, srcVert := range mod.Vertices {
 			mesh.Vertices = append(mesh.Vertices, [3]int16{int16(srcVert.Position.X / scale), int16(srcVert.Position.Y / scale), int16(srcVert.Position.Z / scale)})
 			mesh.Normals = append(mesh.Normals, [3]int8{int8(srcVert.Normal.X), int8(srcVert.Normal.Y), int8(srcVert.Normal.Z)})
-			mesh.Colors = append(mesh.Colors, raw.RGBA{R: srcVert.Tint.R, G: srcVert.Tint.G, B: srcVert.Tint.B, A: srcVert.Tint.A})
+			mesh.Colors = append(mesh.Colors, model.RGBA{R: srcVert.Tint.R, G: srcVert.Tint.G, B: srcVert.Tint.B, A: srcVert.Tint.A})
 			mesh.UVs = append(mesh.UVs, [2]int16{int16(srcVert.Uv.X * 256), int16(srcVert.Uv.Y * 256)})
 		}
 
-		for _, srcTriangle := range model.Triangles {
-			entry := raw.WldFragMeshTriangleEntry{
+		for _, srcTriangle := range mod.Triangles {
+			entry := rawfrag.WldFragMeshTriangleEntry{
 				Flags: uint16(srcTriangle.Flag),
 				Index: [3]uint16{uint16(srcTriangle.Index.X), uint16(srcTriangle.Index.Y), uint16(srcTriangle.Index.Z)},
 			}

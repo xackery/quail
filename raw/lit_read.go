@@ -6,11 +6,12 @@ import (
 	"io"
 
 	"github.com/xackery/encdec"
+	"github.com/xackery/quail/model"
 )
 
 type Lit struct {
-	MetaFileName string  `yaml:"file_name"`
-	Entries      []*RGBA `yaml:"entries"`
+	MetaFileName string        `yaml:"file_name"`
+	Entries      []*model.RGBA `yaml:"entries"`
 }
 
 // Identity returns the type of the struct
@@ -24,7 +25,7 @@ func (lit *Lit) Read(r io.ReadSeeker) error {
 
 	lightCount := dec.Uint32()
 	for i := 0; i < int(lightCount); i++ {
-		lit.Entries = append(lit.Entries, &RGBA{
+		lit.Entries = append(lit.Entries, &model.RGBA{
 			R: dec.Uint8(),
 			G: dec.Uint8(),
 			B: dec.Uint8(),

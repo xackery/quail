@@ -1,4 +1,4 @@
-package raw
+package rawfrag
 
 import (
 	"bytes"
@@ -119,7 +119,8 @@ func TestFragment(t *testing.T) {
 			fragIndex int
 			isDump    bool
 		}{
-			{path: "global_chr.s3d", file: "global_chr.wld", fragIndex: 4},
+			//{path: "global_chr.s3d", file: "global_chr.wld", fragIndex: 4},
+			{path: "load2.s3d", file: "load2.wld", fragIndex: 0},
 		}
 	}
 	for _, tt := range tests {

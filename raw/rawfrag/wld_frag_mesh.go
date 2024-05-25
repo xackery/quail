@@ -1,4 +1,4 @@
-package raw
+package rawfrag
 
 import (
 	"encoding/binary"
@@ -7,33 +7,34 @@ import (
 
 	"github.com/xackery/encdec"
 	"github.com/xackery/quail/log"
+	"github.com/xackery/quail/model"
 	"github.com/xackery/quail/tag"
 )
 
 // WldFragSprite2DDef is Sprite2DDef in libeq, Two-Dimensional Object in openzone, 2DSPRITEDEF in wld, Fragment06 in lantern
 type WldFragSprite2DDef struct {
-	NameRef                     int32     `yaml:"name_ref"`
-	Flags                       uint32    `yaml:"flags"`
-	TextureCount                uint32    `yaml:"texture_count"`
-	PitchCount                  uint32    `yaml:"pitch_count"`
-	Scale                       Vector2   `yaml:"scale"`
-	SphereRef                   uint32    `yaml:"sphere_ref"`
-	DepthScale                  float32   `yaml:"depth_scale"`
-	CenterOffset                Vector3   `yaml:"center_offset"`
-	BoundingRadius              float32   `yaml:"bounding_radius"`
-	CurrentFrameRef             int32     `yaml:"current_frame_ref"`
-	Sleep                       uint32    `yaml:"sleep"`
-	Headings                    []uint32  `yaml:"headings"`
-	RenderMethod                uint32    `yaml:"render_method"`
-	RenderFlags                 uint32    `yaml:"render_flags"`
-	RenderPen                   uint32    `yaml:"render_pen"`
-	RenderBrightness            float32   `yaml:"render_brightness"`
-	RenderScaledAmbient         float32   `yaml:"render_scaled_ambient"`
-	RenderSimpleSpriteReference uint32    `yaml:"render_simple_sprite_reference"`
-	RenderUVInfoOrigin          Vector3   `yaml:"render_uv_info_origin"`
-	RenderUVInfoUAxis           Vector3   `yaml:"render_uv_info_u_axis"`
-	RenderUVInfoVAxis           Vector3   `yaml:"render_uv_info_v_axis"`
-	RenderUVMapEntries          []Vector2 `yaml:"render_uv_map_entries"`
+	NameRef                     int32           `yaml:"name_ref"`
+	Flags                       uint32          `yaml:"flags"`
+	TextureCount                uint32          `yaml:"texture_count"`
+	PitchCount                  uint32          `yaml:"pitch_count"`
+	Scale                       model.Vector2   `yaml:"scale"`
+	SphereRef                   uint32          `yaml:"sphere_ref"`
+	DepthScale                  float32         `yaml:"depth_scale"`
+	CenterOffset                model.Vector3   `yaml:"center_offset"`
+	BoundingRadius              float32         `yaml:"bounding_radius"`
+	CurrentFrameRef             int32           `yaml:"current_frame_ref"`
+	Sleep                       uint32          `yaml:"sleep"`
+	Headings                    []uint32        `yaml:"headings"`
+	RenderMethod                uint32          `yaml:"render_method"`
+	RenderFlags                 uint32          `yaml:"render_flags"`
+	RenderPen                   uint32          `yaml:"render_pen"`
+	RenderBrightness            float32         `yaml:"render_brightness"`
+	RenderScaledAmbient         float32         `yaml:"render_scaled_ambient"`
+	RenderSimpleSpriteReference uint32          `yaml:"render_simple_sprite_reference"`
+	RenderUVInfoOrigin          model.Vector3   `yaml:"render_uv_info_origin"`
+	RenderUVInfoUAxis           model.Vector3   `yaml:"render_uv_info_u_axis"`
+	RenderUVInfoVAxis           model.Vector3   `yaml:"render_uv_info_v_axis"`
+	RenderUVMapEntries          []model.Vector2 `yaml:"render_uv_map_entries"`
 }
 
 func (e *WldFragSprite2DDef) FragCode() int {
@@ -170,7 +171,7 @@ func (e *WldFragSprite2DDef) Read(r io.ReadSeeker) error {
 		if e.RenderFlags&0x20 == 0x20 {
 			renderUVMapEntrycount := dec.Uint32()
 			for i := uint32(0); i < renderUVMapEntrycount; i++ {
-				v := Vector2{}
+				v := model.Vector2{}
 				v.X = dec.Float32()
 				v.Y = dec.Float32()
 				e.RenderUVMapEntries = append(e.RenderUVMapEntries, v)
@@ -225,26 +226,26 @@ type WldFragSprite3DDef struct {
 	NameRef       int32                        `yaml:"name_ref"`
 	Flags         uint32                       `yaml:"flags"`
 	SphereListRef uint32                       `yaml:"sphere_list_ref"`
-	CenterOffset  Vector3                      `yaml:"center_offset"`
+	CenterOffset  model.Vector3                `yaml:"center_offset"`
 	Radius        float32                      `yaml:"radius"`
-	Vertices      []Vector3                    `yaml:"vertices"`
+	Vertices      []model.Vector3              `yaml:"vertices"`
 	BspNodes      []WldFragThreeDSpriteBspNode `yaml:"bsp_nodes"`
 }
 
 type WldFragThreeDSpriteBspNode struct {
-	FrontTree                   uint32    `yaml:"front_tree"`
-	BackTree                    uint32    `yaml:"back_tree"`
-	VertexIndexes               []uint32  `yaml:"vertex_indexes"`
-	RenderMethod                uint8     `yaml:"render_method"`
-	RenderFlags                 uint8     `yaml:"render_flags"`
-	RenderPen                   uint8     `yaml:"render_pen"`
-	RenderBrightness            uint8     `yaml:"render_brightness"`
-	RenderScaledAmbient         uint8     `yaml:"render_scaled_ambient"`
-	RenderSimpleSpriteReference uint8     `yaml:"render_simple_sprite_reference"`
-	RenderUVInfoOrigin          Vector3   `yaml:"render_uv_info_origin"`
-	RenderUVInfoUAxis           Vector3   `yaml:"render_uv_info_u_axis"`
-	RenderUVInfoVAxis           Vector3   `yaml:"render_uv_info_v_axis"`
-	RenderUVMapEntries          []Vector2 `yaml:"render_uv_map_entries"`
+	FrontTree                   uint32          `yaml:"front_tree"`
+	BackTree                    uint32          `yaml:"back_tree"`
+	VertexIndexes               []uint32        `yaml:"vertex_indexes"`
+	RenderMethod                uint32          `yaml:"render_method"`
+	RenderFlags                 uint8           `yaml:"render_flags"`
+	RenderPen                   uint32          `yaml:"render_pen"`
+	RenderBrightness            float32         `yaml:"render_brightness"`
+	RenderScaledAmbient         float32         `yaml:"render_scaled_ambient"`
+	RenderSimpleSpriteReference uint32          `yaml:"render_simple_sprite_reference"`
+	RenderUVInfoOrigin          model.Vector3   `yaml:"render_uv_info_origin"`
+	RenderUVInfoUAxis           model.Vector3   `yaml:"render_uv_info_u_axis"`
+	RenderUVInfoVAxis           model.Vector3   `yaml:"render_uv_info_v_axis"`
+	RenderUVMapEntries          []model.Vector2 `yaml:"render_uv_map_entries"`
 }
 
 func (e *WldFragSprite3DDef) FragCode() int {
@@ -258,10 +259,14 @@ func (e *WldFragSprite3DDef) Write(w io.Writer) error {
 	enc.Uint32(uint32(len(e.Vertices)))
 	enc.Uint32(uint32(len(e.BspNodes)))
 	enc.Uint32(e.SphereListRef)
-	enc.Float32(e.CenterOffset.X)
-	enc.Float32(e.CenterOffset.Y)
-	enc.Float32(e.CenterOffset.Z)
-	enc.Float32(e.Radius)
+	if e.Flags&0x01 == 0x01 {
+		enc.Float32(e.CenterOffset.X)
+		enc.Float32(e.CenterOffset.Y)
+		enc.Float32(e.CenterOffset.Z)
+	}
+	if e.Flags&0x02 == 0x02 {
+		enc.Float32(e.Radius)
+	}
 	tag.AddRand(tag.LastPos(), enc.Pos(), "header")
 	for _, vertex := range e.Vertices {
 		enc.Float32(vertex.X)
@@ -277,21 +282,21 @@ func (e *WldFragSprite3DDef) Write(w io.Writer) error {
 			enc.Uint32(vertexIndex)
 		}
 
-		enc.Uint8(node.RenderMethod)
+		enc.Uint32(node.RenderMethod)
 		enc.Uint8(node.RenderFlags)
 		tag.AddRandf(tag.LastPos(), enc.Pos(), "renderFlags=%d", node.RenderFlags)
 
 		if node.RenderFlags&0x01 == 0x01 {
-			enc.Uint8(node.RenderPen)
+			enc.Uint32(node.RenderPen)
 		}
 		if node.RenderFlags&0x02 == 0x02 {
-			enc.Uint8(node.RenderBrightness)
+			enc.Float32(node.RenderBrightness)
 		}
 		if node.RenderFlags&0x04 == 0x04 {
-			enc.Uint8(node.RenderScaledAmbient)
+			enc.Float32(node.RenderScaledAmbient)
 		}
 		if node.RenderFlags&0x08 == 0x08 {
-			enc.Uint8(node.RenderSimpleSpriteReference)
+			enc.Uint32(node.RenderSimpleSpriteReference)
 		}
 		if node.RenderFlags&0x10 == 0x10 {
 			enc.Float32(node.RenderUVInfoOrigin.X)
@@ -330,13 +335,17 @@ func (e *WldFragSprite3DDef) Read(r io.ReadSeeker) error {
 	vertexCount := dec.Uint32()
 	bspNodeCount := dec.Uint32()
 	e.SphereListRef = dec.Uint32()
-	e.CenterOffset.X = dec.Float32()
-	e.CenterOffset.Y = dec.Float32()
-	e.CenterOffset.Z = dec.Float32()
-	e.Radius = dec.Float32()
+	if e.Flags&0x01 == 0x01 {
+		e.CenterOffset.X = dec.Float32()
+		e.CenterOffset.Y = dec.Float32()
+		e.CenterOffset.Z = dec.Float32()
+	}
+	if e.Flags&0x02 == 0x02 {
+		e.Radius = dec.Float32()
+	}
 	tag.AddRand(tag.LastPos(), dec.Pos(), "header")
 	for i := 0; i < int(vertexCount); i++ {
-		v := Vector3{}
+		v := model.Vector3{}
 		v.X = dec.Float32()
 		v.Y = dec.Float32()
 		v.Z = dec.Float32()
@@ -351,20 +360,20 @@ func (e *WldFragSprite3DDef) Read(r io.ReadSeeker) error {
 		for j := 0; j < int(vertexIndexCount); j++ {
 			node.VertexIndexes = append(node.VertexIndexes, dec.Uint32())
 		}
-		node.RenderMethod = dec.Uint8()
+		node.RenderMethod = dec.Uint32()
 		node.RenderFlags = dec.Uint8()
 
 		if node.RenderFlags&0x01 == 0x01 {
-			node.RenderPen = dec.Uint8()
+			node.RenderPen = dec.Uint32()
 		}
 		if node.RenderFlags&0x02 == 0x02 {
-			node.RenderBrightness = dec.Uint8()
+			node.RenderBrightness = dec.Float32()
 		}
 		if node.RenderFlags&0x04 == 0x04 {
-			node.RenderScaledAmbient = dec.Uint8()
+			node.RenderScaledAmbient = dec.Float32()
 		}
 		if node.RenderFlags&0x08 == 0x08 {
-			node.RenderSimpleSpriteReference = dec.Uint8()
+			node.RenderSimpleSpriteReference = dec.Uint32()
 		}
 		if node.RenderFlags&0x10 == 0x10 {
 			node.RenderUVInfoOrigin.X = dec.Float32()
@@ -380,7 +389,7 @@ func (e *WldFragSprite3DDef) Read(r io.ReadSeeker) error {
 		if node.RenderFlags&0x20 == 0x20 {
 			renderUVMapEntryCount := dec.Uint32()
 			for j := 0; j < int(renderUVMapEntryCount); j++ {
-				v := Vector2{}
+				v := model.Vector2{}
 				v.X = dec.Float32()
 				v.Y = dec.Float32()
 				node.RenderUVMapEntries = append(node.RenderUVMapEntries, v)
@@ -435,14 +444,14 @@ func (e *WldFragSprite3D) Read(r io.ReadSeeker) error {
 
 // WldFragSprite4DDef is Sprite4DDef in libeq, empty in openzone, 4DSPRITEDEF in wld
 type WldFragSprite4DDef struct {
-	NameRef         int32    `yaml:"name_ref"`
-	Flags           uint32   `yaml:"flags"`
-	PolyRef         int32    `yaml:"poly_ref"`
-	CenterOffset    Vector3  `yaml:"center_offset"`
-	Radius          float32  `yaml:"radius"`
-	CurrentFrame    uint32   `yaml:"current_frame"`
-	Sleep           uint32   `yaml:"sleep"`
-	SpriteFragments []uint32 `yaml:"sprite_fragments"`
+	NameRef         int32         `yaml:"name_ref"`
+	Flags           uint32        `yaml:"flags"`
+	PolyRef         int32         `yaml:"poly_ref"`
+	CenterOffset    model.Vector3 `yaml:"center_offset"`
+	Radius          float32       `yaml:"radius"`
+	CurrentFrame    uint32        `yaml:"current_frame"`
+	Sleep           uint32        `yaml:"sleep"`
+	SpriteFragments []uint32      `yaml:"sprite_fragments"`
 }
 
 func (e *WldFragSprite4DDef) FragCode() int {
@@ -556,7 +565,7 @@ type WldFragPolyhedronDef struct {
 	Size2    uint32                      `yaml:"size_2"`
 	Params1  float32                     `yaml:"params_1"`
 	Params2  float32                     `yaml:"params_2"`
-	Entries1 []Vector3                   `yaml:"entries_1"`
+	Entries1 []model.Vector3             `yaml:"entries_1"`
 	Entries2 []WldFragPolyhedronEntries2 `yaml:"entries_2"`
 }
 
@@ -604,7 +613,7 @@ func (e *WldFragPolyhedronDef) Read(r io.ReadSeeker) error {
 	e.Params1 = dec.Float32()
 	e.Params2 = dec.Float32()
 	for i := uint32(0); i < e.Size1; i++ {
-		v := Vector3{}
+		v := model.Vector3{}
 		v.X = dec.Float32()
 		v.Y = dec.Float32()
 		v.Z = dec.Float32()
@@ -670,19 +679,19 @@ type WldFragDMSpriteDef struct {
 	Fragment1Maybe    int16                          `yaml:"fragment_1_maybe"`
 	MaterialReference uint32                         `yaml:"material_reference"`
 	Fragment3         uint32                         `yaml:"fragment_3"`
-	CenterPosition    Vector3                        `yaml:"center_position"`
+	CenterPosition    model.Vector3                  `yaml:"center_position"`
 	Params2           uint32                         `yaml:"params_2"`
 	Something2        uint32                         `yaml:"something_2"`
 	Something3        uint32                         `yaml:"something_3"`
-	Vertices          []Vector3                      `yaml:"verticies"`
-	TexCoords         []Vector3                      `yaml:"tex_coords"`
-	Normals           []Vector3                      `yaml:"normals"`
+	Vertices          []model.Vector3                `yaml:"verticies"`
+	TexCoords         []model.Vector3                `yaml:"tex_coords"`
+	Normals           []model.Vector3                `yaml:"normals"`
 	Colors            []int32                        `yaml:"colors"`
 	Polygons          []WldFragDMSpriteSpritePolygon `yaml:"polygons"`
 	VertexPieces      []WldFragDMSpriteVertexPiece   `yaml:"vertex_pieces"`
 	PostVertexFlag    uint32                         `yaml:"post_vertex_flag"`
 	RenderGroups      []WldFragDMSpriteRenderGroup   `yaml:"render_groups"`
-	VertexTex         []Vector2                      `yaml:"vertex_tex"`
+	VertexTex         []model.Vector2                `yaml:"vertex_tex"`
 	Size6Pieces       []WldFragDMSpriteSize6Entry    `yaml:"size_6_pieces"`
 }
 
@@ -829,7 +838,7 @@ func (e *WldFragDMSpriteDef) Read(r io.ReadSeeker) error {
 	}
 
 	for i := int16(0); i < vertexCount; i++ {
-		v := Vector3{}
+		v := model.Vector3{}
 		v.X = dec.Float32()
 		v.Y = dec.Float32()
 		v.Z = dec.Float32()
@@ -837,7 +846,7 @@ func (e *WldFragDMSpriteDef) Read(r io.ReadSeeker) error {
 	}
 
 	for i := uint32(0); i < texCoordCount; i++ {
-		v := Vector3{}
+		v := model.Vector3{}
 		v.X = dec.Float32()
 		v.Y = dec.Float32()
 		v.Z = dec.Float32()
@@ -845,7 +854,7 @@ func (e *WldFragDMSpriteDef) Read(r io.ReadSeeker) error {
 	}
 
 	for i := uint32(0); i < normalCount; i++ {
-		v := Vector3{}
+		v := model.Vector3{}
 		v.X = dec.Float32()
 		v.Y = dec.Float32()
 		v.Z = dec.Float32()
@@ -903,7 +912,7 @@ func (e *WldFragDMSpriteDef) Read(r io.ReadSeeker) error {
 	if e.Flags&12 != 0 {
 		spriteVertexCount := dec.Uint32()
 		for i := uint32(0); i < spriteVertexCount; i++ {
-			v := Vector2{}
+			v := model.Vector2{}
 			v.X = dec.Float32()
 			v.Y = dec.Float32()
 			e.VertexTex = append(e.VertexTex, v)
@@ -967,14 +976,14 @@ type WldFragDmSpriteDef2 struct {
 	MaterialPaletteRef uint32 `yaml:"material_palette_ref"`
 	AnimationRef       int32  `yaml:"animation_ref"`
 
-	Fragment3Ref int32   `yaml:"fragment_3_ref"`
-	Fragment4Ref int32   `yaml:"fragment_4_ref"` // unknown, usually ref to first texture
-	Center       Vector3 `yaml:"center"`
-	Params2      UIndex3 `yaml:"params_2"`
+	Fragment3Ref int32         `yaml:"fragment_3_ref"`
+	Fragment4Ref int32         `yaml:"fragment_4_ref"` // unknown, usually ref to first texture
+	Center       model.Vector3 `yaml:"center"`
+	Params2      model.UIndex3 `yaml:"params_2"`
 
-	MaxDistance float32 `yaml:"max_distance"`
-	Min         Vector3 `yaml:"min"`
-	Max         Vector3 `yaml:"max"`
+	MaxDistance float32       `yaml:"max_distance"`
+	Min         model.Vector3 `yaml:"min"`
+	Max         model.Vector3 `yaml:"max"`
 	// vertexCount
 	// uvCount
 	// normalCount
@@ -990,7 +999,7 @@ type WldFragDmSpriteDef2 struct {
 	Vertices          [][3]int16                    `yaml:"vertices"`
 	UVs               [][2]int16                    `yaml:"uvs"`
 	Normals           [][3]int8                     `yaml:"normals"`
-	Colors            []RGBA                        `yaml:"colors"`
+	Colors            []model.RGBA                  `yaml:"colors"`
 	Triangles         []WldFragMeshTriangleEntry    `yaml:"triangles"`
 	TriangleMaterials []WldFragMeshTriangleMaterial `yaml:"triangle_materials"`
 	VertexPieces      []WldFragMeshVertexPiece      `yaml:"vertex_pieces"`
@@ -1053,7 +1062,7 @@ func (e *WldFragDmSpriteDef2) Write(w io.Writer) error {
 	enc.Float32(e.Max.Z)
 
 	enc.Uint16(uint16(len(e.Vertices)))
-	enc.Uint16(uint16(len(e.Vertices)))
+	enc.Uint16(uint16(len(e.UVs)))
 	enc.Uint16(uint16(len(e.Normals)))
 	enc.Uint16(uint16(len(e.Colors)))
 	enc.Uint16(uint16(len(e.Triangles)))
@@ -1109,6 +1118,7 @@ func (e *WldFragDmSpriteDef2) Write(w io.Writer) error {
 		enc.Uint16(uint16(vertexMaterial.Index1))
 	}
 
+	paddingSize := (4 - len(e.MeshOps)%4) % 4
 	for _, meshOp := range e.MeshOps {
 		enc.Uint16(meshOp.Index1)
 		enc.Uint16(meshOp.Index2)
@@ -1116,6 +1126,7 @@ func (e *WldFragDmSpriteDef2) Write(w io.Writer) error {
 		enc.Uint8(meshOp.Param1)
 		enc.Uint8(meshOp.TypeField)
 	}
+	enc.Bytes(make([]byte, paddingSize))
 
 	err := enc.Error()
 	if err != nil {
@@ -1157,13 +1168,13 @@ func (e *WldFragDmSpriteDef2) Read(r io.ReadSeeker) error {
 	normalCount := dec.Uint16()   // number of vertex normal entries in the mesh (called normal_count in libeq)
 	colorCount := dec.Uint16()    // number of vertex color entries in the mesh (called color_count in libeq)
 	triangleCount := dec.Uint16() // number of triangles in the mesh (called face_count in libeq)
-	/// This seems to only be used when dealing with animated (mob) models.
-	/// It contains the number of vertex piece entries. Vertices are grouped together by
-	/// skeleton piece in this case and vertex piece entries tell the client how
-	/// many vertices are in each piece. It’s possible that there could be more
-	/// pieces in the skeleton than are in the meshes it references. Extra pieces have
-	/// no faces or vertices and I suspect they are there to define attachment points for
-	/// objects (e.g. weapons or shields).
+	// This seems to only be used when dealing with animated (mob) models.
+	// It contains the number of vertex piece entries. Vertices are grouped together by
+	// skeleton piece in this case and vertex piece entries tell the client how
+	// many vertices are in each piece. It’s possible that there could be more
+	// pieces in the skeleton than are in the meshes it references. Extra pieces have
+	// no faces or vertices and I suspect they are there to define attachment points for
+	// objects (e.g. weapons or shields).
 	vertexPieceCount := dec.Uint16()
 	triangleMaterialCount := dec.Uint16() // number of triangle texture entries. faces are grouped together by material and polygon material entries. This tells the client the number of faces using a material.
 	vertexMaterialCount := dec.Uint16()   // number of vertex material entries. Vertices are grouped together by material and vertex material entries tell the client how many vertices there are using a material.
@@ -1174,8 +1185,8 @@ func (e *WldFragDmSpriteDef2) Read(r io.ReadSeeker) error {
 	// convert scale back to rawscale
 	//rawScale = uint16(math.Log2(float64(1 / scale)))
 
-	/// Vertices (x, y, z) belonging to this mesh. Each axis should
-	/// be multiplied by (1 shl `scale`) for the final vertex position.
+	// Vertices (x, y, z) belonging to this mesh. Each axis should
+	// be multiplied by (1 shl `scale`) for the final vertex position.
 	for i := 0; i < int(vertexCount); i++ {
 		e.Vertices = append(e.Vertices, [3]int16{dec.Int16(), dec.Int16(), dec.Int16()})
 	}
@@ -1189,7 +1200,7 @@ func (e *WldFragDmSpriteDef2) Read(r io.ReadSeeker) error {
 	}
 
 	for i := 0; i < int(colorCount); i++ {
-		color := RGBA{
+		color := model.RGBA{
 			R: dec.Uint8(),
 			G: dec.Uint8(),
 			B: dec.Uint8(),
@@ -1260,7 +1271,7 @@ type WldFragDmTrackDef2 struct {
 }
 
 type WldFragMeshAnimatedBone struct {
-	Position Vector3 `yaml:"position"`
+	Position model.Vector3 `yaml:"position"`
 }
 
 func (e *WldFragDmTrackDef2) FragCode() int {
@@ -1285,11 +1296,11 @@ type WldFragWorldTree struct {
 }
 
 type WorldTreeNode struct {
-	Normal    Vector3 `yaml:"normal"`
-	Distance  float32 `yaml:"distance"`
-	RegionRef int32   `yaml:"region_ref"`
-	FrontRef  int32   `yaml:"front_ref"`
-	BackRef   int32   `yaml:"back_ref"`
+	Normal    model.Vector3 `yaml:"normal"`
+	Distance  float32       `yaml:"distance"`
+	RegionRef int32         `yaml:"region_ref"`
+	FrontRef  int32         `yaml:"front_ref"`
+	BackRef   int32         `yaml:"back_ref"`
 }
 
 func (e *WldFragWorldTree) FragCode() int {
@@ -1340,38 +1351,56 @@ func (e *WldFragWorldTree) Read(r io.ReadSeeker) error {
 
 // WldFragRegion is Region in libeq, Bsp WldFragRegion in openzone, REGION in wld, BspRegion in lantern
 type WldFragRegion struct {
-	NameRef              int32     `yaml:"name_ref"`
-	Flags                uint32    `yaml:"flags"`
-	AmbientLightRef      int32     `yaml:"ambient_light_ref"`
-	RegionVertexCount    uint32    `yaml:"region_vertex_count"`
-	RegionProximalCount  uint32    `yaml:"region_proximal_count"`
-	RenderVertexCount    uint32    `yaml:"render_vertex_count"`
-	WallCount            uint32    `yaml:"wall_count"`
-	ObstacleCount        uint32    `yaml:"obstacle_count"`
-	CuttingObstacleCount uint32    `yaml:"cutting_obstacle_count"`
-	VisibleNodeCount     uint32    `yaml:"visible_node_count"`
-	RegionVertices       []Vector3 `yaml:"region_vertices"`
-	RegionProximals      []Vector2 `yaml:"region_proximals"`
-	RenderVertices       []Vector3 `yaml:"render_vertices"`
-	Walls                []Wall    `yaml:"walls"`
+	NameRef              int32           `yaml:"name_ref"`
+	Flags                uint32          `yaml:"flags"`
+	AmbientLightRef      int32           `yaml:"ambient_light_ref"`
+	CuttingObstacleCount uint32          `yaml:"cutting_obstacle_count"`
+	RegionVertices       []model.Vector3 `yaml:"region_vertices"`
+	RegionProximals      []model.Vector2 `yaml:"region_proximals"`
+	RenderVertices       []model.Vector3 `yaml:"render_vertices"`
+	Walls                []Wall          `yaml:"walls"`
+	Obstacles            []Obstacle      `yaml:"obstacles"`
+	VisNodes             []VisNode       `yaml:"visible_nodes"`
+	VisLists             []VisList       `yaml:"vis_lists"`
 }
 
 type Wall struct {
-	Flags                       uint32    `yaml:"flags"`
-	VertexCount                 uint32    `yaml:"vertex_count"`
-	RenderMethod                uint32    `yaml:"render_method"`
-	RenderFlags                 uint32    `yaml:"render_flags"`
-	RenderPen                   uint32    `yaml:"render_pen"`
-	RenderBrightness            float32   `yaml:"render_brightness"`
-	RenderScaledAmbient         float32   `yaml:"render_scaled_ambient"`
-	RenderSimpleSpriteReference uint32    `yaml:"render_simple_sprite_reference"`
-	RenderUVInfoOrigin          Vector3   `yaml:"render_uv_info_origin"`
-	RenderUVInfoUAxis           Vector3   `yaml:"render_uv_info_u_axis"`
-	RenderUVInfoVAxis           Vector3   `yaml:"render_uv_info_v_axis"`
-	RenderUVMapEntryCount       uint32    `yaml:"render_uv_map_entry_count"`
-	RenderUVMapEntries          []Vector2 `yaml:"render_uv_map_entries"`
-	Normal                      Quad4     `yaml:"normal"`
-	Vertices                    []uint32  `yaml:"vertices"`
+	Flags                       uint32          `yaml:"flags"`
+	VertexCount                 uint32          `yaml:"vertex_count"`
+	RenderMethod                uint32          `yaml:"render_method"`
+	RenderFlags                 uint32          `yaml:"render_flags"`
+	RenderPen                   uint32          `yaml:"render_pen"`
+	RenderBrightness            float32         `yaml:"render_brightness"`
+	RenderScaledAmbient         float32         `yaml:"render_scaled_ambient"`
+	RenderSimpleSpriteReference uint32          `yaml:"render_simple_sprite_reference"`
+	RenderUVInfoOrigin          model.Vector3   `yaml:"render_uv_info_origin"`
+	RenderUVInfoUAxis           model.Vector3   `yaml:"render_uv_info_u_axis"`
+	RenderUVInfoVAxis           model.Vector3   `yaml:"render_uv_info_v_axis"`
+	RenderUVMapEntryCount       uint32          `yaml:"render_uv_map_entry_count"`
+	RenderUVMapEntries          []model.Vector2 `yaml:"render_uv_map_entries"`
+	Normal                      model.Quad4     `yaml:"normal"`
+	Vertices                    []uint32        `yaml:"vertices"`
+}
+
+type Obstacle struct {
+	Flags      uint32
+	NextRegion int32
+	Type       int32
+	Vertices   []uint32
+	NormalABCD model.Quad4 // NORMALABCD %f %f %f %f
+	EdgeWall   uint32      // EDGEWALL 0 %d
+	UserData   string      // USERDATA %s
+}
+
+type VisNode struct {
+	NormalABCD   model.Quad4 // NORMALABCD %f %f %f %f
+	VisListIndex uint32      // VISLISTINDEX %d
+	FrontTree    uint32      // FRONTTREE %d
+	BackTree     uint32      // BACKTREE %d
+}
+
+type VisList struct {
+	Ranges []byte
 }
 
 func (e *WldFragRegion) FragCode() int {
@@ -1383,13 +1412,13 @@ func (e *WldFragRegion) Write(w io.Writer) error {
 	enc.Int32(e.NameRef)
 	enc.Uint32(e.Flags)
 	enc.Int32(e.AmbientLightRef)
-	enc.Uint32(e.RegionVertexCount)
-	enc.Uint32(e.RegionProximalCount)
-	enc.Uint32(e.RenderVertexCount)
-	enc.Uint32(e.WallCount)
-	enc.Uint32(e.ObstacleCount)
+	enc.Uint32(uint32(len(e.RegionVertices)))
+	enc.Uint32(uint32(len(e.RegionProximals)))
+	enc.Uint32(uint32(len(e.RenderVertices)))
+	enc.Uint32(uint32(len(e.Walls)))
+	enc.Uint32(uint32(len(e.Obstacles)))
 	enc.Uint32(e.CuttingObstacleCount)
-	enc.Uint32(e.VisibleNodeCount)
+	enc.Uint32(uint32(len(e.VisNodes)))
 	for _, regionVertex := range e.RegionVertices {
 		enc.Float32(regionVertex.X)
 		enc.Float32(regionVertex.Y)
@@ -1434,6 +1463,7 @@ func (e *WldFragRegion) Write(w io.Writer) error {
 		for _, vertex := range wall.Vertices {
 			enc.Uint32(vertex)
 		}
+
 	}
 	err := enc.Error()
 	if err != nil {
@@ -1447,43 +1477,41 @@ func (e *WldFragRegion) Read(r io.ReadSeeker) error {
 	e.NameRef = dec.Int32()
 	e.Flags = dec.Uint32()
 	e.AmbientLightRef = dec.Int32()
-	e.RegionVertexCount = dec.Uint32()
-	e.RegionProximalCount = dec.Uint32()
-	e.RenderVertexCount = dec.Uint32()
-	e.WallCount = dec.Uint32()
-	e.ObstacleCount = dec.Uint32()
+	regionVertexCount := dec.Uint32()
+	regionProximalCount := dec.Uint32()
+	renderVertexCount := dec.Uint32()
+	wallCount := dec.Uint32()
+	obstacleCount := dec.Uint32()
 	e.CuttingObstacleCount = dec.Uint32()
-	e.VisibleNodeCount = dec.Uint32()
-	e.RegionVertices = make([]Vector3, e.RegionVertexCount)
-	for i := uint32(0); i < e.RegionVertexCount; i++ {
-		e.RegionVertices[i] = Vector3{
+	visibleNodeCount := dec.Uint32()
+	visListCount := dec.Uint32()
+	e.RegionVertices = make([]model.Vector3, regionVertexCount)
+	for i := uint32(0); i < regionVertexCount; i++ {
+		e.RegionVertices[i] = model.Vector3{
 			X: dec.Float32(),
 			Y: dec.Float32(),
 			Z: dec.Float32(),
 		}
 	}
-	e.RegionProximals = make([]Vector2, e.RegionProximalCount)
-	for i := uint32(0); i < e.RegionProximalCount; i++ {
-		e.RegionProximals[i] = Vector2{
+	e.RegionProximals = make([]model.Vector2, regionProximalCount)
+	for i := uint32(0); i < regionProximalCount; i++ {
+		e.RegionProximals[i] = model.Vector2{
 			X: dec.Float32(),
 			Y: dec.Float32(),
 		}
 	}
-	if e.WallCount != 0 {
-		e.RenderVertexCount = 0
-	}
 
-	e.RenderVertices = make([]Vector3, e.RenderVertexCount)
-	for i := uint32(0); i < e.RenderVertexCount; i++ {
-		e.RenderVertices[i] = Vector3{
+	e.RenderVertices = make([]model.Vector3, renderVertexCount)
+	for i := uint32(0); i < renderVertexCount; i++ {
+		e.RenderVertices[i] = model.Vector3{
 			X: dec.Float32(),
 			Y: dec.Float32(),
 			Z: dec.Float32(),
 		}
 	}
 
-	e.Walls = make([]Wall, e.WallCount)
-	for i := uint32(0); i < e.WallCount; i++ {
+	e.Walls = make([]Wall, wallCount)
+	for i := uint32(0); i < wallCount; i++ {
 		wall := Wall{}
 		wall.Flags = dec.Uint32()
 		wall.VertexCount = dec.Uint32()
@@ -1504,7 +1532,7 @@ func (e *WldFragRegion) Read(r io.ReadSeeker) error {
 		wall.RenderUVInfoVAxis.Z = dec.Float32()
 		wall.RenderUVMapEntryCount = dec.Uint32()
 		for i := uint32(0); i < wall.RenderUVMapEntryCount; i++ {
-			wall.RenderUVMapEntries = append(wall.RenderUVMapEntries, Vector2{
+			wall.RenderUVMapEntries = append(wall.RenderUVMapEntries, model.Vector2{
 				X: dec.Float32(),
 				Y: dec.Float32(),
 			})
@@ -1518,6 +1546,54 @@ func (e *WldFragRegion) Read(r io.ReadSeeker) error {
 			wall.Vertices[i] = dec.Uint32()
 		}
 		e.Walls[i] = wall
+	}
+
+	for i := uint32(0); i < obstacleCount; i++ {
+		obstacle := Obstacle{
+			Flags:      dec.Uint32(),
+			NextRegion: dec.Int32(),
+			Type:       dec.Int32(),
+		}
+		//if obstacle.Type == 14 || obstacle.Type == -15 {
+		vertexCount := dec.Uint32()
+
+		obstacle.Vertices = make([]uint32, vertexCount)
+		for i := uint32(0); i < vertexCount; i++ {
+			obstacle.Vertices[i] = dec.Uint32()
+		}
+		if obstacle.Type == -15 { // edgepolygonnormalabcd
+			obstacle.NormalABCD.X = dec.Float32()
+			obstacle.NormalABCD.Y = dec.Float32()
+			obstacle.NormalABCD.Z = dec.Float32()
+			obstacle.NormalABCD.W = dec.Float32()
+		}
+		if obstacle.Type == 18 { // edgewall
+			obstacle.EdgeWall = dec.Uint32()
+		}
+		if obstacle.Flags&0x04 != 0 { // userdata
+			obstacle.UserData = dec.StringLenPrefixUint32()
+		}
+	}
+
+	for i := uint32(0); i < visibleNodeCount; i++ {
+		visNode := VisNode{
+			NormalABCD: model.Quad4{
+				X: dec.Float32(),
+				Y: dec.Float32(),
+				Z: dec.Float32(),
+				W: dec.Float32(),
+			},
+			VisListIndex: dec.Uint32(),
+			FrontTree:    dec.Uint32(),
+			BackTree:     dec.Uint32(),
+		}
+		e.VisNodes = append(e.VisNodes, visNode)
+	}
+
+	for i := uint32(0); i < visListCount; i++ {
+		visList := VisList{}
+		visList.Ranges = dec.Bytes(8)
+		e.VisLists = append(e.VisLists, visList)
 	}
 
 	err := dec.Error()

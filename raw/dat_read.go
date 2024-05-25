@@ -6,6 +6,7 @@ import (
 	"io"
 
 	"github.com/xackery/encdec"
+	"github.com/xackery/quail/model"
 	"github.com/xackery/quail/tag"
 )
 
@@ -35,7 +36,7 @@ type DatTile struct {
 	BaseWaterLevel    float32              `yaml:"base_water_level"`
 	Unk2              int32                `yaml:"unk2"`      // known to be float or int
 	Unk3              int8                 `yaml:"unk3"`      // unk_byte on loader
-	Unk3Quad          Quad4                `yaml:"unk3_quad"` //f1 to f4 on loader
+	Unk3Quad          model.Quad4          `yaml:"unk3_quad"` //f1 to f4 on loader
 	Unk3Float         float32              `yaml:"unk3_float"`
 	LayerBaseMaterial string               `yaml:"layer_base_material"`
 	Layers            []*DatLayer          `yaml:"layers"`
@@ -57,45 +58,45 @@ type DatSinglePlacable struct {
 	Longitude    int32  `yaml:"longitude"`
 	Latitude     int32  `yaml:"latitude"`
 
-	Position Vector3 `yaml:"position"`
-	Rotation Vector3 `yaml:"rotation"`
-	Scale    Vector3 `yaml:"scale"`
-	Flags    uint8   `yaml:"flags"`
-	Unk1     uint32  `yaml:"unk1"`
+	Position model.Vector3 `yaml:"position"`
+	Rotation model.Vector3 `yaml:"rotation"`
+	Scale    model.Vector3 `yaml:"scale"`
+	Flags    uint8         `yaml:"flags"`
+	Unk1     uint32        `yaml:"unk1"`
 }
 
 type DatArea struct {
-	UnkStr1   string  `yaml:"unk_str1"`
-	Type      int32   `yaml:"type"`
-	UnkStr2   string  `yaml:"unk_str2"`
-	Longitude uint32  `yaml:"longitude"`
-	Latitude  uint32  `yaml:"latitude"`
-	Position  Vector3 `yaml:"position"`
-	Rotation  Vector3 `yaml:"rotation"`
-	Scale     Vector3 `yaml:"scale"`
-	Size      Vector3 `yaml:"size"`
+	UnkStr1   string        `yaml:"unk_str1"`
+	Type      int32         `yaml:"type"`
+	UnkStr2   string        `yaml:"unk_str2"`
+	Longitude uint32        `yaml:"longitude"`
+	Latitude  uint32        `yaml:"latitude"`
+	Position  model.Vector3 `yaml:"position"`
+	Rotation  model.Vector3 `yaml:"rotation"`
+	Scale     model.Vector3 `yaml:"scale"`
+	Size      model.Vector3 `yaml:"size"`
 }
 
 type DatLightEffect struct {
-	UnkStr1   string  `yaml:"unk_str1"`
-	UnkStr2   string  `yaml:"unk_str2"`
-	Unk3      uint8   `yaml:"unk3"`
-	Longitude uint32  `yaml:"longitude"`
-	Latitude  uint32  `yaml:"latitude"`
-	Position  Vector3 `yaml:"position"`
-	Rotation  Vector3 `yaml:"rotation"`
-	Scale     Vector3 `yaml:"scale"`
-	Size      float32 `yaml:"size"`
+	UnkStr1   string        `yaml:"unk_str1"`
+	UnkStr2   string        `yaml:"unk_str2"`
+	Unk3      uint8         `yaml:"unk3"`
+	Longitude uint32        `yaml:"longitude"`
+	Latitude  uint32        `yaml:"latitude"`
+	Position  model.Vector3 `yaml:"position"`
+	Rotation  model.Vector3 `yaml:"rotation"`
+	Scale     model.Vector3 `yaml:"scale"`
+	Size      float32       `yaml:"size"`
 }
 
 type DatTogRef struct {
-	Name      string  `yaml:"name"`
-	Longitude uint32  `yaml:"longitude"`
-	Latitude  uint32  `yaml:"latitude"`
-	Position  Vector3 `yaml:"position"`
-	Rotation  Vector3 `yaml:"rotation"`
-	Scale     Vector3 `yaml:"scale"`
-	Adjust    float32 `yaml:"adjust"`
+	Name      string        `yaml:"name"`
+	Longitude uint32        `yaml:"longitude"`
+	Latitude  uint32        `yaml:"latitude"`
+	Position  model.Vector3 `yaml:"position"`
+	Rotation  model.Vector3 `yaml:"rotation"`
+	Scale     model.Vector3 `yaml:"scale"`
+	Adjust    float32       `yaml:"adjust"`
 }
 
 // Decode reads a v4 zone dat file
