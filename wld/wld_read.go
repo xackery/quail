@@ -10,8 +10,8 @@ import (
 func (wld *Wld) Read(src *raw.Wld) error {
 	wld.FileName = src.FileName()
 	wld.Version = src.Version
-	for i := 1; i < len(src.Fragments); i++ {
-		fragment := src.Fragments[i]
+	for i := 1; i < len(src.Fragments)+1; i++ {
+		fragment := src.Fragments[i-1]
 		//log.Println("Fragment: ", raw.FragName(fragment.FragCode()), i)
 
 		switch fragment.FragCode() {
@@ -67,7 +67,7 @@ func (wld *Wld) Read(src *raw.Wld) error {
 			for _, bitmapRef := range fragData.BitmapRefs {
 				bitmap := wld.bitmapByFragID(bitmapRef)
 				if bitmap == nil {
-					return fmt.Errorf("simple sprite found without matching bminfo at offset %d", i)
+					return fmt.Errorf("simple sprite found without matching bminfo at offset %d ref %d", i, bitmapRef)
 				}
 
 				sprite.Bitmaps = append(sprite.Bitmaps, bitmap.Tag)

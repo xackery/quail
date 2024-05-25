@@ -22,6 +22,11 @@ type WldFragRegion struct {
 	Obstacles            []Obstacle      `yaml:"obstacles"`
 	VisNodes             []VisNode       `yaml:"visible_nodes"`
 	VisLists             []VisList       `yaml:"vis_lists"`
+	Sphere               [4]float32      `yaml:"sphere"`
+	ReverbVolume         float32
+	ReverbOffset         int32
+	UserData             string
+	MeshReference        int32
 }
 
 type Wall struct {
@@ -79,6 +84,7 @@ func (e *WldFragRegion) Write(w io.Writer) error {
 	enc.Uint32(uint32(len(e.Obstacles)))
 	enc.Uint32(e.CuttingObstacleCount)
 	enc.Uint32(uint32(len(e.VisNodes)))
+	enc.Uint32(uint32(len(e.VisLists)))
 	for _, regionVertex := range e.RegionVertices {
 		enc.Float32(regionVertex.X)
 		enc.Float32(regionVertex.Y)
@@ -123,8 +129,65 @@ func (e *WldFragRegion) Write(w io.Writer) error {
 		for _, vertex := range wall.Vertices {
 			enc.Uint32(vertex)
 		}
-
 	}
+	for _, obstacle := range e.Obstacles {
+		enc.Uint32(obstacle.Flags)
+		enc.Int32(obstacle.NextRegion)
+		enc.Int32(obstacle.Type)
+		vertexCount := uint32(len(obstacle.Vertices))
+		enc.Uint32(vertexCount)
+		for _, vertex := range obstacle.Vertices {
+			enc.Uint32(vertex)
+		}
+		if obstacle.Type == -15 { // edgepolygonnormalabcd
+			enc.Float32(obstacle.NormalABCD.X)
+			enc.Float32(obstacle.NormalABCD.Y)
+			enc.Float32(obstacle.NormalABCD.Z)
+			enc.Float32(obstacle.NormalABCD.W)
+		}
+		if obstacle.Type == 18 { // edgewall
+			enc.Uint32(obstacle.EdgeWall)
+		}
+		if obstacle.Flags&0x04 != 0 { // userdata
+			enc.StringLenPrefixUint32(obstacle.UserData)
+		}
+	}
+	for _, visNode := range e.VisNodes {
+		enc.Float32(visNode.NormalABCD.X)
+		enc.Float32(visNode.NormalABCD.Y)
+		enc.Float32(visNode.NormalABCD.Z)
+		enc.Float32(visNode.NormalABCD.W)
+		enc.Uint32(visNode.VisListIndex)
+		enc.Uint32(visNode.FrontTree)
+		enc.Uint32(visNode.BackTree)
+	}
+	for _, visList := range e.VisLists {
+		enc.Uint16(uint16(len(visList.Ranges)))
+		enc.Bytes(visList.Ranges)
+	}
+	if e.Flags&0x01 != 0 { // has sphere
+		enc.Float32(e.Sphere[0])
+		enc.Float32(e.Sphere[1])
+		enc.Float32(e.Sphere[2])
+		enc.Float32(e.Sphere[3])
+	}
+
+	if e.Flags&0x02 != 0 { // has reverb volume
+		enc.Float32(e.ReverbVolume)
+	}
+
+	if e.Flags&0x04 != 0 { // has reverb offset
+		enc.Int32(e.ReverbOffset)
+	}
+
+	if e.UserData != "" {
+		enc.StringLenPrefixUint32(e.UserData)
+	}
+
+	if e.Flags&0x100 != 0 { // has mesh reference
+		enc.Int32(e.MeshReference)
+	}
+
 	err := enc.Error()
 	if err != nil {
 		return fmt.Errorf("write: %w", err)
@@ -252,8 +315,32 @@ func (e *WldFragRegion) Read(r io.ReadSeeker) error {
 
 	for i := uint32(0); i < visListCount; i++ {
 		visList := VisList{}
-		visList.Ranges = dec.Bytes(8)
-		e.VisLists = append(e.VisLists, visList)
+		rangeCount := dec.Uint16()
+		for i := uint16(0); i < rangeCount; i++ {
+			visList.Ranges = append(visList.Ranges, dec.Byte())
+		}
+
+	}
+
+	if e.Flags&0x01 != 0 { // has sphere
+		e.Sphere[0] = dec.Float32()
+		e.Sphere[1] = dec.Float32()
+		e.Sphere[2] = dec.Float32()
+		e.Sphere[3] = dec.Float32()
+	}
+
+	if e.Flags&0x02 != 0 { // has reverb volume
+		e.ReverbVolume = dec.Float32()
+	}
+
+	if e.Flags&0x04 != 0 { // has reverb offset
+		e.ReverbOffset = dec.Int32()
+	}
+
+	e.UserData = dec.StringLenPrefixUint32()
+
+	if e.Flags&0x100 != 0 { // has mesh reference
+		e.MeshReference = dec.Int32()
 	}
 
 	err := dec.Error()

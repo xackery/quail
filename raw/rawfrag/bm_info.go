@@ -1,7 +1,6 @@
 package rawfrag
 
 import (
-	"bytes"
 	"encoding/binary"
 	"fmt"
 	"io"
@@ -22,22 +21,17 @@ func (e *WldFragBMInfo) FragCode() int {
 }
 
 func (e *WldFragBMInfo) Write(w io.Writer) error {
-	buf := &bytes.Buffer{}
-	enc := encdec.NewEncoder(buf, binary.LittleEndian)
+	enc := encdec.NewEncoder(w, binary.LittleEndian)
+	start := enc.Pos()
 
 	enc.Int32(e.NameRef)
 	enc.Int32(int32(len(e.TextureNames) - 1))
 	enc.StringLenPrefixUint16(string(helper.WriteStringHash(strings.Join(e.TextureNames, ""))))
 
-	paddingSize := (4 - buf.Len()%4) % 4
+	diff := enc.Pos() - start
+	paddingSize := (4 - diff%4) % 4
 	enc.Bytes(make([]byte, paddingSize))
-
 	err := enc.Error()
-	if err != nil {
-		return fmt.Errorf("write: %w", err)
-	}
-
-	_, err = buf.WriteTo(w)
 	if err != nil {
 		return fmt.Errorf("write: %w", err)
 	}

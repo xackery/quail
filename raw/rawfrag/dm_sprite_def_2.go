@@ -159,7 +159,7 @@ func (e *WldFragDmSpriteDef2) Write(w io.Writer) error {
 		enc.Uint16(uint16(vertexMaterial.Index1))
 	}
 
-	paddingSize := (4 - len(e.MeshOps)%4) % 4
+	start := enc.Pos()
 	for _, meshOp := range e.MeshOps {
 		enc.Uint16(meshOp.Index1)
 		enc.Uint16(meshOp.Index2)
@@ -167,6 +167,9 @@ func (e *WldFragDmSpriteDef2) Write(w io.Writer) error {
 		enc.Uint8(meshOp.Param1)
 		enc.Uint8(meshOp.TypeField)
 	}
+	diff := enc.Pos() - start
+	paddingSize := (4 - diff%4) % 4
+
 	enc.Bytes(make([]byte, paddingSize))
 
 	err := enc.Error()

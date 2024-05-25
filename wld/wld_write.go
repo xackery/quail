@@ -12,8 +12,6 @@ import (
 func (wld *Wld) Write(w io.Writer) error {
 	var err error
 
-	fragIndex := 1
-
 	raw.NameClear()
 
 	out := &raw.Wld{
@@ -42,31 +40,29 @@ func (wld *Wld) Write(w io.Writer) error {
 				}
 
 				nameRef := raw.NameAdd(bmInfo.Tag)
-				out.Fragments[fragIndex] = &rawfrag.WldFragBMInfo{
+				out.Fragments = append(out.Fragments, &rawfrag.WldFragBMInfo{
 					NameRef:      nameRef,
 					TextureNames: bmInfo.Textures,
-				}
-				bitmapRefs = append(bitmapRefs, uint32(fragIndex))
-				fragIndex++
+				})
+				bitmapRefs = append(bitmapRefs, uint32(len(out.Fragments)))
 			}
 
 			nameRef := raw.NameAdd(sprite.Tag)
-			out.Fragments[fragIndex] = &rawfrag.WldFragSimpleSpriteDef{
+			out.Fragments = append(out.Fragments, &rawfrag.WldFragSimpleSpriteDef{
 				NameRef:      nameRef,
 				Flags:        sprite.Flags,
 				CurrentFrame: sprite.CurrentFrame,
 				Sleep:        sprite.Sleep,
 				BitmapRefs:   bitmapRefs,
-			}
-			fragIndex++
+			})
 		}
 
 		nameRef := raw.NameAdd(spriteInstance.Tag)
-		out.Fragments[fragIndex] = &rawfrag.WldFragSimpleSprite{
+		out.Fragments = append(out.Fragments, &rawfrag.WldFragSimpleSprite{
 			NameRef:   nameRef,
 			SpriteRef: int16(sprite.fragID),
 			Flags:     spriteInstance.Flags,
-		}
+		})
 	}
 
 	err = out.Write(w)
