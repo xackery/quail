@@ -33,8 +33,8 @@ func (e *WldFragZone) Write(w io.Writer) error {
 	for _, region := range e.Regions {
 		enc.Uint32(region)
 	}
+	enc.Uint32(uint32(len(userData)))
 	if len(e.UserData) > 0 {
-		enc.Uint32(uint32(len(userData)))
 		enc.Bytes(userData)
 		enc.Bytes(make([]byte, paddingSize))
 	}

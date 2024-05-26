@@ -92,7 +92,6 @@ func (wld *Wld) Read(r io.ReadSeeker) error {
 	if err != nil {
 		return fmt.Errorf("load: %w", err)
 	}
-	tag.Mark("blue", "fragments")
 
 	for i := uint32(1); i <= fragmentCount; i++ {
 		data := fragments[i-1]
@@ -114,6 +113,63 @@ func (wld *Wld) Read(r io.ReadSeeker) error {
 	return nil
 }
 
+// rawFrags is user by tests to compare for writer
+func (wld *Wld) rawFrags(r io.ReadSeeker) ([][]byte, error) {
+	dec := encdec.NewDecoder(r, binary.LittleEndian)
+	tag.NewWithCoder(dec)
+	header := dec.Bytes(4)
+	validHeader := []byte{0x02, 0x3D, 0x50, 0x54}
+	if !bytes.Equal(header, validHeader) {
+		return nil, fmt.Errorf("header wanted 0x%x, got 0x%x", validHeader, header)
+	}
+	wld.Version = dec.Uint32()
+	tag.Mark("red", "header")
+
+	wld.IsOldWorld = false
+	switch wld.Version {
+	case 0x00015500:
+		wld.IsOldWorld = true
+	case 0x1000C800:
+		wld.IsOldWorld = false
+	default:
+		return nil, fmt.Errorf("unknown wld version %d", wld.Version)
+	}
+
+	fragmentCount := dec.Uint32()
+
+	wld.BspRegionCount = dec.Uint32() //bspRegionCount
+	wld.Unk2 = dec.Uint32()           //unk2
+	hashSize := dec.Uint32()
+	wld.Unk3 = dec.Uint32() //unk3
+	hashRaw := dec.Bytes(int(hashSize))
+	nameData := helper.ReadStringHash(hashRaw)
+
+	names = []*nameEntry{}
+	chunk := []rune{}
+	lastOffset := 0
+	for i, b := range nameData {
+		if b == 0 {
+			names = append(names, &nameEntry{name: string(chunk), offset: lastOffset})
+			chunk = []rune{}
+			lastOffset = i + 1
+			continue
+		}
+		if i == len(nameData)-1 {
+			break // some times there's garbage at the end
+		}
+		chunk = append(chunk, b)
+	}
+
+	nameBuf = hashRaw
+
+	fragments, err := readFragments(fragmentCount, r)
+	if err != nil {
+		return nil, fmt.Errorf("load: %w", err)
+	}
+
+	return fragments, nil
+}
+
 // readFragments convert frag data to structs
 func readFragments(fragmentCount uint32, r io.ReadSeeker) (fragments [][]byte, err error) {
 
@@ -121,7 +177,6 @@ func readFragments(fragmentCount uint32, r io.ReadSeeker) (fragments [][]byte, e
 
 	totalFragSize := uint32(0)
 	for fragOffset := 0; fragOffset < int(fragmentCount); fragOffset++ {
-
 		fragSize := dec.Uint32()
 		totalFragSize += fragSize
 
@@ -131,6 +186,7 @@ func readFragments(fragmentCount uint32, r io.ReadSeeker) (fragments [][]byte, e
 		if err != nil {
 			return nil, fmt.Errorf("frag position seek %d/%d: %w", fragOffset, fragmentCount, err)
 		}
+
 		data := make([]byte, fragSize)
 		_, err = r.Read(data)
 		if err != nil {

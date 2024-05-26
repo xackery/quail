@@ -269,7 +269,8 @@ func TestWldVsWldCli(t *testing.T) {
 	tests := []struct {
 		name string
 	}{
-		{name: "load2"},
+		//{name: "load2"},
+		//{name: "gequip6"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -327,12 +328,88 @@ func TestWldVsWldCli(t *testing.T) {
 					t.Fatalf("failed to write frag %d: %s", i, err.Error())
 				}
 
-				// TODO: fix dmspritedef2
-				if src.FragCode() == 0x36 {
-					continue
+				err = common.ByteCompareTest(buf.Bytes(), dst)
+				if err != nil {
+					// write them both out as src/dst for comparison
+					wErr := os.WriteFile(fmt.Sprintf("%s/src.frag", dirTest), buf.Bytes(), 0644)
+					if wErr != nil {
+						t.Fatalf("failed to write src frag %d: %s", i+1, wErr.Error())
+					}
+					wErr = os.WriteFile(fmt.Sprintf("%s/dst.frag", dirTest), dst, 0644)
+					if wErr != nil {
+						t.Fatalf("failed to write dst frag %d: %s", i+1, wErr.Error())
+					}
+
+					t.Fatalf("failed to compare frag %d %s (0x%x): %s", i+1, FragName(src.FragCode()), src.FragCode(), err.Error())
 				}
-				if src.FragCode() == 0x22 {
-					continue
+
+				//fmt.Printf("frag %s %d (%d bytes) matches\n", FragName(wld.Fragments[i].FragCode()), i, len(buf.Bytes()))
+			}
+		})
+	}
+}
+
+func TestWldVsRawFrag(t *testing.T) {
+	if os.Getenv("SINGLE_TEST") != "1" {
+		t.Skip("skipping test; SINGLE_TEST not set")
+	}
+	eqPath := os.Getenv("EQ_PATH")
+	if eqPath == "" {
+		t.Skip("EQ_PATH not set")
+	}
+	dirTest := common.DirTest()
+
+	tests := []struct {
+		name string
+	}{
+		//{name: "load2"},
+		//{name: "gequip6"},
+		//{name: "neriakb"},
+		//{name: "gfaydark"},
+		//{name: "ssratemple"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			archive, err := pfs.NewFile(fmt.Sprintf("%s/%s.s3d", eqPath, tt.name))
+			if err != nil {
+				t.Fatalf("failed to open s3d %s: %s", tt.name, err.Error())
+			}
+			defer archive.Close()
+
+			wldName := fmt.Sprintf("%s.wld", tt.name)
+
+			// get wld
+			data, err := archive.File(wldName)
+			if err != nil {
+				t.Fatalf("failed to open wld %s: %s", wldName, err.Error())
+			}
+
+			wld := &Wld{}
+			err = wld.Read(bytes.NewReader(data))
+			if err != nil {
+				t.Fatalf("failed to read %s: %s", tt.name, err.Error())
+			}
+
+			rawWld := &Wld{}
+			rawFrags, err := rawWld.rawFrags(bytes.NewReader(data))
+			if err != nil {
+				t.Fatalf("failed to read raw %s: %s", tt.name, err.Error())
+			}
+
+			for i := 0; i < len(wld.Fragments); i++ {
+				if i >= len(rawFrags) {
+					t.Fatalf("failed to find frag %d", i)
+				}
+				buf := bytes.NewBuffer(nil)
+				src := wld.Fragments[i]
+				dst := rawFrags[i]
+				// take off initial opcode bytes
+				dst = dst[4:]
+
+				err = src.Write(buf)
+				if err != nil {
+					t.Fatalf("failed to write frag %d: %s", i, err.Error())
 				}
 
 				err = common.ByteCompareTest(buf.Bytes(), dst)

@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"io"
+	"math"
 
 	"github.com/xackery/encdec"
 	"github.com/xackery/quail/model"
@@ -77,6 +78,8 @@ func (e *WldFragDmSpriteDef2) FragCode() int {
 
 func (e *WldFragDmSpriteDef2) Write(w io.Writer) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
+
+	padStart := enc.Pos()
 	enc.Int32(e.NameRef)
 	enc.Uint32(e.Flags)
 
@@ -159,18 +162,21 @@ func (e *WldFragDmSpriteDef2) Write(w io.Writer) error {
 		enc.Uint16(uint16(vertexMaterial.Index1))
 	}
 
-	start := enc.Pos()
 	for _, meshOp := range e.MeshOps {
-		enc.Uint16(meshOp.Index1)
-		enc.Uint16(meshOp.Index2)
-		enc.Float32(meshOp.Offset)
+		if meshOp.TypeField != 4 {
+			enc.Uint16(meshOp.Index1)
+			enc.Uint16(meshOp.Index2)
+		} else {
+			enc.Float32(meshOp.Offset)
+		}
 		enc.Uint8(meshOp.Param1)
 		enc.Uint8(meshOp.TypeField)
 	}
-	diff := enc.Pos() - start
+	diff := enc.Pos() - padStart
 	paddingSize := (4 - diff%4) % 4
-
-	enc.Bytes(make([]byte, paddingSize))
+	if paddingSize > 0 {
+		enc.Bytes(make([]byte, paddingSize))
+	}
 
 	err := enc.Error()
 	if err != nil {
@@ -284,13 +290,20 @@ func (e *WldFragDmSpriteDef2) Read(r io.ReadSeeker) error {
 	}
 
 	for i := 0; i < int(meshOpCount); i++ {
-		e.MeshOps = append(e.MeshOps, WldFragMeshOpEntry{
-			Index1:    dec.Uint16(),
-			Index2:    dec.Uint16(),
-			Offset:    dec.Float32(),
+		val := dec.Bytes(4)
+		entry := WldFragMeshOpEntry{
 			Param1:    dec.Uint8(),
 			TypeField: dec.Uint8(),
-		})
+		}
+		if entry.TypeField != 4 {
+			entry.Index1 = binary.LittleEndian.Uint16(val)
+			entry.Index2 = binary.LittleEndian.Uint16(val[2:])
+		} else {
+			bits := binary.LittleEndian.Uint32(val)
+			entry.Offset = math.Float32frombits(bits)
+		}
+
+		e.MeshOps = append(e.MeshOps, entry)
 	}
 
 	err := dec.Error()

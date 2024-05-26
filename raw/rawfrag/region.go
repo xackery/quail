@@ -74,6 +74,7 @@ func (e *WldFragRegion) FragCode() int {
 
 func (e *WldFragRegion) Write(w io.Writer) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
+	padStart := enc.Pos()
 	enc.Int32(e.NameRef)
 	enc.Uint32(e.Flags)
 	enc.Int32(e.AmbientLightRef)
@@ -162,8 +163,19 @@ func (e *WldFragRegion) Write(w io.Writer) error {
 		enc.Uint32(visNode.BackTree)
 	}
 	for _, visList := range e.VisLists {
-		enc.Uint16(uint16(len(visList.Ranges)))
-		enc.Bytes(visList.Ranges)
+		if e.Flags&0x80 != 0 {
+			enc.Uint16(uint16(len(visList.Ranges)))
+			for _, val := range visList.Ranges {
+				enc.Byte(val)
+			}
+		} else {
+
+			enc.Uint16(uint16(len(visList.Ranges) / 2))
+			for i := 0; i < len(visList.Ranges); i += 2 {
+				enc.Byte(visList.Ranges[i])
+				enc.Byte(visList.Ranges[i+1])
+			}
+		}
 	}
 	if e.Flags&0x01 != 0 { // has sphere
 		enc.Float32(e.Sphere[0])
@@ -182,12 +194,19 @@ func (e *WldFragRegion) Write(w io.Writer) error {
 
 	if e.UserData != "" {
 		enc.StringLenPrefixUint32(e.UserData)
+	} else {
+		enc.Uint32(0)
 	}
 
 	if e.Flags&0x100 != 0 { // has mesh reference
 		enc.Int32(e.MeshReference)
 	}
 
+	diff := enc.Pos() - padStart
+	paddingSize := (4 - diff%4) % 4
+	if paddingSize > 0 {
+		enc.Bytes(make([]byte, paddingSize))
+	}
 	err := enc.Error()
 	if err != nil {
 		return fmt.Errorf("write: %w", err)
@@ -317,9 +336,14 @@ func (e *WldFragRegion) Read(r io.ReadSeeker) error {
 		visList := VisList{}
 		rangeCount := dec.Uint16()
 		for i := uint16(0); i < rangeCount; i++ {
-			visList.Ranges = append(visList.Ranges, dec.Byte())
+			if e.Flags&0x80 != 0 {
+				visList.Ranges = append(visList.Ranges, dec.Byte())
+			} else {
+				visList.Ranges = append(visList.Ranges, dec.Byte())
+				visList.Ranges = append(visList.Ranges, dec.Byte())
+			}
 		}
-
+		e.VisLists = append(e.VisLists, visList)
 	}
 
 	if e.Flags&0x01 != 0 { // has sphere
