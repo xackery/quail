@@ -20,7 +20,6 @@ type Wld struct {
 	writtenPalettes   map[string]bool
 	writtenMaterials  map[string]bool
 	writtenSpriteDefs map[string]bool
-	writtenBMInfos    map[string]bool
 }
 
 // DMSpriteDef2 is a declaration of DMSpriteDef2

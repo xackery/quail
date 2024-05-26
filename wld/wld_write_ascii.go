@@ -9,8 +9,8 @@ func (wld *Wld) WriteAscii(w io.Writer) error {
 	var err error
 	wld.mu.Lock()
 	defer wld.mu.Unlock()
-	wld.writtenBMInfos = make(map[string]bool)
 	wld.writtenMaterials = make(map[string]bool)
+	wld.writtenSpriteDefs = make(map[string]bool)
 	wld.writtenPalettes = make(map[string]bool)
 	//var err error
 
@@ -108,6 +108,7 @@ func (wld *Wld) writeSpriteDef(w io.Writer, tag string) error {
 		if err != nil {
 			return err
 		}
+
 		wld.writtenSpriteDefs[tag] = true
 		return nil
 	}

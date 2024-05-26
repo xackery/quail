@@ -26,7 +26,8 @@ func (e *WldFragBMInfo) Write(w io.Writer) error {
 
 	enc.Int32(e.NameRef)
 	enc.Int32(int32(len(e.TextureNames) - 1))
-	enc.StringLenPrefixUint16(string(helper.WriteStringHash(strings.Join(e.TextureNames, ""))))
+
+	enc.StringLenPrefixUint16(string(helper.WriteStringHash(strings.Join(e.TextureNames, "\x00"))))
 
 	diff := enc.Pos() - start
 	paddingSize := (4 - diff%4) % 4
@@ -47,6 +48,7 @@ func (e *WldFragBMInfo) Read(r io.ReadSeeker) error {
 	for i := 0; i < int(textureCount+1); i++ {
 		nameLength := dec.Uint16()
 		e.TextureNames = append(e.TextureNames, helper.ReadStringHash((dec.Bytes(int(nameLength)))))
+		e.TextureNames[i] = strings.TrimRight(e.TextureNames[i], "\x00")
 	}
 	err := dec.Error()
 	if err != nil {

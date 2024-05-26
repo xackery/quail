@@ -101,12 +101,14 @@ func (wld *Wld) readMaterialDef(cm *cache.CacheManager) error {
 	for _, src := range cm.MaterialDefs {
 
 		dst := &MaterialDef{
-			Tag:           src.Tag,
-			Flags:         src.Flags,
-			RenderMethod:  src.RenderMethod,
-			RGBPen:        src.RGBPen,
-			Brightness:    src.Brightness,
-			ScaledAmbient: src.ScaledAmbient,
+			Tag:                  src.Tag,
+			Flags:                src.Flags,
+			RenderMethod:         src.RenderMethod,
+			RGBPen:               src.RGBPen,
+			Brightness:           src.Brightness,
+			ScaledAmbient:        src.ScaledAmbient,
+			SimpleSpriteInstTag:  src.SimpleSpriteInstTag,
+			SimpleSpriteInstFlag: src.SimpleSpriteInstFlag,
 		}
 
 		wld.MaterialDefs = append(wld.MaterialDefs, dst)

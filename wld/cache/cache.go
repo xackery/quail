@@ -219,18 +219,19 @@ func (cm *CacheManager) particleInstanceByTag(tag string) *ParticleInstance {
 
 // MaterialDef is a struct representing a material
 type MaterialDef struct {
-	fragID         uint32
-	Tag            string
-	Flags          uint32
-	RenderMethod   string
-	RGBPen         [4]uint8
-	Brightness     float32
-	ScaledAmbient  float32
-	Texture        string
-	spriteInstance *SpriteInstance
-	Pair1          uint32
-	Pair2          float32
-	Palette        MaterialPalette
+	fragID               uint32
+	Tag                  string
+	Flags                uint32
+	RenderMethod         string
+	RGBPen               [4]uint8
+	Brightness           float32
+	ScaledAmbient        float32
+	SimpleSpriteInstTag  string
+	SimpleSpriteInstFlag uint32
+	spriteInstance       *SpriteInstance
+	Pair1                uint32
+	Pair2                float32
+	Palette              MaterialPalette
 }
 
 func (cm *CacheManager) materialByFragID(fragID uint32) *MaterialDef {

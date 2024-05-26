@@ -3,6 +3,7 @@ package cache
 import (
 	"fmt"
 
+	"github.com/xackery/quail/model"
 	"github.com/xackery/quail/raw"
 	"github.com/xackery/quail/raw/rawfrag"
 )
@@ -86,7 +87,7 @@ func (cm *CacheManager) Load(src *raw.Wld) error {
 
 			tag := raw.Name(fragData.NameRef)
 			if len(tag) == 0 {
-				tag = sprite.Tag + "_INST"
+				tag = sprite.Tag
 			}
 			spriteInstance := SpriteInstance{
 				fragID: uint32(i),
@@ -188,12 +189,11 @@ func (cm *CacheManager) Load(src *raw.Wld) error {
 				spriteInstance: spriteInstance,
 			}
 			if spriteInstance != nil {
-				material.Texture = spriteInstance.Tag
+				material.SimpleSpriteInstTag = spriteInstance.Tag
+				material.SimpleSpriteInstFlag = spriteInstance.Flags
 			}
 
-			if fragData.RenderMethod > 0 {
-				material.RenderMethod = raw.Name(int32(fragData.RenderMethod))
-			}
+			material.RenderMethod = model.RenderMethodStr(fragData.RenderMethod)
 
 			cm.MaterialDefs = append(cm.MaterialDefs, material)
 		case rawfrag.FragCodeMaterialPalette: // turns to materialinstance
