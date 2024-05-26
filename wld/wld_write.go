@@ -1,16 +1,11 @@
 package wld
 
 import (
-	"fmt"
 	"io"
-
-	"github.com/xackery/quail/model"
-	"github.com/xackery/quail/raw"
-	"github.com/xackery/quail/raw/rawfrag"
 )
 
 func (wld *Wld) Write(w io.Writer) error {
-	var err error
+	/* var err error
 
 	raw.NameClear()
 
@@ -68,7 +63,7 @@ func (wld *Wld) Write(w io.Writer) error {
 	err = out.Write(w)
 	if err != nil {
 		return err
-	}
+	} */
 
 	return nil
 }

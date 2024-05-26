@@ -4,945 +4,136 @@ import (
 	"fmt"
 
 	"github.com/xackery/quail/raw"
-	"github.com/xackery/quail/raw/rawfrag"
+	"github.com/xackery/quail/wld/cache"
 )
 
 func (wld *Wld) Read(src *raw.Wld) error {
-	wld.FileName = src.FileName()
-	wld.Version = src.Version
-	for i := 1; i < len(src.Fragments)+1; i++ {
-		fragment := src.Fragments[i-1]
-		//log.Println("Fragment: ", raw.FragName(fragment.FragCode()), i)
-
-		switch fragment.FragCode() {
-		case rawfrag.FragCodeGlobalAmbientLightDef: // turns to globalambientlight
-			fragData, ok := fragment.(*rawfrag.WldFragGlobalAmbientLightDef)
-			if !ok {
-				return fmt.Errorf("invalid globalambientlightdef fragment at offset %d", i)
-			}
-
-			tag := raw.Name(fragData.NameRef)
-			if len(tag) == 0 {
-				tag = fmt.Sprintf("%d_GALD", i)
-			}
-
-			if wld.GlobalAmbientLight != "" {
-				return fmt.Errorf("multiple globalambientlight found at offset %d", i)
-			}
-			wld.GlobalAmbientLight = tag
-		case rawfrag.FragCodeBMInfo: // turns to bitmap
-			fragData, ok := fragment.(*rawfrag.WldFragBMInfo)
-			if !ok {
-				return fmt.Errorf("invalid bminfo fragment at offset %d", i)
-			}
-			tag := raw.Name(fragData.NameRef)
-			if len(tag) == 0 {
-				tag = fmt.Sprintf("%d_BMINFO", i)
-			}
-
-			bitmap := &Bitmap{
-				fragID:   uint32(i),
-				Tag:      tag,
-				Textures: fragData.TextureNames,
-			}
-			wld.Bitmaps = append(wld.Bitmaps, bitmap)
-		case rawfrag.FragCodeSimpleSpriteDef: // turns to sprite
-			fragData, ok := fragment.(*rawfrag.WldFragSimpleSpriteDef)
-			if !ok {
-				return fmt.Errorf("invalid simplespritedef fragmentat offset %d", i)
-			}
-
-			tag := raw.Name(fragData.NameRef)
-			if len(tag) == 0 {
-				tag = fmt.Sprintf("%d_SPRITE", i)
-			}
-
-			sprite := Sprite{
-				fragID:       uint32(i),
-				Tag:          tag,
-				Flags:        fragData.Flags,
-				CurrentFrame: fragData.CurrentFrame,
-				Sleep:        fragData.Sleep,
-			}
-			for _, bitmapRef := range fragData.BitmapRefs {
-				bitmap := wld.bitmapByFragID(bitmapRef)
-				if bitmap == nil {
-					return fmt.Errorf("simple sprite found without matching bminfo at offset %d ref %d", i, bitmapRef)
-				}
-
-				sprite.Bitmaps = append(sprite.Bitmaps, bitmap.Tag)
-			}
-			wld.Sprites = append(wld.Sprites, &sprite)
-		case rawfrag.FragCodeSimpleSprite: // turns to spriteinstance
-			fragData, ok := fragment.(*rawfrag.WldFragSimpleSprite)
-			if !ok {
-				return fmt.Errorf("invalid simplesprite fragment at offset %d", i)
-			}
-
-			sprite := wld.spriteByFragID(uint32(fragData.SpriteRef))
-			if sprite == nil {
-				return fmt.Errorf("simplesprite found without matching simplespritedef at offset %d, ref: %d", i, fragData.SpriteRef)
-			}
-
-			tag := raw.Name(fragData.NameRef)
-			if len(tag) == 0 {
-				tag = sprite.Tag + "_INST"
-			}
-			spriteInstance := SpriteInstance{
-				fragID: uint32(i),
-				Tag:    tag,
-				Flags:  fragData.Flags,
-				Sprite: sprite.Tag,
-			}
-			wld.SpriteInstances = append(wld.SpriteInstances, &spriteInstance)
-		case rawfrag.FragCodeBlitSpriteDef: // turns to particle
-			fragData, ok := fragment.(*rawfrag.WldFragBlitSpriteDef)
-			if !ok {
-				return fmt.Errorf("invalid blitspritedef fragment at offset %d", i)
-			}
-
-			tag := raw.Name(fragData.NameRef)
-			if len(tag) == 0 {
-				tag = fmt.Sprintf("%d_SPB", i)
-			}
-
-			particle := &Particle{
-				fragID:    uint32(i),
-				Tag:       tag,
-				Flags:     fragData.Flags,
-				SpriteTag: raw.Name(int32(fragData.SpriteInstanceRef)),
-				Unknown:   fragData.Unknown,
-			}
-			wld.Particles = append(wld.Particles, particle)
-		case rawfrag.FragCodeParticleCloudDef: // turns to particleinstance
-			fragData, ok := fragment.(*rawfrag.WldFragParticleCloudDef)
-			if !ok {
-				return fmt.Errorf("invalid particleclouddef fragment at offset %d", i)
-			}
-
-			particle := wld.particleByFragID(uint32(fragData.ParticleRef))
-			if particle == nil {
-				return fmt.Errorf("particleclouddef found without matching blitspritedef at offset %d: %d", i, fragData.ParticleRef)
-			}
-
-			tag := raw.Name(fragData.NameRef)
-			if len(tag) == 0 {
-				tag = particle.Tag + "_PCD"
-			}
-
-			particleInstance := ParticleInstance{
-				fragID:                uint32(i),
-				Tag:                   tag,
-				Unk1:                  fragData.Unk1,
-				Unk2:                  fragData.Unk2,
-				ParticleMovement:      fragData.ParticleMovement,
-				Flags:                 fragData.Flags,
-				SimultaneousParticles: fragData.SimultaneousParticles,
-				Unk6:                  fragData.Unk6,
-				Unk7:                  fragData.Unk7,
-				Unk8:                  fragData.Unk8,
-				Unk9:                  fragData.Unk9,
-				Unk10:                 fragData.Unk10,
-				SpawnRadius:           fragData.SpawnRadius,
-				SpawnAngle:            fragData.SpawnAngle,
-				SpawnLifespan:         fragData.SpawnLifespan,
-				SpawnVelocity:         fragData.SpawnVelocity,
-				SpawnNormalZ:          fragData.SpawnNormalZ,
-				SpawnNormalX:          fragData.SpawnNormalX,
-				SpawnNormalY:          fragData.SpawnNormalY,
-				SpawnRate:             fragData.SpawnRate,
-				SpawnScale:            fragData.SpawnScale,
-				Color:                 fragData.Color,
-				particle:              particle,
-			}
-
-			wld.ParticleInstances = append(wld.ParticleInstances, &particleInstance)
-		case rawfrag.FragCodeMaterialDef: // turns to material
-			fragData, ok := fragment.(*rawfrag.WldFragMaterialDef)
-			if !ok {
-				return fmt.Errorf("invalid materialdef fragment at offset %d", i)
-			}
-
-			tag := raw.Name(fragData.NameRef)
-			if len(tag) == 0 {
-				tag = fmt.Sprintf("%d_MDF", i)
-			}
-
-			var spriteInstance *SpriteInstance
-			if fragData.SimpleSpriteRef > 0 {
-				spriteInstance = wld.spriteInstanceByFragID(fragData.SimpleSpriteRef)
-				if spriteInstance == nil {
-					return fmt.Errorf("materialdef %s refers to missing spriteInstance %d at offset %d", tag, fragData.SimpleSpriteRef, i)
-				}
-			}
-
-			material := &Material{
-				fragID:         uint32(i),
-				Tag:            tag,
-				Flags:          fragData.Flags,
-				RenderMethod:   fragData.RenderMethod,
-				RGBPen:         fragData.RGBPen,
-				Brightness:     fragData.Brightness,
-				ScaledAmbient:  fragData.ScaledAmbient,
-				Pair1:          fragData.Pair1,
-				Pair2:          fragData.Pair2,
-				spriteInstance: spriteInstance,
-			}
-			if spriteInstance != nil {
-				material.Texture = spriteInstance.Tag
-			}
-
-			wld.Materials = append(wld.Materials, material)
-		case rawfrag.FragCodeMaterialPalette: // turns to materialinstance
-			fragData, ok := fragment.(*rawfrag.WldFragMaterialPalette)
-			if !ok {
-				return fmt.Errorf("invalid materialpalette fragment at offset %d", i)
-			}
-
-			materials := []string{}
-			for _, materialRef := range fragData.MaterialRefs {
-				material := wld.materialByFragID(materialRef)
-				if material == nil {
-					return fmt.Errorf("materialInstance found without matching materialdef at offset %d", i)
-				}
-				materials = append(materials, material.Tag)
-			}
-
-			materialInstance := MaterialInstance{
-				fragID:    uint32(i),
-				Tag:       raw.Name(fragData.NameRef),
-				Flags:     fragData.Flags,
-				Materials: materials,
-			}
-
-			wld.MaterialInstances = append(wld.MaterialInstances, &materialInstance)
-		case rawfrag.FragCodeDmSpriteDef2: // turns to mesh
-			fragData, ok := fragment.(*rawfrag.WldFragDmSpriteDef2)
-			if !ok {
-				return fmt.Errorf("invalid dmspritedef2 fragment at offset %d", i)
-			}
-
-			materialInstance := wld.materialInstanceByFragID(uint32(fragData.MaterialPaletteRef))
-			if materialInstance == nil {
-				return fmt.Errorf("dmspritedef2 found without matching materialInstance at offset %d", i)
-			}
-
-			// animationInstance := wld.animationInstanceByFragID(uint32(fragData.AnimationRef))
-			// if animationInstance == nil {
-			// 	return fmt.Errorf("dmspritedef2 found without matching animationinstance at offset %d", i)
-			// }
-			mesh := &Mesh{
-				fragID:            uint32(i),
-				Tag:               raw.Name(fragData.NameRef),
-				Flags:             fragData.Flags,
-				MaterialInstance:  materialInstance.Tag,
-				AnimationInstance: "", //animationInstance.Tag,
-				Fragment3Ref:      fragData.Fragment3Ref,
-				Fragment4Ref:      fragData.Fragment4Ref,
-				Center:            fragData.Center,
-				Params2:           fragData.Params2,
-				MaxDistance:       fragData.MaxDistance,
-				Min:               fragData.Min,
-				Max:               fragData.Max,
-				RawScale:          fragData.RawScale,
-				MeshopCount:       fragData.MeshopCount,
-				Scale:             fragData.Scale,
-				Vertices:          fragData.Vertices,
-				UVs:               fragData.UVs,
-				Normals:           fragData.Normals,
-			}
-
-			wld.Meshes = append(wld.Meshes, mesh)
-		case rawfrag.FragCodeTrackDef: // turns to animation
-			fragData, ok := fragment.(*rawfrag.WldFragTrackDef)
-			if !ok {
-				return fmt.Errorf("invalid trackdef fragment at offset %d", i)
-			}
-
-			tag := raw.Name(fragData.NameRef)
-			if len(tag) == 0 {
-				tag = fmt.Sprintf("%d_TRACKDEF", i)
-			}
-
-			animation := &Animation{
-				fragID: uint32(i),
-				Tag:    tag,
-				Flags:  fragData.Flags,
-			}
-			for _, transform := range fragData.BoneTransforms {
-				animation.Transforms = append(animation.Transforms, &AnimationTransform{
-					RotateDenominator: transform.RotateDenominator,
-					RotateX:           transform.RotateX,
-					RotateY:           transform.RotateY,
-					RotateZ:           transform.RotateZ,
-					ShiftX:            transform.ShiftX,
-					ShiftY:            transform.ShiftY,
-					ShiftZ:            transform.ShiftZ,
-				})
-			}
-			wld.Animations = append(wld.Animations, animation)
-		case rawfrag.FragCodeTrack: // turns to animationinstance
-			fragData, ok := fragment.(*rawfrag.WldFragTrack)
-			if !ok {
-				return fmt.Errorf("invalid track fragment at offset %d", i)
-			}
-
-			animation := wld.animationByFragID(uint32(fragData.Track))
-			if animation == nil {
-				return fmt.Errorf("track found without matching trackdef at offset %d", i)
-			}
-
-			tag := raw.Name(fragData.NameRef)
-			if len(tag) == 0 {
-				tag = animation.Tag + "_TRACK"
-			}
-
-			animationInstance := AnimationInstance{
-				fragID:    uint32(i),
-				Tag:       tag,
-				Flags:     fragData.Flags,
-				Animation: animation.Tag,
-				Sleep:     fragData.Sleep,
-			}
-			wld.AnimationInstances = append(wld.AnimationInstances, &animationInstance)
-		case rawfrag.FragCodeDMSprite: // turns to meshinstance
-			fragData, ok := fragment.(*rawfrag.WldFragDMSprite)
-			if !ok {
-				return fmt.Errorf("invalid dmsprite fragment at offset %d", i)
-			}
-
-			meshTag := ""
-			if fragData.DMSpriteRef > 0 {
-				mesh := wld.meshByFragID(uint32(fragData.DMSpriteRef))
-				if mesh == nil {
-					altMesh := wld.alternateMeshByFragID(uint32(fragData.DMSpriteRef))
-					if altMesh == nil {
-						return fmt.Errorf("dmsprite found without matching mesh or alternatemesh at offset %d value %d", i, fragData.DMSpriteRef)
-					}
-					meshTag = altMesh.Tag
-				}
-				if meshTag == "" {
-					meshTag = mesh.Tag
-				}
-			}
-
-			tag := raw.Name(fragData.NameRef)
-			if len(tag) == 0 {
-				if meshTag == "" {
-					tag = fmt.Sprintf("%d_DMSPRITE", i)
-				} else {
-					tag = meshTag + "_DMSPRITE"
-				}
-			}
-
-			meshInstance := MeshInstance{
-				fragID: uint32(i),
-				Tag:    tag,
-				Mesh:   meshTag,
-				Params: fragData.Params,
-			}
-			wld.MeshInstances = append(wld.MeshInstances, &meshInstance)
-		case rawfrag.FragCodeDMSpriteDef: // turns to alternatemesh
-			fragData, ok := fragment.(*rawfrag.WldFragDMSpriteDef)
-			if !ok {
-				return fmt.Errorf("invalid dmspritedef fragment at offset %d", i)
-			}
-
-			materialTag := ""
-			if fragData.MaterialReference > 0 {
-				materialInstance := wld.materialInstanceByFragID(uint32(fragData.MaterialReference))
-				if materialInstance == nil {
-					return fmt.Errorf("dmspritedef found without matching materialInstance at offset %d", i)
-				}
-				materialTag = materialInstance.Tag
-			}
-
-			tag := raw.Name(fragData.NameRef)
-			if len(tag) == 0 {
-				tag = fmt.Sprintf("%d_DMSPRITEDEF", i)
-			}
-
-			alternateMesh := &AlternateMesh{
-				fragID:         uint32(i),
-				Tag:            tag,
-				Flags:          fragData.Flags,
-				Fragment1Maybe: fragData.Fragment1Maybe,
-				Material:       materialTag,
-				Fragment3:      fragData.Fragment3,
-				CenterPosition: fragData.CenterPosition,
-				Params2:        fragData.Params2,
-				Something2:     fragData.Something2,
-				Something3:     fragData.Something3,
-				Verticies:      fragData.Vertices,
-				TexCoords:      fragData.TexCoords,
-				Normals:        fragData.Normals,
-				Colors:         fragData.Colors,
-				PostVertexFlag: fragData.PostVertexFlag,
-				VertexTex:      fragData.VertexTex,
-			}
-
-			for _, polygon := range fragData.Polygons {
-				alternateMesh.Polygons = append(alternateMesh.Polygons, &AlternateMeshSpritePolygon{
-					Flag: polygon.Flag,
-					Unk1: polygon.Unk1,
-					Unk2: polygon.Unk2,
-					Unk3: polygon.Unk3,
-					Unk4: polygon.Unk4,
-					I1:   polygon.I1,
-					I2:   polygon.I2,
-					I3:   polygon.I3,
-				})
-			}
-
-			for _, vertexPiece := range fragData.VertexPieces {
-				alternateMesh.VertexPieces = append(alternateMesh.VertexPieces, &AlternateMeshVertexPiece{
-					Count:  vertexPiece.Count,
-					Offset: vertexPiece.Offset,
-				})
-			}
-
-			for _, renderGroup := range fragData.RenderGroups {
-				alternateMesh.RenderGroups = append(alternateMesh.RenderGroups, &AlternateMeshRenderGroup{
-					PolygonCount: renderGroup.PolygonCount,
-					MaterialId:   renderGroup.MaterialId,
-				})
-			}
-
-			for _, size6Piece := range fragData.Size6Pieces {
-				alternateMesh.Size6Pieces = append(alternateMesh.Size6Pieces, &AlternateMeshSize6Entry{
-					Unk1: size6Piece.Unk1,
-					Unk2: size6Piece.Unk2,
-					Unk3: size6Piece.Unk3,
-					Unk4: size6Piece.Unk4,
-					Unk5: size6Piece.Unk5,
-				})
-			}
-
-			wld.AlternateMeshes = append(wld.AlternateMeshes, alternateMesh)
-		case rawfrag.FragCodeActorDef: // turns to actor
-			fragData, ok := fragment.(*rawfrag.WldFragActorDef)
-			if !ok {
-				return fmt.Errorf("invalid actordef fragment at offset %d", i)
-			}
-
-			tag := raw.Name(fragData.NameRef)
-			if len(tag) == 0 {
-				tag = fmt.Sprintf("%d_ACTORDEF", i)
-			}
-
-			actor := &Actor{
-				fragID:           uint32(i),
-				Tag:              tag,
-				Flags:            fragData.Flags,
-				CallbackTag:      raw.Name(fragData.CallbackNameRef),
-				ActionCount:      fragData.ActionCount,
-				FragmentRefCount: fragData.FragmentRefCount,
-				BoundsRef:        fragData.BoundsRef,
-				CurrentAction:    fragData.CurrentAction,
-				Offset:           fragData.Offset,
-				Rotation:         fragData.Rotation,
-				Unk1:             fragData.Unk1,
-				FragmentRefs:     fragData.FragmentRefs,
-				Unk2:             fragData.Unk2,
-			}
-
-			for _, action := range fragData.Actions {
-				actor.Actions = append(actor.Actions, ActorAction{
-					LodCount: action.LodCount,
-					Unk1:     action.Unk1,
-					Lods:     action.Lods,
-				})
-			}
-
-			wld.Actors = append(wld.Actors, actor)
-		case rawfrag.FragCodeActor: // turns to actorinstance
-			fragData, ok := fragment.(*rawfrag.WldFragActor)
-			if !ok {
-				return fmt.Errorf("invalid actor fragment at offset %d", i)
-			}
-
-			actorTag := ""
-			if fragData.ActorDefRef != -1 {
-				actorTag = raw.Name(fragData.ActorDefRef)
-			}
-
-			tag := raw.Name(fragData.NameRef)
-			if len(tag) == 0 {
-				if actorTag == "" {
-					tag = fmt.Sprintf("%d_ACTOR_INST", i)
-				} else {
-					tag = actorTag + "_INST"
-				}
-			}
-
-			actorInstance := ActorInstance{
-				fragID:         uint32(i),
-				Tag:            tag,
-				ActorTag:       actorTag,
-				Flags:          fragData.Flags,
-				Sphere:         "",
-				CurrentAction:  fragData.CurrentAction,
-				Offset:         fragData.Offset,
-				Rotation:       fragData.Rotation,
-				Unk1:           fragData.Unk1,
-				BoundingRadius: fragData.BoundingRadius,
-				Scale:          fragData.Scale,
-				Sound:          "",
-				Unk2:           fragData.Unk2,
-			}
-
-			wld.ActorInstances = append(wld.ActorInstances, &actorInstance)
-		case rawfrag.FragCodeHierarchialSpriteDef: // turns to skeleton
-			fragData, ok := fragment.(*rawfrag.WldFragHierarchialSpriteDef)
-			if !ok {
-				return fmt.Errorf("invalid hierarchialspritedef fragment at offset %d", i)
-			}
-
-			tag := raw.Name(fragData.NameRef)
-			if len(tag) == 0 {
-				tag = fmt.Sprintf("%d_HS_DEF", i)
-			}
-
-			skeleton := &Skeleton{
-				fragID:             uint32(i),
-				Tag:                tag,
-				Flags:              fragData.Flags,
-				CollisionVolumeRef: fragData.CollisionVolumeRef,
-				CenterOffset:       fragData.CenterOffset,
-				BoundingRadius:     fragData.BoundingRadius,
-				Skins:              fragData.Skins,
-				SkinLinks:          fragData.SkinLinks,
-			}
-			for _, bone := range fragData.Bones {
-				trackTag := ""
-				if bone.TrackRef > 0 {
-					track := wld.animationInstanceByFragID(uint32(bone.TrackRef))
-					if track == nil {
-						return fmt.Errorf("hierarchialspritedef found without matching track at offset %d", i)
-					}
-					trackTag = track.Tag
-				}
-
-				meshOrSpriteOrParticleTag := ""
-				if bone.MeshOrSpriteOrParticleRef > 0 {
-					meshInstance := wld.meshInstanceByFragID(uint32(bone.MeshOrSpriteOrParticleRef))
-					if meshInstance == nil {
-						sprite := wld.spriteByFragID(uint32(bone.MeshOrSpriteOrParticleRef))
-						if sprite == nil {
-							particleInstance := wld.particleInstanceByFragID(uint32(bone.MeshOrSpriteOrParticleRef))
-							if particleInstance == nil {
-								return fmt.Errorf("hierarchialspritedef found without matching mesh or sprite or particle at offset %d value %d", i, bone.MeshOrSpriteOrParticleRef)
-							}
-							meshOrSpriteOrParticleTag = particleInstance.Tag
-						}
-						if meshOrSpriteOrParticleTag == "" {
-							meshOrSpriteOrParticleTag = sprite.Tag
-						}
-					}
-					if meshOrSpriteOrParticleTag == "" {
-						meshOrSpriteOrParticleTag = meshInstance.Tag
-					}
-				}
-
-				entry := &SkeletonEntry{
-					Tag:          raw.Name(bone.NameRef),
-					Flags:        bone.Flags,
-					Track:        trackTag,
-					MeshOrSprite: meshOrSpriteOrParticleTag,
-					SubBones:     bone.SubBones,
-				}
-				skeleton.Bones = append(skeleton.Bones, entry)
-			}
-			wld.Skeletons = append(wld.Skeletons, skeleton)
-		case rawfrag.FragCodeHierarchialSprite: // turns to skeletoninstance
-			fragData, ok := fragment.(*rawfrag.WldFragHierarchialSprite)
-			if !ok {
-				return fmt.Errorf("invalid hierarchialsprite fragment at offset %d", i)
-			}
-
-			skeletonTag := ""
-			if fragData.HierarchialSpriteRef > 0 {
-				skeleton := wld.skeletonByFragID(uint32(fragData.HierarchialSpriteRef))
-				if skeleton == nil {
-					return fmt.Errorf("hierarchialsprite found without matching hierarchialspritedef at offset %d value %d", i, fragData.HierarchialSpriteRef)
-				}
-			}
-
-			tag := raw.Name(int32(fragData.HierarchialSpriteRef))
-			if len(tag) == 0 {
-				if skeletonTag == "" {
-					tag = fmt.Sprintf("%d_HS_INST", i)
-				} else {
-					tag = skeletonTag + "_INST"
-				}
-			}
-
-			skeletonInstance := SkeletonInstance{
-				fragID:   uint32(i),
-				Tag:      tag,
-				Skeleton: skeletonTag,
-				Flags:    fragData.Flags,
-			}
-			wld.SkeletonInstances = append(wld.SkeletonInstances, &skeletonInstance)
-		case rawfrag.FragCodeLightDef: // turns to light
-			fragData, ok := fragment.(*rawfrag.WldFragLightDef)
-			if !ok {
-				return fmt.Errorf("invalid lightdef fragment at offset %d", i)
-			}
-
-			tag := raw.Name(fragData.NameRef)
-			if len(tag) == 0 {
-				tag = fmt.Sprintf("%d_LIGHTDEF", i)
-			}
-
-			light := &Light{
-				fragID:          uint32(i),
-				Tag:             tag,
-				Flags:           fragData.Flags,
-				FrameCurrentRef: fragData.FrameCurrentRef,
-				Levels:          fragData.LightLevels,
-				Colors:          fragData.Colors,
-			}
-			wld.Lights = append(wld.Lights, light)
-		case rawfrag.FragCodeLight: // turns to lightinstance
-			fragData, ok := fragment.(*rawfrag.WldFragLight)
-			if !ok {
-				return fmt.Errorf("invalid light fragment at offset %d", i)
-			}
-
-			lightTag := ""
-			if fragData.LightDefRef > 0 {
-				light := wld.lightByFragID(uint32(fragData.LightDefRef))
-				if light == nil {
-					return fmt.Errorf("light found without matching lightdef at offset %d", i)
-				}
-				lightTag = light.Tag
-			}
-
-			tag := raw.Name(fragData.NameRef)
-			if len(tag) == 0 {
-				if lightTag == "" {
-					tag = fmt.Sprintf("%d_LIGHT", i)
-				} else {
-					tag = lightTag + "_INST"
-				}
-			}
-
-			lightInstance := LightInstance{
-				fragID: uint32(i),
-				Tag:    tag,
-				Light:  lightTag,
-				Flags:  fragData.Flags,
-			}
-
-			wld.LightInstances = append(wld.LightInstances, &lightInstance)
-		case rawfrag.FragCodeSprite3DDef: // turns to camera
-			fragData, ok := fragment.(*rawfrag.WldFragSprite3DDef)
-			if !ok {
-				return fmt.Errorf("invalid sprite3ddef fragment at offset %d", i)
-			}
-
-			tag := raw.Name(fragData.NameRef)
-			if len(tag) == 0 {
-				tag = fmt.Sprintf("%d_SPRITE3DDEF", i)
-			}
-
-			camera := &Camera{
-				fragID:        uint32(i),
-				Tag:           tag,
-				Flags:         fragData.Flags,
-				SphereListRef: fragData.SphereListRef,
-				CenterOffset:  fragData.CenterOffset,
-				Radius:        fragData.Radius,
-				Vertices:      fragData.Vertices,
-			}
-
-			for _, bspNode := range fragData.BspNodes {
-				node := &CameraBspNode{
-					FrontTree:                   bspNode.FrontTree,
-					BackTree:                    bspNode.BackTree,
-					VertexIndexes:               bspNode.VertexIndexes,
-					RenderMethod:                bspNode.RenderMethod,
-					RenderFlags:                 bspNode.RenderFlags,
-					RenderPen:                   bspNode.RenderPen,
-					RenderBrightness:            bspNode.RenderBrightness,
-					RenderScaledAmbient:         bspNode.RenderScaledAmbient,
-					RenderSimpleSpriteReference: bspNode.RenderSimpleSpriteReference,
-					RenderUVInfoOrigin:          bspNode.RenderUVInfoOrigin,
-					RenderUVInfoUAxis:           bspNode.RenderUVInfoUAxis,
-					RenderUVInfoVAxis:           bspNode.RenderUVInfoVAxis,
-				}
-
-				for _, uvMap := range bspNode.RenderUVMapEntries {
-					entry := CameraBspNodeUVMapEntry{
-						UvOrigin: uvMap.UvOrigin,
-						UAxis:    uvMap.UAxis,
-						VAxis:    uvMap.VAxis,
-					}
-					node.RenderUVMapEntries = append(node.RenderUVMapEntries, entry)
-				}
-				camera.BspNodes = append(camera.BspNodes, node)
-
-				wld.Cameras = append(wld.Cameras, camera)
-			}
-		case rawfrag.FragCodeSprite3D: // turns to camerainstance
-			fragData, ok := fragment.(*rawfrag.WldFragSprite3D)
-			if !ok {
-				return fmt.Errorf("invalid sprite3d fragment at offset %d", i)
-			}
-
-			cameraTag := ""
-			if fragData.Sprite3DDefRef > 0 {
-				camera := wld.cameraByFragID(uint32(fragData.Sprite3DDefRef))
-				if camera == nil {
-					return fmt.Errorf("sprite3d found without matching sprite3ddef at offset %d", i)
-				}
-				cameraTag = camera.Tag
-			}
-
-			tag := raw.Name(fragData.NameRef)
-			if len(tag) == 0 {
-				if cameraTag == "" {
-					tag = fmt.Sprintf("%d_SPRITE3D", i)
-				} else {
-					tag = cameraTag + "_INST"
-				}
-			}
-
-			cameraInstance := CameraInstance{
-				fragID:    uint32(i),
-				Tag:       tag,
-				CameraTag: cameraTag,
-				Flags:     fragData.Flags,
-			}
-
-			wld.CameraInstances = append(wld.CameraInstances, &cameraInstance)
-
-		case rawfrag.FragCodeSphere: // turns to sphere
-			fragData, ok := fragment.(*rawfrag.WldFragSphere)
-			if !ok {
-				return fmt.Errorf("invalid sphere fragment at offset %d", i)
-			}
-
-			tag := raw.Name(fragData.NameRef)
-			if len(tag) == 0 {
-				tag = fmt.Sprintf("%d_SPHERE", i)
-			}
-
-			sphere := &Sphere{
-				fragID: uint32(i),
-				Tag:    tag,
-				Radius: fragData.Radius,
-			}
-
-			wld.Spheres = append(wld.Spheres, sphere)
-		case rawfrag.FragCodeZone: // turns to regioninstance
-			fragData, ok := fragment.(*rawfrag.WldFragZone)
-			if !ok {
-				return fmt.Errorf("invalid zone fragment at offset %d", i)
-			}
-
-			tag := raw.Name(fragData.NameRef)
-			if len(tag) == 0 {
-				tag = fmt.Sprintf("%d_ZONE", i)
-			}
-
-			regionInstance := RegionInstance{
-				fragID:   uint32(i),
-				Tag:      tag,
-				Flags:    fragData.Flags,
-				UserData: fragData.UserData,
-			}
-
-			for _, regionRef := range fragData.Regions {
-				if regionRef < 0 || int(regionRef) >= len(wld.Regions) {
-					return fmt.Errorf("zone found with invalid region ref %d at offset %d", regionRef, i)
-				}
-				region := wld.Regions[regionRef]
-				regionInstance.RegionTags = append(regionInstance.RegionTags, region.Tag)
-			}
-
-			wld.RegionInstances = append(wld.RegionInstances, &regionInstance)
-
-		case rawfrag.FragCodeWorldTree: // turns to bsptree
-			fragData, ok := fragment.(*rawfrag.WldFragWorldTree)
-			if !ok {
-				return fmt.Errorf("invalid worldtree fragment at offset %d", i)
-			}
-
-			if len(wld.BspTrees) > 0 {
-				return fmt.Errorf("multiple worldtree found at offset %d", i)
-			}
-
-			tag := ""
-			if fragData.NameRef > 0 {
-				tag = raw.Name(fragData.NameRef)
-			}
-			if len(tag) == 0 {
-				tag = fmt.Sprintf("%d_WORLD_TREE", i)
-			}
-
-			bspTree := &BspTree{
-				fragID: uint32(i),
-				Tag:    tag,
-			}
-
-			for _, node := range fragData.Nodes {
-				regionTag := raw.Name(node.RegionRef)
-				if len(regionTag) == 0 {
-					regionTag = fmt.Sprintf("%d_BSP_TREE", i)
-				}
-
-				bspTree.Nodes = append(bspTree.Nodes, &BspTreeNode{
-					Normal:    node.Normal,
-					Distance:  node.Distance,
-					RegionTag: regionTag,
-				})
-			}
-
-			for i := 0; i < len(fragData.Nodes); i++ {
-				fragRegion := fragData.Nodes[i]
-				node := bspTree.Nodes[i]
-				if fragRegion.FrontRef > 0 {
-					if fragRegion.FrontRef-1 >= int32(len(bspTree.Nodes)) {
-						return fmt.Errorf("bspTree %s has invalid front ref %d at offset %d", bspTree.Tag, fragRegion.FrontRef, i)
-					}
-
-					node.Front = bspTree.Nodes[fragRegion.FrontRef-1]
-				}
-				if fragRegion.BackRef > 0 {
-					if fragRegion.BackRef-1 >= int32(len(bspTree.Nodes)) {
-						return fmt.Errorf("bspTree %s has invalid back ref %d at offset %d", bspTree.Tag, fragRegion.BackRef, i)
-					}
-
-					node.Back = bspTree.Nodes[fragRegion.BackRef-1]
-				}
-			}
-
-			wld.BspTrees = append(wld.BspTrees, bspTree)
-		case rawfrag.FragCodeRegion: // turns to region
-			fragData, ok := fragment.(*rawfrag.WldFragRegion)
-			if !ok {
-				return fmt.Errorf("invalid region fragment at offset %d", i)
-			}
-
-			tag := raw.Name(fragData.NameRef)
-			if len(tag) == 0 {
-				tag = fmt.Sprintf("%d_REGION", i)
-			}
-
-			region := &Region{
-				fragID:          uint32(i),
-				Tag:             tag,
-				Flags:           fragData.Flags,
-				AmbientLightRef: fragData.AmbientLightRef,
-				//RegionVertexCount:    fragData.RegionVertexCount,
-				//RegionProximalCount:  fragData.RegionProximalCount,
-				//RenderVertexCount:    fragData.RenderVertexCount,
-				//WallCount:            fragData.WallCount,
-				//ObstacleCount:        fragData.ObstacleCount,
-				CuttingObstacleCount: fragData.CuttingObstacleCount,
-				//VisibleNodeCount:     fragData.VisibleNodeCount,
-				RegionVertices:  fragData.RegionVertices,
-				RegionProximals: fragData.RegionProximals,
-				RenderVertices:  fragData.RenderVertices,
-			}
-
-			for _, wall := range fragData.Walls {
-				region.Walls = append(region.Walls, &RegionWall{
-					Flags:                       wall.Flags,
-					VertexCount:                 wall.VertexCount,
-					RenderMethod:                wall.RenderMethod,
-					RenderFlags:                 wall.RenderFlags,
-					RenderPen:                   wall.RenderPen,
-					RenderBrightness:            wall.RenderBrightness,
-					RenderScaledAmbient:         wall.RenderScaledAmbient,
-					RenderSimpleSpriteReference: wall.RenderSimpleSpriteReference,
-					RenderUVInfoOrigin:          wall.RenderUVInfoOrigin,
-					RenderUVInfoUAxis:           wall.RenderUVInfoUAxis,
-					RenderUVInfoVAxis:           wall.RenderUVInfoVAxis,
-					RenderUVMapEntryCount:       wall.RenderUVMapEntryCount,
-					RenderUVMapEntries:          wall.RenderUVMapEntries,
-					Normal:                      wall.Normal,
-					Vertices:                    wall.Vertices,
-				})
-			}
-
-			wld.Regions = append(wld.Regions, region)
-		case rawfrag.FragCodeAmbientLight: // turns to ambientlightinstance
-			fragData, ok := fragment.(*rawfrag.WldFragAmbientLight)
-			if !ok {
-				return fmt.Errorf("invalid ambientlight fragment at offset %d", i)
-			}
-
-			lightTag := ""
-			if fragData.LightRef > 0 {
-				light := wld.lightByFragID(uint32(fragData.LightRef))
-				if light == nil {
-					return fmt.Errorf("ambientlight found without matching light at offset %d", i)
-				}
-				lightTag = light.Tag
-			}
-
-			tag := raw.Name(fragData.NameRef)
-			if len(tag) == 0 {
-				tag = fmt.Sprintf("%d_AMBIENTLIGHT", i)
-			}
-
-			ambientLightInstance := AmbientLightInstance{
-				fragID:   uint32(i),
-				Tag:      tag,
-				LightTag: lightTag,
-				Flags:    fragData.Flags,
-			}
-
-			for _, regionRef := range fragData.Regions {
-				region := wld.regionByFragID(regionRef)
-				if region == nil {
-					return fmt.Errorf("ambientlight found without matching region at offset %d value %d", i, regionRef)
-				}
-
-				ambientLightInstance.RegionTags = append(ambientLightInstance.RegionTags, region.Tag)
-			}
-
-			wld.AmbientLightInstances = append(wld.AmbientLightInstances, &ambientLightInstance)
-		case rawfrag.FragCodePointLight: // turns to pointlightinstance
-			fragData, ok := fragment.(*rawfrag.WldFragPointLight)
-			if !ok {
-				return fmt.Errorf("invalid pointlight fragment at offset %d", i)
-			}
-
-			lightInstanceTag := ""
-			if fragData.LightRef > 0 {
-				lightInstance := wld.lightInstanceByFragID(uint32(fragData.LightRef))
-				if lightInstance == nil {
-					return fmt.Errorf("pointlight found without matching light at offset %d value %d", i, fragData.LightRef)
-				}
-				lightInstanceTag = lightInstance.Tag
-			}
-
-			tag := raw.Name(fragData.NameRef)
-			if len(tag) == 0 {
-				tag = fmt.Sprintf("%d_POINTLIGHT", i)
-			}
-
-			pointLightInstance := PointLightInstance{
-				fragID:           uint32(i),
-				Tag:              tag,
-				LightInstanceTag: lightInstanceTag,
-				Flags:            fragData.Flags,
-				X:                fragData.X,
-				Y:                fragData.Y,
-				Z:                fragData.Z,
-				Radius:           fragData.Radius,
-			}
-
-			wld.PointLightInstances = append(wld.PointLightInstances, &pointLightInstance)
-		default:
-			return fmt.Errorf("unknown fragment type 0x%x (%s) at offset %d", fragment.FragCode(), raw.FragName(fragment.FragCode()), i)
-		}
-
+	cm := &cache.CacheManager{}
+	err := cm.Load(src)
+	if err != nil {
+		return fmt.Errorf("cache: %w", err)
+	}
+	defer cm.Close()
+
+	err = wld.readDMSpriteDef2(cm)
+	if err != nil {
+		return fmt.Errorf("readDMSpriteDef2: %w", err)
 	}
 
+	err = wld.readMaterialDef(cm)
+	if err != nil {
+		return fmt.Errorf("readMaterialDef: %w", err)
+	}
+
+	err = wld.readMaterialPalette(cm)
+	if err != nil {
+		return fmt.Errorf("readMaterialPalette: %w", err)
+	}
+
+	err = wld.readSimpleSpriteDef(cm)
+	if err != nil {
+		return fmt.Errorf("readSimpleSpriteDef: %w", err)
+	}
+
+	return nil
+}
+
+func (wld *Wld) readDMSpriteDef2(cm *cache.CacheManager) error {
+	for _, src := range cm.DmSpriteDef2s {
+		scale := float32(1 / float32(int(1)<<int(src.Scale)))
+
+		dst := &DMSpriteDef2{
+			Tag:                  src.Tag,
+			Flags:                src.Flags,
+			MaterialPaletteTag:   src.MaterialPaletteTag,
+			DmTrackTag:           src.DmTrackTag,
+			Fragment3Ref:         src.Fragment3Ref,
+			Fragment4Ref:         src.Fragment4Ref,
+			CenterOffset:         src.CenterOffset,
+			Params2:              src.Params2,
+			MaxDistance:          src.MaxDistance,
+			Min:                  src.Min,
+			Max:                  src.Max,
+			FPScale:              src.Scale,
+			SkinAssignmentGroups: src.SkinAssignmentGroups,
+			FaceMaterialGroups:   src.FaceMaterialGroups,
+			VertexMaterialGroups: src.VertexMaterialGroups,
+		}
+
+		for _, vert := range src.Vertices {
+			dst.Vertices = append(dst.Vertices, [3]float32{
+				float32(vert[0]) * scale,
+				float32(vert[1]) * scale,
+				float32(vert[2]) * scale,
+			})
+		}
+		for _, uv := range src.UVs {
+			dst.UVs = append(dst.UVs, [2]float32{
+				float32(uv[0]) * scale,
+				float32(uv[1]) * scale,
+			})
+		}
+		for _, vn := range src.VertexNormals {
+			dst.VertexNormals = append(dst.VertexNormals, [3]float32{
+				float32(vn[0]) * scale,
+				float32(vn[1]) * scale,
+				float32(vn[2]) * scale,
+			})
+		}
+
+		for _, mop := range src.MeshOps {
+			dst.MeshOps = append(dst.MeshOps, &MeshOp{
+				Index1:    mop.Index1,
+				Index2:    mop.Index2,
+				Offset:    mop.Offset,
+				Param1:    mop.Param1,
+				TypeField: mop.TypeField,
+			})
+		}
+
+		wld.DMSpriteDef2s = append(wld.DMSpriteDef2s, dst)
+	}
+	return nil
+
+}
+
+func (wld *Wld) readMaterialDef(cm *cache.CacheManager) error {
+	for _, src := range cm.MaterialDefs {
+
+		dst := &MaterialDef{
+			Tag:           src.Tag,
+			Flags:         src.Flags,
+			RenderMethod:  src.RenderMethod,
+			RGBPen:        src.RGBPen,
+			Brightness:    src.Brightness,
+			ScaledAmbient: src.ScaledAmbient,
+		}
+
+		wld.MaterialDefs = append(wld.MaterialDefs, dst)
+	}
+	return nil
+}
+
+func (wld *Wld) readMaterialPalette(cm *cache.CacheManager) error {
+	for _, src := range cm.MaterialPalettes {
+		dst := &MaterialPalette{
+			Tag:       src.Tag,
+			Flags:     src.Flags,
+			Materials: src.Materials,
+		}
+		wld.MaterialPalettes = append(wld.MaterialPalettes, dst)
+	}
+	return nil
+}
+
+func (wld *Wld) readSimpleSpriteDef(cm *cache.CacheManager) error {
+	for _, src := range cm.SimpleSpriteDefs {
+		dst := &SimpleSpriteDef{
+			Tag:     src.Tag,
+			BMInfos: src.BMInfos,
+		}
+
+		wld.SimpleSpriteDefs = append(wld.SimpleSpriteDefs, dst)
+	}
 	return nil
 }

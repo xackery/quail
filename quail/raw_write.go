@@ -135,7 +135,8 @@ func (e *Quail) wldWrite(wld *raw.Wld) error {
 				dstMat.NameRef = raw.NameAdd(srcMat.Name)
 				dstMat.Flags = 2
 				dstMat.RenderMethod = 0x00000001
-				dstMat.RGBPen = 0x00FFFFFF
+				// //0x00FFFFFF
+				dstMat.RGBPen = [4]uint8{0, 0xFF, 0xFF, 0xFF}
 				dstMat.Brightness = 0.0
 				dstMat.ScaledAmbient = 0.75
 
@@ -156,7 +157,7 @@ func (e *Quail) wldWrite(wld *raw.Wld) error {
 		mesh.NameRef = raw.NameAdd(mod.Header.Name)
 		mesh.Flags = 0x00014003
 
-		mesh.AnimationRef = 0 // for anims later
+		mesh.DMTrackRef = 0 // for anims later
 		mesh.Fragment3Ref = 0
 		mesh.Fragment4Ref = 0
 		//mesh.Center
@@ -165,23 +166,23 @@ func (e *Quail) wldWrite(wld *raw.Wld) error {
 		//mesh.MaxDistance
 		//mesh.Min
 		//mesh.Max
-		mesh.RawScale = 13
-		scale := float32(1 / float32(int(1)<<int(mesh.RawScale)))
+		mesh.Scale = 13
+		scale := float32(1 / float32(int(1)<<int(mesh.Scale)))
 
 		for _, srcVert := range mod.Vertices {
 			mesh.Vertices = append(mesh.Vertices, [3]int16{int16(srcVert.Position.X / scale), int16(srcVert.Position.Y / scale), int16(srcVert.Position.Z / scale)})
-			mesh.Normals = append(mesh.Normals, [3]int8{int8(srcVert.Normal.X), int8(srcVert.Normal.Y), int8(srcVert.Normal.Z)})
-			mesh.Colors = append(mesh.Colors, model.RGBA{R: srcVert.Tint.R, G: srcVert.Tint.G, B: srcVert.Tint.B, A: srcVert.Tint.A})
+			mesh.VertexNormals = append(mesh.VertexNormals, [3]int8{int8(srcVert.Normal.X), int8(srcVert.Normal.Y), int8(srcVert.Normal.Z)})
+			mesh.Colors = append(mesh.Colors, [4]uint8{srcVert.Tint.R, srcVert.Tint.G, srcVert.Tint.B, srcVert.Tint.A})
 			mesh.UVs = append(mesh.UVs, [2]int16{int16(srcVert.Uv.X * 256), int16(srcVert.Uv.Y * 256)})
 		}
 
 		for _, srcTriangle := range mod.Triangles {
-			entry := rawfrag.WldFragMeshTriangleEntry{
+			entry := rawfrag.WldFragMeshFaceEntry{
 				Flags: uint16(srcTriangle.Flag),
 				Index: [3]uint16{uint16(srcTriangle.Index.X), uint16(srcTriangle.Index.Y), uint16(srcTriangle.Index.Z)},
 			}
 
-			mesh.Triangles = append(mesh.Triangles, entry)
+			mesh.Faces = append(mesh.Faces, entry)
 		}
 
 		wld.Fragments[fragIndex] = mesh
