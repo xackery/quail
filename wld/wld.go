@@ -720,19 +720,25 @@ type Camera struct {
 }
 
 type CameraBspNode struct {
-	FrontTree                   uint32          `yaml:"front_tree"`
-	BackTree                    uint32          `yaml:"back_tree"`
-	VertexIndexes               []uint32        `yaml:"vertex_indexes"`
-	RenderMethod                uint32          `yaml:"render_method"`
-	RenderFlags                 uint8           `yaml:"render_flags"`
-	RenderPen                   uint32          `yaml:"render_pen"`
-	RenderBrightness            float32         `yaml:"render_brightness"`
-	RenderScaledAmbient         float32         `yaml:"render_scaled_ambient"`
-	RenderSimpleSpriteReference uint32          `yaml:"render_simple_sprite_reference"`
-	RenderUVInfoOrigin          model.Vector3   `yaml:"render_uv_info_origin"`
-	RenderUVInfoUAxis           model.Vector3   `yaml:"render_uv_info_u_axis"`
-	RenderUVInfoVAxis           model.Vector3   `yaml:"render_uv_info_v_axis"`
-	RenderUVMapEntries          []model.Vector2 `yaml:"render_uv_map_entries"`
+	FrontTree                   uint32                    `yaml:"front_tree"`
+	BackTree                    uint32                    `yaml:"back_tree"`
+	VertexIndexes               []uint32                  `yaml:"vertex_indexes"`
+	RenderMethod                uint32                    `yaml:"render_method"`
+	RenderFlags                 uint8                     `yaml:"render_flags"`
+	RenderPen                   uint32                    `yaml:"render_pen"`
+	RenderBrightness            float32                   `yaml:"render_brightness"`
+	RenderScaledAmbient         float32                   `yaml:"render_scaled_ambient"`
+	RenderSimpleSpriteReference uint32                    `yaml:"render_simple_sprite_reference"`
+	RenderUVInfoOrigin          model.Vector3             `yaml:"render_uv_info_origin"`
+	RenderUVInfoUAxis           model.Vector3             `yaml:"render_uv_info_u_axis"`
+	RenderUVInfoVAxis           model.Vector3             `yaml:"render_uv_info_v_axis"`
+	RenderUVMapEntries          []CameraBspNodeUVMapEntry `yaml:"render_uv_map_entries"`
+}
+
+type CameraBspNodeUVMapEntry struct {
+	UvOrigin [3]float32
+	UAxis    [3]float32
+	VAxis    [3]float32
 }
 
 func (wld *Wld) cameraByFragID(fragID uint32) *Camera {

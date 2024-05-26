@@ -658,7 +658,7 @@ func (wld *Wld) Read(src *raw.Wld) error {
 			}
 
 			for _, bspNode := range fragData.BspNodes {
-				camera.BspNodes = append(camera.BspNodes, &CameraBspNode{
+				node := &CameraBspNode{
 					FrontTree:                   bspNode.FrontTree,
 					BackTree:                    bspNode.BackTree,
 					VertexIndexes:               bspNode.VertexIndexes,
@@ -671,8 +671,17 @@ func (wld *Wld) Read(src *raw.Wld) error {
 					RenderUVInfoOrigin:          bspNode.RenderUVInfoOrigin,
 					RenderUVInfoUAxis:           bspNode.RenderUVInfoUAxis,
 					RenderUVInfoVAxis:           bspNode.RenderUVInfoVAxis,
-					RenderUVMapEntries:          bspNode.RenderUVMapEntries,
-				})
+				}
+
+				for _, uvMap := range bspNode.RenderUVMapEntries {
+					entry := CameraBspNodeUVMapEntry{
+						UvOrigin: uvMap.UvOrigin,
+						UAxis:    uvMap.UAxis,
+						VAxis:    uvMap.VAxis,
+					}
+					node.RenderUVMapEntries = append(node.RenderUVMapEntries, entry)
+				}
+				camera.BspNodes = append(camera.BspNodes, node)
 
 				wld.Cameras = append(wld.Cameras, camera)
 			}
