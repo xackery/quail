@@ -35,6 +35,16 @@ func (wld *Wld) Read(src *raw.Wld) error {
 		return fmt.Errorf("readSimpleSpriteDef: %w", err)
 	}
 
+	err = wld.readActorDef(cm)
+	if err != nil {
+		return fmt.Errorf("readActorDef: %w", err)
+	}
+
+	err = wld.readActorInst(cm)
+	if err != nil {
+		return fmt.Errorf("readActorInst: %w", err)
+	}
+
 	return nil
 }
 
@@ -136,6 +146,55 @@ func (wld *Wld) readSimpleSpriteDef(cm *cache.CacheManager) error {
 		}
 
 		wld.SimpleSpriteDefs = append(wld.SimpleSpriteDefs, dst)
+	}
+	return nil
+}
+
+func (wld *Wld) readActorDef(cm *cache.CacheManager) error {
+	for _, src := range cm.ActorDefs {
+		dst := &ActorDef{
+			Tag:           src.Tag,
+			Callback:      src.Callback,
+			BoundsRef:     src.BoundsRef,
+			CurrentAction: src.CurrentAction,
+			Location:      src.Location,
+			Unk1:          src.Unk1,
+			FragmentRefs:  src.FragmentRefs,
+		}
+		for _, srcAction := range src.Actions {
+			dstAction := ActorAction{}
+
+			for i := 0; i < len(srcAction.Lods); i++ {
+				dstLod := ActorLevelOfDetail{
+					MinDistance: srcAction.Lods[i],
+				}
+
+				dstAction.LevelOfDetails = append(dstAction.LevelOfDetails, dstLod)
+			}
+			dst.Actions = append(dst.Actions, dstAction)
+		}
+
+		wld.ActorDefs = append(wld.ActorDefs, dst)
+	}
+	return nil
+}
+
+func (wld *Wld) readActorInst(cm *cache.CacheManager) error {
+	for _, src := range cm.ActorInsts {
+		dst := &ActorInst{
+			Tag:            src.Tag,
+			DefinitionTag:  src.ActorDefTag,
+			Flags:          src.Flags,
+			SphereTag:      src.SphereTag,
+			CurrentAction:  src.CurrentAction,
+			Location:       src.Location,
+			Unk1:           src.Unk1,
+			BoundingRadius: src.BoundingRadius,
+			Scale:          src.Scale,
+			Unk2:           src.Unk2,
+		}
+
+		wld.ActorInsts = append(wld.ActorInsts, dst)
 	}
 	return nil
 }

@@ -18,8 +18,8 @@ type CacheManager struct {
 	DmSpriteDef2s         []*DmSpriteDef2
 	MeshInstances         []*MeshInstance
 	AlternateMeshes       []*AlternateMesh
-	Actors                []*Actor
-	ActorInstances        []*ActorInstance
+	ActorDefs             []*ActorDef
+	ActorInsts            []*ActorInst
 	Animations            []*Animation
 	AnimationInstances    []*AnimationInstance
 	Skeletons             []*Skeleton
@@ -47,8 +47,8 @@ func (cm *CacheManager) Close() {
 	cm.DmSpriteDef2s = []*DmSpriteDef2{}
 	cm.MeshInstances = []*MeshInstance{}
 	cm.AlternateMeshes = []*AlternateMesh{}
-	cm.Actors = []*Actor{}
-	cm.ActorInstances = []*ActorInstance{}
+	cm.ActorDefs = []*ActorDef{}
+	cm.ActorInsts = []*ActorInst{}
 	cm.Animations = []*Animation{}
 	cm.AnimationInstances = []*AnimationInstance{}
 	cm.Skeletons = []*Skeleton{}
@@ -485,17 +485,16 @@ func (cm *CacheManager) animationInstanceByTag(tag string) *AnimationInstance {
 	return nil
 }
 
-type Actor struct {
+type ActorDef struct {
 	fragID           uint32
 	Tag              string
 	Flags            uint32
-	CallbackTag      string
+	Callback         string
 	ActionCount      uint32
 	FragmentRefCount uint32
 	BoundsRef        int32
 	CurrentAction    uint32
-	Offset           model.Vector3
-	Rotation         model.Vector3
+	Location         [6]float32
 	Unk1             uint32
 	Actions          []ActorAction
 	FragmentRefs     []uint32
@@ -503,13 +502,12 @@ type Actor struct {
 }
 
 type ActorAction struct {
-	LodCount uint32
-	Unk1     uint32
-	Lods     []float32
+	Unk1 uint32
+	Lods []float32
 }
 
-func (cm *CacheManager) actorByFragID(fragID uint32) *Actor {
-	for _, actor := range cm.Actors {
+func (cm *CacheManager) actorByFragID(fragID uint32) *ActorDef {
+	for _, actor := range cm.ActorDefs {
 		if actor.fragID == fragID {
 			return actor
 		}
@@ -517,8 +515,8 @@ func (cm *CacheManager) actorByFragID(fragID uint32) *Actor {
 	return nil
 }
 
-func (cm *CacheManager) actorByTag(tag string) *Actor {
-	for _, actor := range cm.Actors {
+func (cm *CacheManager) actorByTag(tag string) *ActorDef {
+	for _, actor := range cm.ActorDefs {
 		if actor.Tag == tag {
 			return actor
 		}
@@ -526,15 +524,14 @@ func (cm *CacheManager) actorByTag(tag string) *Actor {
 	return nil
 }
 
-type ActorInstance struct {
+type ActorInst struct {
 	fragID         uint32
 	Tag            string
-	ActorTag       string
+	ActorDefTag    string
 	Flags          uint32
-	Sphere         string
+	SphereTag      string
 	CurrentAction  uint32
-	Offset         model.Vector3
-	Rotation       model.Vector3
+	Location       [6]float32
 	Unk1           uint32
 	BoundingRadius float32
 	Scale          float32
@@ -542,8 +539,8 @@ type ActorInstance struct {
 	Unk2           int32
 }
 
-func (cm *CacheManager) actorInstanceByFragID(fragID uint32) *ActorInstance {
-	for _, actorInstance := range cm.ActorInstances {
+func (cm *CacheManager) actorInstanceByFragID(fragID uint32) *ActorInst {
+	for _, actorInstance := range cm.ActorInsts {
 		if actorInstance.fragID == fragID {
 			return actorInstance
 		}
@@ -551,8 +548,8 @@ func (cm *CacheManager) actorInstanceByFragID(fragID uint32) *ActorInstance {
 	return nil
 }
 
-func (cm *CacheManager) actorInstanceByTag(tag string) *ActorInstance {
-	for _, actorInstance := range cm.ActorInstances {
+func (cm *CacheManager) actorInstanceByTag(tag string) *ActorInst {
+	for _, actorInstance := range cm.ActorInsts {
 		if actorInstance.Tag == tag {
 			return actorInstance
 		}

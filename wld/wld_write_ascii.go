@@ -8,10 +8,21 @@ import (
 func (wld *Wld) WriteAscii(w io.Writer) error {
 	var err error
 	wld.mu.Lock()
-	defer wld.mu.Unlock()
+
 	wld.writtenMaterials = make(map[string]bool)
 	wld.writtenSpriteDefs = make(map[string]bool)
 	wld.writtenPalettes = make(map[string]bool)
+	wld.writtenActorDefs = make(map[string]bool)
+	wld.writtenActorInsts = make(map[string]bool)
+	defer func() {
+		wld.writtenMaterials = nil
+		wld.writtenSpriteDefs = nil
+		wld.writtenPalettes = nil
+		wld.writtenActorDefs = nil
+		wld.writtenActorInsts = nil
+
+		wld.mu.Unlock()
+	}()
 	//var err error
 
 	for i := 0; i < len(wld.DMSpriteDef2s); i++ {
@@ -24,7 +35,22 @@ func (wld *Wld) WriteAscii(w io.Writer) error {
 		if err != nil {
 			return err
 		}
+	}
 
+	for i := 0; i < len(wld.ActorDefs); i++ {
+		actorDef := wld.ActorDefs[i]
+		err = wld.writeActorDef(w, actorDef.Tag)
+		if err != nil {
+			return fmt.Errorf("actor def %s: %w", actorDef.Tag, err)
+		}
+	}
+
+	for i := 0; i < len(wld.ActorInsts); i++ {
+		actorInst := wld.ActorInsts[i]
+		err = wld.writeActorInst(w, actorInst.Tag)
+		if err != nil {
+			return fmt.Errorf("actor inst %s: %w", actorInst.Tag, err)
+		}
 	}
 
 	return nil
@@ -110,6 +136,58 @@ func (wld *Wld) writeSpriteDef(w io.Writer, tag string) error {
 		}
 
 		wld.writtenSpriteDefs[tag] = true
+		return nil
+	}
+
+	return fmt.Errorf("not found")
+}
+
+func (wld *Wld) writeActorDef(w io.Writer, tag string) error {
+	var err error
+	if tag == "" {
+		return nil
+	}
+	_, ok := wld.writtenActorDefs[tag]
+	if ok {
+		return nil
+	}
+
+	for _, actorDef := range wld.ActorDefs {
+		if actorDef.Tag != tag {
+			continue
+		}
+		_, err = w.Write([]byte(actorDef.Ascii()))
+		if err != nil {
+			return err
+		}
+
+		wld.writtenActorDefs[tag] = true
+		return nil
+	}
+
+	return fmt.Errorf("not found")
+}
+
+func (wld *Wld) writeActorInst(w io.Writer, tag string) error {
+	var err error
+	if tag == "" {
+		return nil
+	}
+	_, ok := wld.writtenActorInsts[tag]
+	if ok {
+		return nil
+	}
+
+	for _, actorInst := range wld.ActorInsts {
+		if actorInst.Tag != tag {
+			continue
+		}
+		_, err = w.Write([]byte(actorInst.Ascii()))
+		if err != nil {
+			return err
+		}
+
+		wld.writtenActorInsts[tag] = true
 		return nil
 	}
 

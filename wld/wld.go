@@ -15,11 +15,16 @@ type Wld struct {
 	MaterialDefs       []*MaterialDef
 	MaterialPalettes   []*MaterialPalette
 	DMSpriteDef2s      []*DMSpriteDef2
+	ActorDefs          []*ActorDef
+	ActorInsts         []*ActorInst
 
+	//writing temporary files
 	mu                sync.RWMutex
 	writtenPalettes   map[string]bool
 	writtenMaterials  map[string]bool
 	writtenSpriteDefs map[string]bool
+	writtenActorDefs  map[string]bool
+	writtenActorInsts map[string]bool
 }
 
 // DMSpriteDef2 is a declaration of DMSpriteDef2
@@ -212,6 +217,103 @@ func (s *SimpleSpriteDef) Ascii() string {
 	for _, bm := range s.BMInfos {
 		out += fmt.Sprintf("\tBMINFO \"%s\" \"%s\"\n", bm[0], bm[1])
 	}
-	out += "ENDSIMPLESPRITEDEF\n"
+	out += "ENDSIMPLESPRITEDEF\n\n"
+	return out
+}
+
+// ActorDef is a declaration of ACTORDEF
+type ActorDef struct {
+	Tag           string     // ACTORTAG "%s"
+	Callback      string     // CALLBACK "%s"
+	BoundsRef     int32      // ?? BOUNDSTAG "%s"
+	CurrentAction uint32     // ?? CURRENTACTION %d
+	Location      [6]float32 // LOCATION %0.7f %0.7f %0.7f %d %d %d
+	Unk1          uint32     // ?? UNK1 %d
+	// NUMACTIONS %d
+	Actions []ActorAction // ACTION
+	// NUMFRAGMENTS %d
+	FragmentRefs []uint32 // FRAGMENTREF %d
+}
+
+// Ascii returns the ascii representation of an ActorDef
+func (a *ActorDef) Ascii() string {
+	out := "ACTORDEF\n"
+	out += fmt.Sprintf("\tACTORTAG \"%s\"\n", a.Tag)
+	out += fmt.Sprintf("\tCALLBACK \"%s\"\n", a.Callback)
+	//out += fmt.Sprintf("\tBOUNDSREF %d\n", a.BoundsRef)
+	//if a.CurrentAction != 0 {
+	//	out += fmt.Sprintf("\tCURRENTACTION %d\n", a.CurrentAction)
+	//}
+	//out += fmt.Sprintf("\tOFFSET %0.7f %0.7f %0.7f\n", a.Offset[0], a.Offset[1], a.Offset[2])
+	//out += fmt.Sprintf("\tROTATION %0.7f %0.7f %0.7f\n", a.Rotation[0], a.Rotation[1], a.Rotation[2])
+	//if a.Unk1 != 0 {
+	//	out += fmt.Sprintf("\tUNK1 %d\n", a.Unk1)
+	//}
+	out += fmt.Sprintf("\tNUMACTIONS %d\n", len(a.Actions))
+	for _, action := range a.Actions {
+		out += "\tACTION\n"
+		for _, lod := range action.LevelOfDetails {
+			//out += fmt.Sprintf("\t\tHIERARCHIALSPRITE \"%s\"\n", lod.HierarchialSpriteDefTag)
+			out += fmt.Sprintf("\t\tMINDISTANCE %0.7f\n", lod.MinDistance)
+		}
+		out += "\tENDACTION\n"
+	}
+	//out += fmt.Sprintf("\tNUMFRAGMENTS %d\n", len(a.FragmentRefs))
+	//for _, frag := range a.FragmentRefs {
+	//	out += fmt.Sprintf("\tFRAGMENTREF %d\n", frag)
+	//}
+	out += "ENDACTORDEF\n\n"
+	return out
+}
+
+// ActorAction is a declaration of ACTION
+type ActorAction struct {
+	//NUMLEVELSOFDETAIL %d
+	LevelOfDetails []ActorLevelOfDetail // LEVELOFDETAIL
+}
+
+// ActorLevelOfDetail is a declaration of LEVELOFDETAIL
+type ActorLevelOfDetail struct {
+	Unk1        uint32  // ?? HIERARCHIALSPRITE "%s"
+	MinDistance float32 // MINDISTANCE %0.7f
+}
+
+// ActorInst is a declaration of ACTORINST
+type ActorInst struct {
+	Tag            string     // ?? ACTORTAG "%s"
+	Flags          uint32     // ?? FLAGS %d
+	SphereTag      string     // ?? SPHERETAG "%s"
+	CurrentAction  uint32     // ?? CURRENTACTION %d
+	DefinitionTag  string     // DEFINITION "%s"
+	Location       [6]float32 // LOCATION %0.7f %0.7f %0.7f %d %d %d
+	Unk1           uint32     // ?? UNK1 %d
+	BoundingRadius float32    // BOUNDINGRADIUS %0.7f
+	Scale          float32    // SCALEFACTOR %0.7f
+	Unk2           int32      // ?? UNK2 %d
+}
+
+// Ascii returns the ascii representation of an ActorInst
+func (a *ActorInst) Ascii() string {
+	out := "ACTORINST\n"
+	out += fmt.Sprintf("\tACTORTAG \"%s\"\n", a.Tag)
+
+	if a.Flags&0x20 != 0 {
+		out += "\tACTIVE\n"
+	}
+	out += fmt.Sprintf("\tSPHERETAG \"%s\"\n", a.SphereTag)
+	if a.CurrentAction != 0 {
+		out += fmt.Sprintf("\tCURRENTACTION %d\n", a.CurrentAction)
+	}
+	out += fmt.Sprintf("\tDEFINITION \"%s\"\n", a.DefinitionTag)
+	out += fmt.Sprintf("\tLOCATION %0.7f %0.7f %0.7f\n", a.Location[0], a.Location[1], a.Location[2])
+	if a.Unk1 != 0 {
+		out += fmt.Sprintf("\tUNK1 %d\n", a.Unk1)
+	}
+	out += fmt.Sprintf("\tBOUNDINGRADIUS %0.7f\n", a.BoundingRadius)
+	out += fmt.Sprintf("\tSCALEFACTOR %0.7f\n", a.Scale)
+	if a.Unk2 != 0 {
+		out += fmt.Sprintf("\tUNK2 %d\n", a.Unk2)
+	}
+	out += "ENDACTORINST\n\n"
 	return out
 }

@@ -449,31 +449,27 @@ func (cm *CacheManager) Load(src *raw.Wld) error {
 				tag = fmt.Sprintf("%d_ACTORDEF", i)
 			}
 
-			actor := &Actor{
-				fragID:           uint32(i),
-				Tag:              tag,
-				Flags:            fragData.Flags,
-				CallbackTag:      raw.Name(fragData.CallbackNameRef),
-				ActionCount:      fragData.ActionCount,
-				FragmentRefCount: fragData.FragmentRefCount,
-				BoundsRef:        fragData.BoundsRef,
-				CurrentAction:    fragData.CurrentAction,
-				Offset:           fragData.Offset,
-				Rotation:         fragData.Rotation,
-				Unk1:             fragData.Unk1,
-				FragmentRefs:     fragData.FragmentRefs,
-				Unk2:             fragData.Unk2,
+			actor := &ActorDef{
+				fragID:        uint32(i),
+				Tag:           tag,
+				Flags:         fragData.Flags,
+				Callback:      raw.Name(fragData.CallbackNameRef),
+				BoundsRef:     fragData.BoundsRef,
+				CurrentAction: fragData.CurrentAction,
+				Location:      fragData.Location,
+				Unk1:          fragData.Unk1,
+				FragmentRefs:  fragData.FragmentRefs,
+				Unk2:          fragData.Unk2,
 			}
 
 			for _, action := range fragData.Actions {
 				actor.Actions = append(actor.Actions, ActorAction{
-					LodCount: action.LodCount,
-					Unk1:     action.Unk1,
-					Lods:     action.Lods,
+					Unk1: action.Unk1,
+					Lods: action.Lods,
 				})
 			}
 
-			cm.Actors = append(cm.Actors, actor)
+			cm.ActorDefs = append(cm.ActorDefs, actor)
 		case rawfrag.FragCodeActor: // turns to actorinstance
 			fragData, ok := fragment.(*rawfrag.WldFragActor)
 			if !ok {
@@ -494,15 +490,14 @@ func (cm *CacheManager) Load(src *raw.Wld) error {
 				}
 			}
 
-			actorInstance := ActorInstance{
+			actorInstance := ActorInst{
 				fragID:         uint32(i),
 				Tag:            tag,
-				ActorTag:       actorTag,
+				ActorDefTag:    actorTag,
 				Flags:          fragData.Flags,
-				Sphere:         "",
+				SphereTag:      "",
 				CurrentAction:  fragData.CurrentAction,
-				Offset:         fragData.Offset,
-				Rotation:       fragData.Rotation,
+				Location:       fragData.Location,
 				Unk1:           fragData.Unk1,
 				BoundingRadius: fragData.BoundingRadius,
 				Scale:          fragData.Scale,
@@ -510,7 +505,7 @@ func (cm *CacheManager) Load(src *raw.Wld) error {
 				Unk2:           fragData.Unk2,
 			}
 
-			cm.ActorInstances = append(cm.ActorInstances, &actorInstance)
+			cm.ActorInsts = append(cm.ActorInsts, &actorInstance)
 		case rawfrag.FragCodeHierarchialSpriteDef: // turns to skeleton
 			fragData, ok := fragment.(*rawfrag.WldFragHierarchialSpriteDef)
 			if !ok {

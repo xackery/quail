@@ -19,8 +19,7 @@
         "*.prt": "hexEditor.hexedit", //"binary-file-viewer.viewer",
         "*.dat": "hexEditor.hexedit", //"binary-file-viewer.viewer",
         "*.pprof": "easyview.view",
-        "*.wld": "hexEditor.hexedit", //"binary-file-viewer.viewer",
-
+        //"*.wld": "hexEditor.hexedit", //"binary-file-viewer.viewer",
     },
     "files.trimTrailingWhitespace": true,
     "binary-file-viewer.parserFolders": [

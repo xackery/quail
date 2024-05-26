@@ -6,23 +6,21 @@ import (
 	"io"
 
 	"github.com/xackery/encdec"
-	"github.com/xackery/quail/model"
 )
 
 // WldFragActor is Actor in libeq, Object Location in openzone, ACTORINST in wld, ObjectInstance in lantern
 type WldFragActor struct {
-	NameRef        int32         `yaml:"name_ref"`
-	ActorDefRef    int32         `yaml:"actor_def_ref"`
-	Flags          uint32        `yaml:"flags"`
-	SphereRef      uint32        `yaml:"sphere_ref"`
-	CurrentAction  uint32        `yaml:"current_action"`
-	Offset         model.Vector3 `yaml:"offset"`
-	Rotation       model.Vector3 `yaml:"rotation"`
-	Unk1           uint32        `yaml:"unk1"`
-	BoundingRadius float32       `yaml:"bounding_radius"`
-	Scale          float32       `yaml:"scale"`
-	SoundNameRef   int32         `yaml:"sound_name_ref"`
-	Unk2           int32         `yaml:"unk2"`
+	NameRef        int32  `yaml:"name_ref"`
+	ActorDefRef    int32  `yaml:"actor_def_ref"`
+	Flags          uint32 `yaml:"flags"`
+	SphereRef      uint32 `yaml:"sphere_ref"`
+	CurrentAction  uint32 `yaml:"current_action"`
+	Location       [6]float32
+	Unk1           uint32  `yaml:"unk1"`
+	BoundingRadius float32 `yaml:"bounding_radius"`
+	Scale          float32 `yaml:"scale"`
+	SoundNameRef   int32   `yaml:"sound_name_ref"`
+	Unk2           int32   `yaml:"unk2"`
 }
 
 func (e *WldFragActor) FragCode() int {
@@ -39,12 +37,12 @@ func (e *WldFragActor) Write(w io.Writer) error {
 		enc.Uint32(e.CurrentAction)
 	}
 	if e.Flags&0x2 == 0x2 {
-		enc.Float32(e.Offset.X)
-		enc.Float32(e.Offset.Y)
-		enc.Float32(e.Offset.Z)
-		enc.Float32(e.Rotation.X)
-		enc.Float32(e.Rotation.Y)
-		enc.Float32(e.Rotation.Z)
+		enc.Float32(e.Location[0])
+		enc.Float32(e.Location[1])
+		enc.Float32(e.Location[2])
+		enc.Float32(e.Location[3])
+		enc.Float32(e.Location[4])
+		enc.Float32(e.Location[5])
 		enc.Uint32(e.Unk1)
 	}
 	if e.Flags&0x4 == 0x4 {
@@ -74,12 +72,12 @@ func (e *WldFragActor) Read(r io.ReadSeeker) error {
 		e.CurrentAction = dec.Uint32()
 	}
 	if e.Flags&0x2 == 0x2 {
-		e.Offset.X = dec.Float32()
-		e.Offset.Y = dec.Float32()
-		e.Offset.Z = dec.Float32()
-		e.Rotation.X = dec.Float32()
-		e.Rotation.Y = dec.Float32()
-		e.Rotation.Z = dec.Float32()
+		e.Location[0] = dec.Float32()
+		e.Location[1] = dec.Float32()
+		e.Location[2] = dec.Float32()
+		e.Location[3] = dec.Float32()
+		e.Location[4] = dec.Float32()
+		e.Location[5] = dec.Float32()
 		e.Unk1 = dec.Uint32()
 	}
 	if e.Flags&0x4 == 0x4 {
