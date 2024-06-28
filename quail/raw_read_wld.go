@@ -36,7 +36,7 @@ func (q *Quail) wldRead(wld *raw.Wld) error {
 			if name == "" {
 				name = "unknown"
 			}
-			fmt.Println("added model", name)
+			//fmt.Println("added model", name)
 		case 0x36: // Mesh
 			/* model, err := q.wldConvertMesh(wld, frag)
 			if err != nil {
