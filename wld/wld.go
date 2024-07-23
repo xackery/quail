@@ -66,6 +66,17 @@ type DMSpriteDef2 struct {
 	FPScale              uint16      // FPScale %d
 }
 
+func (wld *Wld) reset() {
+	wld.writtenMaterials = make(map[string]bool)
+	wld.writtenSpriteDefs = make(map[string]bool)
+	wld.writtenPalettes = make(map[string]bool)
+	wld.writtenActorDefs = make(map[string]bool)
+	wld.writtenActorInsts = make(map[string]bool)
+	wld.writtenLightDefs = make(map[string]bool)
+	wld.writtenPointLights = make(map[string]bool)
+	wld.writtenSprite3DDefs = make(map[string]bool)
+}
+
 // Ascii returns the ascii representation of a DMSpriteDef2
 func (d *DMSpriteDef2) Ascii() string {
 	out := "DMSPRITEDEF2\n"

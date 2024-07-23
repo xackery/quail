@@ -9,24 +9,9 @@ func (wld *Wld) WriteAscii(w io.Writer) error {
 	var err error
 	wld.mu.Lock()
 
-	wld.writtenMaterials = make(map[string]bool)
-	wld.writtenSpriteDefs = make(map[string]bool)
-	wld.writtenPalettes = make(map[string]bool)
-	wld.writtenActorDefs = make(map[string]bool)
-	wld.writtenActorInsts = make(map[string]bool)
-	wld.writtenLightDefs = make(map[string]bool)
-	wld.writtenPointLights = make(map[string]bool)
-	wld.writtenSprite3DDefs = make(map[string]bool)
+	wld.reset()
 	defer func() {
-		wld.writtenMaterials = nil
-		wld.writtenSpriteDefs = nil
-		wld.writtenPalettes = nil
-		wld.writtenActorDefs = nil
-		wld.writtenActorInsts = nil
-		wld.writtenLightDefs = nil
-		wld.writtenPointLights = nil
-		wld.writtenSprite3DDefs = nil
-
+		wld.reset()
 		wld.mu.Unlock()
 	}()
 	//var err error
