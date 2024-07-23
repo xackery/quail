@@ -6,17 +6,16 @@ import (
 	"io"
 
 	"github.com/xackery/encdec"
-	"github.com/xackery/quail/model"
 )
 
 // WldFragLightDef is LightDef in libeq, WldFragLightDef Source in openzone, LIGHT (ref) in wld, LightSource in lantern
 type WldFragLightDef struct {
-	NameRef         int32           `yaml:"name_ref"`
-	Flags           uint32          `yaml:"flags"`
-	FrameCurrentRef uint32          `yaml:"frame_current_ref"`
-	Sleep           uint32          `yaml:"sleep"`
-	LightLevels     []float32       `yaml:"light_levels"`
-	Colors          []model.Vector3 `yaml:"colors"`
+	NameRef         int32        `yaml:"name_ref"`
+	Flags           uint32       `yaml:"flags"`
+	FrameCurrentRef uint32       `yaml:"frame_current_ref"`
+	Sleep           uint32       `yaml:"sleep"`
+	LightLevels     []float32    `yaml:"light_levels"`
+	Colors          [][3]float32 `yaml:"colors"`
 }
 
 func (e *WldFragLightDef) FragCode() int {
@@ -42,9 +41,9 @@ func (e *WldFragLightDef) Write(w io.Writer) error {
 	}
 	if e.Flags&0x10 != 0 {
 		for _, color := range e.Colors {
-			enc.Float32(color.X)
-			enc.Float32(color.Y)
-			enc.Float32(color.Z)
+			enc.Float32(color[0])
+			enc.Float32(color[1])
+			enc.Float32(color[2])
 		}
 	}
 	err := enc.Error()
@@ -72,11 +71,7 @@ func (e *WldFragLightDef) Read(r io.ReadSeeker) error {
 	}
 	if e.Flags&0x10 != 0 {
 		for i := uint32(0); i < frameCount; i++ {
-			var color model.Vector3
-			color.X = dec.Float32()
-			color.Y = dec.Float32()
-			color.Z = dec.Float32()
-			e.Colors = append(e.Colors, color)
+			e.Colors = append(e.Colors, [3]float32{dec.Float32(), dec.Float32(), dec.Float32()})
 		}
 	}
 

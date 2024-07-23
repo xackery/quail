@@ -14,12 +14,18 @@ func (wld *Wld) WriteAscii(w io.Writer) error {
 	wld.writtenPalettes = make(map[string]bool)
 	wld.writtenActorDefs = make(map[string]bool)
 	wld.writtenActorInsts = make(map[string]bool)
+	wld.writtenLightDefs = make(map[string]bool)
+	wld.writtenPointLights = make(map[string]bool)
+	wld.writtenSprite3DDefs = make(map[string]bool)
 	defer func() {
 		wld.writtenMaterials = nil
 		wld.writtenSpriteDefs = nil
 		wld.writtenPalettes = nil
 		wld.writtenActorDefs = nil
 		wld.writtenActorInsts = nil
+		wld.writtenLightDefs = nil
+		wld.writtenPointLights = nil
+		wld.writtenSprite3DDefs = nil
 
 		wld.mu.Unlock()
 	}()
@@ -50,6 +56,23 @@ func (wld *Wld) WriteAscii(w io.Writer) error {
 		err = wld.writeActorInst(w, actorInst.Tag)
 		if err != nil {
 			return fmt.Errorf("actor inst %s: %w", actorInst.Tag, err)
+		}
+	}
+
+	for i := 0; i < len(wld.PointLights); i++ {
+		pointLight := wld.PointLights[i]
+		err = wld.writePointLight(w, pointLight.Tag)
+		if err != nil {
+			return fmt.Errorf("point light %s: %w", pointLight.Tag, err)
+		}
+	}
+
+	for i := 0; i < len(wld.Sprite3DDefs); i++ {
+		sprite3DDef := wld.Sprite3DDefs[i]
+
+		err = wld.writeSprite3DDef(w, sprite3DDef.Tag)
+		if err != nil {
+			return fmt.Errorf("sprite 3d def %s: %w", sprite3DDef.Tag, err)
 		}
 	}
 
@@ -188,6 +211,91 @@ func (wld *Wld) writeActorInst(w io.Writer, tag string) error {
 		}
 
 		wld.writtenActorInsts[tag] = true
+		return nil
+	}
+
+	return fmt.Errorf("not found")
+}
+
+func (wld *Wld) writeLightDef(w io.Writer, tag string) error {
+	var err error
+	if tag == "" {
+		return nil
+	}
+	_, ok := wld.writtenLightDefs[tag]
+	if ok {
+		return nil
+	}
+
+	for _, lightDef := range wld.LightDefs {
+		if lightDef.Tag != tag {
+			continue
+		}
+		_, err = w.Write([]byte(lightDef.Ascii()))
+		if err != nil {
+			return err
+		}
+
+		wld.writtenLightDefs[tag] = true
+		return nil
+	}
+
+	return fmt.Errorf("not found")
+}
+
+func (wld *Wld) writePointLight(w io.Writer, tag string) error {
+	var err error
+	if tag == "" {
+		return nil
+	}
+	_, ok := wld.writtenPointLights[tag]
+	if ok {
+		return nil
+	}
+
+	for _, pointLight := range wld.PointLights {
+		if pointLight.Tag != tag {
+			continue
+		}
+		if pointLight.LightDefTag != "" {
+			err = wld.writeLightDef(w, pointLight.LightDefTag)
+			if err != nil {
+				return fmt.Errorf("light def %s: %w", pointLight.LightDefTag, err)
+			}
+		}
+
+		_, err = w.Write([]byte(pointLight.Ascii()))
+		if err != nil {
+			return err
+		}
+
+		wld.writtenPointLights[tag] = true
+		return nil
+	}
+
+	return fmt.Errorf("not found")
+}
+
+func (wld *Wld) writeSprite3DDef(w io.Writer, tag string) error {
+	var err error
+	if tag == "" {
+		return nil
+	}
+	_, ok := wld.writtenSprite3DDefs[tag]
+	if ok {
+		return nil
+	}
+
+	for _, sprite3DDef := range wld.Sprite3DDefs {
+		if sprite3DDef.Tag != tag {
+			continue
+		}
+		_, err = w.Write([]byte(sprite3DDef.Ascii()))
+		if err != nil {
+			return err
+		}
+
+		wld.writtenSprite3DDefs[tag] = true
 		return nil
 	}
 

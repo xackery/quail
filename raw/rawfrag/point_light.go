@@ -10,13 +10,11 @@ import (
 
 // WldFragPointLight is PointLight in libeq, Light Info in openzone, POINTLIGHT in wld, LightInstance in lantern
 type WldFragPointLight struct {
-	NameRef  int32   `yaml:"name_ref"`
-	LightRef int32   `yaml:"light_ref"`
-	Flags    uint32  `yaml:"flags"`
-	X        float32 `yaml:"x"`
-	Y        float32 `yaml:"y"`
-	Z        float32 `yaml:"z"`
-	Radius   float32 `yaml:"radius"`
+	NameRef  int32      `yaml:"name_ref"`
+	LightRef int32      `yaml:"light_ref"`
+	Flags    uint32     `yaml:"flags"`
+	Location [3]float32 `yaml:"location"`
+	Radius   float32    `yaml:"radius"`
 }
 
 func (e *WldFragPointLight) FragCode() int {
@@ -28,9 +26,10 @@ func (e *WldFragPointLight) Write(w io.Writer) error {
 	enc.Int32(e.NameRef)
 	enc.Int32(e.LightRef)
 	enc.Uint32(e.Flags)
-	enc.Float32(e.X)
-	enc.Float32(e.Y)
-	enc.Float32(e.Z)
+
+	enc.Float32(e.Location[0])
+	enc.Float32(e.Location[1])
+	enc.Float32(e.Location[2])
 	enc.Float32(e.Radius)
 	err := enc.Error()
 	if err != nil {
@@ -44,9 +43,9 @@ func (e *WldFragPointLight) Read(r io.ReadSeeker) error {
 	e.NameRef = dec.Int32()
 	e.LightRef = dec.Int32()
 	e.Flags = dec.Uint32()
-	e.X = dec.Float32()
-	e.Y = dec.Float32()
-	e.Z = dec.Float32()
+	e.Location[0] = dec.Float32()
+	e.Location[1] = dec.Float32()
+	e.Location[2] = dec.Float32()
 	e.Radius = dec.Float32()
 
 	err := dec.Error()

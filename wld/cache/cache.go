@@ -24,11 +24,11 @@ type CacheManager struct {
 	AnimationInstances    []*AnimationInstance
 	Skeletons             []*Skeleton
 	SkeletonInstances     []*SkeletonInstance
-	Lights                []*Light
+	LightDefs             []*LightDef
 	LightInstances        []*LightInstance
 	AmbientLightInstances []*AmbientLightInstance
-	PointLightInstances   []*PointLightInstance
-	Cameras               []*Camera
+	PointLights           []*PointLight
+	Sprite3DDefs          []*Sprite3DDef
 	CameraInstances       []*CameraInstance
 	BspTrees              []*BspTree
 	Regions               []*Region
@@ -53,11 +53,11 @@ func (cm *CacheManager) Close() {
 	cm.AnimationInstances = []*AnimationInstance{}
 	cm.Skeletons = []*Skeleton{}
 	cm.SkeletonInstances = []*SkeletonInstance{}
-	cm.Lights = []*Light{}
+	cm.LightDefs = []*LightDef{}
 	cm.LightInstances = []*LightInstance{}
 	cm.AmbientLightInstances = []*AmbientLightInstance{}
-	cm.PointLightInstances = []*PointLightInstance{}
-	cm.Cameras = []*Camera{}
+	cm.PointLights = []*PointLight{}
+	cm.Sprite3DDefs = []*Sprite3DDef{}
 	cm.CameraInstances = []*CameraInstance{}
 	cm.BspTrees = []*BspTree{}
 	cm.Regions = []*Region{}
@@ -620,17 +620,18 @@ func (cm *CacheManager) skeletonInstanceByTag(tag string) *SkeletonInstance {
 	return nil
 }
 
-type Light struct {
+type LightDef struct {
 	fragID          uint32
 	Tag             string
 	Flags           uint32
 	FrameCurrentRef uint32
-	Levels          []float32
-	Colors          []model.Vector3
+	Sleep           uint32
+	LightLevels     []float32
+	Colors          [][3]float32
 }
 
-func (cm *CacheManager) lightByFragID(fragID uint32) *Light {
-	for _, light := range cm.Lights {
+func (cm *CacheManager) lightByFragID(fragID uint32) *LightDef {
+	for _, light := range cm.LightDefs {
 		if light.fragID == fragID {
 			return light
 		}
@@ -638,8 +639,8 @@ func (cm *CacheManager) lightByFragID(fragID uint32) *Light {
 	return nil
 }
 
-func (cm *CacheManager) lightByTag(tag string) *Light {
-	for _, light := range cm.Lights {
+func (cm *CacheManager) lightByTag(tag string) *LightDef {
+	for _, light := range cm.LightDefs {
 		if light.Tag == tag {
 			return light
 		}
@@ -672,14 +673,14 @@ func (cm *CacheManager) lightInstanceByTag(tag string) *LightInstance {
 	return nil
 }
 
-type Camera struct {
+type Sprite3DDef struct {
 	fragID        uint32
 	Tag           string
 	Flags         uint32
 	SphereListRef uint32
-	CenterOffset  model.Vector3
+	CenterOffset  [3]float32
 	Radius        float32
-	Vertices      []model.Vector3
+	Vertices      [][3]float32
 	BspNodes      []*CameraBspNode
 }
 
@@ -687,15 +688,15 @@ type CameraBspNode struct {
 	FrontTree                   uint32
 	BackTree                    uint32
 	VertexIndexes               []uint32
-	RenderMethod                uint32
+	RenderMethod                string
 	RenderFlags                 uint8
 	RenderPen                   uint32
 	RenderBrightness            float32
 	RenderScaledAmbient         float32
 	RenderSimpleSpriteReference uint32
-	RenderUVInfoOrigin          model.Vector3
-	RenderUVInfoUAxis           model.Vector3
-	RenderUVInfoVAxis           model.Vector3
+	RenderUVInfoOrigin          [3]float32
+	RenderUVInfoUAxis           [3]float32
+	RenderUVInfoVAxis           [3]float32
 	RenderUVMapEntries          []CameraBspNodeUVMapEntry
 }
 
@@ -705,8 +706,8 @@ type CameraBspNodeUVMapEntry struct {
 	VAxis    [3]float32
 }
 
-func (cm *CacheManager) cameraByFragID(fragID uint32) *Camera {
-	for _, camera := range cm.Cameras {
+func (cm *CacheManager) cameraByFragID(fragID uint32) *Sprite3DDef {
+	for _, camera := range cm.Sprite3DDefs {
 		if camera.fragID == fragID {
 			return camera
 		}
@@ -714,8 +715,8 @@ func (cm *CacheManager) cameraByFragID(fragID uint32) *Camera {
 	return nil
 }
 
-func (cm *CacheManager) cameraByTag(tag string) *Camera {
-	for _, camera := range cm.Cameras {
+func (cm *CacheManager) cameraByTag(tag string) *Sprite3DDef {
+	for _, camera := range cm.Sprite3DDefs {
 		if camera.Tag == tag {
 			return camera
 		}
@@ -886,19 +887,17 @@ func (cm *CacheManager) ambientLightInstanceByTag(tag string) *AmbientLightInsta
 	return nil
 }
 
-type PointLightInstance struct {
-	fragID           uint32
-	Tag              string
-	LightInstanceTag string
-	Flags            uint32
-	X                float32
-	Y                float32
-	Z                float32
-	Radius           float32
+type PointLight struct {
+	fragID      uint32
+	Tag         string
+	LightDefTag string
+	Flags       uint32
+	Location    [3]float32
+	Radius      float32
 }
 
-func (cm *CacheManager) pointLightInstanceByFragID(fragID uint32) *PointLightInstance {
-	for _, pointLightInstance := range cm.PointLightInstances {
+func (cm *CacheManager) pointLightInstanceByFragID(fragID uint32) *PointLight {
+	for _, pointLightInstance := range cm.PointLights {
 		if pointLightInstance.fragID == fragID {
 			return pointLightInstance
 		}

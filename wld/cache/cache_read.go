@@ -24,7 +24,9 @@ func (cm *CacheManager) Load(src *raw.Wld) error {
 
 			tag := raw.Name(fragData.NameRef)
 			if len(tag) == 0 {
-				tag = fmt.Sprintf("%d_GALD", i)
+				if fragData.NameRef == 0xFF0000 {
+					tag = "GLOBALAMBIENT_LIGHTDEF"
+				}
 			}
 
 			if cm.GlobalAmbientLight != "" {
@@ -609,15 +611,16 @@ func (cm *CacheManager) Load(src *raw.Wld) error {
 				tag = fmt.Sprintf("%d_LIGHTDEF", i)
 			}
 
-			light := &Light{
+			light := &LightDef{
 				fragID:          uint32(i),
 				Tag:             tag,
 				Flags:           fragData.Flags,
+				Sleep:           fragData.Sleep,
 				FrameCurrentRef: fragData.FrameCurrentRef,
-				Levels:          fragData.LightLevels,
+				LightLevels:     fragData.LightLevels,
 				Colors:          fragData.Colors,
 			}
-			cm.Lights = append(cm.Lights, light)
+			cm.LightDefs = append(cm.LightDefs, light)
 		case rawfrag.FragCodeLight: // turns to lightinstance
 			fragData, ok := fragment.(*rawfrag.WldFragLight)
 			if !ok {
@@ -638,8 +641,9 @@ func (cm *CacheManager) Load(src *raw.Wld) error {
 				if lightTag == "" {
 					tag = fmt.Sprintf("%d_LIGHT", i)
 				} else {
-					tag = lightTag + "_INST"
+					tag = lightTag
 				}
+
 			}
 
 			lightInstance := LightInstance{
@@ -661,7 +665,7 @@ func (cm *CacheManager) Load(src *raw.Wld) error {
 				tag = fmt.Sprintf("%d_SPRITE3DDEF", i)
 			}
 
-			camera := &Camera{
+			camera := &Sprite3DDef{
 				fragID:        uint32(i),
 				Tag:           tag,
 				Flags:         fragData.Flags,
@@ -676,7 +680,7 @@ func (cm *CacheManager) Load(src *raw.Wld) error {
 					FrontTree:                   bspNode.FrontTree,
 					BackTree:                    bspNode.BackTree,
 					VertexIndexes:               bspNode.VertexIndexes,
-					RenderMethod:                bspNode.RenderMethod,
+					RenderMethod:                model.RenderMethodStr(bspNode.RenderMethod),
 					RenderFlags:                 bspNode.RenderFlags,
 					RenderPen:                   bspNode.RenderPen,
 					RenderBrightness:            bspNode.RenderBrightness,
@@ -697,7 +701,7 @@ func (cm *CacheManager) Load(src *raw.Wld) error {
 				}
 				camera.BspNodes = append(camera.BspNodes, node)
 
-				cm.Cameras = append(cm.Cameras, camera)
+				cm.Sprite3DDefs = append(cm.Sprite3DDefs, camera)
 			}
 		case rawfrag.FragCodeSprite3D: // turns to camerainstance
 			fragData, ok := fragment.(*rawfrag.WldFragSprite3D)
@@ -891,12 +895,11 @@ func (cm *CacheManager) Load(src *raw.Wld) error {
 
 			lightTag := ""
 			if fragData.LightRef > 0 {
-				/*
-					light := cm.lightByFragID(uint32(fragData.LightRef))
-					 if light == nil {
-						return fmt.Errorf("ambientlight found without matching light at offset %d", i)
-					}
-					lightTag = light.Tag */
+				light := cm.lightInstanceByFragID(uint32(fragData.LightRef))
+				if light == nil {
+					return fmt.Errorf("ambientlight found without matching light at offset %d value %d", i, fragData.LightRef)
+				}
+				lightTag = light.Tag
 			}
 
 			tag := raw.Name(fragData.NameRef)
@@ -942,18 +945,16 @@ func (cm *CacheManager) Load(src *raw.Wld) error {
 				tag = fmt.Sprintf("%d_POINTLIGHT", i)
 			}
 
-			pointLightInstance := PointLightInstance{
-				fragID:           uint32(i),
-				Tag:              tag,
-				LightInstanceTag: lightInstanceTag,
-				Flags:            fragData.Flags,
-				X:                fragData.X,
-				Y:                fragData.Y,
-				Z:                fragData.Z,
-				Radius:           fragData.Radius,
+			pointLightInstance := PointLight{
+				fragID:      uint32(i),
+				Tag:         tag,
+				LightDefTag: lightInstanceTag,
+				Flags:       fragData.Flags,
+				Location:    fragData.Location,
+				Radius:      fragData.Radius,
 			}
 
-			cm.PointLightInstances = append(cm.PointLightInstances, &pointLightInstance)
+			cm.PointLights = append(cm.PointLights, &pointLightInstance)
 		default:
 			return fmt.Errorf("unknown fragment type 0x%x (%s) at offset %d", fragment.FragCode(), raw.FragName(fragment.FragCode()), i)
 		}

@@ -169,12 +169,12 @@ func TestVWldAsciiWrite(t *testing.T) {
 		baseName string
 		wldName  string
 	}{
-		{baseName: "gequip2"},
+		//{baseName: "gequip2"},
 		//{baseName: "global_chr"}, // TODO:  anarelion asked mesh of EYE_DMSPRITEDEF check if the eye is just massive 22 units in size, where the other units in that file are just 1-2 units in size
 		//{baseName: "load2"},
 		//{baseName: "load2"},
 		//{baseName: "load2", wldName: "lights.wld"},
-		//{baseName: "load2", wldName: "objects.wld"},
+		{baseName: "load2", wldName: "objects.wld"},
 		//{baseName: "neriakc"},
 		//{baseName: "westwastes"},
 		//{baseName: "globalfroglok_chr"},

@@ -15,6 +15,10 @@ func (wld *Wld) Read(src *raw.Wld) error {
 	}
 	defer cm.Close()
 
+	wld.Version = src.Version
+	wld.GlobalAmbientLight = cm.GlobalAmbientLight
+	wld.FileName = src.MetaFileName
+
 	err = wld.readDMSpriteDef2(cm)
 	if err != nil {
 		return fmt.Errorf("readDMSpriteDef2: %w", err)
@@ -43,6 +47,21 @@ func (wld *Wld) Read(src *raw.Wld) error {
 	err = wld.readActorInst(cm)
 	if err != nil {
 		return fmt.Errorf("readActorInst: %w", err)
+	}
+
+	err = wld.readLightDef(cm)
+	if err != nil {
+		return fmt.Errorf("readLightDef: %w", err)
+	}
+
+	err = wld.readPointLight(cm)
+	if err != nil {
+		return fmt.Errorf("readPointLight: %w", err)
+	}
+
+	err = wld.readSprite3DDef(cm)
+	if err != nil {
+		return fmt.Errorf("readSprite3DDef: %w", err)
 	}
 
 	return nil
@@ -88,6 +107,22 @@ func (wld *Wld) readDMSpriteDef2(cm *cache.CacheManager) error {
 				float32(vn[0]) * scale,
 				float32(vn[1]) * scale,
 				float32(vn[2]) * scale,
+			})
+		}
+
+		for _, color := range src.Colors {
+			dst.Colors = append(dst.Colors, [4]uint8{
+				color[0],
+				color[1],
+				color[2],
+				color[3],
+			})
+		}
+
+		for _, face := range src.Faces {
+			dst.Faces = append(dst.Faces, &Face{
+				Flags:    face.Flags,
+				Triangle: [3]uint16{face.Index[0], face.Index[1], face.Index[2]},
 			})
 		}
 
@@ -195,6 +230,76 @@ func (wld *Wld) readActorInst(cm *cache.CacheManager) error {
 		}
 
 		wld.ActorInsts = append(wld.ActorInsts, dst)
+	}
+	return nil
+}
+
+func (wld *Wld) readLightDef(cm *cache.CacheManager) error {
+	for _, src := range cm.LightDefs {
+		dst := &LightDef{
+			Tag:             src.Tag,
+			Flags:           src.Flags,
+			FrameCurrentRef: src.FrameCurrentRef,
+			LightLevels:     src.LightLevels,
+			Colors:          src.Colors,
+		}
+
+		wld.LightDefs = append(wld.LightDefs, dst)
+	}
+	return nil
+}
+
+func (wld *Wld) readPointLight(cm *cache.CacheManager) error {
+	for _, src := range cm.PointLights {
+		dst := &PointLight{
+			Tag:         src.Tag,
+			LightDefTag: src.LightDefTag,
+			Flags:       src.Flags,
+			Location:    src.Location,
+			Radius:      src.Radius,
+		}
+
+		wld.PointLights = append(wld.PointLights, dst)
+	}
+	return nil
+}
+
+func (wld *Wld) readSprite3DDef(cm *cache.CacheManager) error {
+	for _, src := range cm.Sprite3DDefs {
+		dst := &Sprite3DDef{
+			Tag:      src.Tag,
+			Vertices: src.Vertices,
+		}
+		for _, srcBspNode := range src.BspNodes {
+			dstBspNode := &BSPNode{
+				Vertices:                    srcBspNode.VertexIndexes,
+				RenderMethod:                srcBspNode.RenderMethod,
+				RenderFlags:                 srcBspNode.RenderFlags,
+				RenderPen:                   srcBspNode.RenderPen,
+				RenderBrightness:            srcBspNode.RenderBrightness,
+				RenderScaledAmbient:         srcBspNode.RenderScaledAmbient,
+				RenderSimpleSpriteReference: srcBspNode.RenderSimpleSpriteReference,
+				RenderUVInfoOrigin:          srcBspNode.RenderUVInfoOrigin,
+				RenderUVInfoUAxis:           srcBspNode.RenderUVInfoUAxis,
+				RenderUVInfoVAxis:           srcBspNode.RenderUVInfoVAxis,
+				FrontTree:                   srcBspNode.FrontTree,
+				BackTree:                    srcBspNode.BackTree,
+			}
+
+			for _, srcUVMapMethod := range srcBspNode.RenderUVMapEntries {
+				dstUVMapMethod := BspNodeUVInfo{
+					UvOrigin: srcUVMapMethod.UvOrigin,
+					UAxis:    srcUVMapMethod.UAxis,
+					VAxis:    srcUVMapMethod.VAxis,
+				}
+
+				dstBspNode.RenderUVMapEntries = append(dstBspNode.RenderUVMapEntries, dstUVMapMethod)
+			}
+
+			dst.BSPNodes = append(dst.BSPNodes, dstBspNode)
+		}
+
+		wld.Sprite3DDefs = append(wld.Sprite3DDefs, dst)
 	}
 	return nil
 }
