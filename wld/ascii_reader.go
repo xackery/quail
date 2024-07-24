@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 	"strings"
 	"unicode"
 )
@@ -16,18 +17,57 @@ type AsciiReader interface {
 }
 
 type AsciiReadToken struct {
+	basePath     string
 	lineNumber   int
 	lastProperty string
 	reader       io.Reader
 	wld          *Wld
 }
 
-// NewAsciiReader returns a new AsciiReader that reads from r.
-func NewAsciiReader(r io.Reader) *AsciiReadToken {
-	return &AsciiReadToken{
+// LoadAsciiFile returns a new AsciiReader that reads from r.
+func LoadAsciiFile(path string, wld *Wld) (*AsciiReadToken, error) {
+	r, err := caseInsensitiveOpen(path)
+	if err != nil {
+		return nil, err
+	}
+	a := &AsciiReadToken{
 		lineNumber: 0,
 		reader:     r,
+		wld:        wld,
 	}
+	a.basePath = filepath.Dir(path)
+
+	err = a.readDefinitions()
+	if err != nil {
+		return nil, fmt.Errorf("%s:%d: %w", path, a.lineNumber, err)
+	}
+	return a, nil
+}
+
+func (a *AsciiReadToken) Close() error {
+	if c, ok := a.reader.(io.Closer); ok {
+		return c.Close()
+	}
+	return nil
+}
+
+// caseInsensitiveOpen attempts to open a file in a case-insensitive manner.
+func caseInsensitiveOpen(path string) (*os.File, error) {
+	dir := filepath.Dir(path)
+	base := filepath.Base(path)
+
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, entry := range entries {
+		if strings.EqualFold(entry.Name(), base) {
+			return os.Open(filepath.Join(dir, entry.Name()))
+		}
+	}
+
+	return nil, fmt.Errorf("file %s not found", path)
 }
 
 // Read reads up to len(p) bytes into p. It returns the number of bytes read (0 <= n <= len(p)) and any error encountered.
@@ -52,6 +92,8 @@ func (a *AsciiReadToken) ReadProperty(definition string) (string, error) {
 		"POLYHEDRONDEFINITION": {"TAG", "BOUNDINGRADIUS", "SCALEFACTOR", "NUMVERTICES", "XYZ", "NUMFACES", "VERTEXLIST", "FACE", "ENDFACE", "ENDPOLYHEDRONDEFINITION"},
 		"TRACKINSTANCE":        {"TAG", "DEFINITION", "INTERPOLATE", "SLEEP", "ENDTRACKINSTANCE"},
 		"TRACKDEFINITION":      {"TAG", "NUMFRAMES", "FRAMETRANSFORM", "ENDTRACKDEFINITION"},
+		"SIMPLESPRITEDEF":      {"SIMPLESPRITETAG", "NUMFRAMES", "BMINFO", "ENDSIMPLESPRITEDEF"},
+		"MATERIALDEFINITION":   {"TAG", "RENDERMETHOD", "RGBPEN", "BRIGHTNESS", "SCALEDAMBIENT", "SIMPLESPRITEINST", "ENDSIMPLESPRITEINST", "ENDMATERIALDEFINITION"},
 	}
 	endMarkers := map[string]string{
 		"DMSPRITEDEF2":         "ENDDMSPRITEDEF2",
@@ -60,6 +102,8 @@ func (a *AsciiReadToken) ReadProperty(definition string) (string, error) {
 		"POLYHEDRONDEFINITION": "ENDPOLYHEDRONDEFINITION",
 		"TRACKINSTANCE":        "ENDTRACKINSTANCE",
 		"TRACKDEFINITION":      "ENDTRACKDEFINITION",
+		"SIMPLESPRITEDEF":      "ENDSIMPLESPRITEDEF",
+		"MATERIALDEFINITION":   "ENDMATERIALDEFINITION",
 	}
 
 	property := ""
@@ -124,22 +168,6 @@ func (a *AsciiReadToken) ReadProperty(definition string) (string, error) {
 	}
 }
 
-// ReadWld reads the wld file at path.
-func (a *AsciiReadToken) ReadWld(path string, wld *Wld) (*Wld, error) {
-	r, err := os.Open(path)
-	if err != nil {
-		return nil, fmt.Errorf("open: %w", err)
-	}
-	a.wld = wld
-
-	asciiReader := NewAsciiReader(r)
-	err = asciiReader.readDefinitions()
-	if err != nil {
-		return nil, fmt.Errorf("%s:%d: %w", path, a.lineNumber, err)
-	}
-	return wld, nil
-}
-
 func (a *AsciiReadToken) readDefinitions() error {
 	type definitionReader interface {
 		Definition() string
@@ -152,6 +180,8 @@ func (a *AsciiReadToken) readDefinitions() error {
 		&PolyhedronDefinition{},
 		&TrackInstance{},
 		&TrackDef{},
+		&SimpleSpriteDef{},
+		&MaterialDef{},
 	}
 
 	definition := ""
@@ -250,7 +280,22 @@ func (a *AsciiReadToken) readInclude() error {
 		}
 		filename += string(buf)
 	}
-	fmt.Println("Include:", filename)
+	path := a.basePath + "/" + filename
+	fmt.Println("Include:", path)
+	ir, err := LoadAsciiFile(path, a.wld)
+	if err != nil {
+		return fmt.Errorf("new ascii reader: %w", err)
+	}
+	err = ir.readDefinitions()
+	if err != nil {
+		return fmt.Errorf("%s:%d: %w", path, a.lineNumber, err)
+	}
+
+	err = ir.Close()
+	if err != nil {
+		return fmt.Errorf("close: %w", err)
+	}
+
 	return nil
 }
 

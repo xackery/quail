@@ -115,7 +115,7 @@ func TestWldWrite(t *testing.T) {
 				t.Fatalf("failed to read wld %s: %s", tt.file, err.Error())
 			}
 
-			srcFragments, err := tmpFragments(t, bytes.NewReader(data))
+			srcFragments, err := tmpFragments(bytes.NewReader(data))
 			if err != nil {
 				t.Fatalf("failed to read src fragments: %s", err.Error())
 			}
@@ -160,7 +160,7 @@ func TestWldWrite(t *testing.T) {
 	}
 }
 
-func tmpFragments(t *testing.T, r io.ReadSeeker) (fragments [][]byte, err error) {
+func tmpFragments(r io.ReadSeeker) (fragments [][]byte, err error) {
 
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	_ = dec.Bytes(4)

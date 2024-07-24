@@ -673,6 +673,114 @@ type MaterialDef struct {
 	SimpleSpriteInstFlag uint32   // FLAGS %d
 }
 
+func (m *MaterialDef) Definition() string {
+	return "MATERIALDEFINITION"
+}
+
+func (m *MaterialDef) Write(w io.Writer) error {
+	fmt.Fprintf(w, "%s\n", m.Definition())
+	fmt.Fprintf(w, "\tTAG \"%s\"\n", m.Tag)
+	fmt.Fprintf(w, "\tFLAGS %d\n", m.Flags)
+	fmt.Fprintf(w, "\tRENDERMETHOD %s\n", m.RenderMethod)
+	fmt.Fprintf(w, "\tRGBPEN %d %d %d\n", m.RGBPen[0], m.RGBPen[1], m.RGBPen[2])
+	fmt.Fprintf(w, "\tBRIGHTNESS %0.7f\n", m.Brightness)
+	fmt.Fprintf(w, "\tSCALEDAMBIENT %0.7f\n", m.ScaledAmbient)
+	if m.SimpleSpriteInstTag != "" {
+		fmt.Fprintf(w, "\tSIMPLESPRITEINST\n")
+		fmt.Fprintf(w, "\t\tTAG \"%s\"\n", m.SimpleSpriteInstTag)
+		if m.SimpleSpriteInstFlag != 0 {
+			fmt.Fprintf(w, "\t\tFLAGS %d\n", m.SimpleSpriteInstFlag)
+		}
+		fmt.Fprintf(w, "\tENDSIMPLESPRITEINST\n")
+	}
+	fmt.Fprintf(w, "ENDMATERIALDEFINITION\n\n")
+	return nil
+}
+
+func (m *MaterialDef) Read(r *AsciiReadToken) error {
+	for {
+		line, err := r.ReadProperty(m.Definition())
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			return err
+		}
+		if line == "ENDMATERIALDEFINITION" {
+			break
+		}
+		if line == "" {
+			continue
+		}
+		switch {
+		case strings.HasPrefix(line, "TAG"):
+			line = strings.ReplaceAll(line, "\"", "")
+			_, err = fmt.Sscanf(line, "TAG %s", &m.Tag)
+			if err != nil {
+				return fmt.Errorf("tag: %w", err)
+			}
+			m.Tag = strings.TrimSpace(m.Tag)
+		case strings.HasPrefix(line, "FLAGS"):
+			_, err = fmt.Sscanf(line, "FLAGS %d", &m.Flags)
+			if err != nil {
+				return fmt.Errorf("flags: %w", err)
+			}
+			m.Flags = uint32(m.Flags)
+		case strings.HasPrefix(line, "RENDERMETHOD"):
+			line = strings.ReplaceAll(line, "\"", "")
+			_, err = fmt.Sscanf(line, "RENDERMETHOD %s", &m.RenderMethod)
+			if err != nil {
+				return fmt.Errorf("render method: %w", err)
+			}
+			m.RenderMethod = strings.TrimSpace(m.RenderMethod)
+		case strings.HasPrefix(line, "RGBPEN"):
+
+			_, err = fmt.Sscanf(line, "RGBPEN %d %d %d", &m.RGBPen[0], &m.RGBPen[1], &m.RGBPen[2])
+			if err != nil {
+				return fmt.Errorf("rgbpen: %w", err)
+			}
+			m.RGBPen = [4]uint8{m.RGBPen[0], m.RGBPen[1], m.RGBPen[2], 0}
+		case strings.HasPrefix(line, "BRIGHTNESS"):
+			line = strings.TrimPrefix(line, "BRIGHTNESS")
+			line = strings.TrimSpace(line)
+			brightness, err := strconv.ParseFloat(line, 32)
+			if err != nil {
+				return fmt.Errorf("brightness: %w", err)
+			}
+			m.Brightness = float32(brightness)
+		case strings.HasPrefix(line, "SCALEDAMBIENT"):
+			line = strings.TrimPrefix(line, "SCALEDAMBIENT")
+			line = strings.TrimSpace(line)
+			ambient, err := strconv.ParseFloat(line, 32)
+			if err != nil {
+				return fmt.Errorf("ambient: %w", err)
+			}
+			m.ScaledAmbient = float32(ambient)
+		case strings.HasPrefix(line, "SIMPLESPRITEINST"):
+			line, err = r.ReadProperty(m.Definition())
+			if err != nil {
+				return err
+			}
+			if !strings.HasPrefix(line, "TAG") {
+				return fmt.Errorf("expected TAG, got %s", line)
+			}
+			line = strings.ReplaceAll(line, "\"", "")
+			_, err = fmt.Sscanf(line, "TAG %s", &m.SimpleSpriteInstTag)
+			if err != nil {
+				return fmt.Errorf("simple sprite inst tag: %w", err)
+			}
+			line, err = r.ReadProperty(m.Definition())
+			if err != nil {
+				return err
+			}
+			if line != "ENDSIMPLESPRITEINST" {
+				return fmt.Errorf("expected ENDSIMPLESPRITEINST, got %s", line)
+			}
+		}
+	}
+	return nil
+}
+
 // Ascii returns the ascii representation of a MaterialDef
 func (m *MaterialDef) Ascii() string {
 	out := "MATERIALDEFINITION\n"
@@ -700,6 +808,72 @@ type SimpleSpriteDef struct {
 	Tag string // SIMPLESPRITETAG "%s"
 	// NUMFRAMES %d
 	BMInfos [][2]string // BMINFO "%s" "%s"
+}
+
+func (s *SimpleSpriteDef) Definition() string {
+	return "SIMPLESPRITEDEF"
+}
+
+func (s *SimpleSpriteDef) Write(w io.Writer) error {
+	fmt.Fprintf(w, "%s\n", s.Definition())
+	fmt.Fprintf(w, "\tSIMPLESPRITETAG \"%s\"\n", s.Tag)
+	fmt.Fprintf(w, "\tNUMFRAMES %d\n", len(s.BMInfos))
+	for _, bm := range s.BMInfos {
+		fmt.Fprintf(w, "\tFRAME \"%s\" \"%s\"\n", bm[0], bm[1])
+	}
+	fmt.Fprintf(w, "ENDSIMPLESPRITEDEF\n\n")
+	return nil
+}
+
+func (s *SimpleSpriteDef) Read(r *AsciiReadToken) error {
+	for {
+		line, err := r.ReadProperty(s.Definition())
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			return err
+		}
+		if line == "ENDSIMPLESPRITEDEF" {
+			break
+		}
+		if line == "" {
+			continue
+		}
+		switch {
+		case strings.HasPrefix(line, "SIMPLESPRITETAG"):
+			line = strings.ReplaceAll(line, "\"", "")
+			_, err = fmt.Sscanf(line, "SIMPLESPRITETAG %s", &s.Tag)
+			if err != nil {
+				return fmt.Errorf("tag: %w", err)
+			}
+		case strings.HasPrefix(line, "NUMFRAMES"):
+			var numFrames int
+			_, err = fmt.Sscanf(line, "NUMFRAMES %d", &numFrames)
+			if err != nil {
+				return fmt.Errorf("num frames: %w", err)
+			}
+			s.BMInfos = make([][2]string, numFrames)
+			for i := 0; i < numFrames; i++ {
+				line, err = r.ReadProperty(s.Definition())
+				if err != nil {
+					return err
+				}
+				if !strings.HasPrefix(line, "BMINFO") {
+					return fmt.Errorf("expected BMINFO, got %s", line)
+				}
+				line = strings.TrimPrefix(line, "BMINFO")
+				line = strings.TrimSpace(line)
+				line = strings.ReplaceAll(line, "\"", "")
+				records := strings.Split(line, " ")
+				if len(records) != 2 {
+					return fmt.Errorf("expected 2 records, got %d", len(records))
+				}
+				s.BMInfos[i] = [2]string{records[0], records[1]}
+			}
+		}
+	}
+	return nil
 }
 
 // Ascii returns the ascii representation of a SimpleSpriteDef
