@@ -84,9 +84,9 @@ func (wld *Wld) writePalette(w io.Writer, tag string) error {
 				return fmt.Errorf("material %s: %w", materialTag, err)
 			}
 		}
-		_, err = w.Write([]byte(palette.Ascii()))
+		err = palette.Write(w)
 		if err != nil {
-			return err
+			return fmt.Errorf("palette %s: %w", palette.Tag, err)
 		}
 		wld.writtenPalettes[tag] = true
 		return nil

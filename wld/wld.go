@@ -3,6 +3,9 @@ package wld
 
 import (
 	"fmt"
+	"io"
+	"strconv"
+	"strings"
 	"sync"
 )
 
@@ -20,6 +23,8 @@ type Wld struct {
 	LightDefs          []*LightDef
 	PointLights        []*PointLight
 	Sprite3DDefs       []*Sprite3DDef
+	TrackInstances     []*TrackInstance
+	TrackDefs          []*TrackDef
 
 	//writing temporary files
 	mu                  sync.RWMutex
@@ -75,6 +80,424 @@ func (wld *Wld) reset() {
 	wld.writtenLightDefs = make(map[string]bool)
 	wld.writtenPointLights = make(map[string]bool)
 	wld.writtenSprite3DDefs = make(map[string]bool)
+}
+
+func (d *DMSpriteDef2) Definition() string {
+	return "DMSPRITEDEF2"
+}
+
+func (d *DMSpriteDef2) Write(w io.Writer) error {
+	fmt.Fprintf(w, "DMSPRITEDEF2\n")
+	fmt.Fprintf(w, "\tTAG \"%s\"\n", d.Tag)
+	if d.Flags != 0 {
+		fmt.Fprintf(w, "\tFLAGS %d\n", d.Flags)
+	}
+	fmt.Fprintf(w, "\tCENTEROFFSET %0.7f %0.7f %0.7f\n", d.CenterOffset[0], d.CenterOffset[1], d.CenterOffset[2])
+	fmt.Fprintf(w, "\n")
+	fmt.Fprintf(w, "\tNUMVERTICES %d\n", len(d.Vertices))
+	for _, vert := range d.Vertices {
+		fmt.Fprintf(w, "\tXYZ %0.7f %0.7f %0.7f\n", vert[0], vert[1], vert[2])
+	}
+	fmt.Fprintf(w, "\n")
+	fmt.Fprintf(w, "\tNUMUVS %d\n", len(d.UVs))
+	for _, uv := range d.UVs {
+		fmt.Fprintf(w, "\tUV %0.7f %0.7f\n", uv[0], uv[1])
+	}
+	fmt.Fprintf(w, "\n")
+	fmt.Fprintf(w, "\tNUMVERTEXNORMALS %d\n", len(d.VertexNormals))
+	for _, vn := range d.VertexNormals {
+		fmt.Fprintf(w, "\tXYZ %0.7f %0.7f %0.7f\n", vn[0], vn[1], vn[2])
+	}
+	fmt.Fprintf(w, "\n")
+	assigments := ""
+	for _, sa := range d.SkinAssignmentGroups {
+		assigments += fmt.Sprintf("%d %d, ", sa[0], sa[1])
+	}
+	fmt.Fprintf(w, "\n")
+	fmt.Fprintf(w, "\tSKINASSIGNMENTGROUPS %s\n", assigments)
+
+	fmt.Fprintf(w, "\tMATERIALPALETTE \"%s\"\n", d.MaterialPaletteTag)
+	fmt.Fprintf(w, "\n")
+	fmt.Fprintf(w, "\tNUMFACE2S %d\n", len(d.Faces))
+	fmt.Fprintf(w, "\n")
+	for i, face := range d.Faces {
+		fmt.Fprintf(w, "\tDMFACE2S //%d\n", i+1)
+		if face.Flags != 0 {
+			fmt.Fprintf(w, "\t\tFLAGS %d\n", face.Flags)
+		}
+		fmt.Fprintf(w, "\t\tTRIANGLE   %d, %d, %d\n", face.Triangle[0], face.Triangle[1], face.Triangle[2])
+		fmt.Fprintf(w, "\tENDFACE //%d\n\n", i+1)
+	}
+	fmt.Fprintf(w, "\n")
+	fmt.Fprintf(w, "\tNUMMESHOPS 0\n")
+	fmt.Fprintf(w, "\t//TODO: NUMMESHOPS %d\n", len(d.MeshOps))
+	for _, meshOp := range d.MeshOps {
+		fmt.Fprintf(w, "\t// TODO: MESHOP %d %d %0.7f %d %d\n", meshOp.Index1, meshOp.Index2, meshOp.Offset, meshOp.Param1, meshOp.TypeField)
+		// MESHOP_VA %d
+	}
+	fmt.Fprintf(w, "\n")
+	groups := ""
+	for _, group := range d.FaceMaterialGroups {
+		groups += fmt.Sprintf("%d %d, ", group[0], group[1])
+	}
+	if len(groups) > 0 {
+		groups = groups[:len(groups)-2]
+	}
+	fmt.Fprintf(w, "\tFACEMATERIALGROUPS %s\n", groups)
+	groups = ""
+	for _, group := range d.VertexMaterialGroups {
+		groups += fmt.Sprintf("%d %d, ", group[0], group[1])
+	}
+	if len(groups) > 0 {
+		groups = groups[:len(groups)-2]
+	}
+	fmt.Fprintf(w, "\tVERTEXMATERIALGROUPS %s\n", groups)
+	fmt.Fprintf(w, "\tBOUNDINGRADIUS %0.7f\n", d.BoundingRadius)
+	fmt.Fprintf(w, "\n")
+	fmt.Fprintf(w, "\tFPSCALE %d\n", d.FPScale)
+	fmt.Fprintf(w, "ENDDMSPRITEDEF2\n\n")
+	return nil
+}
+
+func (d *DMSpriteDef2) Read(r *AsciiReadToken) error {
+	definition := "DMSPRITEDEF2"
+	for {
+		line, err := r.ReadProperty(definition)
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			return err
+		}
+		if line == "ENDDMSPRITEDEF2" {
+			return nil
+		}
+		if line == "" {
+			continue
+		}
+		switch {
+		case strings.HasPrefix(line, "TAG"):
+			line = strings.ReplaceAll(line, "\"", "")
+			_, err = fmt.Sscanf(line, "TAG %s", &d.Tag)
+			if err != nil {
+				return fmt.Errorf("tag: %w", err)
+			}
+		case strings.HasPrefix(line, "FLAGS"):
+			_, err = fmt.Sscanf(line, "FLAGS %d", &d.Flags)
+			if err != nil {
+				return fmt.Errorf("flags: %w", err)
+			}
+		case strings.HasPrefix(line, "CENTEROFFSET"):
+			_, err = fmt.Sscanf(line, "CENTEROFFSET %f %f %f", &d.CenterOffset[0], &d.CenterOffset[1], &d.CenterOffset[2])
+			if err != nil {
+				return fmt.Errorf("center offset: %w", err)
+			}
+		case strings.HasPrefix(line, "NUMVERTICES"):
+			var numVertices int
+			_, err = fmt.Sscanf(line, "NUMVERTICES %d", &numVertices)
+			if err != nil {
+				return fmt.Errorf("num vertices: %w", err)
+			}
+			d.Vertices = make([][3]float32, numVertices)
+			for i := 0; i < numVertices; i++ {
+				line, err = r.ReadProperty(definition)
+				if err != nil {
+					return err
+				}
+				if !strings.HasPrefix(line, "XYZ") {
+					return fmt.Errorf("expected XYZ, got %s", line)
+				}
+				_, err = fmt.Sscanf(line, "XYZ %f %f %f", &d.Vertices[i][0], &d.Vertices[i][1], &d.Vertices[i][2])
+				if err != nil {
+					return fmt.Errorf("vertex %d: %w", i, err)
+				}
+			}
+		case strings.HasPrefix(line, "NUMUVS"):
+			var numUVs int
+			_, err = fmt.Sscanf(line, "NUMUVS %d", &numUVs)
+			if err != nil {
+				return fmt.Errorf("num uvs: %w", err)
+			}
+			d.UVs = make([][2]float32, numUVs)
+
+			for i := 0; i < numUVs; i++ {
+				line, err = r.ReadProperty(definition)
+				if err != nil {
+					return err
+				}
+				if !strings.HasPrefix(line, "UV") {
+					return fmt.Errorf("expected UV, got %s", line)
+				}
+				line = strings.TrimPrefix(line, "UV")
+				line = strings.TrimSpace(line)
+				uvs := strings.Split(line, ", ")
+				if len(uvs) != 2 {
+					return fmt.Errorf("expected 2 uvs, got %d", len(uvs))
+				}
+				u, err := strconv.ParseFloat(uvs[0], 32)
+				if err != nil {
+					return fmt.Errorf("uv %d u: %w", i, err)
+				}
+				v, err := strconv.ParseFloat(uvs[1], 32)
+				if err != nil {
+					return fmt.Errorf("uv %d v: %w", i, err)
+				}
+				d.UVs[i] = [2]float32{float32(u), float32(v)}
+			}
+		case strings.HasPrefix(line, "NUMVERTEXNORMALS"):
+			var numNormals int
+			_, err = fmt.Sscanf(line, "NUMVERTEXNORMALS %d", &numNormals)
+			if err != nil {
+				return fmt.Errorf("num normals: %w", err)
+			}
+			d.VertexNormals = make([][3]float32, numNormals)
+			for i := 0; i < numNormals; i++ {
+				line, err = r.ReadProperty(definition)
+				if err != nil {
+					return err
+				}
+				if !strings.HasPrefix(line, "XYZ") {
+					return fmt.Errorf("expected XYZ, got %s", line)
+				}
+
+				_, err = fmt.Sscanf(line, "XYZ %f %f %f", &d.VertexNormals[i][0], &d.VertexNormals[i][1], &d.VertexNormals[i][2])
+				if err != nil {
+					return fmt.Errorf("normal %d: %w", i, err)
+				}
+			}
+		case strings.HasPrefix(line, "SKINASSIGNMENTGROUPS"):
+			line = strings.TrimPrefix(line, "SKINASSIGNMENTGROUPS")
+			line = strings.TrimSpace(line)
+			index := strings.Index(line, " ")
+			if index == -1 {
+				return fmt.Errorf("expected space in skin assignment groups")
+			}
+			numGroups, err := strconv.Atoi(line[:index])
+			if err != nil {
+				return fmt.Errorf("num groups: %w", err)
+			}
+			d.SkinAssignmentGroups = make([][2]uint16, numGroups)
+			line = line[index+1:]
+			line = strings.ReplaceAll(line, ",", "")
+			for i := 0; i < numGroups; i++ {
+				index = strings.Index(line, " ")
+				if index == -1 {
+					return fmt.Errorf("expected space for val0 in skin assignment group %d", i)
+				}
+				val0, err := strconv.ParseUint(line[:index], 10, 16)
+				if err != nil {
+					return fmt.Errorf("group %d val0: %w", i, err)
+				}
+				line = line[index+1:]
+				index = strings.Index(line, " ")
+				if i == numGroups-1 {
+					index = len(line)
+				}
+				if index == -1 {
+					return fmt.Errorf("expected space for val1 in skin assignment group %d", i)
+				}
+				val1, err := strconv.ParseUint(line[:index], 10, 16)
+				if err != nil {
+					return fmt.Errorf("group %d val1: %w", i, err)
+				}
+				if i < numGroups-1 {
+					line = line[index+1:]
+				}
+				d.SkinAssignmentGroups[i] = [2]uint16{uint16(val0), uint16(val1)}
+			}
+
+		case strings.HasPrefix(line, "MATERIALPALETTE"):
+			line = strings.ReplaceAll(line, "\"", "")
+			_, err = fmt.Sscanf(line, "MATERIALPALETTE %s", &d.MaterialPaletteTag)
+			if err != nil {
+				return fmt.Errorf("material palette tag: %w", err)
+			}
+		case strings.HasPrefix(line, "NUMCOLORS"):
+			var numColors int
+			_, err = fmt.Sscanf(line, "NUMCOLORS %d", &numColors)
+			if err != nil {
+				return fmt.Errorf("num colors: %w", err)
+			}
+			d.Colors = make([][4]uint8, numColors)
+			for i := 0; i < numColors; i++ {
+				line, err = r.ReadProperty(definition)
+				if err != nil {
+					return err
+				}
+				if !strings.HasPrefix(line, "RGBA") {
+					return fmt.Errorf("expected RGBA, got %s", line)
+				}
+				_, err = fmt.Sscanf(line, "RGBA %d %d %d %d", &d.Colors[i][0], &d.Colors[i][1], &d.Colors[i][2], &d.Colors[i][3])
+				if err != nil {
+					return fmt.Errorf("color %d: %w", i, err)
+				}
+			}
+		case strings.HasPrefix(line, "NUMFACE2S"):
+			var numFaces int
+
+			_, err = fmt.Sscanf(line, "NUMFACE2S %d", &numFaces)
+			if err != nil {
+				return fmt.Errorf("num faces: %w", err)
+			}
+			d.Faces = make([]*Face, numFaces)
+			for i := 0; i < numFaces; i++ {
+				face := &Face{}
+				line, err = r.ReadProperty(definition)
+				if err != nil {
+					return err
+				}
+				if !strings.HasPrefix(line, "DMFACE2") {
+					return fmt.Errorf("expected DMFACE2, got %s", line)
+				}
+				for {
+					line, err = r.ReadProperty(definition)
+					if err != nil {
+						return err
+					}
+					if strings.HasPrefix(line, "ENDDMFACE2") {
+						break
+					}
+					if strings.HasPrefix(line, "FLAGS") {
+						_, err = fmt.Sscanf(line, "FLAGS %d", &face.Flags)
+						if err != nil {
+							return fmt.Errorf("face %d flags: %w", i, err)
+						}
+					} else if strings.HasPrefix(line, "TRIANGLE") {
+						_, err = fmt.Sscanf(line, "TRIANGLE   %d, %d, %d", &face.Triangle[0], &face.Triangle[1], &face.Triangle[2])
+						if err != nil {
+							return fmt.Errorf("face %d triangle: %w", i, err)
+						}
+					}
+				}
+				d.Faces[i] = face
+			}
+		case strings.HasPrefix(line, "NUMMESHOPS"):
+			var numMeshOps int
+			_, err = fmt.Sscanf(line, "NUMMESHOPS %d", &numMeshOps)
+			if err != nil {
+				return fmt.Errorf("num mesh ops: %w", err)
+			}
+			d.MeshOps = make([]*MeshOp, numMeshOps)
+			for i := 0; i < numMeshOps; i++ {
+				meshOp := &MeshOp{}
+				line, err = r.ReadProperty(definition)
+				if err != nil {
+					return err
+				}
+				if !strings.HasPrefix(line, "MESHOP") {
+					return fmt.Errorf("expected MESHOP, got %s", line)
+				}
+
+				line = strings.TrimPrefix(line, "MESHOP")
+				line = strings.TrimSpace(line)
+				index := strings.Index(line, " ")
+				if index == -1 {
+					return fmt.Errorf("expected space in mesh op %d", i)
+				}
+				//context := line[1:index]
+				//fmt.Println("context:", context)
+
+				d.MeshOps[i] = meshOp
+			}
+		case strings.HasPrefix(line, "FACEMATERIALGROUPS"):
+			line = strings.TrimPrefix(line, "FACEMATERIALGROUPS")
+			line = strings.TrimSpace(line)
+			index := strings.Index(line, " ")
+			if index == -1 {
+				return fmt.Errorf("expected space in face material groups")
+			}
+			numGroups, err := strconv.Atoi(line[:index])
+			if err != nil {
+				return fmt.Errorf("num groups: %w", err)
+			}
+			d.FaceMaterialGroups = make([][2]uint16, numGroups)
+			line = line[index+1:]
+			line = strings.ReplaceAll(line, ",", "")
+			for i := 0; i < numGroups; i++ {
+				index = strings.Index(line, " ")
+				if index == -1 {
+					return fmt.Errorf("expected space for val0 in face material group %d", i)
+				}
+				val0, err := strconv.ParseUint(line[:index], 10, 16)
+				if err != nil {
+					return fmt.Errorf("group %d val0: %w", i, err)
+				}
+				line = line[index+1:]
+				index = strings.Index(line, " ")
+				if i == numGroups-1 {
+					index = len(line)
+				}
+				if index == -1 {
+					return fmt.Errorf("expected space for val1 in face material group %d", i)
+				}
+				val1, err := strconv.ParseUint(line[:index], 10, 16)
+				if err != nil {
+					return fmt.Errorf("group %d val1: %w", i, err)
+				}
+				if i < numGroups-1 {
+					line = line[index+1:]
+				}
+				d.FaceMaterialGroups[i] = [2]uint16{uint16(val0), uint16(val1)}
+			}
+
+		case strings.HasPrefix(line, "VERTEXMATERIALGROUPS"):
+			line = strings.TrimPrefix(line, "VERTEXMATERIALGROUPS")
+			line = strings.TrimSpace(line)
+			index := strings.Index(line, " ")
+			if index == -1 {
+				return fmt.Errorf("expected space in vertex material groups")
+			}
+			numGroups, err := strconv.Atoi(line[:index])
+			if err != nil {
+				return fmt.Errorf("num groups: %w", err)
+			}
+			d.VertexMaterialGroups = make([][2]int16, numGroups)
+			line = line[index+1:]
+			line = strings.ReplaceAll(line, ",", "")
+			for i := 0; i < numGroups; i++ {
+				index = strings.Index(line, " ")
+				if index == -1 {
+					return fmt.Errorf("expected space for val0 in vertex material group %d", i)
+				}
+				val0, err := strconv.ParseInt(line[:index], 10, 16)
+				if err != nil {
+					return fmt.Errorf("group %d val0: %w", i, err)
+				}
+				line = line[index+1:]
+				index = strings.Index(line, " ")
+				if i == numGroups-1 {
+					index = len(line)
+				}
+				if index == -1 {
+					return fmt.Errorf("expected space for val1 in vertex material group %d", i)
+				}
+				val1Str := line[:index]
+
+				val1, err := strconv.ParseInt(val1Str, 10, 16)
+				if err != nil {
+					return fmt.Errorf("group %d val1: %w", i, err)
+				}
+				if i < numGroups-1 {
+					line = line[index+1:]
+				}
+				d.VertexMaterialGroups[i] = [2]int16{int16(val0), int16(val1)}
+			}
+
+		case strings.HasPrefix(line, "BOUNDINGRADIUS"):
+			_, err = fmt.Sscanf(line, "BOUNDINGRADIUS %f", &d.BoundingRadius)
+			if err != nil {
+				return fmt.Errorf("bounding radius: %w", err)
+			}
+		case strings.HasPrefix(line, "FPSCALE"):
+			_, err = fmt.Sscanf(line, "FPSCALE %d", &d.FPScale)
+			if err != nil {
+				return fmt.Errorf("fpscale: %w", err)
+			}
+		default:
+			return fmt.Errorf("unknown property: %s", line)
+		}
+	}
+	return nil
 }
 
 // Ascii returns the ascii representation of a DMSpriteDef2
@@ -168,22 +591,74 @@ type MeshOp struct {
 
 // MaterialPalette is a declaration of MATERIALPALETTE
 type MaterialPalette struct {
-	Tag   string // TAG "%s"
-	Flags uint32 // ?? FLAGS %d
-	// NUMMATERIALS %d
-	Materials []string // MATERIAL "%s"
+	Tag          string // TAG "%s"
+	numMaterials int    // NUMMATERIALS %d
+	flags        uint32
+	Materials    []string // MATERIAL "%s"
 }
 
-// Ascii returns the ascii representation of a MaterialPalette
-func (m *MaterialPalette) Ascii() string {
-	out := "MATERIALPALETTE\n"
-	out += fmt.Sprintf("\tTAG \"%s\"\n", m.Tag)
-	out += fmt.Sprintf("\tNUMMATERIALS %d\n", len(m.Materials))
+func (m *MaterialPalette) Definition() string {
+	return "MATERIALPALETTE"
+}
+
+func (m *MaterialPalette) Write(w io.Writer) error {
+	fmt.Fprintf(w, "%s\n", m.Definition())
+	fmt.Fprintf(w, "\tTAG \"%s\"\n", m.Tag)
+	fmt.Fprintf(w, "\tNUMMATERIALS %d\n", len(m.Materials))
 	for _, mat := range m.Materials {
-		out += fmt.Sprintf("\tMATERIAL \"%s\"\n", mat)
+		fmt.Fprintf(w, "\tMATERIAL \"%s\"\n", mat)
 	}
-	out += "ENDMATERIALPALETTE\n\n"
-	return out
+	fmt.Fprintf(w, "ENDMATERIALPALETTE\n\n")
+	return nil
+}
+
+func (m *MaterialPalette) Read(r *AsciiReadToken) error {
+	for {
+		line, err := r.ReadProperty(m.Definition())
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			return err
+		}
+		fmt.Println("line", line)
+		if line == "ENDMATERIALPALETTE" {
+			break
+		}
+		if line == "" {
+			continue
+		}
+		switch {
+		case strings.HasPrefix(line, "TAG"):
+			line = strings.ReplaceAll(line, "\"", "")
+			_, err = fmt.Sscanf(line, "TAG %s", &m.Tag)
+			if err != nil {
+				return fmt.Errorf("%s: %w", line, err)
+			}
+		case strings.HasPrefix(line, "NUMMATERIALS"):
+			_, err = fmt.Sscanf(line, "NUMMATERIALS %d", &m.numMaterials)
+			if err != nil {
+				return fmt.Errorf("%s: %w", line, err)
+			}
+		case strings.HasPrefix(line, "MATERIAL"):
+			line = strings.ReplaceAll(line, "\"", "")
+			var mat string
+			_, err = fmt.Sscanf(line, "MATERIAL %s", &mat)
+			if err != nil {
+				return fmt.Errorf("%s: %w", line, err)
+			}
+			m.Materials = append(m.Materials, mat)
+		}
+	}
+
+	if m.Tag == "" {
+		return fmt.Errorf("missing tag")
+	}
+
+	if m.numMaterials != len(m.Materials) {
+		return fmt.Errorf("expected %d materials, got %d", m.numMaterials, len(m.Materials))
+	}
+	return io.EOF
 }
 
 // MaterialDef is an entry MATERIALDEFINITION
@@ -554,3 +1029,346 @@ func (b *BSPNode) Ascii() string {
 	ENDSPHERELIST
 	BOUNDINGRADIUS 1.17286
 END3DSPRITEDEF */
+
+/*
+POLYHEDRONDEFINITION
+
+	TAG	"prepe_POLYHDEF"
+	BOUNDINGRADIUS	1.2431762e+002
+	SCALEFACTOR	1.0
+	NUMVERTICES	287
+	XYZ	-5.9604645e-008 1.9073486e-005 -3.8146973e-006
+	NUMFACES	280
+	FACE 1
+		NUMVERTICES	3
+		VERTEXLIST	3, 1, 2
+	ENDFACE 1
+	ENDPOLYHEDRONDEFINITION
+*/
+type PolyhedronDefinition struct {
+	Tag            string
+	BoundingRadius float32
+	ScaleFactor    float32
+	numVertices    int // NUMVERTICES %d
+	Vertices       [][3]float32
+	numFaces       int // NUMFACES %d
+	Faces          []*PolyhedronDefinitionFace
+}
+
+type PolyhedronDefinitionFace struct {
+	numVertices int // NUMVERTICES %d
+	Vertices    []uint32
+}
+
+func (p *PolyhedronDefinition) Definition() string {
+	return "POLYHEDRONDEFINITION"
+}
+
+func (p *PolyhedronDefinition) Write(w io.Writer) error {
+	fmt.Fprintf(w, "%s\n", p.Definition())
+	fmt.Fprintf(w, "\tTAG \"%s\"\n", p.Tag)
+	fmt.Fprintf(w, "\tBOUNDINGRADIUS %0.7f\n", p.BoundingRadius)
+	fmt.Fprintf(w, "\tSCALEFACTOR %0.7f\n", p.ScaleFactor)
+	fmt.Fprintf(w, "\tNUMVERTICES %d\n", len(p.Vertices))
+	for _, vert := range p.Vertices {
+		fmt.Fprintf(w, "\tXYZ %0.7f %0.7f %0.7f\n", vert[0], vert[1], vert[2])
+	}
+	fmt.Fprintf(w, "\tNUMFACES %d\n", len(p.Faces))
+	for i, face := range p.Faces {
+		fmt.Fprintf(w, "\tFACE %d\n", i+1)
+		fmt.Fprintf(w, "\t\tNUMVERTICES %d\n", len(face.Vertices))
+		vertStr := ""
+		for _, vert := range face.Vertices {
+			vertStr += fmt.Sprintf("%d, ", vert)
+		}
+		if len(vertStr) > 0 {
+			vertStr = vertStr[:len(vertStr)-2]
+		}
+		fmt.Fprintf(w, "\t\tVERTEXLIST %s\n", vertStr)
+		fmt.Fprintf(w, "\tENDFACE %d\n", i+1)
+	}
+	fmt.Fprintf(w, "ENDPOLYHEDRONDEFINITION\n\n")
+	return nil
+}
+
+func (p *PolyhedronDefinition) Read(r *AsciiReadToken) error {
+	for {
+		line, err := r.ReadProperty(p.Definition())
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			return err
+		}
+		if line == "ENDPOLYHEDRONDEFINITION" {
+			return nil
+		}
+		if line == "" {
+			continue
+		}
+		switch {
+		case strings.HasPrefix(line, "TAG"):
+			line = strings.ReplaceAll(line, "\"", "")
+			_, err = fmt.Sscanf(line, "TAG %s", &p.Tag)
+			if err != nil {
+				return fmt.Errorf("%s: %w", line, err)
+			}
+		case strings.HasPrefix(line, "BOUNDINGRADIUS"):
+			valStr := ""
+			_, err = fmt.Sscanf(line, "BOUNDINGRADIUS %s", &valStr)
+			if err != nil {
+				return fmt.Errorf("%s: %w", line, err)
+			}
+			val, err := strconv.ParseFloat(valStr, 32)
+			if err != nil {
+				return fmt.Errorf("%s: %w", line, err)
+			}
+			p.BoundingRadius = float32(val)
+		case strings.HasPrefix(line, "SCALEFACTOR"):
+			valStr := ""
+			_, err = fmt.Sscanf(line, "SCALEFACTOR %s", &valStr)
+			if err != nil {
+				return fmt.Errorf("%s: %w", line, err)
+			}
+			val, err := strconv.ParseFloat(valStr, 32)
+			if err != nil {
+				return fmt.Errorf("%s: %w", line, err)
+			}
+			p.ScaleFactor = float32(val)
+		case strings.HasPrefix(line, "NUMVERTICES"):
+			_, err = fmt.Sscanf(line, "NUMVERTICES %d", &p.numVertices)
+			if err != nil {
+				return fmt.Errorf("%s: %w", line, err)
+			}
+			p.Vertices = make([][3]float32, p.numVertices)
+			for i := 0; i < p.numVertices; i++ {
+				line, err = r.ReadProperty(p.Definition())
+				if err != nil {
+					return err
+				}
+				valStr1, valStr2, valStr3 := "", "", ""
+				_, err = fmt.Sscanf(line, "XYZ %s %s %s", &valStr1, &valStr2, &valStr3)
+				if err != nil {
+					return fmt.Errorf("vertex %d: %w", i, err)
+				}
+				val1, err := strconv.ParseFloat(valStr1, 32)
+				if err != nil {
+					return fmt.Errorf("vertex %d: %w", i, err)
+				}
+				val2, err := strconv.ParseFloat(valStr2, 32)
+				if err != nil {
+					return fmt.Errorf("vertex %d: %w", i, err)
+				}
+				val3, err := strconv.ParseFloat(valStr3, 32)
+				if err != nil {
+					return fmt.Errorf("vertex %d: %w", i, err)
+				}
+				p.Vertices[i] = [3]float32{float32(val1), float32(val2), float32(val3)}
+			}
+		case strings.HasPrefix(line, "NUMFACES"):
+			_, err = fmt.Sscanf(line, "NUMFACES %d", &p.numFaces)
+			if err != nil {
+				return fmt.Errorf("%s: %w", line, err)
+			}
+			p.Faces = make([]*PolyhedronDefinitionFace, p.numFaces)
+			for i := 0; i < p.numFaces; i++ {
+				line, err = r.ReadProperty(p.Definition())
+				if err != nil {
+					return err
+				}
+				if line == "" {
+					continue
+				}
+				if !strings.HasPrefix(line, "FACE") {
+					return fmt.Errorf("expected FACE %d, got %s", i+1, line)
+				}
+				face := &PolyhedronDefinitionFace{}
+				_, err = fmt.Sscanf(line, "FACE %d", &face.numVertices)
+				if err != nil {
+					return fmt.Errorf("face %d: %w", i+1, err)
+				}
+				face.Vertices = make([]uint32, face.numVertices)
+				line, err = r.ReadProperty(p.Definition())
+				if err != nil {
+					return err
+				}
+				if line == "" {
+					continue
+				}
+				if !strings.HasPrefix(line, "NUMVERTICES") {
+					return fmt.Errorf("expected FACE %d NUMVERTICES, got %s", i+1, line)
+				}
+				numVertices := 0
+				_, err = fmt.Sscanf(line, "NUMVERTICES %d", &numVertices)
+				if err != nil {
+					return fmt.Errorf("face %d numvertices: %w", i+1, err)
+				}
+				face.Vertices = make([]uint32, numVertices)
+				line, err = r.ReadProperty(p.Definition())
+				if err != nil {
+					return err
+				}
+				if line == "" {
+					continue
+				}
+				if !strings.HasPrefix(line, "VERTEXLIST") {
+					return fmt.Errorf("expected VERTEXLIST, got %s", line)
+				}
+
+				vertStr := strings.Split(strings.TrimSpace(strings.TrimPrefix(line, "VERTEXLIST")), ",")
+				if len(vertStr) != numVertices {
+					return fmt.Errorf("face %d: expected %d vertices, got %d", i+1, numVertices, len(vertStr))
+				}
+				for k, v := range vertStr {
+					v = strings.TrimSpace(v)
+					val, err := strconv.ParseUint(v, 10, 32)
+					if err != nil {
+						return fmt.Errorf("face %d element %d: %w", i+1, k, err)
+					}
+					face.Vertices[k] = uint32(val)
+				}
+				line, err = r.ReadProperty(p.Definition())
+				if err != nil {
+					return err
+				}
+				if line == "" {
+					continue
+				}
+				if !strings.HasPrefix(line, "ENDFACE") {
+					return fmt.Errorf("expected ENDFACE %d, got %s", i, line)
+				}
+				p.Faces[i] = face
+			}
+		}
+	}
+	return nil
+}
+
+type TrackInstance struct {
+	Tag            string // TAG "%s"
+	DefiniationTag string // DEFINITION "%s"
+	isInterpolated bool   // INTERPOLATE
+	Sleep          uint32 // SLEEP %d
+}
+
+func (t *TrackInstance) Definition() string {
+	return "TRACKINSTANCE"
+}
+
+func (t *TrackInstance) Write(w io.Writer) error {
+	fmt.Fprintf(w, "%s\n", t.Definition())
+	fmt.Fprintf(w, "\tTAG \"%s\"\n", t.Tag)
+	fmt.Fprintf(w, "\tDEFINITION \"%s\"\n", t.DefiniationTag)
+	if t.isInterpolated {
+		fmt.Fprintf(w, "\tINTERPOLATE\n")
+	}
+	if t.Sleep != 0 {
+		fmt.Fprintf(w, "\tSLEEP %d\n", t.Sleep)
+	}
+	fmt.Fprintf(w, "ENDTRACKDEFINITION\n\n")
+	return nil
+}
+
+func (t *TrackInstance) Read(r *AsciiReadToken) error {
+	for {
+		line, err := r.ReadProperty(t.Definition())
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			return err
+
+		}
+		if line == "ENDTRACKINSTANCE" {
+			break
+		}
+		if line == "" {
+			continue
+		}
+		switch {
+		case strings.HasPrefix(line, "TAG"):
+			line = strings.ReplaceAll(line, "\"", "")
+			_, err = fmt.Sscanf(line, "TAG %s", &t.Tag)
+			if err != nil {
+				return fmt.Errorf("%s: %w", line, err)
+			}
+		case strings.HasPrefix(line, "DEFINITION"):
+			line = strings.ReplaceAll(line, "\"", "")
+			_, err = fmt.Sscanf(line, "DEFINITION %s", &t.DefiniationTag)
+			if err != nil {
+				return fmt.Errorf("%s: %w", line, err)
+			}
+		case strings.HasPrefix(line, "INTERPOLATE"):
+			t.isInterpolated = true
+		case strings.HasPrefix(line, "SLEEP"):
+			_, err = fmt.Sscanf(line, "SLEEP %d", &t.Sleep)
+			if err != nil {
+				return fmt.Errorf("%s: %w", line, err)
+			}
+		}
+	}
+	return nil
+}
+
+type TrackDef struct {
+	Tag            string                // TAG "%s"
+	numFrames      int                   // NUMFRAMES %d
+	FrameTransform []TrackFrameTransform // FRAMETRANSFORM %0.7f %d %d %d %0.7f %0.7f %0.7f
+}
+
+type TrackFrameTransform struct {
+}
+
+func (t *TrackDef) Definition() string {
+	return "TRACKDEFINITION"
+}
+
+func (t *TrackDef) Write(w io.Writer) error {
+	fmt.Fprintf(w, "%s\n", t.Definition())
+	fmt.Fprintf(w, "\tTAG \"%s\"\n", t.Tag)
+	fmt.Fprintf(w, "\tNUMFRAMES %d\n", t.numFrames)
+	//for _, frame := range t.FrameTransform {
+	//	fmt.Fprintf(w, "\tFRAMETRANSFORM %0.7f %d %d %d %0.7f %0.7f %0.7f\n", frame)
+	//}
+	fmt.Fprintf(w, "ENDTRACKDEFINITION\n\n")
+	return nil
+}
+
+func (t *TrackDef) Read(r *AsciiReadToken) error {
+	for {
+		line, err := r.ReadProperty(t.Definition())
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			return err
+		}
+		if line == "ENDTRACKDEFINITION" {
+			break
+		}
+		if line == "" {
+			continue
+		}
+		switch {
+		case strings.HasPrefix(line, "TAG"):
+			line = strings.ReplaceAll(line, "\"", "")
+			_, err = fmt.Sscanf(line, "TAG %s", &t.Tag)
+			if err != nil {
+				return fmt.Errorf("%s: %w", line, err)
+			}
+		case strings.HasPrefix(line, "NUMFRAMES"):
+			_, err = fmt.Sscanf(line, "NUMFRAMES %d", &t.numFrames)
+			if err != nil {
+				return fmt.Errorf("%s: %w", line, err)
+			}
+		case strings.HasPrefix(line, "FRAMETRANSFORM"):
+			frame := TrackFrameTransform{}
+			_, err = fmt.Sscanf(line, "FRAMETRANSFORM %0.7f %d %d %d %0.7f %0.7f %0.7f", &frame)
+			if err != nil {
+				return fmt.Errorf("%s: %w", line, err)
+			}
+			t.FrameTransform = append(t.FrameTransform, frame)
+		}
+	}
+	return nil
+}

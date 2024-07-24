@@ -165,7 +165,7 @@ func (wld *Wld) readMaterialPalette(cm *cache.CacheManager) error {
 	for _, src := range cm.MaterialPalettes {
 		dst := &MaterialPalette{
 			Tag:       src.Tag,
-			Flags:     src.Flags,
+			flags:     src.Flags,
 			Materials: src.Materials,
 		}
 		wld.MaterialPalettes = append(wld.MaterialPalettes, dst)
