@@ -1436,10 +1436,8 @@ func (t *TrackInstance) Write(w io.Writer) error {
 	if t.isInterpolated {
 		fmt.Fprintf(w, "\tINTERPOLATE\n")
 	}
-	if t.Sleep != 0 {
-		fmt.Fprintf(w, "\tSLEEP %d\n", t.Sleep)
-	}
-	fmt.Fprintf(w, "ENDTRACKDEFINITION\n\n")
+	fmt.Fprintf(w, "\tSLEEP %d\n", t.Sleep)
+	fmt.Fprintf(w, "ENDTRACKINSTANCE\n\n")
 	return nil
 }
 
@@ -1491,6 +1489,9 @@ type TrackDef struct {
 }
 
 type TrackFrameTransform struct {
+	LocDenom float32
+	Rotation [3]int32
+	Position [3]float32
 }
 
 func (t *TrackDef) Definition() string {
@@ -1537,10 +1538,62 @@ func (t *TrackDef) Read(r *AsciiReadToken) error {
 			}
 		case strings.HasPrefix(line, "FRAMETRANSFORM"):
 			frame := TrackFrameTransform{}
-			_, err = fmt.Sscanf(line, "FRAMETRANSFORM %0.7f %d %d %d %0.7f %0.7f %0.7f", &frame)
-			if err != nil {
-				return fmt.Errorf("%s: %w", line, err)
+			line = strings.TrimPrefix(line, "FRAMETRANSFORM")
+			line = strings.TrimSpace(line)
+			records := strings.Split(line, " ")
+			finalRecords := []string{}
+			for i, record := range records {
+				records[i] = strings.TrimSpace(record)
+				if records[i] != "" {
+					finalRecords = append(finalRecords, records[i])
+				}
 			}
+			records = finalRecords
+
+			if len(records) != 7 {
+				return fmt.Errorf("expected 7 records, got %d", len(records))
+			}
+			locDenom, err := strconv.ParseFloat(strings.TrimSpace(records[0]), 32)
+			if err != nil {
+				return fmt.Errorf("loc denom (entry 0): %w", err)
+			}
+			frame.LocDenom = float32(locDenom)
+
+			//Next 3 integer values are euler angles which are converted to a quaternion in the binary
+			val, err := strconv.ParseInt(strings.TrimSpace(records[1]), 10, 32)
+			if err != nil {
+				return fmt.Errorf("rotation x (entry 1): %w", err)
+			}
+			frame.Rotation[0] = int32(val)
+			val, err = strconv.ParseInt(strings.TrimSpace(records[2]), 10, 32)
+			if err != nil {
+				return fmt.Errorf("rotation y (entry 2): %w", err)
+			}
+			frame.Rotation[1] = int32(val)
+			val, err = strconv.ParseInt(strings.TrimSpace(records[3]), 10, 32)
+			if err != nil {
+				return fmt.Errorf("rotation z (entry 3): %w", err)
+			}
+			frame.Rotation[2] = int32(val)
+
+			valF, err := strconv.ParseFloat(strings.TrimSpace(records[4]), 32)
+			if err != nil {
+				return fmt.Errorf("position x (entry 4): %w", err)
+			}
+			frame.Position[0] = float32(valF)
+
+			valF, err = strconv.ParseFloat(strings.TrimSpace(records[5]), 32)
+			if err != nil {
+				return fmt.Errorf("position y (entry 5): %w", err)
+			}
+			frame.Position[1] = float32(valF)
+
+			valF, err = strconv.ParseFloat(strings.TrimSpace(records[6]), 32)
+			if err != nil {
+				return fmt.Errorf("position z (entry 6): %w", err)
+			}
+			frame.Position[2] = float32(valF)
+
 			t.FrameTransform = append(t.FrameTransform, frame)
 		}
 	}

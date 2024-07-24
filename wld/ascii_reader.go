@@ -106,6 +106,9 @@ func (a *AsciiReadToken) ReadProperty(definition string) (string, error) {
 		"MATERIALDEFINITION":   "ENDMATERIALDEFINITION",
 	}
 
+	if definition == "" {
+		return "", fmt.Errorf("definition: empty")
+	}
 	property := ""
 	if a.lastProperty != "" {
 		property = a.lastProperty
@@ -144,6 +147,11 @@ func (a *AsciiReadToken) ReadProperty(definition string) (string, error) {
 		isComplete := false
 		for _, propName := range properties[definition] {
 			if strings.HasSuffix(propertyUpper, "\t"+propName) {
+				isComplete = true
+				nextProperty = propName
+				break
+			}
+			if strings.HasPrefix(propName, "END") && strings.HasSuffix(propertyUpper, propName) {
 				isComplete = true
 				nextProperty = propName
 				break
