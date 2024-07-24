@@ -11,20 +11,21 @@ import (
 
 // Wld is a struct representing a Wld file
 type Wld struct {
-	FileName           string
-	GlobalAmbientLight string
-	Version            uint32
-	SimpleSpriteDefs   []*SimpleSpriteDef
-	MaterialDefs       []*MaterialDef
-	MaterialPalettes   []*MaterialPalette
-	DMSpriteDef2s      []*DMSpriteDef2
-	ActorDefs          []*ActorDef
-	ActorInsts         []*ActorInst
-	LightDefs          []*LightDef
-	PointLights        []*PointLight
-	Sprite3DDefs       []*Sprite3DDef
-	TrackInstances     []*TrackInstance
-	TrackDefs          []*TrackDef
+	FileName               string
+	GlobalAmbientLight     string
+	Version                uint32
+	SimpleSpriteDefs       []*SimpleSpriteDef
+	MaterialDefs           []*MaterialDef
+	MaterialPalettes       []*MaterialPalette
+	DMSpriteDef2s          []*DMSpriteDef2
+	ActorDefs              []*ActorDef
+	ActorInsts             []*ActorInst
+	LightDefs              []*LightDef
+	PointLights            []*PointLight
+	Sprite3DDefs           []*Sprite3DDef
+	TrackInstances         []*TrackInstance
+	TrackDefs              []*TrackDef
+	HierarchicalSpriteDefs []*HierarchicalSpriteDef
 
 	//writing temporary files
 	mu                  sync.RWMutex
@@ -937,7 +938,7 @@ type ActorAction struct {
 
 // ActorLevelOfDetail is a declaration of LEVELOFDETAIL
 type ActorLevelOfDetail struct {
-	Unk1        uint32  // ?? HIERARCHIALSPRITE "%s"
+	Unk1        uint32  // ?? HIERARCHICALSPRITE "%s"
 	MinDistance float32 // MINDISTANCE %0.7f
 }
 
@@ -1595,6 +1596,223 @@ func (t *TrackDef) Read(r *AsciiReadToken) error {
 			frame.Position[2] = float32(valF)
 
 			t.FrameTransform = append(t.FrameTransform, frame)
+		}
+	}
+	return nil
+}
+
+type HierarchicalSpriteDef struct {
+	Tag                       string         // TAG "%s"
+	Dags                      []Dag          // DAG
+	AttachedSkins             []AttachedSkin // ATTACHEDSKIN
+	CenterOffset              [3]float32     // CENTEROFFSET %0.7f %0.7f %0.7f
+	BoundingRadius            float32        // BOUNDINGRADIUS %0.7f
+	LinkSkinUpadtesToDagIndex uint32         // LINKSKINUPDATES %d
+}
+
+type Dag struct {
+	Tag     string   // TAG "%s"
+	Flags   uint32   // NULLSPRITE, etc
+	Track   string   // TRACK "%s"
+	SubDags []uint32 // SUBDAGLIST %d %d
+}
+
+type AttachedSkin struct {
+	Tag string // TAG "%s"
+}
+
+func (h *HierarchicalSpriteDef) Definition() string {
+	return "HIERARCHICALSPRITEDEF"
+}
+
+func (h *HierarchicalSpriteDef) Write(w io.Writer) error {
+	fmt.Fprintf(w, "%s\n", h.Definition())
+	fmt.Fprintf(w, "\tTAG \"%s\"\n", h.Tag)
+	for i, dag := range h.Dags {
+		fmt.Fprintf(w, "\tDAG // %d\n", i+1)
+		fmt.Fprintf(w, "\t\tTAG \"%s\"\n", dag.Tag)
+		if dag.Flags != 0 {
+			fmt.Fprintf(w, "\t\tFLAGS %d\n", dag.Flags)
+		}
+		if dag.Track != "" {
+			fmt.Fprintf(w, "\t\tTRACK \"%s\"\n", dag.Track)
+		}
+		if len(dag.SubDags) > 0 {
+			fmt.Fprintf(w, "\t\tNUMSUBDAGS %d\n", len(dag.SubDags))
+			fmt.Fprintf(w, "\t\tSUBDAGLIST")
+			for _, subDag := range dag.SubDags {
+				fmt.Fprintf(w, " %d", subDag)
+			}
+		}
+		fmt.Fprintf(w, "\tENDDAG // %d\n", i+1)
+	}
+	if len(h.AttachedSkins) > 0 {
+		fmt.Fprintf(w, "\tNUMATTACHEDSKINS %d\n", len(h.AttachedSkins))
+		for _, skin := range h.AttachedSkins {
+			fmt.Fprintf(w, "\tDMSPRITE \"%s\"\n", skin.Tag)
+		}
+	}
+
+	if h.LinkSkinUpadtesToDagIndex != 0 {
+		fmt.Fprintf(w, "\tLINKSKINUPDATES %d\n", h.LinkSkinUpadtesToDagIndex)
+	}
+
+	fmt.Fprintf(w, "\tCENTEROFFSET %0.7f %0.7f %0.7f\n", h.CenterOffset[0], h.CenterOffset[1], h.CenterOffset[2])
+	fmt.Fprintf(w, "\tBOUNDINGRADIUS %0.7f\n", h.BoundingRadius)
+
+	fmt.Fprintf(w, "ENDHIERARCHICALSPRITEDEF\n\n")
+	return nil
+}
+
+func (h *HierarchicalSpriteDef) Read(r *AsciiReadToken) error {
+	for {
+		line, err := r.ReadProperty(h.Definition())
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			return err
+		}
+		if line == "ENDHIERARCHICALSPRITEDEF" {
+			break
+		}
+		if line == "" {
+			continue
+		}
+		switch {
+		case strings.HasPrefix(line, "TAG"):
+			line = strings.ReplaceAll(line, "\"", "")
+			_, err = fmt.Sscanf(line, "TAG %s", &h.Tag)
+			if err != nil {
+				return fmt.Errorf("%s: %w", line, err)
+			}
+		case strings.HasPrefix(line, "NUMDAGS"):
+			numDags := 0
+			_, err = fmt.Sscanf(line, "NUMDAGS %d", &numDags)
+			if err != nil {
+				return fmt.Errorf("%s: %w", line, err)
+			}
+			h.Dags = make([]Dag, numDags)
+			for i := 0; i < numDags; i++ {
+				line, err = r.ReadProperty(h.Definition())
+				if err != nil {
+					return err
+				}
+				if line == "" {
+					continue
+				}
+				if !strings.HasPrefix(line, "DAG") {
+					return fmt.Errorf("expected DAG %d, got %s", i+1, line)
+				}
+				dag := Dag{}
+				for {
+					line, err = r.ReadProperty(h.Definition())
+					if err != nil {
+						return err
+					}
+					if line == "" {
+						continue
+					}
+					if strings.HasPrefix(line, "ENDDAG") {
+						break
+					}
+					switch {
+					case strings.HasPrefix(line, "TAG"):
+						line = strings.ReplaceAll(line, "\"", "")
+						_, err = fmt.Sscanf(line, "TAG %s", &dag.Tag)
+						if err != nil {
+							return fmt.Errorf("dag %d: %w", i+1, err)
+						}
+					case strings.HasPrefix(line, "FLAGS"):
+						_, err = fmt.Sscanf(line, "FLAGS %d", &dag.Flags)
+						if err != nil {
+							return fmt.Errorf("dag %d: %w", i+1, err)
+						}
+					case strings.HasPrefix(line, "TRACK"):
+						line = strings.ReplaceAll(line, "\"", "")
+						_, err = fmt.Sscanf(line, "TRACK %s", &dag.Track)
+						if err != nil {
+							return fmt.Errorf("dag %d: %w", i+1, err)
+						}
+					case strings.HasPrefix(line, "NUMSUBDAGS"):
+						numSubDags := 0
+						_, err = fmt.Sscanf(line, "NUMSUBDAGS %d", &numSubDags)
+						if err != nil {
+							return fmt.Errorf("dag %d: %w", i+1, err)
+						}
+						if numSubDags == 0 {
+							continue
+						}
+						dag.SubDags = make([]uint32, numSubDags)
+						line, err = r.ReadProperty(h.Definition())
+						if err != nil {
+							return err
+						}
+						if line == "" {
+							continue
+						}
+						if !strings.HasPrefix(line, "SUBDAGLIST") {
+							return fmt.Errorf("expected SUBDAGLIST, got %s", line)
+						}
+						subDags := strings.Split(strings.TrimSpace(strings.TrimPrefix(line, "SUBDAGLIST")), " ")
+						if len(subDags) != numSubDags {
+							return fmt.Errorf("dag %d: expected %d subdags, got %d", i+1, numSubDags, len(subDags))
+						}
+						for k, v := range subDags {
+							v = strings.TrimSpace(v)
+							val, err := strconv.ParseUint(v, 10, 32)
+							if err != nil {
+								return fmt.Errorf("dag %d element %d: %w", i+1, k, err)
+							}
+							dag.SubDags[k] = uint32(val)
+						}
+					}
+				}
+				h.Dags[i] = dag
+			}
+		case strings.HasPrefix(line, "NUMATTACHEDSKINS"):
+			numSkins := 0
+			_, err = fmt.Sscanf(line, "NUMATTACHEDSKINS %d", &numSkins)
+			if err != nil {
+				return fmt.Errorf("%s: %w", line, err)
+			}
+			h.AttachedSkins = make([]AttachedSkin, numSkins)
+			for i := 0; i < numSkins; i++ {
+				line, err = r.ReadProperty(h.Definition())
+				if err != nil {
+					return err
+				}
+				if line == "" {
+					continue
+				}
+				if !strings.HasPrefix(line, "DMSPRITE") {
+					return fmt.Errorf("expected DMSPRITE %d, got %s", i+1, line)
+				}
+				skin := AttachedSkin{}
+				line = strings.TrimPrefix(line, "DMSPRITE")
+				line = strings.ReplaceAll(line, "\"", "")
+				line = strings.TrimSpace(line)
+				h.AttachedSkins[i].Tag = line
+				h.AttachedSkins[i] = skin
+			}
+		case strings.HasPrefix(line, "CENTEROFFSET"):
+			_, err = fmt.Sscanf(line, "CENTEROFFSET %f %f %f", &h.CenterOffset[0], &h.CenterOffset[1], &h.CenterOffset[2])
+			if err != nil {
+				return fmt.Errorf("%s: %w", line, err)
+			}
+		case strings.HasPrefix(line, "BOUNDINGRADIUS"):
+			_, err = fmt.Sscanf(line, "BOUNDINGRADIUS %f", &h.BoundingRadius)
+			if err != nil {
+				return fmt.Errorf("%s: %w", line, err)
+			}
+		case strings.HasPrefix(line, "LINKSKINUPDATESTODAGINDEX"):
+			line = strings.TrimSpace(strings.TrimPrefix(line, "LINKSKINUPDATESTODAGINDEX"))
+			h.LinkSkinUpadtesToDagIndex = 0
+			val, err := strconv.ParseUint(line, 10, 32)
+			if err != nil {
+				return fmt.Errorf("LINKSKINUPDATESTODAGINDEX: %w", err)
+			}
+			h.LinkSkinUpadtesToDagIndex = uint32(val)
 		}
 	}
 	return nil
