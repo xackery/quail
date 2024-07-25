@@ -66,7 +66,7 @@ type DMSpriteDef2 struct {
 	// NUMCOLORS %d
 	Colors [][4]uint8 // RGBA %d %d %d %d
 	// NUMFACE2S %d
-	Faces []*Face // DMFACE2S
+	Faces []*Face // DMFACE
 	// NUMMESHOPS %d
 	MeshOps              []*MeshOp   // MESHOP
 	FaceMaterialGroups   [][2]uint16 // FACEMATERIALGROUPS %d %d
@@ -109,7 +109,7 @@ func (d *DMSpriteDef2) Write(w io.Writer) error {
 	if len(d.UVs) > 0 {
 		fmt.Fprintf(w, "\tNUMUVS %d\n", len(d.UVs))
 		for _, uv := range d.UVs {
-			fmt.Fprintf(w, "\tUV %0.7f %0.7f\n", uv[0], uv[1])
+			fmt.Fprintf(w, "\tUV %0.7f, %0.7f\n", uv[0], uv[1])
 		}
 		fmt.Fprintf(w, "\n")
 	}
@@ -121,12 +121,16 @@ func (d *DMSpriteDef2) Write(w io.Writer) error {
 		fmt.Fprintf(w, "\n")
 	}
 	if len(d.SkinAssignmentGroups) > 0 {
-		assigments := ""
-		for _, sa := range d.SkinAssignmentGroups {
-			assigments += fmt.Sprintf("%d %d, ", sa[0], sa[1])
+		fmt.Fprintf(w, "\n")
+		fmt.Fprintf(w, "\tSKINASSIGNMENTGROUPS %d", len(d.SkinAssignmentGroups))
+		for i, sa := range d.SkinAssignmentGroups {
+			endComma := ","
+			if i == len(d.SkinAssignmentGroups)-1 {
+				endComma = ""
+			}
+			fmt.Fprintf(w, " %d, %d%s", sa[0], sa[1], endComma)
 		}
 		fmt.Fprintf(w, "\n")
-		fmt.Fprintf(w, "\tSKINASSIGNMENTGROUPS %s\n", assigments)
 	}
 	fmt.Fprintf(w, "\tMATERIALPALETTE \"%s\"\n", d.MaterialPaletteTag)
 	fmt.Fprintf(w, "\n")
@@ -139,17 +143,17 @@ func (d *DMSpriteDef2) Write(w io.Writer) error {
 		fmt.Fprintf(w, "\tNUMFACE2S %d\n", len(d.Faces))
 		fmt.Fprintf(w, "\n")
 		for i, face := range d.Faces {
-			fmt.Fprintf(w, "\tDMFACE2S //%d\n", i+1)
+			fmt.Fprintf(w, "\tDMFACE2 //%d\n", i+1)
 			if face.Flags != 0 {
 				fmt.Fprintf(w, "\t\tFLAGS %d\n", face.Flags)
 			}
 			fmt.Fprintf(w, "\t\tTRIANGLE   %d, %d, %d\n", face.Triangle[0], face.Triangle[1], face.Triangle[2])
-			fmt.Fprintf(w, "\tENDFACE //%d\n\n", i+1)
+			fmt.Fprintf(w, "\tENDDMFACE2 //%d\n\n", i+1)
 		}
 		fmt.Fprintf(w, "\n")
 	}
 	if len(d.MeshOps) > 0 {
-		fmt.Fprintf(w, "\tNUMMESHOPS 0\n")
+		//fmt.Fprintf(w, "\tNUMMESHOPS 0\n")
 		fmt.Fprintf(w, "\t//TODO: NUMMESHOPS %d\n", len(d.MeshOps))
 		for _, meshOp := range d.MeshOps {
 			fmt.Fprintf(w, "\t// TODO: MESHOP %d %d %0.7f %d %d\n", meshOp.Index1, meshOp.Index2, meshOp.Offset, meshOp.Param1, meshOp.TypeField)
@@ -157,25 +161,27 @@ func (d *DMSpriteDef2) Write(w io.Writer) error {
 		}
 		fmt.Fprintf(w, "\n")
 	}
-	groups := ""
 	if len(d.FaceMaterialGroups) > 0 {
+		fmt.Fprintf(w, "\tFACEMATERIALGROUPS %d", len(d.FaceMaterialGroups))
 		for _, group := range d.FaceMaterialGroups {
-			groups += fmt.Sprintf("%d %d, ", group[0], group[1])
+			endComma := ","
+			if group == d.FaceMaterialGroups[len(d.FaceMaterialGroups)-1] {
+				endComma = ""
+			}
+			fmt.Fprintf(w, " %d, %d%s", group[0], group[1], endComma)
 		}
-		if len(groups) > 0 {
-			groups = groups[:len(groups)-2]
-		}
-		fmt.Fprintf(w, "\tFACEMATERIALGROUPS %s\n", groups)
+		fmt.Fprintf(w, "\n")
 	}
-	groups = ""
 	if len(d.VertexMaterialGroups) > 0 {
+		fmt.Fprintf(w, "\tVERTEXMATERIALGROUPS %d", len(d.VertexMaterialGroups))
 		for _, group := range d.VertexMaterialGroups {
-			groups += fmt.Sprintf("%d %d, ", group[0], group[1])
+			endComma := ","
+			if group == d.VertexMaterialGroups[len(d.VertexMaterialGroups)-1] {
+				endComma = ""
+			}
+			fmt.Fprintf(w, " %d, %d%s", group[0], group[1], endComma)
 		}
-		if len(groups) > 0 {
-			groups = groups[:len(groups)-2]
-		}
-		fmt.Fprintf(w, "\tVERTEXMATERIALGROUPS %s\n", groups)
+		fmt.Fprintf(w, "\n")
 	}
 
 	fmt.Fprintf(w, "\tBOUNDINGRADIUS %0.7f\n", d.BoundingRadius)
@@ -330,6 +336,9 @@ func (d *DMSpriteDef2) Read(r *AsciiReadToken) error {
 					line = line[index+1:]
 				}
 				d.SkinAssignmentGroups[i] = [2]uint16{uint16(val0), uint16(val1)}
+			}
+			if len(d.SkinAssignmentGroups) != numGroups {
+				return fmt.Errorf("expected %d skin assignment groups, got %d", numGroups, len(d.SkinAssignmentGroups))
 			}
 
 		case strings.HasPrefix(line, "MATERIALPALETTE"):
@@ -546,82 +555,6 @@ func (d *DMSpriteDef2) Read(r *AsciiReadToken) error {
 	return nil
 }
 
-// Ascii returns the ascii representation of a DMSpriteDef2
-func (d *DMSpriteDef2) Ascii() string {
-	out := "DMSPRITEDEF2\n"
-	out += fmt.Sprintf("\tTAG \"%s\"\n", d.Tag)
-	if d.Flags != 0 {
-		out += fmt.Sprintf("\tFLAGS %d\n", d.Flags)
-	}
-	out += fmt.Sprintf("\tCENTEROFFSET %0.7f %0.7f %0.7f\n", d.CenterOffset[0], d.CenterOffset[1], d.CenterOffset[2])
-	out += "\n"
-	out += fmt.Sprintf("\tNUMVERTICES %d\n", len(d.Vertices))
-	for _, vert := range d.Vertices {
-		out += fmt.Sprintf("\tXYZ %0.7f %0.7f %0.7f\n", vert[0], vert[1], vert[2])
-	}
-	out += "\n"
-	out += fmt.Sprintf("\tNUMUVS %d\n", len(d.UVs))
-	for _, uv := range d.UVs {
-		out += fmt.Sprintf("\tUV %0.7f %0.7f\n", uv[0], uv[1])
-	}
-	out += "\n"
-	out += fmt.Sprintf("\tNUMVERTEXNORMALS %d\n", len(d.VertexNormals))
-	for _, vn := range d.VertexNormals {
-		out += fmt.Sprintf("\tXYZ %0.7f %0.7f %0.7f\n", vn[0], vn[1], vn[2])
-	}
-	assigments := ""
-	for _, sa := range d.SkinAssignmentGroups {
-		assigments += fmt.Sprintf("%d %d, ", sa[0], sa[1])
-	}
-	if len(assigments) > 0 {
-		assigments = assigments[:len(assigments)-2]
-	}
-	out += "\n"
-	out += fmt.Sprintf("\tSKINASSIGNMENTGROUPS %s\n", assigments)
-	out += fmt.Sprintf("\tMATERIALPALETTE \"%s\"\n", d.MaterialPaletteTag)
-	out += "\n"
-	out += fmt.Sprintf("\tNUMFACE2S %d\n", len(d.Faces))
-	out += "\n"
-	for i, face := range d.Faces {
-		out += fmt.Sprintf("\tDMFACE2S //%d\n", i+1)
-		if face.Flags != 0 {
-			out += fmt.Sprintf("\t\tFLAGS %d\n", face.Flags)
-		}
-		out += fmt.Sprintf("\t\tTRIANGLE   %d, %d, %d\n", face.Triangle[0], face.Triangle[1], face.Triangle[2])
-		out += fmt.Sprintf("\tENDFACE //%d\n\n", i+1)
-	}
-	out += "\n"
-	out += "\tNUMMESHOPS 0\n"
-	out += fmt.Sprintf("\t//TODO: NUMMESHOPS %d\n", len(d.MeshOps))
-	for _, meshOp := range d.MeshOps {
-		out += fmt.Sprintf("\t// TODO: MESHOP %d %d %0.7f %d %d\n", meshOp.Index1, meshOp.Index2, meshOp.Offset, meshOp.Param1, meshOp.TypeField)
-		// MESHOP_VA %d
-	}
-	out += "\n"
-	groups := ""
-	for _, group := range d.FaceMaterialGroups {
-		groups += fmt.Sprintf("%d %d, ", group[0], group[1])
-	}
-	if len(groups) > 0 {
-		groups = groups[:len(groups)-2]
-	}
-	out += fmt.Sprintf("\tFACEMATERIALGROUPS %s\n", groups)
-	groups = ""
-	for _, group := range d.VertexMaterialGroups {
-		groups += fmt.Sprintf("%d %d, ", group[0], group[1])
-	}
-	if len(groups) > 0 {
-		groups = groups[:len(groups)-2]
-	}
-	out += fmt.Sprintf("\tVERTEXMATERIALGROUPS %s\n", groups)
-	out += fmt.Sprintf("\tBOUNDINGRADIUS %0.7f\n", d.BoundingRadius)
-	out += "\n"
-	out += fmt.Sprintf("\tFPSCALE %d\n", d.FPScale)
-	out += "ENDDMSPRITEDEF2\n"
-	out += "\n"
-	return out
-}
-
 type Face struct {
 	Flags    uint16    // FLAGS %d
 	Triangle [3]uint16 // TRIANGLE %d %d %d
@@ -693,6 +626,9 @@ func (m *MaterialPalette) Read(r *AsciiReadToken) error {
 				return fmt.Errorf("%s: %w", line, err)
 			}
 			m.Materials = append(m.Materials, mat)
+
+		default:
+			return fmt.Errorf("unknown property: %s", line)
 		}
 	}
 
@@ -821,31 +757,12 @@ func (m *MaterialDef) Read(r *AsciiReadToken) error {
 			if line != "ENDSIMPLESPRITEINST" {
 				return fmt.Errorf("expected ENDSIMPLESPRITEINST, got %s", line)
 			}
+
+		default:
+			return fmt.Errorf("unknown property: %s", line)
 		}
 	}
 	return nil
-}
-
-// Ascii returns the ascii representation of a MaterialDef
-func (m *MaterialDef) Ascii() string {
-	out := "MATERIALDEFINITION\n"
-	out += fmt.Sprintf("\tTAG \"%s\"\n", m.Tag)
-	out += fmt.Sprintf("\tFLAGS %d\n", m.Flags)
-	out += fmt.Sprintf("\tRENDERMETHOD %s\n", m.RenderMethod)
-	out += fmt.Sprintf("\tRGBPEN %d %d %d\n", m.RGBPen[0], m.RGBPen[1], m.RGBPen[2])
-	out += fmt.Sprintf("\tBRIGHTNESS %0.7f\n", m.Brightness)
-	out += fmt.Sprintf("\tSCALEDAMBIENT %0.7f\n", m.ScaledAmbient)
-	if m.SimpleSpriteInstTag != "" {
-		out += "\tSIMPLESPRITEINST\n"
-		out += fmt.Sprintf("\t\tTAG \"%s\"\n", m.SimpleSpriteInstTag)
-		if m.SimpleSpriteInstFlag != 0 {
-			out += fmt.Sprintf("\t\tFLAGS %d\n", m.SimpleSpriteInstFlag)
-		}
-		out += "\tENDSIMPLESPRITEINST\n"
-	}
-
-	out += "ENDMATERIALDEFINITION\n\n"
-	return out
 }
 
 // SimpleSpriteDef is a declaration of SIMPLESPRITEDEF
@@ -865,6 +782,9 @@ func (s *SimpleSpriteDef) Write(w io.Writer) error {
 	fmt.Fprintf(w, "\tNUMFRAMES %d\n", len(s.BMInfos))
 	for _, bm := range s.BMInfos {
 		fmt.Fprintf(w, "\tFRAME \"%s\" \"%s\"\n", bm[0], bm[1])
+	}
+	if len(s.BMInfos) > 0 {
+		fmt.Fprintf(w, "\tBMINFO \"%s\" \"%s\"\n", s.BMInfos[0][0], s.BMInfos[0][1])
 	}
 	fmt.Fprintf(w, "ENDSIMPLESPRITEDEF\n\n")
 	return nil
@@ -916,21 +836,12 @@ func (s *SimpleSpriteDef) Read(r *AsciiReadToken) error {
 				}
 				s.BMInfos[i] = [2]string{records[0], records[1]}
 			}
+
+		default:
+			return fmt.Errorf("unknown property: %s", line)
 		}
 	}
 	return nil
-}
-
-// Ascii returns the ascii representation of a SimpleSpriteDef
-func (s *SimpleSpriteDef) Ascii() string {
-	out := "SIMPLESPRITEDEF\n"
-	out += fmt.Sprintf("\tSIMPLESPRITETAG \"%s\"\n", s.Tag)
-	out += fmt.Sprintf("\tNUMFRAMES %d\n", len(s.BMInfos))
-	for _, bm := range s.BMInfos {
-		out += fmt.Sprintf("\tFRAME \"%s\" \"%s\"\n", bm[0], bm[1])
-	}
-	out += "ENDSIMPLESPRITEDEF\n\n"
-	return out
 }
 
 // ActorDef is a declaration of ACTORDEF
@@ -1069,6 +980,9 @@ func (a *ActorDef) Read(r *AsciiReadToken) error {
 				}
 				a.FragmentRefs[i] = uint32(fragment)
 			}
+
+		default:
+			return fmt.Errorf("unknown property: %s", line)
 		}
 	}
 	return nil
@@ -1197,6 +1111,9 @@ func (a *ActorInst) Read(r *AsciiReadToken) error {
 			if err != nil {
 				return fmt.Errorf("unk2: %w", err)
 			}
+
+		default:
+			return fmt.Errorf("unknown property: %s", line)
 		}
 	}
 	return nil
@@ -1332,6 +1249,9 @@ func (l *LightDef) Read(r *AsciiReadToken) error {
 					l.Colors[i][j] = float32(color)
 				}
 			}
+
+		default:
+			return fmt.Errorf("unknown property: %s", line)
 		}
 	}
 	return nil
@@ -1407,6 +1327,9 @@ func (p *PointLight) Read(r *AsciiReadToken) error {
 			if err != nil {
 				return fmt.Errorf("radius: %w", err)
 			}
+
+		default:
+			return fmt.Errorf("unknown property: %s", line)
 		}
 	}
 	return nil
@@ -1589,6 +1512,9 @@ func (s *Sprite3DDef) Read(r *AsciiReadToken) error {
 				}
 				s.BSPNodes[i] = node
 			}
+
+		default:
+			return fmt.Errorf("unknown property: %s", line)
 		}
 	}
 	return nil
@@ -1617,37 +1543,6 @@ type BspNodeUVInfo struct {
 	UvOrigin [3]float32 // UV %0.7f %0.7f %0.7f
 	UAxis    [3]float32 // UAXIS %0.7f %0.7f %0.7f
 	VAxis    [3]float32 // VAXIS %0.7f %0.7f %0.7f
-}
-
-// Ascii returns the ascii representation of a BSPNode
-func (b *BSPNode) Ascii() string {
-	out := "BSPNODE\n"
-	out += fmt.Sprintf("\tNUMVERTICES %d\n", len(b.Vertices))
-	for _, vert := range b.Vertices {
-		out += fmt.Sprintf("\tVERTEXLIST %d\n", vert)
-	}
-	out += fmt.Sprintf("\tRENDERMETHOD %s\n", b.RenderMethod)
-	if b.RenderFlags != 0 {
-		out += fmt.Sprintf("\tFLAGS %d\n", b.RenderFlags)
-	}
-	if b.RenderPen != 0 {
-		out += fmt.Sprintf("\tPEN %d\n", b.RenderPen)
-	}
-	if b.RenderBrightness != 0 {
-		out += fmt.Sprintf("\tBRIGHTNESS %0.7f\n", b.RenderBrightness)
-	}
-	if b.RenderScaledAmbient != 0 {
-		out += fmt.Sprintf("\tSCALEDAMBIENT %0.7f\n", b.RenderScaledAmbient)
-	}
-	if b.RenderSimpleSpriteReference != 0 {
-		out += fmt.Sprintf("\tSIMPLESPRITEINSTREF %d\n", b.RenderSimpleSpriteReference)
-	}
-	if b.RenderUVInfoOrigin != [3]float32{} {
-		out += fmt.Sprintf("\tORIGIN %0.7f %0.7f %0.7f\n", b.RenderUVInfoOrigin[0], b.RenderUVInfoOrigin[1], b.RenderUVInfoOrigin[2])
-		out += fmt.Sprintf("\tUAXIS %0.7f %0.7f %0.7f\n", b.RenderUVInfoUAxis[0], b.RenderUVInfoUAxis[1], b.RenderUVInfoUAxis[2])
-		out += fmt.Sprintf("\tVAXIS %0.7f %0.7f %0.7f\n", b.RenderUVInfoVAxis[0], b.RenderUVInfoVAxis[1], b.RenderUVInfoVAxis[2])
-	}
-	return out
 }
 
 /*
@@ -1917,6 +1812,9 @@ func (p *PolyhedronDefinition) Read(r *AsciiReadToken) error {
 				}
 				p.Faces[i] = face
 			}
+
+		default:
+			return fmt.Errorf("unknown property: %s", line)
 		}
 	}
 	return nil
@@ -1981,6 +1879,8 @@ func (t *TrackInstance) Read(r *AsciiReadToken) error {
 			if err != nil {
 				return fmt.Errorf("%s: %w", line, err)
 			}
+		default:
+			return fmt.Errorf("unknown property: %s", line)
 		}
 	}
 	return nil
@@ -2099,6 +1999,9 @@ func (t *TrackDef) Read(r *AsciiReadToken) error {
 			frame.Position[2] = float32(valF)
 
 			t.FrameTransform = append(t.FrameTransform, frame)
+
+		default:
+			return fmt.Errorf("unknown property: %s", line)
 		}
 	}
 	return nil
@@ -2131,6 +2034,7 @@ func (h *HierarchicalSpriteDef) Definition() string {
 func (h *HierarchicalSpriteDef) Write(w io.Writer) error {
 	fmt.Fprintf(w, "%s\n", h.Definition())
 	fmt.Fprintf(w, "\tTAG \"%s\"\n", h.Tag)
+	fmt.Fprintf(w, "\tNUMDAGS %d\n", len(h.Dags))
 	for i, dag := range h.Dags {
 		fmt.Fprintf(w, "\tDAG // %d\n", i+1)
 		fmt.Fprintf(w, "\t\tTAG \"%s\"\n", dag.Tag)
@@ -2330,6 +2234,8 @@ func (h *HierarchicalSpriteDef) Read(r *AsciiReadToken) error {
 			if err != nil {
 				return fmt.Errorf("%s: %w", line, err)
 			}
+		default:
+			return fmt.Errorf("unknown property: %s", line)
 		}
 	}
 	return nil

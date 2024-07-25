@@ -17,12 +17,13 @@ type AsciiReader interface {
 }
 
 type AsciiReadToken struct {
-	basePath       string
-	lineNumber     int
-	lastProperty   string
-	reader         io.Reader
-	wld            *Wld
-	totalLineCount int // will be higher than lineNumber due to includes
+	basePath               string
+	lineNumber             int
+	lastPropertyLineNumber int
+	lastProperty           string
+	reader                 io.Reader
+	wld                    *Wld
+	totalLineCount         int // will be higher than lineNumber due to includes
 }
 
 // LoadAsciiFile returns a new AsciiReader that reads from r.
@@ -113,10 +114,10 @@ func (a *AsciiReadToken) ReadProperty(definition string) (string, error) {
 		return "", fmt.Errorf("definition: empty")
 	}
 	property := ""
+	endMark := endMarkers[definition]
 	if a.lastProperty != "" {
 		property = a.lastProperty
 		a.lastProperty = ""
-		endMark := endMarkers[definition]
 		if strings.HasPrefix(strings.TrimSpace(property), endMark) {
 			return strings.TrimSpace(property), nil
 		}
@@ -125,7 +126,15 @@ func (a *AsciiReadToken) ReadProperty(definition string) (string, error) {
 		buf := make([]byte, 1)
 		_, err := a.Read(buf)
 		if err != nil {
-			return property, fmt.Errorf("read: %w", err)
+			if property == "" {
+				return "", err
+			}
+			tmpProperty := property
+			index := strings.Index(tmpProperty, " ")
+			if index > 0 {
+				tmpProperty = tmpProperty[:index]
+			}
+			return property, fmt.Errorf("%s line %d: %w", tmpProperty, a.lastPropertyLineNumber, err)
 		}
 		if buf[0] == '\n' {
 			continue
@@ -154,7 +163,7 @@ func (a *AsciiReadToken) ReadProperty(definition string) (string, error) {
 				nextProperty = propName
 				break
 			}
-			if strings.HasPrefix(propName, "END") && strings.HasSuffix(propertyUpper, propName) {
+			if strings.HasPrefix(propName, endMark) && strings.HasSuffix(propertyUpper, propName) {
 				isComplete = true
 				nextProperty = propName
 				break
@@ -174,7 +183,8 @@ func (a *AsciiReadToken) ReadProperty(definition string) (string, error) {
 		out = strings.ReplaceAll(out, "\t", "")
 		out = strings.ReplaceAll(out, "\r", "")
 		out = strings.TrimSpace(out)
-		//fmt.Println("Property:", out)
+		//fmt.Printf("Property %d: %s\n", a.lineNumber, out)
+		a.lastPropertyLineNumber = a.lineNumber
 		return out, nil
 	}
 }
@@ -300,7 +310,7 @@ func (a *AsciiReadToken) readInclude() error {
 		buf := make([]byte, 1)
 		_, err := a.Read(buf)
 		if err != nil {
-			return fmt.Errorf("read: %w", err)
+			return err
 		}
 		if buf[0] == ' ' {
 			continue
@@ -326,7 +336,7 @@ func (a *AsciiReadToken) readInclude() error {
 	}
 	err = ir.readDefinitions()
 	if err != nil {
-		return fmt.Errorf("%s:%d: %w", path, a.lineNumber, err)
+		return fmt.Errorf("read definitions: %w", err)
 	}
 
 	a.totalLineCount += ir.TotalLineCountRead()

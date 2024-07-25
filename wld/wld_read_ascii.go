@@ -12,7 +12,7 @@ func (wld *Wld) ReadAscii(path string) error {
 
 	asciiReader, err := LoadAsciiFile(path, wld)
 	if err != nil {
-		return fmt.Errorf("%s: %w", path, err)
+		return fmt.Errorf("%w", err)
 	}
 	err = asciiReader.readDefinitions()
 	if err != nil {
