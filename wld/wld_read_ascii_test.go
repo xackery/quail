@@ -60,9 +60,9 @@ func TestAsciiReadWriteRead(t *testing.T) {
 			asciiName string
 			wantErr   bool
 		}{
-			{"all/all.spk", false},
+			//{"all/all.spk", false},
 			//{"fis/fis.spk", false},
-			//{"pre/pre.spk", false},
+			{"pre/pre.spk", false},
 		}
 	}
 	for _, tt := range tests {

@@ -96,7 +96,7 @@ func (a *AsciiReadToken) ReadProperty(definition string) (string, error) {
 		"TRACKDEFINITION":       {"TAG", "NUMFRAMES", "FRAMETRANSFORM", "ENDTRACKDEFINITION"},
 		"SIMPLESPRITEDEF":       {"SIMPLESPRITETAG", "NUMFRAMES", "BMINFO", "ENDSIMPLESPRITEDEF"},
 		"MATERIALDEFINITION":    {"TAG", "RENDERMETHOD", "RGBPEN", "BRIGHTNESS", "SCALEDAMBIENT", "SIMPLESPRITEINST", "ENDSIMPLESPRITEINST", "ENDMATERIALDEFINITION"},
-		"HIERARCHICALSPRITEDEF": {"TAG", "NUMDAGS", "DAG", "NULLSPRITE", "TRACK", "NUMSUBDAGS", "SUBDAGLIST", "ENDDAG", "NUMATTACHEDSKINS", "DMSPRITE", "LINKSKINUPDATESTODAGINDEX", "CENTEROFFSET", "BOUNDINGRADIUS", "ENDHIERARCHICALSPRITEDEF"},
+		"HIERARCHICALSPRITEDEF": {"TAG", "DAG", "NUMDAGS", "NUMSUBDAGS", "ENDDAG", "NULLSPRITE", "TRACK", "SUBDAGLIST", "NUMATTACHEDSKINS", "DMSPRITE", "LINKSKINUPDATESTODAGINDEX", "CENTEROFFSET", "BOUNDINGRADIUS", "ENDHIERARCHICALSPRITEDEF"},
 	}
 	endMarkers := map[string]string{
 		"DMSPRITEDEF2":          "ENDDMSPRITEDEF2",
@@ -113,12 +113,16 @@ func (a *AsciiReadToken) ReadProperty(definition string) (string, error) {
 	if definition == "" {
 		return "", fmt.Errorf("definition: empty")
 	}
+	if _, ok := properties[definition]; !ok {
+		return "", fmt.Errorf("definition %s: unknown", definition)
+	}
 	property := ""
 	endMark := endMarkers[definition]
 	if a.lastProperty != "" {
 		property = a.lastProperty
 		a.lastProperty = ""
 		if strings.HasPrefix(strings.TrimSpace(property), endMark) {
+			//fmt.Printf("Property %d: %s\n", a.lineNumber+1, property)
 			return strings.TrimSpace(property), nil
 		}
 	}
@@ -129,7 +133,7 @@ func (a *AsciiReadToken) ReadProperty(definition string) (string, error) {
 			if property == "" {
 				return "", err
 			}
-			tmpProperty := property
+			tmpProperty := strings.TrimSpace(property)
 			index := strings.Index(tmpProperty, " ")
 			if index > 0 {
 				tmpProperty = tmpProperty[:index]
@@ -183,6 +187,10 @@ func (a *AsciiReadToken) ReadProperty(definition string) (string, error) {
 		out = strings.ReplaceAll(out, "\t", "")
 		out = strings.ReplaceAll(out, "\r", "")
 		out = strings.TrimSpace(out)
+		if definition == "HIERARCHICALSPRITEDEF" &&
+			out == "DAG COLLISIONS" {
+			out = "DAGCOLLISIONS"
+		}
 		//fmt.Printf("Property %d: %s\n", a.lineNumber, out)
 		a.lastPropertyLineNumber = a.lineNumber
 		return out, nil

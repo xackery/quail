@@ -2013,6 +2013,7 @@ type HierarchicalSpriteDef struct {
 	AttachedSkins  []AttachedSkin // ATTACHEDSKIN
 	CenterOffset   [3]float32     // CENTEROFFSET %0.7f %0.7f %0.7f
 	BoundingRadius float32        // BOUNDINGRADIUS %0.7f
+	HasCollisions  bool           // DAGCOLLISIONS
 }
 
 type Dag struct {
@@ -2066,8 +2067,9 @@ func (h *HierarchicalSpriteDef) Write(w io.Writer) error {
 		fmt.Fprintf(w, "\n")
 	}
 
-	// TODO: DAGCOLLISIONS? a flag?
-
+	if h.HasCollisions {
+		fmt.Fprintf(w, "\tDAGCOLLISIONS\n")
+	}
 	fmt.Fprintf(w, "\tCENTEROFFSET %0.1f %0.1f %0.1f\n", h.CenterOffset[0], h.CenterOffset[1], h.CenterOffset[2])
 	fmt.Fprintf(w, "\tBOUNDINGRADIUS %0.7f\n", h.BoundingRadius)
 
@@ -2107,9 +2109,10 @@ func (h *HierarchicalSpriteDef) Read(r *AsciiReadToken) error {
 			for i := 0; i < numDags; i++ {
 				line, err = r.ReadProperty(h.Definition())
 				if err != nil {
-					return err
+					return fmt.Errorf("read dag %d: %w", i+1, err)
 				}
 				if line == "" {
+					i--
 					continue
 				}
 				if !strings.HasPrefix(line, "DAG") {
@@ -2119,7 +2122,7 @@ func (h *HierarchicalSpriteDef) Read(r *AsciiReadToken) error {
 				for {
 					line, err = r.ReadProperty(h.Definition())
 					if err != nil {
-						return err
+						return fmt.Errorf("dag %d: %w", i+1, err)
 					}
 					if line == "" {
 						continue
@@ -2181,6 +2184,8 @@ func (h *HierarchicalSpriteDef) Read(r *AsciiReadToken) error {
 				}
 				h.Dags[i] = dag
 			}
+		case strings.HasPrefix(line, "DAGCOLLISIONS"):
+			h.HasCollisions = true
 		case strings.HasPrefix(line, "NUMATTACHEDSKINS"):
 			numSkins := 0
 			_, err = fmt.Sscanf(line, "NUMATTACHEDSKINS %d", &numSkins)
