@@ -1602,12 +1602,11 @@ func (t *TrackDef) Read(r *AsciiReadToken) error {
 }
 
 type HierarchicalSpriteDef struct {
-	Tag                       string         // TAG "%s"
-	Dags                      []Dag          // DAG
-	AttachedSkins             []AttachedSkin // ATTACHEDSKIN
-	CenterOffset              [3]float32     // CENTEROFFSET %0.7f %0.7f %0.7f
-	BoundingRadius            float32        // BOUNDINGRADIUS %0.7f
-	LinkSkinUpadtesToDagIndex uint32         // LINKSKINUPDATES %d
+	Tag            string         // TAG "%s"
+	Dags           []Dag          // DAG
+	AttachedSkins  []AttachedSkin // ATTACHEDSKIN
+	CenterOffset   [3]float32     // CENTEROFFSET %0.7f %0.7f %0.7f
+	BoundingRadius float32        // BOUNDINGRADIUS %0.7f
 }
 
 type Dag struct {
@@ -1618,7 +1617,8 @@ type Dag struct {
 }
 
 type AttachedSkin struct {
-	Tag string // TAG "%s"
+	Tag                       string // TAG "%s"
+	LinkSkinUpdatesToDagIndex uint32 // LINKSKINUPDATES %d
 }
 
 func (h *HierarchicalSpriteDef) Definition() string {
@@ -1650,11 +1650,8 @@ func (h *HierarchicalSpriteDef) Write(w io.Writer) error {
 		fmt.Fprintf(w, "\tNUMATTACHEDSKINS %d\n", len(h.AttachedSkins))
 		for _, skin := range h.AttachedSkins {
 			fmt.Fprintf(w, "\tDMSPRITE \"%s\"\n", skin.Tag)
+			fmt.Fprintf(w, "\tLINKSKINUPDATES %d\n", skin.LinkSkinUpdatesToDagIndex)
 		}
-	}
-
-	if h.LinkSkinUpadtesToDagIndex != 0 {
-		fmt.Fprintf(w, "\tLINKSKINUPDATES %d\n", h.LinkSkinUpadtesToDagIndex)
 	}
 
 	fmt.Fprintf(w, "\tCENTEROFFSET %0.7f %0.7f %0.7f\n", h.CenterOffset[0], h.CenterOffset[1], h.CenterOffset[2])
@@ -1794,6 +1791,24 @@ func (h *HierarchicalSpriteDef) Read(r *AsciiReadToken) error {
 				line = strings.TrimSpace(line)
 				h.AttachedSkins[i].Tag = line
 				h.AttachedSkins[i] = skin
+				line, err = r.ReadProperty(h.Definition())
+				if err != nil {
+					return err
+				}
+				if line == "" {
+					continue
+				}
+				if !strings.HasPrefix(line, "LINKSKINUPDATESTODAGINDEX") {
+					return fmt.Errorf("expected LINKSKINUPDATESTODAGINDEX, got %s", line)
+				}
+				line = strings.TrimPrefix(line, "LINKSKINUPDATESTODAGINDEX")
+				line = strings.TrimSpace(line)
+				val, err := strconv.ParseUint(line, 10, 32)
+				if err != nil {
+					return fmt.Errorf("skin %d: %w", i+1, err)
+				}
+				h.AttachedSkins[i].LinkSkinUpdatesToDagIndex = uint32(val)
+
 			}
 		case strings.HasPrefix(line, "CENTEROFFSET"):
 			_, err = fmt.Sscanf(line, "CENTEROFFSET %f %f %f", &h.CenterOffset[0], &h.CenterOffset[1], &h.CenterOffset[2])
@@ -1805,14 +1820,6 @@ func (h *HierarchicalSpriteDef) Read(r *AsciiReadToken) error {
 			if err != nil {
 				return fmt.Errorf("%s: %w", line, err)
 			}
-		case strings.HasPrefix(line, "LINKSKINUPDATESTODAGINDEX"):
-			line = strings.TrimSpace(strings.TrimPrefix(line, "LINKSKINUPDATESTODAGINDEX"))
-			h.LinkSkinUpadtesToDagIndex = 0
-			val, err := strconv.ParseUint(line, 10, 32)
-			if err != nil {
-				return fmt.Errorf("LINKSKINUPDATESTODAGINDEX: %w", err)
-			}
-			h.LinkSkinUpadtesToDagIndex = uint32(val)
 		}
 	}
 	return nil

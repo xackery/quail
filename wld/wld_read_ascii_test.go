@@ -8,7 +8,7 @@ import (
 	"github.com/xackery/quail/common"
 )
 
-func TestReadDMSpriteDef2(t *testing.T) {
+func TestAsciiRead(t *testing.T) {
 	if os.Getenv("SINGLE_TEST") != "1" {
 		t.Skip("skipping test; SINGLE_TEST not set")
 	}
@@ -25,9 +25,9 @@ func TestReadDMSpriteDef2(t *testing.T) {
 			asciiName string
 			wantErr   bool
 		}{
-			//{"all.spk", false},
-			{"fis.spk", false},
-			//{"pre.spk", false},
+			{"all/all.spk", false},
+			//{"fis/fis.spk", false},
+			//{"pre/pre.spk", false},
 		}
 	}
 	for _, tt := range tests {
@@ -36,7 +36,7 @@ func TestReadDMSpriteDef2(t *testing.T) {
 			wld := &Wld{}
 			err := wld.ReadAscii(fmt.Sprintf("testdata/%s", tt.asciiName))
 			if err != nil {
-				t.Fatalf("failed to read %s: %s", tt.asciiName, err.Error())
+				t.Fatalf("Failed readascii: %s", err.Error())
 			}
 		})
 	}

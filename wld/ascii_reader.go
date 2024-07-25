@@ -17,11 +17,12 @@ type AsciiReader interface {
 }
 
 type AsciiReadToken struct {
-	basePath     string
-	lineNumber   int
-	lastProperty string
-	reader       io.Reader
-	wld          *Wld
+	basePath       string
+	lineNumber     int
+	lastProperty   string
+	reader         io.Reader
+	wld            *Wld
+	totalLineCount int // will be higher than lineNumber due to includes
 }
 
 // LoadAsciiFile returns a new AsciiReader that reads from r.
@@ -178,6 +179,10 @@ func (a *AsciiReadToken) ReadProperty(definition string) (string, error) {
 	}
 }
 
+func (a *AsciiReadToken) TotalLineCountRead() int {
+	return a.totalLineCount + a.lineNumber
+}
+
 func (a *AsciiReadToken) readDefinitions() error {
 	type definitionReader interface {
 		Definition() string
@@ -301,6 +306,8 @@ func (a *AsciiReadToken) readInclude() error {
 	if err != nil {
 		return fmt.Errorf("%s:%d: %w", path, a.lineNumber, err)
 	}
+
+	a.totalLineCount += ir.TotalLineCountRead()
 
 	err = ir.Close()
 	if err != nil {
