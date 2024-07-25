@@ -9,6 +9,8 @@ import (
 	"sync"
 )
 
+var AsciiVersion = "v0.0.1"
+
 // Wld is a struct representing a Wld file
 type Wld struct {
 	FileName               string
@@ -26,6 +28,7 @@ type Wld struct {
 	TrackInstances         []*TrackInstance
 	TrackDefs              []*TrackDef
 	HierarchicalSpriteDefs []*HierarchicalSpriteDef
+	PolyhedronDefs         []*PolyhedronDefinition
 
 	//writing temporary files
 	mu                  sync.RWMutex
@@ -70,6 +73,7 @@ type DMSpriteDef2 struct {
 	VertexMaterialGroups [][2]int16  // VERTEXMATERIALGROUPS %d %d
 	BoundingRadius       float32     // BOUNDINGRADIUS %0.7f
 	FPScale              uint16      // FPScale %d
+	PolyhedronTag        string      // POLYHEDRON "%s"
 }
 
 func (wld *Wld) reset() {
@@ -95,64 +99,85 @@ func (d *DMSpriteDef2) Write(w io.Writer) error {
 	}
 	fmt.Fprintf(w, "\tCENTEROFFSET %0.7f %0.7f %0.7f\n", d.CenterOffset[0], d.CenterOffset[1], d.CenterOffset[2])
 	fmt.Fprintf(w, "\n")
-	fmt.Fprintf(w, "\tNUMVERTICES %d\n", len(d.Vertices))
-	for _, vert := range d.Vertices {
-		fmt.Fprintf(w, "\tXYZ %0.7f %0.7f %0.7f\n", vert[0], vert[1], vert[2])
+	if len(d.Vertices) > 0 {
+		fmt.Fprintf(w, "\tNUMVERTICES %d\n", len(d.Vertices))
+		for _, vert := range d.Vertices {
+			fmt.Fprintf(w, "\tXYZ %0.7f %0.7f %0.7f\n", vert[0], vert[1], vert[2])
+		}
+		fmt.Fprintf(w, "\n")
 	}
-	fmt.Fprintf(w, "\n")
-	fmt.Fprintf(w, "\tNUMUVS %d\n", len(d.UVs))
-	for _, uv := range d.UVs {
-		fmt.Fprintf(w, "\tUV %0.7f %0.7f\n", uv[0], uv[1])
+	if len(d.UVs) > 0 {
+		fmt.Fprintf(w, "\tNUMUVS %d\n", len(d.UVs))
+		for _, uv := range d.UVs {
+			fmt.Fprintf(w, "\tUV %0.7f %0.7f\n", uv[0], uv[1])
+		}
+		fmt.Fprintf(w, "\n")
 	}
-	fmt.Fprintf(w, "\n")
-	fmt.Fprintf(w, "\tNUMVERTEXNORMALS %d\n", len(d.VertexNormals))
-	for _, vn := range d.VertexNormals {
-		fmt.Fprintf(w, "\tXYZ %0.7f %0.7f %0.7f\n", vn[0], vn[1], vn[2])
+	if len(d.VertexNormals) > 0 {
+		fmt.Fprintf(w, "\tNUMVERTEXNORMALS %d\n", len(d.VertexNormals))
+		for _, vn := range d.VertexNormals {
+			fmt.Fprintf(w, "\tXYZ %0.7f %0.7f %0.7f\n", vn[0], vn[1], vn[2])
+		}
+		fmt.Fprintf(w, "\n")
 	}
-	fmt.Fprintf(w, "\n")
-	assigments := ""
-	for _, sa := range d.SkinAssignmentGroups {
-		assigments += fmt.Sprintf("%d %d, ", sa[0], sa[1])
+	if len(d.SkinAssignmentGroups) > 0 {
+		assigments := ""
+		for _, sa := range d.SkinAssignmentGroups {
+			assigments += fmt.Sprintf("%d %d, ", sa[0], sa[1])
+		}
+		fmt.Fprintf(w, "\n")
+		fmt.Fprintf(w, "\tSKINASSIGNMENTGROUPS %s\n", assigments)
 	}
-	fmt.Fprintf(w, "\n")
-	fmt.Fprintf(w, "\tSKINASSIGNMENTGROUPS %s\n", assigments)
-
 	fmt.Fprintf(w, "\tMATERIALPALETTE \"%s\"\n", d.MaterialPaletteTag)
 	fmt.Fprintf(w, "\n")
-	fmt.Fprintf(w, "\tNUMFACE2S %d\n", len(d.Faces))
-	fmt.Fprintf(w, "\n")
-	for i, face := range d.Faces {
-		fmt.Fprintf(w, "\tDMFACE2S //%d\n", i+1)
-		if face.Flags != 0 {
-			fmt.Fprintf(w, "\t\tFLAGS %d\n", face.Flags)
+	if d.PolyhedronTag != "" {
+		fmt.Fprintf(w, "\tPOLYHEDRON\n")
+		fmt.Fprintf(w, "\t\tDEFINITION \"%s\"\n", d.PolyhedronTag)
+		fmt.Fprintf(w, "\tENDPOLYHEDRON\n\n")
+	}
+	if len(d.Faces) > 0 {
+		fmt.Fprintf(w, "\tNUMFACE2S %d\n", len(d.Faces))
+		fmt.Fprintf(w, "\n")
+		for i, face := range d.Faces {
+			fmt.Fprintf(w, "\tDMFACE2S //%d\n", i+1)
+			if face.Flags != 0 {
+				fmt.Fprintf(w, "\t\tFLAGS %d\n", face.Flags)
+			}
+			fmt.Fprintf(w, "\t\tTRIANGLE   %d, %d, %d\n", face.Triangle[0], face.Triangle[1], face.Triangle[2])
+			fmt.Fprintf(w, "\tENDFACE //%d\n\n", i+1)
 		}
-		fmt.Fprintf(w, "\t\tTRIANGLE   %d, %d, %d\n", face.Triangle[0], face.Triangle[1], face.Triangle[2])
-		fmt.Fprintf(w, "\tENDFACE //%d\n\n", i+1)
+		fmt.Fprintf(w, "\n")
 	}
-	fmt.Fprintf(w, "\n")
-	fmt.Fprintf(w, "\tNUMMESHOPS 0\n")
-	fmt.Fprintf(w, "\t//TODO: NUMMESHOPS %d\n", len(d.MeshOps))
-	for _, meshOp := range d.MeshOps {
-		fmt.Fprintf(w, "\t// TODO: MESHOP %d %d %0.7f %d %d\n", meshOp.Index1, meshOp.Index2, meshOp.Offset, meshOp.Param1, meshOp.TypeField)
-		// MESHOP_VA %d
+	if len(d.MeshOps) > 0 {
+		fmt.Fprintf(w, "\tNUMMESHOPS 0\n")
+		fmt.Fprintf(w, "\t//TODO: NUMMESHOPS %d\n", len(d.MeshOps))
+		for _, meshOp := range d.MeshOps {
+			fmt.Fprintf(w, "\t// TODO: MESHOP %d %d %0.7f %d %d\n", meshOp.Index1, meshOp.Index2, meshOp.Offset, meshOp.Param1, meshOp.TypeField)
+			// MESHOP_VA %d
+		}
+		fmt.Fprintf(w, "\n")
 	}
-	fmt.Fprintf(w, "\n")
 	groups := ""
-	for _, group := range d.FaceMaterialGroups {
-		groups += fmt.Sprintf("%d %d, ", group[0], group[1])
+	if len(d.FaceMaterialGroups) > 0 {
+		for _, group := range d.FaceMaterialGroups {
+			groups += fmt.Sprintf("%d %d, ", group[0], group[1])
+		}
+		if len(groups) > 0 {
+			groups = groups[:len(groups)-2]
+		}
+		fmt.Fprintf(w, "\tFACEMATERIALGROUPS %s\n", groups)
 	}
-	if len(groups) > 0 {
-		groups = groups[:len(groups)-2]
-	}
-	fmt.Fprintf(w, "\tFACEMATERIALGROUPS %s\n", groups)
 	groups = ""
-	for _, group := range d.VertexMaterialGroups {
-		groups += fmt.Sprintf("%d %d, ", group[0], group[1])
+	if len(d.VertexMaterialGroups) > 0 {
+		for _, group := range d.VertexMaterialGroups {
+			groups += fmt.Sprintf("%d %d, ", group[0], group[1])
+		}
+		if len(groups) > 0 {
+			groups = groups[:len(groups)-2]
+		}
+		fmt.Fprintf(w, "\tVERTEXMATERIALGROUPS %s\n", groups)
 	}
-	if len(groups) > 0 {
-		groups = groups[:len(groups)-2]
-	}
-	fmt.Fprintf(w, "\tVERTEXMATERIALGROUPS %s\n", groups)
+
 	fmt.Fprintf(w, "\tBOUNDINGRADIUS %0.7f\n", d.BoundingRadius)
 	fmt.Fprintf(w, "\n")
 	fmt.Fprintf(w, "\tFPSCALE %d\n", d.FPScale)
@@ -494,6 +519,26 @@ func (d *DMSpriteDef2) Read(r *AsciiReadToken) error {
 			if err != nil {
 				return fmt.Errorf("fpscale: %w", err)
 			}
+		case strings.HasPrefix(line, "POLYHEDRON"):
+			line, err = r.ReadProperty(definition)
+			if err != nil {
+				return err
+			}
+			if !strings.HasPrefix(line, "DEFINITION") {
+				return fmt.Errorf("expected POLYHEDRON DEFINITION, got %s", line)
+			}
+			line = strings.TrimPrefix(line, "DEFINITION")
+			line = strings.ReplaceAll(line, "\"", "")
+			line = strings.TrimSpace(line)
+			d.PolyhedronTag = line
+			line, err = r.ReadProperty(definition)
+			if err != nil {
+				return err
+			}
+			if !strings.HasPrefix(line, "ENDPOLYHEDRON") {
+				return fmt.Errorf("expected ENDPOLYHEDRON, got %s", line)
+			}
+
 		default:
 			return fmt.Errorf("unknown property: %s", line)
 		}
@@ -622,7 +667,6 @@ func (m *MaterialPalette) Read(r *AsciiReadToken) error {
 			}
 			return err
 		}
-		fmt.Println("line", line)
 		if line == "ENDMATERIALPALETTE" {
 			break
 		}
@@ -659,7 +703,7 @@ func (m *MaterialPalette) Read(r *AsciiReadToken) error {
 	if m.numMaterials != len(m.Materials) {
 		return fmt.Errorf("expected %d materials, got %d", m.numMaterials, len(m.Materials))
 	}
-	return io.EOF
+	return nil
 }
 
 // MaterialDef is an entry MATERIALDEFINITION
@@ -903,31 +947,131 @@ type ActorDef struct {
 	FragmentRefs []uint32 // FRAGMENTREF %d
 }
 
-// Ascii returns the ascii representation of an ActorDef
-func (a *ActorDef) Ascii() string {
-	out := "ACTORDEF\n"
-	out += fmt.Sprintf("\tACTORTAG \"%s\"\n", a.Tag)
-	out += fmt.Sprintf("\tCALLBACK \"%s\"\n", a.Callback)
-	out += fmt.Sprintf("\t//TODO: BOUNDSREF %d\n", a.BoundsRef)
+func (a *ActorDef) Definition() string {
+	return "ACTORDEF"
+}
+
+func (a *ActorDef) Write(w io.Writer) error {
+	fmt.Fprintf(w, "%s\n", a.Definition())
+	fmt.Fprintf(w, "\tACTORTAG \"%s\"\n", a.Tag)
+	fmt.Fprintf(w, "\tCALLBACK \"%s\"\n", a.Callback)
+	fmt.Fprintf(w, "\t//TODO: BOUNDSREF %d\n", a.BoundsRef)
 	if a.CurrentAction != 0 {
-		out += fmt.Sprintf("\t//TODO: CURRENTACTION %d\n", a.CurrentAction)
+		fmt.Fprintf(w, "\t//TODO: CURRENTACTION %d\n", a.CurrentAction)
 	}
-	out += fmt.Sprintf("\tLOCATION %0.7f %0.7f %0.7f\n", a.Location[0], a.Location[1], a.Location[2])
-	out += fmt.Sprintf("\tNUMACTIONS %d\n", len(a.Actions))
+	fmt.Fprintf(w, "\tLOCATION %0.7f %0.7f %0.7f\n", a.Location[0], a.Location[1], a.Location[2])
+	fmt.Fprintf(w, "\tNUMACTIONS %d\n", len(a.Actions))
 	for _, action := range a.Actions {
-		out += "\tACTION\n"
+		fmt.Fprintf(w, "\tACTION\n")
 		for _, lod := range action.LevelOfDetails {
-			out += fmt.Sprintf("\t\t// TODO: UNK1 \"%d\"\n", lod.Unk1)
-			out += fmt.Sprintf("\t\tMINDISTANCE %0.7f\n", lod.MinDistance)
+			fmt.Fprintf(w, "\t\t// TODO: UNK1 \"%d\"\n", lod.Unk1)
+			fmt.Fprintf(w, "\t\tMINDISTANCE %0.7f\n", lod.MinDistance)
 		}
-		out += "\tENDACTION\n"
+		fmt.Fprintf(w, "\tENDACTION\n")
 	}
-	out += fmt.Sprintf("\t// TODO: NUMFRAGMENTS %d\n", len(a.FragmentRefs))
+	fmt.Fprintf(w, "\t// TODO: NUMFRAGMENTS %d\n", len(a.FragmentRefs))
 	for _, frag := range a.FragmentRefs {
-		out += fmt.Sprintf("\t//TODO: FRAGMENTREF %d\n", frag)
+		fmt.Fprintf(w, "\t//TODO: FRAGMENTREF %d\n", frag)
 	}
-	out += "ENDACTORDEF\n\n"
-	return out
+	fmt.Fprintf(w, "ENDACTORDEF\n\n")
+	return nil
+}
+
+func (a *ActorDef) Read(r *AsciiReadToken) error {
+	for {
+		line, err := r.ReadProperty(a.Definition())
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			return err
+		}
+		if line == "ENDACTORDEF" {
+			break
+		}
+		if line == "" {
+			continue
+		}
+		switch {
+		case strings.HasPrefix(line, "ACTORTAG"):
+			line = strings.ReplaceAll(line, "\"", "")
+			_, err = fmt.Sscanf(line, "ACTORTAG %s", &a.Tag)
+			if err != nil {
+				return fmt.Errorf("tag: %w", err)
+			}
+		case strings.HasPrefix(line, "CALLBACK"):
+			line = strings.ReplaceAll(line, "\"", "")
+			_, err = fmt.Sscanf(line, "CALLBACK %s", &a.Callback)
+			if err != nil {
+				return fmt.Errorf("callback: %w", err)
+			}
+		case strings.HasPrefix(line, "LOCATION"):
+			_, err = fmt.Sscanf(line, "LOCATION %f %f %f", &a.Location[0], &a.Location[1], &a.Location[2])
+			if err != nil {
+				return fmt.Errorf("location: %w", err)
+			}
+		case strings.HasPrefix(line, "NUMACTIONS"):
+			var numActions int
+			_, err = fmt.Sscanf(line, "NUMACTIONS %d", &numActions)
+			if err != nil {
+				return fmt.Errorf("num actions: %w", err)
+			}
+			a.Actions = make([]ActorAction, numActions)
+			for i := 0; i < numActions; i++ {
+				action := ActorAction{}
+				line, err = r.ReadProperty(a.Definition())
+				if err != nil {
+					return err
+				}
+				if !strings.HasPrefix(line, "ACTION") {
+					return fmt.Errorf("expected ACTION, got %s", line)
+				}
+				for {
+					line, err = r.ReadProperty(a.Definition())
+					if err != nil {
+						return err
+					}
+					if strings.HasPrefix(line, "ENDACTION") {
+						break
+					}
+					if strings.HasPrefix(line, "MINDISTANCE") {
+						line = strings.TrimPrefix(line, "MINDISTANCE")
+						line = strings.TrimSpace(line)
+						distance, err := strconv.ParseFloat(line, 32)
+						if err != nil {
+							return fmt.Errorf("mindistance: %w", err)
+						}
+						action.LevelOfDetails = append(action.LevelOfDetails, ActorLevelOfDetail{MinDistance: float32(distance)})
+					}
+				}
+				a.Actions[i] = action
+			}
+		case strings.HasPrefix(line, "NUMFRAGMENTS"):
+			var numFragments int
+			_, err = fmt.Sscanf(line, "NUMFRAGMENTS %d", &numFragments)
+			if err != nil {
+				return fmt.Errorf("num fragments: %w", err)
+			}
+			a.FragmentRefs = make([]uint32, numFragments)
+			for i := 0; i < numFragments; i++ {
+				line, err = r.ReadProperty(a.Definition())
+				if err != nil {
+					return err
+				}
+				if !strings.HasPrefix(line, "FRAGMENTREF") {
+					return fmt.Errorf("expected FRAGMENTREF, got %s", line)
+				}
+				line = strings.TrimPrefix(line, "FRAGMENTREF")
+				line = strings.TrimSpace(line)
+				fragment, err := strconv.ParseUint(line, 10, 32)
+				if err != nil {
+					return fmt.Errorf("fragment ref: %w", err)
+				}
+				a.FragmentRefs[i] = uint32(fragment)
+			}
+		}
+	}
+	return nil
 }
 
 // ActorAction is a declaration of ACTION
@@ -956,30 +1100,106 @@ type ActorInst struct {
 	Unk2           int32      // ?? UNK2 %d
 }
 
-// Ascii returns the ascii representation of an ActorInst
-func (a *ActorInst) Ascii() string {
-	out := "ACTORINST\n"
-	out += fmt.Sprintf("\tACTORTAG \"%s\"\n", a.Tag)
+func (a *ActorInst) Definition() string {
+	return "ACTORINST"
+}
 
+func (a *ActorInst) Write(w io.Writer) error {
+	fmt.Fprintf(w, "%s\n", a.Definition())
+	fmt.Fprintf(w, "\tACTORTAG \"%s\"\n", a.Tag)
 	if a.Flags&0x20 != 0 {
-		out += "\tACTIVE\n"
+		fmt.Fprintf(w, "\tACTIVE\n")
 	}
-	out += fmt.Sprintf("\tSPHERETAG \"%s\"\n", a.SphereTag)
+	fmt.Fprintf(w, "\tSPHERETAG \"%s\"\n", a.SphereTag)
 	if a.CurrentAction != 0 {
-		out += fmt.Sprintf("\tCURRENTACTION %d\n", a.CurrentAction)
+		fmt.Fprintf(w, "\tCURRENTACTION %d\n", a.CurrentAction)
 	}
-	out += fmt.Sprintf("\tDEFINITION \"%s\"\n", a.DefinitionTag)
-	out += fmt.Sprintf("\tLOCATION %0.7f %0.7f %0.7f\n", a.Location[0], a.Location[1], a.Location[2])
+	fmt.Fprintf(w, "\tDEFINITION \"%s\"\n", a.DefinitionTag)
+	fmt.Fprintf(w, "\tLOCATION %0.7f %0.7f %0.7f\n", a.Location[0], a.Location[1], a.Location[2])
 	if a.Unk1 != 0 {
-		out += fmt.Sprintf("\tUNK1 %d\n", a.Unk1)
+		fmt.Fprintf(w, "\tUNK1 %d\n", a.Unk1)
 	}
-	out += fmt.Sprintf("\tBOUNDINGRADIUS %0.7f\n", a.BoundingRadius)
-	out += fmt.Sprintf("\tSCALEFACTOR %0.7f\n", a.Scale)
+	fmt.Fprintf(w, "\tBOUNDINGRADIUS %0.7f\n", a.BoundingRadius)
+	fmt.Fprintf(w, "\tSCALEFACTOR %0.7f\n", a.Scale)
 	if a.Unk2 != 0 {
-		out += fmt.Sprintf("\tUNK2 %d\n", a.Unk2)
+		fmt.Fprintf(w, "\tUNK2 %d\n", a.Unk2)
 	}
-	out += "ENDACTORINST\n\n"
-	return out
+	fmt.Fprintf(w, "ENDACTORINST\n\n")
+	return nil
+}
+
+func (a *ActorInst) Read(r *AsciiReadToken) error {
+	for {
+		line, err := r.ReadProperty(a.Definition())
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			return err
+		}
+		if line == "ENDACTORINST" {
+			break
+		}
+		if line == "" {
+			continue
+		}
+		switch {
+		case strings.HasPrefix(line, "ACTORTAG"):
+
+			line = strings.ReplaceAll(line, "\"", "")
+			_, err = fmt.Sscanf(line, "ACTORTAG %s", &a.Tag)
+			if err != nil {
+				return fmt.Errorf("tag: %w", err)
+			}
+		case strings.HasPrefix(line, "ACTIVE"):
+			a.Flags |= 0x20
+		case strings.HasPrefix(line, "SPHERETAG"):
+			line = strings.ReplaceAll(line, "\"", "")
+			_, err = fmt.Sscanf(line, "SPHERETAG %s", &a.SphereTag)
+			if err != nil {
+				return fmt.Errorf("sphere tag: %w", err)
+			}
+		case strings.HasPrefix(line, "CURRENTACTION"):
+			_, err = fmt.Sscanf(line, "CURRENTACTION %d", &a.CurrentAction)
+			if err != nil {
+				return fmt.Errorf("current action: %w", err)
+			}
+		case strings.HasPrefix(line, "DEFINITION"):
+			line = strings.ReplaceAll(line, "\"", "")
+			_, err = fmt.Sscanf(line, "DEFINITION %s", &a.DefinitionTag)
+			if err != nil {
+				return fmt.Errorf("definition tag: %w", err)
+			}
+		case strings.HasPrefix(line, "LOCATION"):
+
+			_, err = fmt.Sscanf(line, "LOCATION %f %f %f", &a.Location[0], &a.Location[1], &a.Location[2])
+			if err != nil {
+				return fmt.Errorf("location: %w", err)
+			}
+		case strings.HasPrefix(line, "UNK1"):
+			_, err = fmt.Sscanf(line, "UNK1 %d", &a.Unk1)
+			if err != nil {
+				return fmt.Errorf("unk1: %w", err)
+			}
+		case strings.HasPrefix(line, "BOUNDINGRADIUS"):
+			_, err = fmt.Sscanf(line, "BOUNDINGRADIUS %f", &a.BoundingRadius)
+
+			if err != nil {
+				return fmt.Errorf("bounding radius: %w", err)
+			}
+		case strings.HasPrefix(line, "SCALEFACTOR"):
+			_, err = fmt.Sscanf(line, "SCALEFACTOR %f", &a.Scale)
+			if err != nil {
+				return fmt.Errorf("scale factor: %w", err)
+			}
+		case strings.HasPrefix(line, "UNK2"):
+			_, err = fmt.Sscanf(line, "UNK2 %d", &a.Unk2)
+			if err != nil {
+				return fmt.Errorf("unk2: %w", err)
+			}
+		}
+	}
+	return nil
 }
 
 // LightDef is a declaration of LIGHTDEF
@@ -994,33 +1214,127 @@ type LightDef struct {
 	Colors [][3]float32 // COLORS %0.7f %0.7f %0.7f
 }
 
-// Ascii returns the ascii representation of a LightDef
-func (l *LightDef) Ascii() string {
-	out := "LIGHTDEFINITION\n"
-	out += fmt.Sprintf("\tTAG \"%s\"\n", l.Tag)
+func (l *LightDef) Definition() string {
+	return "LIGHTDEFINITION"
+}
 
+func (l *LightDef) Write(w io.Writer) error {
+	fmt.Fprintf(w, "%s\n", l.Definition())
+	fmt.Fprintf(w, "\tTAG \"%s\"\n", l.Tag)
 	if l.Flags&0x01 != 0 {
-		out += fmt.Sprintf("\tCURRENT_FRAME \"%d\"\n", l.FrameCurrentRef)
+		fmt.Fprintf(w, "\tCURRENT_FRAME \"%d\"\n", l.FrameCurrentRef)
 	}
-	out += fmt.Sprintf("\tNUMFRAMES %d\n", len(l.LightLevels))
+	fmt.Fprintf(w, "\tNUMFRAMES %d\n", len(l.LightLevels))
 	if l.Flags&0x04 != 0 {
 		for _, level := range l.LightLevels {
-			out += fmt.Sprintf("\tLIGHTLEVELS %0.6f\n", level)
+			fmt.Fprintf(w, "\tLIGHTLEVELS %0.6f\n", level)
 		}
 	}
 	if l.Flags&0x02 != 0 {
-		out += fmt.Sprintf("\tSLEEP %d\n", l.Sleep)
+		fmt.Fprintf(w, "\tSLEEP %d\n", l.Sleep)
 	}
 	if l.Flags&0x08 != 0 {
-		out += "\tSKIPFRAMES ON\n"
+		fmt.Fprintf(w, "\tSKIPFRAMES ON\n")
 	}
 	if l.Flags&0x10 != 0 {
+		fmt.Fprintf(w, "\tNUMCOLORS %d\n", len(l.Colors))
 		for _, color := range l.Colors {
-			out += fmt.Sprintf("\tCOLOR %0.6f %0.6f %0.6f\n", color[0], color[1], color[2])
+			fmt.Fprintf(w, "\tCOLOR %0.6f %0.6f %0.6f\n", color[0], color[1], color[2])
 		}
 	}
-	out += "ENDLIGHTDEFINITION\n\n"
-	return out
+	fmt.Fprintf(w, "ENDLIGHTDEFINITION\n\n")
+	return nil
+}
+
+func (l *LightDef) Read(r *AsciiReadToken) error {
+	for {
+		line, err := r.ReadProperty(l.Definition())
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			return err
+		}
+		if line == "ENDLIGHTDEFINITION" {
+			break
+		}
+		if line == "" {
+			continue
+		}
+		switch {
+		case strings.HasPrefix(line, "TAG"):
+			line = strings.ReplaceAll(line, "\"", "")
+			_, err = fmt.Sscanf(line, "TAG %s", &l.Tag)
+			if err != nil {
+				return fmt.Errorf("tag: %w", err)
+			}
+		case strings.HasPrefix(line, "CURRENT_FRAME"):
+			_, err = fmt.Sscanf(line, "CURRENT_FRAME %d", &l.FrameCurrentRef)
+			if err != nil {
+				return fmt.Errorf("current frame: %w", err)
+			}
+		case strings.HasPrefix(line, "NUMFRAMES"):
+			var numFrames int
+			_, err = fmt.Sscanf(line, "NUMFRAMES %d", &numFrames)
+			if err != nil {
+				return fmt.Errorf("num frames: %w", err)
+			}
+			l.LightLevels = make([]float32, numFrames)
+			for i := 0; i < numFrames; i++ {
+				line, err = r.ReadProperty(l.Definition())
+				if err != nil {
+					return err
+				}
+				if !strings.HasPrefix(line, "LIGHTLEVELS") {
+					return fmt.Errorf("expected LIGHTLEVELS, got %s", line)
+				}
+				line = strings.TrimPrefix(line, "LIGHTLEVELS")
+				line = strings.TrimSpace(line)
+				level, err := strconv.ParseFloat(line, 32)
+				if err != nil {
+					return fmt.Errorf("light level: %w", err)
+				}
+				l.LightLevels[i] = float32(level)
+			}
+		case strings.HasPrefix(line, "SLEEP"):
+			_, err = fmt.Sscanf(line, "SLEEP %d", &l.Sleep)
+			if err != nil {
+				return fmt.Errorf("sleep: %w", err)
+			}
+		case strings.HasPrefix(line, "SKIPFRAMES"):
+			l.Flags |= 0x08
+		case strings.HasPrefix(line, "NUMCOLORS"):
+			var numColors int
+			_, err = fmt.Sscanf(line, "NUMCOLORS %d", &numColors)
+			if err != nil {
+				return fmt.Errorf("num colors: %w", err)
+			}
+			l.Colors = make([][3]float32, numColors)
+			for i := 0; i < numColors; i++ {
+				line, err = r.ReadProperty(l.Definition())
+				if err != nil {
+					return err
+				}
+				if !strings.HasPrefix(line, "COLOR") {
+					return fmt.Errorf("expected COLOR, got %s", line)
+				}
+				line = strings.TrimPrefix(line, "COLOR")
+				line = strings.TrimSpace(line)
+				records := strings.Split(line, " ")
+				if len(records) != 3 {
+					return fmt.Errorf("expected 3 records, got %d", len(records))
+				}
+				for j, record := range records {
+					color, err := strconv.ParseFloat(record, 32)
+					if err != nil {
+						return fmt.Errorf("color: %w", err)
+					}
+					l.Colors[i][j] = float32(color)
+				}
+			}
+		}
+	}
+	return nil
 }
 
 // PointLight is a declaration of POINTLIGHT
@@ -1032,18 +1346,70 @@ type PointLight struct {
 	Radius      float32    // RADIUSOFINFLUENCE %0.7f
 }
 
-// Ascii returns the ascii representation of a PointLight
-func (p *PointLight) Ascii() string {
-	out := "POINTLIGHT\n"
-	//out += fmt.Sprintf("\tTAG \"%s\"\n", p.Tag)
-	out += fmt.Sprintf("\tXYZ %0.6f %0.6f %0.6f\n", p.Location[0], p.Location[1], p.Location[2])
-	out += fmt.Sprintf("\tLIGHT \"%s\"\n", p.LightDefTag)
+func (p *PointLight) Definition() string {
+	return "POINTLIGHT"
+}
+
+func (p *PointLight) Write(w io.Writer) error {
+	fmt.Fprintf(w, "%s\n", p.Definition())
+	fmt.Fprintf(w, "\tTAG \"%s\"\n", p.Tag)
+	fmt.Fprintf(w, "\tXYZ %0.6f %0.6f %0.6f\n", p.Location[0], p.Location[1], p.Location[2])
+	fmt.Fprintf(w, "\tLIGHT \"%s\"\n", p.LightDefTag)
 	if p.Flags != 0 {
-		out += fmt.Sprintf("\t//TODO: FLAGS %d\n", p.Flags)
+		fmt.Fprintf(w, "\tFLAGS %d\n", p.Flags)
 	}
-	out += fmt.Sprintf("\tRADIUSOFINFLUENCE %0.7f\n", p.Radius)
-	out += "ENDPOINTLIGHT\n\n"
-	return out
+	fmt.Fprintf(w, "\tRADIUSOFINFLUENCE %0.7f\n", p.Radius)
+	fmt.Fprintf(w, "ENDPOINTLIGHT\n\n")
+	return nil
+}
+
+func (p *PointLight) Read(r *AsciiReadToken) error {
+	for {
+		line, err := r.ReadProperty(p.Definition())
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			return err
+		}
+		if line == "ENDPOINTLIGHT" {
+			break
+		}
+		if line == "" {
+			continue
+		}
+		switch {
+		case strings.HasPrefix(line, "TAG"):
+			line = strings.ReplaceAll(line, "\"", "")
+			_, err = fmt.Sscanf(line, "TAG %s", &p.Tag)
+			if err != nil {
+				return fmt.Errorf("tag: %w", err)
+			}
+		case strings.HasPrefix(line, "XYZ"):
+
+			_, err = fmt.Sscanf(line, "XYZ %f %f %f", &p.Location[0], &p.Location[1], &p.Location[2])
+			if err != nil {
+				return fmt.Errorf("location: %w", err)
+			}
+		case strings.HasPrefix(line, "LIGHT"):
+			line = strings.ReplaceAll(line, "\"", "")
+			_, err = fmt.Sscanf(line, "LIGHT %s", &p.LightDefTag)
+			if err != nil {
+				return fmt.Errorf("light tag: %w", err)
+			}
+		case strings.HasPrefix(line, "FLAGS"):
+			_, err = fmt.Sscanf(line, "FLAGS %d", &p.Flags)
+			if err != nil {
+				return fmt.Errorf("flags: %w", err)
+			}
+		case strings.HasPrefix(line, "RADIUSOFINFLUENCE"):
+			_, err = fmt.Sscanf(line, "RADIUSOFINFLUENCE %f", &p.Radius)
+			if err != nil {
+				return fmt.Errorf("radius: %w", err)
+			}
+		}
+	}
+	return nil
 }
 
 // Sprite3DDef is a declaration of SPRITE3DDEF
@@ -1055,18 +1421,21 @@ type Sprite3DDef struct {
 	BSPNodes []*BSPNode // BSPNODE
 }
 
-// Ascii returns the ascii representation of a Sprite3DDef
-func (s *Sprite3DDef) Ascii() string {
-	out := "3DSPRITEDEF\n"
-	out += fmt.Sprintf("\t3DSPRITETAG \"%s\"\n", s.Tag)
-	out += fmt.Sprintf("\tNUMVERTICES %d\n", len(s.Vertices))
+func (s *Sprite3DDef) Definition() string {
+	return "3DSPRITEDEF"
+}
+
+func (s *Sprite3DDef) Write(w io.Writer) error {
+	fmt.Fprintf(w, "%s\n", s.Definition())
+	fmt.Fprintf(w, "\t3DSPRITETAG \"%s\"\n", s.Tag)
+	fmt.Fprintf(w, "\tNUMVERTICES %d\n", len(s.Vertices))
 	for _, vert := range s.Vertices {
-		out += fmt.Sprintf("\tXYZ %0.7f %0.7f %0.7f\n", vert[0], vert[1], vert[2])
+		fmt.Fprintf(w, "\tXYZ %0.7f %0.7f %0.7f\n", vert[0], vert[1], vert[2])
 	}
-	out += fmt.Sprintf("\tNUMBSPNODES %d\n", len(s.BSPNodes))
+	fmt.Fprintf(w, "\tNUMBSPNODES %d\n", len(s.BSPNodes))
 	for i, node := range s.BSPNodes {
-		out += fmt.Sprintf("\tBSPNODE //%d\n", i+1)
-		out += fmt.Sprintf("\tNUMVERTICES %d\n", len(node.Vertices))
+		fmt.Fprintf(w, "\tBSPNODE //%d\n", i+1)
+		fmt.Fprintf(w, "\tNUMVERTICES %d\n", len(node.Vertices))
 		vertStr := ""
 		for _, vert := range node.Vertices {
 			vertStr += fmt.Sprintf("%d ", vert)
@@ -1074,21 +1443,155 @@ func (s *Sprite3DDef) Ascii() string {
 		if len(vertStr) > 0 {
 			vertStr = vertStr[:len(vertStr)-1]
 		}
-		out += fmt.Sprintf("\tVERTEXLIST %s\n", vertStr)
-		out += fmt.Sprintf("\tRENDERMETHOD %s\n", node.RenderMethod)
-		out += "\tRENDERINFO\n"
-		out += fmt.Sprintf("\t\tPEN %d\n", node.RenderPen)
-		out += "\tENDRENDERINFO\n"
+		fmt.Fprintf(w, "\tVERTEXLIST %s\n", vertStr)
+		fmt.Fprintf(w, "\tRENDERMETHOD %s\n", node.RenderMethod)
+		fmt.Fprintf(w, "\tRENDERINFO\n")
+		fmt.Fprintf(w, "\t\tPEN %d\n", node.RenderPen)
+		fmt.Fprintf(w, "\tENDRENDERINFO\n")
 		if node.FrontTree != 0 {
-			out += fmt.Sprintf("\tFRONTTREE %d\n", node.FrontTree)
+			fmt.Fprintf(w, "\tFRONTTREE %d\n", node.FrontTree)
 		}
 		if node.BackTree != 0 {
-			out += fmt.Sprintf("\tBACKTREE %d\n", node.BackTree)
+			fmt.Fprintf(w, "\tBACKTREE %d\n", node.BackTree)
 		}
-		out += "ENDBSPNODE\n"
+		fmt.Fprintf(w, "ENDBSPNODE\n")
 	}
-	out += "END3DSPRITEDEF\n\n"
-	return out
+	fmt.Fprintf(w, "END3DSPRITEDEF\n\n")
+	return nil
+}
+
+func (s *Sprite3DDef) Read(r *AsciiReadToken) error {
+	for {
+		line, err := r.ReadProperty(s.Definition())
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			return err
+		}
+		if line == "END3DSPRITEDEF" {
+			break
+		}
+		if line == "" {
+			continue
+		}
+		switch {
+		case strings.HasPrefix(line, "3DSPRITETAG"):
+			line = strings.ReplaceAll(line, "\"", "")
+			_, err = fmt.Sscanf(line, "3DSPRITETAG %s", &s.Tag)
+			if err != nil {
+				return fmt.Errorf("tag: %w", err)
+			}
+		case strings.HasPrefix(line, "NUMVERTICES"):
+			var numVertices int
+			_, err = fmt.Sscanf(line, "NUMVERTICES %d", &numVertices)
+			if err != nil {
+				return fmt.Errorf("num vertices: %w", err)
+			}
+			s.Vertices = make([][3]float32, numVertices)
+			for i := 0; i < numVertices; i++ {
+				line, err = r.ReadProperty(s.Definition())
+				if err != nil {
+					return err
+				}
+				if !strings.HasPrefix(line, "XYZ") {
+					return fmt.Errorf("expected XYZ, got %s", line)
+				}
+				line = strings.TrimPrefix(line, "XYZ")
+				line = strings.TrimSpace(line)
+				records := strings.Split(line, " ")
+				if len(records) != 3 {
+					return fmt.Errorf("expected 3 records, got %d", len(records))
+				}
+				for j, record := range records {
+					vert, err := strconv.ParseFloat(record, 32)
+					if err != nil {
+						return fmt.Errorf("vertex: %w", err)
+					}
+					s.Vertices[i][j] = float32(vert)
+				}
+			}
+		case strings.HasPrefix(line, "NUMBSPNODES"):
+			var numBSPNodes int
+			_, err = fmt.Sscanf(line, "NUMBSPNODES %d", &numBSPNodes)
+			if err != nil {
+				return fmt.Errorf("num bsp nodes: %w", err)
+			}
+
+			s.BSPNodes = make([]*BSPNode, numBSPNodes)
+			for i := 0; i < numBSPNodes; i++ {
+				node := &BSPNode{}
+				line, err = r.ReadProperty(s.Definition())
+				if err != nil {
+					return err
+				}
+				if !strings.HasPrefix(line, "BSPNODE") {
+					return fmt.Errorf("expected BSPNODE, got %s", line)
+				}
+				for {
+					line, err = r.ReadProperty(s.Definition())
+					if err != nil {
+						return err
+					}
+					if strings.HasPrefix(line, "ENDBSPNODE") {
+						break
+					}
+					if strings.HasPrefix(line, "NUMVERTICES") {
+						var numVertices int
+						_, err = fmt.Sscanf(line, "NUMVERTICES %d", &numVertices)
+						if err != nil {
+							return fmt.Errorf("num vertices: %w", err)
+						}
+						node.Vertices = make([]uint32, numVertices)
+						for j := 0; j < numVertices; j++ {
+							line, err = r.ReadProperty(s.Definition())
+							if err != nil {
+								return err
+							}
+							if !strings.HasPrefix(line, "VERTEXLIST") {
+								return fmt.Errorf("expected VERTEXLIST, got %s", line)
+							}
+							line = strings.TrimPrefix(line, "VERTEXLIST")
+							line = strings.TrimSpace(line)
+							records := strings.Split(line, " ")
+							val, err := strconv.ParseUint(records[0], 10, 32)
+							node.Vertices[j] = uint32(val)
+							if err != nil {
+								return fmt.Errorf("vertex list: %w", err)
+							}
+						}
+					} else if strings.HasPrefix(line, "RENDERMETHOD") {
+						line = strings.TrimPrefix(line, "RENDERMETHOD")
+						line = strings.TrimSpace(line)
+						node.RenderMethod = line
+					} else if strings.HasPrefix(line, "RENDERINFO") {
+						for {
+							line, err = r.ReadProperty(s.Definition())
+							if err != nil {
+								return err
+							}
+							if strings.HasPrefix(line, "ENDRENDERINFO") {
+								break
+							}
+							if strings.HasPrefix(line, "PEN") {
+								_, err = fmt.Sscanf(line, "PEN %d", &node.RenderPen)
+								if err != nil {
+									return fmt.Errorf("pen: %w", err)
+								}
+							}
+						}
+					} else if strings.HasPrefix(line, "FRONTTREE") {
+						_, err = fmt.Sscanf(line, "FRONTTREE %d", &node.FrontTree)
+						if err != nil {
+							return fmt.Errorf("front tree: %w", err)
+						}
+					}
+				}
+				s.BSPNodes[i] = node
+			}
+		}
+	}
+	return nil
 }
 
 // BSPNode is a declaration of BSPNODE
@@ -1503,9 +2006,9 @@ func (t *TrackDef) Write(w io.Writer) error {
 	fmt.Fprintf(w, "%s\n", t.Definition())
 	fmt.Fprintf(w, "\tTAG \"%s\"\n", t.Tag)
 	fmt.Fprintf(w, "\tNUMFRAMES %d\n", t.numFrames)
-	//for _, frame := range t.FrameTransform {
-	//	fmt.Fprintf(w, "\tFRAMETRANSFORM %0.7f %d %d %d %0.7f %0.7f %0.7f\n", frame)
-	//}
+	for _, frame := range t.FrameTransform {
+		fmt.Fprintf(w, "\tFRAMETRANSFORM %0.7f %d %d %d %0.7f %0.7f %0.7f\n", frame.LocDenom, frame.Rotation[0], frame.Rotation[1], frame.Rotation[2], frame.Position[0], frame.Position[1], frame.Position[2])
+	}
 	fmt.Fprintf(w, "ENDTRACKDEFINITION\n\n")
 	return nil
 }
@@ -1643,18 +2146,25 @@ func (h *HierarchicalSpriteDef) Write(w io.Writer) error {
 			for _, subDag := range dag.SubDags {
 				fmt.Fprintf(w, " %d", subDag)
 			}
+			fmt.Fprintf(w, "\n")
 		}
 		fmt.Fprintf(w, "\tENDDAG // %d\n", i+1)
+	}
+	if len(h.Dags) > 0 {
+		fmt.Fprintf(w, "\n")
 	}
 	if len(h.AttachedSkins) > 0 {
 		fmt.Fprintf(w, "\tNUMATTACHEDSKINS %d\n", len(h.AttachedSkins))
 		for _, skin := range h.AttachedSkins {
 			fmt.Fprintf(w, "\tDMSPRITE \"%s\"\n", skin.Tag)
-			fmt.Fprintf(w, "\tLINKSKINUPDATES %d\n", skin.LinkSkinUpdatesToDagIndex)
+			fmt.Fprintf(w, "\tLINKSKINUPDATESTODAGINDEX %d\n", skin.LinkSkinUpdatesToDagIndex)
 		}
+		fmt.Fprintf(w, "\n")
 	}
 
-	fmt.Fprintf(w, "\tCENTEROFFSET %0.7f %0.7f %0.7f\n", h.CenterOffset[0], h.CenterOffset[1], h.CenterOffset[2])
+	// TODO: DAGCOLLISIONS? a flag?
+
+	fmt.Fprintf(w, "\tCENTEROFFSET %0.1f %0.1f %0.1f\n", h.CenterOffset[0], h.CenterOffset[1], h.CenterOffset[2])
 	fmt.Fprintf(w, "\tBOUNDINGRADIUS %0.7f\n", h.BoundingRadius)
 
 	fmt.Fprintf(w, "ENDHIERARCHICALSPRITEDEF\n\n")
@@ -1789,7 +2299,7 @@ func (h *HierarchicalSpriteDef) Read(r *AsciiReadToken) error {
 				line = strings.TrimPrefix(line, "DMSPRITE")
 				line = strings.ReplaceAll(line, "\"", "")
 				line = strings.TrimSpace(line)
-				h.AttachedSkins[i].Tag = line
+				skin.Tag = line
 				h.AttachedSkins[i] = skin
 				line, err = r.ReadProperty(h.Definition())
 				if err != nil {

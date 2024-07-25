@@ -241,17 +241,12 @@ func TestVWldAsciiWrite(t *testing.T) {
 				t.Fatalf("failed to convert %s: %s", baseName, err.Error())
 			}
 
-			buf := bytes.NewBuffer(nil)
-			err = vwld.WriteAscii(buf)
+			vwld.FileName = baseName + ".dst.wld"
+
+			err = vwld.WriteAscii(dirTest, true)
 			if err != nil {
 				t.Fatalf("failed to write %s: %s", baseName, err.Error())
 			}
-
-			err = os.WriteFile(fmt.Sprintf("%s/%s.dst.wld", dirTest, baseName), buf.Bytes(), 0644)
-			if err != nil {
-				t.Fatalf("failed to write wld %s: %s", baseName, err.Error())
-			}
-
 		})
 	}
 }

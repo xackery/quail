@@ -3,9 +3,14 @@ package wld
 import (
 	"fmt"
 	"io"
+	"os"
+	"path/filepath"
+	"strings"
+
+	"github.com/xackery/quail/common"
 )
 
-func (wld *Wld) WriteAscii(w io.Writer) error {
+func (wld *Wld) WriteAscii(path string, isDir bool) error {
 	var err error
 	wld.mu.Lock()
 
@@ -16,20 +21,146 @@ func (wld *Wld) WriteAscii(w io.Writer) error {
 	}()
 	//var err error
 
+	err = os.MkdirAll(path, os.ModePerm)
+	if err != nil {
+		return fmt.Errorf("mkdir: %w", err)
+	}
+
+	baseName := wld.FileName
+	ext := filepath.Ext(wld.FileName)
+	if ext != "" {
+		baseName = baseName[:len(baseName)-len(ext)]
+	}
+
+	spkPath := path + "/" + baseName + ".spk"
+	if !isDir {
+		spkPath = path + "/" + wld.FileName
+	}
+
+	var w *os.File
+	spkBuf, err := os.Create(spkPath)
+	if err != nil {
+		return err
+	}
+	defer spkBuf.Close()
+	writeHeader(spkBuf)
+
+	w = spkBuf
+	for i := 0; i < len(wld.SimpleSpriteDefs); i++ {
+		spriteDef := wld.SimpleSpriteDefs[i]
+		if isDir {
+			if len(spriteDef.Tag) < 1 {
+				return fmt.Errorf("sprite def %d has no tag", i)
+			}
+
+			fileName := strings.ToLower(spriteDef.Tag)
+			index := strings.LastIndex(fileName, "_")
+			if index > 0 {
+				fileName = fileName[:index]
+			}
+
+			spsBuf, err := os.Create(path + "/" + fileName + ".sps")
+			if err != nil {
+				return err
+			}
+			defer spsBuf.Close()
+			writeHeader(spsBuf)
+			w = spsBuf
+		}
+		err = spriteDef.Write(w)
+		if err != nil {
+			return fmt.Errorf("sprite def %s: %w", spriteDef.Tag, err)
+		}
+	}
+
+	isIncluded := false
+	for i := 0; i < len(wld.MaterialDefs); i++ {
+		material := wld.MaterialDefs[i]
+		if isDir {
+			if len(material.Tag) < 1 {
+				return fmt.Errorf("material %d has no tag", i)
+			}
+
+			fileName := strings.ToLower(material.Tag)
+			index := strings.LastIndex(fileName, "_")
+			if index > 0 {
+				fileName = fileName[:index]
+			}
+
+			mdfBuf, err := os.Create(path + "/" + fileName + ".mdf")
+			if err != nil {
+				return err
+			}
+			defer mdfBuf.Close()
+			writeHeader(mdfBuf)
+
+			w = mdfBuf
+			fmt.Fprintf(w, "INCLUDE \"%s\"\n\n", strings.ToUpper(fileName+".SPS"))
+
+			fmt.Fprintf(spkBuf, "INCLUDE \"%s\"\n", strings.ToUpper(fileName+".MDF"))
+			isIncluded = true
+		}
+		err = material.Write(w)
+		if err != nil {
+			return fmt.Errorf("material %s: %w", material.Tag, err)
+		}
+	}
+	if isDir && isIncluded {
+		fmt.Fprintf(spkBuf, "\n")
+	}
+
+	w = spkBuf
+
+	for i := 0; i < len(wld.MaterialPalettes); i++ {
+		palette := wld.MaterialPalettes[i]
+		err = palette.Write(w)
+		if err != nil {
+			return fmt.Errorf("palette %s: %w", palette.Tag, err)
+		}
+	}
+
+	for i := 0; i < len(wld.PolyhedronDefs); i++ {
+		polyhedron := wld.PolyhedronDefs[i]
+		err = polyhedron.Write(w)
+		if err != nil {
+			return fmt.Errorf("polyhedron %s: %w", polyhedron.Tag, err)
+		}
+	}
+
 	for i := 0; i < len(wld.DMSpriteDef2s); i++ {
 		dmSprite := wld.DMSpriteDef2s[i]
-		err = wld.writePalette(w, dmSprite.MaterialPaletteTag)
+		err = dmSprite.Write(w)
 		if err != nil {
-			return fmt.Errorf("palette %s: %w", dmSprite.MaterialPaletteTag, err)
+			return fmt.Errorf("dm sprite def %s: %w", dmSprite.Tag, err)
 		}
-		_, err = w.Write([]byte(dmSprite.Ascii()))
+	}
+
+	for i := 0; i < len(wld.TrackDefs); i++ {
+		trackDef := wld.TrackDefs[i]
+		err = trackDef.Write(w)
 		if err != nil {
-			return err
+			return fmt.Errorf("track def %s: %w", trackDef.Tag, err)
+		}
+		if len(wld.TrackInstances) > i {
+			trackInst := wld.TrackInstances[i]
+			err = trackInst.Write(w)
+			if err != nil {
+				return fmt.Errorf("track inst %s: %w", trackInst.Tag, err)
+			}
+		}
+	}
+
+	for i := 0; i < len(wld.HierarchicalSpriteDefs); i++ {
+		hierarchicalSprite := wld.HierarchicalSpriteDefs[i]
+		err = hierarchicalSprite.Write(w)
+		if err != nil {
+			return fmt.Errorf("hierarchical sprite def %s: %w", hierarchicalSprite.Tag, err)
 		}
 	}
 
 	for i := 0; i < len(wld.ActorDefs); i++ {
 		actorDef := wld.ActorDefs[i]
+
 		err = wld.writeActorDef(w, actorDef.Tag)
 		if err != nil {
 			return fmt.Errorf("actor def %s: %w", actorDef.Tag, err)
@@ -78,12 +209,12 @@ func (wld *Wld) writePalette(w io.Writer, tag string) error {
 		if palette.Tag != tag {
 			continue
 		}
-		for _, materialTag := range palette.Materials {
+		/* for _, materialTag := range palette.Materials {
 			err = wld.writeMaterial(w, materialTag)
 			if err != nil {
 				return fmt.Errorf("material %s: %w", materialTag, err)
 			}
-		}
+		} */
 		err = palette.Write(w)
 		if err != nil {
 			return fmt.Errorf("palette %s: %w", palette.Tag, err)
@@ -113,7 +244,7 @@ func (wld *Wld) writeMaterial(w io.Writer, tag string) error {
 		if err != nil {
 			return fmt.Errorf("sprite def %s: %w", material.SimpleSpriteInstTag, err)
 		}
-		_, err = w.Write([]byte(material.Ascii()))
+		err = material.Write(w)
 		if err != nil {
 			return err
 		}
@@ -138,7 +269,7 @@ func (wld *Wld) writeSpriteDef(w io.Writer, tag string) error {
 		if spriteDef.Tag != tag {
 			continue
 		}
-		_, err = w.Write([]byte(spriteDef.Ascii()))
+		err = spriteDef.Write(w)
 		if err != nil {
 			return err
 		}
@@ -164,7 +295,7 @@ func (wld *Wld) writeActorDef(w io.Writer, tag string) error {
 		if actorDef.Tag != tag {
 			continue
 		}
-		_, err = w.Write([]byte(actorDef.Ascii()))
+		err = actorDef.Write(w)
 		if err != nil {
 			return err
 		}
@@ -190,7 +321,7 @@ func (wld *Wld) writeActorInst(w io.Writer, tag string) error {
 		if actorInst.Tag != tag {
 			continue
 		}
-		_, err = w.Write([]byte(actorInst.Ascii()))
+		err = actorInst.Write(w)
 		if err != nil {
 			return err
 		}
@@ -216,7 +347,7 @@ func (wld *Wld) writeLightDef(w io.Writer, tag string) error {
 		if lightDef.Tag != tag {
 			continue
 		}
-		_, err = w.Write([]byte(lightDef.Ascii()))
+		err = lightDef.Write(w)
 		if err != nil {
 			return err
 		}
@@ -249,7 +380,7 @@ func (wld *Wld) writePointLight(w io.Writer, tag string) error {
 			}
 		}
 
-		_, err = w.Write([]byte(pointLight.Ascii()))
+		err = pointLight.Write(w)
 		if err != nil {
 			return err
 		}
@@ -275,7 +406,7 @@ func (wld *Wld) writeSprite3DDef(w io.Writer, tag string) error {
 		if sprite3DDef.Tag != tag {
 			continue
 		}
-		_, err = w.Write([]byte(sprite3DDef.Ascii()))
+		err = sprite3DDef.Write(w)
 		if err != nil {
 			return err
 		}
@@ -285,4 +416,9 @@ func (wld *Wld) writeSprite3DDef(w io.Writer, tag string) error {
 	}
 
 	return fmt.Errorf("not found")
+}
+
+func writeHeader(w io.Writer) {
+	fmt.Fprintf(w, "// wcemu %s\n", AsciiVersion)
+	fmt.Fprintf(w, "// This file was created by quail v%s\n\n", common.Version)
 }
