@@ -65,26 +65,11 @@ func runWadE(cmd *cobra.Command, args []string) error {
 
 	q := quail.New()
 
-	if srcExt == ".quail" {
-		err = q.DirRead(srcPath)
-		if err != nil {
-			return fmt.Errorf("dir read: %w", err)
-		}
-	} else {
-		err = q.PfsRead(srcPath)
-		if err != nil {
-			return fmt.Errorf("pfs read: %w", err)
-		}
+	err = q.PfsRead(srcPath)
+	if err != nil {
+		return fmt.Errorf("pfs read: %w", err)
 	}
 
-	dstExt := filepath.Ext(dstPath)
-	if dstExt == ".quail" {
-		err = q.DirWrite(dstPath)
-		if err != nil {
-			return fmt.Errorf("dir write: %w", err)
-		}
-		return nil
-	}
 	err = q.PfsWrite(1, 1, dstPath)
 	if err != nil {
 		return fmt.Errorf("pfs write: %w", err)

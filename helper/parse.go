@@ -3,109 +3,127 @@ package helper
 import "strconv"
 
 // ParseInt parses an int from a string, returning fallback if it fails
-func ParseInt(s string, fallback int) int {
+func ParseInt(s string) (int, error) {
 	val, err := strconv.Atoi(s)
 	if err != nil {
-		return fallback
+		return 0, err
 	}
-	return val
+	return val, nil
 }
 
 // ParseFloat parses a float from a string, returning fallback if it fails
-func ParseFloat(s string, fallback float64) float64 {
+func ParseFloat(s string) (float64, error) {
 	val, err := strconv.ParseFloat(s, 64)
 	if err != nil {
-		return fallback
+		return 0, err
 	}
-	return val
+	return val, nil
 }
 
 // ParseBool parses a bool from a string, returning fallback if it fails
-func ParseBool(s string, fallback bool) bool {
+func ParseBool(s string) (bool, error) {
 	val, err := strconv.ParseBool(s)
 	if err != nil {
-		return fallback
+		return false, err
 	}
-	return val
+	return val, nil
 }
 
 // ParseUint parses a uint from a string, returning fallback if it fails
-func ParseUint(s string, fallback uint) uint {
+func ParseUint(s string) (uint, error) {
 	val, err := strconv.ParseUint(s, 10, 64)
 	if err != nil {
-		return fallback
+		return 0, err
 	}
-	return uint(val)
+	return uint(val), nil
+}
+
+// ParseInt16 parses a int16 from a string, returning fallback if it fails
+func ParseInt16(s string) (int16, error) {
+	val, err := strconv.ParseInt(s, 10, 16)
+	if err != nil {
+		return 0, err
+	}
+	return int16(val), nil
 }
 
 // ParseInt32 parses a int32 from a string, returning fallback if it fails
-func ParseInt32(s string, fallback int32) int32 {
+func ParseInt32(s string) (int32, error) {
 	val, err := strconv.ParseInt(s, 10, 32)
 	if err != nil {
-		return fallback
+		return 0, err
 	}
-	return int32(val)
+	return int32(val), nil
 }
 
 // ParseInt64 parses a int64 from a string, returning fallback if it fails
-func ParseInt64(s string, fallback int64) int64 {
+func ParseInt64(s string) (int64, error) {
 	val, err := strconv.ParseInt(s, 10, 64)
 	if err != nil {
-		return fallback
+		return 0, err
 	}
-	return val
+	return val, nil
+}
+
+// ParseUint16 parses a uint16 from a string, returning fallback if it fails
+func ParseUint16(s string) (uint16, error) {
+	val, err := strconv.ParseUint(s, 10, 16)
+	if err != nil {
+		return 0, err
+	}
+	return uint16(val), nil
 }
 
 // ParseUint32 parses a uint32 from a string, returning fallback if it fails
-func ParseUint32(s string, fallback uint32) uint32 {
+func ParseUint32(s string) (uint32, error) {
 	val, err := strconv.ParseUint(s, 10, 32)
 	if err != nil {
-		return fallback
+		return 0, err
 	}
-	return uint32(val)
+	return uint32(val), nil
 }
 
 // ParseUint64 parses a uint64 from a string, returning fallback if it fails
-func ParseUint64(s string, fallback uint64) uint64 {
+func ParseUint64(s string) (uint64, error) {
 	val, err := strconv.ParseUint(s, 10, 64)
 	if err != nil {
-		return fallback
+		return 0, err
 	}
-	return val
+	return val, nil
 }
 
 // ParseFloat32 parses a float32 from a string, returning fallback if it fails
-func ParseFloat32(s string, fallback float32) float32 {
+func ParseFloat32(s string) (float32, error) {
 	val, err := strconv.ParseFloat(s, 32)
 	if err != nil {
-		return fallback
+		return 0, err
 	}
-	return float32(val)
+	return float32(val), nil
 }
 
 // ParseFloat64 parses a float64 from a string, returning fallback if it fails
-func ParseFloat64(s string, fallback float64) float64 {
+func ParseFloat64(s string) (float64, error) {
 	val, err := strconv.ParseFloat(s, 64)
 	if err != nil {
-		return fallback
+		return 0, err
 	}
-	return val
+	return val, nil
 }
 
 // ParseInt8 parses a int8 from a string, returning fallback if it fails
-func ParseInt8(s string, fallback int8) int8 {
+func ParseInt8(s string) (int8, error) {
 	val, err := strconv.ParseInt(s, 10, 8)
 	if err != nil {
-		return fallback
+		return 0, err
 	}
-	return int8(val)
+	return int8(val), nil
 }
 
 // ParseUint8 parses a uint8 from a string, returning fallback if it fails
-func ParseUint8(s string, fallback uint8) uint8 {
+func ParseUint8(s string) (uint8, error) {
 	val, err := strconv.ParseUint(s, 10, 8)
 	if err != nil {
-		return fallback
+		return 0, err
 	}
-	return uint8(val)
+	return uint8(val), nil
 }

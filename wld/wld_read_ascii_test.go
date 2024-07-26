@@ -62,7 +62,8 @@ func TestAsciiReadWriteRead(t *testing.T) {
 		}{
 			//{"all/all.spk", false},
 			//{"fis/fis.spk", false},
-			{"pre/pre.spk", false},
+			//{"pre/pre.spk", false},
+			{"akheva.wld", false},
 		}
 	}
 	for _, tt := range tests {
@@ -79,6 +80,11 @@ func TestAsciiReadWriteRead(t *testing.T) {
 			err = wld.WriteAscii("testdata/temp/", true)
 			if err != nil {
 				t.Fatalf("Failed writeascii: %s", err.Error())
+			}
+
+			ext := filepath.Ext(wld.FileName)
+			if ext == ".wld" {
+				wld.FileName = wld.FileName[:len(wld.FileName)-len(ext)] + ".spk"
 			}
 
 			wld2 := &Wld{}

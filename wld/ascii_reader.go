@@ -7,6 +7,8 @@ import (
 	"path/filepath"
 	"strings"
 	"unicode"
+
+	"github.com/xackery/quail/helper"
 )
 
 type AsciiReader interface {
@@ -17,13 +19,11 @@ type AsciiReader interface {
 }
 
 type AsciiReadToken struct {
-	basePath               string
-	lineNumber             int
-	lastPropertyLineNumber int
-	lastProperty           string
-	reader                 io.Reader
-	wld                    *Wld
-	totalLineCount         int // will be higher than lineNumber due to includes
+	basePath       string
+	lineNumber     int
+	reader         io.Reader
+	wld            *Wld
+	totalLineCount int // will be higher than lineNumber due to includes
 }
 
 // LoadAsciiFile returns a new AsciiReader that reads from r.
@@ -85,115 +85,52 @@ func (a *AsciiReadToken) Read(p []byte) (n int, err error) {
 	return
 }
 
-// ReadProperty reads the property of the definition.
-func (a *AsciiReadToken) ReadProperty(definition string) (string, error) {
-	properties := map[string][]string{
-		"DMSPRITEDEF2":          {"TAG", "FLAGS", "CENTEROFFSET", "NUMVERTICES", "NUMUVS", "XYZ", "UV", "DMFACE2", "ENDDMFACE2", "TRIANGLE", "NUMVERTEXNORMALS", "SKINASSIGNMENTGROUPS", "POLYHEDRON", "DEFINITION", "ENDPOLYHEDRON", "MATERIALPALETTE", "NUMFACE2S", "NUMMESHOPS", "MESHOP_FA", "MESHOP_VA", "MESHOP_SW", "MESHOP_EL", "FACEMATERIALGROUPS", "VERTEXMATERIALGROUPS", "BOUNDINGRADIUS", "FPSCALE", "ENDDMSPRITEDEF2"},
-		"INCLUDE":               {"FILENAME"},
-		"MATERIALPALETTE":       {"TAG", "NUMMATERIALS", "ENDMATERIALPALETTE", "MATERIAL"},
-		"POLYHEDRONDEFINITION":  {"TAG", "BOUNDINGRADIUS", "SCALEFACTOR", "NUMVERTICES", "XYZ", "NUMFACES", "VERTEXLIST", "FACE", "ENDFACE", "ENDPOLYHEDRONDEFINITION"},
-		"TRACKINSTANCE":         {"TAG", "DEFINITION", "INTERPOLATE", "SLEEP", "ENDTRACKINSTANCE"},
-		"TRACKDEFINITION":       {"TAG", "NUMFRAMES", "FRAMETRANSFORM", "ENDTRACKDEFINITION"},
-		"SIMPLESPRITEDEF":       {"SIMPLESPRITETAG", "NUMFRAMES", "BMINFO", "ENDSIMPLESPRITEDEF"},
-		"MATERIALDEFINITION":    {"TAG", "RENDERMETHOD", "RGBPEN", "BRIGHTNESS", "SCALEDAMBIENT", "SIMPLESPRITEINST", "ENDSIMPLESPRITEINST", "ENDMATERIALDEFINITION"},
-		"HIERARCHICALSPRITEDEF": {"TAG", "DAG", "NUMDAGS", "NUMSUBDAGS", "ENDDAG", "NULLSPRITE", "TRACK", "SUBDAGLIST", "NUMATTACHEDSKINS", "DMSPRITE", "LINKSKINUPDATESTODAGINDEX", "CENTEROFFSET", "BOUNDINGRADIUS", "ENDHIERARCHICALSPRITEDEF"},
-	}
-	endMarkers := map[string]string{
-		"DMSPRITEDEF2":          "ENDDMSPRITEDEF2",
-		"INCLUDE":               "",
-		"MATERIALPALETTE":       "ENDMATERIALPALETTE",
-		"POLYHEDRONDEFINITION":  "ENDPOLYHEDRONDEFINITION",
-		"TRACKINSTANCE":         "ENDTRACKINSTANCE",
-		"TRACKDEFINITION":       "ENDTRACKDEFINITION",
-		"SIMPLESPRITEDEF":       "ENDSIMPLESPRITEDEF",
-		"MATERIALDEFINITION":    "ENDMATERIALDEFINITION",
-		"HIERARCHICALSPRITEDEF": "ENDHIERARCHICALSPRITEDEF",
-	}
-
-	if definition == "" {
-		return "", fmt.Errorf("definition: empty")
-	}
-	if _, ok := properties[definition]; !ok {
-		return "", fmt.Errorf("definition %s: unknown", definition)
-	}
+func (a *AsciiReadToken) ReadProperty(name string) ([]string, error) {
 	property := ""
-	endMark := endMarkers[definition]
-	if a.lastProperty != "" {
-		property = a.lastProperty
-		a.lastProperty = ""
-		if strings.HasPrefix(strings.TrimSpace(property), endMark) {
-			//fmt.Printf("Property %d: %s\n", a.lineNumber+1, property)
-			return strings.TrimSpace(property), nil
-		}
-	}
+	args := []string{}
 	for {
 		buf := make([]byte, 1)
 		_, err := a.Read(buf)
 		if err != nil {
-			if property == "" {
-				return "", err
-			}
-			tmpProperty := strings.TrimSpace(property)
-			index := strings.Index(tmpProperty, " ")
-			if index > 0 {
-				tmpProperty = tmpProperty[:index]
-			}
-			return property, fmt.Errorf("%s line %d: %w", tmpProperty, a.lastPropertyLineNumber, err)
-		}
-		if buf[0] == '\n' {
-			continue
+			return args, err
 		}
 		if buf[0] == '/' {
 			_, err = a.Read(buf)
 			if err != nil {
-				return property, fmt.Errorf("read comment: %w", err)
+				return args, fmt.Errorf("read comment: %w", err)
 			}
 			if buf[0] != '/' {
-				return property, fmt.Errorf("comment: expected second slash")
+				property += "/"
+				continue
 			}
 			err = a.readComment()
 			if err != nil {
-				return property, fmt.Errorf("read comment: %w", err)
+				return args, fmt.Errorf("read comment: %w", err)
 			}
 			continue
 		}
-		property += string(buf)
-		nextProperty := ""
-		propertyUpper := strings.ToUpper(property)
-		isComplete := false
-		for _, propName := range properties[definition] {
-			if strings.HasSuffix(propertyUpper, "\t"+propName) {
-				isComplete = true
-				nextProperty = propName
-				break
-			}
-			if strings.HasPrefix(propName, endMark) && strings.HasSuffix(propertyUpper, propName) {
-				isComplete = true
-				nextProperty = propName
-				break
-			}
-		}
-		if !isComplete {
+		if buf[0] == '"' {
 			continue
 		}
-
-		property = strings.TrimSuffix(property, nextProperty)
-		if property == "" {
-			property = nextProperty
+		if buf[0] == '\t' {
+			buf[0] = ' '
+		}
+		if buf[0] == '\n' {
+			if len(property) == 0 {
+				continue
+			}
+			args = strings.Split(property, " ")
+			if len(args) > 0 && name != "" {
+				if args[0] != name {
+					return args, fmt.Errorf("expected %s, got %s", name, args[0])
+				}
+			}
+			return args, nil
+		}
+		if len(property) > 1 && property[len(property)-1] == ' ' && buf[0] == ' ' {
 			continue
 		}
-		a.lastProperty = nextProperty + " "
-		out := property
-		out = strings.ReplaceAll(out, "\t", "")
-		out = strings.ReplaceAll(out, "\r", "")
-		out = strings.TrimSpace(out)
-		if definition == "HIERARCHICALSPRITEDEF" &&
-			out == "DAG COLLISIONS" {
-			out = "DAGCOLLISIONS"
-		}
-		//fmt.Printf("Property %d: %s\n", a.lineNumber, out)
-		a.lastPropertyLineNumber = a.lineNumber
-		return out, nil
+		property += strings.ToUpper(string(buf))
 	}
 }
 
@@ -207,14 +144,22 @@ func (a *AsciiReadToken) readDefinitions() error {
 		Read(r *AsciiReadToken) error
 	}
 	definitions := []definitionReader{
+		&ActorDef{},
+		&ActorInst{},
+		&AmbientLight{},
 		&DMSpriteDef2{},
 		&HierarchicalSpriteDef{},
+		&LightDef{},
 		&MaterialDef{},
 		&MaterialPalette{},
 		&PolyhedronDefinition{},
+		&Region{},
 		&SimpleSpriteDef{},
+		&Sprite3DDef{},
 		&TrackDef{},
 		&TrackInstance{},
+		&WorldTree{},
+		&Zone{},
 	}
 
 	definition := ""
@@ -233,25 +178,26 @@ func (a *AsciiReadToken) readDefinitions() error {
 			}
 			continue
 		}
+
 		if buf[0] == '/' {
 			_, err = a.Read(buf)
 			if err != nil {
 				return fmt.Errorf("read comment: %w", err)
 			}
-			if buf[0] != '/' {
-				return fmt.Errorf("comment: expected second slash")
+			if buf[0] == '/' {
+				err = a.readComment()
+				if err != nil {
+					return fmt.Errorf("read comment: %w", err)
+				}
+				continue
 			}
-			err = a.readComment()
-			if err != nil {
-				return fmt.Errorf("read comment: %w", err)
-			}
-			continue
 		}
 
 		// check if buf[0] is a letter
 		if !unicode.IsLetter(rune(buf[0])) && !unicode.IsNumber(rune(buf[0])) {
 			continue
 		}
+
 		definition += strings.ToUpper(string(buf))
 		if strings.HasPrefix(definition, "INCLUDE") {
 			err = a.readInclude()
@@ -261,48 +207,111 @@ func (a *AsciiReadToken) readDefinitions() error {
 			definition = ""
 			continue
 		}
+		if strings.HasPrefix(definition, "NUMREGIONS") {
+			err = a.readRegions()
+			if err != nil {
+				return fmt.Errorf("regions: %w", err)
+			}
+
+			definition = ""
+			continue
+		}
+		if strings.HasSuffix(definition, "CPIWORLD") {
+			// read to newline
+			for {
+				_, err = a.Read(buf)
+				if err != nil {
+					return fmt.Errorf("read cpiworld: %w", err)
+				}
+				if buf[0] == '\n' {
+					break
+				}
+			}
+			definition = ""
+			continue
+		}
+		if strings.HasSuffix(definition, "ENDWORLD") {
+			// read to newline
+			for {
+				_, err = a.Read(buf)
+				if err != nil {
+					return fmt.Errorf("read endworld: %w", err)
+				}
+				if buf[0] == '\n' {
+					break
+				}
+			}
+			definition = ""
+			continue
+		}
 
 		for i := 0; i < len(definitions); i++ {
 			defName := definitions[i].Definition()
 			defRead := definitions[i].Read
-			if strings.HasPrefix(definition, defName) {
-				if defName != definition {
-					continue
-				}
-				definition = ""
-				err = defRead(a)
-				if err != nil {
-					return fmt.Errorf("%s: %w", defName, err)
-				}
-				switch (definitions[i]).(type) {
-				case *DMSpriteDef2:
-					a.wld.DMSpriteDef2s = append(a.wld.DMSpriteDef2s, definitions[i].(*DMSpriteDef2))
-					definitions[i] = &DMSpriteDef2{}
-				case *HierarchicalSpriteDef:
-					a.wld.HierarchicalSpriteDefs = append(a.wld.HierarchicalSpriteDefs, definitions[i].(*HierarchicalSpriteDef))
-					definitions[i] = &HierarchicalSpriteDef{}
-				case *MaterialDef:
-					a.wld.MaterialDefs = append(a.wld.MaterialDefs, definitions[i].(*MaterialDef))
-					definitions[i] = &MaterialDef{}
-				case *MaterialPalette:
-					a.wld.MaterialPalettes = append(a.wld.MaterialPalettes, definitions[i].(*MaterialPalette))
-					definitions[i] = &MaterialPalette{}
-				case *PolyhedronDefinition:
-					a.wld.PolyhedronDefs = append(a.wld.PolyhedronDefs, definitions[i].(*PolyhedronDefinition))
-					definitions[i] = &PolyhedronDefinition{}
-				case *SimpleSpriteDef:
-					a.wld.SimpleSpriteDefs = append(a.wld.SimpleSpriteDefs, definitions[i].(*SimpleSpriteDef))
-					definitions[i] = &SimpleSpriteDef{}
-				case *TrackDef:
-					a.wld.TrackDefs = append(a.wld.TrackDefs, definitions[i].(*TrackDef))
-					definitions[i] = &TrackDef{}
-				case *TrackInstance:
-					a.wld.TrackInstances = append(a.wld.TrackInstances, definitions[i].(*TrackInstance))
-					definitions[i] = &TrackInstance{}
-				}
-
-				break
+			if !strings.HasPrefix(definition, defName) {
+				continue
 			}
+			if defName != definition {
+				continue
+			}
+			definition = ""
+			err = defRead(a)
+			if err != nil {
+				return fmt.Errorf("%s: %w", defName, err)
+			}
+			switch (definitions[i]).(type) {
+			case *DMSpriteDef2:
+				a.wld.DMSpriteDef2s = append(a.wld.DMSpriteDef2s, definitions[i].(*DMSpriteDef2))
+				definitions[i] = &DMSpriteDef2{}
+			case *HierarchicalSpriteDef:
+				a.wld.HierarchicalSpriteDefs = append(a.wld.HierarchicalSpriteDefs, definitions[i].(*HierarchicalSpriteDef))
+				definitions[i] = &HierarchicalSpriteDef{}
+			case *MaterialDef:
+				a.wld.MaterialDefs = append(a.wld.MaterialDefs, definitions[i].(*MaterialDef))
+				definitions[i] = &MaterialDef{}
+			case *MaterialPalette:
+				a.wld.MaterialPalettes = append(a.wld.MaterialPalettes, definitions[i].(*MaterialPalette))
+				definitions[i] = &MaterialPalette{}
+			case *PolyhedronDefinition:
+				a.wld.PolyhedronDefs = append(a.wld.PolyhedronDefs, definitions[i].(*PolyhedronDefinition))
+				definitions[i] = &PolyhedronDefinition{}
+			case *SimpleSpriteDef:
+				a.wld.SimpleSpriteDefs = append(a.wld.SimpleSpriteDefs, definitions[i].(*SimpleSpriteDef))
+				definitions[i] = &SimpleSpriteDef{}
+			case *TrackDef:
+				a.wld.TrackDefs = append(a.wld.TrackDefs, definitions[i].(*TrackDef))
+				definitions[i] = &TrackDef{}
+			case *TrackInstance:
+				a.wld.TrackInstances = append(a.wld.TrackInstances, definitions[i].(*TrackInstance))
+				definitions[i] = &TrackInstance{}
+			case *LightDef:
+				a.wld.LightDefs = append(a.wld.LightDefs, definitions[i].(*LightDef))
+				definitions[i] = &LightDef{}
+			case *Sprite3DDef:
+				a.wld.Sprite3DDefs = append(a.wld.Sprite3DDefs, definitions[i].(*Sprite3DDef))
+				definitions[i] = &Sprite3DDef{}
+			case *WorldTree:
+				a.wld.WorldTrees = append(a.wld.WorldTrees, definitions[i].(*WorldTree))
+				definitions[i] = &WorldTree{}
+			case *Region:
+				a.wld.Regions = append(a.wld.Regions, definitions[i].(*Region))
+				definitions[i] = &Region{}
+			case *AmbientLight:
+				a.wld.AmbientLights = append(a.wld.AmbientLights, definitions[i].(*AmbientLight))
+				definitions[i] = &AmbientLight{}
+			case *ActorDef:
+				a.wld.ActorDefs = append(a.wld.ActorDefs, definitions[i].(*ActorDef))
+				definitions[i] = &ActorDef{}
+			case *ActorInst:
+				a.wld.ActorInsts = append(a.wld.ActorInsts, definitions[i].(*ActorInst))
+				definitions[i] = &ActorInst{}
+			case *Zone:
+				a.wld.Zones = append(a.wld.Zones, definitions[i].(*Zone))
+				definitions[i] = &Zone{}
+
+			}
+
+			break
 		}
 	}
 
@@ -368,5 +377,45 @@ func (a *AsciiReadToken) readComment() error {
 			break
 		}
 	}
+	return nil
+}
+
+func (a *AsciiReadToken) readRegions() error {
+	var err error
+	line := ""
+	for {
+		buf := make([]byte, 1)
+		_, err = a.Read(buf)
+		if err != nil {
+			return fmt.Errorf("read regions: %w", err)
+		}
+		if buf[0] == '\n' {
+			break
+		}
+		if buf[0] == ' ' {
+			continue
+		}
+		line += string(buf)
+	}
+	numRegions, err := helper.ParseInt(line)
+	if err != nil {
+		return fmt.Errorf("parse numregions: %w", err)
+	}
+
+	a.wld.Regions = make([]*Region, numRegions)
+	for i := 0; i < numRegions; i++ {
+		r := &Region{}
+		_, err = a.ReadProperty("REGION")
+		if err != nil {
+			return fmt.Errorf("REGION: %w", err)
+		}
+		err = r.Read(a)
+		if err != nil {
+			return fmt.Errorf("read region: %w", err)
+		}
+
+		a.wld.Regions[i] = r
+	}
+
 	return nil
 }

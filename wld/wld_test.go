@@ -174,7 +174,7 @@ func TestVWldAsciiWrite(t *testing.T) {
 		//{baseName: "load2"},
 		//{baseName: "load2"},
 		//{baseName: "load2", wldName: "lights.wld"},
-		{baseName: "load2", wldName: "objects.wld"},
+		{baseName: "load2", wldName: "load2.wld"},
 		//{baseName: "neriakc"},
 		//{baseName: "westwastes"},
 		//{baseName: "globalfroglok_chr"},
@@ -241,9 +241,9 @@ func TestVWldAsciiWrite(t *testing.T) {
 				t.Fatalf("failed to convert %s: %s", baseName, err.Error())
 			}
 
-			vwld.FileName = baseName + ".dst.wld"
+			vwld.FileName = baseName + ".wld"
 
-			err = vwld.WriteAscii(dirTest, true)
+			err = vwld.WriteAscii(dirTest+"/"+baseName, true)
 			if err != nil {
 				t.Fatalf("failed to write %s: %s", baseName, err.Error())
 			}
