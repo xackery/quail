@@ -85,7 +85,15 @@ func (a *AsciiReadToken) Read(p []byte) (n int, err error) {
 	return
 }
 
-func (a *AsciiReadToken) ReadProperty(name string) ([]string, error) {
+type PropOpt struct {
+	Name string
+	Min  int
+}
+
+func (a *AsciiReadToken) ReadProperty(name string, minNumArgs int) ([]string, error) {
+	if name == "" {
+		return nil, fmt.Errorf("property name is empty")
+	}
 	property := ""
 	args := []string{}
 	for {
@@ -119,12 +127,14 @@ func (a *AsciiReadToken) ReadProperty(name string) ([]string, error) {
 			if len(property) == 0 {
 				continue
 			}
-			args = strings.Split(property, " ")
-			if len(args) > 0 && name != "" {
-				if args[0] != name {
-					return args, fmt.Errorf("expected %s, got %s", name, args[0])
-				}
+			args = strings.Split(strings.TrimSpace(property), " ")
+			if len(args) == 0 {
+				return args, fmt.Errorf("property %s has no arguments", name)
 			}
+			if minNumArgs < len(args)-1 {
+				return args, fmt.Errorf("property %s needs at least %d arguments, got %d", name, minNumArgs, len(args)-1)
+			}
+
 			return args, nil
 		}
 		if len(property) > 1 && property[len(property)-1] == ' ' && buf[0] == ' ' {
@@ -405,7 +415,7 @@ func (a *AsciiReadToken) readRegions() error {
 	a.wld.Regions = make([]*Region, numRegions)
 	for i := 0; i < numRegions; i++ {
 		r := &Region{}
-		_, err = a.ReadProperty("REGION")
+		_, err = a.ReadProperty("REGION", 1)
 		if err != nil {
 			return fmt.Errorf("REGION: %w", err)
 		}

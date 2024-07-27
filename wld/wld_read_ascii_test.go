@@ -90,7 +90,7 @@ func TestAsciiReadWriteRead(t *testing.T) {
 			wld2 := &Wld{}
 			err = wld2.ReadAscii("testdata/temp/" + wld.FileName)
 			if err != nil {
-				t.Fatalf("Failed readascii: %s", err.Error())
+				t.Fatalf("Failed re-readascii: %s", err.Error())
 			}
 
 		})

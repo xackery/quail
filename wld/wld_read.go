@@ -2,6 +2,7 @@ package wld
 
 import (
 	"fmt"
+	"path/filepath"
 
 	"github.com/xackery/quail/raw"
 	"github.com/xackery/quail/wld/cache"
@@ -176,8 +177,7 @@ func (wld *Wld) readMaterialPalette(cm *cache.CacheManager) error {
 func (wld *Wld) readSimpleSpriteDef(cm *cache.CacheManager) error {
 	for _, src := range cm.SimpleSpriteDefs {
 		dst := &SimpleSpriteDef{
-			Tag:     src.Tag,
-			BMInfos: src.BMInfos,
+			Tag: src.Tag,
 		}
 
 		wld.SimpleSpriteDefs = append(wld.SimpleSpriteDefs, dst)
@@ -301,5 +301,22 @@ func (wld *Wld) readSprite3DDef(cm *cache.CacheManager) error {
 
 		wld.Sprite3DDefs = append(wld.Sprite3DDefs, dst)
 	}
+	return nil
+}
+
+// ReadAscii reads the ascii file at path
+func (wld *Wld) ReadAscii(path string) error {
+	wld.mu.Lock()
+	defer wld.mu.Unlock()
+
+	asciiReader, err := LoadAsciiFile(path, wld)
+	if err != nil {
+		return fmt.Errorf("%w", err)
+	}
+	err = asciiReader.readDefinitions()
+	if err != nil {
+		return fmt.Errorf("%s:%d: %w", path, asciiReader.lineNumber, err)
+	}
+	fmt.Println(asciiReader.TotalLineCountRead(), "total lines parsed for", filepath.Base(path))
 	return nil
 }

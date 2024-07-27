@@ -34,6 +34,8 @@ type CacheManager struct {
 	Regions               []*Region
 	RegionInstances       []*RegionInstance
 	Spheres               []*Sphere
+	PolyhedronDefs        []*PolyhedronDef
+	PolyhedronInstances   []*PolyhedronInstance
 }
 
 func (cm *CacheManager) Close() {
@@ -304,11 +306,11 @@ type DmSpriteDef2 struct {
 }
 
 type MeshOp struct {
-	Index1    uint16  `yaml:"index_1"`
-	Index2    uint16  `yaml:"index_2"`
-	Offset    float32 `yaml:"offset"`
-	Param1    uint8   `yaml:"param_1"`
-	TypeField uint8   `yaml:"type_field"`
+	Index1    uint16
+	Index2    uint16
+	Offset    float32
+	Param1    uint8
+	TypeField uint8
 }
 
 func (cm *CacheManager) meshByFragID(fragID uint32) *DmSpriteDef2 {
@@ -932,4 +934,37 @@ func (cm *CacheManager) sphereByTag(tag string) *Sphere {
 type Face struct {
 	Index [3]uint16
 	Flags uint16
+}
+
+type PolyhedronDef struct {
+	fragID   uint32
+	Tag      string
+	Flags    uint32
+	Size1    uint32
+	Size2    uint32
+	Params1  float32
+	Params2  float32
+	Entries1 []model.Vector3
+	Entries2 []PolyhedronEntries2
+}
+
+type PolyhedronEntries2 struct {
+	Unk1 uint32
+	Unk2 []uint32
+}
+
+func (cm *CacheManager) polyhedronByFragID(fragID uint32) *PolyhedronDef {
+	for _, polyhedron := range cm.PolyhedronDefs {
+		if polyhedron.fragID == fragID {
+			return polyhedron
+		}
+	}
+	return nil
+}
+
+type PolyhedronInstance struct {
+	fragID uint32
+	Tag    string
+	Flags  uint32
+	Scale  float32
 }

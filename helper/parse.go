@@ -127,3 +127,99 @@ func ParseUint8(s string) (uint8, error) {
 	}
 	return uint8(val), nil
 }
+
+func ParseFloat64Slice3(s []string) ([3]float64, error) {
+	var arr [3]float64
+	for i := 0; i < 3; i++ {
+		val, err := ParseFloat(s[i])
+		if err != nil {
+			return arr, err
+		}
+		arr[i] = val
+	}
+	return arr, nil
+}
+
+func ParseFloat32Slice3(s []string) ([3]float32, error) {
+	var arr [3]float32
+	for i := 0; i < 3; i++ {
+		val, err := ParseFloat32(s[i])
+		if err != nil {
+			return arr, err
+		}
+		arr[i] = val
+	}
+	return arr, nil
+}
+
+func ParseFloat64Slice2(s []string) ([2]float64, error) {
+	var arr [2]float64
+	for i := 0; i < 2; i++ {
+		val, err := ParseFloat(s[i])
+		if err != nil {
+			return arr, err
+		}
+		arr[i] = val
+	}
+	return arr, nil
+}
+
+func ParseFloat32Slice2(s []string) ([2]float32, error) {
+	var arr [2]float32
+	for i := 0; i < 2; i++ {
+		val, err := ParseFloat32(s[i])
+		if err != nil {
+			return arr, err
+		}
+		arr[i] = val
+	}
+	return arr, nil
+}
+
+func ParseUint16Slice3(s []string) ([3]uint16, error) {
+	var arr [3]uint16
+	for i := 0; i < 3; i++ {
+		val, err := ParseUint16(s[i])
+		if err != nil {
+			return arr, err
+		}
+		arr[i] = val
+	}
+	return arr, nil
+}
+
+func ParseUint8Slice4(s []string) ([4]uint8, error) {
+	var arr [4]uint8
+	for i := 0; i < 4; i++ {
+		val, err := ParseUint8(s[i])
+		if err != nil {
+			return arr, err
+		}
+		arr[i] = val
+	}
+	return arr, nil
+}
+
+func ParseFloat32Slice6(s []string) ([6]float32, error) {
+	var arr [6]float32
+	for i := 0; i < 6; i++ {
+		val, err := ParseFloat32(s[i])
+		if err != nil {
+			return arr, err
+		}
+		arr[i] = val
+	}
+	return arr, nil
+}
+
+func ParseFloat32Slice4(s []string) ([4]float32, error) {
+	var arr [4]float32
+	for i := 0; i < 4; i++ {
+		val, err := ParseFloat32(s[i])
+		if err != nil {
+			return arr, err
+		}
+		arr[i] = val
+	}
+	return arr, nil
+}

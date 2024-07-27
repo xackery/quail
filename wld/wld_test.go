@@ -174,7 +174,9 @@ func TestVWldAsciiWrite(t *testing.T) {
 		//{baseName: "load2"},
 		//{baseName: "load2"},
 		//{baseName: "load2", wldName: "lights.wld"},
-		{baseName: "load2", wldName: "load2.wld"},
+		//{baseName: "load2", wldName: "load2.wld"},
+		{baseName: "overthere_chr", wldName: "overthere_chr.wld"},
+
 		//{baseName: "neriakc"},
 		//{baseName: "westwastes"},
 		//{baseName: "globalfroglok_chr"},

@@ -955,6 +955,69 @@ func (cm *CacheManager) Load(src *raw.Wld) error {
 			}
 
 			cm.PointLights = append(cm.PointLights, &pointLightInstance)
+		case rawfrag.FragCodePolyhedronDef: // turns to polyhedron
+			fragData, ok := fragment.(*rawfrag.WldFragPolyhedronDef)
+			if !ok {
+				return fmt.Errorf("invalid polyhedrondef fragment at offset %d", i)
+			}
+
+			tag := raw.Name(fragData.NameRef)
+			if len(tag) == 0 {
+				tag = fmt.Sprintf("%d_POLYHEDRONDEF", i)
+			}
+
+			polyhedron := &PolyhedronDef{
+				fragID:   uint32(i),
+				Tag:      tag,
+				Flags:    fragData.Flags,
+				Size1:    fragData.Size1,
+				Size2:    fragData.Size2,
+				Params1:  fragData.Params1,
+				Params2:  fragData.Params2,
+				Entries1: fragData.Entries1,
+			}
+
+			for _, entry := range fragData.Entries2 {
+				polyhedron.Entries2 = append(polyhedron.Entries2, PolyhedronEntries2{
+					Unk1: entry.Unk1,
+					Unk2: entry.Unk2,
+				})
+			}
+
+			cm.PolyhedronDefs = append(cm.PolyhedronDefs, polyhedron)
+		case rawfrag.FragCodePolyhedron: // turns to polyhedroninstance
+			fragData, ok := fragment.(*rawfrag.WldFragPolyhedron)
+			if !ok {
+				return fmt.Errorf("invalid polyhedron fragment at offset %d", i)
+			}
+
+			polyhedronDefTag := ""
+			if fragData.NameRef > 0 {
+				polyhedronDef := cm.polyhedronByFragID(uint32(fragData.NameRef))
+				if polyhedronDef == nil {
+					return fmt.Errorf("polyhedron found without matching polyhedrondef at offset %d value %d", i, fragData.NameRef)
+				}
+				polyhedronDefTag = polyhedronDef.Tag
+			}
+
+			tag := raw.Name(fragData.NameRef)
+			if len(tag) == 0 {
+				if polyhedronDefTag == "" {
+					tag = fmt.Sprintf("%d_POLYHEDRON", i)
+				} else {
+					tag = polyhedronDefTag + "_INST"
+				}
+			}
+
+			polyhedronInstance := PolyhedronInstance{
+				fragID: uint32(i),
+				Tag:    tag,
+				Flags:  fragData.Flags,
+				Scale:  fragData.Scale,
+			}
+
+			cm.PolyhedronInstances = append(cm.PolyhedronInstances, &polyhedronInstance)
+
 		default:
 			return fmt.Errorf("unknown fragment type 0x%x (%s) at offset %d", fragment.FragCode(), raw.FragName(fragment.FragCode()), i)
 		}

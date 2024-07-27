@@ -4,6 +4,7 @@ package wld
 import (
 	"fmt"
 	"io"
+	"strconv"
 	"sync"
 
 	"github.com/xackery/quail/helper"
@@ -48,36 +49,29 @@ type Wld struct {
 
 // DMSpriteDef2 is a declaration of DMSpriteDef2
 type DMSpriteDef2 struct {
-	Tag          string
-	Flags        uint32
-	DmTrackTag   string
-	Fragment3Ref int32
-	Fragment4Ref int32
-	Params2      [3]uint32
-	MaxDistance  float32
-	Min          [3]float32
-	Max          [3]float32
-
-	CenterOffset [3]float32 // CENTEROFFSET %0.7f %0.7f %0.7f
-	// NUMVERTICES %d
-	Vertices [][3]float32 // XYZ %0.7f %0.7f %0.7f
-	// NUMUVS %d
-	UVs [][2]float32 // UV %0.7f %0.7f
-	// NUMVERTEXNORMALS %d
-	VertexNormals        [][3]float32 // XYZ %0.7f %0.7f %0.7f
-	SkinAssignmentGroups [][2]uint16  // SKINASSIGNMENTGROUPS %d %d
-	MaterialPaletteTag   string       // MATERIALPALETTE "%s"
-	// NUMCOLORS %d
-	Colors [][4]uint8 // RGBA %d %d %d %d
-	// NUMFACE2S %d
-	Faces []*Face // DMFACE
-	// NUMMESHOPS %d
-	MeshOps              []*MeshOp // MESHOP
+	Tag                  string
+	Flags                uint32
+	DmTrackTag           string
+	Fragment3Ref         int32
+	Fragment4Ref         int32
+	Params2              [3]uint32
+	MaxDistance          float32
+	Min                  [3]float32
+	Max                  [3]float32
+	CenterOffset         [3]float32
+	Vertices             [][3]float32
+	UVs                  [][2]float32
+	VertexNormals        [][3]float32
+	SkinAssignmentGroups [][2]uint16
+	MaterialPaletteTag   string
+	Colors               [][4]uint8
+	Faces                []*Face
+	MeshOps              []*MeshOp
 	FaceMaterialGroups   [][2]uint16
-	VertexMaterialGroups [][2]int16 // VERTEXMATERIALGROUPS %d %d
-	BoundingRadius       float32    // BOUNDINGRADIUS %0.7f
-	FPScale              uint16     // FPScale %d
-	PolyhedronTag        string     // POLYHEDRON "%s"
+	VertexMaterialGroups [][2]int16
+	BoundingRadius       float32
+	FPScale              uint16
+	PolyhedronTag        string
 }
 
 func (wld *Wld) reset() {
@@ -96,98 +90,62 @@ func (d *DMSpriteDef2) Definition() string {
 }
 
 func (d *DMSpriteDef2) Write(w io.Writer) error {
-	fmt.Fprintf(w, "DMSPRITEDEF2\n")
+	fmt.Fprintf(w, "%s\n", d.Definition())
 	fmt.Fprintf(w, "\tTAG \"%s\"\n", d.Tag)
-	if d.Flags != 0 {
-		fmt.Fprintf(w, "\tFLAGS %d\n", d.Flags)
-	}
-	fmt.Fprintf(w, "\tCENTEROFFSET %0.7f %0.7f %0.7f\n", d.CenterOffset[0], d.CenterOffset[1], d.CenterOffset[2])
+	fmt.Fprintf(w, "\t// FLAGS \"%d\" // need to assess\n", d.Flags)
+	fmt.Fprintf(w, "\tCENTEROFFSET %0.7e %0.7e %0.7e\n", d.CenterOffset[0], d.CenterOffset[1], d.CenterOffset[2])
 	fmt.Fprintf(w, "\n")
-	if len(d.Vertices) > 0 {
-		fmt.Fprintf(w, "\tNUMVERTICES %d\n", len(d.Vertices))
-		for _, vert := range d.Vertices {
-			fmt.Fprintf(w, "\tXYZ %0.7f %0.7f %0.7f\n", vert[0], vert[1], vert[2])
-		}
-		fmt.Fprintf(w, "\n")
+	fmt.Fprintf(w, "\tNUMVERTICES %d\n", len(d.Vertices))
+	for _, vert := range d.Vertices {
+		fmt.Fprintf(w, "\tXYZ %0.7f %0.7f %0.7f\n", vert[0], vert[1], vert[2])
 	}
-	if len(d.UVs) > 0 {
-		fmt.Fprintf(w, "\tNUMUVS %d\n", len(d.UVs))
-		for _, uv := range d.UVs {
-			fmt.Fprintf(w, "\tUV %0.7f, %0.7f\n", uv[0], uv[1])
-		}
-		fmt.Fprintf(w, "\n")
+	fmt.Fprintf(w, "\n")
+	fmt.Fprintf(w, "\tNUMUVS %d\n", len(d.UVs))
+	for _, uv := range d.UVs {
+		fmt.Fprintf(w, "\tUV %0.7f %0.7f\n", uv[0], uv[1])
 	}
-	if len(d.VertexNormals) > 0 {
-		fmt.Fprintf(w, "\tNUMVERTEXNORMALS %d\n", len(d.VertexNormals))
-		for _, vn := range d.VertexNormals {
-			fmt.Fprintf(w, "\tXYZ %0.7f %0.7f %0.7f\n", vn[0], vn[1], vn[2])
-		}
-		fmt.Fprintf(w, "\n")
+	fmt.Fprintf(w, "\n")
+	fmt.Fprintf(w, "\tNUMVERTEXNORMALS %d\n", len(d.VertexNormals))
+	for _, vn := range d.VertexNormals {
+		fmt.Fprintf(w, "\tXYZ %0.7f %0.7f %0.7f\n", vn[0], vn[1], vn[2])
 	}
-	if len(d.SkinAssignmentGroups) > 0 {
-		fmt.Fprintf(w, "\n")
-		fmt.Fprintf(w, "\tSKINASSIGNMENTGROUPS %d", len(d.SkinAssignmentGroups))
-		for i, sa := range d.SkinAssignmentGroups {
-			endComma := ","
-			if i == len(d.SkinAssignmentGroups)-1 {
-				endComma = ""
-			}
-			fmt.Fprintf(w, " %d, %d%s", sa[0], sa[1], endComma)
-		}
-		fmt.Fprintf(w, "\n")
+	fmt.Fprintf(w, "\n")
+	fmt.Fprintf(w, "\n")
+	fmt.Fprintf(w, "\tSKINASSIGNMENTGROUPS %d", len(d.SkinAssignmentGroups))
+	for _, sa := range d.SkinAssignmentGroups {
+		fmt.Fprintf(w, " %d %d", sa[0], sa[1])
 	}
+	fmt.Fprintf(w, "\n")
 	fmt.Fprintf(w, "\tMATERIALPALETTE \"%s\"\n", d.MaterialPaletteTag)
 	fmt.Fprintf(w, "\n")
-	if d.PolyhedronTag != "" {
-		fmt.Fprintf(w, "\tPOLYHEDRON\n")
-		fmt.Fprintf(w, "\t\tDEFINITION \"%s\"\n", d.PolyhedronTag)
-		fmt.Fprintf(w, "\tENDPOLYHEDRON\n\n")
+	fmt.Fprintf(w, "\tPOLYHEDRON\n")
+	fmt.Fprintf(w, "\t\tDEFINITION \"%s\"\n", d.PolyhedronTag)
+	fmt.Fprintf(w, "\tENDPOLYHEDRON\n\n")
+	fmt.Fprintf(w, "\tNUMFACE2S %d\n", len(d.Faces))
+	fmt.Fprintf(w, "\n")
+	for i, face := range d.Faces {
+		fmt.Fprintf(w, "\tDMFACE2 //%d\n", i+1)
+		fmt.Fprintf(w, "\t\tFLAGS %d\n", face.Flags)
+		fmt.Fprintf(w, "\t\tTRIANGLE   %d, %d, %d\n", face.Triangle[0], face.Triangle[1], face.Triangle[2])
+		fmt.Fprintf(w, "\tENDDMFACE2 //%d\n\n", i+1)
 	}
-	if len(d.Faces) > 0 {
-		fmt.Fprintf(w, "\tNUMFACE2S %d\n", len(d.Faces))
-		fmt.Fprintf(w, "\n")
-		for i, face := range d.Faces {
-			fmt.Fprintf(w, "\tDMFACE2 //%d\n", i+1)
-			if face.Flags != 0 {
-				fmt.Fprintf(w, "\t\tFLAGS %d\n", face.Flags)
-			}
-			fmt.Fprintf(w, "\t\tTRIANGLE   %d, %d, %d\n", face.Triangle[0], face.Triangle[1], face.Triangle[2])
-			fmt.Fprintf(w, "\tENDDMFACE2 //%d\n\n", i+1)
-		}
-		fmt.Fprintf(w, "\n")
+	fmt.Fprintf(w, "\n")
+	fmt.Fprintf(w, "\t// meshops are not supported")
+	fmt.Fprintf(w, "\t// NUMMESHOPS %d\n", len(d.MeshOps))
+	for _, meshOp := range d.MeshOps {
+		fmt.Fprintf(w, "\t// TODO: MESHOP %d %d %0.7f %d %d\n", meshOp.Index1, meshOp.Index2, meshOp.Offset, meshOp.Param1, meshOp.TypeField)
 	}
-	if len(d.MeshOps) > 0 {
-		//fmt.Fprintf(w, "\tNUMMESHOPS 0\n")
-		fmt.Fprintf(w, "\t//TODO: NUMMESHOPS %d\n", len(d.MeshOps))
-		for _, meshOp := range d.MeshOps {
-			fmt.Fprintf(w, "\t// TODO: MESHOP %d %d %0.7f %d %d\n", meshOp.Index1, meshOp.Index2, meshOp.Offset, meshOp.Param1, meshOp.TypeField)
-			// MESHOP_VA %d
-		}
-		fmt.Fprintf(w, "\n")
+	fmt.Fprintf(w, "\n")
+	fmt.Fprintf(w, "\tFACEMATERIALGROUPS %d", len(d.FaceMaterialGroups))
+	for _, group := range d.FaceMaterialGroups {
+		fmt.Fprintf(w, " %d %d", group[0], group[1])
 	}
-	if len(d.FaceMaterialGroups) > 0 {
-		fmt.Fprintf(w, "\tFACEMATERIALGROUPS %d", len(d.FaceMaterialGroups))
-		for _, group := range d.FaceMaterialGroups {
-			endComma := ","
-			if group == d.FaceMaterialGroups[len(d.FaceMaterialGroups)-1] {
-				endComma = ""
-			}
-			fmt.Fprintf(w, " %d, %d%s", group[0], group[1], endComma)
-		}
-		fmt.Fprintf(w, "\n")
+	fmt.Fprintf(w, "\n")
+	fmt.Fprintf(w, "\tVERTEXMATERIALGROUPS %d", len(d.VertexMaterialGroups))
+	for _, group := range d.VertexMaterialGroups {
+		fmt.Fprintf(w, " %d %d", group[0], group[1])
 	}
-	if len(d.VertexMaterialGroups) > 0 {
-		fmt.Fprintf(w, "\tVERTEXMATERIALGROUPS %d", len(d.VertexMaterialGroups))
-		for _, group := range d.VertexMaterialGroups {
-			endComma := ","
-			if group == d.VertexMaterialGroups[len(d.VertexMaterialGroups)-1] {
-				endComma = ""
-			}
-			fmt.Fprintf(w, " %d, %d%s", group[0], group[1], endComma)
-		}
-		fmt.Fprintf(w, "\n")
-	}
-
+	fmt.Fprintf(w, "\n")
 	fmt.Fprintf(w, "\tBOUNDINGRADIUS %0.7e\n", d.BoundingRadius)
 	fmt.Fprintf(w, "\n")
 	fmt.Fprintf(w, "\tFPSCALE %d\n", d.FPScale)
@@ -196,72 +154,229 @@ func (d *DMSpriteDef2) Write(w io.Writer) error {
 }
 
 func (d *DMSpriteDef2) Read(r *AsciiReadToken) error {
-	records, err := r.ReadProperty("TAG")
+	records, err := r.ReadProperty("TAG", 1)
 	if err != nil {
-		return fmt.Errorf("TAG: %w", err)
+		return err
 	}
 	d.Tag = records[1]
 
-	records, err = r.ReadProperty("CENTEROFFSET")
+	records, err = r.ReadProperty("CENTEROFFSET", 3)
 	if err != nil {
-		return fmt.Errorf("CENTEROFFSET: %w", err)
+		return err
 	}
-	d.CenterOffset[0], err = helper.ParseFloat32(records[1])
+	d.CenterOffset, err = helper.ParseFloat32Slice3(records[1:])
 	if err != nil {
-		return fmt.Errorf("center offset x: %w", err)
-	}
-	d.CenterOffset[1], err = helper.ParseFloat32(records[2])
-	if err != nil {
-		return fmt.Errorf("center offset y: %w", err)
-	}
-	d.CenterOffset[2], err = helper.ParseFloat32(records[3])
-	if err != nil {
-		return fmt.Errorf("center offset z: %w", err)
+		return fmt.Errorf("center offset: %w", err)
 	}
 
-	records, err = r.ReadProperty("MATERIALPALETTE")
+	records, err = r.ReadProperty("NUMVERTICES", 1)
 	if err != nil {
-		return fmt.Errorf("MATERIALPALETTE: %w", err)
+		return err
+	}
+	numVertices, err := helper.ParseInt(records[1])
+	if err != nil {
+		return err
+	}
+	for i := 0; i < numVertices; i++ {
+		records, err = r.ReadProperty("XYZ", 3)
+		if err != nil {
+			return err
+		}
+		vert, err := helper.ParseFloat32Slice3(records[1:])
+		if err != nil {
+			return fmt.Errorf("vertex %d: %w", i, err)
+		}
+		d.Vertices = append(d.Vertices, vert)
+	}
+
+	records, err = r.ReadProperty("NUMUVS", 1)
+	if err != nil {
+		return err
+	}
+	numUVs, err := helper.ParseInt(records[1])
+	if err != nil {
+		return fmt.Errorf("num uvs: %w", err)
+	}
+
+	for i := 0; i < numUVs; i++ {
+		records, err = r.ReadProperty("UV", 2)
+		if err != nil {
+			return err
+		}
+		uv, err := helper.ParseFloat32Slice2(records[1:])
+		if err != nil {
+			return fmt.Errorf("uv %d: %w", i, err)
+		}
+		d.UVs = append(d.UVs, uv)
+	}
+
+	records, err = r.ReadProperty("NUMVERTEXNORMALS", 1)
+	if err != nil {
+		return err
+	}
+	numNormals, err := helper.ParseInt(records[1])
+	if err != nil {
+		return fmt.Errorf("num normals: %w", err)
+	}
+
+	for i := 0; i < numNormals; i++ {
+		records, err = r.ReadProperty("XYZ", 3)
+		if err != nil {
+			return err
+		}
+		norm, err := helper.ParseFloat32Slice3(records[1:])
+		if err != nil {
+			return fmt.Errorf("normal %d: %w", i, err)
+		}
+		d.VertexNormals = append(d.VertexNormals, norm)
+	}
+
+	records, err = r.ReadProperty("SKINASSIGNMENTGROUPS", 1)
+	if err != nil {
+		return err
+	}
+	numSkinAssignments, err := helper.ParseInt(records[1])
+	if err != nil {
+		return fmt.Errorf("num skin assignments: %w", err)
+	}
+
+	for i := 0; i < numSkinAssignments; i++ {
+		val1, err := strconv.ParseUint(records[i+1], 10, 16)
+		if err != nil {
+			return fmt.Errorf("skin assignment %d: %w", i, err)
+		}
+		val2, err := strconv.ParseUint(records[i+2], 10, 16)
+		if err != nil {
+			return fmt.Errorf("skin assignment %d: %w", i, err)
+		}
+		d.SkinAssignmentGroups = append(d.SkinAssignmentGroups, [2]uint16{uint16(val1), uint16(val2)})
+	}
+
+	records, err = r.ReadProperty("MATERIALPALETTE", 1)
+	if err != nil {
+		return err
 	}
 	d.MaterialPaletteTag = records[1]
 
-	records, err = r.ReadProperty("")
+	records, err = r.ReadProperty("POLYHEDRON", 0)
 	if err != nil {
-		return fmt.Errorf("POLYHEDRON: %w", err)
+		return err
 	}
-	if records[0] == "POLYHEDRON" {
-		records, err = r.ReadProperty("DEFINITION")
-		if err != nil {
-			return fmt.Errorf("POLYHEDRON DEFINITION: %w", err)
-		}
-		d.PolyhedronTag = records[1]
-		records, err = r.ReadProperty("ENDPOLYHEDRON")
-		if err != nil {
-			return fmt.Errorf("ENDPOLYHEDRON: %w", err)
-		}
+	records, err = r.ReadProperty("DEFINITION", 1)
+	if err != nil {
+		return err
+	}
+	d.PolyhedronTag = records[1]
+	records, err = r.ReadProperty("ENDPOLYHEDRON", 0)
+	if err != nil {
+		return err
 	}
 
-	records, err = r.ReadProperty("BOUNDINGRADIUS")
+	records, err = r.ReadProperty("NUMFACE2S", 1)
 	if err != nil {
-		return fmt.Errorf("BOUNDINGRADIUS: %w", err)
+		return err
+	}
+
+	numFaces, err := helper.ParseInt(records[1])
+	if err != nil {
+		return fmt.Errorf("num faces: %w", err)
+	}
+
+	for i := 0; i < numFaces; i++ {
+		face := &Face{}
+		_, err = r.ReadProperty("DMFACE2", 0)
+		if err != nil {
+			return err
+		}
+		records, err = r.ReadProperty("FLAGS", 1)
+		if err != nil {
+			return err
+		}
+		face.Flags, err = helper.ParseUint16(records[1])
+		if err != nil {
+			return fmt.Errorf("face %d flags: %w", i, err)
+		}
+
+		records, err = r.ReadProperty("TRIANGLE", 3)
+		if err != nil {
+			return err
+		}
+		face.Triangle, err = helper.ParseUint16Slice3(records[1:])
+		if err != nil {
+			return fmt.Errorf("face %d triangle: %w", i, err)
+		}
+
+		_, err = r.ReadProperty("ENDDMFACE2", 0)
+		if err != nil {
+			return err
+		}
+
+		d.Faces = append(d.Faces, face)
+	}
+
+	records, err = r.ReadProperty("FACEMATERIALGROUPS", 1)
+	if err != nil {
+		return err
+	}
+	numFaceMaterialGroups, err := helper.ParseInt(records[1])
+	if err != nil {
+		return fmt.Errorf("num face material groups: %w", err)
+	}
+
+	for i := 0; i < numFaceMaterialGroups; i++ {
+		val1, err := strconv.ParseUint(records[i+1], 10, 16)
+		if err != nil {
+			return fmt.Errorf("face material group %d: %w", i, err)
+		}
+		val2, err := strconv.ParseUint(records[i+2], 10, 16)
+		if err != nil {
+			return fmt.Errorf("face material group %d: %w", i, err)
+		}
+		d.FaceMaterialGroups = append(d.FaceMaterialGroups, [2]uint16{uint16(val1), uint16(val2)})
+	}
+
+	records, err = r.ReadProperty("VERTEXMATERIALGROUPS", 1)
+	if err != nil {
+		return err
+	}
+	numVertexMaterialGroups, err := helper.ParseInt(records[1])
+	if err != nil {
+		return fmt.Errorf("num vertex material groups: %w", err)
+	}
+
+	for i := 0; i < numVertexMaterialGroups; i++ {
+		val1, err := strconv.ParseInt(records[i+1], 10, 16)
+		if err != nil {
+			return fmt.Errorf("vertex material group %d: %w", i, err)
+		}
+		val2, err := strconv.ParseInt(records[i+2], 10, 16)
+		if err != nil {
+			return fmt.Errorf("vertex material group %d: %w", i, err)
+		}
+		d.VertexMaterialGroups = append(d.VertexMaterialGroups, [2]int16{int16(val1), int16(val2)})
+	}
+
+	records, err = r.ReadProperty("BOUNDINGRADIUS", 1)
+	if err != nil {
+		return err
 	}
 	d.BoundingRadius, err = helper.ParseFloat32(records[1])
 	if err != nil {
 		return fmt.Errorf("bounding radius: %w", err)
 	}
 
-	records, err = r.ReadProperty("FPSCALE")
+	records, err = r.ReadProperty("FPSCALE", 1)
 	if err != nil {
-		return fmt.Errorf("FPSCALE: %w", err)
+		return err
 	}
 	d.FPScale, err = helper.ParseUint16(records[1])
 	if err != nil {
 		return fmt.Errorf("fpscale: %w", err)
 	}
 
-	records, err = r.ReadProperty("ENDDMSPRITEDEF2")
+	_, err = r.ReadProperty("ENDDMSPRITEDEF2", 0)
 	if err != nil {
-		return fmt.Errorf("ENDDMSPRITEDEF2: %w", err)
+		return err
 	}
 
 	return nil
@@ -304,6 +419,34 @@ func (m *MaterialPalette) Write(w io.Writer) error {
 }
 
 func (m *MaterialPalette) Read(r *AsciiReadToken) error {
+	records, err := r.ReadProperty("TAG", 1)
+	if err != nil {
+		return fmt.Errorf("TAG: %w", err)
+	}
+	m.Tag = records[1]
+
+	records, err = r.ReadProperty("NUMMATERIALS", 1)
+	if err != nil {
+		return fmt.Errorf("NUMMATERIALS: %w", err)
+	}
+	numMaterials, err := helper.ParseInt(records[1])
+	if err != nil {
+		return fmt.Errorf("num materials: %w", err)
+	}
+
+	for i := 0; i < numMaterials; i++ {
+		records, err = r.ReadProperty("MATERIAL", 1)
+		if err != nil {
+			return fmt.Errorf("MATERIAL: %w", err)
+		}
+		m.Materials = append(m.Materials, records[1])
+	}
+
+	_, err = r.ReadProperty("ENDMATERIALPALETTE", 0)
+	if err != nil {
+		return fmt.Errorf("ENDMATERIALPALETTE: %w", err)
+	}
+
 	return nil
 }
 
@@ -326,106 +469,92 @@ func (m *MaterialDef) Definition() string {
 func (m *MaterialDef) Write(w io.Writer) error {
 	fmt.Fprintf(w, "%s\n", m.Definition())
 	fmt.Fprintf(w, "\tTAG \"%s\"\n", m.Tag)
-	fmt.Fprintf(w, "\tFLAGS %d\n", m.Flags)
+	fmt.Fprintf(w, "\t// FLAGS \"%d\"\n", m.Flags)
 	fmt.Fprintf(w, "\tRENDERMETHOD %s\n", m.RenderMethod)
 	fmt.Fprintf(w, "\tRGBPEN %d %d %d\n", m.RGBPen[0], m.RGBPen[1], m.RGBPen[2])
 	fmt.Fprintf(w, "\tBRIGHTNESS %0.7f\n", m.Brightness)
 	fmt.Fprintf(w, "\tSCALEDAMBIENT %0.7f\n", m.ScaledAmbient)
-	if m.SimpleSpriteInstTag != "" {
-		fmt.Fprintf(w, "\tSIMPLESPRITEINST\n")
-		fmt.Fprintf(w, "\t\tTAG \"%s\"\n", m.SimpleSpriteInstTag)
-		if m.SimpleSpriteInstFlag != 0 {
-			fmt.Fprintf(w, "\t\tFLAGS %d\n", m.SimpleSpriteInstFlag)
-		}
-		fmt.Fprintf(w, "\tENDSIMPLESPRITEINST\n")
-	}
+	fmt.Fprintf(w, "\tSIMPLESPRITEINST\n")
+	fmt.Fprintf(w, "\t\tTAG \"%s\"\n", m.SimpleSpriteInstTag)
+	fmt.Fprintf(w, "\t\t// FLAGS %d\n", m.SimpleSpriteInstFlag)
+	fmt.Fprintf(w, "\tENDSIMPLESPRITEINST\n")
 	fmt.Fprintf(w, "ENDMATERIALDEFINITION\n\n")
 	return nil
 }
 
 func (m *MaterialDef) Read(r *AsciiReadToken) error {
-	records, err := r.ReadProperty("TAG")
+	records, err := r.ReadProperty("TAG", 1)
 	if err != nil {
-		return fmt.Errorf("TAG: %w", err)
+		return err
 	}
 	m.Tag = records[1]
 
-	records, err = r.ReadProperty("FLAGS")
+	records, err = r.ReadProperty("RENDERMETHOD", 1)
 	if err != nil {
-		return fmt.Errorf("FLAGS: %w", err)
-	}
-	m.Flags, err = helper.ParseUint32(records[1])
-	if err != nil {
-		return fmt.Errorf("flags: %w", err)
-	}
-
-	records, err = r.ReadProperty("RENDERMETHOD")
-	if err != nil {
-		return fmt.Errorf("RENDERMETHOD: %w", err)
+		return err
 	}
 	m.RenderMethod = records[1]
 
-	records, err = r.ReadProperty("RGBPEN")
+	records, err = r.ReadProperty("RGBPEN", 3)
 	if err != nil {
-		return fmt.Errorf("RGBPEN: %w", err)
+		return err
 	}
-	m.RGBPen[0], err = helper.ParseUint8(records[1])
+	m.RGBPen, err = helper.ParseUint8Slice4(records[1:])
 	if err != nil {
-		return fmt.Errorf("rgbpen r: %w", err)
-	}
-
-	m.RGBPen[1], err = helper.ParseUint8(records[2])
-	if err != nil {
-		return fmt.Errorf("rgbpen g: %w", err)
+		return fmt.Errorf("rgbpen: %w", err)
 	}
 
-	m.RGBPen[2], err = helper.ParseUint8(records[3])
+	records, err = r.ReadProperty("BRIGHTNESS", 1)
 	if err != nil {
-		return fmt.Errorf("rgbpen b: %w", err)
-	}
-
-	records, err = r.ReadProperty("BRIGHTNESS")
-	if err != nil {
-		return fmt.Errorf("BRIGHTNESS: %w", err)
+		return err
 	}
 	m.Brightness, err = helper.ParseFloat32(records[1])
 	if err != nil {
 		return fmt.Errorf("brightness: %w", err)
 	}
 
-	records, err = r.ReadProperty("SCALEDAMBIENT")
+	records, err = r.ReadProperty("SCALEDAMBIENT", 1)
 	if err != nil {
-		return fmt.Errorf("SCALEDAMBIENT: %w", err)
+		return err
 	}
 	m.ScaledAmbient, err = helper.ParseFloat32(records[1])
 	if err != nil {
 		return fmt.Errorf("scaled ambient: %w", err)
 	}
 
-	records, err = r.ReadProperty("")
+	_, err = r.ReadProperty("SIMPLESPRITEINST", 0)
 	if err != nil {
-		return fmt.Errorf("SIMPLESPRITEINST: %w", err)
-	}
-	if records[0] == "SIMPLESPRITEINST" {
-		records, err = r.ReadProperty("TAG")
-		if err != nil {
-			return fmt.Errorf("SIMPLESPRITEINST TAG: %w", err)
-		}
-		m.SimpleSpriteInstTag = records[1]
+		return err
 	}
 
-	_, err = r.ReadProperty("ENDMATERIALDEFINITION")
+	records, err = r.ReadProperty("TAG", 1)
 	if err != nil {
-		return fmt.Errorf("ENDMATERIALDEFINITION: %w", err)
+		return err
 	}
+	m.SimpleSpriteInstTag = records[1]
+
+	records, err = r.ReadProperty("ENDSIMPLESPRITEINST", 0)
+	if err != nil {
+		return err
+	}
+
+	_, err = r.ReadProperty("ENDMATERIALDEFINITION", 0)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
 // SimpleSpriteDef is a declaration of SIMPLESPRITEDEF
 type SimpleSpriteDef struct {
-	Tag string // SIMPLESPRITETAG "%s"
-	// NUMFRAMES %d
-	BMInfos [][2]string // BMINFO "%s" "%s"
+	Tag               string
+	SimpleSpriteFrame []*SimpleSpriteFrame
+}
+
+type SimpleSpriteFrame struct {
+	BitmapFile string
+	BitmapTag  string
 }
 
 func (s *SimpleSpriteDef) Definition() string {
@@ -435,25 +564,22 @@ func (s *SimpleSpriteDef) Definition() string {
 func (s *SimpleSpriteDef) Write(w io.Writer) error {
 	fmt.Fprintf(w, "%s\n", s.Definition())
 	fmt.Fprintf(w, "\tSIMPLESPRITETAG \"%s\"\n", s.Tag)
-	fmt.Fprintf(w, "\tNUMFRAMES %d\n", len(s.BMInfos))
-	for _, bm := range s.BMInfos {
-		fmt.Fprintf(w, "\tFRAME \"%s\" \"%s\"\n", bm[0], bm[1])
-	}
-	if len(s.BMInfos) > 0 {
-		fmt.Fprintf(w, "\tBMINFO \"%s\" \"%s\"\n", s.BMInfos[0][0], s.BMInfos[0][1])
+	fmt.Fprintf(w, "\tNUMFRAMES %d\n", len(s.SimpleSpriteFrame))
+	for _, frame := range s.SimpleSpriteFrame {
+		fmt.Fprintf(w, "\tFRAME \"%s\" \"%s\"\n", frame.BitmapFile, frame.BitmapTag)
 	}
 	fmt.Fprintf(w, "ENDSIMPLESPRITEDEF\n\n")
 	return nil
 }
 
 func (s *SimpleSpriteDef) Read(r *AsciiReadToken) error {
-	records, err := r.ReadProperty("SIMPLESPRITETAG")
+	records, err := r.ReadProperty("SIMPLESPRITETAG", 0)
 	if err != nil {
 		return fmt.Errorf("SIMPLESPRITETAG: %w", err)
 	}
 	s.Tag = records[1]
 
-	records, err = r.ReadProperty("NUMFRAMES")
+	records, err = r.ReadProperty("NUMFRAMES", 1)
 	if err != nil {
 		return fmt.Errorf("NUMFRAMES: %w", err)
 	}
@@ -463,14 +589,17 @@ func (s *SimpleSpriteDef) Read(r *AsciiReadToken) error {
 	}
 
 	for i := 0; i < numFrames; i++ {
-		records, err = r.ReadProperty("FRAME")
+		records, err = r.ReadProperty("FRAME", 2)
 		if err != nil {
 			return fmt.Errorf("FRAME: %w", err)
 		}
-		s.BMInfos = append(s.BMInfos, [2]string{records[1], records[2]})
+		s.SimpleSpriteFrame = append(s.SimpleSpriteFrame, &SimpleSpriteFrame{
+			BitmapFile: records[1],
+			BitmapTag:  records[2],
+		})
 	}
 
-	_, err = r.ReadProperty("ENDSIMPLESPRITEDEF")
+	_, err = r.ReadProperty("ENDSIMPLESPRITEDEF", 0)
 	if err != nil {
 		return fmt.Errorf("ENDSIMPLESPRITEDEF: %w", err)
 	}
@@ -479,16 +608,14 @@ func (s *SimpleSpriteDef) Read(r *AsciiReadToken) error {
 
 // ActorDef is a declaration of ACTORDEF
 type ActorDef struct {
-	Tag           string // ACTORTAG "%s"
-	Callback      string // CALLBACK "%s"
-	BoundsRef     int32  // ?? BOUNDSTAG "%s"
-	CurrentAction uint32 // ?? CURRENTACTION %d
+	Tag           string
+	Callback      string
+	BoundsRef     int32
+	CurrentAction uint32
 	Location      [6]float32
-	Unk1          uint32 // ?? UNK1 %d
-	// NUMACTIONS %d
-	Actions []ActorAction // ACTION
-	// NUMFRAGMENTS %d
-	FragmentRefs []uint32 // FRAGMENTREF %d
+	Unk1          uint32
+	Actions       []ActorAction
+	FragmentRefs  []uint32
 }
 
 func (a *ActorDef) Definition() string {
@@ -499,73 +626,65 @@ func (a *ActorDef) Write(w io.Writer) error {
 	fmt.Fprintf(w, "%s\n", a.Definition())
 	fmt.Fprintf(w, "\tACTORTAG \"%s\"\n", a.Tag)
 	fmt.Fprintf(w, "\tCALLBACK \"%s\"\n", a.Callback)
-	fmt.Fprintf(w, "\t//TODO: BOUNDSREF %d\n", a.BoundsRef)
-	if a.CurrentAction != 0 {
-		fmt.Fprintf(w, "\t//TODO: CURRENTACTION %d\n", a.CurrentAction)
-	}
-	fmt.Fprintf(w, "\tLOCATION %0.7f %0.7f %0.7f\n", a.Location[0], a.Location[1], a.Location[2])
+	fmt.Fprintf(w, "\t// BOUNDSREF %d\n", a.BoundsRef)
+	fmt.Fprintf(w, "\tCURRENTACTION %d\n", a.CurrentAction)
+	fmt.Fprintf(w, "\tLOCATION %0.7f %0.7f %0.7f %0.7f %0.7f %0.7f\n", a.Location[0], a.Location[1], a.Location[2], a.Location[3], a.Location[4], a.Location[5])
 	fmt.Fprintf(w, "\tNUMACTIONS %d\n", len(a.Actions))
 	for _, action := range a.Actions {
 		fmt.Fprintf(w, "\tACTION\n")
 		fmt.Fprintf(w, "\t\tNUMLEVELSOFDETAIL %d\n", len(action.LevelOfDetails))
 		for _, lod := range action.LevelOfDetails {
 			fmt.Fprintf(w, "\t\tLEVELOFDETAIL\n")
-			fmt.Fprintf(w, "\t\t\tHIERRACHICALSPRITE \"%s\"\n", lod.HierarchicalSpriteTag)
+			fmt.Fprintf(w, "\t\t\t3DSPRITE \"%s\"\n", lod.Sprite3DTag)
+			fmt.Fprintf(w, "\t\t\tHIERARCHICALSPRITE \"%s\"\n", lod.HierarchicalSpriteTag)
 			fmt.Fprintf(w, "\t\t\tMINDISTANCE %0.7f\n", lod.MinDistance)
 			fmt.Fprintf(w, "\t\tENDLEVELOFDETAIL\n")
 		}
 		fmt.Fprintf(w, "\tENDACTION\n")
 	}
-	fmt.Fprintf(w, "\t// TODO: NUMFRAGMENTS %d\n", len(a.FragmentRefs))
+	fmt.Fprintf(w, "\t// NUMFRAGMENTS %d\n", len(a.FragmentRefs))
 	for _, frag := range a.FragmentRefs {
-		fmt.Fprintf(w, "\t//TODO: FRAGMENTREF %d\n", frag)
+		fmt.Fprintf(w, "\t// FRAGMENTREF %d\n", frag)
 	}
 	fmt.Fprintf(w, "ENDACTORDEF\n\n")
 	return nil
 }
 
 func (a *ActorDef) Read(r *AsciiReadToken) error {
-	records, err := r.ReadProperty("ACTORTAG")
+	records, err := r.ReadProperty("ACTORTAG", 1)
 	if err != nil {
-		return fmt.Errorf("ACTORTAG: %w", err)
+		return err
 	}
 	a.Tag = records[1]
 
-	records, err = r.ReadProperty("CALLBACK")
+	records, err = r.ReadProperty("CALLBACK", 1)
 	if err != nil {
-		return fmt.Errorf("CALLBACK: %w", err)
+		return err
 	}
 	a.Callback = records[1]
 
-	records, err = r.ReadProperty("")
+	records, err = r.ReadProperty("CURRENTACTION", 1)
 	if err != nil {
-		return fmt.Errorf("after CALLBACK: %w", err)
+		return err
 	}
-	switch records[0] {
-	case "LOCATION":
-		a.Location[0], err = helper.ParseFloat32(records[1])
-		if err != nil {
-			return fmt.Errorf("location x: %w", err)
-		}
-		a.Location[1], err = helper.ParseFloat32(records[2])
-		if err != nil {
-			return fmt.Errorf("location y: %w", err)
-		}
-		a.Location[2], err = helper.ParseFloat32(records[3])
-		if err != nil {
-			return fmt.Errorf("location z: %w", err)
-		}
-	case "CURRENTACTION":
-		a.CurrentAction, err = helper.ParseUint32(records[1])
-		if err != nil {
-			return fmt.Errorf("current action: %w", err)
-		}
-
-	case "NUMACTIONS": // leak to next section
-	default:
-		return fmt.Errorf("unknown property: %s", records[0])
+	a.CurrentAction, err = helper.ParseUint32(records[1])
+	if err != nil {
+		return fmt.Errorf("current action: %w", err)
 	}
 
+	records, err = r.ReadProperty("LOCATION", 3)
+	if err != nil {
+		return err
+	}
+	a.Location, err = helper.ParseFloat32Slice6(records[1:])
+	if err != nil {
+		return fmt.Errorf("location: %w", err)
+	}
+
+	records, err = r.ReadProperty("NUMACTIONS", 1)
+	if err != nil {
+		return err
+	}
 	numActions, err := helper.ParseInt(records[1])
 	if err != nil {
 		return fmt.Errorf("num actions: %w", err)
@@ -573,14 +692,16 @@ func (a *ActorDef) Read(r *AsciiReadToken) error {
 
 	for i := 0; i < numActions; i++ {
 		action := ActorAction{}
-		_, err = r.ReadProperty("ACTION")
+		_, err = r.ReadProperty("ACTION", 0)
 		if err != nil {
-			return fmt.Errorf("ACTION: %w", err)
+			return err
 		}
-		records, err = r.ReadProperty("NUMLEVELSOFDETAIL")
+
+		records, err = r.ReadProperty("NUMLEVELSOFDETAIL", 1)
 		if err != nil {
-			return fmt.Errorf("NUMLEVELSOFDETAIL: %w", err)
+			return err
 		}
+
 		numLod, err := helper.ParseInt(records[1])
 		if err != nil {
 			return fmt.Errorf("num lod: %w", err)
@@ -588,46 +709,48 @@ func (a *ActorDef) Read(r *AsciiReadToken) error {
 
 		for j := 0; j < numLod; j++ {
 			lod := ActorLevelOfDetail{}
-			_, err = r.ReadProperty("LEVELOFDETAIL")
+			_, err = r.ReadProperty("LEVELOFDETAIL", 0)
 			if err != nil {
-				return fmt.Errorf("LEVELOFDETAIL: %w", err)
+				return err
 			}
 
-		lodLoop:
-			for {
-				records, err = r.ReadProperty("")
-				if err != nil {
-					return fmt.Errorf("after LEVELOFDETAIL: %w", err)
-				}
-				switch records[0] {
-				case "MINDISTANCE":
-					lod.MinDistance, err = helper.ParseFloat32(records[1])
-					if err != nil {
-						return fmt.Errorf("min distance: %w", err)
-					}
-				case "3DSPRITE":
-					lod.HierarchicalSpriteTag = records[1]
-				case "HIERRACHICALSPRITE":
-					lod.HierarchicalSpriteTag = records[1]
-				case "ENDLEVELOFDETAIL":
-					break lodLoop
-				default:
-					return fmt.Errorf("unknown property inside LEVELOFDETAIL: %s", records[0])
-				}
-				action.LevelOfDetails = append(action.LevelOfDetails, lod)
+			records, err = r.ReadProperty("3DSPRITE", 1)
+			if err != nil {
+				return err
 			}
+			lod.Sprite3DTag = records[1]
+
+			records, err = r.ReadProperty("HIERARCHICALSPRITE", 1)
+			if err != nil {
+				return err
+			}
+			lod.HierarchicalSpriteTag = records[1]
+
+			records, err = r.ReadProperty("MINDISTANCE", 1)
+			if err != nil {
+				return err
+			}
+
+			lod.MinDistance, err = helper.ParseFloat32(records[1])
+			if err != nil {
+				return fmt.Errorf("min distance: %w", err)
+			}
+
+			_, err = r.ReadProperty("ENDLEVELOFDETAIL", 0)
+			if err != nil {
+				return err
+			}
+
+			action.LevelOfDetails = append(action.LevelOfDetails, lod)
 		}
-		_, err = r.ReadProperty("ENDACTION")
+
+		_, err = r.ReadProperty("ENDACTION", 0)
 		if err != nil {
-			return fmt.Errorf("ENDACTION: %w", err)
+			return err
 		}
 
 		a.Actions = append(a.Actions, action)
-	}
 
-	_, err = r.ReadProperty("ENDACTORDEF")
-	if err != nil {
-		return fmt.Errorf("ENDACTORDEF: %w", err)
 	}
 
 	return nil
@@ -635,12 +758,12 @@ func (a *ActorDef) Read(r *AsciiReadToken) error {
 
 // ActorAction is a declaration of ACTION
 type ActorAction struct {
-	//NUMLEVELSOFDETAIL %d
-	LevelOfDetails []ActorLevelOfDetail // LEVELOFDETAIL
+	LevelOfDetails []ActorLevelOfDetail
 }
 
 // ActorLevelOfDetail is a declaration of LEVELOFDETAIL
 type ActorLevelOfDetail struct {
+	Sprite3DTag           string
 	HierarchicalSpriteTag string
 	MinDistance           float32
 }
@@ -650,8 +773,8 @@ type ActorInst struct {
 	Tag            string
 	Flags          uint32
 	SphereTag      string
-	CurrentAction  uint32
 	DefinitionTag  string
+	CurrentAction  uint32
 	Location       [6]float32
 	Unk1           uint32
 	BoundingRadius float32
@@ -665,103 +788,85 @@ func (a *ActorInst) Definition() string {
 
 func (a *ActorInst) Write(w io.Writer) error {
 	fmt.Fprintf(w, "%s\n", a.Definition())
-	fmt.Fprintf(w, "\tACTORTAG \"%s\"\n", a.Tag)
-	if a.Flags&0x20 != 0 {
-		fmt.Fprintf(w, "\tACTIVE\n")
+	fmt.Fprintf(w, "\tTAG \"%s\"\n", a.Tag)
+	isActive := 0
+	if a.Flags&0x20 == 0x20 {
+		isActive = 1
 	}
+	fmt.Fprintf(w, "\tACTIVE %d\n", isActive)
+	fmt.Fprintf(w, "\tLOCATION %0.7f %0.7f %0.7f %0.7f %0.7f %0.7f\n", a.Location[0], a.Location[1], a.Location[2], a.Location[3], a.Location[4], a.Location[5])
+	fmt.Fprintf(w, "\t// UNK1 %d\n", a.Unk1)
+	fmt.Fprintf(w, "\t// UNK2 %d\n", a.Unk2)
 	fmt.Fprintf(w, "\tSPHERETAG \"%s\"\n", a.SphereTag)
-	if a.CurrentAction != 0 {
-		fmt.Fprintf(w, "\tCURRENTACTION %d\n", a.CurrentAction)
-	}
-	fmt.Fprintf(w, "\tDEFINITION \"%s\"\n", a.DefinitionTag)
-	fmt.Fprintf(w, "\tLOCATION %0.7f %0.7f %0.7f\n", a.Location[0], a.Location[1], a.Location[2])
-	if a.Unk1 != 0 {
-		fmt.Fprintf(w, "\tUNK1 %d\n", a.Unk1)
-	}
 	fmt.Fprintf(w, "\tBOUNDINGRADIUS %0.7f\n", a.BoundingRadius)
 	fmt.Fprintf(w, "\tSCALEFACTOR %0.7f\n", a.Scale)
-	if a.Unk2 != 0 {
-		fmt.Fprintf(w, "\tUNK2 %d\n", a.Unk2)
-	}
 	fmt.Fprintf(w, "ENDACTORINST\n\n")
 	return nil
 }
 
 func (a *ActorInst) Read(r *AsciiReadToken) error {
-	records, err := r.ReadProperty("DEFINITION")
+	records, err := r.ReadProperty("TAG", 1)
 	if err != nil {
-		return fmt.Errorf("DEFINITION: %w", err)
+		return err
 	}
-	a.DefinitionTag = records[1]
+	a.Tag = records[1]
 
-	records, err = r.ReadProperty("")
+	records, err = r.ReadProperty("ACTIVE", 1)
 	if err != nil {
-		return fmt.Errorf("after DEFINITION: %w", err)
+		return err
 	}
-	if records[0] == "ACTIVE" {
+	if records[1] == "1" {
 		a.Flags |= 0x20
-		records, err = r.ReadProperty("LOCATION")
-		if err != nil {
-			return fmt.Errorf("LOCATION: %w", err)
-		}
-	}
-	if records[0] != "LOCATION" {
-		return fmt.Errorf("expected LOCATION, got %s", records[0])
-	}
-	a.Location[0], err = helper.ParseFloat32(records[1])
-	if err != nil {
-		return fmt.Errorf("location x: %w", err)
-	}
-	a.Location[1], err = helper.ParseFloat32(records[2])
-	if err != nil {
-		return fmt.Errorf("location y: %w", err)
-	}
-	a.Location[2], err = helper.ParseFloat32(records[3])
-	if err != nil {
-		return fmt.Errorf("location z: %w", err)
 	}
 
-	records, err = r.ReadProperty("SPHERE")
+	records, err = r.ReadProperty("LOCATION", 6)
 	if err != nil {
-		return fmt.Errorf("SPHERE: %w", err)
+		return err
+	}
+	a.Location, err = helper.ParseFloat32Slice6(records[1:])
+	if err != nil {
+		return fmt.Errorf("location: %w", err)
+	}
+
+	records, err = r.ReadProperty("SPHERETAG", 1)
+	if err != nil {
+		return err
 	}
 	a.SphereTag = records[1]
 
-	records, err = r.ReadProperty("BOUNDINGRADIUS")
+	records, err = r.ReadProperty("BOUNDINGRADIUS", 1)
 	if err != nil {
-		return fmt.Errorf("BOUNDINGRADIUS: %w", err)
+		return err
 	}
 	a.BoundingRadius, err = helper.ParseFloat32(records[1])
 	if err != nil {
 		return fmt.Errorf("bounding radius: %w", err)
 	}
 
-	records, err = r.ReadProperty("SCALEFACTOR")
+	records, err = r.ReadProperty("SCALEFACTOR", 1)
 	if err != nil {
-		return fmt.Errorf("SCALEFACTOR: %w", err)
+		return err
 	}
 	a.Scale, err = helper.ParseFloat32(records[1])
 	if err != nil {
 		return fmt.Errorf("scale factor: %w", err)
 	}
 
-	_, err = r.ReadProperty("ENDACTORINST")
+	_, err = r.ReadProperty("ENDACTORINST", 0)
 	if err != nil {
-		return fmt.Errorf("ENDACTORINST: %w", err)
+		return err
 	}
 	return nil
 }
 
 // LightDef is a declaration of LIGHTDEF
 type LightDef struct {
-	Tag             string // TAG "%s"
-	Flags           uint32 // ?? FLAGS %d
-	FrameCurrentRef uint32 // ?? FRAMECURRENT "%d"
-	Sleep           uint32 // SLEEP %d
-	// NUMFRAMES %d
-	LightLevels []float32 // LIGHTLEVELS %0.7f
-	// NUMCOLORS %d
-	Colors [][3]float32 // COLORS %0.7f %0.7f %0.7f
+	Tag             string
+	Flags           uint32
+	FrameCurrentRef uint32
+	Sleep           uint32
+	LightLevels     []float32
+	Colors          [][3]float32
 }
 
 func (l *LightDef) Definition() string {
@@ -771,41 +876,47 @@ func (l *LightDef) Definition() string {
 func (l *LightDef) Write(w io.Writer) error {
 	fmt.Fprintf(w, "%s\n", l.Definition())
 	fmt.Fprintf(w, "\tTAG \"%s\"\n", l.Tag)
-	if l.Flags&0x01 != 0 {
-		fmt.Fprintf(w, "\tCURRENT_FRAME \"%d\"\n", l.FrameCurrentRef)
+	isCurrentFrame := 0
+	if l.Flags&0x01 == 0x01 {
+		isCurrentFrame = 1
 	}
+	fmt.Fprintf(w, "\tCURRENTFRAME \"%d\"\n", isCurrentFrame)
 	fmt.Fprintf(w, "\tNUMFRAMES %d\n", len(l.LightLevels))
-	if l.Flags&0x04 != 0 {
-		for _, level := range l.LightLevels {
-			fmt.Fprintf(w, "\tLIGHTLEVELS %0.6f\n", level)
-		}
+	for _, level := range l.LightLevels {
+		fmt.Fprintf(w, "\tLIGHTLEVELS %0.6f\n", level)
 	}
-	if l.Flags&0x02 != 0 {
-		fmt.Fprintf(w, "\tSLEEP %d\n", l.Sleep)
+	fmt.Fprintf(w, "\tSLEEP %d\n", l.Sleep)
+	isSkipFrames := 0
+	if l.Flags&0x08 == 0x08 {
+		isSkipFrames = 1
 	}
-	if l.Flags&0x08 != 0 {
-		fmt.Fprintf(w, "\tSKIPFRAMES ON\n")
-	}
-	if l.Flags&0x10 != 0 {
-		fmt.Fprintf(w, "\tNUMCOLORS %d\n", len(l.Colors))
-		for _, color := range l.Colors {
-			fmt.Fprintf(w, "\tCOLOR %0.6f %0.6f %0.6f\n", color[0], color[1], color[2])
-		}
+	fmt.Fprintf(w, "\tSKIPFRAMES %d\n", isSkipFrames)
+	fmt.Fprintf(w, "\tNUMCOLORS %d\n", len(l.Colors))
+	for _, color := range l.Colors {
+		fmt.Fprintf(w, "\tCOLOR %0.6f %0.6f %0.6f\n", color[0], color[1], color[2])
 	}
 	fmt.Fprintf(w, "ENDLIGHTDEFINITION\n\n")
 	return nil
 }
 
 func (l *LightDef) Read(r *AsciiReadToken) error {
-	records, err := r.ReadProperty("TAG")
+	records, err := r.ReadProperty("TAG", 1)
 	if err != nil {
-		return fmt.Errorf("TAG: %w", err)
+		return err
 	}
 	l.Tag = records[1]
 
-	records, err = r.ReadProperty("NUMFRAMES")
+	records, err = r.ReadProperty("CURRENTFRAME", 1)
 	if err != nil {
-		return fmt.Errorf("NUMFRAMES: %w", err)
+		return err
+	}
+	if records[1] == "1" {
+		l.Flags |= 0x01
+	}
+
+	records, err = r.ReadProperty("NUMFRAMES", 1)
+	if err != nil {
+		return err
 	}
 	numFrames, err := helper.ParseInt(records[1])
 	if err != nil {
@@ -813,22 +924,60 @@ func (l *LightDef) Read(r *AsciiReadToken) error {
 	}
 
 	for i := 0; i < numFrames; i++ {
-		records, err = r.ReadProperty("LIGHTLEVELS")
+		records, err = r.ReadProperty("LIGHTLEVELS", 1)
 		if err != nil {
-			return fmt.Errorf("LIGHTLEVELS: %w", err)
+			return err
 		}
 		level, err := helper.ParseFloat32(records[1])
 		if err != nil {
-			return fmt.Errorf("level: %w", err)
+			return fmt.Errorf("light level: %w", err)
 		}
 		l.LightLevels = append(l.LightLevels, level)
 	}
 
-	_, err = r.ReadProperty("ENDLIGHTDEFINITION")
+	records, err = r.ReadProperty("SLEEP", 1)
 	if err != nil {
-		return fmt.Errorf("ENDLIGHTDEFINITION: %w", err)
+		return err
+	}
+	l.Sleep, err = helper.ParseUint32(records[1])
+	if err != nil {
+		return fmt.Errorf("sleep: %w", err)
 	}
 
+	records, err = r.ReadProperty("SKIPFRAMES", 1)
+	if err != nil {
+		return err
+	}
+	if records[1] == "1" {
+		l.Flags |= 0x08
+	}
+
+	records, err = r.ReadProperty("NUMCOLORS", 1)
+	if err != nil {
+		return err
+	}
+	numColors, err := helper.ParseInt(records[1])
+	if err != nil {
+		return fmt.Errorf("num colors: %w", err)
+	}
+
+	for i := 0; i < numColors; i++ {
+		records, err = r.ReadProperty("COLOR", 3)
+		if err != nil {
+			return err
+		}
+		color, err := helper.ParseFloat32Slice3(records[1:])
+		if err != nil {
+			return fmt.Errorf("color: %w", err)
+		}
+
+		l.Colors = append(l.Colors, color)
+	}
+
+	_, err = r.ReadProperty("ENDLIGHTDEFINITION", 0)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -848,17 +997,46 @@ func (p *PointLight) Definition() string {
 func (p *PointLight) Write(w io.Writer) error {
 	fmt.Fprintf(w, "%s\n", p.Definition())
 	fmt.Fprintf(w, "\tTAG \"%s\"\n", p.Tag)
+	fmt.Fprintf(w, "\t// FLAGS %d\n", p.Flags)
 	fmt.Fprintf(w, "\tXYZ %0.6f %0.6f %0.6f\n", p.Location[0], p.Location[1], p.Location[2])
 	fmt.Fprintf(w, "\tLIGHT \"%s\"\n", p.LightDefTag)
-	if p.Flags != 0 {
-		fmt.Fprintf(w, "\tFLAGS %d\n", p.Flags)
-	}
 	fmt.Fprintf(w, "\tRADIUSOFINFLUENCE %0.7f\n", p.Radius)
 	fmt.Fprintf(w, "ENDPOINTLIGHT\n\n")
 	return nil
 }
 
 func (p *PointLight) Read(r *AsciiReadToken) error {
+	records, err := r.ReadProperty("TAG", 1)
+	if err != nil {
+		return err
+	}
+	p.Tag = records[1]
+
+	records, err = r.ReadProperty("LIGHT", 1)
+	if err != nil {
+		return err
+	}
+	p.LightDefTag = records[1]
+
+	records, err = r.ReadProperty("XYZ", 3)
+	if err != nil {
+		return err
+	}
+
+	p.Location, err = helper.ParseFloat32Slice3(records[1:])
+	if err != nil {
+		return fmt.Errorf("location: %w", err)
+	}
+
+	records, err = r.ReadProperty("RADIUSOFINFLUENCE", 1)
+	if err != nil {
+		return err
+	}
+	p.Radius, err = helper.ParseFloat32(records[1])
+	if err != nil {
+		return fmt.Errorf("radius of influence: %w", err)
+	}
+
 	return nil
 }
 
@@ -875,7 +1053,7 @@ func (s *Sprite3DDef) Definition() string {
 
 func (s *Sprite3DDef) Write(w io.Writer) error {
 	fmt.Fprintf(w, "%s\n", s.Definition())
-	fmt.Fprintf(w, "\t3DSPRITETAG \"%s\"\n", s.Tag)
+	fmt.Fprintf(w, "\tTAG \"%s\"\n", s.Tag)
 	fmt.Fprintf(w, "\tNUMVERTICES %d\n", len(s.Vertices))
 	for _, vert := range s.Vertices {
 		fmt.Fprintf(w, "\tXYZ %0.7f %0.7f %0.7f\n", vert[0], vert[1], vert[2])
@@ -883,45 +1061,33 @@ func (s *Sprite3DDef) Write(w io.Writer) error {
 	fmt.Fprintf(w, "\tNUMBSPNODES %d\n", len(s.BSPNodes))
 	for i, node := range s.BSPNodes {
 		fmt.Fprintf(w, "\tBSPNODE //%d\n", i+1)
-		fmt.Fprintf(w, "\tNUMVERTICES %d\n", len(node.Vertices))
-		vertStr := ""
+		fmt.Fprintf(w, "\t\tVERTEXLIST %d", len(node.Vertices))
 		for _, vert := range node.Vertices {
-			vertStr += fmt.Sprintf("%d ", vert)
+			fmt.Fprintf(w, " %d", vert)
 		}
-		if len(vertStr) > 0 {
-			vertStr = vertStr[:len(vertStr)-1]
-		}
-		fmt.Fprintf(w, "\tVERTEXLIST %s\n", vertStr)
-		fmt.Fprintf(w, "\tRENDERMETHOD %s\n", node.RenderMethod)
-		fmt.Fprintf(w, "\tRENDERINFO\n")
-		fmt.Fprintf(w, "\t\tPEN %d\n", node.RenderPen)
-		fmt.Fprintf(w, "\tENDRENDERINFO\n")
-		if node.FrontTree != 0 {
-			fmt.Fprintf(w, "\tFRONTTREE %d\n", node.FrontTree)
-		}
-		if node.BackTree != 0 {
-			fmt.Fprintf(w, "\tBACKTREE %d\n", node.BackTree)
-		}
-		fmt.Fprintf(w, "ENDBSPNODE\n")
+		fmt.Fprintf(w, "\n")
+		fmt.Fprintf(w, "\t\tRENDERMETHOD %s\n", node.RenderMethod)
+		fmt.Fprintf(w, "\t\tRENDERINFO\n")
+		fmt.Fprintf(w, "\t\t\tPEN %d\n", node.RenderPen)
+		fmt.Fprintf(w, "\t\tENDRENDERINFO\n")
+		fmt.Fprintf(w, "\t\tFRONTTREE %d\n", node.FrontTree)
+		fmt.Fprintf(w, "\t\tBACKTREE %d\n", node.BackTree)
+		fmt.Fprintf(w, "\tENDBSPNODE\n")
 	}
 	fmt.Fprintf(w, "END3DSPRITEDEF\n\n")
 	return nil
 }
 
 func (s *Sprite3DDef) Read(r *AsciiReadToken) error {
-	records, err := r.ReadProperty("3DSPRITETAG")
+	records, err := r.ReadProperty("TAG", 1)
 	if err != nil {
-		return fmt.Errorf("3DSPRITETAG: %w", err)
+		return err
 	}
-	if len(records) < 2 {
-		return fmt.Errorf("3DSPRITETAG: missing tag name")
-	}
-
 	s.Tag = records[1]
 
-	records, err = r.ReadProperty("NUMVERTICES")
+	records, err = r.ReadProperty("NUMVERTICES", 1)
 	if err != nil {
-		return fmt.Errorf("NUMVERTICES: %w", err)
+		return err
 	}
 	numVertices, err := helper.ParseInt(records[1])
 	if err != nil {
@@ -929,136 +1095,108 @@ func (s *Sprite3DDef) Read(r *AsciiReadToken) error {
 	}
 
 	for i := 0; i < numVertices; i++ {
-		records, err = r.ReadProperty("XYZ")
+		records, err = r.ReadProperty("XYZ", 3)
 		if err != nil {
-			return fmt.Errorf("XYZ: %w", err)
+			return err
 		}
-		if len(records) < 4 {
-			return fmt.Errorf("XYZ: missing coordinates")
-		}
-		var vert [3]float32
-		vert[0], err = helper.ParseFloat32(records[1])
+		vert, err := helper.ParseFloat32Slice3(records[1:])
 		if err != nil {
-			return fmt.Errorf("vertex x: %w", err)
-		}
-		vert[1], err = helper.ParseFloat32(records[2])
-		if err != nil {
-			return fmt.Errorf("vertex y: %w", err)
-		}
-		vert[2], err = helper.ParseFloat32(records[3])
-		if err != nil {
-			return fmt.Errorf("vertex z: %w", err)
+			return fmt.Errorf("vertex %d: %w", i, err)
 		}
 		s.Vertices = append(s.Vertices, vert)
 	}
 
-	records, err = r.ReadProperty("NUMBSPNODES")
+	records, err = r.ReadProperty("NUMBSPNODES", 1)
 	if err != nil {
-		return fmt.Errorf("NUMBSPNODES: %w", err)
+		return err
 	}
-	numNodes, err := helper.ParseInt(records[1])
+	numBSPNodes, err := helper.ParseInt(records[1])
 	if err != nil {
-		return fmt.Errorf("num nodes: %w", err)
+		return fmt.Errorf("num bsp nodes: %w", err)
 	}
 
-	for i := 0; i < numNodes; i++ {
+	for i := 0; i < numBSPNodes; i++ {
 		node := &BSPNode{}
-		_, err = r.ReadProperty("BSPNODE")
+		_, err = r.ReadProperty("BSPNODE", 0)
 		if err != nil {
-			return fmt.Errorf("BSPNODE: %w", err)
+			return err
 		}
-
-		records, err = r.ReadProperty("NUMVERTICES")
+		records, err = r.ReadProperty("VERTEXLIST", 1)
 		if err != nil {
-			return fmt.Errorf("NUMVERTICES: %w", err)
-		}
-		if len(records) < 2 {
-			return fmt.Errorf("NUMVERTICES: missing number of vertices")
+			return err
 		}
 		numVertices, err := helper.ParseInt(records[1])
 		if err != nil {
 			return fmt.Errorf("num vertices: %w", err)
 		}
-
-		records, err = r.ReadProperty("VERTEXLIST")
-		if err != nil {
-			return fmt.Errorf("VERTEXLIST: %w", err)
+		if len(records) != numVertices+2 {
+			return fmt.Errorf("vertex list: expected %d, got %d", numVertices, len(records)-2)
 		}
-		if len(records) < numVertices+1 {
-			return fmt.Errorf("VERTEXLIST: expected %d vertices, got %d", numVertices, len(records)-1)
-		}
-
-		node.Vertices = make([]uint32, numVertices)
 		for j := 0; j < numVertices; j++ {
-			node.Vertices[j], err = helper.ParseUint32(records[j+1])
+			val, err := helper.ParseUint32(records[j+2])
 			if err != nil {
 				return fmt.Errorf("vertex %d: %w", j, err)
 			}
+			node.Vertices = append(node.Vertices, val)
 		}
 
-		records, err = r.ReadProperty("RENDERMETHOD")
+		records, err = r.ReadProperty("RENDERMETHOD", 1)
 		if err != nil {
-			return fmt.Errorf("RENDERMETHOD: %w", err)
+			return err
 		}
+
 		node.RenderMethod = records[1]
 
-		_, err = r.ReadProperty("RENDERINFO")
+		records, err = r.ReadProperty("RENDERINFO", 0)
 		if err != nil {
-			return fmt.Errorf("RENDERINFO: %w", err)
+			return err
 		}
 
-		records, err = r.ReadProperty("PEN")
+		records, err = r.ReadProperty("PEN", 1)
 		if err != nil {
-			return fmt.Errorf("PEN: %w", err)
-		}
-		if len(records) < 2 {
-			return fmt.Errorf("PEN: missing pen value")
+			return err
 		}
 		node.RenderPen, err = helper.ParseUint32(records[1])
 		if err != nil {
-			return fmt.Errorf("pen: %w", err)
+			return fmt.Errorf("render pen: %w", err)
 		}
 
-		_, err = r.ReadProperty("ENDRENDERINFO")
+		_, err = r.ReadProperty("ENDRENDERINFO", 0)
 		if err != nil {
-			return fmt.Errorf("ENDRENDERINFO: %w", err)
+			return err
 		}
 
-		records, err = r.ReadProperty("FRONTTREE")
+		records, err = r.ReadProperty("FRONTTREE", 1)
 		if err != nil {
-			return fmt.Errorf("FRONTTREE: %w", err)
+			return err
 		}
-		if len(records) < 2 {
-			return fmt.Errorf("FRONTTREE: missing tree value")
-		}
+
 		node.FrontTree, err = helper.ParseUint32(records[1])
 		if err != nil {
 			return fmt.Errorf("front tree: %w", err)
 		}
 
-		records, err = r.ReadProperty("BACKTREE")
+		records, err = r.ReadProperty("BACKTREE", 1)
 		if err != nil {
-			return fmt.Errorf("BACKTREE: %w", err)
+			return err
 		}
-		if len(records) < 2 {
-			return fmt.Errorf("BACKTREE: missing tree value")
-		}
+
 		node.BackTree, err = helper.ParseUint32(records[1])
 		if err != nil {
 			return fmt.Errorf("back tree: %w", err)
 		}
 
-		_, err = r.ReadProperty("ENDBSPNODE")
+		_, err = r.ReadProperty("ENDBSPNODE", 0)
 		if err != nil {
-			return fmt.Errorf("ENDBSPNODE: %w", err)
+			return err
 		}
 
 		s.BSPNodes = append(s.BSPNodes, node)
 	}
 
-	_, err = r.ReadProperty("END3DSPRITEDEF")
+	_, err = r.ReadProperty("END3DSPRITEDEF", 0)
 	if err != nil {
-		return fmt.Errorf("END3DSPRITEDEF: %w", err)
+		return err
 	}
 
 	return nil
@@ -1066,7 +1204,6 @@ func (s *Sprite3DDef) Read(r *AsciiReadToken) error {
 
 // BSPNode is a declaration of BSPNODE
 type BSPNode struct {
-	// NUMVERTICES %d
 	Vertices                    []uint32   // VERTEXLIST %d %d %d %d
 	RenderMethod                string     // RENDERMETHOD %s
 	RenderFlags                 uint8      // FLAGS %d
@@ -1088,78 +1225,16 @@ type BspNodeUVInfo struct {
 	UAxis    [3]float32 // UAXIS %0.7f %0.7f %0.7f
 	VAxis    [3]float32 // VAXIS %0.7f %0.7f %0.7f
 }
-
-/*
-	3DSPRITEDEF
-		3DSPRITETAG "merPolyset#22"
-		NUMVERTICES 13
-		XYZ  0.853552 -0.387270 0.132829
-		XYZ  0.853552 -0.387270 -0.0764756
-		XYZ  0.669943 -0.387270 -0.0764756
-		XYZ  0.669943 -0.387270 0.132829
-		XYZ  0.520097 0.625145 0.263453
-		XYZ  0.741984 0.789095 -0.104524
-		XYZ  0.520097 0.625145 -0.213762
-		XYZ  0.956755 0.625145 0.263453
-		XYZ  0.956755 0.625145 -0.213762
-		XYZ  1.03165 -0.391053 0.272626
-		XYZ  1.03165 -0.391053 -0.251556
-		XYZ  0.507472 -0.391053 0.272626
-		XYZ  0.507472 -0.391053 -0.251556
-		NUMBSPNODES 10
-		BSPNODE  1
-			NUMVERTICES 4
-			VERTEXLIST  1, 2, 3, 4
-			RENDERMETHOD  SOLIDFILLAMBIENTGOURAUD1
-			RENDERINFO
-				PEN  11  // RGBPEN  0, 0, 0
-				BRIGHTNESS  0.750000
-				SCALEDAMBIENT  1.00000
-			ENDRENDERINFO
-			FRONTTREE  2
-			BACKTREE  3
-		ENDBSPNODE  1
-		BSPNODE  2
-			NUMVERTICES 4
-			VERTEXLIST  10, 11, 13, 12
-			RENDERMETHOD  TEXTURE4AMBIENT
-			RENDERINFO
-				PEN  156  // RGBPEN  0, 150, 255
-				BRIGHTNESS  0.750000
-				SCALEDAMBIENT  1.00000
-				SIMPLESPRITEINST
-					TAG "msleve_SPRITE"
-				ENDSIMPLESPRITEINST
-				UVORIGIN  0.219274 -0.391053 -0.0851645
-				UAXIS  1.0       0.986040        0.00000      -0.569290
-				VAXIS  1.0        0.00000        0.00000        0.00000
-				UV  0.460789 0.00000
-				UV  0.690980 0.00000
-				UV  0.292278 0.00000
-				UV  0.0620874 0.00000
-			ENDRENDERINFO
-			FRONTTREE  0
-			BACKTREE  0
-		ENDBSPNODE  2
-		SPHERELIST
-		DEFINITION  "merPolyset#22_BOUNDS"
-	ENDSPHERELIST
-	BOUNDINGRADIUS 1.17286
-END3DSPRITEDEF */
-
 type PolyhedronDefinition struct {
 	Tag            string
 	BoundingRadius float32
 	ScaleFactor    float32
-	numVertices    int // NUMVERTICES %d
 	Vertices       [][3]float32
-	numFaces       int // NUMFACES %d
 	Faces          []*PolyhedronDefinitionFace
 }
 
 type PolyhedronDefinitionFace struct {
-	numVertices int // NUMVERTICES %d
-	Vertices    []uint32
+	Vertices []uint32
 }
 
 func (p *PolyhedronDefinition) Definition() string {
@@ -1178,15 +1253,10 @@ func (p *PolyhedronDefinition) Write(w io.Writer) error {
 	fmt.Fprintf(w, "\tNUMFACES %d\n", len(p.Faces))
 	for i, face := range p.Faces {
 		fmt.Fprintf(w, "\tFACE %d\n", i+1)
-		fmt.Fprintf(w, "\t\tNUMVERTICES %d\n", len(face.Vertices))
-		vertStr := ""
+		fmt.Fprintf(w, "\t\tVERTEXLIST %d", len(face.Vertices))
 		for _, vert := range face.Vertices {
-			vertStr += fmt.Sprintf("%d, ", vert)
+			fmt.Fprintf(w, " %d", vert)
 		}
-		if len(vertStr) > 0 {
-			vertStr = vertStr[:len(vertStr)-2]
-		}
-		fmt.Fprintf(w, "\t\tVERTEXLIST %s\n", vertStr)
 		fmt.Fprintf(w, "\tENDFACE %d\n", i+1)
 	}
 	fmt.Fprintf(w, "ENDPOLYHEDRONDEFINITION\n\n")
@@ -1194,6 +1264,100 @@ func (p *PolyhedronDefinition) Write(w io.Writer) error {
 }
 
 func (p *PolyhedronDefinition) Read(r *AsciiReadToken) error {
+	records, err := r.ReadProperty("TAG", 1)
+	if err != nil {
+		return err
+	}
+	p.Tag = records[1]
+
+	records, err = r.ReadProperty("BOUNDINGRADIUS", 1)
+	if err != nil {
+		return err
+	}
+	p.BoundingRadius, err = helper.ParseFloat32(records[1])
+	if err != nil {
+		return fmt.Errorf("bounding radius: %w", err)
+	}
+
+	records, err = r.ReadProperty("SCALEFACTOR", 1)
+	if err != nil {
+		return err
+	}
+	p.ScaleFactor, err = helper.ParseFloat32(records[1])
+	if err != nil {
+		return fmt.Errorf("scale factor: %w", err)
+	}
+
+	records, err = r.ReadProperty("NUMVERTICES", 1)
+	if err != nil {
+		return err
+	}
+
+	numVertices, err := helper.ParseInt(records[1])
+	if err != nil {
+		return fmt.Errorf("num vertices: %w", err)
+	}
+
+	for i := 0; i < numVertices; i++ {
+		records, err = r.ReadProperty("XYZ", 3)
+		if err != nil {
+			return err
+		}
+		vert, err := helper.ParseFloat32Slice3(records[1:])
+		if err != nil {
+			return fmt.Errorf("vertex %d: %w", i, err)
+		}
+		p.Vertices = append(p.Vertices, vert)
+	}
+
+	records, err = r.ReadProperty("NUMFACES", 1)
+	if err != nil {
+		return err
+	}
+	numFaces, err := helper.ParseInt(records[1])
+	if err != nil {
+		return fmt.Errorf("num faces: %w", err)
+	}
+
+	for i := 0; i < numFaces; i++ {
+		face := &PolyhedronDefinitionFace{}
+		_, err = r.ReadProperty("FACE", 0)
+		if err != nil {
+			return err
+		}
+
+		records, err = r.ReadProperty("VERTEXLIST", 1)
+		if err != nil {
+			return err
+		}
+		numVertices, err := helper.ParseInt(records[1])
+		if err != nil {
+			return fmt.Errorf("num vertices: %w", err)
+		}
+		if len(records) != numVertices+2 {
+			return fmt.Errorf("vertex list: expected %d, got %d", numVertices, len(records)-2)
+		}
+		for j := 0; j < numVertices; j++ {
+			val, err := helper.ParseUint32(records[j+2])
+			if err != nil {
+				return fmt.Errorf("vertex %d: %w", j, err)
+			}
+			face.Vertices = append(face.Vertices, val)
+		}
+
+		_, err = r.ReadProperty("ENDFACE", 0)
+		if err != nil {
+			return err
+		}
+
+		p.Faces = append(p.Faces, face)
+	}
+
+	_, err = r.ReadProperty("ENDPOLYHEDRONDEFINITION", 0)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -1348,9 +1512,10 @@ func (t *WorldTree) Definition() string {
 
 func (t *WorldTree) Write(w io.Writer) error {
 	fmt.Fprintf(w, "%s\n", t.Definition())
+	fmt.Fprintf(w, "\tNUMWORLDNODES %d\n", len(t.WorldNodes))
 	for i, node := range t.WorldNodes {
 		fmt.Fprintf(w, "\tWORLDNODE %d\n", i+1)
-		fmt.Fprintf(w, "\t\tNORMALS %0.7f %0.7f %0.7f %0.7f\n", node.Normals[0], node.Normals[1], node.Normals[2], node.Normals[3])
+		fmt.Fprintf(w, "\t\tNORMALABCD %0.7f %0.7f %0.7f %0.7f\n", node.Normals[0], node.Normals[1], node.Normals[2], node.Normals[3])
 		fmt.Fprintf(w, "\t\tWORLDREGIONTAG \"%s\"\n", node.WorldRegionTag)
 		fmt.Fprintf(w, "\t\tFRONTTREE %d\n", node.FrontTree)
 		fmt.Fprintf(w, "\t\tBACKTREE %d\n", node.BackTree)
@@ -1361,95 +1526,62 @@ func (t *WorldTree) Write(w io.Writer) error {
 }
 
 func (t *WorldTree) Read(r *AsciiReadToken) error {
-	records, err := r.ReadProperty("NUMWORLDNODES")
+	records, err := r.ReadProperty("NUMWORLDNODES", 1)
 	if err != nil {
-		return fmt.Errorf("NUMWORLDNODES: %w", err)
+		return err
 	}
-	if len(records) < 2 {
-		return fmt.Errorf("NUMWORLDNODES: missing node count")
-	}
+
 	numNodes, err := helper.ParseInt(records[1])
 	if err != nil {
-		return fmt.Errorf("num nodes: %w", err)
+		return fmt.Errorf("num world nodes: %w", err)
 	}
 
 	for i := 0; i < numNodes; i++ {
-		node := WorldNode{}
-		_, err = r.ReadProperty("WORLDNODE")
+		node := &WorldNode{}
+		_, err = r.ReadProperty("WORLDNODE", 0)
 		if err != nil {
-			return fmt.Errorf("WORLDNODE: %w", err)
+			return err
 		}
 
-		records, err = r.ReadProperty("NORMALABCD")
+		records, err = r.ReadProperty("NORMALABCD", 4)
 		if err != nil {
-			return fmt.Errorf("NORMALABCD: %w", err)
+			return err
 		}
-		if len(records) < 5 {
-			return fmt.Errorf("NORMALABCD: missing values")
-		}
-		node.Normals[0], err = helper.ParseFloat32(records[1])
+		node.Normals, err = helper.ParseFloat32Slice4(records[1:])
 		if err != nil {
-			return fmt.Errorf("normal a: %w", err)
-		}
-		node.Normals[1], err = helper.ParseFloat32(records[2])
-		if err != nil {
-			return fmt.Errorf("normal b: %w", err)
-		}
-		node.Normals[2], err = helper.ParseFloat32(records[3])
-		if err != nil {
-			return fmt.Errorf("normal c: %w", err)
-		}
-		node.Normals[3], err = helper.ParseFloat32(records[4])
-		if err != nil {
-			return fmt.Errorf("normal d: %w", err)
+			return fmt.Errorf("normals: %w", err)
 		}
 
-		records, err = r.ReadProperty("WORLDREGIONTAG")
+		records, err = r.ReadProperty("WORLDREGIONTAG", 1)
 		if err != nil {
-			return fmt.Errorf("WORLDREGIONTAG: %w", err)
-		}
-		if len(records) < 2 {
-			return fmt.Errorf("WORLDREGIONTAG: missing tag")
+			return err
 		}
 		node.WorldRegionTag = records[1]
 
-		records, err = r.ReadProperty("FRONTTREE")
+		records, err = r.ReadProperty("FRONTTREE", 1)
 		if err != nil {
-			return fmt.Errorf("FRONTTREE: %w", err)
+			return err
 		}
-		if len(records) < 2 {
-			return fmt.Errorf("FRONTTREE: missing value")
-		}
-
 		node.FrontTree, err = helper.ParseUint32(records[1])
-		if err != nil {
-			return fmt.Errorf("front tree: %w", err)
-		}
 
-		records, err = r.ReadProperty("BACKTREE")
+		records, err = r.ReadProperty("BACKTREE", 1)
 		if err != nil {
-			return fmt.Errorf("BACKTREE: %w", err)
+			return err
 		}
-		if len(records) < 2 {
-			return fmt.Errorf("BACKTREE: missing value")
-		}
-
 		node.BackTree, err = helper.ParseUint32(records[1])
+
+		_, err = r.ReadProperty("ENDWORLDNODE", 0)
 		if err != nil {
-			return fmt.Errorf("back tree: %w", err)
+			return err
 		}
 
-		_, err = r.ReadProperty("ENDWORLDNODE")
-		if err != nil {
-			return fmt.Errorf("ENDWORLDNODE: %w", err)
-		}
+		t.WorldNodes = append(t.WorldNodes, node)
 
-		t.WorldNodes = append(t.WorldNodes, &node)
 	}
 
-	_, err = r.ReadProperty("ENDWORLDTREE")
+	_, err = r.ReadProperty("ENDWORLDTREE", 0)
 	if err != nil {
-		return fmt.Errorf("ENDWORLDTREE: %w", err)
+		return err
 	}
 
 	return nil
@@ -1538,17 +1670,27 @@ func (r *Region) Write(w io.Writer) error {
 		}
 		fmt.Fprintf(w, "\tENDCUTTINGOBSTACLE // %d\n", i+1)
 	}
-	if r.VisTree != nil {
-		fmt.Fprintf(w, "\tNUMVISNODE %d\n", len(r.VisTree.VisNodes))
-		for i, node := range r.VisTree.VisNodes {
-			fmt.Fprintf(w, "\tVISNODE // %d\n", i+1)
-			fmt.Fprintf(w, "\t\tNORMALABCD %0.7f %0.7f %0.7f %0.7f\n", node.Normal[0], node.Normal[1], node.Normal[2], node.Normal[3])
-			fmt.Fprintf(w, "\t\tVISLISTINDEX %d\n", node.VisListIndex)
-			fmt.Fprintf(w, "\t\tFRONTTREE %d\n", node.FrontTree)
-			fmt.Fprintf(w, "\t\tBACKTREE %d\n", node.BackTree)
-			fmt.Fprintf(w, "\tENDVISNODE // %d\n", i+1)
-		}
+	fmt.Fprintf(w, "\tVISTREE\n")
+	fmt.Fprintf(w, "\tNUMVISNODE %d\n", len(r.VisTree.VisNodes))
+	for i, node := range r.VisTree.VisNodes {
+		fmt.Fprintf(w, "\tVISNODE // %d\n", i+1)
+		fmt.Fprintf(w, "\t\tNORMALABCD %0.7f %0.7f %0.7f %0.7f\n", node.Normal[0], node.Normal[1], node.Normal[2], node.Normal[3])
+		fmt.Fprintf(w, "\t\tVISLISTINDEX %d\n", node.VisListIndex)
+		fmt.Fprintf(w, "\t\tFRONTTREE %d\n", node.FrontTree)
+		fmt.Fprintf(w, "\t\tBACKTREE %d\n", node.BackTree)
+		fmt.Fprintf(w, "\tENDVISNODE // %d\n", i+1)
 	}
+	fmt.Fprintf(w, "\tNUMVISIBLELIST %d\n", len(r.VisTree.VisLists))
+	for i, list := range r.VisTree.VisLists {
+		fmt.Fprintf(w, "\tVISLIST // %d\n", i+1)
+		fmt.Fprintf(w, "\t\tRANGE %d", len(list.Range))
+		for _, val := range list.Range {
+			fmt.Fprintf(w, " %d", val)
+		}
+		fmt.Fprintf(w, "\n")
+		fmt.Fprintf(w, "\tENDVISIBLELIST // %d\n", i+1)
+	}
+	fmt.Fprintf(w, "\tENDVISTREE\n")
 	fmt.Fprintf(w, "\tSPHERE %0.7f %0.7f %0.7f %0.7f\n", r.Sphere[0], r.Sphere[1], r.Sphere[2], r.Sphere[3])
 	fmt.Fprintf(w, "\tUSERDATA \"%s\"\n", r.UserData)
 	fmt.Fprintf(w, "ENDREGION\n\n")
@@ -1557,57 +1699,36 @@ func (r *Region) Write(w io.Writer) error {
 
 func (r *Region) Read(token *AsciiReadToken) error {
 	r.VisTree = &VisTree{}
-	records, err := token.ReadProperty("REGIONTAG")
+	records, err := token.ReadProperty("REGIONTAG", 1)
 	if err != nil {
-		return fmt.Errorf("REGIONTAG: %w", err)
-	}
-	if len(records) < 2 {
-		return fmt.Errorf("REGIONTAG: missing tag")
+		return err
 	}
 	r.RegionTag = records[1]
 
-	records, err = token.ReadProperty("NUMREGIONVERTEX")
+	records, err = token.ReadProperty("NUMREGIONVERTEX", 1)
 	if err != nil {
-		return fmt.Errorf("NUMREGIONVERTEX: %w", err)
-	}
-	if len(records) < 2 {
-		return fmt.Errorf("NUMREGIONVERTEX: missing vertex count")
+		return err
 	}
 	numVertices, err := helper.ParseInt(records[1])
 	if err != nil {
-		return fmt.Errorf("num vertices: %w", err)
+		return fmt.Errorf("num region vertices: %w", err)
 	}
 
 	for i := 0; i < numVertices; i++ {
-		records, err = token.ReadProperty("XYZ")
+		records, err = token.ReadProperty("XYZ", 3)
 		if err != nil {
-			return fmt.Errorf("XYZ: %w", err)
+			return err
 		}
-		if len(records) < 4 {
-			return fmt.Errorf("XYZ: missing coordinates")
-		}
-		var vert [3]float32
-		vert[0], err = helper.ParseFloat32(records[1])
+		vert, err := helper.ParseFloat32Slice3(records[1:])
 		if err != nil {
-			return fmt.Errorf("vertex x: %w", err)
-		}
-		vert[1], err = helper.ParseFloat32(records[2])
-		if err != nil {
-			return fmt.Errorf("vertex y: %w", err)
-		}
-		vert[2], err = helper.ParseFloat32(records[3])
-		if err != nil {
-			return fmt.Errorf("vertex z: %w", err)
+			return fmt.Errorf("region vertex %d: %w", i, err)
 		}
 		r.RegionVertices = append(r.RegionVertices, vert)
 	}
 
-	records, err = token.ReadProperty("NUMRENDERVERTICES")
+	records, err = token.ReadProperty("NUMRENDERVERTICES", 1)
 	if err != nil {
-		return fmt.Errorf("NUMRENDERVERTICES: %w", err)
-	}
-	if len(records) < 2 {
-		return fmt.Errorf("NUMRENDERVERTICES: missing vertex count")
+		return err
 	}
 	numVertices, err = helper.ParseInt(records[1])
 	if err != nil {
@@ -1615,260 +1736,329 @@ func (r *Region) Read(token *AsciiReadToken) error {
 	}
 
 	for i := 0; i < numVertices; i++ {
-		records, err = token.ReadProperty("XYZ")
+		records, err = token.ReadProperty("XYZ", 3)
 		if err != nil {
-			return fmt.Errorf("XYZ: %w", err)
+			return err
 		}
-		if len(records) < 4 {
-			return fmt.Errorf("XYZ: missing coordinates")
-		}
-		var vert [3]float32
-		vert[0], err = helper.ParseFloat32(records[1])
+		vert, err := helper.ParseFloat32Slice3(records[1:])
 		if err != nil {
-			return fmt.Errorf("vertex x: %w", err)
-		}
-		vert[1], err = helper.ParseFloat32(records[2])
-		if err != nil {
-			return fmt.Errorf("vertex y: %w", err)
-		}
-		vert[2], err = helper.ParseFloat32(records[3])
-		if err != nil {
-			return fmt.Errorf("vertex z: %w", err)
+			return fmt.Errorf("render vertex %d: %w", i, err)
 		}
 		r.RenderVertices = append(r.RenderVertices, vert)
 	}
 
-	records, err = token.ReadProperty("NUMWALLS")
+	records, err = token.ReadProperty("NUMWALLS", 1)
 	if err != nil {
-		return fmt.Errorf("NUMWALLS: %w", err)
-	}
-	if len(records) < 2 {
-		return fmt.Errorf("NUMWALLS: missing wall count")
+		return err
 	}
 	numWalls, err := helper.ParseInt(records[1])
 	if err != nil {
 		return fmt.Errorf("num walls: %w", err)
 	}
 
-	if numWalls > 0 {
-		return fmt.Errorf("Walls are not supported")
+	for i := 0; i < numWalls; i++ {
+		wall := &Wall{}
+		_, err = token.ReadProperty("WALL", 0)
+		if err != nil {
+			return err
+		}
+
+		records, err = token.ReadProperty("NORMALABCD", 4)
+		if err != nil {
+			return err
+		}
+		wall.Normal, err = helper.ParseFloat32Slice4(records[1:])
+		if err != nil {
+			return fmt.Errorf("wall normal: %w", err)
+		}
+
+		records, err = token.ReadProperty("NUMVERTICES", 1)
+		if err != nil {
+			return err
+		}
+		numVertices, err := helper.ParseInt(records[1])
+		if err != nil {
+			return fmt.Errorf("num vertices: %w", err)
+		}
+
+		for j := 0; j < numVertices; j++ {
+			records, err = token.ReadProperty("XYZ", 3)
+			if err != nil {
+				return err
+			}
+			vert, err := helper.ParseFloat32Slice3(records[1:])
+			if err != nil {
+				return fmt.Errorf("wall vertex %d: %w", j, err)
+			}
+
+			wall.Vertices = append(wall.Vertices, vert)
+		}
+
+		_, err = token.ReadProperty("ENDWALL", 0)
+		if err != nil {
+			return err
+		}
+
+		r.Walls = append(r.Walls, wall)
 	}
 
-	records, err = token.ReadProperty("NUMOBSTACLES")
+	records, err = token.ReadProperty("NUMOBSTACLES", 1)
 	if err != nil {
-		return fmt.Errorf("NUMOBSTACLES: %w", err)
-	}
-	if len(records) < 2 {
-		return fmt.Errorf("NUMOBSTACLES: missing obstacle count")
+		return err
 	}
 	numObstacles, err := helper.ParseInt(records[1])
 	if err != nil {
 		return fmt.Errorf("num obstacles: %w", err)
 	}
 
-	if numObstacles > 0 {
-		return fmt.Errorf("Obstacles are not supported")
+	for i := 0; i < numObstacles; i++ {
+		obs := &Obstacle{}
+		_, err = token.ReadProperty("OBSTACLE", 0)
+		if err != nil {
+			return err
+		}
+
+		records, err = token.ReadProperty("NORMALABCD", 4)
+		if err != nil {
+			return err
+		}
+		obs.Normal, err = helper.ParseFloat32Slice4(records[1:])
+		if err != nil {
+			return fmt.Errorf("obstacle normal: %w", err)
+		}
+
+		records, err = token.ReadProperty("NUMVERTICES", 1)
+		if err != nil {
+			return err
+		}
+		numVertices, err := helper.ParseInt(records[1])
+		if err != nil {
+			return fmt.Errorf("num vertices: %w", err)
+		}
+
+		for j := 0; j < numVertices; j++ {
+			records, err = token.ReadProperty("XYZ", 3)
+			if err != nil {
+				return err
+			}
+			vert, err := helper.ParseFloat32Slice3(records[1:])
+			if err != nil {
+				return fmt.Errorf("obstacle vertex %d: %w", j, err)
+			}
+
+			obs.Vertices = append(obs.Vertices, vert)
+		}
+
+		_, err = token.ReadProperty("ENDOBSTACLE", 0)
+		if err != nil {
+			return err
+		}
+
+		r.Obstacles = append(r.Obstacles, obs)
 	}
 
-	records, err = token.ReadProperty("NUMCUTTINGOBSTACLES")
+	records, err = token.ReadProperty("NUMCUTTINGOBSTACLES", 1)
 	if err != nil {
-		return fmt.Errorf("NUMCUTTINGOBSTACLES: %w", err)
+		return err
 	}
-	if len(records) < 2 {
-		return fmt.Errorf("NUMCUTTINGOBSTACLES: missing cutting obstacle count")
-	}
-	numCuttingObstacles, err := helper.ParseInt(records[1])
+	numObstacles, err = helper.ParseInt(records[1])
 	if err != nil {
 		return fmt.Errorf("num cutting obstacles: %w", err)
 	}
 
-	if numCuttingObstacles > 0 {
-		return fmt.Errorf("cutting obstacles are not supported")
+	for i := 0; i < numObstacles; i++ {
+		obs := &Obstacle{}
+		_, err = token.ReadProperty("CUTTINGOBSTACLE", 0)
+		if err != nil {
+			return err
+		}
+
+		records, err = token.ReadProperty("NORMALABCD", 4)
+		if err != nil {
+			return err
+		}
+		obs.Normal, err = helper.ParseFloat32Slice4(records[1:])
+		if err != nil {
+			return fmt.Errorf("cutting obstacle normal: %w", err)
+		}
+
+		records, err = token.ReadProperty("NUMVERTICES", 1)
+		if err != nil {
+			return err
+		}
+
+		numVertices, err := helper.ParseInt(records[1])
+		if err != nil {
+			return fmt.Errorf("num vertices: %w", err)
+		}
+
+		for j := 0; j < numVertices; j++ {
+			records, err = token.ReadProperty("XYZ", 3)
+			if err != nil {
+				return err
+			}
+
+			vert, err := helper.ParseFloat32Slice3(records[1:])
+			if err != nil {
+				return fmt.Errorf("cutting obstacle vertex %d: %w", j, err)
+			}
+
+			obs.Vertices = append(obs.Vertices, vert)
+		}
+
+		_, err = token.ReadProperty("ENDCUTTINGOBSTACLE", 0)
+		if err != nil {
+			return err
+		}
+
+		r.CuttingObstacles = append(r.CuttingObstacles, obs)
 	}
 
-	_, err = token.ReadProperty("VISTREE")
+	_, err = token.ReadProperty("VISTREE", 0)
 	if err != nil {
-		return fmt.Errorf("VISTREE: %w", err)
+		return err
 	}
 
-	records, err = token.ReadProperty("NUMVISNODE")
+	records, err = token.ReadProperty("NUMVISNODE", 1)
 	if err != nil {
-		return fmt.Errorf("NUMVISNODE: %w", err)
+		return err
 	}
-	if len(records) < 2 {
-		return fmt.Errorf("NUMVISNODE: missing vis node count")
-	}
-	numVisNodes, err := helper.ParseInt(records[1])
+
+	numNodes, err := helper.ParseInt(records[1])
 	if err != nil {
 		return fmt.Errorf("num vis nodes: %w", err)
 	}
 
-	records, err = token.ReadProperty("NUMVISLIST")
-	if err != nil {
-		return fmt.Errorf("NUMVISLIST: %w", err)
-	}
-	if len(records) < 2 {
-		return fmt.Errorf("NUMVISLIST: missing vis list count")
-	}
-	numVisLists, err := helper.ParseInt(records[1])
-	if err != nil {
-		return fmt.Errorf("num vis lists: %w", err)
-	}
-
-	for i := 0; i < numVisNodes; i++ {
-		node := VisNode{}
-		_, err = token.ReadProperty("VISNODE")
+	for i := 0; i < numNodes; i++ {
+		node := &VisNode{}
+		_, err = token.ReadProperty("VISNODE", 0)
 		if err != nil {
-			return fmt.Errorf("VISNODE: %w", err)
+			return err
 		}
 
-		records, err = token.ReadProperty("NORMALABCD")
+		records, err = token.ReadProperty("NORMALABCD", 4)
 		if err != nil {
-			return fmt.Errorf("NORMALABCD: %w", err)
-		}
-		if len(records) < 5 {
-			return fmt.Errorf("NORMALABCD: missing values")
-		}
-		node.Normal[0], err = helper.ParseFloat32(records[1])
-		if err != nil {
-			return fmt.Errorf("normal a: %w", err)
-		}
-		node.Normal[1], err = helper.ParseFloat32(records[2])
-		if err != nil {
-			return fmt.Errorf("normal b: %w", err)
-		}
-		node.Normal[2], err = helper.ParseFloat32(records[3])
-		if err != nil {
-			return fmt.Errorf("normal c: %w", err)
-		}
-		node.Normal[3], err = helper.ParseFloat32(records[4])
-		if err != nil {
-			return fmt.Errorf("normal d: %w", err)
+			return err
 		}
 
-		records, err = token.ReadProperty("VISLISTINDEX")
+		node.Normal, err = helper.ParseFloat32Slice4(records[1:])
 		if err != nil {
-			return fmt.Errorf("VISLISTINDEX: %w", err)
+			return fmt.Errorf("vis node normal: %w", err)
 		}
-		if len(records) < 2 {
-			return fmt.Errorf("VISLISTINDEX: missing value")
+
+		records, err = token.ReadProperty("VISLISTINDEX", 1)
+		if err != nil {
+			return err
 		}
+
 		node.VisListIndex, err = helper.ParseUint32(records[1])
 		if err != nil {
 			return fmt.Errorf("vis list index: %w", err)
 		}
 
-		records, err = token.ReadProperty("FRONTTREE")
+		records, err = token.ReadProperty("FRONTTREE", 1)
 		if err != nil {
-			return fmt.Errorf("FRONTTREE: %w", err)
+			return err
 		}
-		if len(records) < 2 {
-			return fmt.Errorf("FRONTTREE: missing value")
-		}
+
 		node.FrontTree, err = helper.ParseUint32(records[1])
 		if err != nil {
 			return fmt.Errorf("front tree: %w", err)
 		}
 
-		records, err = token.ReadProperty("BACKTREE")
+		records, err = token.ReadProperty("BACKTREE", 1)
 		if err != nil {
-			return fmt.Errorf("BACKTREE: %w", err)
+			return err
 		}
-		if len(records) < 2 {
-			return fmt.Errorf("BACKTREE: missing value")
-		}
+
 		node.BackTree, err = helper.ParseUint32(records[1])
 		if err != nil {
 			return fmt.Errorf("back tree: %w", err)
 		}
 
-		_, err = token.ReadProperty("ENDVISNODE")
+		_, err = token.ReadProperty("ENDVISNODE", 0)
 		if err != nil {
-			return fmt.Errorf("ENDVISNODE: %w", err)
+			return err
 		}
 
-		r.VisTree.VisNodes = append(r.VisTree.VisNodes, &node)
+		r.VisTree.VisNodes = append(r.VisTree.VisNodes, node)
+
 	}
 
-	for i := 0; i < numVisLists; i++ {
-		list := VisList{}
-		_, err = token.ReadProperty("VISIBLELIST")
+	records, err = token.ReadProperty("NUMVISIBLELIST", 1)
+	if err != nil {
+		return err
+	}
+
+	numLists, err := helper.ParseInt(records[1])
+	if err != nil {
+		return fmt.Errorf("num visible lists: %w", err)
+	}
+
+	for i := 0; i < numLists; i++ {
+		list := &VisList{}
+		_, err = token.ReadProperty("VISLIST", 0)
 		if err != nil {
-			return fmt.Errorf("VISIBLELIST: %w", err)
-		}
-		records, err = token.ReadProperty("RANGE")
-		if err != nil {
-			return fmt.Errorf("RANGE: %w", err)
-		}
-		if len(records) < 2 {
-			return fmt.Errorf("RANGE: missing range")
-		}
-		numVisRange, err := helper.ParseInt(records[1])
-		if err != nil {
-			return fmt.Errorf("vis range: %w", err)
+			return err
 		}
 
-		if len(records) < numVisRange+2 {
-			return fmt.Errorf("RANGE: expected %d values, got %d", numVisRange+2, len(records))
+		records, err = token.ReadProperty("RANGE", 1)
+		if err != nil {
+			return err
 		}
 
-		for j := 0; j < numVisRange; j++ {
-			val, err := helper.ParseUint32(records[j+2])
+		numRanges, err := helper.ParseInt(records[1])
+		if err != nil {
+			return fmt.Errorf("num ranges: %w", err)
+		}
+
+		for j := 0; j < numRanges; j++ {
+			records, err = token.ReadProperty("RANGE", 1)
 			if err != nil {
-				return fmt.Errorf("vis range %d: %w", j, err)
+				return err
 			}
+
+			val, err := helper.ParseUint32(records[1])
+			if err != nil {
+				return fmt.Errorf("range %d: %w", j, err)
+			}
+
 			list.Range = append(list.Range, val)
 		}
 
-		_, err = token.ReadProperty("ENDVISIBLELIST")
+		_, err = token.ReadProperty("ENDVISIBLELIST", 0)
 		if err != nil {
-			return fmt.Errorf("ENDVISIBLELIST: %w", err)
+			return err
 		}
 
-		r.VisTree.VisLists = append(r.VisTree.VisLists, &list)
+		r.VisTree.VisLists = append(r.VisTree.VisLists, list)
 	}
 
-	_, err = token.ReadProperty("ENDVISTREE")
+	_, err = token.ReadProperty("ENDVISTREE", 0)
 	if err != nil {
-		return fmt.Errorf("ENDVISTREE: %w", err)
+		return err
 	}
 
-	records, err = token.ReadProperty("SPHERE")
+	records, err = token.ReadProperty("SPHERE", 4)
 	if err != nil {
-		return fmt.Errorf("SPHERE: %w", err)
-	}
-	if len(records) < 5 {
-		return fmt.Errorf("SPHERE: missing values")
-	}
-	r.Sphere[0], err = helper.ParseFloat32(records[1])
-	if err != nil {
-		return fmt.Errorf("sphere x: %w", err)
-	}
-	r.Sphere[1], err = helper.ParseFloat32(records[2])
-	if err != nil {
-		return fmt.Errorf("sphere y: %w", err)
-	}
-	r.Sphere[2], err = helper.ParseFloat32(records[3])
-	if err != nil {
-		return fmt.Errorf("sphere z: %w", err)
-	}
-	r.Sphere[3], err = helper.ParseFloat32(records[4])
-	if err != nil {
-		return fmt.Errorf("sphere radius: %w", err)
+		return err
 	}
 
-	records, err = token.ReadProperty("USERDATA")
+	r.Sphere, err = helper.ParseFloat32Slice4(records[1:])
 	if err != nil {
-		return fmt.Errorf("USERDATA: %w", err)
+		return fmt.Errorf("sphere: %w", err)
 	}
-	if len(records) < 2 {
-		return fmt.Errorf("USERDATA: missing data")
+
+	records, err = token.ReadProperty("USERDATA", 1)
+	if err != nil {
+		return err
 	}
+
 	r.UserData = records[1]
 
-	_, err = token.ReadProperty("ENDREGION")
+	_, err = token.ReadProperty("ENDREGION", 0)
 	if err != nil {
-		return fmt.Errorf("ENDREGION: %w", err)
+		return err
 	}
 
 	return nil
@@ -1888,67 +2078,51 @@ func (a *AmbientLight) Write(w io.Writer) error {
 	fmt.Fprintf(w, "%s\n", a.Definition())
 	fmt.Fprintf(w, "\tTAG \"%s\"\n", a.Tag)
 	fmt.Fprintf(w, "\tLIGHT \"%s\"\n", a.LightTag)
-	fmt.Fprintf(w, "\tNUMREGIONS %d\n", len(a.Regions))
-	regions := ""
+	fmt.Fprintf(w, "\tREGIONLIST %d", len(a.Regions))
 	for _, region := range a.Regions {
-		regions += fmt.Sprintf("%d ", region)
+		fmt.Fprintf(w, " %d", region)
 	}
-	fmt.Fprintf(w, "\tREGIONS %d %s\n", len(a.Regions), regions)
 	fmt.Fprintf(w, "ENDAMBIENTLIGHT\n\n")
 	return nil
 }
 
 func (a *AmbientLight) Read(r *AsciiReadToken) error {
-	records, err := r.ReadProperty("TAG")
+	records, err := r.ReadProperty("TAG", 1)
 	if err != nil {
-		return fmt.Errorf("TAG: %w", err)
+		return err
 	}
-	if len(records) < 2 {
-		return fmt.Errorf("TAG: missing tag")
-	}
+
 	a.Tag = records[1]
 
-	records, err = r.ReadProperty("LIGHT")
+	records, err = r.ReadProperty("LIGHT", 1)
 	if err != nil {
-		return fmt.Errorf("LIGHT: %w", err)
+		return err
 	}
-	if len(records) < 2 {
-		return fmt.Errorf("LIGHT: missing tag")
-	}
+
 	a.LightTag = records[1]
 
-	records, err = r.ReadProperty("NUMREGIONS")
+	records, err = r.ReadProperty("REGIONLIST", 1)
 	if err != nil {
-		return fmt.Errorf("NUMREGIONS: %w", err)
+		return err
 	}
-	if len(records) < 2 {
-		return fmt.Errorf("NUMREGIONS: missing region count")
-	}
+
 	numRegions, err := helper.ParseInt(records[1])
 	if err != nil {
 		return fmt.Errorf("num regions: %w", err)
 	}
 
-	records, err = r.ReadProperty("REGIONS")
-	if err != nil {
-		return fmt.Errorf("REGIONS: %w", err)
-	}
-
-	if len(records) < numRegions+1 {
-		return fmt.Errorf("NUMREGIONS: expected %d values, got %d", numRegions+2, len(records))
-	}
-
 	for i := 0; i < numRegions; i++ {
-		region, err := helper.ParseUint32(records[i+1])
+		val, err := helper.ParseUint32(records[i+2])
 		if err != nil {
 			return fmt.Errorf("region %d: %w", i, err)
 		}
-		a.Regions = append(a.Regions, region)
+
+		a.Regions = append(a.Regions, val)
 	}
 
-	_, err = r.ReadProperty("ENDAMBIENTLIGHT")
+	_, err = r.ReadProperty("ENDAMBIENTLIGHT", 0)
 	if err != nil {
-		return fmt.Errorf("ENDAMBIENTLIGHT: %w", err)
+		return err
 	}
 
 	return nil
@@ -1967,68 +2141,52 @@ func (z *Zone) Definition() string {
 func (z *Zone) Write(w io.Writer) error {
 	fmt.Fprintf(w, "%s\n", z.Definition())
 	fmt.Fprintf(w, "\tTAG \"%s\"\n", z.Tag)
-	fmt.Fprintf(w, "\tNUMREGIONS %d\n", len(z.Regions))
-	regions := ""
+	fmt.Fprintf(w, "\tREGIONLIST %d", len(z.Regions))
 	for _, region := range z.Regions {
-		regions += fmt.Sprintf("%d ", region)
+		fmt.Fprintf(w, " %d", region)
 	}
-	fmt.Fprintf(w, "\tREGIONS %d %s\n", len(z.Regions), regions)
 	fmt.Fprintf(w, "\tUSERDATA \"%s\"\n", z.UserData)
 	fmt.Fprintf(w, "ENDZONE\n\n")
 	return nil
 }
 
 func (z *Zone) Read(r *AsciiReadToken) error {
-	records, err := r.ReadProperty("TAG")
+	records, err := r.ReadProperty("TAG", 1)
 	if err != nil {
-		return fmt.Errorf("TAG: %w", err)
+		return err
 	}
-	if len(records) < 2 {
-		return fmt.Errorf("TAG: missing tag")
-	}
+
 	z.Tag = records[1]
 
-	records, err = r.ReadProperty("NUMREGIONS")
+	records, err = r.ReadProperty("REGIONLIST", 1)
 	if err != nil {
-		return fmt.Errorf("NUMREGIONS: %w", err)
+		return err
 	}
-	if len(records) < 2 {
-		return fmt.Errorf("NUMREGIONS: missing region count")
-	}
+
 	numRegions, err := helper.ParseInt(records[1])
 	if err != nil {
 		return fmt.Errorf("num regions: %w", err)
 	}
 
-	records, err = r.ReadProperty("REGIONS")
-	if err != nil {
-		return fmt.Errorf("REGIONS: %w", err)
-	}
-
-	if len(records) < numRegions+1 {
-		return fmt.Errorf("NUMREGIONS: expected %d values, got %d", numRegions+2, len(records))
-	}
-
 	for i := 0; i < numRegions; i++ {
-		region, err := helper.ParseUint32(records[i+1])
+		val, err := helper.ParseUint32(records[i+2])
 		if err != nil {
 			return fmt.Errorf("region %d: %w", i, err)
 		}
-		z.Regions = append(z.Regions, region)
+
+		z.Regions = append(z.Regions, val)
 	}
 
-	records, err = r.ReadProperty("USERDATA")
+	records, err = r.ReadProperty("USERDATA", 1)
 	if err != nil {
-		return fmt.Errorf("USERDATA: %w", err)
+		return err
 	}
-	if len(records) < 2 {
-		return fmt.Errorf("USERDATA: missing data")
-	}
+
 	z.UserData = records[1]
 
-	_, err = r.ReadProperty("ENDZONE")
+	_, err = r.ReadProperty("ENDZONE", 0)
 	if err != nil {
-		return fmt.Errorf("ENDZONE: %w", err)
+		return err
 	}
 
 	return nil
