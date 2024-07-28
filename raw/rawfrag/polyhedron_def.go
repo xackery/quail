@@ -6,24 +6,23 @@ import (
 	"io"
 
 	"github.com/xackery/encdec"
-	"github.com/xackery/quail/model"
 )
 
 // WldFragPolyhedronDef is PolyhedronDef in libeq, Polygon animation in openzone, POLYHEDRONDEFINITION in wld, Fragment17 in lantern
 type WldFragPolyhedronDef struct {
-	NameRef  int32                       `yaml:"name_ref"`
-	Flags    uint32                      `yaml:"flags"`
-	Size1    uint32                      `yaml:"size_1"`
-	Size2    uint32                      `yaml:"size_2"`
-	Params1  float32                     `yaml:"params_1"`
-	Params2  float32                     `yaml:"params_2"`
-	Entries1 []model.Vector3             `yaml:"entries_1"`
-	Entries2 []WldFragPolyhedronEntries2 `yaml:"entries_2"`
+	NameRef        int32
+	Flags          uint32
+	NumVertices    uint32                  // size1 in libeq
+	NumFaces       uint32                  // size2 in libeq
+	BoundingRadius float32                 // params1 in libeq
+	ScaleFactor    float32                 // params2 in libeq
+	Vertices       [][3]float32            // entries1 in libeq
+	Faces          []WldFragPolyhedronFace // entries2 in libeq
 }
 
-type WldFragPolyhedronEntries2 struct {
-	Unk1 uint32   `yaml:"unk_1"`
-	Unk2 []uint32 `yaml:"unk_2"`
+type WldFragPolyhedronFace struct {
+	NumVertices uint32
+	Vertices    []uint32
 }
 
 func (e *WldFragPolyhedronDef) FragCode() int {
@@ -34,18 +33,18 @@ func (e *WldFragPolyhedronDef) Write(w io.Writer) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
 	enc.Int32(e.NameRef)
 	enc.Uint32(e.Flags)
-	enc.Uint32(e.Size1)
-	enc.Uint32(e.Size2)
-	enc.Float32(e.Params1)
-	enc.Float32(e.Params2)
-	for _, entry := range e.Entries1 {
-		enc.Float32(entry.X)
-		enc.Float32(entry.Y)
-		enc.Float32(entry.Z)
+	enc.Uint32(e.NumVertices)
+	enc.Uint32(e.NumFaces)
+	enc.Float32(e.BoundingRadius)
+	enc.Float32(e.ScaleFactor)
+	for _, entry := range e.Vertices {
+		enc.Float32(entry[0])
+		enc.Float32(entry[1])
+		enc.Float32(entry[2])
 	}
-	for _, entry := range e.Entries2 {
-		enc.Uint32(entry.Unk1)
-		for _, unk2 := range entry.Unk2 {
+	for _, entry := range e.Faces {
+		enc.Uint32(entry.NumVertices)
+		for _, unk2 := range entry.Vertices {
 			enc.Uint32(unk2)
 		}
 	}
@@ -60,24 +59,20 @@ func (e *WldFragPolyhedronDef) Read(r io.ReadSeeker) error {
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	e.NameRef = dec.Int32()
 	e.Flags = dec.Uint32()
-	e.Size1 = dec.Uint32()
-	e.Size2 = dec.Uint32()
-	e.Params1 = dec.Float32()
-	e.Params2 = dec.Float32()
-	for i := uint32(0); i < e.Size1; i++ {
-		v := model.Vector3{}
-		v.X = dec.Float32()
-		v.Y = dec.Float32()
-		v.Z = dec.Float32()
-		e.Entries1 = append(e.Entries1, v)
+	e.NumVertices = dec.Uint32()
+	e.NumFaces = dec.Uint32()
+	e.BoundingRadius = dec.Float32()
+	e.ScaleFactor = dec.Float32()
+	for i := uint32(0); i < e.NumVertices; i++ {
+		e.Vertices = append(e.Vertices, [3]float32{dec.Float32(), dec.Float32(), dec.Float32()})
 	}
-	for i := uint32(0); i < e.Size2; i++ {
-		entry := WldFragPolyhedronEntries2{}
-		entry.Unk1 = dec.Uint32()
-		for j := uint32(0); j < e.Size1; j++ {
-			entry.Unk2 = append(entry.Unk2, dec.Uint32())
+	for i := uint32(0); i < e.NumFaces; i++ {
+		entry := WldFragPolyhedronFace{}
+		entry.NumVertices = dec.Uint32()
+		for j := uint32(0); j < entry.NumVertices; j++ {
+			entry.Vertices = append(entry.Vertices, dec.Uint32())
 		}
-		e.Entries2 = append(e.Entries2, entry)
+		e.Faces = append(e.Faces, entry)
 	}
 	err := dec.Error()
 	if err != nil {

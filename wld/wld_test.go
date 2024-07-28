@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/xackery/quail/common"
@@ -11,7 +12,7 @@ import (
 	"github.com/xackery/quail/raw"
 )
 
-func TestVWldRead(t *testing.T) {
+func TestBWldRead(t *testing.T) {
 	if os.Getenv("SINGLE_TEST") != "1" {
 		t.Skip("skipping test; SINGLE_TEST not set")
 	}
@@ -45,7 +46,7 @@ func TestVWldRead(t *testing.T) {
 			}
 
 			vwld := &Wld{}
-			err = vwld.Read(wld)
+			err = vwld.ReadCache(wld)
 			if err != nil {
 				t.Fatalf("failed to convert %s: %s", tt.name, err.Error())
 			}
@@ -54,7 +55,7 @@ func TestVWldRead(t *testing.T) {
 	}
 }
 
-func TestVWldWrite(t *testing.T) {
+func TestBWldReadWriteRead(t *testing.T) {
 	if os.Getenv("SINGLE_TEST") != "1" {
 		t.Skip("skipping test; SINGLE_TEST not set")
 	}
@@ -121,6 +122,7 @@ func TestVWldWrite(t *testing.T) {
 			if err != nil {
 				t.Fatalf("failed to read %s: %s", baseName, err.Error())
 			}
+			fmt.Println("read", fmt.Sprintf("%s/%s.src.wld", dirTest, baseName))
 
 			if tt.wldName == "objects.wld" {
 				data, err = archive.File(fmt.Sprintf("%s.wld", tt.baseName))
@@ -135,7 +137,7 @@ func TestVWldWrite(t *testing.T) {
 			}
 
 			vwld := &Wld{}
-			err = vwld.Read(wld)
+			err = vwld.ReadCache(wld)
 			if err != nil {
 				t.Fatalf("failed to convert %s: %s", baseName, err.Error())
 			}
@@ -150,6 +152,18 @@ func TestVWldWrite(t *testing.T) {
 			if err != nil {
 				t.Fatalf("failed to write wld %s: %s", baseName, err.Error())
 			}
+
+			fmt.Println("wrote", fmt.Sprintf("%s/%s.dst.wld", dirTest, baseName))
+
+			// read back in
+			wld2 := &raw.Wld{}
+			r := bytes.NewReader(buf.Bytes())
+			err = wld2.Read(r)
+			if err != nil {
+				t.Fatalf("failed to read %s: %s", baseName, err.Error())
+			}
+
+			fmt.Println("read", fmt.Sprintf("%s/%s.dst.wld", dirTest, baseName))
 
 		})
 	}
@@ -170,12 +184,12 @@ func TestVWldAsciiWrite(t *testing.T) {
 		wldName  string
 	}{
 		//{baseName: "gequip2"},
+		{baseName: "qeynos_chr"},
 		//{baseName: "global_chr"}, // TODO:  anarelion asked mesh of EYE_DMSPRITEDEF check if the eye is just massive 22 units in size, where the other units in that file are just 1-2 units in size
-		//{baseName: "load2"},
 		//{baseName: "load2"},
 		//{baseName: "load2", wldName: "lights.wld"},
 		//{baseName: "load2", wldName: "load2.wld"},
-		{baseName: "overthere_chr", wldName: "overthere_chr.wld"},
+		//{baseName: "overthere_chr", wldName: "overthere_chr.wld"},
 
 		//{baseName: "neriakc"},
 		//{baseName: "westwastes"},
@@ -238,7 +252,7 @@ func TestVWldAsciiWrite(t *testing.T) {
 			}
 
 			vwld := &Wld{}
-			err = vwld.Read(wld)
+			err = vwld.ReadRaw(wld)
 			if err != nil {
 				t.Fatalf("failed to convert %s: %s", baseName, err.Error())
 			}
@@ -249,6 +263,94 @@ func TestVWldAsciiWrite(t *testing.T) {
 			if err != nil {
 				t.Fatalf("failed to write %s: %s", baseName, err.Error())
 			}
+		})
+	}
+}
+
+func TestAsciiRead(t *testing.T) {
+	if os.Getenv("SINGLE_TEST") != "1" {
+		t.Skip("skipping test; SINGLE_TEST not set")
+	}
+	eqPath := os.Getenv("EQ_PATH")
+	if eqPath == "" {
+		t.Skip("EQ_PATH not set")
+	}
+	tests := []struct {
+		asciiName string
+		wantErr   bool
+	}{}
+	if !common.IsTestExtensive() {
+		tests = []struct {
+			asciiName string
+			wantErr   bool
+		}{
+			//{"all/all.spk", false},
+			//{"fis/fis.spk", false},
+			{"pre/pre.spk", false},
+		}
+	}
+	for _, tt := range tests {
+		t.Run(tt.asciiName, func(t *testing.T) {
+
+			wld := &Wld{}
+			err := wld.ReadAscii(fmt.Sprintf("testdata/%s", tt.asciiName))
+			if err != nil {
+				t.Fatalf("Failed readascii: %s", err.Error())
+			}
+		})
+	}
+}
+
+func TestAsciiReadWriteRead(t *testing.T) {
+	if os.Getenv("SINGLE_TEST") != "1" {
+		t.Skip("skipping test; SINGLE_TEST not set")
+	}
+	eqPath := os.Getenv("EQ_PATH")
+	if eqPath == "" {
+		t.Skip("EQ_PATH not set")
+	}
+	tests := []struct {
+		asciiName string
+		wantErr   bool
+	}{}
+	if !common.IsTestExtensive() {
+		tests = []struct {
+			asciiName string
+			wantErr   bool
+		}{
+			//{"all/all.spk", false},
+			//{"fis/fis.spk", false},
+			//{"pre/pre.spk", false},
+			{"akheva.wld", false},
+		}
+	}
+	for _, tt := range tests {
+		t.Run(tt.asciiName, func(t *testing.T) {
+
+			wld := &Wld{
+				FileName: filepath.Base(tt.asciiName),
+			}
+			err := wld.ReadAscii(fmt.Sprintf("testdata/%s", tt.asciiName))
+			if err != nil {
+				t.Fatalf("Failed readascii: %s", err.Error())
+			}
+
+			err = wld.WriteAscii("testdata/temp/", true)
+			if err != nil {
+				t.Fatalf("Failed writeascii: %s", err.Error())
+			}
+
+			ext := filepath.Ext(wld.FileName)
+			if ext == ".wld" {
+				wld.FileName = wld.FileName[:len(wld.FileName)-len(ext)] + ".spk"
+			}
+
+			wld2 := &Wld{}
+			err = wld2.ReadAscii("testdata/temp/" + wld.FileName)
+			if err != nil {
+				t.Fatalf("Failed re-readascii: %s", err.Error())
+			}
+
 		})
 	}
 }

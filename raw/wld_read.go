@@ -9,6 +9,7 @@ import (
 	"github.com/xackery/encdec"
 	"github.com/xackery/quail/helper"
 	"github.com/xackery/quail/model"
+	"github.com/xackery/quail/raw/rawfrag"
 	"github.com/xackery/quail/tag"
 )
 
@@ -29,7 +30,7 @@ func (wld *Wld) Identity() string {
 // Read reads a wld file that was prepped by Load
 func (wld *Wld) Read(r io.ReadSeeker) error {
 	if wld.Fragments == nil {
-		wld.Fragments = []model.FragmentReadWriter{}
+		wld.Fragments = []model.FragmentReadWriter{&rawfrag.WldFragDefault{}}
 	}
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	tag.NewWithCoder(dec)
@@ -93,8 +94,8 @@ func (wld *Wld) Read(r io.ReadSeeker) error {
 		return fmt.Errorf("load: %w", err)
 	}
 
-	for i := uint32(1); i <= fragmentCount; i++ {
-		data := fragments[i-1]
+	for i := uint32(0); i < fragmentCount; i++ {
+		data := fragments[i]
 		r := bytes.NewReader(data)
 
 		reader := NewFrag(r)

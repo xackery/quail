@@ -7,7 +7,6 @@ import (
 
 	"github.com/xackery/encdec"
 	"github.com/xackery/quail/log"
-	"github.com/xackery/quail/model"
 )
 
 // WldFragDMSpriteDef is DmSpriteDef in libeq, Alternate Mesh in openzone, DMSPRITEDEF in wld, LegacyMesh in lantern
@@ -17,19 +16,19 @@ type WldFragDMSpriteDef struct {
 	Fragment1Maybe    int16                          `yaml:"fragment_1_maybe"`
 	MaterialReference uint32                         `yaml:"material_reference"`
 	Fragment3         uint32                         `yaml:"fragment_3"`
-	CenterPosition    model.Vector3                  `yaml:"center_position"`
+	CenterPosition    [3]float32                     `yaml:"center_position"`
 	Params2           uint32                         `yaml:"params_2"`
 	Something2        uint32                         `yaml:"something_2"`
 	Something3        uint32                         `yaml:"something_3"`
-	Vertices          []model.Vector3                `yaml:"verticies"`
-	TexCoords         []model.Vector3                `yaml:"tex_coords"`
-	Normals           []model.Vector3                `yaml:"normals"`
+	Vertices          [][3]float32                   `yaml:"verticies"`
+	TexCoords         [][3]float32                   `yaml:"tex_coords"`
+	Normals           [][3]float32                   `yaml:"normals"`
 	Colors            []int32                        `yaml:"colors"`
 	Polygons          []WldFragDMSpriteSpritePolygon `yaml:"polygons"`
 	VertexPieces      []WldFragDMSpriteVertexPiece   `yaml:"vertex_pieces"`
 	PostVertexFlag    uint32                         `yaml:"post_vertex_flag"`
 	RenderGroups      []WldFragDMSpriteRenderGroup   `yaml:"render_groups"`
-	VertexTex         []model.Vector2                `yaml:"vertex_tex"`
+	VertexTex         [][2]float32                   `yaml:"vertex_tex"`
 	Size6Pieces       []WldFragDMSpriteSize6Entry    `yaml:"size_6_pieces"`
 }
 
@@ -73,26 +72,26 @@ func (e *WldFragDMSpriteDef) Write(w io.Writer) error {
 	enc.Int16(e.Fragment1Maybe)
 	enc.Uint32(e.MaterialReference)
 	enc.Uint32(e.Fragment3)
-	enc.Float32(e.CenterPosition.X)
-	enc.Float32(e.CenterPosition.Y)
-	enc.Float32(e.CenterPosition.Z)
+	enc.Float32(e.CenterPosition[0])
+	enc.Float32(e.CenterPosition[1])
+	enc.Float32(e.CenterPosition[2])
 	enc.Uint32(e.Params2)
 	enc.Uint32(e.Something2)
 	enc.Uint32(e.Something3)
 	for _, vertex := range e.Vertices {
-		enc.Float32(vertex.X)
-		enc.Float32(vertex.Y)
-		enc.Float32(vertex.Z)
+		enc.Float32(vertex[0])
+		enc.Float32(vertex[1])
+		enc.Float32(vertex[2])
 	}
 	for _, texCoord := range e.TexCoords {
-		enc.Float32(texCoord.X)
-		enc.Float32(texCoord.Y)
-		enc.Float32(texCoord.Z)
+		enc.Float32(texCoord[0])
+		enc.Float32(texCoord[1])
+		enc.Float32(texCoord[2])
 	}
 	for _, normal := range e.Normals {
-		enc.Float32(normal.X)
-		enc.Float32(normal.Y)
-		enc.Float32(normal.Z)
+		enc.Float32(normal[0])
+		enc.Float32(normal[1])
+		enc.Float32(normal[2])
 	}
 	for _, color := range e.Colors {
 		enc.Int32(color)
@@ -130,8 +129,8 @@ func (e *WldFragDMSpriteDef) Write(w io.Writer) error {
 		enc.Int16(renderGroup.MaterialId)
 	}
 	for _, vertexTex := range e.VertexTex {
-		enc.Float32(vertexTex.X)
-		enc.Float32(vertexTex.Y)
+		enc.Float32(vertexTex[0])
+		enc.Float32(vertexTex[1])
 	}
 	err := enc.Error()
 	if err != nil {
@@ -154,9 +153,9 @@ func (e *WldFragDMSpriteDef) Read(r io.ReadSeeker) error {
 	vertexPieceCount := dec.Uint32()
 	e.MaterialReference = dec.Uint32()
 	e.Fragment3 = dec.Uint32()
-	e.CenterPosition.X = dec.Float32()
-	e.CenterPosition.Y = dec.Float32()
-	e.CenterPosition.Z = dec.Float32()
+	e.CenterPosition[0] = dec.Float32()
+	e.CenterPosition[1] = dec.Float32()
+	e.CenterPosition[2] = dec.Float32()
 	e.Params2 = dec.Uint32()
 	e.Something2 = dec.Uint32()
 	e.Something3 = dec.Uint32()
@@ -176,27 +175,15 @@ func (e *WldFragDMSpriteDef) Read(r io.ReadSeeker) error {
 	}
 
 	for i := int16(0); i < vertexCount; i++ {
-		v := model.Vector3{}
-		v.X = dec.Float32()
-		v.Y = dec.Float32()
-		v.Z = dec.Float32()
-		e.Vertices = append(e.Vertices, v)
+		e.Vertices = append(e.Vertices, [3]float32{dec.Float32(), dec.Float32(), dec.Float32()})
 	}
 
 	for i := uint32(0); i < texCoordCount; i++ {
-		v := model.Vector3{}
-		v.X = dec.Float32()
-		v.Y = dec.Float32()
-		v.Z = dec.Float32()
-		e.TexCoords = append(e.TexCoords, v)
+		e.TexCoords = append(e.TexCoords, [3]float32{dec.Float32(), dec.Float32(), dec.Float32()})
 	}
 
 	for i := uint32(0); i < normalCount; i++ {
-		v := model.Vector3{}
-		v.X = dec.Float32()
-		v.Y = dec.Float32()
-		v.Z = dec.Float32()
-		e.Normals = append(e.Normals, v)
+		e.Normals = append(e.Normals, [3]float32{dec.Float32(), dec.Float32(), dec.Float32()})
 	}
 
 	for i := uint32(0); i < colorCount; i++ {
@@ -250,10 +237,7 @@ func (e *WldFragDMSpriteDef) Read(r io.ReadSeeker) error {
 	if e.Flags&12 != 0 {
 		spriteVertexCount := dec.Uint32()
 		for i := uint32(0); i < spriteVertexCount; i++ {
-			v := model.Vector2{}
-			v.X = dec.Float32()
-			v.Y = dec.Float32()
-			e.VertexTex = append(e.VertexTex, v)
+			e.VertexTex = append(e.VertexTex, [2]float32{dec.Float32(), dec.Float32()})
 		}
 	}
 

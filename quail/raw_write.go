@@ -65,7 +65,7 @@ func (e *Quail) wldWrite(wld *raw.Wld) error {
 		return fmt.Errorf("wld is nil")
 	}
 	if wld.Fragments == nil {
-		wld.Fragments = []model.FragmentReadWriter{}
+		wld.Fragments = []model.FragmentReadWriter{&rawfrag.WldFragDefault{}}
 	}
 
 	fragIndex := 1

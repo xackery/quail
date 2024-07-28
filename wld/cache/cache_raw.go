@@ -8,11 +8,11 @@ import (
 	"github.com/xackery/quail/raw/rawfrag"
 )
 
-func (cm *CacheManager) Load(src *raw.Wld) error {
+func (cm *CacheManager) LoadRaw(src *raw.Wld) error {
 	cm.FileName = src.FileName()
 	cm.Version = src.Version
 	for i := 1; i < len(src.Fragments)+1; i++ {
-		fragment := src.Fragments[i-1]
+		fragment := src.Fragments[i]
 		//log.Println("Fragment: ", raw.FragName(fragment.FragCode()), i)
 
 		switch fragment.FragCode() {
@@ -73,7 +73,10 @@ func (cm *CacheManager) Load(src *raw.Wld) error {
 					return fmt.Errorf("simple sprite found without matching bminfo at offset %d ref %d", i, bitmapRef)
 				}
 
-				sprite.BMInfos = append(sprite.BMInfos, [2]string{bitmap.Tag, bitmap.Textures[0]})
+				sprite.SimpleSpriteFrames = append(sprite.SimpleSpriteFrames, SimpleSpriteFrame{
+					TextureTag:  bitmap.Tag,
+					TextureFile: bitmap.Textures[0],
+				})
 			}
 			cm.SimpleSpriteDefs = append(cm.SimpleSpriteDefs, &sprite)
 		case rawfrag.FragCodeSimpleSprite: // turns to spriteinstance
@@ -293,12 +296,12 @@ func (cm *CacheManager) Load(src *raw.Wld) error {
 			for _, transform := range fragData.BoneTransforms {
 				animation.Transforms = append(animation.Transforms, &AnimationTransform{
 					RotateDenominator: transform.RotateDenominator,
-					RotateX:           transform.RotateX,
-					RotateY:           transform.RotateY,
-					RotateZ:           transform.RotateZ,
-					ShiftX:            transform.ShiftX,
-					ShiftY:            transform.ShiftY,
-					ShiftZ:            transform.ShiftZ,
+					RotateX:           transform.Rotation[0],
+					RotateY:           transform.Rotation[1],
+					RotateZ:           transform.Rotation[2],
+					ShiftX:            transform.Shift[0],
+					ShiftY:            transform.Shift[1],
+					ShiftZ:            transform.Shift[2],
 				})
 			}
 			cm.Animations = append(cm.Animations, animation)
@@ -308,7 +311,7 @@ func (cm *CacheManager) Load(src *raw.Wld) error {
 				return fmt.Errorf("invalid track fragment at offset %d", i)
 			}
 
-			animation := cm.animationByFragID(uint32(fragData.Track))
+			animation := cm.animationByFragID(uint32(fragData.TrackRef))
 			if animation == nil {
 				return fmt.Errorf("track found without matching trackdef at offset %d", i)
 			}
@@ -390,16 +393,16 @@ func (cm *CacheManager) Load(src *raw.Wld) error {
 				Fragment1Maybe: fragData.Fragment1Maybe,
 				Material:       materialTag,
 				Fragment3:      fragData.Fragment3,
-				CenterPosition: fragData.CenterPosition,
-				Params2:        fragData.Params2,
-				Something2:     fragData.Something2,
-				Something3:     fragData.Something3,
-				Verticies:      fragData.Vertices,
-				TexCoords:      fragData.TexCoords,
-				Normals:        fragData.Normals,
+				//CenterPosition: fragData.CenterPosition,
+				Params2:    fragData.Params2,
+				Something2: fragData.Something2,
+				Something3: fragData.Something3,
+				//Verticies:      fragData.Vertices,
+				//TexCoords:      fragData.TexCoords,
+				//Normals:        fragData.Normals,
 				Colors:         fragData.Colors,
 				PostVertexFlag: fragData.PostVertexFlag,
-				VertexTex:      fragData.VertexTex,
+				//VertexTex:      fragData.VertexTex,
 			}
 
 			for _, polygon := range fragData.Polygons {
@@ -502,9 +505,9 @@ func (cm *CacheManager) Load(src *raw.Wld) error {
 				Location:       fragData.Location,
 				Unk1:           fragData.Unk1,
 				BoundingRadius: fragData.BoundingRadius,
-				Scale:          fragData.Scale,
+				Scale:          fragData.ScaleFactor,
 				Sound:          "",
-				Unk2:           fragData.Unk2,
+				UserData:       raw.Name(fragData.UserData),
 			}
 
 			cm.ActorInsts = append(cm.ActorInsts, &actorInstance)
@@ -524,12 +527,12 @@ func (cm *CacheManager) Load(src *raw.Wld) error {
 				Tag:                tag,
 				Flags:              fragData.Flags,
 				CollisionVolumeRef: fragData.CollisionVolumeRef,
-				CenterOffset:       fragData.CenterOffset,
-				BoundingRadius:     fragData.BoundingRadius,
-				Skins:              fragData.Skins,
-				SkinLinks:          fragData.SkinLinks,
+				//CenterOffset:       fragData.CenterOffset,
+				BoundingRadius: fragData.BoundingRadius,
+				//Skins:          fragData.AttachedSkins,
+				SkinLinks: fragData.LinkSkinUpdatesToDagIndexes,
 			}
-			for _, bone := range fragData.Bones {
+			for _, bone := range fragData.Dags {
 				trackTag := ""
 				if bone.TrackRef > 0 {
 					track := cm.animationInstanceByFragID(uint32(bone.TrackRef))
@@ -671,7 +674,7 @@ func (cm *CacheManager) Load(src *raw.Wld) error {
 				Flags:         fragData.Flags,
 				SphereListRef: fragData.SphereListRef,
 				CenterOffset:  fragData.CenterOffset,
-				Radius:        fragData.Radius,
+				Radius:        fragData.BoundingRadius,
 				Vertices:      fragData.Vertices,
 			}
 
@@ -773,13 +776,12 @@ func (cm *CacheManager) Load(src *raw.Wld) error {
 			}
 
 			for _, regionRef := range fragData.Regions {
-				if regionRef < 0 || int(regionRef) >= len(cm.Regions) {
-					return fmt.Errorf("zone found with invalid region ref %d at offset %d", regionRef, i)
+				region := cm.regionByFragID(regionRef)
+				if region == nil {
+					return fmt.Errorf("zone found without matching region at offset %d", i)
 				}
-				region := cm.Regions[regionRef]
 				regionInstance.RegionTags = append(regionInstance.RegionTags, region.Tag)
 			}
-
 			cm.RegionInstances = append(cm.RegionInstances, &regionInstance)
 
 		case rawfrag.FragCodeWorldTree: // turns to bsptree
@@ -812,8 +814,8 @@ func (cm *CacheManager) Load(src *raw.Wld) error {
 				}
 
 				bspTree.Nodes = append(bspTree.Nodes, &BspTreeNode{
-					Normal:    node.Normal,
-					Distance:  node.Distance,
+					//Normal:    node.Normal,
+					//Distance:  node.Distance,
 					RegionTag: regionTag,
 				})
 			}
@@ -826,14 +828,14 @@ func (cm *CacheManager) Load(src *raw.Wld) error {
 						return fmt.Errorf("bspTree %s has invalid front ref %d at offset %d", bspTree.Tag, fragRegion.FrontRef, i)
 					}
 
-					node.Front = bspTree.Nodes[fragRegion.FrontRef-1]
+					node.Front = bspTree.Nodes[fragRegion.FrontRef]
 				}
 				if fragRegion.BackRef > 0 {
 					if fragRegion.BackRef-1 >= int32(len(bspTree.Nodes)) {
 						return fmt.Errorf("bspTree %s has invalid back ref %d at offset %d", bspTree.Tag, fragRegion.BackRef, i)
 					}
 
-					node.Back = bspTree.Nodes[fragRegion.BackRef-1]
+					node.Back = bspTree.Nodes[fragRegion.BackRef]
 				}
 			}
 
@@ -861,9 +863,9 @@ func (cm *CacheManager) Load(src *raw.Wld) error {
 				//ObstacleCount:        fragData.ObstacleCount,
 				CuttingObstacleCount: fragData.CuttingObstacleCount,
 				//VisibleNodeCount:     fragData.VisibleNodeCount,
-				RegionVertices:  fragData.RegionVertices,
-				RegionProximals: fragData.RegionProximals,
-				RenderVertices:  fragData.RenderVertices,
+				//RegionVertices:  fragData.RegionVertices,
+				//RegionProximals: fragData.RegionProximals,
+				//RenderVertices:  fragData.RenderVertices,
 			}
 
 			for _, wall := range fragData.Walls {
@@ -876,13 +878,13 @@ func (cm *CacheManager) Load(src *raw.Wld) error {
 					RenderBrightness:            wall.RenderBrightness,
 					RenderScaledAmbient:         wall.RenderScaledAmbient,
 					RenderSimpleSpriteReference: wall.RenderSimpleSpriteReference,
-					RenderUVInfoOrigin:          wall.RenderUVInfoOrigin,
-					RenderUVInfoUAxis:           wall.RenderUVInfoUAxis,
-					RenderUVInfoVAxis:           wall.RenderUVInfoVAxis,
-					RenderUVMapEntryCount:       wall.RenderUVMapEntryCount,
-					RenderUVMapEntries:          wall.RenderUVMapEntries,
-					Normal:                      wall.Normal,
-					Vertices:                    wall.Vertices,
+					//RenderUVInfoOrigin:          wall.RenderUVInfoOrigin,
+					//RenderUVInfoUAxis:           wall.RenderUVInfoUAxis,
+					//RenderUVInfoVAxis:           wall.RenderUVInfoVAxis,
+					RenderUVMapEntryCount: wall.RenderUVMapEntryCount,
+					//RenderUVMapEntries:          wall.RenderUVMapEntries,
+					//Normal:                      wall.Normal,
+					Vertices: wall.Vertices,
 				})
 			}
 
@@ -913,16 +915,17 @@ func (cm *CacheManager) Load(src *raw.Wld) error {
 				LightTag: lightTag,
 				Flags:    fragData.Flags,
 			}
-			/*
-				for _, regionRef := range fragData.Regions {
-						region := cm.regionByFragID(regionRef)
-					if region == nil {
-						return fmt.Errorf("ambientlight found without matching region at offset %d value %d", i, regionRef)
-					}
-
-					ambientLightInstance.RegionTags = append(ambientLightInstance.RegionTags, region.Tag)
+			for _, regionRef := range fragData.Regions {
+				if regionRef == 0 {
+					continue
 				}
-			*/
+				region := cm.regionByFragID(regionRef)
+				if region == nil {
+					return fmt.Errorf("ambientlight found without matching region at offset %d value %d", i, regionRef)
+				}
+
+				ambientLightInstance.RegionTags = append(ambientLightInstance.RegionTags, region.Tag)
+			}
 
 			cm.AmbientLightInstances = append(cm.AmbientLightInstances, &ambientLightInstance)
 		case rawfrag.FragCodePointLight: // turns to pointlightinstance
@@ -967,20 +970,20 @@ func (cm *CacheManager) Load(src *raw.Wld) error {
 			}
 
 			polyhedron := &PolyhedronDef{
-				fragID:   uint32(i),
-				Tag:      tag,
-				Flags:    fragData.Flags,
-				Size1:    fragData.Size1,
-				Size2:    fragData.Size2,
-				Params1:  fragData.Params1,
-				Params2:  fragData.Params2,
-				Entries1: fragData.Entries1,
+				fragID:         uint32(i),
+				Tag:            tag,
+				Flags:          fragData.Flags,
+				NumVertices:    fragData.NumVertices,
+				NumFaces:       fragData.NumFaces,
+				BoundingRadius: fragData.BoundingRadius,
+				ScaleFactor:    fragData.ScaleFactor,
+				Vertices:       fragData.Vertices,
 			}
 
-			for _, entry := range fragData.Entries2 {
-				polyhedron.Entries2 = append(polyhedron.Entries2, PolyhedronEntries2{
-					Unk1: entry.Unk1,
-					Unk2: entry.Unk2,
+			for _, entry := range fragData.Faces {
+				polyhedron.Faces = append(polyhedron.Faces, PolyhedronFace{
+					NumVertices: entry.NumVertices,
+					Vertices:    entry.Vertices,
 				})
 			}
 

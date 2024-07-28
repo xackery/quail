@@ -6,7 +6,6 @@ import (
 	"io"
 
 	"github.com/xackery/encdec"
-	"github.com/xackery/quail/model"
 )
 
 // WldFragWorldTree is WorldTree in libeq, BSP Tree in openzone, WORLDTREE in wld, BspTree in lantern
@@ -19,11 +18,10 @@ type WldFragWorldTree struct {
 }
 
 type WorldTreeNode struct {
-	Normal    model.Vector3 `yaml:"normal"`
-	Distance  float32       `yaml:"distance"`
-	RegionRef int32         `yaml:"region_ref"`
-	FrontRef  int32         `yaml:"front_ref"`
-	BackRef   int32         `yaml:"back_ref"`
+	Normal    [4]float32 `yaml:"normal"`
+	RegionRef int32      `yaml:"region_ref"`
+	FrontRef  int32      `yaml:"front_ref"`
+	BackRef   int32      `yaml:"back_ref"`
 }
 
 func (e *WldFragWorldTree) FragCode() int {
@@ -35,10 +33,10 @@ func (e *WldFragWorldTree) Write(w io.Writer) error {
 	enc.Int32(e.NameRef)
 	enc.Uint32(e.NodeCount)
 	for _, node := range e.Nodes {
-		enc.Float32(node.Normal.X)
-		enc.Float32(node.Normal.Y)
-		enc.Float32(node.Normal.Z)
-		enc.Float32(node.Distance)
+		enc.Float32(node.Normal[0])
+		enc.Float32(node.Normal[1])
+		enc.Float32(node.Normal[2])
+		enc.Float32(node.Normal[3])
 		enc.Int32(node.RegionRef)
 		enc.Int32(node.FrontRef)
 		enc.Int32(node.BackRef)
@@ -56,10 +54,10 @@ func (e *WldFragWorldTree) Read(r io.ReadSeeker) error {
 	e.NodeCount = dec.Uint32()
 	for i := uint32(0); i < e.NodeCount; i++ {
 		node := WorldTreeNode{}
-		node.Normal.X = dec.Float32()
-		node.Normal.Y = dec.Float32()
-		node.Normal.Z = dec.Float32()
-		node.Distance = dec.Float32()
+		node.Normal[0] = dec.Float32()
+		node.Normal[1] = dec.Float32()
+		node.Normal[2] = dec.Float32()
+		node.Normal[3] = dec.Float32()
 		node.RegionRef = dec.Int32()
 		node.FrontRef = dec.Int32()
 		node.BackRef = dec.Int32()

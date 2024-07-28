@@ -11,29 +11,29 @@ import (
 
 // WldFragSprite3DDef is Sprite3DDef in libeq, Camera in openzone, 3DSPRITEDEF in wld, Camera in lantern
 type WldFragSprite3DDef struct {
-	NameRef       int32                        `yaml:"name_ref"`
-	Flags         uint32                       `yaml:"flags"`
-	SphereListRef uint32                       `yaml:"sphere_list_ref"`
-	CenterOffset  [3]float32                   `yaml:"center_offset"`
-	Radius        float32                      `yaml:"radius"`
-	Vertices      [][3]float32                 `yaml:"vertices"`
-	BspNodes      []WldFragThreeDSpriteBspNode `yaml:"bsp_nodes"`
+	NameRef        int32
+	Flags          uint32
+	SphereListRef  uint32
+	CenterOffset   [3]float32
+	BoundingRadius float32
+	Vertices       [][3]float32
+	BspNodes       []WldFragThreeDSpriteBspNode
 }
 
 type WldFragThreeDSpriteBspNode struct {
-	FrontTree                   uint32                             `yaml:"front_tree"`
-	BackTree                    uint32                             `yaml:"back_tree"`
-	VertexIndexes               []uint32                           `yaml:"vertex_indexes"`
-	RenderMethod                uint32                             `yaml:"render_method"`
-	RenderFlags                 uint8                              `yaml:"render_flags"`
-	RenderPen                   uint32                             `yaml:"render_pen"`
-	RenderBrightness            float32                            `yaml:"render_brightness"`
-	RenderScaledAmbient         float32                            `yaml:"render_scaled_ambient"`
-	RenderSimpleSpriteReference uint32                             `yaml:"render_simple_sprite_reference"`
-	RenderUVInfoOrigin          [3]float32                         `yaml:"render_uv_info_origin"`
-	RenderUVInfoUAxis           [3]float32                         `yaml:"render_uv_info_u_axis"`
-	RenderUVInfoVAxis           [3]float32                         `yaml:"render_uv_info_v_axis"`
-	RenderUVMapEntries          []WldFragThreeDSpriteBspNodeUVInfo `yaml:"render_uv_map_entries"`
+	FrontTree                   uint32
+	BackTree                    uint32
+	VertexIndexes               []uint32
+	RenderMethod                uint32
+	RenderFlags                 uint8
+	RenderPen                   uint32
+	RenderBrightness            float32
+	RenderScaledAmbient         float32
+	RenderSimpleSpriteReference uint32
+	RenderUVInfoOrigin          [3]float32
+	RenderUVInfoUAxis           [3]float32
+	RenderUVInfoVAxis           [3]float32
+	RenderUVMapEntries          []WldFragThreeDSpriteBspNodeUVInfo
 }
 
 type WldFragThreeDSpriteBspNodeUVInfo struct {
@@ -59,7 +59,7 @@ func (e *WldFragSprite3DDef) Write(w io.Writer) error {
 		enc.Float32(e.CenterOffset[2])
 	}
 	if e.Flags&0x02 == 0x02 {
-		enc.Float32(e.Radius)
+		enc.Float32(e.BoundingRadius)
 	}
 	for _, vertex := range e.Vertices {
 		enc.Float32(vertex[0])
@@ -141,7 +141,7 @@ func (e *WldFragSprite3DDef) Read(r io.ReadSeeker) error {
 		e.CenterOffset[2] = dec.Float32()
 	}
 	if e.Flags&0x02 == 0x02 {
-		e.Radius = dec.Float32()
+		e.BoundingRadius = dec.Float32()
 	}
 	tag.AddRand(tag.LastPos(), dec.Pos(), "header")
 	for i := 0; i < int(vertexCount); i++ {

@@ -15,7 +15,7 @@ func (q *Quail) wldRead(wld *raw.Wld) error {
 	}
 	maxFragments := len(wld.Fragments)
 	for i := 1; i < maxFragments; i++ {
-		frag := wld.Fragments[i-1]
+		frag := wld.Fragments[i]
 		if frag == nil {
 			return fmt.Errorf("fragment %d not found", i)
 		}

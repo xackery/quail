@@ -11,13 +11,6 @@ import (
 	"github.com/xackery/quail/helper"
 )
 
-type AsciiReader interface {
-	Read(p []byte) (n int, err error)
-	ReadProperty(definition string) (string, error)
-	ReadString() (string, error)
-	ReadInt() (int, error)
-}
-
 type AsciiReadToken struct {
 	basePath       string
 	lineNumber     int

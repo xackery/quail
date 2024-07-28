@@ -16,14 +16,10 @@ type WldFragTrackDef struct {
 }
 
 type WldFragTrackBoneTransform struct {
-	RotateDenominator int16 `yaml:"rotate_denominator"`
-	RotateX           int16 `yaml:"rotate_x"`
-	RotateY           int16 `yaml:"rotate_y"`
-	RotateZ           int16 `yaml:"rotate_z"`
-	ShiftDenominator  int16 `yaml:"shift_denominator"`
-	ShiftX            int16 `yaml:"shift_x"`
-	ShiftY            int16 `yaml:"shift_y"`
-	ShiftZ            int16 `yaml:"shift_z"`
+	RotateDenominator int16
+	Rotation          [3]int16
+	ShiftDenominator  int16
+	Shift             [3]int16
 }
 
 func (e *WldFragTrackDef) FragCode() int {
@@ -38,24 +34,23 @@ func (e *WldFragTrackDef) Write(w io.Writer) error {
 	for _, ft := range e.BoneTransforms {
 		if e.Flags&0x08 == 0x08 {
 			enc.Int16(ft.ShiftDenominator)
-			enc.Int16(ft.ShiftX)
-			enc.Int16(ft.ShiftY)
-			enc.Int16(ft.ShiftZ)
-			enc.Int16(ft.RotateX)
-			enc.Int16(ft.RotateY)
-			enc.Int16(ft.RotateZ)
+			for _, shift := range ft.Shift {
+				enc.Int16(shift)
+			}
+			for _, rotate := range ft.Rotation {
+				enc.Int16(rotate)
+			}
 			enc.Int16(ft.RotateDenominator)
 			continue
 		}
 		enc.Int8(int8(ft.RotateDenominator))
-		enc.Int8(int8(ft.RotateX))
-		enc.Int8(int8(ft.RotateY))
-		enc.Int8(int8(ft.RotateZ))
+		for _, rotate := range ft.Rotation {
+			enc.Int8(int8(rotate))
+		}
 		enc.Int8(int8(ft.ShiftDenominator))
-		enc.Int8(int8(ft.ShiftX))
-		enc.Int8(int8(ft.ShiftY))
-		enc.Int8(int8(ft.ShiftZ))
-
+		for _, shift := range ft.Shift {
+			enc.Int8(int8(shift))
+		}
 	}
 
 	err := enc.Error()
@@ -76,24 +71,24 @@ func (e *WldFragTrackDef) Read(r io.ReadSeeker) error {
 		ft := WldFragTrackBoneTransform{}
 		if e.Flags&0x08 == 0x08 {
 			ft.ShiftDenominator = dec.Int16()
-			ft.ShiftX = dec.Int16()
-			ft.ShiftY = dec.Int16()
-			ft.ShiftZ = dec.Int16()
-			ft.RotateX = dec.Int16()
-			ft.RotateY = dec.Int16()
-			ft.RotateZ = dec.Int16()
+			ft.Shift[0] = dec.Int16()
+			ft.Shift[1] = dec.Int16()
+			ft.Shift[2] = dec.Int16()
+			ft.Rotation[0] = dec.Int16()
+			ft.Rotation[1] = dec.Int16()
+			ft.Rotation[2] = dec.Int16()
 			ft.RotateDenominator = dec.Int16()
 			e.BoneTransforms = append(e.BoneTransforms, ft)
 			continue
 		}
 		ft.RotateDenominator = int16(dec.Int8())
-		ft.RotateX = int16(dec.Int8())
-		ft.RotateY = int16(dec.Int8())
-		ft.RotateZ = int16(dec.Int8())
+		ft.Rotation[0] = int16(dec.Int8())
+		ft.Rotation[1] = int16(dec.Int8())
+		ft.Rotation[2] = int16(dec.Int8())
 		ft.ShiftDenominator = int16(dec.Int8())
-		ft.ShiftX = int16(dec.Int8())
-		ft.ShiftY = int16(dec.Int8())
-		ft.ShiftZ = int16(dec.Int8())
+		ft.Shift[0] = int16(dec.Int8())
+		ft.Shift[1] = int16(dec.Int8())
+		ft.Shift[2] = int16(dec.Int8())
 		e.BoneTransforms = append(e.BoneTransforms, ft)
 
 	}

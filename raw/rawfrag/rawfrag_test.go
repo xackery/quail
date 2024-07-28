@@ -144,7 +144,7 @@ func TestFragment(t *testing.T) {
 				if tt.fragIndex != 0 && i != tt.fragIndex {
 					continue
 				}
-				srcData := fragments[i-1]
+				srcData := fragments[i]
 				r := bytes.NewReader(srcData)
 				reader := NewFrag(r)
 				if reader == nil {

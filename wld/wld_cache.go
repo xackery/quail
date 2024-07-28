@@ -2,15 +2,14 @@ package wld
 
 import (
 	"fmt"
-	"path/filepath"
 
 	"github.com/xackery/quail/raw"
 	"github.com/xackery/quail/wld/cache"
 )
 
-func (wld *Wld) Read(src *raw.Wld) error {
+func (wld *Wld) ReadCache(src *raw.Wld) error {
 	cm := &cache.CacheManager{}
-	err := cm.Load(src)
+	err := cm.LoadRaw(src)
 	if err != nil {
 		return fmt.Errorf("cache: %w", err)
 	}
@@ -20,49 +19,25 @@ func (wld *Wld) Read(src *raw.Wld) error {
 	wld.GlobalAmbientLight = cm.GlobalAmbientLight
 	wld.FileName = src.MetaFileName
 
-	err = wld.readDMSpriteDef2(cm)
-	if err != nil {
-		return fmt.Errorf("readDMSpriteDef2: %w", err)
+	readers := map[string]func(*cache.CacheManager) error{
+		"DMSpriteDef2":    wld.readDMSpriteDef2,
+		"MaterialDef":     wld.readMaterialDef,
+		"MaterialPalette": wld.readMaterialPalette,
+		"SimpleSpriteDef": wld.readSimpleSpriteDef,
+		"ActorDef":        wld.readActorDef,
+		"ActorInst":       wld.readActorInst,
+		"LightDef":        wld.readLightDef,
+		"PointLight":      wld.readPointLight,
+		"Sprite3DDef":     wld.readSprite3DDef,
+		"PolyhedronDef":   wld.readPolyhedronDef,
+		"PolyhedronInst":  wld.readPolyhedronInst,
 	}
 
-	err = wld.readMaterialDef(cm)
-	if err != nil {
-		return fmt.Errorf("readMaterialDef: %w", err)
-	}
-
-	err = wld.readMaterialPalette(cm)
-	if err != nil {
-		return fmt.Errorf("readMaterialPalette: %w", err)
-	}
-
-	err = wld.readSimpleSpriteDef(cm)
-	if err != nil {
-		return fmt.Errorf("readSimpleSpriteDef: %w", err)
-	}
-
-	err = wld.readActorDef(cm)
-	if err != nil {
-		return fmt.Errorf("readActorDef: %w", err)
-	}
-
-	err = wld.readActorInst(cm)
-	if err != nil {
-		return fmt.Errorf("readActorInst: %w", err)
-	}
-
-	err = wld.readLightDef(cm)
-	if err != nil {
-		return fmt.Errorf("readLightDef: %w", err)
-	}
-
-	err = wld.readPointLight(cm)
-	if err != nil {
-		return fmt.Errorf("readPointLight: %w", err)
-	}
-
-	err = wld.readSprite3DDef(cm)
-	if err != nil {
-		return fmt.Errorf("readSprite3DDef: %w", err)
+	for name, reader := range readers {
+		err = reader(cm)
+		if err != nil {
+			return fmt.Errorf("read%s: %w", name, err)
+		}
 	}
 
 	return nil
@@ -180,6 +155,14 @@ func (wld *Wld) readSimpleSpriteDef(cm *cache.CacheManager) error {
 			Tag: src.Tag,
 		}
 
+		for _, frame := range src.SimpleSpriteFrames {
+			dstFrame := SimpleSpriteFrame{
+				TextureTag:  frame.TextureTag,
+				TextureFile: frame.TextureFile,
+			}
+			dst.SimpleSpriteFrames = append(dst.SimpleSpriteFrames, dstFrame)
+		}
+
 		wld.SimpleSpriteDefs = append(wld.SimpleSpriteDefs, dst)
 	}
 	return nil
@@ -194,7 +177,7 @@ func (wld *Wld) readActorDef(cm *cache.CacheManager) error {
 			CurrentAction: src.CurrentAction,
 			Location:      src.Location,
 			Unk1:          src.Unk1,
-			FragmentRefs:  src.FragmentRefs,
+			//	FragmentRefs:  src.FragmentRefs,
 		}
 		for _, srcAction := range src.Actions {
 			dstAction := ActorAction{}
@@ -219,14 +202,12 @@ func (wld *Wld) readActorInst(cm *cache.CacheManager) error {
 		dst := &ActorInst{
 			Tag:            src.Tag,
 			DefinitionTag:  src.ActorDefTag,
-			Flags:          src.Flags,
 			SphereTag:      src.SphereTag,
 			CurrentAction:  src.CurrentAction,
 			Location:       src.Location,
 			Unk1:           src.Unk1,
 			BoundingRadius: src.BoundingRadius,
 			Scale:          src.Scale,
-			Unk2:           src.Unk2,
 		}
 
 		wld.ActorInsts = append(wld.ActorInsts, dst)
@@ -272,18 +253,18 @@ func (wld *Wld) readSprite3DDef(cm *cache.CacheManager) error {
 		}
 		for _, srcBspNode := range src.BspNodes {
 			dstBspNode := &BSPNode{
-				Vertices:                    srcBspNode.VertexIndexes,
-				RenderMethod:                srcBspNode.RenderMethod,
-				RenderFlags:                 srcBspNode.RenderFlags,
-				RenderPen:                   srcBspNode.RenderPen,
-				RenderBrightness:            srcBspNode.RenderBrightness,
-				RenderScaledAmbient:         srcBspNode.RenderScaledAmbient,
-				RenderSimpleSpriteReference: srcBspNode.RenderSimpleSpriteReference,
-				RenderUVInfoOrigin:          srcBspNode.RenderUVInfoOrigin,
-				RenderUVInfoUAxis:           srcBspNode.RenderUVInfoUAxis,
-				RenderUVInfoVAxis:           srcBspNode.RenderUVInfoVAxis,
-				FrontTree:                   srcBspNode.FrontTree,
-				BackTree:                    srcBspNode.BackTree,
+				Vertices:      srcBspNode.VertexIndexes,
+				RenderMethod:  srcBspNode.RenderMethod,
+				Flags:         srcBspNode.RenderFlags,
+				Pen:           srcBspNode.RenderPen,
+				Brightness:    srcBspNode.RenderBrightness,
+				ScaledAmbient: srcBspNode.RenderScaledAmbient,
+				//SpriteReference:     srcBspNode.RenderSimpleSpriteReference,
+				//UVInfoOrigin:        srcBspNode.RenderUVInfoOrigin,
+				//RenderUVInfoUAxis:   srcBspNode.RenderUVInfoUAxis,
+				//RenderUVInfoVAxis:   srcBspNode.RenderUVInfoVAxis,
+				FrontTree: srcBspNode.FrontTree,
+				BackTree:  srcBspNode.BackTree,
 			}
 
 			for _, srcUVMapMethod := range srcBspNode.RenderUVMapEntries {
@@ -304,19 +285,29 @@ func (wld *Wld) readSprite3DDef(cm *cache.CacheManager) error {
 	return nil
 }
 
-// ReadAscii reads the ascii file at path
-func (wld *Wld) ReadAscii(path string) error {
-	wld.mu.Lock()
-	defer wld.mu.Unlock()
+func (wld *Wld) readPolyhedronDef(cm *cache.CacheManager) error {
+	for _, src := range cm.PolyhedronDefs {
+		dst := &PolyhedronDefinition{
+			Tag:            src.Tag,
+			Flags:          src.Flags,
+			BoundingRadius: src.BoundingRadius,
+			ScaleFactor:    src.ScaleFactor,
+		}
 
-	asciiReader, err := LoadAsciiFile(path, wld)
-	if err != nil {
-		return fmt.Errorf("%w", err)
+		dst.Vertices = append(dst.Vertices, src.Vertices...)
+
+		for _, face := range src.Faces {
+			dst.Faces = append(dst.Faces, &PolyhedronDefinitionFace{
+				Vertices: face.Vertices,
+			})
+		}
+
+		wld.PolyhedronDefs = append(wld.PolyhedronDefs, dst)
 	}
-	err = asciiReader.readDefinitions()
-	if err != nil {
-		return fmt.Errorf("%s:%d: %w", path, asciiReader.lineNumber, err)
-	}
-	fmt.Println(asciiReader.TotalLineCountRead(), "total lines parsed for", filepath.Base(path))
+	return nil
+}
+
+func (wld *Wld) readPolyhedronInst(cm *cache.CacheManager) error {
+
 	return nil
 }

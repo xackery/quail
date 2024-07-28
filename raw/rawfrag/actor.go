@@ -10,17 +10,18 @@ import (
 
 // WldFragActor is Actor in libeq, Object Location in openzone, ACTORINST in wld, ObjectInstance in lantern
 type WldFragActor struct {
-	NameRef        int32  `yaml:"name_ref"`
-	ActorDefRef    int32  `yaml:"actor_def_ref"`
-	Flags          uint32 `yaml:"flags"`
-	SphereRef      uint32 `yaml:"sphere_ref"`
-	CurrentAction  uint32 `yaml:"current_action"`
+	NameRef        int32
+	ActorDefRef    int32
+	Flags          uint32
+	SphereRef      uint32
+	CurrentAction  uint32
 	Location       [6]float32
-	Unk1           uint32  `yaml:"unk1"`
-	BoundingRadius float32 `yaml:"bounding_radius"`
-	Scale          float32 `yaml:"scale"`
-	SoundNameRef   int32   `yaml:"sound_name_ref"`
-	Unk2           int32   `yaml:"unk2"`
+	Unk1           uint32
+	BoundingRadius float32
+	ScaleFactor    float32
+	SoundNameRef   int32
+	DMRGBTrackRef  int32
+	UserData       int32
 }
 
 func (e *WldFragActor) FragCode() int {
@@ -49,12 +50,16 @@ func (e *WldFragActor) Write(w io.Writer) error {
 		enc.Float32(e.BoundingRadius)
 	}
 	if e.Flags&0x8 == 0x8 {
-		enc.Float32(e.Scale)
+		enc.Float32(e.ScaleFactor)
 	}
 	if e.Flags&0x10 == 0x10 {
 		enc.Int32(e.SoundNameRef)
 	}
-	enc.Int32(e.Unk2)
+	if e.Flags&0x100 == 0x100 {
+		enc.Int32(e.DMRGBTrackRef)
+	}
+
+	enc.Int32(e.UserData)
 	err := enc.Error()
 	if err != nil {
 		return fmt.Errorf("write: %w", err)
@@ -84,12 +89,15 @@ func (e *WldFragActor) Read(r io.ReadSeeker) error {
 		e.BoundingRadius = dec.Float32()
 	}
 	if e.Flags&0x8 == 0x8 {
-		e.Scale = dec.Float32()
+		e.ScaleFactor = dec.Float32()
 	}
 	if e.Flags&0x10 == 0x10 {
 		e.SoundNameRef = dec.Int32()
 	}
-	e.Unk2 = dec.Int32()
+	if e.Flags&0x100 == 0x100 {
+		e.DMRGBTrackRef = dec.Int32()
+	}
+	e.UserData = dec.Int32()
 	err := dec.Error()
 	if err != nil {
 		return fmt.Errorf("read: %w", err)

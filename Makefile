@@ -110,6 +110,13 @@ explore-%: ## shortcut for wld-cli to explore a file
 	source .env && go run main.go extract $$EQ_PATH/$*.s3d test/_$*.s3d
 	wld-cli explore test/_$*.s3d/$*.wld
 
+
+exploretest-%: ## shortcut for wld-cli to explore a test file
+	mkdir -p test/
+	wld-cli explore test/$*.wld
+
+
+
 wldcom-%: ## shortcut for WLDCOM.EXE for decoding
 	mkdir -p test/
 	source .env && go run main.go extract $$EQ_PATH/$*.s3d test/_$*.s3d
