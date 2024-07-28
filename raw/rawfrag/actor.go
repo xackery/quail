@@ -10,18 +10,18 @@ import (
 
 // WldFragActor is Actor in libeq, Object Location in openzone, ACTORINST in wld, ObjectInstance in lantern
 type WldFragActor struct {
-	NameRef        int32
-	ActorDefRef    int32
-	Flags          uint32
-	SphereRef      uint32
-	CurrentAction  uint32
-	Location       [6]float32
-	Unk1           uint32
-	BoundingRadius float32
-	ScaleFactor    float32
-	SoundNameRef   int32
-	DMRGBTrackRef  int32
-	UserData       int32
+	NameRef         int32
+	ActorDefNameRef int32
+	Flags           uint32
+	SphereRef       uint32
+	CurrentAction   uint32
+	Location        [6]float32
+	Unk1            uint32
+	BoundingRadius  float32
+	ScaleFactor     float32
+	SoundNameRef    int32
+	DMRGBTrackRef   int32
+	UserData        string
 }
 
 func (e *WldFragActor) FragCode() int {
@@ -31,7 +31,7 @@ func (e *WldFragActor) FragCode() int {
 func (e *WldFragActor) Write(w io.Writer) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
 	enc.Int32(e.NameRef)
-	enc.Int32(e.ActorDefRef)
+	enc.Int32(e.ActorDefNameRef)
 	enc.Uint32(e.Flags)
 	enc.Uint32(e.SphereRef)
 	if e.Flags&0x1 == 0x1 {
@@ -59,7 +59,7 @@ func (e *WldFragActor) Write(w io.Writer) error {
 		enc.Int32(e.DMRGBTrackRef)
 	}
 
-	enc.Int32(e.UserData)
+	enc.StringLenPrefixUint32(e.UserData)
 	err := enc.Error()
 	if err != nil {
 		return fmt.Errorf("write: %w", err)
@@ -70,7 +70,7 @@ func (e *WldFragActor) Write(w io.Writer) error {
 func (e *WldFragActor) Read(r io.ReadSeeker) error {
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	e.NameRef = dec.Int32()
-	e.ActorDefRef = dec.Int32()
+	e.ActorDefNameRef = dec.Int32()
 	e.Flags = dec.Uint32()
 	e.SphereRef = dec.Uint32()
 	if e.Flags&0x1 == 0x1 {
@@ -97,7 +97,7 @@ func (e *WldFragActor) Read(r io.ReadSeeker) error {
 	if e.Flags&0x100 == 0x100 {
 		e.DMRGBTrackRef = dec.Int32()
 	}
-	e.UserData = dec.Int32()
+	e.UserData = dec.StringLenPrefixUint32()
 	err := dec.Error()
 	if err != nil {
 		return fmt.Errorf("read: %w", err)

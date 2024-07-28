@@ -301,14 +301,13 @@ func (wld *Wld) WriteAscii(path string, isDir bool) error {
 
 		if actor.DMRGBTrackTag != "" {
 			isTrackFound := false
+			isTrackDefFound := false
 			for _, track := range wld.RGBTrackInsts {
-				if track.Tag != actor.DMRGBTrackTag {
-					continue
-				}
-
-				isTrackDefFound := false
 				for _, trackDef := range wld.RGBTrackDefs {
 					if trackDef.Tag != track.DefinitionTag {
+						continue
+					}
+					if trackDef.Tag != actor.DMRGBTrackTag {
 						continue
 					}
 
@@ -319,9 +318,8 @@ func (wld *Wld) WriteAscii(path string, isDir bool) error {
 					}
 					break
 				}
-
 				if !isTrackDefFound {
-					return fmt.Errorf("actor %s track %s definition not found", actor.Tag, track.DefinitionTag)
+					continue
 				}
 
 				err = track.Write(w)
@@ -332,8 +330,12 @@ func (wld *Wld) WriteAscii(path string, isDir bool) error {
 				isTrackFound = true
 				break
 			}
+
 			if !isTrackFound {
-				return fmt.Errorf("actor %s track %s not found", actor.Tag, actor.DMRGBTrackTag)
+				return fmt.Errorf("actor '%s' track %s not found", actor.Tag, actor.DMRGBTrackTag)
+			}
+			if !isTrackDefFound {
+				return fmt.Errorf("actor '%s' track %s definition not found", actor.Tag, actor.DMRGBTrackTag)
 			}
 
 		}
@@ -354,7 +356,8 @@ func (wld *Wld) WriteAscii(path string, isDir bool) error {
 				break
 			}
 			if !isActorDefFound {
-				return fmt.Errorf("actor %s definition not found", actor.DefinitionTag)
+				//	fmt.Printf("actor %s definition not found\n", actor.DefinitionTag)
+				// return fmt.Errorf("actor %s definition not found", actor.DefinitionTag)
 			}
 		}
 

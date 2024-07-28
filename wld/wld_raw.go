@@ -432,19 +432,19 @@ func readRawFrag(wld *Wld, src *raw.Wld, fragment model.FragmentReadWriter) erro
 		if !ok {
 			return fmt.Errorf("invalid actor fragment at offset %d", i)
 		}
+		/*
+			actorDefTag := ""
+			 		if fragData.ActorDefNameRef > 0 {
+				if len(src.Fragments) < int(fragData.ActorDefNameRef) {
+					return fmt.Errorf("actordef ref %d out of bounds", fragData.ActorDefNameRef)
+				}
 
-		actorDefTag := ""
-		if fragData.ActorDefRef > 0 {
-			if len(src.Fragments) < int(fragData.ActorDefRef) {
-				return fmt.Errorf("actordef ref %d out of bounds", fragData.ActorDefRef)
-			}
-
-			actorDef, ok := src.Fragments[fragData.ActorDefRef].(*rawfrag.WldFragActorDef)
-			if !ok {
-				return fmt.Errorf("actordef ref %d not found", fragData.ActorDefRef)
-			}
-			actorDefTag = raw.Name(actorDef.NameRef)
-		}
+				actorDef, ok := src.Fragments[fragData.ActorDefNameRef].(*rawfrag.WldFragActorDef)
+				if !ok {
+					return fmt.Errorf("actordef ref %d not found", fragData.ActorDefNameRef)
+				}
+				actorDefTag = raw.Name(actorDef.NameRef)
+			} */
 
 		if len(src.Fragments) < int(fragData.SphereRef) {
 			return fmt.Errorf("sphere ref %d not found", fragData.SphereRef)
@@ -459,17 +459,41 @@ func readRawFrag(wld *Wld, src *raw.Wld, fragment model.FragmentReadWriter) erro
 			sphereTag = raw.Name(sphereDef.NameRef)
 		}
 
+		trackTag := ""
+		if fragData.DMRGBTrackRef > 0 {
+			if len(src.Fragments) < int(fragData.DMRGBTrackRef) {
+				return fmt.Errorf("dmrgbtrack ref %d out of bounds", fragData.DMRGBTrackRef)
+			}
+
+			track, ok := src.Fragments[fragData.DMRGBTrackRef].(*rawfrag.WldFragDmRGBTrack)
+			if !ok {
+				return fmt.Errorf("dmrgbtrack ref %d not found", fragData.DMRGBTrackRef)
+			}
+			if len(src.Fragments) < int(track.TrackRef) {
+				return fmt.Errorf("dmrgbtrackdef ref %d not found", track.TrackRef)
+			}
+
+			trackDef, ok := src.Fragments[track.TrackRef].(*rawfrag.WldFragDmRGBTrackDef)
+			if !ok {
+				return fmt.Errorf("dmrgbtrackdef ref %d not found", track.TrackRef)
+			}
+			if trackDef.NameRef != 0 {
+				trackTag = raw.Name(trackDef.NameRef)
+			}
+		}
+
 		actor := &ActorInst{
 			Tag:            raw.Name(fragData.NameRef),
-			DefinitionTag:  actorDefTag,
+			DefinitionTag:  raw.Name(fragData.ActorDefNameRef),
 			SphereTag:      sphereTag,
+			DMRGBTrackTag:  trackTag,
 			CurrentAction:  fragData.CurrentAction,
 			Location:       fragData.Location,
 			Unk1:           fragData.Unk1,
 			BoundingRadius: fragData.BoundingRadius,
 			Scale:          fragData.ScaleFactor,
 			SoundTag:       raw.Name(fragData.SoundNameRef),
-			UserData:       raw.Name(fragData.UserData),
+			UserData:       fragData.UserData,
 		}
 
 		wld.ActorInsts = append(wld.ActorInsts, actor)
@@ -868,10 +892,33 @@ func readRawFrag(wld *Wld, src *raw.Wld, fragment model.FragmentReadWriter) erro
 		}
 
 		wld.RGBTrackDefs = append(wld.RGBTrackDefs, track)
-
 		return nil
 	case rawfrag.FragCodeDmRGBTrack:
-		// dmrgbtrack instances are ignored, since they're derived from other definitions
+		fragData, ok := fragment.(*rawfrag.WldFragDmRGBTrack)
+		if !ok {
+			return fmt.Errorf("invalid dmrgbtrack fragment at offset %d", i)
+		}
+
+		definitionTag := ""
+		if fragData.TrackRef > 0 {
+			if len(src.Fragments) < int(fragData.TrackRef) {
+				return fmt.Errorf("dmrgbtrackdef ref %d not found", fragData.TrackRef)
+			}
+
+			trackDef, ok := src.Fragments[fragData.TrackRef].(*rawfrag.WldFragDmRGBTrackDef)
+			if !ok {
+				return fmt.Errorf("dmrgbtrackdef ref %d not found", fragData.TrackRef)
+			}
+			definitionTag = raw.Name(trackDef.NameRef)
+		}
+
+		track := &RGBTrack{
+			Tag:           raw.Name(fragData.NameRef),
+			DefinitionTag: definitionTag,
+			Flags:         fragData.Flags,
+		}
+
+		wld.RGBTrackInsts = append(wld.RGBTrackInsts, track)
 		return nil
 	default:
 		return fmt.Errorf("unhandled fragment type %d (%s)", fragment.FragCode(), raw.FragName(fragment.FragCode()))

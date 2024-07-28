@@ -46,7 +46,7 @@ func TestBWldRead(t *testing.T) {
 			}
 
 			vwld := &Wld{}
-			err = vwld.ReadCache(wld)
+			err = vwld.ReadRaw(wld)
 			if err != nil {
 				t.Fatalf("failed to convert %s: %s", tt.name, err.Error())
 			}
@@ -188,7 +188,7 @@ func TestVWldAsciiWrite(t *testing.T) {
 		//{baseName: "qeynos_chr"},
 		//{baseName: "global_chr"}, // TODO:  anarelion asked mesh of EYE_DMSPRITEDEF check if the eye is just massive 22 units in size, where the other units in that file are just 1-2 units in size
 		//{baseName: "load2"},
-		{baseName: "qeynos"},
+		{baseName: "qeynos", wldName: "objects.wld"},
 		//{baseName: "load2", wldName: "lights.wld"},
 		//{baseName: "load2", wldName: "load2.wld"},
 		//{baseName: "overthere_chr", wldName: "overthere_chr.wld"},
@@ -240,18 +240,18 @@ func TestVWldAsciiWrite(t *testing.T) {
 			if err != nil {
 				t.Fatalf("failed to read %s: %s", baseName, err.Error())
 			}
-
-			if tt.wldName == "objects.wld" {
-				data, err = archive.File(fmt.Sprintf("%s.wld", tt.baseName))
-				if err != nil {
-					t.Fatalf("failed to open wld %s: %s", tt.baseName, err.Error())
-				}
-				tmpWld := &raw.Wld{}
-				err = tmpWld.Read(bytes.NewReader(data))
-				if err != nil {
-					t.Fatalf("failed to read %s: %s", tt.baseName, err.Error())
-				}
-			}
+			/*
+				if tt.wldName == "objects.wld" {
+					data, err = archive.File(fmt.Sprintf("%s.wld", tt.baseName))
+					if err != nil {
+						t.Fatalf("failed to open wld %s: %s", tt.baseName, err.Error())
+					}
+					tmpWld := &raw.Wld{}
+					err = tmpWld.Read(bytes.NewReader(data))
+					if err != nil {
+						t.Fatalf("failed to read %s: %s", tt.baseName, err.Error())
+					}
+				} */
 
 			vwld := &Wld{}
 			err = vwld.ReadRaw(wld)
