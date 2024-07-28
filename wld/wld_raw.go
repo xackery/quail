@@ -827,24 +827,37 @@ func readRawFrag(wld *Wld, src *raw.Wld, fragment model.FragmentReadWriter) erro
 		}
 
 		lightTag := ""
+		lightFlags := uint32(0)
 		if fragData.LightRef > 0 {
 			if len(src.Fragments) < int(fragData.LightRef) {
-				return fmt.Errorf("lightdef ref %d not found", fragData.LightRef)
+				return fmt.Errorf("light ref %d not found", fragData.LightRef)
 			}
 
-			lightDef, ok := src.Fragments[fragData.LightRef].(*rawfrag.WldFragLightDef)
+			light, ok := src.Fragments[fragData.LightRef].(*rawfrag.WldFragLight)
 			if !ok {
-				return fmt.Errorf("lightdef ref %d not found", fragData.LightRef)
+				return fmt.Errorf("light ref %d not found", fragData.LightRef)
+			}
+
+			lightFlags = light.Flags
+
+			if len(src.Fragments) < int(light.LightDefRef) {
+				return fmt.Errorf("lightdef ref %d not found", light.LightDefRef)
+			}
+
+			lightDef, ok := src.Fragments[light.LightDefRef].(*rawfrag.WldFragLightDef)
+			if !ok {
+				return fmt.Errorf("lightdef ref %d not found", light.LightDefRef)
 			}
 
 			lightTag = raw.Name(lightDef.NameRef)
 		}
 
 		light := &PointLight{
-			Tag:         raw.Name(fragData.NameRef),
-			LightDefTag: lightTag,
-			Location:    fragData.Location,
-			Radius:      fragData.Radius,
+			Tag:        raw.Name(fragData.NameRef),
+			LightTag:   lightTag,
+			LightFlags: lightFlags,
+			Location:   fragData.Location,
+			Radius:     fragData.Radius,
 		}
 
 		wld.PointLights = append(wld.PointLights, light)

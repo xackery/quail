@@ -367,6 +367,34 @@ func (wld *Wld) WriteAscii(path string, isDir bool) error {
 		}
 	}
 
+	w = rootBuf
+	for i := 0; i < len(wld.PointLights); i++ {
+		pointLight := wld.PointLights[i]
+
+		if pointLight.LightTag != "" {
+			isLightFound := false
+			for _, lightDef := range wld.LightDefs {
+				if lightDef.Tag != pointLight.LightTag {
+					continue
+				}
+
+				isLightFound = true
+				err = lightDef.Write(w)
+				if err != nil {
+					return fmt.Errorf("light def %s: %w", lightDef.Tag, err)
+				}
+				break
+			}
+			if !isLightFound {
+				return fmt.Errorf("point light %s light %s not found", pointLight.Tag, pointLight.LightTag)
+			}
+		}
+
+		err = pointLight.Write(w)
+		if err != nil {
+			return fmt.Errorf("point light %s: %w", pointLight.Tag, err)
+		}
+	}
 	/* w = rootBuf
 	for i := 0; i < len(wld.HierarchicalSpriteDefs); i++ {
 		hierarchicalSprite := wld.HierarchicalSpriteDefs[i]

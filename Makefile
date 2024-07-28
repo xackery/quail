@@ -123,7 +123,7 @@ explorelights-%: ## shortcut for wld-cli to explore a file
 	rm -rf test/_*.s3d/
 	rm -rf test/_*.eqg/
 	source .env && go run main.go extract $$EQ_PATH/$*.s3d test/_$*.s3d
-	wld-cli explore test/_$*.s3d/objects.wld
+	wld-cli explore test/_$*.s3d/lights.wld
 
 exploretest-%: ## shortcut for wld-cli to explore a test file
 	mkdir -p test/

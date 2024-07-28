@@ -38,8 +38,8 @@ var (
 		0x18: "Polyhedron",
 		0x19: "SphereListDef",
 		0x1A: "SphereList",
-		0x1B: "Light",
-		0x1C: "LightDef",
+		0x1B: "LightDef",
+		0x1C: "Light",
 		0x1D: "PointLightOld",
 		0x1E: "PointLightOldDef",
 		0x1F: "Sound",
@@ -98,8 +98,8 @@ const (
 	FragCodePolyhedron            = 0x18 // 24
 	FragCodeSphereListDef         = 0x19 // 25
 	FragCodeSphereList            = 0x1A // 26
-	FragCodeLightDef              = 0x1B // 27 property of lights?
-	FragCodeLight                 = 0x1C // 28 LIGHTDEFINITION
+	FragCodeLightDef              = 0x1B // 27 LIGHTDEFINITION
+	FragCodeLight                 = 0x1C // 28
 	FragCodePointLightOld         = 0x1D // 29
 	FragCodePointLightOldDef      = 0x1E // 30
 	FragCodeSound                 = 0x1F // 31
@@ -213,9 +213,9 @@ func NewFrag(r io.ReadSeeker) model.FragmentReadWriter {
 	case FragCodeSphereList:
 		return &WldFragSphereList{}
 	case FragCodeLight:
-		return &WldFragLightDef{}
-	case FragCodeLightDef:
 		return &WldFragLight{}
+	case FragCodeLightDef:
+		return &WldFragLightDef{}
 	case FragCodePointLightOld:
 		return &WldFragPointLightOld{}
 	case FragCodePointLightOldDef:

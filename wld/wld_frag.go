@@ -1093,11 +1093,12 @@ func (l *LightDef) Read(r *AsciiReadToken) error {
 
 // PointLight is a declaration of POINTLIGHT
 type PointLight struct {
-	Tag         string // TAG "%s"
-	LightDefTag string // LIGHT "%s"
-	Flags       uint32 // FLAGS %d
-	Location    [3]float32
-	Radius      float32 // RADIUSOFINFLUENCE %0.7f
+	Tag        string
+	LightFlags uint32
+	LightTag   string
+	Flags      uint32
+	Location   [3]float32
+	Radius     float32
 }
 
 func (p *PointLight) Definition() string {
@@ -1109,7 +1110,8 @@ func (p *PointLight) Write(w io.Writer) error {
 	fmt.Fprintf(w, "\tTAG \"%s\"\n", p.Tag)
 	fmt.Fprintf(w, "\t// FLAGS %d\n", p.Flags)
 	fmt.Fprintf(w, "\tXYZ %0.6f %0.6f %0.6f\n", p.Location[0], p.Location[1], p.Location[2])
-	fmt.Fprintf(w, "\tLIGHT \"%s\"\n", p.LightDefTag)
+	fmt.Fprintf(w, "\tLIGHT \"%s\"\n", p.LightTag)
+	fmt.Fprintf(w, "\t// LIGHTFLAGS %d\n", p.LightFlags)
 	fmt.Fprintf(w, "\tRADIUSOFINFLUENCE %0.7f\n", p.Radius)
 	fmt.Fprintf(w, "ENDPOINTLIGHT\n\n")
 	return nil
@@ -1126,7 +1128,7 @@ func (p *PointLight) Read(r *AsciiReadToken) error {
 	if err != nil {
 		return err
 	}
-	p.LightDefTag = records[1]
+	p.LightTag = records[1]
 
 	records, err = r.ReadProperty("XYZ", 3)
 	if err != nil {
