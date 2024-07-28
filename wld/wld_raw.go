@@ -853,10 +853,25 @@ func readRawFrag(wld *Wld, src *raw.Wld, fragment model.FragmentReadWriter) erro
 		// sphere instances are ignored, since they're derived from other definitions
 		return nil
 	case rawfrag.FragCodeDmRGBTrackDef:
-		// TODO
+		fragData, ok := fragment.(*rawfrag.WldFragDmRGBTrackDef)
+		if !ok {
+			return fmt.Errorf("invalid dmrgbtrackdef fragment at offset %d", i)
+		}
+
+		track := &RGBTrackDef{
+			Tag:   raw.Name(fragData.NameRef),
+			Data1: fragData.Data1,
+			Data2: fragData.Data2,
+			Sleep: fragData.Sleep,
+			Data4: fragData.Data4,
+			RGBAs: fragData.RGBAs,
+		}
+
+		wld.RGBTrackDefs = append(wld.RGBTrackDefs, track)
+
 		return nil
 	case rawfrag.FragCodeDmRGBTrack:
-		// TODO
+		// dmrgbtrack instances are ignored, since they're derived from other definitions
 		return nil
 	default:
 		return fmt.Errorf("unhandled fragment type %d (%s)", fragment.FragCode(), raw.FragName(fragment.FragCode()))

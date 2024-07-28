@@ -163,6 +163,8 @@ func (a *AsciiReadToken) readDefinitions() error {
 		&TrackInstance{},
 		&WorldTree{},
 		&Zone{},
+		&RGBTrackDef{},
+		&RGBTrack{},
 	}
 
 	definition := ""

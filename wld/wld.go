@@ -27,4 +27,6 @@ type Wld struct {
 	Regions                []*Region
 	AmbientLights          []*AmbientLight
 	Zones                  []*Zone
+	RGBTrackDefs           []*RGBTrackDef
+	RGBTrackInsts          []*RGBTrack
 }

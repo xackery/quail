@@ -55,21 +55,39 @@ func (wld *Wld) WriteAscii(path string, isDir bool) error {
 
 	// now we can write
 
+	zoneMaterials := map[string]bool{}
+
 	w = rootBuf
 	for i := 0; i < len(wld.DMSpriteDef2s); i++ {
 		dmSprite := wld.DMSpriteDef2s[i]
 
 		baseTag := strings.ToLower(strings.TrimSuffix(strings.ToUpper(dmSprite.Tag), "_DMSPRITEDEF"))
-		dmBuf, err := os.Create(path + "/" + baseTag + ".mod")
-		if err != nil {
-			return err
+
+		isZoneChunk := false
+		// if baseTag is r### then foo
+		if strings.HasPrefix(baseTag, "r") {
+			regionChunk := 0
+			chunkCount, err := fmt.Sscanf(baseTag, "r%d", &regionChunk)
+			isZoneChunk = err == nil && chunkCount == 1
 		}
-		defer dmBuf.Close()
-		writeAsciiHeader(dmBuf)
 
-		w = dmBuf
+		var dmBuf *os.File
+		if !isZoneChunk {
+			dmBuf, err = os.Create(path + "/" + baseTag + ".mod")
+			if err != nil {
+				return err
+			}
+			defer dmBuf.Close()
+			writeAsciiHeader(dmBuf)
 
-		if dmSprite.MaterialPaletteTag != "" {
+			w = dmBuf
+		} else {
+			w = rootBuf
+			dmBuf = rootBuf
+		}
+
+		if dmSprite.MaterialPaletteTag != "" && !zoneMaterials[dmSprite.MaterialPaletteTag] {
+
 			isMaterialPaletteFound := false
 			for _, materialPal := range wld.MaterialPalettes {
 				if materialPal.Tag != dmSprite.MaterialPaletteTag {
@@ -123,6 +141,7 @@ func (wld *Wld) WriteAscii(path string, isDir bool) error {
 			if !isMaterialPaletteFound {
 				return fmt.Errorf("material palette %s not found", dmSprite.MaterialPaletteTag)
 			}
+			zoneMaterials[dmSprite.MaterialPaletteTag] = true
 		}
 
 		if dmSprite.PolyhedronTag != "" {
@@ -273,6 +292,75 @@ func (wld *Wld) WriteAscii(path string, isDir bool) error {
 		err = polyhedron.Write(w)
 		if err != nil {
 			return fmt.Errorf("polyhedron %s: %w", polyhedron.Tag, err)
+		}
+	}
+
+	w = rootBuf
+	for i := 0; i < len(wld.ActorInsts); i++ {
+		actor := wld.ActorInsts[i]
+
+		if actor.DMRGBTrackTag != "" {
+			isTrackFound := false
+			for _, track := range wld.RGBTrackInsts {
+				if track.Tag != actor.DMRGBTrackTag {
+					continue
+				}
+
+				isTrackDefFound := false
+				for _, trackDef := range wld.RGBTrackDefs {
+					if trackDef.Tag != track.DefinitionTag {
+						continue
+					}
+
+					isTrackDefFound = true
+					err = trackDef.Write(w)
+					if err != nil {
+						return fmt.Errorf("track def %s: %w", trackDef.Tag, err)
+					}
+					break
+				}
+
+				if !isTrackDefFound {
+					return fmt.Errorf("actor %s track %s definition not found", actor.Tag, track.DefinitionTag)
+				}
+
+				err = track.Write(w)
+				if err != nil {
+					return fmt.Errorf("track %s: %w", track.Tag, err)
+				}
+
+				isTrackFound = true
+				break
+			}
+			if !isTrackFound {
+				return fmt.Errorf("actor %s track %s not found", actor.Tag, actor.DMRGBTrackTag)
+			}
+
+		}
+
+		if actor.DefinitionTag != "" {
+			isActorDefFound := false
+			for j := 0; j < len(wld.ActorDefs); i++ {
+				actorDef := wld.ActorDefs[i]
+				if actorDef.Tag != actor.DefinitionTag {
+					continue
+				}
+
+				isActorDefFound = true
+				err = actorDef.Write(w)
+				if err != nil {
+					return fmt.Errorf("actor def %s: %w", actor.Tag, err)
+				}
+				break
+			}
+			if !isActorDefFound {
+				return fmt.Errorf("actor %s definition not found", actor.DefinitionTag)
+			}
+		}
+
+		err = actor.Write(w)
+		if err != nil {
+			return fmt.Errorf("actor %s: %w", actor.Tag, err)
 		}
 	}
 

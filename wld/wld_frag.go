@@ -2392,3 +2392,174 @@ func (z *Zone) Read(r *AsciiReadToken) error {
 
 	return nil
 }
+
+type RGBTrackDef struct {
+	Tag   string
+	Data1 uint32
+	Data2 uint32
+	Data4 uint32
+	Sleep uint32
+	RGBAs [][4]uint8
+}
+
+func (r *RGBTrackDef) Definition() string {
+	return "RGBDEFORMATIONTRACKDEF"
+}
+
+func (r *RGBTrackDef) Write(w io.Writer) error {
+	fmt.Fprintf(w, "%s\n", r.Definition())
+	fmt.Fprintf(w, "\tTAG \"%s\"\n", r.Tag)
+	fmt.Fprintf(w, "\t// NUMFRAMES %d // if this isn't 1, let xack know\n", r.Data1)
+	fmt.Fprintf(w, "\t// DATA2 %d // if this isn't 1, let xack know\n", r.Data2)
+	fmt.Fprintf(w, "\t// NUMVERTICES %d // // if this isn't 0, let xack know\n", r.Data4)
+	fmt.Fprintf(w, "\tSLEEP %d\n", r.Sleep)
+	fmt.Fprintf(w, "\tRGBDEFORMATIONFRAME")
+	fmt.Fprintf(w, "\t\tNUMRGBAS %d\n", len(r.RGBAs))
+	for i, rgba := range r.RGBAs {
+		fmt.Fprintf(w, "\t\tRGBA %d %d %d %d %d\n", i+1, rgba[0], rgba[1], rgba[2], rgba[3])
+	}
+	fmt.Fprintf(w, "\tENDRGBDEFORMATIONFRAME\n")
+	fmt.Fprintf(w, "ENDRGBDEFORMATIONTRACKDEF\n\n")
+	return nil
+}
+
+func (r *RGBTrackDef) Read(token *AsciiReadToken) error {
+	records, err := token.ReadProperty("TAG", 1)
+	if err != nil {
+		return err
+	}
+	r.Tag = records[1]
+
+	/* records, err = token.ReadProperty("NUMFRAMES", 1)
+	if err != nil {
+		return err
+	}
+	r.Data1, err = helper.ParseUint32(records[1])
+	if err != nil {
+		return fmt.Errorf("num frames: %w", err)
+	} */
+
+	/* 	records, err = token.ReadProperty("DATA2", 1)
+	   	if err != nil {
+	   		return err
+	   	}
+	   	r.Data2, err = helper.ParseUint32(records[1])
+	   	if err != nil {
+	   		return fmt.Errorf("data2: %w", err)
+	   	} */
+
+	/* records, err = token.ReadProperty("NUMVERTICES", 1)
+	if err != nil {
+		return err
+	}
+	r.Data4, err = helper.ParseUint32(records[1])
+	if err != nil {
+		return fmt.Errorf("num vertices: %w", err)
+	} */
+
+	records, err = token.ReadProperty("SLEEP", 1)
+	if err != nil {
+		return err
+	}
+	r.Sleep, err = helper.ParseUint32(records[1])
+	if err != nil {
+		return fmt.Errorf("sleep: %w", err)
+	}
+
+	_, err = token.ReadProperty("RGBDEFORMATIONFRAME", 0)
+	if err != nil {
+		return err
+	}
+
+	for {
+
+		records, err = token.ReadProperty("NUMRGBAS", 1)
+		if err != nil {
+			return err
+		}
+
+		numRGBAs, err := helper.ParseInt(records[1])
+		if err != nil {
+			return fmt.Errorf("num rgbas: %w", err)
+		}
+
+		for i := 0; i < numRGBAs; i++ {
+			records, err = token.ReadProperty("RGBA", 4)
+			if err != nil {
+				return err
+			}
+
+			rgba := [4]uint8{}
+
+			for j := 0; j < 4; j++ {
+				rgba[j], err = helper.ParseUint8(records[2])
+				if err != nil {
+					return fmt.Errorf("rgba %d: %w", j, err)
+				}
+			}
+
+			r.RGBAs = append(r.RGBAs, rgba)
+		}
+
+		if records[1] == "ENDRGBDEFORMATIONFRAME" {
+			break
+		}
+	}
+
+	_, err = token.ReadProperty("ENDRGBDEFORMATIONTRACKDEF", 0)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// RGBTrack is a track instance for RGB deformation tracks
+type RGBTrack struct {
+	Tag           string
+	DefinitionTag string
+	Flags         uint32
+}
+
+func (r *RGBTrack) Definition() string {
+	return "RGBDEFORMATIONTRACKINSTANCE"
+}
+
+func (r *RGBTrack) Write(w io.Writer) error {
+	fmt.Fprintf(w, "%s\n", r.Definition())
+	fmt.Fprintf(w, "\tTAG \"%s\"\n", r.Tag)
+	fmt.Fprintf(w, "\tDEFINITION \"%s\"\n", r.DefinitionTag)
+	fmt.Fprintf(w, "\tFLAGS %d\n", r.Flags)
+	fmt.Fprintf(w, "ENDRGBDEFORMATIONTRACKINSTANCE\n\n")
+	return nil
+}
+
+func (r *RGBTrack) Read(token *AsciiReadToken) error {
+	records, err := token.ReadProperty("TAG", 1)
+	if err != nil {
+		return err
+	}
+	r.Tag = records[1]
+
+	records, err = token.ReadProperty("DEFINITION", 1)
+	if err != nil {
+		return err
+	}
+	r.DefinitionTag = records[1]
+
+	records, err = token.ReadProperty("FLAGS", 1)
+	if err != nil {
+		return err
+	}
+	r.Flags, err = helper.ParseUint32(records[1])
+	if err != nil {
+		return fmt.Errorf("flags: %w", err)
+	}
+
+	_, err = token.ReadProperty("ENDRGBDEFORMATIONTRACKINSTANCE", 0)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
