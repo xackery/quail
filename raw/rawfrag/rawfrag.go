@@ -98,8 +98,8 @@ const (
 	FragCodePolyhedron            = 0x18 // 24
 	FragCodeSphereListDef         = 0x19 // 25
 	FragCodeSphereList            = 0x1A // 26
-	FragCodeLight                 = 0x1B // 27 property of lights?
-	FragCodeLightDef              = 0x1C // 28 LIGHTDEFINITION
+	FragCodeLightDef              = 0x1B // 27 property of lights?
+	FragCodeLight                 = 0x1C // 28 LIGHTDEFINITION
 	FragCodePointLightOld         = 0x1D // 29
 	FragCodePointLightOldDef      = 0x1E // 30
 	FragCodeSound                 = 0x1F // 31

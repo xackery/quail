@@ -3,18 +3,41 @@ package quail
 import (
 	"bytes"
 	"fmt"
+	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/xackery/quail/pfs"
 	"github.com/xackery/quail/raw"
+	"github.com/xackery/quail/wld"
 )
 
 // PfsRead imports the quail target file
-func (e *Quail) PfsRead(path string) error {
+func (q *Quail) PfsRead(path string) error {
+	ext := strings.ToLower(filepath.Ext(path))
+	if ext == ".wld" {
+		r, err := os.Open(path)
+		if err != nil {
+			return fmt.Errorf("open %s: %w", path, err)
+		}
+		defer r.Close()
+		rawWld := &raw.Wld{}
+		err = rawWld.Read(r)
+		if err != nil {
+			return fmt.Errorf("wld read: %w", err)
+		}
+
+		q.wld = &wld.Wld{}
+
+		err = q.wld.ReadRaw(rawWld)
+		if err != nil {
+			return fmt.Errorf("wld read: %w", err)
+		}
+		return nil
+	}
 	pfs, err := pfs.NewFile(path)
 	if err != nil {
-		return fmt.Errorf("eqg load: %w", err)
+		return fmt.Errorf("pfs load: %w", err)
 	}
 	defer pfs.Close()
 
@@ -25,7 +48,7 @@ func (e *Quail) PfsRead(path string) error {
 			return fmt.Errorf("read %s: %w", file.Name(), err)
 		}
 		reader.SetFileName(file.Name())
-		err = e.RawRead(reader)
+		err = q.RawRead(reader)
 		if err != nil {
 			return fmt.Errorf("rawRead %s: %w", file.Name(), err)
 		}

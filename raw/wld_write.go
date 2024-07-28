@@ -23,7 +23,11 @@ func (wld *Wld) Write(w io.Writer) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
 	tag.NewWithCoder(enc)
 	enc.Bytes([]byte{0x02, 0x3D, 0x50, 0x54}) // header
-	enc.Uint32(wld.Version)
+	if wld.IsOldWorld {
+		enc.Uint32(0x00015500)
+	} else {
+		enc.Uint32(0x1000C800)
+	}
 	tag.Mark("red", "header")
 
 	enc.Uint32(uint32(len(wld.Fragments)))

@@ -71,8 +71,9 @@ func TestBWldReadWriteRead(t *testing.T) {
 	}{
 		//{baseName: "gequip4"},
 		//{baseName: "global_chr"}, // TODO:  anarelion asked mesh of EYE_DMSPRITEDEF check if the eye is just massive 22 units in size, where the other units in that file are just 1-2 units in size
-		//{baseName: "load2"},
-		{baseName: "gequip6"},
+		//	{baseName: "load2"},
+		//{baseName: "overc", wldName: "lights.wld"},
+		//{baseName: "gequip6"},
 		//{baseName: "load2", wldName: "lights.wld"},
 		//{baseName: "load2", wldName: "objects.wld"},
 		//{baseName: "neriakc"},
@@ -137,13 +138,13 @@ func TestBWldReadWriteRead(t *testing.T) {
 			}
 
 			vwld := &Wld{}
-			err = vwld.ReadCache(wld)
+			err = vwld.ReadRaw(wld)
 			if err != nil {
 				t.Fatalf("failed to convert %s: %s", baseName, err.Error())
 			}
 
 			buf := bytes.NewBuffer(nil)
-			err = vwld.Write(buf)
+			err = vwld.WriteRaw(buf)
 			if err != nil {
 				t.Fatalf("failed to write %s: %s", baseName, err.Error())
 			}

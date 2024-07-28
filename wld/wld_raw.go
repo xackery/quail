@@ -2,6 +2,7 @@ package wld
 
 import (
 	"fmt"
+	"io"
 
 	"github.com/xackery/quail/model"
 	"github.com/xackery/quail/raw"
@@ -147,18 +148,10 @@ func readRawFrag(wld *Wld, src *raw.Wld, fragment model.FragmentReadWriter) erro
 		if !ok {
 			return fmt.Errorf("invalid dmspritedef2 fragment at offset %d", i)
 		}
-		tag := raw.Name(fragData.NameRef)
-		if len(tag) == 0 {
-			tag = fmt.Sprintf("%d_DMSPRITEDEF2", i)
-		}
-		dmTrackTag := ""
-		if fragData.DMTrackRef > 0 {
-			dmTrackTag = raw.Name(fragData.DMTrackRef)
-		}
 		sprite := &DMSpriteDef2{
-			Tag:                  tag,
+			Tag:                  raw.Name(fragData.NameRef),
 			Flags:                fragData.Flags,
-			DmTrackTag:           dmTrackTag,
+			DmTrackTag:           raw.Name(fragData.DMTrackRef),
 			Fragment3Ref:         fragData.Fragment3Ref,
 			Fragment4Ref:         fragData.Fragment4Ref,
 			CenterOffset:         fragData.CenterOffset,
@@ -182,24 +175,26 @@ func readRawFrag(wld *Wld, src *raw.Wld, fragment model.FragmentReadWriter) erro
 			sprite.MaterialPaletteTag = raw.Name(materialPalette.NameRef)
 		}
 
+		scale := 1.0 / float32(int(1<<fragData.Scale))
+
 		for _, vert := range fragData.Vertices {
 			sprite.Vertices = append(sprite.Vertices, [3]float32{
-				float32(vert[0]),
-				float32(vert[1]),
-				float32(vert[2]),
+				float32(vert[0]) * scale,
+				float32(vert[1]) * scale,
+				float32(vert[2]) * scale,
 			})
 		}
 		for _, uv := range fragData.UVs {
 			sprite.UVs = append(sprite.UVs, [2]float32{
-				float32(uv[0]),
-				float32(uv[1]),
+				float32(uv[0]) * scale,
+				float32(uv[1]) * scale,
 			})
 		}
 		for _, vn := range fragData.VertexNormals {
 			sprite.VertexNormals = append(sprite.VertexNormals, [3]float32{
-				float32(vn[0]),
-				float32(vn[1]),
-				float32(vn[2]),
+				float32(vn[0]) * scale,
+				float32(vn[1]) * scale,
+				float32(vn[2]) * scale,
 			})
 		}
 		for _, color := range fragData.Colors {
@@ -438,6 +433,9 @@ func readRawFrag(wld *Wld, src *raw.Wld, fragment model.FragmentReadWriter) erro
 			return fmt.Errorf("invalid actor fragment at offset %d", i)
 		}
 
+		if fragData.ActorDefRef < 0 {
+			fragData.ActorDefRef = -fragData.ActorDefRef
+		}
 		if len(src.Fragments) < int(fragData.ActorDefRef) {
 			return fmt.Errorf("actordef ref %d not found", fragData.ActorDefRef)
 		}
@@ -488,15 +486,20 @@ func readRawFrag(wld *Wld, src *raw.Wld, fragment model.FragmentReadWriter) erro
 			default:
 				return fmt.Errorf("unknown collision volume ref %d (%s)", fragData.CollisionVolumeRef, raw.FragName(collision.FragCode()))
 			}
-
+		}
+		if polyhedronTag != "" {
+			return fmt.Errorf("collision volume ref found as %s, report this to xack", polyhedronTag)
 		}
 
 		sprite := &HierarchicalSpriteDef{
-			Tag:             raw.Name(int32(fragData.NameRef)),
-			BoundingRadius:  fragData.BoundingRadius,
-			DagCollisionTag: polyhedronTag,
-			CenterOffset:    fragData.CenterOffset,
+			Tag:            raw.Name(int32(fragData.NameRef)),
+			BoundingRadius: fragData.BoundingRadius,
+			CenterOffset:   fragData.CenterOffset,
 		}
+		if fragData.CollisionVolumeRef == 0xfffffffd {
+			sprite.DagCollision = 1
+		}
+		collisionTag := ""
 
 		for _, srcBone := range fragData.Dags {
 			if len(src.Fragments) < int(srcBone.TrackRef) {
@@ -513,16 +516,16 @@ func readRawFrag(wld *Wld, src *raw.Wld, fragment model.FragmentReadWriter) erro
 					return fmt.Errorf("mesh or sprite or particle ref %d not found", srcBone.MeshOrSpriteOrParticleRef)
 				}
 
-				sprite, ok := src.Fragments[srcBone.MeshOrSpriteOrParticleRef].(*rawfrag.WldFragDMSprite)
+				spriteInst, ok := src.Fragments[srcBone.MeshOrSpriteOrParticleRef].(*rawfrag.WldFragDMSprite)
 				if !ok {
 					return fmt.Errorf("sprite ref %d not found", srcBone.MeshOrSpriteOrParticleRef)
 				}
 
-				if len(src.Fragments) < int(sprite.DMSpriteRef) {
-					return fmt.Errorf("dmsprite ref %d not found", sprite.DMSpriteRef)
+				if len(src.Fragments) < int(spriteInst.DMSpriteRef) {
+					return fmt.Errorf("dmsprite ref %d not found", spriteInst.DMSpriteRef)
 				}
 
-				spriteDef := src.Fragments[sprite.DMSpriteRef]
+				spriteDef := src.Fragments[spriteInst.DMSpriteRef]
 				switch simpleSprite := spriteDef.(type) {
 				case *rawfrag.WldFragSimpleSpriteDef:
 					spriteTag = raw.Name(simpleSprite.NameRef)
@@ -537,6 +540,9 @@ func readRawFrag(wld *Wld, src *raw.Wld, fragment model.FragmentReadWriter) erro
 				default:
 					return fmt.Errorf("unhandled mesh or sprite or particle reference fragment type %d (%s) at offset %d", spriteDef.FragCode(), raw.FragName(spriteDef.FragCode()), i)
 				}
+			}
+			if spriteTag != "" && collisionTag == "" {
+				collisionTag = spriteTag
 			}
 
 			dag := Dag{
@@ -582,6 +588,28 @@ func readRawFrag(wld *Wld, src *raw.Wld, fragment model.FragmentReadWriter) erro
 			}
 
 			sprite.AttachedSkins = append(sprite.AttachedSkins, skin)
+		}
+
+		if sprite.DagCollision == 1 {
+			if collisionTag == "" {
+				return fmt.Errorf("collision volume ref not found")
+			}
+
+			for _, attachedSkin := range sprite.AttachedSkins {
+				isFound := false
+				for _, dmSprite := range wld.DMSpriteDef2s {
+					if dmSprite.Tag != attachedSkin.DMSpriteTag {
+						continue
+					}
+					dmSprite.PolyhedronTag = collisionTag
+
+					isFound = true
+					break
+				}
+				if !isFound {
+					return fmt.Errorf("dmsprite %s not found", attachedSkin.DMSpriteTag)
+				}
+			}
 		}
 
 		wld.HierarchicalSpriteDefs = append(wld.HierarchicalSpriteDefs, sprite)
@@ -748,12 +776,12 @@ func readRawFrag(wld *Wld, src *raw.Wld, fragment model.FragmentReadWriter) erro
 				return fmt.Errorf("lightdef ref %d out of bounds", fragData.LightRef)
 			}
 
-			lightInst, ok := src.Fragments[fragData.LightRef].(*rawfrag.WldFragLight)
+			lightDef, ok := src.Fragments[fragData.LightRef].(*rawfrag.WldFragLightDef)
 			if !ok {
 				return fmt.Errorf("lightdef ref %d not found", fragData.LightRef)
 			}
 
-			lightTag = raw.Name(lightInst.NameRef)
+			lightTag = raw.Name(lightDef.NameRef)
 		}
 
 		light := &AmbientLight{
@@ -825,4 +853,129 @@ func readRawFrag(wld *Wld, src *raw.Wld, fragment model.FragmentReadWriter) erro
 	}
 
 	return nil
+}
+
+func (wld *Wld) WriteRaw(w io.Writer) error {
+	dst := &raw.Wld{}
+	if dst.Fragments == nil {
+		dst.Fragments = []model.FragmentReadWriter{}
+	}
+	raw.NameClear()
+
+	globalAmbient := &rawfrag.WldFragGlobalAmbientLightDef{
+		NameRef: raw.NameAdd(wld.GlobalAmbientLight),
+	}
+	dst.Fragments = append(dst.Fragments, globalAmbient)
+
+	for _, dmSprite := range wld.DMSpriteDef2s {
+		isMaterialPaletteFound := false
+		for _, materialPalette := range wld.MaterialPalettes {
+			if materialPalette.Tag != dmSprite.MaterialPaletteTag {
+				continue
+			}
+			isMaterialPaletteFound = true
+			for _, material := range materialPalette.Materials {
+				isMaterialDefFound := false
+				for _, materialDef := range wld.MaterialDefs {
+					if materialDef.Tag != material {
+						continue
+					}
+					isMaterialDefFound = true
+					if materialDef.SimpleSpriteInstTag != "" {
+						isMaterialFound := false
+
+						for _, sprite := range wld.SimpleSpriteDefs {
+							if sprite.Tag != materialDef.SimpleSpriteInstTag {
+								continue
+							}
+							spriteDef := &rawfrag.WldFragSimpleSpriteDef{
+								NameRef: raw.NameAdd(sprite.Tag),
+							}
+
+							for _, frame := range sprite.SimpleSpriteFrames {
+								if frame.TextureTag == "" {
+									continue
+								}
+								bmInfo := &rawfrag.WldFragBMInfo{
+									NameRef:      raw.NameAdd(frame.TextureTag),
+									TextureNames: []string{frame.TextureFile},
+								}
+								dst.Fragments = append(dst.Fragments, bmInfo)
+								spriteDef.BitmapRefs = append(spriteDef.BitmapRefs, uint32(len(dst.Fragments)-1))
+							}
+
+							dst.Fragments = append(dst.Fragments, spriteDef)
+
+							inst := &rawfrag.WldFragSimpleSprite{
+								NameRef:   raw.NameAdd(sprite.Tag),
+								SpriteRef: int16(len(dst.Fragments) - 1),
+								//Flags:    sprite.Flags,
+							}
+							dst.Fragments = append(dst.Fragments, inst)
+							isMaterialFound = true
+							break
+						}
+						if !isMaterialFound {
+							return fmt.Errorf("simple sprite %s not found", materialDef.SimpleSpriteInstTag)
+						}
+					}
+
+					materialDef := &rawfrag.WldFragMaterialDef{
+						NameRef:       raw.NameAdd(materialDef.Tag),
+						Flags:         materialDef.Flags,
+						RenderMethod:  model.RenderMethodInt(materialDef.RenderMethod),
+						RGBPen:        materialDef.RGBPen,
+						Brightness:    materialDef.Brightness,
+						ScaledAmbient: materialDef.ScaledAmbient,
+						Pair1:         materialDef.Pair1,
+						Pair2:         materialDef.Pair2,
+					}
+					dst.Fragments = append(dst.Fragments, materialDef)
+				}
+				if !isMaterialDefFound {
+					return fmt.Errorf("materialdef %s not found", material)
+				}
+			}
+			materialPaletteDef := &rawfrag.WldFragMaterialPalette{
+				NameRef: raw.NameAdd(materialPalette.Tag),
+				Flags:   materialPalette.flags,
+			}
+			for _, material := range materialPalette.Materials {
+				materialPaletteDef.MaterialRefs = append(materialPaletteDef.MaterialRefs, uint32(raw.NameAdd(material)))
+			}
+			dst.Fragments = append(dst.Fragments, materialPaletteDef)
+			break
+		}
+		if !isMaterialPaletteFound {
+			return fmt.Errorf("material %s not found", dmSprite.MaterialPaletteTag)
+		}
+		dmSpriteDef := &rawfrag.WldFragDmSpriteDef2{
+			NameRef: raw.NameAdd(dmSprite.Tag),
+			Flags:   dmSprite.Flags,
+		}
+		dst.Fragments = append(dst.Fragments, dmSpriteDef)
+	}
+
+	for _, lightDef := range wld.LightDefs {
+		light := &rawfrag.WldFragLightDef{
+			NameRef:         raw.NameAdd(lightDef.Tag),
+			Sleep:           lightDef.Sleep,
+			FrameCurrentRef: lightDef.FrameCurrentRef,
+			LightLevels:     lightDef.LightLevels,
+			Colors:          lightDef.Colors,
+		}
+		dst.Fragments = append(dst.Fragments, light)
+	}
+
+	for _, sprite := range wld.Sprite3DDefs {
+		spriteDef := &rawfrag.WldFragSprite3DDef{
+			NameRef:        raw.NameAdd(sprite.Tag),
+			CenterOffset:   sprite.CenterOffset,
+			BoundingRadius: sprite.BoundingRadius,
+			Vertices:       sprite.Vertices,
+		}
+		dst.Fragments = append(dst.Fragments, spriteDef)
+	}
+
+	return dst.Write(w)
 }

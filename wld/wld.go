@@ -150,6 +150,25 @@ func (wld *Wld) WriteAscii(path string, isDir bool) error {
 			}
 		}
 
+		if dmSprite.PolyhedronTag != "" {
+			isPolyFound := false
+			for _, polyhedron := range wld.PolyhedronDefs {
+				if polyhedron.Tag != dmSprite.PolyhedronTag {
+					continue
+				}
+				err = polyhedron.Write(w)
+				if err != nil {
+					return fmt.Errorf("polyhedron %s: %w", polyhedron.Tag, err)
+				}
+				isPolyFound = true
+				break
+			}
+			if !isPolyFound {
+				fmt.Printf("polyhedron %s not found\n", dmSprite.PolyhedronTag)
+				//	return fmt.Errorf("polyhedron %s not found", dmSprite.PolyhedronTag)
+			}
+		}
+
 		err = dmSprite.Write(w)
 		if err != nil {
 			return fmt.Errorf("dm sprite def %s: %w", dmSprite.Tag, err)
@@ -204,15 +223,9 @@ func (wld *Wld) WriteAscii(path string, isDir bool) error {
 						continue
 					}
 
-					if aniBuf == nil {
-						aniBuf, err = os.Create(path + "/" + baseTag + ".ani")
-						if err != nil {
-							return err
-						}
-						defer aniBuf.Close()
-						writeAsciiHeader(aniBuf)
-					}
 					isTrackDefFound := false
+
+					var trackBuf *os.File
 					for _, trackDef := range wld.TrackDefs {
 						if trackDef.Tag != track.DefinitionTag {
 							continue
@@ -223,7 +236,20 @@ func (wld *Wld) WriteAscii(path string, isDir bool) error {
 							break
 						}
 
-						err = trackDef.Write(aniBuf)
+						trackBuf = dmBuf
+						if isAnimationPrefix(trackDef.Tag) {
+							if aniBuf == nil {
+								aniBuf, err = os.Create(path + "/" + baseTag + ".ani")
+								if err != nil {
+									return err
+								}
+								defer aniBuf.Close()
+								writeAsciiHeader(aniBuf)
+							}
+
+							trackBuf = aniBuf
+						}
+						err = trackDef.Write(trackBuf)
 						if err != nil {
 							return fmt.Errorf("track def %s: %w", trackDef.Tag, err)
 						}
@@ -239,7 +265,20 @@ func (wld *Wld) WriteAscii(path string, isDir bool) error {
 
 					tracksWritten[dag.Track] = true
 
-					err = track.Write(aniBuf)
+					trackBuf = dmBuf
+					if isAnimationPrefix(dag.Track) {
+						if aniBuf == nil {
+							aniBuf, err = os.Create(path + "/" + baseTag + ".ani")
+							if err != nil {
+								return err
+							}
+							defer aniBuf.Close()
+							writeAsciiHeader(aniBuf)
+						}
+
+						trackBuf = aniBuf
+					}
+					err = track.Write(trackBuf)
 					if err != nil {
 						return fmt.Errorf("track %s: %w", track.Tag, err)
 					}
@@ -262,14 +301,14 @@ func (wld *Wld) WriteAscii(path string, isDir bool) error {
 		}
 	}
 
-	w = rootBuf
+	/* w = rootBuf
 	for i := 0; i < len(wld.HierarchicalSpriteDefs); i++ {
 		hierarchicalSprite := wld.HierarchicalSpriteDefs[i]
 		err = hierarchicalSprite.Write(w)
 		if err != nil {
 			return fmt.Errorf("hierarchical sprite def %s: %w", hierarchicalSprite.Tag, err)
 		}
-	}
+	} */
 
 	return nil
 }
@@ -342,34 +381,20 @@ func (wld *Wld) Write(w io.Writer) error {
 	return nil
 }
 
-func checkSharedAssets(wld *Wld) map[string]int {
-	sharedMap := map[string]int{}
-
-	// sharing pass
-	for i := 0; i < len(wld.DMSpriteDef2s); i++ {
-		dmSprite := wld.DMSpriteDef2s[i]
-		sharedAdd(dmSprite.MaterialPaletteTag, sharedMap)
-		sharedAdd(dmSprite.DmTrackTag, sharedMap)
-		sharedAdd(dmSprite.PolyhedronTag, sharedMap)
-	}
-
-	for i := 0; i < len(wld.MaterialPalettes); i++ {
-		palette := wld.MaterialPalettes[i]
-		for _, material := range palette.Materials {
-			sharedAdd(material, sharedMap)
-		}
-	}
-
-	return sharedMap
+var animationPrefixesMap = map[string]struct{}{
+	"C01": {}, "C02": {}, "C03": {}, "C04": {}, "C05": {}, "C06": {}, "C07": {}, "C08": {}, "C09": {}, "C10": {}, "C11": {},
+	"D01": {}, "D02": {}, "D03": {}, "D04": {}, "D05": {},
+	"L01": {}, "L02": {}, "L03": {}, "L04": {}, "L05": {}, "L06": {}, "L07": {}, "L08": {}, "L09": {},
+	"O01": {},
+	"S01": {}, "S02": {}, "S03": {}, "S04": {}, "S05": {}, "S06": {}, "S07": {}, "S08": {}, "S09": {}, "S10": {},
+	"S11": {}, "S12": {}, "S13": {}, "S14": {}, "S15": {}, "S16": {}, "S17": {}, "S18": {}, "S19": {}, "S20": {},
+	"S21": {}, "S22": {}, "S23": {}, "S24": {}, "S25": {}, "S26": {}, "S27": {}, "S28": {},
+	"P01": {}, "P02": {}, "P03": {}, "P04": {}, "P05": {}, "P06": {}, "P07": {}, "P08": {},
+	"O02": {}, "O03": {},
+	"T01": {}, "T02": {}, "T03": {}, "T04": {}, "T05": {}, "T06": {}, "T07": {}, "T08": {}, "T09": {},
 }
 
-func sharedAdd(tag string, sharedMap map[string]int) {
-	if tag == "" {
-		return
-	}
-	if sharedMap[tag] == 0 {
-		sharedMap[tag] = 1
-		return
-	}
-	sharedMap[tag]++
+func isAnimationPrefix(name string) bool {
+	_, exists := animationPrefixesMap[name]
+	return exists
 }

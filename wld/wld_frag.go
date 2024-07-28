@@ -60,17 +60,17 @@ func (d *DMSpriteDef2) Write(w io.Writer) error {
 	fmt.Fprintf(w, "\n")
 	fmt.Fprintf(w, "\tNUMVERTICES %d\n", len(d.Vertices))
 	for _, vert := range d.Vertices {
-		fmt.Fprintf(w, "\tXYZ %0.7f %0.7f %0.7f\n", vert[0], vert[1], vert[2])
+		fmt.Fprintf(w, "\tXYZ %0.7e %0.7e %0.7e\n", vert[0], vert[1], vert[2])
 	}
 	fmt.Fprintf(w, "\n")
 	fmt.Fprintf(w, "\tNUMUVS %d\n", len(d.UVs))
 	for _, uv := range d.UVs {
-		fmt.Fprintf(w, "\tUV %0.7f %0.7f\n", uv[0], uv[1])
+		fmt.Fprintf(w, "\tUV %0.7e %0.7e\n", uv[0], uv[1])
 	}
 	fmt.Fprintf(w, "\n")
 	fmt.Fprintf(w, "\tNUMVERTEXNORMALS %d\n", len(d.VertexNormals))
 	for _, vn := range d.VertexNormals {
-		fmt.Fprintf(w, "\tXYZ %0.7f %0.7f %0.7f\n", vn[0], vn[1], vn[2])
+		fmt.Fprintf(w, "\tXYZ %0.7e %0.7e %0.7e\n", vn[0], vn[1], vn[2])
 	}
 	fmt.Fprintf(w, "\n")
 	fmt.Fprintf(w, "\n")
@@ -1616,13 +1616,13 @@ func (t *TrackDef) Read(r *AsciiReadToken) error {
 }
 
 type HierarchicalSpriteDef struct {
-	Tag             string
-	Dags            []Dag
-	AttachedSkins   []AttachedSkin
-	CenterOffset    [3]float32
-	BoundingRadius  float32
-	DMSpriteTag     string
-	DagCollisionTag string
+	Tag            string
+	Dags           []Dag
+	AttachedSkins  []AttachedSkin
+	CenterOffset   [3]float32
+	BoundingRadius float32
+	DMSpriteTag    string
+	DagCollision   int
 }
 
 type Dag struct {
@@ -1667,7 +1667,7 @@ func (h *HierarchicalSpriteDef) Write(w io.Writer) error {
 
 	fmt.Fprintf(w, "\tCENTEROFFSET %0.1f %0.1f %0.1f\n", h.CenterOffset[0], h.CenterOffset[1], h.CenterOffset[2])
 
-	fmt.Fprintf(w, "\tDAGCOLLISION \"%s\"\n", h.DagCollisionTag)
+	fmt.Fprintf(w, "\tDAGCOLLISION %d\n", h.DagCollision)
 	fmt.Fprintf(w, "\tBOUNDINGRADIUS %0.7e\n", h.BoundingRadius)
 
 	fmt.Fprintf(w, "ENDHIERARCHICALSPRITEDEF\n\n")
