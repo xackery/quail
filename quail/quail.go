@@ -21,6 +21,8 @@ type Quail struct {
 	IsExtensionVersionDump bool
 	Textures               map[string][]byte // Textures are raw texture files
 	wld                    *wld.Wld
+	wldObject              *wld.Wld
+	wldLights              *wld.Wld
 }
 
 // New returns a new Quail instance

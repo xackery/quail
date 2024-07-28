@@ -9,7 +9,7 @@ import (
 )
 
 // Read takes a raw type and converts it to a quail type
-func (q *Quail) RawRead(in raw.Reader) error {
+func (q *Quail) RawRead(in raw.ReadWriter) error {
 	if q == nil {
 		return fmt.Errorf("quail is nil")
 	}
@@ -19,7 +19,7 @@ func (q *Quail) RawRead(in raw.Reader) error {
 	case *raw.Ani:
 		return q.aniRead(val)
 	case *raw.Wld:
-		return q.wldRead(val)
+		return q.wldRead(val, in.FileName())
 	case *raw.Dds:
 		return q.ddsRead(val)
 	case *raw.Bmp:
@@ -41,7 +41,7 @@ func (q *Quail) RawRead(in raw.Reader) error {
 	}
 }
 
-func RawRead(in raw.Reader, q *Quail) error {
+func RawRead(in raw.ReadWriter, q *Quail) error {
 	if q == nil {
 		return fmt.Errorf("quail is nil")
 	}

@@ -27,7 +27,9 @@ func (q *Quail) PfsRead(path string) error {
 			return fmt.Errorf("wld read: %w", err)
 		}
 
-		q.wld = &wld.Wld{}
+		q.wld = &wld.Wld{
+			FileName: filepath.Base(path) + ".wld",
+		}
 
 		err = q.wld.ReadRaw(rawWld)
 		if err != nil {

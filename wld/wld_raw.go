@@ -433,31 +433,36 @@ func readRawFrag(wld *Wld, src *raw.Wld, fragment model.FragmentReadWriter) erro
 			return fmt.Errorf("invalid actor fragment at offset %d", i)
 		}
 
-		if fragData.ActorDefRef < 0 {
-			fragData.ActorDefRef = -fragData.ActorDefRef
-		}
-		if len(src.Fragments) < int(fragData.ActorDefRef) {
-			return fmt.Errorf("actordef ref %d not found", fragData.ActorDefRef)
-		}
+		actorDefTag := ""
+		if fragData.ActorDefRef > 0 {
+			if len(src.Fragments) < int(fragData.ActorDefRef) {
+				return fmt.Errorf("actordef ref %d out of bounds", fragData.ActorDefRef)
+			}
 
-		actorDef, ok := src.Fragments[fragData.ActorDefRef].(*rawfrag.WldFragActorDef)
-		if !ok {
-			return fmt.Errorf("actordef ref %d not found", fragData.ActorDefRef)
+			actorDef, ok := src.Fragments[fragData.ActorDefRef].(*rawfrag.WldFragActorDef)
+			if !ok {
+				return fmt.Errorf("actordef ref %d not found", fragData.ActorDefRef)
+			}
+			actorDefTag = raw.Name(actorDef.NameRef)
 		}
 
 		if len(src.Fragments) < int(fragData.SphereRef) {
 			return fmt.Errorf("sphere ref %d not found", fragData.SphereRef)
 		}
 
-		sphereDef, ok := src.Fragments[fragData.SphereRef].(*rawfrag.WldFragSphere)
-		if !ok {
-			return fmt.Errorf("sphere ref %d not found", fragData.SphereRef)
+		sphereTag := ""
+		if fragData.SphereRef > 0 {
+			sphereDef, ok := src.Fragments[fragData.SphereRef].(*rawfrag.WldFragSphere)
+			if !ok {
+				return fmt.Errorf("sphere ref %d not found", fragData.SphereRef)
+			}
+			sphereTag = raw.Name(sphereDef.NameRef)
 		}
 
 		actor := &ActorInst{
 			Tag:            raw.Name(fragData.NameRef),
-			DefinitionTag:  raw.Name(actorDef.NameRef),
-			SphereTag:      raw.Name(sphereDef.NameRef),
+			DefinitionTag:  actorDefTag,
+			SphereTag:      sphereTag,
 			CurrentAction:  fragData.CurrentAction,
 			Location:       fragData.Location,
 			Unk1:           fragData.Unk1,
@@ -847,7 +852,12 @@ func readRawFrag(wld *Wld, src *raw.Wld, fragment model.FragmentReadWriter) erro
 	case rawfrag.FragCodeSphere:
 		// sphere instances are ignored, since they're derived from other definitions
 		return nil
-
+	case rawfrag.FragCodeDmRGBTrackDef:
+		// TODO
+		return nil
+	case rawfrag.FragCodeDmRGBTrack:
+		// TODO
+		return nil
 	default:
 		return fmt.Errorf("unhandled fragment type %d (%s)", fragment.FragCode(), raw.FragName(fragment.FragCode()))
 	}
@@ -978,4 +988,22 @@ func (wld *Wld) WriteRaw(w io.Writer) error {
 	}
 
 	return dst.Write(w)
+}
+
+var animationPrefixesMap = map[string]struct{}{
+	"C01": {}, "C02": {}, "C03": {}, "C04": {}, "C05": {}, "C06": {}, "C07": {}, "C08": {}, "C09": {}, "C10": {}, "C11": {},
+	"D01": {}, "D02": {}, "D03": {}, "D04": {}, "D05": {},
+	"L01": {}, "L02": {}, "L03": {}, "L04": {}, "L05": {}, "L06": {}, "L07": {}, "L08": {}, "L09": {},
+	"O01": {},
+	"S01": {}, "S02": {}, "S03": {}, "S04": {}, "S05": {}, "S06": {}, "S07": {}, "S08": {}, "S09": {}, "S10": {},
+	"S11": {}, "S12": {}, "S13": {}, "S14": {}, "S15": {}, "S16": {}, "S17": {}, "S18": {}, "S19": {}, "S20": {},
+	"S21": {}, "S22": {}, "S23": {}, "S24": {}, "S25": {}, "S26": {}, "S27": {}, "S28": {},
+	"P01": {}, "P02": {}, "P03": {}, "P04": {}, "P05": {}, "P06": {}, "P07": {}, "P08": {},
+	"O02": {}, "O03": {},
+	"T01": {}, "T02": {}, "T03": {}, "T04": {}, "T05": {}, "T06": {}, "T07": {}, "T08": {}, "T09": {},
+}
+
+func isAnimationPrefix(name string) bool {
+	_, exists := animationPrefixesMap[name]
+	return exists
 }
