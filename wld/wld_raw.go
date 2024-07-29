@@ -382,42 +382,38 @@ func readRawFrag(wld *Wld, src *raw.Wld, fragment model.FragmentReadWriter) erro
 		if len(fragData.Actions) != len(fragData.FragmentRefs) {
 			return fmt.Errorf("actordef actions and fragmentrefs mismatch at offset %d", i)
 		}
+
 		fragRefIndex := 0
 		for _, srcAction := range fragData.Actions {
 			lods := []ActorLevelOfDetail{}
 			for _, srcLod := range srcAction.Lods {
-				if len(fragData.FragmentRefs) < fragRefIndex {
-					return fmt.Errorf("actordef fragmentrefs out of bounds at offset %d", i)
-				}
-				spriteRef := fragData.FragmentRefs[fragRefIndex]
-				if len(src.Fragments) < int(spriteRef) {
-					return fmt.Errorf("actordef fragment ref %d not found at offset %d", spriteRef, i)
+				spriteTag := ""
+				if len(fragData.FragmentRefs) > fragRefIndex {
+					spriteRef := fragData.FragmentRefs[fragRefIndex]
+					if len(src.Fragments) < int(spriteRef) {
+						return fmt.Errorf("actordef fragment ref %d not found at offset %d", spriteRef, i)
+					}
+					switch sprite := src.Fragments[spriteRef].(type) {
+					case *rawfrag.WldFragSprite3D:
+						if len(src.Fragments) < int(sprite.Sprite3DDefRef) {
+							return fmt.Errorf("sprite3ddef ref %d not found", sprite.Sprite3DDefRef)
+						}
+						spriteDef, ok := src.Fragments[sprite.Sprite3DDefRef].(*rawfrag.WldFragSprite3DDef)
+						if !ok {
+							return fmt.Errorf("sprite3ddef ref %d not found", sprite.Sprite3DDefRef)
+						}
+						spriteTag = raw.Name(spriteDef.NameRef)
+					default:
+						return fmt.Errorf("unhandled sprite instance fragment type %d (%s) at offset %d", sprite.FragCode(), raw.FragName(sprite.FragCode()), i)
+					}
 				}
 				lod := ActorLevelOfDetail{
+					SpriteTag:   spriteTag,
 					MinDistance: srcLod,
 				}
 
-				/// There are `fragment_reference_count` fragment references here. These references can point to several different
-				/// kinds of fragments. In main zone files, there seems to be only one entry, which points to
-				/// a 0x09 [Sprite3D] fragment. When this is instead a static object reference, the entry
-				/// points to either a 0x2D [DmSprite] fragment. If this is an animated (mob) object
-				/// reference, it points to a 0x11 [HierarchicalSprite] fragment.
-				/// This also has been seen to point to a 0x07 [Sprite2D] fragment
-
-				switch sprite := src.Fragments[spriteRef].(type) {
-				case *rawfrag.WldFragSprite3D:
-					lod.Sprite3DTag = raw.Name(sprite.NameRef)
-				case *rawfrag.WldFragHierarchialSprite:
-					lod.HierarchicalSpriteTag = raw.Name(int32(sprite.NameRef))
-				case *rawfrag.WldFragDMSprite:
-					lod.DMSpriteTag = raw.Name(sprite.NameRef)
-				case *rawfrag.WldFragSprite2D:
-					lod.Sprite2DTag = raw.Name(sprite.NameRef)
-				default:
-					return fmt.Errorf("unknown fragment type %d at offset %d", sprite.FragCode(), i)
-				}
-
 				lods = append(lods, lod)
+				fragRefIndex++
 			}
 
 			actor.Actions = append(actor.Actions, ActorAction{
@@ -432,31 +428,31 @@ func readRawFrag(wld *Wld, src *raw.Wld, fragment model.FragmentReadWriter) erro
 		if !ok {
 			return fmt.Errorf("invalid actor fragment at offset %d", i)
 		}
-		/*
-			actorDefTag := ""
-			 		if fragData.ActorDefNameRef > 0 {
-				if len(src.Fragments) < int(fragData.ActorDefNameRef) {
-					return fmt.Errorf("actordef ref %d out of bounds", fragData.ActorDefNameRef)
-				}
 
-				actorDef, ok := src.Fragments[fragData.ActorDefNameRef].(*rawfrag.WldFragActorDef)
-				if !ok {
-					return fmt.Errorf("actordef ref %d not found", fragData.ActorDefNameRef)
-				}
-				actorDefTag = raw.Name(actorDef.NameRef)
-			} */
+		actorDefTag := ""
+		if fragData.ActorDefNameRef > 0 {
+			if len(src.Fragments) < int(fragData.ActorDefNameRef) {
+				return fmt.Errorf("actordef ref %d out of bounds", fragData.ActorDefNameRef)
+			}
+
+			actorDef, ok := src.Fragments[fragData.ActorDefNameRef].(*rawfrag.WldFragActorDef)
+			if !ok {
+				return fmt.Errorf("actordef ref %d not found", fragData.ActorDefNameRef)
+			}
+			actorDefTag = raw.Name(actorDef.NameRef)
+		}
 
 		if len(src.Fragments) < int(fragData.SphereRef) {
 			return fmt.Errorf("sphere ref %d not found", fragData.SphereRef)
 		}
 
-		sphereTag := ""
+		sphereRadius := float32(0)
 		if fragData.SphereRef > 0 {
 			sphereDef, ok := src.Fragments[fragData.SphereRef].(*rawfrag.WldFragSphere)
 			if !ok {
 				return fmt.Errorf("sphere ref %d not found", fragData.SphereRef)
 			}
-			sphereTag = raw.Name(sphereDef.NameRef)
+			sphereRadius = sphereDef.Radius
 		}
 
 		trackTag := ""
@@ -484,8 +480,9 @@ func readRawFrag(wld *Wld, src *raw.Wld, fragment model.FragmentReadWriter) erro
 
 		actor := &ActorInst{
 			Tag:            raw.Name(fragData.NameRef),
-			DefinitionTag:  raw.Name(fragData.ActorDefNameRef),
-			SphereTag:      sphereTag,
+			DefinitionTag:  actorDefTag,
+			Flags:          fragData.Flags,
+			SphereRadius:   sphereRadius,
 			DMRGBTrackTag:  trackTag,
 			CurrentAction:  fragData.CurrentAction,
 			Location:       fragData.Location,
@@ -777,6 +774,7 @@ func readRawFrag(wld *Wld, src *raw.Wld, fragment model.FragmentReadWriter) erro
 			VisTree:        &VisTree{},
 			RegionTag:      raw.Name(fragData.NameRef),
 			RegionVertices: fragData.RegionVertices,
+			Sphere:         fragData.Sphere,
 		}
 
 		if fragData.AmbientLightRef > 0 {
@@ -792,6 +790,27 @@ func readRawFrag(wld *Wld, src *raw.Wld, fragment model.FragmentReadWriter) erro
 			region.AmbientLightTag = raw.Name(ambientLight.NameRef)
 		}
 
+		for _, node := range fragData.VisNodes {
+
+			visNode := &VisNode{
+				Normal:       node.NormalABCD,
+				VisListIndex: node.VisListIndex,
+				FrontTree:    node.FrontTree,
+				BackTree:     node.BackTree,
+			}
+
+			region.VisTree.VisNodes = append(region.VisTree.VisNodes, visNode)
+		}
+
+		for _, visList := range fragData.VisLists {
+			visListData := &VisList{}
+			for _, rangeVal := range visList.Ranges {
+				visListData.Ranges = append(visListData.Ranges, int8(rangeVal))
+			}
+
+			region.VisTree.VisLists = append(region.VisTree.VisLists, visListData)
+		}
+
 		wld.Regions = append(wld.Regions, region)
 	case rawfrag.FragCodeAmbientLight:
 		fragData, ok := fragment.(*rawfrag.WldFragAmbientLight)
@@ -800,23 +819,32 @@ func readRawFrag(wld *Wld, src *raw.Wld, fragment model.FragmentReadWriter) erro
 		}
 
 		lightTag := ""
+		lightFlags := uint32(0)
 		if fragData.LightRef > 0 {
 			if len(src.Fragments) < int(fragData.LightRef) {
 				return fmt.Errorf("lightdef ref %d out of bounds", fragData.LightRef)
 			}
 
-			lightDef, ok := src.Fragments[fragData.LightRef].(*rawfrag.WldFragLightDef)
+			light, ok := src.Fragments[fragData.LightRef].(*rawfrag.WldFragLight)
 			if !ok {
 				return fmt.Errorf("lightdef ref %d not found", fragData.LightRef)
+			}
+
+			lightFlags = light.Flags
+
+			lightDef, ok := src.Fragments[light.LightDefRef].(*rawfrag.WldFragLightDef)
+			if !ok {
+				return fmt.Errorf("lightdef ref %d not found", light.LightDefRef)
 			}
 
 			lightTag = raw.Name(lightDef.NameRef)
 		}
 
 		light := &AmbientLight{
-			Tag:      raw.Name(fragData.NameRef),
-			LightTag: lightTag,
-			Regions:  fragData.Regions,
+			Tag:        raw.Name(fragData.NameRef),
+			LightTag:   lightTag,
+			LightFlags: lightFlags,
+			Regions:    fragData.Regions,
 		}
 
 		wld.AmbientLights = append(wld.AmbientLights, light)
@@ -986,14 +1014,14 @@ func (wld *Wld) WriteRaw(w io.Writer) error {
 									TextureNames: []string{frame.TextureFile},
 								}
 								dst.Fragments = append(dst.Fragments, bmInfo)
-								spriteDef.BitmapRefs = append(spriteDef.BitmapRefs, uint32(len(dst.Fragments)-1))
+								spriteDef.BitmapRefs = append(spriteDef.BitmapRefs, uint32(len(dst.Fragments)))
 							}
 
 							dst.Fragments = append(dst.Fragments, spriteDef)
 
 							inst := &rawfrag.WldFragSimpleSprite{
-								NameRef:   raw.NameAdd(sprite.Tag),
-								SpriteRef: int16(len(dst.Fragments) - 1),
+								//NameRef:   raw.NameAdd(sprite.Tag),
+								SpriteRef: int16(len(dst.Fragments)),
 								//Flags:    sprite.Flags,
 							}
 							dst.Fragments = append(dst.Fragments, inst)
@@ -1035,9 +1063,44 @@ func (wld *Wld) WriteRaw(w io.Writer) error {
 			return fmt.Errorf("material %s not found", dmSprite.MaterialPaletteTag)
 		}
 		dmSpriteDef := &rawfrag.WldFragDmSpriteDef2{
-			NameRef: raw.NameAdd(dmSprite.Tag),
-			Flags:   dmSprite.Flags,
+			NameRef:            raw.NameAdd(dmSprite.Tag),
+			Flags:              dmSprite.Flags,
+			MaterialPaletteRef: uint32(len(dst.Fragments)),
+			CenterOffset:       dmSprite.CenterOffset,
+			Params2:            dmSprite.Params2,
+			MaxDistance:        dmSprite.MaxDistance,
+			Min:                dmSprite.Min,
+			Max:                dmSprite.Max,
+			Scale:              dmSprite.FPScale,
+			//Vertices: 		  dmSprite.Vertices,
+			Colors: dmSprite.Colors,
 		}
+
+		scale := float32(1 / float32(int(1)<<int(dmSprite.FPScale)))
+
+		for _, vert := range dmSprite.Vertices {
+			dmSpriteDef.Vertices = append(dmSpriteDef.Vertices, [3]int16{
+				int16(vert[0] / scale),
+				int16(vert[1] / scale),
+				int16(vert[2] / scale),
+			})
+		}
+
+		for _, uv := range dmSprite.UVs {
+			dmSpriteDef.UVs = append(dmSpriteDef.UVs, [2]int16{
+				int16(uv[0] / scale),
+				int16(uv[1] / scale),
+			})
+		}
+
+		for _, normal := range dmSprite.VertexNormals {
+			dmSpriteDef.VertexNormals = append(dmSpriteDef.VertexNormals, [3]int8{
+				int8(normal[0] / scale),
+				int8(normal[1] / scale),
+				int8(normal[2] / scale),
+			})
+		}
+
 		dst.Fragments = append(dst.Fragments, dmSpriteDef)
 	}
 
@@ -1059,7 +1122,180 @@ func (wld *Wld) WriteRaw(w io.Writer) error {
 			BoundingRadius: sprite.BoundingRadius,
 			Vertices:       sprite.Vertices,
 		}
+
+		for _, node := range sprite.BSPNodes {
+			bnode := rawfrag.WldFragThreeDSpriteBspNode{
+				FrontTree: node.FrontTree,
+				BackTree:  node.BackTree,
+
+				RenderMethod:        model.RenderMethodInt(node.RenderMethod),
+				RenderFlags:         node.Flags,
+				RenderPen:           node.Pen,
+				RenderBrightness:    node.Brightness,
+				RenderScaledAmbient: node.ScaledAmbient,
+				RenderUVInfoOrigin:  node.Origin,
+				RenderUVInfoUAxis:   node.UAxis,
+				RenderUVInfoVAxis:   node.VAxis,
+			}
+
+			spriteDef.BspNodes = append(spriteDef.BspNodes, bnode)
+		}
+
 		dst.Fragments = append(dst.Fragments, spriteDef)
+	}
+
+	for _, tree := range wld.WorldTrees {
+		worldTree := &rawfrag.WldFragWorldTree{
+			Nodes: []rawfrag.WorldTreeNode{},
+		}
+		for _, node := range tree.WorldNodes {
+			worldNode := rawfrag.WorldTreeNode{
+				Normal:    node.Normals,
+				RegionRef: raw.NameAdd(node.WorldRegionTag),
+				FrontRef:  int32(node.FrontTree),
+				BackRef:   int32(node.BackTree),
+			}
+			worldTree.Nodes = append(worldTree.Nodes, worldNode)
+		}
+		dst.Fragments = append(dst.Fragments, worldTree)
+	}
+
+	for _, region := range wld.Regions {
+		regionDef := &rawfrag.WldFragRegion{
+			NameRef:        raw.NameAdd(region.RegionTag),
+			RegionVertices: region.RegionVertices,
+			Sphere:         region.Sphere,
+			VisNodes:       []rawfrag.VisNode{},
+			VisLists:       []rawfrag.VisList{},
+		}
+
+		if region.AmbientLightTag != "" {
+			isFound := false
+			for _, light := range wld.AmbientLights {
+				if light.Tag != region.AmbientLightTag {
+					continue
+				}
+				isFound = true
+
+				regionDef.AmbientLightRef = int32(len(dst.Fragments))
+
+				ambientLight := &rawfrag.WldFragAmbientLight{
+					NameRef:  raw.NameAdd(light.Tag),
+					LightRef: int32(len(dst.Fragments) + 1),
+				}
+				dst.Fragments = append(dst.Fragments, ambientLight)
+
+				lightDef := &rawfrag.WldFragLight{
+					LightDefRef: int32(len(dst.Fragments) + 1),
+					Flags:       light.LightFlags,
+				}
+				dst.Fragments = append(dst.Fragments, lightDef)
+
+				lightDefRef := &rawfrag.WldFragLightDef{
+
+					NameRef: raw.NameAdd(light.LightTag),
+				}
+				dst.Fragments = append(dst.Fragments, lightDefRef)
+				break
+			}
+			if !isFound {
+				return fmt.Errorf("ambient light %s not found", region.AmbientLightTag)
+			}
+		}
+
+		for _, node := range region.VisTree.VisNodes {
+			visNode := rawfrag.VisNode{
+				NormalABCD:   node.Normal,
+				VisListIndex: node.VisListIndex,
+				FrontTree:    node.FrontTree,
+				BackTree:     node.BackTree,
+			}
+			regionDef.VisNodes = append(regionDef.VisNodes, visNode)
+		}
+
+		//for _, visList := range region.VisTree.VisLists {
+		//visListData := rawfrag.VisList{
+		//		Ranges: []byte{},
+		//	}
+		//for _, rangeVal := range visList.Ranges {
+		//	visListData.Ranges = append(visListData.Ranges, byte(rangeVal))
+		//}
+		//	regionDef.VisLists = append(regionDef.VisLists, visListData)
+		//}
+
+		dst.Fragments = append(dst.Fragments, regionDef)
+	}
+
+	for _, actor := range wld.ActorInsts {
+
+		if actor.DefinitionTag != "" {
+			isFound := false
+			for _, actorDef := range wld.ActorDefs {
+				if actorDef.Tag != actor.DefinitionTag {
+					continue
+				}
+				isFound = true
+				actorDef := &rawfrag.WldFragActorDef{
+					NameRef: raw.NameAdd(actorDef.Tag),
+					//Flags:  actorDef.Flags,
+					CallbackNameRef: raw.NameAdd(actorDef.Callback),
+					BoundsRef:       actorDef.BoundsRef,
+					CurrentAction:   actorDef.CurrentAction,
+					Location:        actorDef.Location,
+					Unk1:            actorDef.Unk1,
+				}
+				dst.Fragments = append(dst.Fragments, actorDef)
+				break
+			}
+			if !isFound {
+				return fmt.Errorf("actordef %s not found", actor.DefinitionTag)
+			}
+		}
+
+		trackRef := int32(0)
+		if actor.DMRGBTrackTag != "" {
+			isFound := false
+			for _, track := range wld.RGBTrackDefs {
+				if track.Tag != actor.DMRGBTrackTag {
+					continue
+				}
+				isFound = true
+				trackRef = int32(len(dst.Fragments))
+				trackDef := &rawfrag.WldFragDmRGBTrackDef{
+					NameRef: raw.NameAdd(track.Tag),
+					Data1:   track.Data1,
+					Data2:   track.Data2,
+					Sleep:   track.Sleep,
+					Data4:   track.Data4,
+
+					RGBAs: track.RGBAs,
+				}
+				dst.Fragments = append(dst.Fragments, trackDef)
+				break
+			}
+			if !isFound {
+				return fmt.Errorf("dmrgbtrackdef %s not found", actor.DMRGBTrackTag)
+			}
+		}
+
+		actorInst := &rawfrag.WldFragActor{
+			NameRef:         raw.NameAdd(actor.Tag),
+			ActorDefNameRef: raw.NameAdd(actor.DefinitionTag),
+			DMRGBTrackRef:   trackRef,
+			Flags:           actor.Flags,
+		}
+
+		if actor.SphereRadius != 0 {
+
+			sphereDef := &rawfrag.WldFragSphere{
+				NameRef: raw.NameAdd(actor.Tag),
+				Radius:  actor.SphereRadius,
+			}
+			dst.Fragments = append(dst.Fragments, sphereDef)
+		}
+		actorInst.SphereRef = uint32(len(dst.Fragments))
+
+		dst.Fragments = append(dst.Fragments, actorInst)
 	}
 
 	return dst.Write(w)

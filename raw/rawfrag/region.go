@@ -51,16 +51,16 @@ type Obstacle struct {
 	NextRegion int32
 	Type       int32
 	Vertices   []uint32
-	NormalABCD [4]float32 // NORMALABCD %f %f %f %f
-	EdgeWall   uint32     // EDGEWALL 0 %d
-	UserData   string     // USERDATA %s
+	NormalABCD [4]float32
+	EdgeWall   uint32
+	UserData   string
 }
 
 type VisNode struct {
-	NormalABCD   [4]float32 // NORMALABCD %f %f %f %f
-	VisListIndex uint32     // VISLISTINDEX %d
-	FrontTree    uint32     // FRONTTREE %d
-	BackTree     uint32     // BACKTREE %d
+	NormalABCD   [4]float32
+	VisListIndex uint32
+	FrontTree    uint32
+	BackTree     uint32
 }
 
 type VisList struct {
@@ -297,6 +297,8 @@ func (e *WldFragRegion) Read(r io.ReadSeeker) error {
 		if obstacle.Flags&0x04 != 0 { // userdata
 			obstacle.UserData = dec.StringLenPrefixUint32()
 		}
+
+		e.Obstacles = append(e.Obstacles, obstacle)
 	}
 
 	for i := uint32(0); i < visibleNodeCount; i++ {

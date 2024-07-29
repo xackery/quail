@@ -55,6 +55,7 @@ func (wld *Wld) WriteAscii(path string, isDir bool) error {
 
 	// now we can write
 
+	lightsMap := map[string]bool{}
 	zoneMaterials := map[string]bool{}
 
 	w = rootBuf
@@ -167,8 +168,9 @@ func (wld *Wld) WriteAscii(path string, isDir bool) error {
 		if err != nil {
 			return fmt.Errorf("dm sprite def %s: %w", dmSprite.Tag, err)
 		}
-		fmt.Fprintf(rootBuf, "INCLUDE \"%s.MOD\"\n", strings.ToUpper(baseTag))
-
+		if !isZoneChunk {
+			fmt.Fprintf(rootBuf, "INCLUDE \"%s.MOD\"\n", strings.ToUpper(baseTag))
+		}
 		tracksWritten := map[string]bool{}
 		var aniBuf *os.File
 		for _, hierarchySprite := range wld.HierarchicalSpriteDefs {
@@ -296,6 +298,81 @@ func (wld *Wld) WriteAscii(path string, isDir bool) error {
 	}
 
 	w = rootBuf
+	for i := 0; i < len(wld.PointLights); i++ {
+		pointLight := wld.PointLights[i]
+
+		if pointLight.LightTag != "" {
+			isLightFound := false
+			for _, lightDef := range wld.LightDefs {
+				if lightDef.Tag != pointLight.LightTag {
+					continue
+				}
+
+				lightsMap[lightDef.Tag] = true
+				isLightFound = true
+				err = lightDef.Write(w)
+				if err != nil {
+					return fmt.Errorf("light def %s: %w", lightDef.Tag, err)
+				}
+				break
+			}
+			if !isLightFound {
+				return fmt.Errorf("point light %s light %s not found", pointLight.Tag, pointLight.LightTag)
+			}
+		}
+
+		lightsMap[pointLight.Tag] = true
+		err = pointLight.Write(w)
+		if err != nil {
+			return fmt.Errorf("point light %s: %w", pointLight.Tag, err)
+		}
+	}
+
+	w = rootBuf
+	for i := 0; i < len(wld.LightDefs); i++ {
+		lightDef := wld.LightDefs[i]
+		if lightsMap[lightDef.Tag] {
+			continue
+		}
+
+		lightsMap[lightDef.Tag] = true
+		err = lightDef.Write(w)
+		if err != nil {
+			return fmt.Errorf("light def %s: %w", lightDef.Tag, err)
+		}
+	}
+
+	w = rootBuf
+	for i := 0; i < len(wld.WorldTrees); i++ {
+		worldTree := wld.WorldTrees[i]
+
+		err = worldTree.Write(w)
+		if err != nil {
+			return fmt.Errorf("world tree %s: %w", worldTree.Tag, err)
+		}
+	}
+
+	w = rootBuf
+	for i := 0; i < len(wld.Regions); i++ {
+		region := wld.Regions[i]
+
+		err = region.Write(w)
+		if err != nil {
+			return fmt.Errorf("region %s: %w", region.RegionTag, err)
+		}
+	}
+
+	w = rootBuf
+	for i := 0; i < len(wld.AmbientLights); i++ {
+		ambientLight := wld.AmbientLights[i]
+
+		err = ambientLight.Write(w)
+		if err != nil {
+			return fmt.Errorf("ambient light %s: %w", ambientLight.Tag, err)
+		}
+	}
+
+	w = rootBuf
 	for i := 0; i < len(wld.ActorInsts); i++ {
 		actor := wld.ActorInsts[i]
 
@@ -340,12 +417,39 @@ func (wld *Wld) WriteAscii(path string, isDir bool) error {
 
 		}
 
+		if actor.DefinitionTag == "!UNK" {
+			return fmt.Errorf("actor %s definition not found", actor.DefinitionTag)
+		}
+
 		if actor.DefinitionTag != "" {
 			isActorDefFound := false
-			for j := 0; j < len(wld.ActorDefs); i++ {
-				actorDef := wld.ActorDefs[i]
+			for j := 0; j < len(wld.ActorDefs); j++ {
+				actorDef := wld.ActorDefs[j]
 				if actorDef.Tag != actor.DefinitionTag {
 					continue
+				}
+
+				for _, action := range actorDef.Actions {
+					for _, lod := range action.LevelOfDetails {
+						if lod.SpriteTag == "" {
+							continue
+						}
+						isActorSpriteFound := false
+						for _, sprite := range wld.Sprite3DDefs {
+							if sprite.Tag != lod.SpriteTag {
+								continue
+							}
+
+							err = sprite.Write(w)
+							if err != nil {
+								return fmt.Errorf("sprite %s: %w", sprite.Tag, err)
+							}
+							isActorSpriteFound = true
+						}
+						if !isActorSpriteFound {
+							return fmt.Errorf("actor %s sprite %s not found", actorDef.Tag, lod.SpriteTag)
+						}
+					}
 				}
 
 				isActorDefFound = true
@@ -368,41 +472,14 @@ func (wld *Wld) WriteAscii(path string, isDir bool) error {
 	}
 
 	w = rootBuf
-	for i := 0; i < len(wld.PointLights); i++ {
-		pointLight := wld.PointLights[i]
+	for i := 0; i < len(wld.Zones); i++ {
+		zone := wld.Zones[i]
 
-		if pointLight.LightTag != "" {
-			isLightFound := false
-			for _, lightDef := range wld.LightDefs {
-				if lightDef.Tag != pointLight.LightTag {
-					continue
-				}
-
-				isLightFound = true
-				err = lightDef.Write(w)
-				if err != nil {
-					return fmt.Errorf("light def %s: %w", lightDef.Tag, err)
-				}
-				break
-			}
-			if !isLightFound {
-				return fmt.Errorf("point light %s light %s not found", pointLight.Tag, pointLight.LightTag)
-			}
-		}
-
-		err = pointLight.Write(w)
+		err = zone.Write(w)
 		if err != nil {
-			return fmt.Errorf("point light %s: %w", pointLight.Tag, err)
+			return fmt.Errorf("zone %s: %w", zone.Tag, err)
 		}
 	}
-	/* w = rootBuf
-	for i := 0; i < len(wld.HierarchicalSpriteDefs); i++ {
-		hierarchicalSprite := wld.HierarchicalSpriteDefs[i]
-		err = hierarchicalSprite.Write(w)
-		if err != nil {
-			return fmt.Errorf("hierarchical sprite def %s: %w", hierarchicalSprite.Tag, err)
-		}
-	} */
 
 	return nil
 }

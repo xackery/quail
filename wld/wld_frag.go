@@ -693,10 +693,7 @@ func (a *ActorDef) Write(w io.Writer) error {
 		fmt.Fprintf(w, "\t\tNUMLEVELSOFDETAIL %d\n", len(action.LevelOfDetails))
 		for _, lod := range action.LevelOfDetails {
 			fmt.Fprintf(w, "\t\tLEVELOFDETAIL\n")
-			fmt.Fprintf(w, "\t\t\t2DSPRITE \"%s\"\n", lod.Sprite2DTag)
-			fmt.Fprintf(w, "\t\t\t3DSPRITE \"%s\"\n", lod.Sprite3DTag)
-			fmt.Fprintf(w, "\t\t\tDMSPRITE \"%s\"\n", lod.DMSpriteTag)
-			fmt.Fprintf(w, "\t\t\tHIERARCHICALSPRITE \"%s\"\n", lod.HierarchicalSpriteTag)
+			fmt.Fprintf(w, "\t\t\tSPRITE \"%s\"\n", lod.SpriteTag)
 			fmt.Fprintf(w, "\t\t\tMINDISTANCE %0.7f\n", lod.MinDistance)
 			fmt.Fprintf(w, "\t\tENDLEVELOFDETAIL\n")
 		}
@@ -771,29 +768,11 @@ func (a *ActorDef) Read(r *AsciiReadToken) error {
 				return err
 			}
 
-			records, err = r.ReadProperty("2DSPRITE", 1)
+			records, err = r.ReadProperty("SPRITE", 1)
 			if err != nil {
 				return err
 			}
-			lod.Sprite2DTag = records[1]
-
-			records, err = r.ReadProperty("3DSPRITE", 1)
-			if err != nil {
-				return err
-			}
-			lod.Sprite3DTag = records[1]
-
-			records, err = r.ReadProperty("DMSPRITE", 1)
-			if err != nil {
-				return err
-			}
-			lod.DMSpriteTag = records[1]
-
-			records, err = r.ReadProperty("HIERARCHICALSPRITE", 1)
-			if err != nil {
-				return err
-			}
-			lod.HierarchicalSpriteTag = records[1]
+			lod.SpriteTag = records[1]
 
 			records, err = r.ReadProperty("MINDISTANCE", 1)
 			if err != nil {
@@ -833,24 +812,22 @@ type ActorAction struct {
 
 // ActorLevelOfDetail is a declaration of LEVELOFDETAIL
 type ActorLevelOfDetail struct {
-	Sprite3DTag           string
-	HierarchicalSpriteTag string
-	DMSpriteTag           string
-	Sprite2DTag           string
-	MinDistance           float32
+	SpriteTag   string
+	MinDistance float32
 }
 
 // ActorInst is a declaration of ACTORINST
 type ActorInst struct {
 	Tag              string
+	DefinitionTag    string
+	Flags            uint32
 	Active           int
 	SpriteVolumeOnly int
-	SphereTag        string
-	SoundTag         string
-	DefinitionTag    string
-	CurrentAction    uint32
 	Location         [6]float32
 	Unk1             uint32
+	CurrentAction    uint32
+	SphereRadius     float32
+	SoundTag         string
 	BoundingRadius   float32
 	Scale            float32
 	DMRGBTrackTag    string
@@ -864,12 +841,14 @@ func (a *ActorInst) Definition() string {
 func (a *ActorInst) Write(w io.Writer) error {
 	fmt.Fprintf(w, "%s\n", a.Definition())
 	fmt.Fprintf(w, "\tTAG \"%s\"\n", a.Tag)
+	fmt.Fprintf(w, "\tDEFINITION \"%s\"\n", a.DefinitionTag)
+	fmt.Fprintf(w, "\t// FLAGS %d\n", a.Flags)
 	fmt.Fprintf(w, "\tACTIVE %d\n", a.Active)
 	fmt.Fprintf(w, "\tSPRITEVOLUMEONLY %d\n", a.SpriteVolumeOnly)
 	fmt.Fprintf(w, "\tLOCATION %0.7f %0.7f %0.7f %0.7f %0.7f %0.7f\n", a.Location[0], a.Location[1], a.Location[2], a.Location[3], a.Location[4], a.Location[5])
 	fmt.Fprintf(w, "\t// UNK1 %d\n", a.Unk1)
 	fmt.Fprintf(w, "\tCURRENTACTION %d\n", a.CurrentAction)
-	fmt.Fprintf(w, "\tSPHERE \"%s\"\n", a.SphereTag)
+	fmt.Fprintf(w, "\tSPHERERADIUS %0.7f\n", a.SphereRadius)
 	fmt.Fprintf(w, "\tSOUND \"%s\"\n", a.SoundTag)
 	fmt.Fprintf(w, "\tBOUNDINGRADIUS %0.7f\n", a.BoundingRadius)
 	fmt.Fprintf(w, "\tSCALEFACTOR %0.7f\n", a.Scale)
@@ -885,6 +864,12 @@ func (a *ActorInst) Read(r *AsciiReadToken) error {
 		return err
 	}
 	a.Tag = records[1]
+
+	records, err = r.ReadProperty("DEFINITION", 1)
+	if err != nil {
+		return err
+	}
+	a.DefinitionTag = records[1]
 
 	records, err = r.ReadProperty("ACTIVE", 1)
 	if err != nil {
@@ -922,11 +907,11 @@ func (a *ActorInst) Read(r *AsciiReadToken) error {
 		return fmt.Errorf("current action: %w", err)
 	}
 
-	records, err = r.ReadProperty("SPHERE", 1)
+	records, err = r.ReadProperty("SPHERERADIUS", 1)
 	if err != nil {
 		return err
 	}
-	a.SphereTag = records[1]
+	a.SphereRadius, err = helper.ParseFloat32(records[1])
 
 	records, err = r.ReadProperty("SOUND", 1)
 	if err != nil {
@@ -1703,12 +1688,12 @@ func (t *WorldTree) Write(w io.Writer) error {
 	fmt.Fprintf(w, "\tTAG \"%s\"\n", t.Tag)
 	fmt.Fprintf(w, "\tNUMWORLDNODES %d\n", len(t.WorldNodes))
 	for i, node := range t.WorldNodes {
-		fmt.Fprintf(w, "\tWORLDNODE %d\n", i+1)
+		fmt.Fprintf(w, "\tWORLDNODE // %d\n", i+1)
 		fmt.Fprintf(w, "\t\tNORMALABCD %0.7f %0.7f %0.7f %0.7f\n", node.Normals[0], node.Normals[1], node.Normals[2], node.Normals[3])
 		fmt.Fprintf(w, "\t\tWORLDREGIONTAG \"%s\"\n", node.WorldRegionTag)
 		fmt.Fprintf(w, "\t\tFRONTTREE %d\n", node.FrontTree)
 		fmt.Fprintf(w, "\t\tBACKTREE %d\n", node.BackTree)
-		fmt.Fprintf(w, "\tENDWORLDNODE %d\n", i+1)
+		fmt.Fprintf(w, "\tENDWORLDNODE // %d\n", i+1)
 	}
 	fmt.Fprintf(w, "ENDWORLDTREE\n\n")
 	return nil
@@ -1824,7 +1809,7 @@ type VisNode struct {
 }
 
 type VisList struct {
-	Range []uint32
+	Ranges []int8
 }
 
 func (r *Region) Definition() string {
@@ -1885,8 +1870,8 @@ func (r *Region) Write(w io.Writer) error {
 	fmt.Fprintf(w, "\t\tNUMVISIBLELIST %d\n", len(r.VisTree.VisLists))
 	for i, list := range r.VisTree.VisLists {
 		fmt.Fprintf(w, "\t\tVISLIST // %d\n", i+1)
-		fmt.Fprintf(w, "\t\t\tRANGE %d", len(list.Range))
-		for _, val := range list.Range {
+		fmt.Fprintf(w, "\t\t\tRANGE %d", len(list.Ranges))
+		for _, val := range list.Ranges {
 			fmt.Fprintf(w, " %d", val)
 		}
 		fmt.Fprintf(w, "\n")
@@ -2220,12 +2205,12 @@ func (r *Region) Read(token *AsciiReadToken) error {
 				return err
 			}
 
-			val, err := helper.ParseUint32(records[1])
+			val, err := helper.ParseInt8(records[1])
 			if err != nil {
 				return fmt.Errorf("range %d: %w", j, err)
 			}
 
-			list.Range = append(list.Range, val)
+			list.Ranges = append(list.Ranges, val)
 		}
 
 		_, err = token.ReadProperty("ENDVISIBLELIST", 0)
@@ -2267,9 +2252,10 @@ func (r *Region) Read(token *AsciiReadToken) error {
 }
 
 type AmbientLight struct {
-	Tag      string
-	LightTag string
-	Regions  []uint32
+	Tag        string
+	LightTag   string
+	LightFlags uint32
+	Regions    []uint32
 }
 
 func (a *AmbientLight) Definition() string {
@@ -2280,6 +2266,7 @@ func (a *AmbientLight) Write(w io.Writer) error {
 	fmt.Fprintf(w, "%s\n", a.Definition())
 	fmt.Fprintf(w, "\tTAG \"%s\"\n", a.Tag)
 	fmt.Fprintf(w, "\tLIGHT \"%s\"\n", a.LightTag)
+	fmt.Fprintf(w, "\t// LIGHTFLAGS %d\n", a.LightFlags)
 	fmt.Fprintf(w, "\tREGIONLIST %d", len(a.Regions))
 	for _, region := range a.Regions {
 		fmt.Fprintf(w, " %d", region)
@@ -2348,6 +2335,7 @@ func (z *Zone) Write(w io.Writer) error {
 	for _, region := range z.Regions {
 		fmt.Fprintf(w, " %d", region)
 	}
+	fmt.Fprintf(w, "\n")
 	fmt.Fprintf(w, "\tUSERDATA \"%s\"\n", z.UserData)
 	fmt.Fprintf(w, "ENDZONE\n\n")
 	return nil

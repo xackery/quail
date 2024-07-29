@@ -1,6 +1,8 @@
 package raw
 
-import "github.com/xackery/quail/helper"
+import (
+	"github.com/xackery/quail/helper"
+)
 
 var (
 	names   = []*nameEntry{}
@@ -53,6 +55,9 @@ func NameAdd(name string) int32 {
 	if names == nil {
 		names = []*nameEntry{}
 	}
+	/* if !strings.HasSuffix(name, "\000") {
+		name += "\000"
+	} */
 	if name == "" {
 		return 0
 	}
