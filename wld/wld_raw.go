@@ -976,7 +976,7 @@ func (wld *Wld) WriteRaw(w io.Writer) error {
 	raw.NameClear()
 
 	globalAmbient := &rawfrag.WldFragGlobalAmbientLightDef{
-		NameRef: raw.NameAdd(wld.GlobalAmbientLight),
+		//NameRef: raw.NameAdd(wld.GlobalAmbientLight),
 	}
 	dst.Fragments = append(dst.Fragments, globalAmbient)
 
@@ -1001,10 +1001,8 @@ func (wld *Wld) WriteRaw(w io.Writer) error {
 							if sprite.Tag != materialDef.SimpleSpriteInstTag {
 								continue
 							}
-							spriteDef := &rawfrag.WldFragSimpleSpriteDef{
-								NameRef: raw.NameAdd(sprite.Tag),
-							}
 
+							spriteDef := &rawfrag.WldFragSimpleSpriteDef{}
 							for _, frame := range sprite.SimpleSpriteFrames {
 								if frame.TextureTag == "" {
 									continue
@@ -1016,6 +1014,8 @@ func (wld *Wld) WriteRaw(w io.Writer) error {
 								dst.Fragments = append(dst.Fragments, bmInfo)
 								spriteDef.BitmapRefs = append(spriteDef.BitmapRefs, uint32(len(dst.Fragments)))
 							}
+
+							spriteDef.NameRef = raw.NameAdd(sprite.Tag)
 
 							dst.Fragments = append(dst.Fragments, spriteDef)
 

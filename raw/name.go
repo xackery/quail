@@ -53,7 +53,10 @@ func Name(id int32) string {
 // NameAdd is used when writing, appending new names
 func NameAdd(name string) int32 {
 	if names == nil {
-		names = []*nameEntry{}
+		names = []*nameEntry{
+			{offset: 0, name: ""},
+		}
+		nameBuf = []byte{0x00}
 	}
 	/* if !strings.HasSuffix(name, "\000") {
 		name += "\000"
@@ -66,12 +69,10 @@ func NameAdd(name string) int32 {
 		return id
 	}
 	names = append(names, &nameEntry{offset: len(nameBuf), name: name})
-	if len(nameBuf) == 0 {
-		nameBuf = []byte{0x00}
-	}
+	lastRef := int32(len(nameBuf))
 	nameBuf = append(nameBuf, []byte(name)...)
 	nameBuf = append(nameBuf, 0)
-	return int32(len(nameBuf) - len(name) - 1)
+	return int32(-lastRef)
 }
 
 // NameIndex is used when reading, returns the index of a name, or -1 if not found
@@ -94,6 +95,6 @@ func NameData() []byte {
 
 // NameClear purges names and namebuf, called when encode starts
 func NameClear() {
-	names = []*nameEntry{}
+	names = nil
 	nameBuf = nil
 }
