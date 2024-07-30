@@ -113,7 +113,7 @@ func readRawFrag(wld *Wld, src *raw.Wld, fragment model.FragmentReadWriter) erro
 			ScaledAmbient:        fragData.ScaledAmbient,
 			Pair1:                fragData.Pair1,
 			Pair2:                fragData.Pair2,
-			SimpleSpriteInstTag:  spriteTag,
+			SimpleSpriteTag:      spriteTag,
 			SimpleSpriteInstFlag: spriteFlags,
 		}
 		wld.MaterialDefs = append(wld.MaterialDefs, material)
@@ -772,7 +772,7 @@ func readRawFrag(wld *Wld, src *raw.Wld, fragment model.FragmentReadWriter) erro
 
 		region := &Region{
 			VisTree:        &VisTree{},
-			RegionTag:      raw.Name(fragData.NameRef),
+			Tag:            raw.Name(fragData.NameRef),
 			RegionVertices: fragData.RegionVertices,
 			Sphere:         fragData.Sphere,
 		}
@@ -969,6 +969,7 @@ func readRawFrag(wld *Wld, src *raw.Wld, fragment model.FragmentReadWriter) erro
 }
 
 func (wld *Wld) WriteRaw(w io.Writer) error {
+	var err error
 	dst := &raw.Wld{}
 	if dst.Fragments == nil {
 		dst.Fragments = []model.FragmentReadWriter{}
@@ -981,321 +982,53 @@ func (wld *Wld) WriteRaw(w io.Writer) error {
 	dst.Fragments = append(dst.Fragments, globalAmbient)
 
 	for _, dmSprite := range wld.DMSpriteDef2s {
-		isMaterialPaletteFound := false
-		for _, materialPalette := range wld.MaterialPalettes {
-			if materialPalette.Tag != dmSprite.MaterialPaletteTag {
-				continue
-			}
-			isMaterialPaletteFound = true
-			for _, material := range materialPalette.Materials {
-				isMaterialDefFound := false
-				for _, materialDef := range wld.MaterialDefs {
-					if materialDef.Tag != material {
-						continue
-					}
-					isMaterialDefFound = true
-					if materialDef.SimpleSpriteInstTag != "" {
-						isMaterialFound := false
-
-						for _, sprite := range wld.SimpleSpriteDefs {
-							if sprite.Tag != materialDef.SimpleSpriteInstTag {
-								continue
-							}
-
-							spriteDef := &rawfrag.WldFragSimpleSpriteDef{}
-							for _, frame := range sprite.SimpleSpriteFrames {
-								if frame.TextureTag == "" {
-									continue
-								}
-								bmInfo := &rawfrag.WldFragBMInfo{
-									NameRef:      raw.NameAdd(frame.TextureTag),
-									TextureNames: []string{frame.TextureFile},
-								}
-								dst.Fragments = append(dst.Fragments, bmInfo)
-								spriteDef.BitmapRefs = append(spriteDef.BitmapRefs, uint32(len(dst.Fragments)))
-							}
-
-							spriteDef.NameRef = raw.NameAdd(sprite.Tag)
-
-							dst.Fragments = append(dst.Fragments, spriteDef)
-
-							inst := &rawfrag.WldFragSimpleSprite{
-								//NameRef:   raw.NameAdd(sprite.Tag),
-								SpriteRef: int16(len(dst.Fragments)),
-								//Flags:    sprite.Flags,
-							}
-							dst.Fragments = append(dst.Fragments, inst)
-							isMaterialFound = true
-							break
-						}
-						if !isMaterialFound {
-							return fmt.Errorf("simple sprite %s not found", materialDef.SimpleSpriteInstTag)
-						}
-					}
-
-					materialDef := &rawfrag.WldFragMaterialDef{
-						NameRef:       raw.NameAdd(materialDef.Tag),
-						Flags:         materialDef.Flags,
-						RenderMethod:  model.RenderMethodInt(materialDef.RenderMethod),
-						RGBPen:        materialDef.RGBPen,
-						Brightness:    materialDef.Brightness,
-						ScaledAmbient: materialDef.ScaledAmbient,
-						Pair1:         materialDef.Pair1,
-						Pair2:         materialDef.Pair2,
-					}
-					dst.Fragments = append(dst.Fragments, materialDef)
-				}
-				if !isMaterialDefFound {
-					return fmt.Errorf("materialdef %s not found", material)
-				}
-			}
-			materialPaletteDef := &rawfrag.WldFragMaterialPalette{
-				NameRef: raw.NameAdd(materialPalette.Tag),
-				Flags:   materialPalette.flags,
-			}
-			for _, material := range materialPalette.Materials {
-				materialPaletteDef.MaterialRefs = append(materialPaletteDef.MaterialRefs, uint32(raw.NameAdd(material)))
-			}
-			dst.Fragments = append(dst.Fragments, materialPaletteDef)
-			break
+		_, err = dmSprite.ToRaw(wld, dst)
+		if err != nil {
+			return fmt.Errorf("dmspritedef2 %s: %w", dmSprite.Tag, err)
 		}
-		if !isMaterialPaletteFound {
-			return fmt.Errorf("material %s not found", dmSprite.MaterialPaletteTag)
-		}
-		dmSpriteDef := &rawfrag.WldFragDmSpriteDef2{
-			NameRef:            raw.NameAdd(dmSprite.Tag),
-			Flags:              dmSprite.Flags,
-			MaterialPaletteRef: uint32(len(dst.Fragments)),
-			CenterOffset:       dmSprite.CenterOffset,
-			Params2:            dmSprite.Params2,
-			MaxDistance:        dmSprite.MaxDistance,
-			Min:                dmSprite.Min,
-			Max:                dmSprite.Max,
-			Scale:              dmSprite.FPScale,
-			//Vertices: 		  dmSprite.Vertices,
-			Colors: dmSprite.Colors,
-		}
-
-		scale := float32(1 / float32(int(1)<<int(dmSprite.FPScale)))
-
-		for _, vert := range dmSprite.Vertices {
-			dmSpriteDef.Vertices = append(dmSpriteDef.Vertices, [3]int16{
-				int16(vert[0] / scale),
-				int16(vert[1] / scale),
-				int16(vert[2] / scale),
-			})
-		}
-
-		for _, uv := range dmSprite.UVs {
-			dmSpriteDef.UVs = append(dmSpriteDef.UVs, [2]int16{
-				int16(uv[0] / scale),
-				int16(uv[1] / scale),
-			})
-		}
-
-		for _, normal := range dmSprite.VertexNormals {
-			dmSpriteDef.VertexNormals = append(dmSpriteDef.VertexNormals, [3]int8{
-				int8(normal[0] / scale),
-				int8(normal[1] / scale),
-				int8(normal[2] / scale),
-			})
-		}
-
-		dst.Fragments = append(dst.Fragments, dmSpriteDef)
 	}
 
 	for _, lightDef := range wld.LightDefs {
-		light := &rawfrag.WldFragLightDef{
-			NameRef:         raw.NameAdd(lightDef.Tag),
-			Sleep:           lightDef.Sleep,
-			FrameCurrentRef: lightDef.FrameCurrentRef,
-			LightLevels:     lightDef.LightLevels,
-			Colors:          lightDef.Colors,
+		_, err = lightDef.ToRaw(wld, dst)
+		if err != nil {
+			return fmt.Errorf("light %s: %w", lightDef.Tag, err)
 		}
-		dst.Fragments = append(dst.Fragments, light)
+
 	}
 
 	for _, sprite := range wld.Sprite3DDefs {
-		spriteDef := &rawfrag.WldFragSprite3DDef{
-			NameRef:        raw.NameAdd(sprite.Tag),
-			CenterOffset:   sprite.CenterOffset,
-			BoundingRadius: sprite.BoundingRadius,
-			Vertices:       sprite.Vertices,
+		_, err = sprite.ToRaw(wld, dst)
+		if err != nil {
+			return fmt.Errorf("sprite %s: %w", sprite.Tag, err)
 		}
-
-		for _, node := range sprite.BSPNodes {
-			bnode := rawfrag.WldFragThreeDSpriteBspNode{
-				FrontTree: node.FrontTree,
-				BackTree:  node.BackTree,
-
-				RenderMethod:        model.RenderMethodInt(node.RenderMethod),
-				RenderFlags:         node.Flags,
-				RenderPen:           node.Pen,
-				RenderBrightness:    node.Brightness,
-				RenderScaledAmbient: node.ScaledAmbient,
-				RenderUVInfoOrigin:  node.Origin,
-				RenderUVInfoUAxis:   node.UAxis,
-				RenderUVInfoVAxis:   node.VAxis,
-			}
-
-			spriteDef.BspNodes = append(spriteDef.BspNodes, bnode)
-		}
-
-		dst.Fragments = append(dst.Fragments, spriteDef)
 	}
 
 	for _, tree := range wld.WorldTrees {
-		worldTree := &rawfrag.WldFragWorldTree{
-			Nodes: []rawfrag.WorldTreeNode{},
+		_, err = tree.ToRaw(wld, dst)
+		if err != nil {
+			return fmt.Errorf("worldtree: %w", err)
 		}
-		for _, node := range tree.WorldNodes {
-			worldNode := rawfrag.WorldTreeNode{
-				Normal:    node.Normals,
-				RegionRef: raw.NameAdd(node.WorldRegionTag),
-				FrontRef:  int32(node.FrontTree),
-				BackRef:   int32(node.BackTree),
-			}
-			worldTree.Nodes = append(worldTree.Nodes, worldNode)
-		}
-		dst.Fragments = append(dst.Fragments, worldTree)
 	}
 
 	for _, region := range wld.Regions {
-		regionDef := &rawfrag.WldFragRegion{
-			NameRef:        raw.NameAdd(region.RegionTag),
-			RegionVertices: region.RegionVertices,
-			Sphere:         region.Sphere,
-			VisNodes:       []rawfrag.VisNode{},
-			VisLists:       []rawfrag.VisList{},
+		_, err = region.ToRaw(wld, dst)
+		if err != nil {
+			return fmt.Errorf("region %s: %w", region.Tag, err)
 		}
+	}
 
-		if region.AmbientLightTag != "" {
-			isFound := false
-			for _, light := range wld.AmbientLights {
-				if light.Tag != region.AmbientLightTag {
-					continue
-				}
-				isFound = true
-
-				regionDef.AmbientLightRef = int32(len(dst.Fragments))
-
-				ambientLight := &rawfrag.WldFragAmbientLight{
-					NameRef:  raw.NameAdd(light.Tag),
-					LightRef: int32(len(dst.Fragments) + 1),
-				}
-				dst.Fragments = append(dst.Fragments, ambientLight)
-
-				lightDef := &rawfrag.WldFragLight{
-					LightDefRef: int32(len(dst.Fragments) + 1),
-					Flags:       light.LightFlags,
-				}
-				dst.Fragments = append(dst.Fragments, lightDef)
-
-				lightDefRef := &rawfrag.WldFragLightDef{
-
-					NameRef: raw.NameAdd(light.LightTag),
-				}
-				dst.Fragments = append(dst.Fragments, lightDefRef)
-				break
-			}
-			if !isFound {
-				return fmt.Errorf("ambient light %s not found", region.AmbientLightTag)
-			}
+	for _, alight := range wld.AmbientLights {
+		_, err = alight.ToRaw(wld, dst)
+		if err != nil {
+			return fmt.Errorf("ambientlight %s: %w", alight.Tag, err)
 		}
-
-		for _, node := range region.VisTree.VisNodes {
-			visNode := rawfrag.VisNode{
-				NormalABCD:   node.Normal,
-				VisListIndex: node.VisListIndex,
-				FrontTree:    node.FrontTree,
-				BackTree:     node.BackTree,
-			}
-			regionDef.VisNodes = append(regionDef.VisNodes, visNode)
-		}
-
-		//for _, visList := range region.VisTree.VisLists {
-		//visListData := rawfrag.VisList{
-		//		Ranges: []byte{},
-		//	}
-		//for _, rangeVal := range visList.Ranges {
-		//	visListData.Ranges = append(visListData.Ranges, byte(rangeVal))
-		//}
-		//	regionDef.VisLists = append(regionDef.VisLists, visListData)
-		//}
-
-		dst.Fragments = append(dst.Fragments, regionDef)
 	}
 
 	for _, actor := range wld.ActorInsts {
-
-		if actor.DefinitionTag != "" {
-			isFound := false
-			for _, actorDef := range wld.ActorDefs {
-				if actorDef.Tag != actor.DefinitionTag {
-					continue
-				}
-				isFound = true
-				actorDef := &rawfrag.WldFragActorDef{
-					NameRef: raw.NameAdd(actorDef.Tag),
-					//Flags:  actorDef.Flags,
-					CallbackNameRef: raw.NameAdd(actorDef.Callback),
-					BoundsRef:       actorDef.BoundsRef,
-					CurrentAction:   actorDef.CurrentAction,
-					Location:        actorDef.Location,
-					Unk1:            actorDef.Unk1,
-				}
-				dst.Fragments = append(dst.Fragments, actorDef)
-				break
-			}
-			if !isFound {
-				return fmt.Errorf("actordef %s not found", actor.DefinitionTag)
-			}
+		_, err = actor.ToRaw(wld, dst)
+		if err != nil {
+			return fmt.Errorf("actor %s: %w", actor.Tag, err)
 		}
-
-		trackRef := int32(0)
-		if actor.DMRGBTrackTag != "" {
-			isFound := false
-			for _, track := range wld.RGBTrackDefs {
-				if track.Tag != actor.DMRGBTrackTag {
-					continue
-				}
-				isFound = true
-				trackRef = int32(len(dst.Fragments))
-				trackDef := &rawfrag.WldFragDmRGBTrackDef{
-					NameRef: raw.NameAdd(track.Tag),
-					Data1:   track.Data1,
-					Data2:   track.Data2,
-					Sleep:   track.Sleep,
-					Data4:   track.Data4,
-
-					RGBAs: track.RGBAs,
-				}
-				dst.Fragments = append(dst.Fragments, trackDef)
-				break
-			}
-			if !isFound {
-				return fmt.Errorf("dmrgbtrackdef %s not found", actor.DMRGBTrackTag)
-			}
-		}
-
-		actorInst := &rawfrag.WldFragActor{
-			NameRef:         raw.NameAdd(actor.Tag),
-			ActorDefNameRef: raw.NameAdd(actor.DefinitionTag),
-			DMRGBTrackRef:   trackRef,
-			Flags:           actor.Flags,
-		}
-
-		if actor.SphereRadius != 0 {
-
-			sphereDef := &rawfrag.WldFragSphere{
-				NameRef: raw.NameAdd(actor.Tag),
-				Radius:  actor.SphereRadius,
-			}
-			dst.Fragments = append(dst.Fragments, sphereDef)
-		}
-		actorInst.SphereRef = uint32(len(dst.Fragments))
-
-		dst.Fragments = append(dst.Fragments, actorInst)
 	}
 
 	return dst.Write(w)

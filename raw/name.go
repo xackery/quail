@@ -52,17 +52,19 @@ func Name(id int32) string {
 
 // NameAdd is used when writing, appending new names
 func NameAdd(name string) int32 {
+
 	if names == nil {
 		names = []*nameEntry{
 			{offset: 0, name: ""},
 		}
 		nameBuf = []byte{0x00}
 	}
-	/* if !strings.HasSuffix(name, "\000") {
-		name += "\000"
-	} */
 	if name == "" {
 		return 0
+	}
+
+	if name[len(name)-1:] != "\x00" {
+		name += "\x00"
 	}
 
 	if id := NameIndex(name); id != -1 {

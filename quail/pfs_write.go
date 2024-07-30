@@ -169,5 +169,81 @@ func (e *Quail) EQGExport(fileVersion uint32, pfsVersion int, path string) error
 
 // S3DExport exports the quail target to an S3D file
 func (e *Quail) S3DExport(fileVersion uint32, pfsVersion int, path string) error {
+	pfs, err := pfs.New(path)
+	if err != nil {
+		return fmt.Errorf("eqg new: %w", err)
+	}
+	defer pfs.Close()
+
+	isSomethingWritten := false
+	if e.wld != nil {
+		buf := &bytes.Buffer{}
+
+		err := e.wld.WriteRaw(buf)
+		if err != nil {
+			return fmt.Errorf("write wld: %w", err)
+		}
+
+		err = pfs.Add(e.wld.FileName, buf.Bytes())
+		if err != nil {
+			return fmt.Errorf("addWld %s: %w", e.wld.FileName, err)
+		}
+		isSomethingWritten = true
+	}
+
+	if e.wldObject != nil {
+		buf := &bytes.Buffer{}
+
+		err := e.wldObject.WriteRaw(buf)
+		if err != nil {
+			return fmt.Errorf("write wld: %w", err)
+		}
+
+		err = pfs.Add("objects.wld", buf.Bytes())
+		if err != nil {
+			return fmt.Errorf("addWld %s: %w", e.wld.FileName, err)
+		}
+		isSomethingWritten = true
+	}
+
+	if e.wldLights != nil {
+		buf := &bytes.Buffer{}
+
+		err := e.wldLights.WriteRaw(buf)
+		if err != nil {
+			return fmt.Errorf("write wld: %w", err)
+		}
+
+		err = pfs.Add("lights.wld", buf.Bytes())
+		if err != nil {
+			return fmt.Errorf("addWld %s: %w", e.wld.FileName, err)
+		}
+		isSomethingWritten = true
+	}
+
+	for fileName, textureData := range e.Textures {
+		err := pfs.Add(fileName, textureData)
+		if err != nil {
+			return fmt.Errorf("addTexture %s: %w", fileName, err)
+		}
+		isSomethingWritten = true
+	}
+
+	if !isSomethingWritten {
+		return fmt.Errorf("nothing written")
+	}
+
+	w, err := os.Create(path)
+	if err != nil {
+		return fmt.Errorf("create %s: %w", path, err)
+	}
+	defer w.Close()
+
+	err = pfs.Write(w)
+	if err != nil {
+		return fmt.Errorf("encode %s: %w", path, err)
+	}
+	log.Debugf("wrote %s with %d entries", path, pfs.Len())
+
 	return nil
 }

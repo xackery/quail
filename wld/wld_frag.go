@@ -6,6 +6,9 @@ import (
 	"strconv"
 
 	"github.com/xackery/quail/helper"
+	"github.com/xackery/quail/model"
+	"github.com/xackery/quail/raw"
+	"github.com/xackery/quail/raw/rawfrag"
 )
 
 // DMSpriteDef2 is a declaration of DMSpriteDef2
@@ -345,6 +348,63 @@ func (d *DMSpriteDef2) Read(r *AsciiReadToken) error {
 	return nil
 }
 
+func (d *DMSpriteDef2) ToRaw(srcWld *Wld, dst *raw.Wld) (int16, error) {
+	var err error
+
+	materialPaletteRef := int16(0)
+	if d.MaterialPaletteTag != "" {
+		palette := srcWld.ByTag(d.MaterialPaletteTag)
+		if palette == nil {
+			return -1, fmt.Errorf("material palette %s not found", d.MaterialPaletteTag)
+		}
+
+		materialPaletteRef, err = palette.ToRaw(srcWld, dst)
+		if err != nil {
+			return -1, fmt.Errorf("material palette %s to raw: %w", d.MaterialPaletteTag, err)
+		}
+	}
+	dmSpriteDef := &rawfrag.WldFragDmSpriteDef2{
+		NameRef:            raw.NameAdd(d.Tag),
+		Flags:              d.Flags,
+		MaterialPaletteRef: uint32(materialPaletteRef),
+		CenterOffset:       d.CenterOffset,
+		Params2:            d.Params2,
+		MaxDistance:        d.MaxDistance,
+		Min:                d.Min,
+		Max:                d.Max,
+		Scale:              d.FPScale,
+		Colors:             d.Colors,
+	}
+
+	scale := float32(1 / float32(int(1)<<int(d.FPScale)))
+
+	for _, vert := range d.Vertices {
+		dmSpriteDef.Vertices = append(dmSpriteDef.Vertices, [3]int16{
+			int16(vert[0] / scale),
+			int16(vert[1] / scale),
+			int16(vert[2] / scale),
+		})
+	}
+
+	for _, uv := range d.UVs {
+		dmSpriteDef.UVs = append(dmSpriteDef.UVs, [2]int16{
+			int16(uv[0] / scale),
+			int16(uv[1] / scale),
+		})
+	}
+
+	for _, normal := range d.VertexNormals {
+		dmSpriteDef.VertexNormals = append(dmSpriteDef.VertexNormals, [3]int8{
+			int8(normal[0] / scale),
+			int8(normal[1] / scale),
+			int8(normal[2] / scale),
+		})
+	}
+
+	dst.Fragments = append(dst.Fragments, dmSpriteDef)
+	return int16(len(dst.Fragments)), nil
+}
+
 // DMSpriteDef is a declaration of DMSPRITEDEF
 type DMSpriteDef struct {
 	Tag            string
@@ -503,6 +563,31 @@ func (m *MaterialPalette) Read(r *AsciiReadToken) error {
 	return nil
 }
 
+func (m *MaterialPalette) ToRaw(srcWld *Wld, dst *raw.Wld) (int16, error) {
+	var err error
+	wfPalette := &rawfrag.WldFragMaterialPalette{
+		Flags: m.flags,
+	}
+	for _, mat := range m.Materials {
+
+		srcMat := srcWld.ByTag(mat)
+		if srcMat == nil {
+			return -1, fmt.Errorf("material %s not found", mat)
+		}
+
+		_, err = srcMat.ToRaw(srcWld, dst)
+		if err != nil {
+			return -1, fmt.Errorf("material %s to raw: %w", mat, err)
+		}
+
+		wfPalette.MaterialRefs = append(wfPalette.MaterialRefs, uint32(raw.NameAdd(mat)))
+	}
+
+	wfPalette.NameRef = raw.NameAdd(m.Tag)
+	dst.Fragments = append(dst.Fragments, wfPalette)
+	return int16(len(dst.Fragments)), nil
+}
+
 // MaterialDef is an entry MATERIALDEFINITION
 type MaterialDef struct {
 	Tag                  string   // TAG %s
@@ -511,7 +596,7 @@ type MaterialDef struct {
 	RGBPen               [4]uint8 // RGBPEN %d %d %d
 	Brightness           float32  // BRIGHTNESS %0.7f
 	ScaledAmbient        float32  // SCALEDAMBIENT %0.7f
-	SimpleSpriteInstTag  string   // SIMPLESPRITEINST
+	SimpleSpriteTag      string   // SIMPLESPRITEINST
 	SimpleSpriteInstFlag uint32   // FLAGS %d
 	Pair1                uint32
 	Pair2                float32
@@ -530,7 +615,7 @@ func (m *MaterialDef) Write(w io.Writer) error {
 	fmt.Fprintf(w, "\tBRIGHTNESS %0.7f\n", m.Brightness)
 	fmt.Fprintf(w, "\tSCALEDAMBIENT %0.7f\n", m.ScaledAmbient)
 	fmt.Fprintf(w, "\tSIMPLESPRITEINST\n")
-	fmt.Fprintf(w, "\t\tTAG \"%s\"\n", m.SimpleSpriteInstTag)
+	fmt.Fprintf(w, "\t\tTAG \"%s\"\n", m.SimpleSpriteTag)
 	fmt.Fprintf(w, "\t\t// FLAGS %d\n", m.SimpleSpriteInstFlag)
 	fmt.Fprintf(w, "\tENDSIMPLESPRITEINST\n")
 	fmt.Fprintf(w, "\t// PAIR1 %d\n", m.Pair1)
@@ -588,7 +673,7 @@ func (m *MaterialDef) Read(r *AsciiReadToken) error {
 	if err != nil {
 		return err
 	}
-	m.SimpleSpriteInstTag = records[1]
+	m.SimpleSpriteTag = records[1]
 
 	_, err = r.ReadProperty("ENDSIMPLESPRITEINST", 0)
 	if err != nil {
@@ -603,9 +688,46 @@ func (m *MaterialDef) Read(r *AsciiReadToken) error {
 	return nil
 }
 
+func (m *MaterialDef) ToRaw(srcWld *Wld, dst *raw.Wld) (int16, error) {
+	wfMaterialDef := &rawfrag.WldFragMaterialDef{}
+
+	if m.SimpleSpriteTag != "" {
+		spriteDef := srcWld.ByTag(m.SimpleSpriteTag)
+		if spriteDef == nil {
+			return -1, fmt.Errorf("simple sprite %s not found", m.SimpleSpriteTag)
+		}
+
+		spriteDefRef, err := spriteDef.ToRaw(srcWld, dst)
+		if err != nil {
+			return -1, fmt.Errorf("simple sprite %s to raw: %w", m.SimpleSpriteTag, err)
+		}
+
+		sprite := &rawfrag.WldFragSimpleSprite{
+			//NameRef:   raw.NameAdd(m.SimpleSpriteTag),
+			Flags:     m.SimpleSpriteInstFlag,
+			SpriteRef: spriteDefRef,
+		}
+
+		dst.Fragments = append(dst.Fragments, sprite)
+
+		spriteRef := int16(len(dst.Fragments))
+
+		wfMaterialDef.SimpleSpriteRef = uint32(spriteRef)
+	}
+
+	wfMaterialDef.NameRef = raw.NameAdd(m.Tag)
+
+	dst.Fragments = append(dst.Fragments, wfMaterialDef)
+	return int16(len(dst.Fragments)), nil
+}
+
 // SimpleSpriteDef is a declaration of SIMPLESPRITEDEF
 type SimpleSpriteDef struct {
 	Tag                string
+	SkipFrames         int
+	Sleep              int
+	CurrentFrame       int
+	Animated           int
 	SimpleSpriteFrames []SimpleSpriteFrame
 }
 
@@ -621,6 +743,10 @@ func (s *SimpleSpriteDef) Definition() string {
 func (s *SimpleSpriteDef) Write(w io.Writer) error {
 	fmt.Fprintf(w, "%s\n", s.Definition())
 	fmt.Fprintf(w, "\tSIMPLESPRITETAG \"%s\"\n", s.Tag)
+	fmt.Fprintf(w, "\tSKIPFRAMES %d\n", s.SkipFrames)
+	fmt.Fprintf(w, "\tANIMATED %d\n", s.Animated)
+	fmt.Fprintf(w, "\tSLEEP %d\n", s.Sleep)
+	fmt.Fprintf(w, "\tCURRENTFRAME %d\n", s.CurrentFrame)
 	fmt.Fprintf(w, "\tNUMFRAMES %d\n", len(s.SimpleSpriteFrames))
 	for _, frame := range s.SimpleSpriteFrames {
 		fmt.Fprintf(w, "\tFRAME \"%s\" \"%s\"\n", frame.TextureFile, frame.TextureTag)
@@ -635,6 +761,33 @@ func (s *SimpleSpriteDef) Read(r *AsciiReadToken) error {
 		return fmt.Errorf("SIMPLESPRITETAG: %w", err)
 	}
 	s.Tag = records[1]
+
+	records, err = r.ReadProperty("SKIPFRAMES", 1)
+	if err != nil {
+		return fmt.Errorf("SKIPFRAMES: %w", err)
+	}
+	s.SkipFrames, err = helper.ParseInt(records[1])
+	if err != nil {
+		return fmt.Errorf("skip frames: %w", err)
+	}
+
+	records, err = r.ReadProperty("ANIMATED", 1)
+	if err != nil {
+		return fmt.Errorf("ANIMATED: %w", err)
+	}
+	s.Animated, err = helper.ParseInt(records[1])
+	if err != nil {
+		return fmt.Errorf("animated: %w", err)
+	}
+
+	records, err = r.ReadProperty("SLEEP", 1)
+	if err != nil {
+		return fmt.Errorf("SLEEP: %w", err)
+	}
+	s.Sleep, err = helper.ParseInt(records[1])
+	if err != nil {
+		return fmt.Errorf("sleep: %w", err)
+	}
 
 	records, err = r.ReadProperty("NUMFRAMES", 1)
 	if err != nil {
@@ -661,6 +814,46 @@ func (s *SimpleSpriteDef) Read(r *AsciiReadToken) error {
 		return fmt.Errorf("ENDSIMPLESPRITEDEF: %w", err)
 	}
 	return nil
+}
+
+func (s *SimpleSpriteDef) ToRaw(srcWld *Wld, dst *raw.Wld) (int16, error) {
+	flags := uint32(0)
+	wfSimpleSpriteDef := &rawfrag.WldFragSimpleSpriteDef{}
+
+	if s.SkipFrames > 0 {
+		flags |= 0x01
+	}
+	//flags |= 0x02
+	flags |= 0x04
+	if len(s.SimpleSpriteFrames) > 1 {
+		flags |= 0x08
+	}
+	if s.Sleep > 0 {
+		flags |= 0x10
+	}
+	if s.CurrentFrame > 0 {
+		flags |= 0x20
+	}
+
+	wfSimpleSpriteDef.Flags = flags
+
+	bmInfoRef := int16(0)
+	for _, frame := range s.SimpleSpriteFrames {
+
+		wfBMInfo := &rawfrag.WldFragBMInfo{
+			NameRef:      raw.NameAdd(frame.TextureTag),
+			TextureNames: []string{frame.TextureFile},
+		}
+
+		dst.Fragments = append(dst.Fragments, wfBMInfo)
+		bmInfoRef = int16(len(dst.Fragments))
+	}
+
+	wfSimpleSpriteDef.NameRef = raw.NameAdd(s.Tag)
+	wfSimpleSpriteDef.BitmapRefs = []uint32{uint32(bmInfoRef)}
+
+	dst.Fragments = append(dst.Fragments, wfSimpleSpriteDef)
+	return int16(len(dst.Fragments)), nil
 }
 
 // ActorDef is a declaration of ACTORDEF
@@ -804,6 +997,66 @@ func (a *ActorDef) Read(r *AsciiReadToken) error {
 	return nil
 }
 
+func (a *ActorDef) ToRaw(srcWld *Wld, dst *raw.Wld) (int16, error) {
+	var err error
+
+	actorDef := &rawfrag.WldFragActorDef{
+		BoundsRef:     a.BoundsRef,
+		CurrentAction: a.CurrentAction,
+		Location:      a.Location,
+	}
+
+	for _, action := range a.Actions {
+		actorAction := rawfrag.WldFragModelAction{
+			Unk1: action.Unk1,
+		}
+
+		for _, lod := range action.LevelOfDetails {
+			if lod.SpriteTag == "" {
+				continue
+			}
+
+			var spriteRef int16
+			spriteVar := srcWld.ByTag(lod.SpriteTag)
+			if spriteVar == nil {
+				return -1, fmt.Errorf("sprite %s not found", lod.SpriteTag)
+			}
+			switch spriteDef := spriteVar.(type) {
+			case *DMSpriteDef2:
+				spriteRef, err = spriteDef.ToRaw(srcWld, dst)
+			case *Sprite3DDef:
+				spriteRef, err = spriteDef.ToRaw(srcWld, dst)
+				if err != nil {
+					return -1, fmt.Errorf("sprite %s to raw: %w", lod.SpriteTag, err)
+				}
+				sprite := &rawfrag.WldFragSprite3D{
+					Flags:          0, // always 0?
+					Sprite3DDefRef: int32(spriteRef),
+				}
+
+				dst.Fragments = append(dst.Fragments, sprite)
+				spriteRef = int16(len(dst.Fragments))
+			default:
+				return -1, fmt.Errorf("unknown sprite type %T", spriteDef)
+			}
+			if err != nil {
+				return -1, fmt.Errorf("sprite %s to raw: %w", lod.SpriteTag, err)
+			}
+
+			actorAction.Lods = append(actorAction.Lods, lod.MinDistance)
+			actorDef.FragmentRefs = append(actorDef.FragmentRefs, uint32(spriteRef))
+		}
+
+		actorDef.Actions = append(actorDef.Actions, actorAction)
+	}
+
+	actorDef.NameRef = raw.NameAdd(a.Tag)
+	actorDef.CallbackNameRef = raw.NameAdd(a.Callback)
+
+	dst.Fragments = append(dst.Fragments, actorDef)
+	return int16(len(dst.Fragments)), err
+}
+
 // ActorAction is a declaration of ACTION
 type ActorAction struct {
 	Unk1           uint32
@@ -813,6 +1066,7 @@ type ActorAction struct {
 // ActorLevelOfDetail is a declaration of LEVELOFDETAIL
 type ActorLevelOfDetail struct {
 	SpriteTag   string
+	SpriteFlags uint32
 	MinDistance float32
 }
 
@@ -956,8 +1210,58 @@ func (a *ActorInst) Read(r *AsciiReadToken) error {
 	return nil
 }
 
+func (a *ActorInst) ToRaw(srcWld *Wld, dst *raw.Wld) (int16, error) {
+	var err error
+	wfActorInst := &rawfrag.WldFragActor{
+		Flags: a.Flags,
+	}
+
+	if a.DefinitionTag != "" {
+		actorDef := srcWld.ByTag(a.DefinitionTag)
+		if actorDef == nil {
+			return -1, fmt.Errorf("actor definition %s not found", a.DefinitionTag)
+		}
+
+		_, err = actorDef.ToRaw(srcWld, dst)
+		if err != nil {
+			return -1, fmt.Errorf("actor definition %s to raw: %w", a.DefinitionTag, err)
+		}
+
+		wfActorInst.ActorDefNameRef = raw.NameAdd(a.DefinitionTag)
+	}
+
+	if a.DMRGBTrackTag != "" {
+		dmRGBTrackDef := srcWld.ByTag(a.DMRGBTrackTag)
+		if dmRGBTrackDef == nil {
+			return -1, fmt.Errorf("dm rgb track def %s not found", a.DMRGBTrackTag)
+		}
+
+		dmRGBTrackRef, err := dmRGBTrackDef.ToRaw(srcWld, dst)
+		if err != nil {
+			return -1, fmt.Errorf("dm rgb track %s to raw: %w", a.DMRGBTrackTag, err)
+		}
+
+		wfActorInst.DMRGBTrackRef = int32(dmRGBTrackRef)
+	}
+
+	if a.SphereRadius > 0 {
+		sphere := &rawfrag.WldFragSphere{
+			NameRef: raw.NameAdd(a.Tag),
+			Radius:  a.SphereRadius,
+		}
+
+		dst.Fragments = append(dst.Fragments, sphere)
+		wfActorInst.SphereRef = uint32(len(dst.Fragments))
+
+	}
+
+	dst.Fragments = append(dst.Fragments, wfActorInst)
+	return int16(len(dst.Fragments)), err
+}
+
 // LightDef is a declaration of LIGHTDEF
 type LightDef struct {
+	fragID          int16
 	Tag             string
 	Flags           uint32
 	FrameCurrentRef uint32
@@ -1076,6 +1380,25 @@ func (l *LightDef) Read(r *AsciiReadToken) error {
 	return nil
 }
 
+func (l *LightDef) ToRaw(srcWld *Wld, dst *raw.Wld) (int16, error) {
+	if l.fragID != 0 {
+		return l.fragID, nil
+	}
+	var err error
+
+	wfLightDef := &rawfrag.WldFragLightDef{
+		NameRef:         raw.NameAdd(l.Tag),
+		Sleep:           l.Sleep,
+		FrameCurrentRef: l.FrameCurrentRef,
+		LightLevels:     l.LightLevels,
+		Colors:          l.Colors,
+	}
+
+	dst.Fragments = append(dst.Fragments, wfLightDef)
+	l.fragID = int16(len(dst.Fragments))
+	return int16(len(dst.Fragments)), err
+}
+
 // PointLight is a declaration of POINTLIGHT
 type PointLight struct {
 	Tag        string
@@ -1145,6 +1468,7 @@ type Sprite3DDef struct {
 	SphereListTag  string
 	Vertices       [][3]float32
 	BSPNodes       []*BSPNode
+	fragID         int16
 }
 
 // BSPNode is a declaration of BSPNODE
@@ -1352,6 +1676,48 @@ func (s *Sprite3DDef) Read(r *AsciiReadToken) error {
 	}
 
 	return nil
+}
+
+func (s *Sprite3DDef) ToRaw(srcWld *Wld, dst *raw.Wld) (int16, error) {
+	if s.fragID != 0 {
+		return s.fragID, nil
+	}
+	flags := uint32(0)
+	wfSprite3DDef := &rawfrag.WldFragSprite3DDef{}
+
+	if s.CenterOffset != [3]float32{0, 0, 0} {
+		flags |= 0x01
+	}
+
+	if len(s.BSPNodes) > 0 {
+		flags |= 0x02
+
+		for _, node := range s.BSPNodes {
+			bnode := rawfrag.WldFragThreeDSpriteBspNode{
+				FrontTree: node.FrontTree,
+				BackTree:  node.BackTree,
+
+				RenderMethod:        model.RenderMethodInt(node.RenderMethod),
+				RenderFlags:         node.Flags,
+				RenderPen:           node.Pen,
+				RenderBrightness:    node.Brightness,
+				RenderScaledAmbient: node.ScaledAmbient,
+				RenderUVInfoOrigin:  node.Origin,
+				RenderUVInfoUAxis:   node.UAxis,
+				RenderUVInfoVAxis:   node.VAxis,
+			}
+
+			wfSprite3DDef.BspNodes = append(wfSprite3DDef.BspNodes, bnode)
+		}
+	}
+
+	wfSprite3DDef.Flags = flags
+
+	wfSprite3DDef.NameRef = raw.NameAdd(s.Tag)
+
+	dst.Fragments = append(dst.Fragments, wfSprite3DDef)
+	s.fragID = int16(len(dst.Fragments))
+	return int16(len(dst.Fragments)), nil
 }
 
 type PolyhedronDefinition struct {
@@ -1773,8 +2139,28 @@ func (t *WorldTree) Read(r *AsciiReadToken) error {
 	return nil
 }
 
+func (t *WorldTree) ToRaw(srcWld *Wld, dst *raw.Wld) (int16, error) {
+	wfWorldTree := &rawfrag.WldFragWorldTree{}
+
+	for _, node := range t.WorldNodes {
+		wfNode := rawfrag.WorldTreeNode{
+			Normal:    node.Normals,
+			RegionRef: raw.NameAdd(node.WorldRegionTag),
+			FrontRef:  int32(node.FrontTree),
+			BackRef:   int32(node.BackTree),
+		}
+
+		wfWorldTree.Nodes = append(wfWorldTree.Nodes, wfNode)
+	}
+
+	wfWorldTree.NameRef = raw.NameAdd(t.Tag)
+
+	dst.Fragments = append(dst.Fragments, wfWorldTree)
+	return int16(len(dst.Fragments)), nil
+}
+
 type Region struct {
-	RegionTag        string
+	Tag              string
 	AmbientLightTag  string
 	RegionVertices   [][3]float32
 	RenderVertices   [][3]float32
@@ -1818,7 +2204,7 @@ func (r *Region) Definition() string {
 
 func (r *Region) Write(w io.Writer) error {
 	fmt.Fprintf(w, "%s\n", r.Definition())
-	fmt.Fprintf(w, "\tREGIONTAG \"%s\"\n", r.RegionTag)
+	fmt.Fprintf(w, "\tREGIONTAG \"%s\"\n", r.Tag)
 	fmt.Fprintf(w, "\tNUMREGIONVERTEX %d\n", len(r.RegionVertices))
 	for _, vert := range r.RegionVertices {
 		fmt.Fprintf(w, "\tXYZ %0.7f %0.7f %0.7f\n", vert[0], vert[1], vert[2])
@@ -1890,7 +2276,7 @@ func (r *Region) Read(token *AsciiReadToken) error {
 	if err != nil {
 		return err
 	}
-	r.RegionTag = records[1]
+	r.Tag = records[1]
 
 	records, err = token.ReadProperty("NUMREGIONVERTEX", 1)
 	if err != nil {
@@ -2251,6 +2637,41 @@ func (r *Region) Read(token *AsciiReadToken) error {
 	return nil
 }
 
+func (r *Region) ToRaw(srcWld *Wld, dst *raw.Wld) (int16, error) {
+	wfRegion := &rawfrag.WldFragRegion{
+		RegionVertices: r.RegionVertices,
+		Sphere:         r.Sphere,
+	}
+
+	if len(r.AmbientLightTag) > 0 {
+		aLightDef := srcWld.ByTag(r.AmbientLightTag)
+		if aLightDef == nil {
+			return 0, fmt.Errorf("ambient light def not found: %s", r.AmbientLightTag)
+		}
+
+		aLightRef, err := aLightDef.ToRaw(srcWld, dst)
+		if err != nil {
+			return 0, fmt.Errorf("ambient light def to raw: %w", err)
+		}
+		wfRegion.AmbientLightRef = int32(aLightRef)
+	}
+
+	for _, node := range r.VisTree.VisNodes {
+		visNode := rawfrag.VisNode{
+			NormalABCD:   node.Normal,
+			VisListIndex: node.VisListIndex,
+			FrontTree:    node.FrontTree,
+			BackTree:     node.BackTree,
+		}
+		wfRegion.VisNodes = append(wfRegion.VisNodes, visNode)
+	}
+
+	wfRegion.NameRef = raw.NameAdd(r.Tag)
+
+	dst.Fragments = append(dst.Fragments, wfRegion)
+	return int16(len(dst.Fragments)), nil
+}
+
 type AmbientLight struct {
 	Tag        string
 	LightTag   string
@@ -2316,6 +2737,38 @@ func (a *AmbientLight) Read(r *AsciiReadToken) error {
 	}
 
 	return nil
+}
+
+func (a *AmbientLight) ToRaw(srcWld *Wld, dst *raw.Wld) (int16, error) {
+	wfAmbientLight := &rawfrag.WldFragAmbientLight{}
+
+	if len(a.LightTag) > 0 {
+		lightDef := srcWld.ByTag(a.LightTag)
+		if lightDef == nil {
+			return 0, fmt.Errorf("light def not found: %s", a.LightTag)
+		}
+
+		lightDefRef, err := lightDef.ToRaw(srcWld, dst)
+		if err != nil {
+			return 0, fmt.Errorf("light def to raw: %w", err)
+		}
+		wfAmbientLight.LightRef = int32(lightDefRef)
+
+		wfLight := &rawfrag.WldFragLight{
+			//NameRef: ,
+			LightDefRef: int32(lightDefRef),
+			Flags:       a.LightFlags,
+		}
+
+		dst.Fragments = append(dst.Fragments, wfLight)
+
+		wfAmbientLight.LightRef = int32(len(dst.Fragments))
+	}
+
+	wfAmbientLight.NameRef = raw.NameAdd(a.Tag)
+
+	dst.Fragments = append(dst.Fragments, wfAmbientLight)
+	return int16(len(dst.Fragments)), nil
 }
 
 type Zone struct {
@@ -2502,6 +2955,17 @@ func (r *RGBTrackDef) Read(token *AsciiReadToken) error {
 	}
 
 	return nil
+}
+
+func (r *RGBTrackDef) ToRaw(srcWld *Wld, dst *raw.Wld) (int16, error) {
+	wfRGBTrack := &rawfrag.WldFragDmRGBTrackDef{
+		RGBAs: r.RGBAs,
+	}
+
+	wfRGBTrack.NameRef = raw.NameAdd(r.Tag)
+
+	dst.Fragments = append(dst.Fragments, wfRGBTrack)
+	return int16(len(dst.Fragments)), nil
 }
 
 // RGBTrack is a track instance for RGB deformation tracks

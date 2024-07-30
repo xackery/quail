@@ -102,10 +102,10 @@ func (wld *Wld) WriteAscii(path string, isDir bool) error {
 							continue
 						}
 
-						if materialDef.SimpleSpriteInstTag != "" {
+						if materialDef.SimpleSpriteTag != "" {
 							isSimpleSpriteFound := false
 							for _, simpleSprite := range wld.SimpleSpriteDefs {
-								if simpleSprite.Tag != materialDef.SimpleSpriteInstTag {
+								if simpleSprite.Tag != materialDef.SimpleSpriteTag {
 									continue
 								}
 								isSimpleSpriteFound = true
@@ -116,7 +116,7 @@ func (wld *Wld) WriteAscii(path string, isDir bool) error {
 								break
 							}
 							if !isSimpleSpriteFound {
-								return fmt.Errorf("simple sprite %s not found", materialDef.SimpleSpriteInstTag)
+								return fmt.Errorf("simple sprite %s not found", materialDef.SimpleSpriteTag)
 							}
 						}
 
@@ -358,7 +358,7 @@ func (wld *Wld) WriteAscii(path string, isDir bool) error {
 
 		err = region.Write(w)
 		if err != nil {
-			return fmt.Errorf("region %s: %w", region.RegionTag, err)
+			return fmt.Errorf("region %s: %w", region.Tag, err)
 		}
 	}
 
