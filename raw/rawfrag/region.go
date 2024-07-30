@@ -162,7 +162,7 @@ func (e *WldFragRegion) Write(w io.Writer) error {
 		enc.Uint32(visNode.BackTree)
 	}
 	for _, visList := range e.VisLists {
-		if e.Flags&0x80 != 0 {
+		if e.Flags&0x80 == 0x80 {
 			enc.Uint16(uint16(len(visList.Ranges)))
 			for _, val := range visList.Ranges {
 				enc.Byte(val)
@@ -338,6 +338,10 @@ func (e *WldFragRegion) Read(r io.ReadSeeker) error {
 
 	if e.Flags&0x04 != 0 { // has reverb offset
 		e.ReverbOffset = dec.Int32()
+	}
+
+	if e.Flags&0x40 == 0x40 {
+		return fmt.Errorf("you found an unknown flag 0x40 region! Let xack know")
 	}
 
 	e.UserData = dec.StringLenPrefixUint32()

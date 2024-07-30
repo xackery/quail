@@ -13,6 +13,7 @@ import (
 
 // DMSpriteDef2 is a declaration of DMSpriteDef2
 type DMSpriteDef2 struct {
+	fragID               int16
 	Tag                  string
 	Flags                uint32
 	DmTrackTag           string
@@ -51,45 +52,45 @@ type MeshOp struct {
 	TypeField uint8
 }
 
-func (d *DMSpriteDef2) Definition() string {
+func (e *DMSpriteDef2) Definition() string {
 	return "DMSPRITEDEF2"
 }
 
-func (d *DMSpriteDef2) Write(w io.Writer) error {
-	fmt.Fprintf(w, "%s\n", d.Definition())
-	fmt.Fprintf(w, "\tTAG \"%s\"\n", d.Tag)
-	fmt.Fprintf(w, "\t// FLAGS \"%d\" // need to assess\n", d.Flags)
-	fmt.Fprintf(w, "\tCENTEROFFSET %0.7e %0.7e %0.7e\n", d.CenterOffset[0], d.CenterOffset[1], d.CenterOffset[2])
+func (e *DMSpriteDef2) Write(w io.Writer) error {
+	fmt.Fprintf(w, "%s\n", e.Definition())
+	fmt.Fprintf(w, "\tTAG \"%s\"\n", e.Tag)
+	fmt.Fprintf(w, "\t// FLAGS \"%d\" // need to assess\n", e.Flags)
+	fmt.Fprintf(w, "\tCENTEROFFSET %0.7e %0.7e %0.7e\n", e.CenterOffset[0], e.CenterOffset[1], e.CenterOffset[2])
 	fmt.Fprintf(w, "\n")
-	fmt.Fprintf(w, "\tNUMVERTICES %d\n", len(d.Vertices))
-	for _, vert := range d.Vertices {
+	fmt.Fprintf(w, "\tNUMVERTICES %d\n", len(e.Vertices))
+	for _, vert := range e.Vertices {
 		fmt.Fprintf(w, "\tXYZ %0.7e %0.7e %0.7e\n", vert[0], vert[1], vert[2])
 	}
 	fmt.Fprintf(w, "\n")
-	fmt.Fprintf(w, "\tNUMUVS %d\n", len(d.UVs))
-	for _, uv := range d.UVs {
+	fmt.Fprintf(w, "\tNUMUVS %d\n", len(e.UVs))
+	for _, uv := range e.UVs {
 		fmt.Fprintf(w, "\tUV %0.7e %0.7e\n", uv[0], uv[1])
 	}
 	fmt.Fprintf(w, "\n")
-	fmt.Fprintf(w, "\tNUMVERTEXNORMALS %d\n", len(d.VertexNormals))
-	for _, vn := range d.VertexNormals {
+	fmt.Fprintf(w, "\tNUMVERTEXNORMALS %d\n", len(e.VertexNormals))
+	for _, vn := range e.VertexNormals {
 		fmt.Fprintf(w, "\tXYZ %0.7e %0.7e %0.7e\n", vn[0], vn[1], vn[2])
 	}
 	fmt.Fprintf(w, "\n")
 	fmt.Fprintf(w, "\n")
-	fmt.Fprintf(w, "\tSKINASSIGNMENTGROUPS %d", len(d.SkinAssignmentGroups))
-	for _, sa := range d.SkinAssignmentGroups {
+	fmt.Fprintf(w, "\tSKINASSIGNMENTGROUPS %d", len(e.SkinAssignmentGroups))
+	for _, sa := range e.SkinAssignmentGroups {
 		fmt.Fprintf(w, " %d %d", sa[0], sa[1])
 	}
 	fmt.Fprintf(w, "\n")
-	fmt.Fprintf(w, "\tMATERIALPALETTE \"%s\"\n", d.MaterialPaletteTag)
+	fmt.Fprintf(w, "\tMATERIALPALETTE \"%s\"\n", e.MaterialPaletteTag)
 	fmt.Fprintf(w, "\n")
 	fmt.Fprintf(w, "\tPOLYHEDRON\n")
-	fmt.Fprintf(w, "\t\tDEFINITION \"%s\"\n", d.PolyhedronTag)
+	fmt.Fprintf(w, "\t\tDEFINITION \"%s\"\n", e.PolyhedronTag)
 	fmt.Fprintf(w, "\tENDPOLYHEDRON\n\n")
-	fmt.Fprintf(w, "\tNUMFACE2S %d\n", len(d.Faces))
+	fmt.Fprintf(w, "\tNUMFACE2S %d\n", len(e.Faces))
 	fmt.Fprintf(w, "\n")
-	for i, face := range d.Faces {
+	for i, face := range e.Faces {
 		fmt.Fprintf(w, "\tDMFACE2 //%d\n", i+1)
 		fmt.Fprintf(w, "\t\tFLAGS %d\n", face.Flags)
 		fmt.Fprintf(w, "\t\tTRIANGLE   %d %d %d\n", face.Triangle[0], face.Triangle[1], face.Triangle[2])
@@ -97,40 +98,40 @@ func (d *DMSpriteDef2) Write(w io.Writer) error {
 	}
 	fmt.Fprintf(w, "\n")
 	fmt.Fprintf(w, "\t// meshops are not supported\n")
-	fmt.Fprintf(w, "\t// NUMMESHOPS %d\n", len(d.MeshOps))
-	for _, meshOp := range d.MeshOps {
+	fmt.Fprintf(w, "\t// NUMMESHOPS %d\n", len(e.MeshOps))
+	for _, meshOp := range e.MeshOps {
 		fmt.Fprintf(w, "\t// TODO: MESHOP %d %d %0.7f %d %d\n", meshOp.Index1, meshOp.Index2, meshOp.Offset, meshOp.Param1, meshOp.TypeField)
 	}
 	fmt.Fprintf(w, "\n")
-	fmt.Fprintf(w, "\tFACEMATERIALGROUPS %d", len(d.FaceMaterialGroups))
-	for _, group := range d.FaceMaterialGroups {
+	fmt.Fprintf(w, "\tFACEMATERIALGROUPS %d", len(e.FaceMaterialGroups))
+	for _, group := range e.FaceMaterialGroups {
 		fmt.Fprintf(w, " %d %d", group[0], group[1])
 	}
 	fmt.Fprintf(w, "\n")
-	fmt.Fprintf(w, "\tVERTEXMATERIALGROUPS %d", len(d.VertexMaterialGroups))
-	for _, group := range d.VertexMaterialGroups {
+	fmt.Fprintf(w, "\tVERTEXMATERIALGROUPS %d", len(e.VertexMaterialGroups))
+	for _, group := range e.VertexMaterialGroups {
 		fmt.Fprintf(w, " %d %d", group[0], group[1])
 	}
 	fmt.Fprintf(w, "\n")
-	fmt.Fprintf(w, "\tBOUNDINGRADIUS %0.7e\n", d.BoundingRadius)
+	fmt.Fprintf(w, "\tBOUNDINGRADIUS %0.7e\n", e.BoundingRadius)
 	fmt.Fprintf(w, "\n")
-	fmt.Fprintf(w, "\tFPSCALE %d\n", d.FPScale)
+	fmt.Fprintf(w, "\tFPSCALE %d\n", e.FPScale)
 	fmt.Fprintf(w, "ENDDMSPRITEDEF2\n\n")
 	return nil
 }
 
-func (d *DMSpriteDef2) Read(r *AsciiReadToken) error {
+func (e *DMSpriteDef2) Read(r *AsciiReadToken) error {
 	records, err := r.ReadProperty("TAG", 1)
 	if err != nil {
 		return err
 	}
-	d.Tag = records[1]
+	e.Tag = records[1]
 
 	records, err = r.ReadProperty("CENTEROFFSET", 3)
 	if err != nil {
 		return err
 	}
-	d.CenterOffset, err = helper.ParseFloat32Slice3(records[1:])
+	e.CenterOffset, err = helper.ParseFloat32Slice3(records[1:])
 	if err != nil {
 		return fmt.Errorf("center offset: %w", err)
 	}
@@ -152,7 +153,7 @@ func (d *DMSpriteDef2) Read(r *AsciiReadToken) error {
 		if err != nil {
 			return fmt.Errorf("vertex %d: %w", i, err)
 		}
-		d.Vertices = append(d.Vertices, vert)
+		e.Vertices = append(e.Vertices, vert)
 	}
 
 	records, err = r.ReadProperty("NUMUVS", 1)
@@ -173,7 +174,7 @@ func (d *DMSpriteDef2) Read(r *AsciiReadToken) error {
 		if err != nil {
 			return fmt.Errorf("uv %d: %w", i, err)
 		}
-		d.UVs = append(d.UVs, uv)
+		e.UVs = append(e.UVs, uv)
 	}
 
 	records, err = r.ReadProperty("NUMVERTEXNORMALS", 1)
@@ -194,7 +195,7 @@ func (d *DMSpriteDef2) Read(r *AsciiReadToken) error {
 		if err != nil {
 			return fmt.Errorf("normal %d: %w", i, err)
 		}
-		d.VertexNormals = append(d.VertexNormals, norm)
+		e.VertexNormals = append(e.VertexNormals, norm)
 	}
 
 	records, err = r.ReadProperty("SKINASSIGNMENTGROUPS", 1)
@@ -215,14 +216,14 @@ func (d *DMSpriteDef2) Read(r *AsciiReadToken) error {
 		if err != nil {
 			return fmt.Errorf("skin assignment %d: %w", i, err)
 		}
-		d.SkinAssignmentGroups = append(d.SkinAssignmentGroups, [2]uint16{uint16(val1), uint16(val2)})
+		e.SkinAssignmentGroups = append(e.SkinAssignmentGroups, [2]uint16{uint16(val1), uint16(val2)})
 	}
 
 	records, err = r.ReadProperty("MATERIALPALETTE", 1)
 	if err != nil {
 		return err
 	}
-	d.MaterialPaletteTag = records[1]
+	e.MaterialPaletteTag = records[1]
 
 	_, err = r.ReadProperty("POLYHEDRON", 0)
 	if err != nil {
@@ -232,7 +233,7 @@ func (d *DMSpriteDef2) Read(r *AsciiReadToken) error {
 	if err != nil {
 		return err
 	}
-	d.PolyhedronTag = records[1]
+	e.PolyhedronTag = records[1]
 	_, err = r.ReadProperty("ENDPOLYHEDRON", 0)
 	if err != nil {
 		return err
@@ -277,7 +278,7 @@ func (d *DMSpriteDef2) Read(r *AsciiReadToken) error {
 			return err
 		}
 
-		d.Faces = append(d.Faces, face)
+		e.Faces = append(e.Faces, face)
 	}
 
 	records, err = r.ReadProperty("FACEMATERIALGROUPS", 1)
@@ -298,7 +299,7 @@ func (d *DMSpriteDef2) Read(r *AsciiReadToken) error {
 		if err != nil {
 			return fmt.Errorf("face material group %d: %w", i, err)
 		}
-		d.FaceMaterialGroups = append(d.FaceMaterialGroups, [2]uint16{uint16(val1), uint16(val2)})
+		e.FaceMaterialGroups = append(e.FaceMaterialGroups, [2]uint16{uint16(val1), uint16(val2)})
 	}
 
 	records, err = r.ReadProperty("VERTEXMATERIALGROUPS", 1)
@@ -319,14 +320,14 @@ func (d *DMSpriteDef2) Read(r *AsciiReadToken) error {
 		if err != nil {
 			return fmt.Errorf("vertex material group %d: %w", i, err)
 		}
-		d.VertexMaterialGroups = append(d.VertexMaterialGroups, [2]int16{int16(val1), int16(val2)})
+		e.VertexMaterialGroups = append(e.VertexMaterialGroups, [2]int16{int16(val1), int16(val2)})
 	}
 
 	records, err = r.ReadProperty("BOUNDINGRADIUS", 1)
 	if err != nil {
 		return err
 	}
-	d.BoundingRadius, err = helper.ParseFloat32(records[1])
+	e.BoundingRadius, err = helper.ParseFloat32(records[1])
 	if err != nil {
 		return fmt.Errorf("bounding radius: %w", err)
 	}
@@ -335,7 +336,7 @@ func (d *DMSpriteDef2) Read(r *AsciiReadToken) error {
 	if err != nil {
 		return err
 	}
-	d.FPScale, err = helper.ParseUint16(records[1])
+	e.FPScale, err = helper.ParseUint16(records[1])
 	if err != nil {
 		return fmt.Errorf("fpscale: %w", err)
 	}
@@ -348,37 +349,49 @@ func (d *DMSpriteDef2) Read(r *AsciiReadToken) error {
 	return nil
 }
 
-func (d *DMSpriteDef2) ToRaw(srcWld *Wld, dst *raw.Wld) (int16, error) {
+func (e *DMSpriteDef2) ToRaw(srcWld *Wld, dst *raw.Wld) (int16, error) {
 	var err error
 
+	if e.fragID != 0 {
+		return e.fragID, nil
+	}
+
 	materialPaletteRef := int16(0)
-	if d.MaterialPaletteTag != "" {
-		palette := srcWld.ByTag(d.MaterialPaletteTag)
+	if e.MaterialPaletteTag != "" {
+		palette := srcWld.ByTag(e.MaterialPaletteTag)
 		if palette == nil {
-			return -1, fmt.Errorf("material palette %s not found", d.MaterialPaletteTag)
+			return -1, fmt.Errorf("material palette %s not found", e.MaterialPaletteTag)
 		}
 
 		materialPaletteRef, err = palette.ToRaw(srcWld, dst)
 		if err != nil {
-			return -1, fmt.Errorf("material palette %s to raw: %w", d.MaterialPaletteTag, err)
+			return -1, fmt.Errorf("material palette %s to raw: %w", e.MaterialPaletteTag, err)
 		}
 	}
 	dmSpriteDef := &rawfrag.WldFragDmSpriteDef2{
-		NameRef:            raw.NameAdd(d.Tag),
-		Flags:              d.Flags,
+		NameRef:            raw.NameAdd(e.Tag),
+		Flags:              e.Flags,
 		MaterialPaletteRef: uint32(materialPaletteRef),
-		CenterOffset:       d.CenterOffset,
-		Params2:            d.Params2,
-		MaxDistance:        d.MaxDistance,
-		Min:                d.Min,
-		Max:                d.Max,
-		Scale:              d.FPScale,
-		Colors:             d.Colors,
+		CenterOffset:       e.CenterOffset,
+		Params2:            e.Params2,
+		MaxDistance:        e.MaxDistance,
+		Min:                e.Min,
+		Max:                e.Max,
+		Scale:              e.FPScale,
+		Colors:             e.Colors,
 	}
 
-	scale := float32(1 / float32(int(1)<<int(d.FPScale)))
+	for i, frag := range dst.Fragments {
+		_, ok := frag.(*rawfrag.WldFragBMInfo)
+		if !ok {
+			continue
+		}
+		dmSpriteDef.Fragment4Ref = int32(i) + 1
+	}
 
-	for _, vert := range d.Vertices {
+	scale := float32(1 / float32(int(1)<<int(e.FPScale)))
+
+	for _, vert := range e.Vertices {
 		dmSpriteDef.Vertices = append(dmSpriteDef.Vertices, [3]int16{
 			int16(vert[0] / scale),
 			int16(vert[1] / scale),
@@ -386,14 +399,14 @@ func (d *DMSpriteDef2) ToRaw(srcWld *Wld, dst *raw.Wld) (int16, error) {
 		})
 	}
 
-	for _, uv := range d.UVs {
+	for _, uv := range e.UVs {
 		dmSpriteDef.UVs = append(dmSpriteDef.UVs, [2]int16{
 			int16(uv[0] / scale),
 			int16(uv[1] / scale),
 		})
 	}
 
-	for _, normal := range d.VertexNormals {
+	for _, normal := range e.VertexNormals {
 		dmSpriteDef.VertexNormals = append(dmSpriteDef.VertexNormals, [3]int8{
 			int8(normal[0] / scale),
 			int8(normal[1] / scale),
@@ -402,11 +415,13 @@ func (d *DMSpriteDef2) ToRaw(srcWld *Wld, dst *raw.Wld) (int16, error) {
 	}
 
 	dst.Fragments = append(dst.Fragments, dmSpriteDef)
+	e.fragID = int16(len(dst.Fragments))
 	return int16(len(dst.Fragments)), nil
 }
 
 // DMSpriteDef is a declaration of DMSPRITEDEF
 type DMSpriteDef struct {
+	fragID         int16
 	Tag            string
 	Flags          uint32
 	Fragment1Maybe int16
@@ -457,46 +472,66 @@ type DMSpriteDefSize6Entry struct {
 	Unk5 uint32
 }
 
+func (e *DMSpriteDef) Definition() string {
+	return "DMSPRITEDEF"
+}
+
+func (e *DMSpriteDef) Write(w io.Writer) error {
+	return fmt.Errorf("not implemented")
+}
+
+func (e *DMSpriteDef) Read(r *AsciiReadToken) error {
+	return fmt.Errorf("not implemented")
+}
+
+func (e *DMSpriteDef) ToRaw(srcWld *Wld, dst *raw.Wld) (int16, error) {
+	if e.fragID != 0 {
+		return e.fragID, nil
+	}
+	return -1, fmt.Errorf("not implemented")
+}
+
 // DMSprite is a declaration of DMSPRITEINSTANCE
 type DMSprite struct {
+	fragID        int16
 	Tag           string
 	DefinitionTag string
 	Param         uint32
 }
 
-func (d *DMSprite) Definition() string {
+func (e *DMSprite) Definition() string {
 	return "DMSPRITEINSTANCE"
 }
 
-func (d *DMSprite) Write(w io.Writer) error {
-	fmt.Fprintf(w, "%s\n", d.Definition())
-	fmt.Fprintf(w, "\tTAG \"%s\"\n", d.Tag)
-	fmt.Fprintf(w, "\tDEFINITION \"%s\"\n", d.DefinitionTag)
-	fmt.Fprintf(w, "\tPARAM %d\n", d.Param)
+func (e *DMSprite) Write(w io.Writer) error {
+	fmt.Fprintf(w, "%s\n", e.Definition())
+	fmt.Fprintf(w, "\tTAG \"%s\"\n", e.Tag)
+	fmt.Fprintf(w, "\tDEFINITION \"%s\"\n", e.DefinitionTag)
+	fmt.Fprintf(w, "\tPARAM %d\n", e.Param)
 	fmt.Fprintf(w, "ENDDMSPRITEINSTANCE\n\n")
 	return nil
 }
 
-func (d *DMSprite) Read(r *AsciiReadToken) error {
+func (e *DMSprite) Read(r *AsciiReadToken) error {
 	records, err := r.ReadProperty("TAG", 1)
 	if err != nil {
 		return err
 	}
-	d.Tag = records[1]
+	e.Tag = records[1]
 
 	records, err = r.ReadProperty("DEFINITION", 1)
 	if err != nil {
 		return err
 	}
 
-	d.DefinitionTag = records[1]
+	e.DefinitionTag = records[1]
 
 	records, err = r.ReadProperty("PARAM", 1)
 	if err != nil {
 		return err
 	}
 
-	d.Param, err = helper.ParseUint32(records[1])
+	e.Param, err = helper.ParseUint32(records[1])
 	if err != nil {
 		return fmt.Errorf("param: %w", err)
 	}
@@ -509,34 +544,43 @@ func (d *DMSprite) Read(r *AsciiReadToken) error {
 	return nil
 }
 
+func (e *DMSprite) ToRaw(srcWld *Wld, dst *raw.Wld) (int16, error) {
+	if e.fragID != 0 {
+		return e.fragID, nil
+	}
+
+	return -1, fmt.Errorf("not implemented")
+}
+
 // MaterialPalette is a declaration of MATERIALPALETTE
 type MaterialPalette struct {
+	fragID    int16
 	Tag       string
 	flags     uint32
 	Materials []string
 }
 
-func (m *MaterialPalette) Definition() string {
+func (e *MaterialPalette) Definition() string {
 	return "MATERIALPALETTE"
 }
 
-func (m *MaterialPalette) Write(w io.Writer) error {
-	fmt.Fprintf(w, "%s\n", m.Definition())
-	fmt.Fprintf(w, "\tTAG \"%s\"\n", m.Tag)
-	fmt.Fprintf(w, "\tNUMMATERIALS %d\n", len(m.Materials))
-	for _, mat := range m.Materials {
+func (e *MaterialPalette) Write(w io.Writer) error {
+	fmt.Fprintf(w, "%s\n", e.Definition())
+	fmt.Fprintf(w, "\tTAG \"%s\"\n", e.Tag)
+	fmt.Fprintf(w, "\tNUMMATERIALS %d\n", len(e.Materials))
+	for _, mat := range e.Materials {
 		fmt.Fprintf(w, "\tMATERIAL \"%s\"\n", mat)
 	}
 	fmt.Fprintf(w, "ENDMATERIALPALETTE\n\n")
 	return nil
 }
 
-func (m *MaterialPalette) Read(r *AsciiReadToken) error {
+func (e *MaterialPalette) Read(r *AsciiReadToken) error {
 	records, err := r.ReadProperty("TAG", 1)
 	if err != nil {
 		return fmt.Errorf("TAG: %w", err)
 	}
-	m.Tag = records[1]
+	e.Tag = records[1]
 
 	records, err = r.ReadProperty("NUMMATERIALS", 1)
 	if err != nil {
@@ -552,7 +596,7 @@ func (m *MaterialPalette) Read(r *AsciiReadToken) error {
 		if err != nil {
 			return fmt.Errorf("MATERIAL: %w", err)
 		}
-		m.Materials = append(m.Materials, records[1])
+		e.Materials = append(e.Materials, records[1])
 	}
 
 	_, err = r.ReadProperty("ENDMATERIALPALETTE", 0)
@@ -563,33 +607,38 @@ func (m *MaterialPalette) Read(r *AsciiReadToken) error {
 	return nil
 }
 
-func (m *MaterialPalette) ToRaw(srcWld *Wld, dst *raw.Wld) (int16, error) {
-	var err error
-	wfPalette := &rawfrag.WldFragMaterialPalette{
-		Flags: m.flags,
+func (e *MaterialPalette) ToRaw(srcWld *Wld, dst *raw.Wld) (int16, error) {
+	if e.fragID != 0 {
+		return e.fragID, nil
 	}
-	for _, mat := range m.Materials {
+	wfPalette := &rawfrag.WldFragMaterialPalette{
+		Flags: e.flags,
+	}
+	for _, mat := range e.Materials {
 
 		srcMat := srcWld.ByTag(mat)
 		if srcMat == nil {
 			return -1, fmt.Errorf("material %s not found", mat)
 		}
 
-		_, err = srcMat.ToRaw(srcWld, dst)
+		matRef, err := srcMat.ToRaw(srcWld, dst)
 		if err != nil {
 			return -1, fmt.Errorf("material %s to raw: %w", mat, err)
 		}
 
-		wfPalette.MaterialRefs = append(wfPalette.MaterialRefs, uint32(raw.NameAdd(mat)))
+		wfPalette.MaterialRefs = append(wfPalette.MaterialRefs, uint32(matRef))
 	}
 
-	wfPalette.NameRef = raw.NameAdd(m.Tag)
+	wfPalette.NameRef = raw.NameAdd(e.Tag)
 	dst.Fragments = append(dst.Fragments, wfPalette)
+	e.fragID = int16(len(dst.Fragments))
+
 	return int16(len(dst.Fragments)), nil
 }
 
 // MaterialDef is an entry MATERIALDEFINITION
 type MaterialDef struct {
+	fragID               int16
 	Tag                  string   // TAG %s
 	Flags                uint32   // FLAGS %d
 	RenderMethod         string   // RENDERMETHOD %s
@@ -602,46 +651,46 @@ type MaterialDef struct {
 	Pair2                float32
 }
 
-func (m *MaterialDef) Definition() string {
+func (e *MaterialDef) Definition() string {
 	return "MATERIALDEFINITION"
 }
 
-func (m *MaterialDef) Write(w io.Writer) error {
-	fmt.Fprintf(w, "%s\n", m.Definition())
-	fmt.Fprintf(w, "\tTAG \"%s\"\n", m.Tag)
-	fmt.Fprintf(w, "\t// FLAGS %d\n", m.Flags)
-	fmt.Fprintf(w, "\tRENDERMETHOD %s\n", m.RenderMethod)
-	fmt.Fprintf(w, "\tRGBPEN %d %d %d\n", m.RGBPen[0], m.RGBPen[1], m.RGBPen[2])
-	fmt.Fprintf(w, "\tBRIGHTNESS %0.7f\n", m.Brightness)
-	fmt.Fprintf(w, "\tSCALEDAMBIENT %0.7f\n", m.ScaledAmbient)
+func (e *MaterialDef) Write(w io.Writer) error {
+	fmt.Fprintf(w, "%s\n", e.Definition())
+	fmt.Fprintf(w, "\tTAG \"%s\"\n", e.Tag)
+	fmt.Fprintf(w, "\t// FLAGS %d\n", e.Flags)
+	fmt.Fprintf(w, "\tRENDERMETHOD %s\n", e.RenderMethod)
+	fmt.Fprintf(w, "\tRGBPEN %d %d %d\n", e.RGBPen[0], e.RGBPen[1], e.RGBPen[2])
+	fmt.Fprintf(w, "\tBRIGHTNESS %0.7f\n", e.Brightness)
+	fmt.Fprintf(w, "\tSCALEDAMBIENT %0.7f\n", e.ScaledAmbient)
 	fmt.Fprintf(w, "\tSIMPLESPRITEINST\n")
-	fmt.Fprintf(w, "\t\tTAG \"%s\"\n", m.SimpleSpriteTag)
-	fmt.Fprintf(w, "\t\t// FLAGS %d\n", m.SimpleSpriteInstFlag)
+	fmt.Fprintf(w, "\t\tTAG \"%s\"\n", e.SimpleSpriteTag)
+	fmt.Fprintf(w, "\t\t// FLAGS %d\n", e.SimpleSpriteInstFlag)
 	fmt.Fprintf(w, "\tENDSIMPLESPRITEINST\n")
-	fmt.Fprintf(w, "\t// PAIR1 %d\n", m.Pair1)
-	fmt.Fprintf(w, "\t// PAIR2 %0.7f\n", m.Pair2)
+	fmt.Fprintf(w, "\t// PAIR1 %d\n", e.Pair1)
+	fmt.Fprintf(w, "\t// PAIR2 %0.7f\n", e.Pair2)
 	fmt.Fprintf(w, "ENDMATERIALDEFINITION\n\n")
 	return nil
 }
 
-func (m *MaterialDef) Read(r *AsciiReadToken) error {
+func (e *MaterialDef) Read(r *AsciiReadToken) error {
 	records, err := r.ReadProperty("TAG", 1)
 	if err != nil {
 		return err
 	}
-	m.Tag = records[1]
+	e.Tag = records[1]
 
 	records, err = r.ReadProperty("RENDERMETHOD", 1)
 	if err != nil {
 		return err
 	}
-	m.RenderMethod = records[1]
+	e.RenderMethod = records[1]
 
 	records, err = r.ReadProperty("RGBPEN", 3)
 	if err != nil {
 		return err
 	}
-	m.RGBPen, err = helper.ParseUint8Slice4(records[1:])
+	e.RGBPen, err = helper.ParseUint8Slice4(records[1:])
 	if err != nil {
 		return fmt.Errorf("rgbpen: %w", err)
 	}
@@ -650,7 +699,7 @@ func (m *MaterialDef) Read(r *AsciiReadToken) error {
 	if err != nil {
 		return err
 	}
-	m.Brightness, err = helper.ParseFloat32(records[1])
+	e.Brightness, err = helper.ParseFloat32(records[1])
 	if err != nil {
 		return fmt.Errorf("brightness: %w", err)
 	}
@@ -659,7 +708,7 @@ func (m *MaterialDef) Read(r *AsciiReadToken) error {
 	if err != nil {
 		return err
 	}
-	m.ScaledAmbient, err = helper.ParseFloat32(records[1])
+	e.ScaledAmbient, err = helper.ParseFloat32(records[1])
 	if err != nil {
 		return fmt.Errorf("scaled ambient: %w", err)
 	}
@@ -673,7 +722,7 @@ func (m *MaterialDef) Read(r *AsciiReadToken) error {
 	if err != nil {
 		return err
 	}
-	m.SimpleSpriteTag = records[1]
+	e.SimpleSpriteTag = records[1]
 
 	_, err = r.ReadProperty("ENDSIMPLESPRITEINST", 0)
 	if err != nil {
@@ -688,23 +737,32 @@ func (m *MaterialDef) Read(r *AsciiReadToken) error {
 	return nil
 }
 
-func (m *MaterialDef) ToRaw(srcWld *Wld, dst *raw.Wld) (int16, error) {
-	wfMaterialDef := &rawfrag.WldFragMaterialDef{}
+func (e *MaterialDef) ToRaw(srcWld *Wld, dst *raw.Wld) (int16, error) {
+	if e.fragID != 0 {
+		return e.fragID, nil
+	}
+	wfMaterialDef := &rawfrag.WldFragMaterialDef{
+		Flags:         e.Flags,
+		RenderMethod:  model.RenderMethodInt(e.RenderMethod),
+		RGBPen:        e.RGBPen,
+		Brightness:    e.Brightness,
+		ScaledAmbient: e.ScaledAmbient,
+	}
 
-	if m.SimpleSpriteTag != "" {
-		spriteDef := srcWld.ByTag(m.SimpleSpriteTag)
+	if e.SimpleSpriteTag != "" {
+		spriteDef := srcWld.ByTag(e.SimpleSpriteTag)
 		if spriteDef == nil {
-			return -1, fmt.Errorf("simple sprite %s not found", m.SimpleSpriteTag)
+			return -1, fmt.Errorf("simple sprite %s not found", e.SimpleSpriteTag)
 		}
 
 		spriteDefRef, err := spriteDef.ToRaw(srcWld, dst)
 		if err != nil {
-			return -1, fmt.Errorf("simple sprite %s to raw: %w", m.SimpleSpriteTag, err)
+			return -1, fmt.Errorf("simple sprite %s to raw: %w", e.SimpleSpriteTag, err)
 		}
 
 		sprite := &rawfrag.WldFragSimpleSprite{
 			//NameRef:   raw.NameAdd(m.SimpleSpriteTag),
-			Flags:     m.SimpleSpriteInstFlag,
+			Flags:     e.SimpleSpriteInstFlag,
 			SpriteRef: spriteDefRef,
 		}
 
@@ -715,14 +773,16 @@ func (m *MaterialDef) ToRaw(srcWld *Wld, dst *raw.Wld) (int16, error) {
 		wfMaterialDef.SimpleSpriteRef = uint32(spriteRef)
 	}
 
-	wfMaterialDef.NameRef = raw.NameAdd(m.Tag)
+	wfMaterialDef.NameRef = raw.NameAdd(e.Tag)
 
 	dst.Fragments = append(dst.Fragments, wfMaterialDef)
+	e.fragID = int16(len(dst.Fragments))
 	return int16(len(dst.Fragments)), nil
 }
 
 // SimpleSpriteDef is a declaration of SIMPLESPRITEDEF
 type SimpleSpriteDef struct {
+	fragID             int16
 	Tag                string
 	SkipFrames         int
 	Sleep              int
@@ -736,37 +796,37 @@ type SimpleSpriteFrame struct {
 	TextureTag  string
 }
 
-func (s *SimpleSpriteDef) Definition() string {
+func (e *SimpleSpriteDef) Definition() string {
 	return "SIMPLESPRITEDEF"
 }
 
-func (s *SimpleSpriteDef) Write(w io.Writer) error {
-	fmt.Fprintf(w, "%s\n", s.Definition())
-	fmt.Fprintf(w, "\tSIMPLESPRITETAG \"%s\"\n", s.Tag)
-	fmt.Fprintf(w, "\tSKIPFRAMES %d\n", s.SkipFrames)
-	fmt.Fprintf(w, "\tANIMATED %d\n", s.Animated)
-	fmt.Fprintf(w, "\tSLEEP %d\n", s.Sleep)
-	fmt.Fprintf(w, "\tCURRENTFRAME %d\n", s.CurrentFrame)
-	fmt.Fprintf(w, "\tNUMFRAMES %d\n", len(s.SimpleSpriteFrames))
-	for _, frame := range s.SimpleSpriteFrames {
+func (e *SimpleSpriteDef) Write(w io.Writer) error {
+	fmt.Fprintf(w, "%s\n", e.Definition())
+	fmt.Fprintf(w, "\tSIMPLESPRITETAG \"%s\"\n", e.Tag)
+	fmt.Fprintf(w, "\tSKIPFRAMES %d\n", e.SkipFrames)
+	fmt.Fprintf(w, "\tANIMATED %d\n", e.Animated)
+	fmt.Fprintf(w, "\tSLEEP %d\n", e.Sleep)
+	fmt.Fprintf(w, "\tCURRENTFRAME %d\n", e.CurrentFrame)
+	fmt.Fprintf(w, "\tNUMFRAMES %d\n", len(e.SimpleSpriteFrames))
+	for _, frame := range e.SimpleSpriteFrames {
 		fmt.Fprintf(w, "\tFRAME \"%s\" \"%s\"\n", frame.TextureFile, frame.TextureTag)
 	}
 	fmt.Fprintf(w, "ENDSIMPLESPRITEDEF\n\n")
 	return nil
 }
 
-func (s *SimpleSpriteDef) Read(r *AsciiReadToken) error {
+func (e *SimpleSpriteDef) Read(r *AsciiReadToken) error {
 	records, err := r.ReadProperty("SIMPLESPRITETAG", 0)
 	if err != nil {
 		return fmt.Errorf("SIMPLESPRITETAG: %w", err)
 	}
-	s.Tag = records[1]
+	e.Tag = records[1]
 
 	records, err = r.ReadProperty("SKIPFRAMES", 1)
 	if err != nil {
 		return fmt.Errorf("SKIPFRAMES: %w", err)
 	}
-	s.SkipFrames, err = helper.ParseInt(records[1])
+	e.SkipFrames, err = helper.ParseInt(records[1])
 	if err != nil {
 		return fmt.Errorf("skip frames: %w", err)
 	}
@@ -775,7 +835,7 @@ func (s *SimpleSpriteDef) Read(r *AsciiReadToken) error {
 	if err != nil {
 		return fmt.Errorf("ANIMATED: %w", err)
 	}
-	s.Animated, err = helper.ParseInt(records[1])
+	e.Animated, err = helper.ParseInt(records[1])
 	if err != nil {
 		return fmt.Errorf("animated: %w", err)
 	}
@@ -784,7 +844,7 @@ func (s *SimpleSpriteDef) Read(r *AsciiReadToken) error {
 	if err != nil {
 		return fmt.Errorf("SLEEP: %w", err)
 	}
-	s.Sleep, err = helper.ParseInt(records[1])
+	e.Sleep, err = helper.ParseInt(records[1])
 	if err != nil {
 		return fmt.Errorf("sleep: %w", err)
 	}
@@ -803,7 +863,7 @@ func (s *SimpleSpriteDef) Read(r *AsciiReadToken) error {
 		if err != nil {
 			return fmt.Errorf("FRAME: %w", err)
 		}
-		s.SimpleSpriteFrames = append(s.SimpleSpriteFrames, SimpleSpriteFrame{
+		e.SimpleSpriteFrames = append(e.SimpleSpriteFrames, SimpleSpriteFrame{
 			TextureFile: records[1],
 			TextureTag:  records[2],
 		})
@@ -816,48 +876,53 @@ func (s *SimpleSpriteDef) Read(r *AsciiReadToken) error {
 	return nil
 }
 
-func (s *SimpleSpriteDef) ToRaw(srcWld *Wld, dst *raw.Wld) (int16, error) {
+func (e *SimpleSpriteDef) ToRaw(srcWld *Wld, dst *raw.Wld) (int16, error) {
+	if e.fragID != 0 {
+		return e.fragID, nil
+	}
 	flags := uint32(0)
 	wfSimpleSpriteDef := &rawfrag.WldFragSimpleSpriteDef{}
 
-	if s.SkipFrames > 0 {
+	if e.SkipFrames > 0 {
 		flags |= 0x01
 	}
 	//flags |= 0x02
 	flags |= 0x04
-	if len(s.SimpleSpriteFrames) > 1 {
+	if len(e.SimpleSpriteFrames) > 1 {
 		flags |= 0x08
 	}
-	if s.Sleep > 0 {
+	if e.Sleep > 0 {
 		flags |= 0x10
 	}
-	if s.CurrentFrame > 0 {
+	if e.CurrentFrame > 0 {
 		flags |= 0x20
 	}
 
 	wfSimpleSpriteDef.Flags = flags
 
 	bmInfoRef := int16(0)
-	for _, frame := range s.SimpleSpriteFrames {
+	for _, frame := range e.SimpleSpriteFrames {
 
 		wfBMInfo := &rawfrag.WldFragBMInfo{
 			NameRef:      raw.NameAdd(frame.TextureTag),
-			TextureNames: []string{frame.TextureFile},
+			TextureNames: []string{frame.TextureFile + "\x00"},
 		}
 
 		dst.Fragments = append(dst.Fragments, wfBMInfo)
 		bmInfoRef = int16(len(dst.Fragments))
 	}
 
-	wfSimpleSpriteDef.NameRef = raw.NameAdd(s.Tag)
+	wfSimpleSpriteDef.NameRef = raw.NameAdd(e.Tag)
 	wfSimpleSpriteDef.BitmapRefs = []uint32{uint32(bmInfoRef)}
 
 	dst.Fragments = append(dst.Fragments, wfSimpleSpriteDef)
+	e.fragID = int16(len(dst.Fragments))
 	return int16(len(dst.Fragments)), nil
 }
 
 // ActorDef is a declaration of ACTORDEF
 type ActorDef struct {
+	fragID        int16
 	Tag           string
 	Callback      string
 	BoundsRef     int32
@@ -868,19 +933,19 @@ type ActorDef struct {
 	Unk2          uint32
 }
 
-func (a *ActorDef) Definition() string {
+func (e *ActorDef) Definition() string {
 	return "ACTORDEF"
 }
 
-func (a *ActorDef) Write(w io.Writer) error {
-	fmt.Fprintf(w, "%s\n", a.Definition())
-	fmt.Fprintf(w, "\tACTORTAG \"%s\"\n", a.Tag)
-	fmt.Fprintf(w, "\tCALLBACK \"%s\"\n", a.Callback)
-	fmt.Fprintf(w, "\t// BOUNDSREF %d\n", a.BoundsRef)
-	fmt.Fprintf(w, "\tCURRENTACTION %d\n", a.CurrentAction)
-	fmt.Fprintf(w, "\tLOCATION %0.7f %0.7f %0.7f %0.7f %0.7f %0.7f\n", a.Location[0], a.Location[1], a.Location[2], a.Location[3], a.Location[4], a.Location[5])
-	fmt.Fprintf(w, "\tNUMACTIONS %d\n", len(a.Actions))
-	for _, action := range a.Actions {
+func (e *ActorDef) Write(w io.Writer) error {
+	fmt.Fprintf(w, "%s\n", e.Definition())
+	fmt.Fprintf(w, "\tACTORTAG \"%s\"\n", e.Tag)
+	fmt.Fprintf(w, "\tCALLBACK \"%s\"\n", e.Callback)
+	fmt.Fprintf(w, "\t// BOUNDSREF %d\n", e.BoundsRef)
+	fmt.Fprintf(w, "\tCURRENTACTION %d\n", e.CurrentAction)
+	fmt.Fprintf(w, "\tLOCATION %0.7f %0.7f %0.7f %0.7f %0.7f %0.7f\n", e.Location[0], e.Location[1], e.Location[2], e.Location[3], e.Location[4], e.Location[5])
+	fmt.Fprintf(w, "\tNUMACTIONS %d\n", len(e.Actions))
+	for _, action := range e.Actions {
 		fmt.Fprintf(w, "\tACTION\n")
 		fmt.Fprintf(w, "\t\t// UNK1 %d\n", action.Unk1)
 		fmt.Fprintf(w, "\t\tNUMLEVELSOFDETAIL %d\n", len(action.LevelOfDetails))
@@ -892,29 +957,29 @@ func (a *ActorDef) Write(w io.Writer) error {
 		}
 		fmt.Fprintf(w, "\tENDACTION\n")
 	}
-	fmt.Fprintf(w, "\t// UNK2 %d\n", a.Unk2)
+	fmt.Fprintf(w, "\t// UNK2 %d\n", e.Unk2)
 	fmt.Fprintf(w, "ENDACTORDEF\n\n")
 	return nil
 }
 
-func (a *ActorDef) Read(r *AsciiReadToken) error {
+func (e *ActorDef) Read(r *AsciiReadToken) error {
 	records, err := r.ReadProperty("ACTORTAG", 1)
 	if err != nil {
 		return err
 	}
-	a.Tag = records[1]
+	e.Tag = records[1]
 
 	records, err = r.ReadProperty("CALLBACK", 1)
 	if err != nil {
 		return err
 	}
-	a.Callback = records[1]
+	e.Callback = records[1]
 
 	records, err = r.ReadProperty("CURRENTACTION", 1)
 	if err != nil {
 		return err
 	}
-	a.CurrentAction, err = helper.ParseUint32(records[1])
+	e.CurrentAction, err = helper.ParseUint32(records[1])
 	if err != nil {
 		return fmt.Errorf("current action: %w", err)
 	}
@@ -923,7 +988,7 @@ func (a *ActorDef) Read(r *AsciiReadToken) error {
 	if err != nil {
 		return err
 	}
-	a.Location, err = helper.ParseFloat32Slice6(records[1:])
+	e.Location, err = helper.ParseFloat32Slice6(records[1:])
 	if err != nil {
 		return fmt.Errorf("location: %w", err)
 	}
@@ -990,23 +1055,26 @@ func (a *ActorDef) Read(r *AsciiReadToken) error {
 			return err
 		}
 
-		a.Actions = append(a.Actions, action)
+		e.Actions = append(e.Actions, action)
 
 	}
 
 	return nil
 }
 
-func (a *ActorDef) ToRaw(srcWld *Wld, dst *raw.Wld) (int16, error) {
+func (e *ActorDef) ToRaw(srcWld *Wld, dst *raw.Wld) (int16, error) {
 	var err error
-
-	actorDef := &rawfrag.WldFragActorDef{
-		BoundsRef:     a.BoundsRef,
-		CurrentAction: a.CurrentAction,
-		Location:      a.Location,
+	if e.fragID != 0 {
+		return e.fragID, nil
 	}
 
-	for _, action := range a.Actions {
+	actorDef := &rawfrag.WldFragActorDef{
+		BoundsRef:     e.BoundsRef,
+		CurrentAction: e.CurrentAction,
+		Location:      e.Location,
+	}
+
+	for _, action := range e.Actions {
 		actorAction := rawfrag.WldFragModelAction{
 			Unk1: action.Unk1,
 		}
@@ -1050,10 +1118,11 @@ func (a *ActorDef) ToRaw(srcWld *Wld, dst *raw.Wld) (int16, error) {
 		actorDef.Actions = append(actorDef.Actions, actorAction)
 	}
 
-	actorDef.NameRef = raw.NameAdd(a.Tag)
-	actorDef.CallbackNameRef = raw.NameAdd(a.Callback)
+	actorDef.NameRef = raw.NameAdd(e.Tag)
+	actorDef.CallbackNameRef = raw.NameAdd(e.Callback)
 
 	dst.Fragments = append(dst.Fragments, actorDef)
+	e.fragID = int16(len(dst.Fragments))
 	return int16(len(dst.Fragments)), err
 }
 
@@ -1072,6 +1141,7 @@ type ActorLevelOfDetail struct {
 
 // ActorInst is a declaration of ACTORINST
 type ActorInst struct {
+	fragID           int16
 	Tag              string
 	DefinitionTag    string
 	Flags            uint32
@@ -1088,48 +1158,48 @@ type ActorInst struct {
 	UserData         string
 }
 
-func (a *ActorInst) Definition() string {
+func (e *ActorInst) Definition() string {
 	return "ACTORINST"
 }
 
-func (a *ActorInst) Write(w io.Writer) error {
-	fmt.Fprintf(w, "%s\n", a.Definition())
-	fmt.Fprintf(w, "\tTAG \"%s\"\n", a.Tag)
-	fmt.Fprintf(w, "\tDEFINITION \"%s\"\n", a.DefinitionTag)
-	fmt.Fprintf(w, "\t// FLAGS %d\n", a.Flags)
-	fmt.Fprintf(w, "\tACTIVE %d\n", a.Active)
-	fmt.Fprintf(w, "\tSPRITEVOLUMEONLY %d\n", a.SpriteVolumeOnly)
-	fmt.Fprintf(w, "\tLOCATION %0.7f %0.7f %0.7f %0.7f %0.7f %0.7f\n", a.Location[0], a.Location[1], a.Location[2], a.Location[3], a.Location[4], a.Location[5])
-	fmt.Fprintf(w, "\t// UNK1 %d\n", a.Unk1)
-	fmt.Fprintf(w, "\tCURRENTACTION %d\n", a.CurrentAction)
-	fmt.Fprintf(w, "\tSPHERERADIUS %0.7f\n", a.SphereRadius)
-	fmt.Fprintf(w, "\tSOUND \"%s\"\n", a.SoundTag)
-	fmt.Fprintf(w, "\tBOUNDINGRADIUS %0.7f\n", a.BoundingRadius)
-	fmt.Fprintf(w, "\tSCALEFACTOR %0.7f\n", a.Scale)
-	fmt.Fprintf(w, "\tDMRGBTRACK \"%s\"\n", a.DMRGBTrackTag)
-	fmt.Fprintf(w, "\tUSERDATA \"%s\"\n", a.UserData)
+func (e *ActorInst) Write(w io.Writer) error {
+	fmt.Fprintf(w, "%s\n", e.Definition())
+	fmt.Fprintf(w, "\tTAG \"%s\"\n", e.Tag)
+	fmt.Fprintf(w, "\tDEFINITION \"%s\"\n", e.DefinitionTag)
+	fmt.Fprintf(w, "\t// FLAGS %d\n", e.Flags)
+	fmt.Fprintf(w, "\tACTIVE %d\n", e.Active)
+	fmt.Fprintf(w, "\tSPRITEVOLUMEONLY %d\n", e.SpriteVolumeOnly)
+	fmt.Fprintf(w, "\tLOCATION %0.7f %0.7f %0.7f %0.7f %0.7f %0.7f\n", e.Location[0], e.Location[1], e.Location[2], e.Location[3], e.Location[4], e.Location[5])
+	fmt.Fprintf(w, "\t// UNK1 %d\n", e.Unk1)
+	fmt.Fprintf(w, "\tCURRENTACTION %d\n", e.CurrentAction)
+	fmt.Fprintf(w, "\tSPHERERADIUS %0.7f\n", e.SphereRadius)
+	fmt.Fprintf(w, "\tSOUND \"%s\"\n", e.SoundTag)
+	fmt.Fprintf(w, "\tBOUNDINGRADIUS %0.7f\n", e.BoundingRadius)
+	fmt.Fprintf(w, "\tSCALEFACTOR %0.7f\n", e.Scale)
+	fmt.Fprintf(w, "\tDMRGBTRACK \"%s\"\n", e.DMRGBTrackTag)
+	fmt.Fprintf(w, "\tUSERDATA \"%s\"\n", e.UserData)
 	fmt.Fprintf(w, "ENDACTORINST\n\n")
 	return nil
 }
 
-func (a *ActorInst) Read(r *AsciiReadToken) error {
+func (e *ActorInst) Read(r *AsciiReadToken) error {
 	records, err := r.ReadProperty("TAG", 1)
 	if err != nil {
 		return err
 	}
-	a.Tag = records[1]
+	e.Tag = records[1]
 
 	records, err = r.ReadProperty("DEFINITION", 1)
 	if err != nil {
 		return err
 	}
-	a.DefinitionTag = records[1]
+	e.DefinitionTag = records[1]
 
 	records, err = r.ReadProperty("ACTIVE", 1)
 	if err != nil {
 		return err
 	}
-	a.Active, err = helper.ParseInt(records[1])
+	e.Active, err = helper.ParseInt(records[1])
 	if err != nil {
 		return fmt.Errorf("active: %w", err)
 	}
@@ -1138,7 +1208,7 @@ func (a *ActorInst) Read(r *AsciiReadToken) error {
 	if err != nil {
 		return err
 	}
-	a.SpriteVolumeOnly, err = helper.ParseInt(records[1])
+	e.SpriteVolumeOnly, err = helper.ParseInt(records[1])
 	if err != nil {
 		return fmt.Errorf("sprite volume only: %w", err)
 	}
@@ -1147,7 +1217,7 @@ func (a *ActorInst) Read(r *AsciiReadToken) error {
 	if err != nil {
 		return err
 	}
-	a.Location, err = helper.ParseFloat32Slice6(records[1:])
+	e.Location, err = helper.ParseFloat32Slice6(records[1:])
 	if err != nil {
 		return fmt.Errorf("location: %w", err)
 	}
@@ -1156,7 +1226,7 @@ func (a *ActorInst) Read(r *AsciiReadToken) error {
 	if err != nil {
 		return err
 	}
-	a.CurrentAction, err = helper.ParseUint32(records[1])
+	e.CurrentAction, err = helper.ParseUint32(records[1])
 	if err != nil {
 		return fmt.Errorf("current action: %w", err)
 	}
@@ -1165,19 +1235,22 @@ func (a *ActorInst) Read(r *AsciiReadToken) error {
 	if err != nil {
 		return err
 	}
-	a.SphereRadius, err = helper.ParseFloat32(records[1])
+	e.SphereRadius, err = helper.ParseFloat32(records[1])
+	if err != nil {
+		return fmt.Errorf("sphere radius: %w", err)
+	}
 
 	records, err = r.ReadProperty("SOUND", 1)
 	if err != nil {
 		return err
 	}
-	a.SoundTag = records[1]
+	e.SoundTag = records[1]
 
 	records, err = r.ReadProperty("BOUNDINGRADIUS", 1)
 	if err != nil {
 		return err
 	}
-	a.BoundingRadius, err = helper.ParseFloat32(records[1])
+	e.BoundingRadius, err = helper.ParseFloat32(records[1])
 	if err != nil {
 		return fmt.Errorf("bounding radius: %w", err)
 	}
@@ -1186,7 +1259,7 @@ func (a *ActorInst) Read(r *AsciiReadToken) error {
 	if err != nil {
 		return err
 	}
-	a.Scale, err = helper.ParseFloat32(records[1])
+	e.Scale, err = helper.ParseFloat32(records[1])
 	if err != nil {
 		return fmt.Errorf("scale factor: %w", err)
 	}
@@ -1195,13 +1268,13 @@ func (a *ActorInst) Read(r *AsciiReadToken) error {
 	if err != nil {
 		return err
 	}
-	a.DMRGBTrackTag = records[1]
+	e.DMRGBTrackTag = records[1]
 
 	records, err = r.ReadProperty("USERDATA", 1)
 	if err != nil {
 		return err
 	}
-	a.UserData = records[1]
+	e.UserData = records[1]
 
 	_, err = r.ReadProperty("ENDACTORINST", 0)
 	if err != nil {
@@ -1210,44 +1283,47 @@ func (a *ActorInst) Read(r *AsciiReadToken) error {
 	return nil
 }
 
-func (a *ActorInst) ToRaw(srcWld *Wld, dst *raw.Wld) (int16, error) {
+func (e *ActorInst) ToRaw(srcWld *Wld, dst *raw.Wld) (int16, error) {
 	var err error
+	if e.fragID != 0 {
+		return e.fragID, nil
+	}
 	wfActorInst := &rawfrag.WldFragActor{
-		Flags: a.Flags,
+		Flags: e.Flags,
 	}
 
-	if a.DefinitionTag != "" {
-		actorDef := srcWld.ByTag(a.DefinitionTag)
+	if e.DefinitionTag != "" {
+		actorDef := srcWld.ByTag(e.DefinitionTag)
 		if actorDef == nil {
-			return -1, fmt.Errorf("actor definition %s not found", a.DefinitionTag)
+			return -1, fmt.Errorf("actor definition %s not found", e.DefinitionTag)
 		}
 
 		_, err = actorDef.ToRaw(srcWld, dst)
 		if err != nil {
-			return -1, fmt.Errorf("actor definition %s to raw: %w", a.DefinitionTag, err)
+			return -1, fmt.Errorf("actor definition %s to raw: %w", e.DefinitionTag, err)
 		}
 
-		wfActorInst.ActorDefNameRef = raw.NameAdd(a.DefinitionTag)
+		wfActorInst.ActorDefNameRef = raw.NameAdd(e.DefinitionTag)
 	}
 
-	if a.DMRGBTrackTag != "" {
-		dmRGBTrackDef := srcWld.ByTag(a.DMRGBTrackTag)
+	if e.DMRGBTrackTag != "" {
+		dmRGBTrackDef := srcWld.ByTag(e.DMRGBTrackTag)
 		if dmRGBTrackDef == nil {
-			return -1, fmt.Errorf("dm rgb track def %s not found", a.DMRGBTrackTag)
+			return -1, fmt.Errorf("dm rgb track def %s not found", e.DMRGBTrackTag)
 		}
 
 		dmRGBTrackRef, err := dmRGBTrackDef.ToRaw(srcWld, dst)
 		if err != nil {
-			return -1, fmt.Errorf("dm rgb track %s to raw: %w", a.DMRGBTrackTag, err)
+			return -1, fmt.Errorf("dm rgb track %s to raw: %w", e.DMRGBTrackTag, err)
 		}
 
 		wfActorInst.DMRGBTrackRef = int32(dmRGBTrackRef)
 	}
 
-	if a.SphereRadius > 0 {
+	if e.SphereRadius > 0 {
 		sphere := &rawfrag.WldFragSphere{
-			NameRef: raw.NameAdd(a.Tag),
-			Radius:  a.SphereRadius,
+			NameRef: raw.NameAdd(e.Tag),
+			Radius:  e.SphereRadius,
 		}
 
 		dst.Fragments = append(dst.Fragments, sphere)
@@ -1256,6 +1332,7 @@ func (a *ActorInst) ToRaw(srcWld *Wld, dst *raw.Wld) (int16, error) {
 	}
 
 	dst.Fragments = append(dst.Fragments, wfActorInst)
+	e.fragID = int16(len(dst.Fragments))
 	return int16(len(dst.Fragments)), err
 }
 
@@ -1270,45 +1347,45 @@ type LightDef struct {
 	Colors          [][3]float32
 }
 
-func (l *LightDef) Definition() string {
+func (e *LightDef) Definition() string {
 	return "LIGHTDEFINITION"
 }
 
-func (l *LightDef) Write(w io.Writer) error {
-	fmt.Fprintf(w, "%s\n", l.Definition())
-	fmt.Fprintf(w, "\tTAG \"%s\"\n", l.Tag)
+func (e *LightDef) Write(w io.Writer) error {
+	fmt.Fprintf(w, "%s\n", e.Definition())
+	fmt.Fprintf(w, "\tTAG \"%s\"\n", e.Tag)
 
-	fmt.Fprintf(w, "\tCURRENTFRAME %d\n", l.FrameCurrentRef)
-	fmt.Fprintf(w, "\tNUMFRAMES %d\n", len(l.LightLevels))
-	for _, level := range l.LightLevels {
+	fmt.Fprintf(w, "\tCURRENTFRAME %d\n", e.FrameCurrentRef)
+	fmt.Fprintf(w, "\tNUMFRAMES %d\n", len(e.LightLevels))
+	for _, level := range e.LightLevels {
 		fmt.Fprintf(w, "\tLIGHTLEVELS %0.6f\n", level)
 	}
-	fmt.Fprintf(w, "\tSLEEP %d\n", l.Sleep)
+	fmt.Fprintf(w, "\tSLEEP %d\n", e.Sleep)
 	isSkipFrames := 0
-	if l.Flags&0x08 == 0x08 {
+	if e.Flags&0x08 == 0x08 {
 		isSkipFrames = 1
 	}
 	fmt.Fprintf(w, "\tSKIPFRAMES %d\n", isSkipFrames)
-	fmt.Fprintf(w, "\tNUMCOLORS %d\n", len(l.Colors))
-	for _, color := range l.Colors {
+	fmt.Fprintf(w, "\tNUMCOLORS %d\n", len(e.Colors))
+	for _, color := range e.Colors {
 		fmt.Fprintf(w, "\tCOLOR %0.6f %0.6f %0.6f\n", color[0], color[1], color[2])
 	}
 	fmt.Fprintf(w, "ENDLIGHTDEFINITION\n\n")
 	return nil
 }
 
-func (l *LightDef) Read(r *AsciiReadToken) error {
+func (e *LightDef) Read(r *AsciiReadToken) error {
 	records, err := r.ReadProperty("TAG", 1)
 	if err != nil {
 		return err
 	}
-	l.Tag = records[1]
+	e.Tag = records[1]
 
 	records, err = r.ReadProperty("CURRENTFRAME", 1)
 	if err != nil {
 		return err
 	}
-	l.FrameCurrentRef, err = helper.ParseUint32(records[1])
+	e.FrameCurrentRef, err = helper.ParseUint32(records[1])
 	if err != nil {
 		return fmt.Errorf("current frame: %w", err)
 	}
@@ -1331,14 +1408,14 @@ func (l *LightDef) Read(r *AsciiReadToken) error {
 		if err != nil {
 			return fmt.Errorf("light level: %w", err)
 		}
-		l.LightLevels = append(l.LightLevels, level)
+		e.LightLevels = append(e.LightLevels, level)
 	}
 
 	records, err = r.ReadProperty("SLEEP", 1)
 	if err != nil {
 		return err
 	}
-	l.Sleep, err = helper.ParseUint32(records[1])
+	e.Sleep, err = helper.ParseUint32(records[1])
 	if err != nil {
 		return fmt.Errorf("sleep: %w", err)
 	}
@@ -1348,7 +1425,7 @@ func (l *LightDef) Read(r *AsciiReadToken) error {
 		return err
 	}
 	if records[1] == "1" {
-		l.Flags |= 0x08
+		e.Flags |= 0x08
 	}
 
 	records, err = r.ReadProperty("NUMCOLORS", 1)
@@ -1370,7 +1447,7 @@ func (l *LightDef) Read(r *AsciiReadToken) error {
 			return fmt.Errorf("color: %w", err)
 		}
 
-		l.Colors = append(l.Colors, color)
+		e.Colors = append(e.Colors, color)
 	}
 
 	_, err = r.ReadProperty("ENDLIGHTDEFINITION", 0)
@@ -1380,27 +1457,29 @@ func (l *LightDef) Read(r *AsciiReadToken) error {
 	return nil
 }
 
-func (l *LightDef) ToRaw(srcWld *Wld, dst *raw.Wld) (int16, error) {
-	if l.fragID != 0 {
-		return l.fragID, nil
+func (e *LightDef) ToRaw(srcWld *Wld, dst *raw.Wld) (int16, error) {
+	if e.fragID != 0 {
+		return e.fragID, nil
 	}
 	var err error
 
 	wfLightDef := &rawfrag.WldFragLightDef{
-		NameRef:         raw.NameAdd(l.Tag),
-		Sleep:           l.Sleep,
-		FrameCurrentRef: l.FrameCurrentRef,
-		LightLevels:     l.LightLevels,
-		Colors:          l.Colors,
+		NameRef:         raw.NameAdd(e.Tag),
+		Flags:           e.Flags,
+		Sleep:           e.Sleep,
+		FrameCurrentRef: e.FrameCurrentRef,
+		LightLevels:     e.LightLevels,
+		Colors:          e.Colors,
 	}
 
 	dst.Fragments = append(dst.Fragments, wfLightDef)
-	l.fragID = int16(len(dst.Fragments))
+	e.fragID = int16(len(dst.Fragments))
 	return int16(len(dst.Fragments)), err
 }
 
 // PointLight is a declaration of POINTLIGHT
 type PointLight struct {
+	fragID     int16
 	Tag        string
 	LightFlags uint32
 	LightTag   string
@@ -1409,41 +1488,41 @@ type PointLight struct {
 	Radius     float32
 }
 
-func (p *PointLight) Definition() string {
+func (e *PointLight) Definition() string {
 	return "POINTLIGHT"
 }
 
-func (p *PointLight) Write(w io.Writer) error {
-	fmt.Fprintf(w, "%s\n", p.Definition())
-	fmt.Fprintf(w, "\tTAG \"%s\"\n", p.Tag)
-	fmt.Fprintf(w, "\t// FLAGS %d\n", p.Flags)
-	fmt.Fprintf(w, "\tXYZ %0.6f %0.6f %0.6f\n", p.Location[0], p.Location[1], p.Location[2])
-	fmt.Fprintf(w, "\tLIGHT \"%s\"\n", p.LightTag)
-	fmt.Fprintf(w, "\t// LIGHTFLAGS %d\n", p.LightFlags)
-	fmt.Fprintf(w, "\tRADIUSOFINFLUENCE %0.7f\n", p.Radius)
+func (e *PointLight) Write(w io.Writer) error {
+	fmt.Fprintf(w, "%s\n", e.Definition())
+	fmt.Fprintf(w, "\tTAG \"%s\"\n", e.Tag)
+	fmt.Fprintf(w, "\t// FLAGS %d\n", e.Flags)
+	fmt.Fprintf(w, "\tXYZ %0.6f %0.6f %0.6f\n", e.Location[0], e.Location[1], e.Location[2])
+	fmt.Fprintf(w, "\tLIGHT \"%s\"\n", e.LightTag)
+	fmt.Fprintf(w, "\t// LIGHTFLAGS %d\n", e.LightFlags)
+	fmt.Fprintf(w, "\tRADIUSOFINFLUENCE %0.7f\n", e.Radius)
 	fmt.Fprintf(w, "ENDPOINTLIGHT\n\n")
 	return nil
 }
 
-func (p *PointLight) Read(r *AsciiReadToken) error {
+func (e *PointLight) Read(r *AsciiReadToken) error {
 	records, err := r.ReadProperty("TAG", 1)
 	if err != nil {
 		return err
 	}
-	p.Tag = records[1]
+	e.Tag = records[1]
 
 	records, err = r.ReadProperty("LIGHT", 1)
 	if err != nil {
 		return err
 	}
-	p.LightTag = records[1]
+	e.LightTag = records[1]
 
 	records, err = r.ReadProperty("XYZ", 3)
 	if err != nil {
 		return err
 	}
 
-	p.Location, err = helper.ParseFloat32Slice3(records[1:])
+	e.Location, err = helper.ParseFloat32Slice3(records[1:])
 	if err != nil {
 		return fmt.Errorf("location: %w", err)
 	}
@@ -1452,7 +1531,7 @@ func (p *PointLight) Read(r *AsciiReadToken) error {
 	if err != nil {
 		return err
 	}
-	p.Radius, err = helper.ParseFloat32(records[1])
+	e.Radius, err = helper.ParseFloat32(records[1])
 	if err != nil {
 		return fmt.Errorf("radius of influence: %w", err)
 	}
@@ -1460,15 +1539,22 @@ func (p *PointLight) Read(r *AsciiReadToken) error {
 	return nil
 }
 
+func (e *PointLight) ToRaw(srcWld *Wld, dst *raw.Wld) (int16, error) {
+	if e.fragID != 0 {
+		return e.fragID, nil
+	}
+	return -1, fmt.Errorf("not implemented")
+}
+
 // Sprite3DDef is a declaration of SPRITE3DDEF
 type Sprite3DDef struct {
+	fragID         int16
 	Tag            string
 	CenterOffset   [3]float32
 	BoundingRadius float32
 	SphereListTag  string
 	Vertices       [][3]float32
 	BSPNodes       []*BSPNode
-	fragID         int16
 }
 
 // BSPNode is a declaration of BSPNODE
@@ -1495,22 +1581,22 @@ type BspNodeUVInfo struct {
 	VAxis    [3]float32 // VAXIS %0.7f %0.7f %0.7f
 }
 
-func (s *Sprite3DDef) Definition() string {
+func (e *Sprite3DDef) Definition() string {
 	return "3DSPRITEDEF"
 }
 
-func (s *Sprite3DDef) Write(w io.Writer) error {
-	fmt.Fprintf(w, "%s\n", s.Definition())
-	fmt.Fprintf(w, "\tTAG \"%s\"\n", s.Tag)
-	fmt.Fprintf(w, "\tCENTEROFFSET %0.7f %0.7f %0.7f\n", s.CenterOffset[0], s.CenterOffset[1], s.CenterOffset[2])
-	fmt.Fprintf(w, "\tBOUNDINGRADIUS %0.7f\n", s.BoundingRadius)
-	fmt.Fprintf(w, "\tSPHERELIST \"%s\"\n", s.SphereListTag)
-	fmt.Fprintf(w, "\tNUMVERTICES %d\n", len(s.Vertices))
-	for _, vert := range s.Vertices {
+func (e *Sprite3DDef) Write(w io.Writer) error {
+	fmt.Fprintf(w, "%s\n", e.Definition())
+	fmt.Fprintf(w, "\tTAG \"%s\"\n", e.Tag)
+	fmt.Fprintf(w, "\tCENTEROFFSET %0.7f %0.7f %0.7f\n", e.CenterOffset[0], e.CenterOffset[1], e.CenterOffset[2])
+	fmt.Fprintf(w, "\tBOUNDINGRADIUS %0.7f\n", e.BoundingRadius)
+	fmt.Fprintf(w, "\tSPHERELIST \"%s\"\n", e.SphereListTag)
+	fmt.Fprintf(w, "\tNUMVERTICES %d\n", len(e.Vertices))
+	for _, vert := range e.Vertices {
 		fmt.Fprintf(w, "\tXYZ %0.7f %0.7f %0.7f\n", vert[0], vert[1], vert[2])
 	}
-	fmt.Fprintf(w, "\tNUMBSPNODES %d\n", len(s.BSPNodes))
-	for i, node := range s.BSPNodes {
+	fmt.Fprintf(w, "\tNUMBSPNODES %d\n", len(e.BSPNodes))
+	for i, node := range e.BSPNodes {
 		fmt.Fprintf(w, "\tBSPNODE //%d\n", i+1)
 		fmt.Fprintf(w, "\t\tVERTEXLIST %d", len(node.Vertices))
 		for _, vert := range node.Vertices {
@@ -1678,24 +1764,27 @@ func (s *Sprite3DDef) Read(r *AsciiReadToken) error {
 	return nil
 }
 
-func (s *Sprite3DDef) ToRaw(srcWld *Wld, dst *raw.Wld) (int16, error) {
-	if s.fragID != 0 {
-		return s.fragID, nil
+func (e *Sprite3DDef) ToRaw(srcWld *Wld, dst *raw.Wld) (int16, error) {
+	if e.fragID != 0 {
+		return e.fragID, nil
 	}
 	flags := uint32(0)
-	wfSprite3DDef := &rawfrag.WldFragSprite3DDef{}
+	wfSprite3DDef := &rawfrag.WldFragSprite3DDef{
+		Vertices: e.Vertices,
+	}
 
-	if s.CenterOffset != [3]float32{0, 0, 0} {
+	if e.CenterOffset != [3]float32{0, 0, 0} {
 		flags |= 0x01
 	}
 
-	if len(s.BSPNodes) > 0 {
+	if len(e.BSPNodes) > 0 {
 		flags |= 0x02
 
-		for _, node := range s.BSPNodes {
+		for _, node := range e.BSPNodes {
 			bnode := rawfrag.WldFragThreeDSpriteBspNode{
-				FrontTree: node.FrontTree,
-				BackTree:  node.BackTree,
+				FrontTree:     node.FrontTree,
+				BackTree:      node.BackTree,
+				VertexIndexes: node.Vertices,
 
 				RenderMethod:        model.RenderMethodInt(node.RenderMethod),
 				RenderFlags:         node.Flags,
@@ -1713,14 +1802,15 @@ func (s *Sprite3DDef) ToRaw(srcWld *Wld, dst *raw.Wld) (int16, error) {
 
 	wfSprite3DDef.Flags = flags
 
-	wfSprite3DDef.NameRef = raw.NameAdd(s.Tag)
+	wfSprite3DDef.NameRef = raw.NameAdd(e.Tag)
 
 	dst.Fragments = append(dst.Fragments, wfSprite3DDef)
-	s.fragID = int16(len(dst.Fragments))
+	e.fragID = int16(len(dst.Fragments))
 	return int16(len(dst.Fragments)), nil
 }
 
 type PolyhedronDefinition struct {
+	fragID         int16
 	Tag            string
 	Flags          uint32
 	BoundingRadius float32
@@ -1733,22 +1823,22 @@ type PolyhedronDefinitionFace struct {
 	Vertices []uint32
 }
 
-func (p *PolyhedronDefinition) Definition() string {
+func (e *PolyhedronDefinition) Definition() string {
 	return "POLYHEDRONDEFINITION"
 }
 
-func (p *PolyhedronDefinition) Write(w io.Writer) error {
-	fmt.Fprintf(w, "%s\n", p.Definition())
-	fmt.Fprintf(w, "\tTAG \"%s\"\n", p.Tag)
-	fmt.Fprintf(w, "\t// FLAGS %d\n", p.Flags)
-	fmt.Fprintf(w, "\tBOUNDINGRADIUS %0.7f\n", p.BoundingRadius)
-	fmt.Fprintf(w, "\tSCALEFACTOR %0.7f\n", p.ScaleFactor)
-	fmt.Fprintf(w, "\tNUMVERTICES %d\n", len(p.Vertices))
-	for _, vert := range p.Vertices {
+func (e *PolyhedronDefinition) Write(w io.Writer) error {
+	fmt.Fprintf(w, "%s\n", e.Definition())
+	fmt.Fprintf(w, "\tTAG \"%s\"\n", e.Tag)
+	fmt.Fprintf(w, "\t// FLAGS %d\n", e.Flags)
+	fmt.Fprintf(w, "\tBOUNDINGRADIUS %0.7f\n", e.BoundingRadius)
+	fmt.Fprintf(w, "\tSCALEFACTOR %0.7f\n", e.ScaleFactor)
+	fmt.Fprintf(w, "\tNUMVERTICES %d\n", len(e.Vertices))
+	for _, vert := range e.Vertices {
 		fmt.Fprintf(w, "\tXYZ %0.7e %0.7e %0.7e\n", vert[0], vert[1], vert[2])
 	}
-	fmt.Fprintf(w, "\tNUMFACES %d\n", len(p.Faces))
-	for i, face := range p.Faces {
+	fmt.Fprintf(w, "\tNUMFACES %d\n", len(e.Faces))
+	for i, face := range e.Faces {
 		fmt.Fprintf(w, "\tFACE %d\n", i+1)
 		fmt.Fprintf(w, "\t\tVERTEXLIST %d", len(face.Vertices))
 		for _, vert := range face.Vertices {
@@ -1761,18 +1851,18 @@ func (p *PolyhedronDefinition) Write(w io.Writer) error {
 	return nil
 }
 
-func (p *PolyhedronDefinition) Read(r *AsciiReadToken) error {
+func (e *PolyhedronDefinition) Read(r *AsciiReadToken) error {
 	records, err := r.ReadProperty("TAG", 1)
 	if err != nil {
 		return err
 	}
-	p.Tag = records[1]
+	e.Tag = records[1]
 
 	records, err = r.ReadProperty("BOUNDINGRADIUS", 1)
 	if err != nil {
 		return err
 	}
-	p.BoundingRadius, err = helper.ParseFloat32(records[1])
+	e.BoundingRadius, err = helper.ParseFloat32(records[1])
 	if err != nil {
 		return fmt.Errorf("bounding radius: %w", err)
 	}
@@ -1781,7 +1871,7 @@ func (p *PolyhedronDefinition) Read(r *AsciiReadToken) error {
 	if err != nil {
 		return err
 	}
-	p.ScaleFactor, err = helper.ParseFloat32(records[1])
+	e.ScaleFactor, err = helper.ParseFloat32(records[1])
 	if err != nil {
 		return fmt.Errorf("scale factor: %w", err)
 	}
@@ -1805,7 +1895,7 @@ func (p *PolyhedronDefinition) Read(r *AsciiReadToken) error {
 		if err != nil {
 			return fmt.Errorf("vertex %d: %w", i, err)
 		}
-		p.Vertices = append(p.Vertices, vert)
+		e.Vertices = append(e.Vertices, vert)
 	}
 
 	records, err = r.ReadProperty("NUMFACES", 1)
@@ -1848,7 +1938,7 @@ func (p *PolyhedronDefinition) Read(r *AsciiReadToken) error {
 			return err
 		}
 
-		p.Faces = append(p.Faces, face)
+		e.Faces = append(e.Faces, face)
 	}
 
 	_, err = r.ReadProperty("ENDPOLYHEDRONDEFINITION", 0)
@@ -1859,7 +1949,15 @@ func (p *PolyhedronDefinition) Read(r *AsciiReadToken) error {
 	return nil
 }
 
+func (e *PolyhedronDefinition) ToRaw(srcWld *Wld, dst *raw.Wld) (int16, error) {
+	if e.fragID != 0 {
+		return e.fragID, nil
+	}
+	return -1, fmt.Errorf("TODO: PolyhedronDefinition.ToRaw")
+}
+
 type TrackInstance struct {
+	fragID        int16
 	Tag           string
 	DefinitionTag string
 	Interpolate   int
@@ -1867,39 +1965,39 @@ type TrackInstance struct {
 	Sleep         uint32
 }
 
-func (t *TrackInstance) Definition() string {
+func (e *TrackInstance) Definition() string {
 	return "TRACKINSTANCE"
 }
 
-func (t *TrackInstance) Write(w io.Writer) error {
-	fmt.Fprintf(w, "%s\n", t.Definition())
-	fmt.Fprintf(w, "\tTAG \"%s\"\n", t.Tag)
-	fmt.Fprintf(w, "\tDEFINITION \"%s\"\n", t.DefinitionTag)
-	fmt.Fprintf(w, "\tINTERPOLATE %d\n", t.Interpolate)
-	fmt.Fprintf(w, "\tREVERSE %d\n", t.Reverse)
-	fmt.Fprintf(w, "\tSLEEP %d\n", t.Sleep)
+func (e *TrackInstance) Write(w io.Writer) error {
+	fmt.Fprintf(w, "%s\n", e.Definition())
+	fmt.Fprintf(w, "\tTAG \"%s\"\n", e.Tag)
+	fmt.Fprintf(w, "\tDEFINITION \"%s\"\n", e.DefinitionTag)
+	fmt.Fprintf(w, "\tINTERPOLATE %d\n", e.Interpolate)
+	fmt.Fprintf(w, "\tREVERSE %d\n", e.Reverse)
+	fmt.Fprintf(w, "\tSLEEP %d\n", e.Sleep)
 	fmt.Fprintf(w, "ENDTRACKINSTANCE\n\n")
 	return nil
 }
 
-func (t *TrackInstance) Read(r *AsciiReadToken) error {
+func (e *TrackInstance) Read(r *AsciiReadToken) error {
 	records, err := r.ReadProperty("TAG", 1)
 	if err != nil {
 		return err
 	}
-	t.Tag = records[1]
+	e.Tag = records[1]
 
 	records, err = r.ReadProperty("DEFINITION", 1)
 	if err != nil {
 		return err
 	}
-	t.DefinitionTag = records[1]
+	e.DefinitionTag = records[1]
 
 	records, err = r.ReadProperty("INTERPOLATE", 1)
 	if err != nil {
 		return err
 	}
-	t.Interpolate, err = helper.ParseInt(records[1])
+	e.Interpolate, err = helper.ParseInt(records[1])
 	if err != nil {
 		return fmt.Errorf("interpolate: %w", err)
 	}
@@ -1908,7 +2006,7 @@ func (t *TrackInstance) Read(r *AsciiReadToken) error {
 	if err != nil {
 		return err
 	}
-	t.Reverse, err = helper.ParseInt(records[1])
+	e.Reverse, err = helper.ParseInt(records[1])
 	if err != nil {
 		return fmt.Errorf("reverse: %w", err)
 	}
@@ -1917,7 +2015,7 @@ func (t *TrackInstance) Read(r *AsciiReadToken) error {
 	if err != nil {
 		return err
 	}
-	t.Sleep, err = helper.ParseUint32(records[1])
+	e.Sleep, err = helper.ParseUint32(records[1])
 	if err != nil {
 		return fmt.Errorf("sleep: %w", err)
 	}
@@ -1930,7 +2028,16 @@ func (t *TrackInstance) Read(r *AsciiReadToken) error {
 	return nil
 }
 
+func (e *TrackInstance) ToRaw(srcWld *Wld, dst *raw.Wld) (int16, error) {
+	if e.fragID != 0 {
+		return e.fragID, nil
+	}
+
+	return -1, fmt.Errorf("TODO: TrackInstance.ToRaw")
+}
+
 type TrackDef struct {
+	fragID          int16
 	Tag             string
 	Flags           uint32
 	FrameTransforms []TrackFrameTransform
@@ -1942,33 +2049,41 @@ type TrackFrameTransform struct {
 	Position      [3]float32
 }
 
-func (t *TrackDef) Definition() string {
+func (e *TrackDef) Definition() string {
 	return "TRACKDEFINITION"
 }
 
-func (t *TrackDef) Write(w io.Writer) error {
-	fmt.Fprintf(w, "%s\n", t.Definition())
-	fmt.Fprintf(w, "\tTAG \"%s\"\n", t.Tag)
-	fmt.Fprintf(w, "\t// FLAGS %d\n", t.Flags)
-	fmt.Fprintf(w, "\tNUMFRAMES %d\n", len(t.FrameTransforms))
-	for _, frame := range t.FrameTransforms {
+func (e *TrackDef) Write(w io.Writer) error {
+	fmt.Fprintf(w, "%s\n", e.Definition())
+	fmt.Fprintf(w, "\tTAG \"%s\"\n", e.Tag)
+	fmt.Fprintf(w, "\t// FLAGS %d\n", e.Flags)
+	fmt.Fprintf(w, "\tNUMFRAMES %d\n", len(e.FrameTransforms))
+	for _, frame := range e.FrameTransforms {
 		fmt.Fprintf(w, "\tFRAMETRANSFORM %0.7f %d %d %d %0.7f %0.7f %0.7f\n", frame.PositionDenom, frame.Rotation[0], frame.Rotation[1], frame.Rotation[2], frame.Position[0], frame.Position[1], frame.Position[2])
 	}
 	fmt.Fprintf(w, "ENDTRACKDEFINITION\n\n")
 	return nil
 }
 
-func (t *TrackDef) Read(r *AsciiReadToken) error {
+func (e *TrackDef) Read(r *AsciiReadToken) error {
 	records, err := r.ReadProperty("TAG", 1)
 	if err != nil {
 		return err
 	}
-	t.Tag = records[1]
+	e.Tag = records[1]
 
-	return nil
+	return fmt.Errorf("TODO: TrackDef.Read")
+}
+
+func (e *TrackDef) ToRaw(srcWld *Wld, dst *raw.Wld) (int16, error) {
+	if e.fragID != 0 {
+		return e.fragID, nil
+	}
+	return -1, fmt.Errorf("TODO: TrackDef.ToRaw")
 }
 
 type HierarchicalSpriteDef struct {
+	fragID         int16
 	Tag            string
 	Dags           []Dag
 	AttachedSkins  []AttachedSkin
@@ -1990,15 +2105,15 @@ type AttachedSkin struct {
 	LinkSkinUpdatesToDagIndex uint32
 }
 
-func (h *HierarchicalSpriteDef) Definition() string {
+func (e *HierarchicalSpriteDef) Definition() string {
 	return "HIERARCHICALSPRITEDEF"
 }
 
-func (h *HierarchicalSpriteDef) Write(w io.Writer) error {
-	fmt.Fprintf(w, "%s\n", h.Definition())
-	fmt.Fprintf(w, "\tTAG \"%s\"\n", h.Tag)
-	fmt.Fprintf(w, "\tNUMDAGS %d\n", len(h.Dags))
-	for i, dag := range h.Dags {
+func (e *HierarchicalSpriteDef) Write(w io.Writer) error {
+	fmt.Fprintf(w, "%s\n", e.Definition())
+	fmt.Fprintf(w, "\tTAG \"%s\"\n", e.Tag)
+	fmt.Fprintf(w, "\tNUMDAGS %d\n", len(e.Dags))
+	for i, dag := range e.Dags {
 		fmt.Fprintf(w, "\tDAG // %d\n", i+1)
 		fmt.Fprintf(w, "\t\tTAG \"%s\"\n", dag.Tag)
 		fmt.Fprintf(w, "\t\tSPRITE \"%s\"\n", dag.SpriteTag)
@@ -2011,28 +2126,35 @@ func (h *HierarchicalSpriteDef) Write(w io.Writer) error {
 		fmt.Fprintf(w, "\tENDDAG // %d\n", i+1)
 	}
 	fmt.Fprintf(w, "\n")
-	fmt.Fprintf(w, "\tNUMATTACHEDSKINS %d\n", len(h.AttachedSkins))
-	for _, skin := range h.AttachedSkins {
+	fmt.Fprintf(w, "\tNUMATTACHEDSKINS %d\n", len(e.AttachedSkins))
+	for _, skin := range e.AttachedSkins {
 		fmt.Fprintf(w, "\tDMSPRITE \"%s\"\n", skin.DMSpriteTag)
 		fmt.Fprintf(w, "\tLINKSKINUPDATESTODAGINDEX %d\n", skin.LinkSkinUpdatesToDagIndex)
 	}
 	fmt.Fprintf(w, "\n")
 
-	fmt.Fprintf(w, "\tCENTEROFFSET %0.1f %0.1f %0.1f\n", h.CenterOffset[0], h.CenterOffset[1], h.CenterOffset[2])
+	fmt.Fprintf(w, "\tCENTEROFFSET %0.1f %0.1f %0.1f\n", e.CenterOffset[0], e.CenterOffset[1], e.CenterOffset[2])
 
-	fmt.Fprintf(w, "\tDAGCOLLISION %d\n", h.DagCollision)
-	fmt.Fprintf(w, "\tBOUNDINGRADIUS %0.7e\n", h.BoundingRadius)
+	fmt.Fprintf(w, "\tDAGCOLLISION %d\n", e.DagCollision)
+	fmt.Fprintf(w, "\tBOUNDINGRADIUS %0.7e\n", e.BoundingRadius)
 
 	fmt.Fprintf(w, "ENDHIERARCHICALSPRITEDEF\n\n")
 	return nil
 }
 
-func (h *HierarchicalSpriteDef) Read(r *AsciiReadToken) error {
+func (e *HierarchicalSpriteDef) Read(r *AsciiReadToken) error {
+	return fmt.Errorf("TODO: HierarchicalSpriteDef.Read")
+}
 
-	return nil
+func (e *HierarchicalSpriteDef) ToRaw(srcWld *Wld, dst *raw.Wld) (int16, error) {
+	if e.fragID != 0 {
+		return e.fragID, nil
+	}
+	return -1, fmt.Errorf("TODO: HierarchicalSpriteDef.ToRaw")
 }
 
 type WorldTree struct {
+	fragID     int16
 	Tag        string
 	WorldNodes []*WorldNode
 }
@@ -2045,15 +2167,15 @@ type WorldNode struct {
 	Distance       float32
 }
 
-func (t *WorldTree) Definition() string {
+func (e *WorldTree) Definition() string {
 	return "WORLDTREE"
 }
 
-func (t *WorldTree) Write(w io.Writer) error {
-	fmt.Fprintf(w, "%s\n", t.Definition())
-	fmt.Fprintf(w, "\tTAG \"%s\"\n", t.Tag)
-	fmt.Fprintf(w, "\tNUMWORLDNODES %d\n", len(t.WorldNodes))
-	for i, node := range t.WorldNodes {
+func (e *WorldTree) Write(w io.Writer) error {
+	fmt.Fprintf(w, "%s\n", e.Definition())
+	fmt.Fprintf(w, "\tTAG \"%s\"\n", e.Tag)
+	fmt.Fprintf(w, "\tNUMWORLDNODES %d\n", len(e.WorldNodes))
+	for i, node := range e.WorldNodes {
 		fmt.Fprintf(w, "\tWORLDNODE // %d\n", i+1)
 		fmt.Fprintf(w, "\t\tNORMALABCD %0.7f %0.7f %0.7f %0.7f\n", node.Normals[0], node.Normals[1], node.Normals[2], node.Normals[3])
 		fmt.Fprintf(w, "\t\tWORLDREGIONTAG \"%s\"\n", node.WorldRegionTag)
@@ -2065,12 +2187,12 @@ func (t *WorldTree) Write(w io.Writer) error {
 	return nil
 }
 
-func (t *WorldTree) Read(r *AsciiReadToken) error {
+func (e *WorldTree) Read(r *AsciiReadToken) error {
 	records, err := r.ReadProperty("TAG", 1)
 	if err != nil {
 		return err
 	}
-	t.Tag = records[1]
+	e.Tag = records[1]
 
 	records, err = r.ReadProperty("NUMWORLDNODES", 1)
 	if err != nil {
@@ -2127,7 +2249,7 @@ func (t *WorldTree) Read(r *AsciiReadToken) error {
 			return err
 		}
 
-		t.WorldNodes = append(t.WorldNodes, node)
+		e.WorldNodes = append(e.WorldNodes, node)
 
 	}
 
@@ -2139,10 +2261,13 @@ func (t *WorldTree) Read(r *AsciiReadToken) error {
 	return nil
 }
 
-func (t *WorldTree) ToRaw(srcWld *Wld, dst *raw.Wld) (int16, error) {
+func (e *WorldTree) ToRaw(srcWld *Wld, dst *raw.Wld) (int16, error) {
+	if e.fragID != 0 {
+		return e.fragID, nil
+	}
 	wfWorldTree := &rawfrag.WldFragWorldTree{}
 
-	for _, node := range t.WorldNodes {
+	for _, node := range e.WorldNodes {
 		wfNode := rawfrag.WorldTreeNode{
 			Normal:    node.Normals,
 			RegionRef: raw.NameAdd(node.WorldRegionTag),
@@ -2153,23 +2278,32 @@ func (t *WorldTree) ToRaw(srcWld *Wld, dst *raw.Wld) (int16, error) {
 		wfWorldTree.Nodes = append(wfWorldTree.Nodes, wfNode)
 	}
 
-	wfWorldTree.NameRef = raw.NameAdd(t.Tag)
+	wfWorldTree.NameRef = raw.NameAdd(e.Tag)
 
 	dst.Fragments = append(dst.Fragments, wfWorldTree)
+	e.fragID = int16(len(dst.Fragments))
 	return int16(len(dst.Fragments)), nil
 }
 
 type Region struct {
-	Tag              string
-	AmbientLightTag  string
-	RegionVertices   [][3]float32
-	RenderVertices   [][3]float32
-	Walls            []*Wall
-	Obstacles        []*Obstacle
-	CuttingObstacles []*Obstacle
-	VisTree          *VisTree
-	Sphere           [4]float32
-	UserData         string
+	fragID            int16
+	Tag               string
+	RegionFog         int
+	Gouraud2          int
+	EncodedVisibility int
+	VisListBytes      int
+	AmbientLightTag   string
+	RegionVertices    [][3]float32
+	RenderVertices    [][3]float32
+	Walls             []*Wall
+	Obstacles         []*Obstacle
+	CuttingObstacles  []*Obstacle
+	VisTree           *VisTree
+	Sphere            [4]float32
+	ReverbVolume      float32
+	ReverbOffset      int32
+	UserData          string
+	SpriteTag         string
 }
 
 type Wall struct {
@@ -2198,23 +2332,29 @@ type VisList struct {
 	Ranges []int8
 }
 
-func (r *Region) Definition() string {
+func (e *Region) Definition() string {
 	return "REGION"
 }
 
-func (r *Region) Write(w io.Writer) error {
-	fmt.Fprintf(w, "%s\n", r.Definition())
-	fmt.Fprintf(w, "\tREGIONTAG \"%s\"\n", r.Tag)
-	fmt.Fprintf(w, "\tNUMREGIONVERTEX %d\n", len(r.RegionVertices))
-	for _, vert := range r.RegionVertices {
+func (e *Region) Write(w io.Writer) error {
+	fmt.Fprintf(w, "%s\n", e.Definition())
+	fmt.Fprintf(w, "\tREGIONTAG \"%s\"\n", e.Tag)
+	fmt.Fprintf(w, "\tREVERBVOLUME %0.7f\n", e.ReverbVolume)
+	fmt.Fprintf(w, "\tREVERBOFFSET %df\n", e.ReverbOffset)
+	fmt.Fprintf(w, "\tREGIONFOG %d\n", e.RegionFog)
+	fmt.Fprintf(w, "\tGOURAND2 %d\n", e.Gouraud2)
+	fmt.Fprintf(w, "\tENCODEDVISIBILITY %d\n", e.EncodedVisibility)
+	fmt.Fprintf(w, "\tVISLISTBYTES %d\n", e.VisListBytes)
+	fmt.Fprintf(w, "\tNUMREGIONVERTEX %d\n", len(e.RegionVertices))
+	for _, vert := range e.RegionVertices {
 		fmt.Fprintf(w, "\tXYZ %0.7f %0.7f %0.7f\n", vert[0], vert[1], vert[2])
 	}
-	fmt.Fprintf(w, "\tNUMRENDERVERTICES %d\n", len(r.RenderVertices))
-	for _, vert := range r.RenderVertices {
+	fmt.Fprintf(w, "\tNUMRENDERVERTICES %d\n", len(e.RenderVertices))
+	for _, vert := range e.RenderVertices {
 		fmt.Fprintf(w, "\tXYZ %0.7f %0.7f %0.7f\n", vert[0], vert[1], vert[2])
 	}
-	fmt.Fprintf(w, "\tNUMWALLS %d\n", len(r.Walls))
-	for i, wall := range r.Walls {
+	fmt.Fprintf(w, "\tNUMWALLS %d\n", len(e.Walls))
+	for i, wall := range e.Walls {
 		fmt.Fprintf(w, "\tWALL // %d\n", i+1)
 		fmt.Fprintf(w, "\t\tNORMALABCD %0.7f %0.7f %0.7f %0.7f\n", wall.Normal[0], wall.Normal[1], wall.Normal[2], wall.Normal[3])
 		fmt.Fprintf(w, "\t\tNUMVERTICES %d\n", len(wall.Vertices))
@@ -2223,8 +2363,8 @@ func (r *Region) Write(w io.Writer) error {
 		}
 		fmt.Fprintf(w, "\tENDWALL // %d\n", i+1)
 	}
-	fmt.Fprintf(w, "\tNUMOBSTACLES %d\n", len(r.Obstacles))
-	for i, obs := range r.Obstacles {
+	fmt.Fprintf(w, "\tNUMOBSTACLES %d\n", len(e.Obstacles))
+	for i, obs := range e.Obstacles {
 		fmt.Fprintf(w, "\tOBSTACLE // %d\n", i+1)
 		fmt.Fprintf(w, "\t\tNORMALABCD %0.7f %0.7f %0.7f %0.7f\n", obs.Normal[0], obs.Normal[1], obs.Normal[2], obs.Normal[3])
 		fmt.Fprintf(w, "\t\tNUMVERTICES %d\n", len(obs.Vertices))
@@ -2233,8 +2373,8 @@ func (r *Region) Write(w io.Writer) error {
 		}
 		fmt.Fprintf(w, "\tENDOBSTACLE // %d\n", i+1)
 	}
-	fmt.Fprintf(w, "\tNUMCUTTINGOBSTACLES %d\n", len(r.CuttingObstacles))
-	for i, obs := range r.CuttingObstacles {
+	fmt.Fprintf(w, "\tNUMCUTTINGOBSTACLES %d\n", len(e.CuttingObstacles))
+	for i, obs := range e.CuttingObstacles {
 		fmt.Fprintf(w, "\tCUTTINGOBSTACLE // %d\n", i+1)
 		fmt.Fprintf(w, "\t\tNORMALABCD %0.7f %0.7f %0.7f %0.7f\n", obs.Normal[0], obs.Normal[1], obs.Normal[2], obs.Normal[3])
 		fmt.Fprintf(w, "\t\tNUMVERTICES %d\n", len(obs.Vertices))
@@ -2244,8 +2384,8 @@ func (r *Region) Write(w io.Writer) error {
 		fmt.Fprintf(w, "\tENDCUTTINGOBSTACLE // %d\n", i+1)
 	}
 	fmt.Fprintf(w, "\tVISTREE\n")
-	fmt.Fprintf(w, "\t\tNUMVISNODE %d\n", len(r.VisTree.VisNodes))
-	for i, node := range r.VisTree.VisNodes {
+	fmt.Fprintf(w, "\t\tNUMVISNODE %d\n", len(e.VisTree.VisNodes))
+	for i, node := range e.VisTree.VisNodes {
 		fmt.Fprintf(w, "\t\tVISNODE // %d\n", i+1)
 		fmt.Fprintf(w, "\t\t\tNORMALABCD %0.7f %0.7f %0.7f %0.7f\n", node.Normal[0], node.Normal[1], node.Normal[2], node.Normal[3])
 		fmt.Fprintf(w, "\t\t\tVISLISTINDEX %d\n", node.VisListIndex)
@@ -2253,8 +2393,8 @@ func (r *Region) Write(w io.Writer) error {
 		fmt.Fprintf(w, "\t\t\tBACKTREE %d\n", node.BackTree)
 		fmt.Fprintf(w, "\t\tENDVISNODE // %d\n", i+1)
 	}
-	fmt.Fprintf(w, "\t\tNUMVISIBLELIST %d\n", len(r.VisTree.VisLists))
-	for i, list := range r.VisTree.VisLists {
+	fmt.Fprintf(w, "\t\tNUMVISIBLELIST %d\n", len(e.VisTree.VisLists))
+	for i, list := range e.VisTree.VisLists {
 		fmt.Fprintf(w, "\t\tVISLIST // %d\n", i+1)
 		fmt.Fprintf(w, "\t\t\tRANGE %d", len(list.Ranges))
 		for _, val := range list.Ranges {
@@ -2264,19 +2404,77 @@ func (r *Region) Write(w io.Writer) error {
 		fmt.Fprintf(w, "\t\tENDVISIBLELIST // %d\n", i+1)
 	}
 	fmt.Fprintf(w, "\tENDVISTREE\n")
-	fmt.Fprintf(w, "\tSPHERE %0.7f %0.7f %0.7f %0.7f\n", r.Sphere[0], r.Sphere[1], r.Sphere[2], r.Sphere[3])
-	fmt.Fprintf(w, "\tUSERDATA \"%s\"\n", r.UserData)
+	fmt.Fprintf(w, "\tSPHERE %0.7f %0.7f %0.7f %0.7f\n", e.Sphere[0], e.Sphere[1], e.Sphere[2], e.Sphere[3])
+	fmt.Fprintf(w, "\tUSERDATA \"%s\"\n", e.UserData)
+	fmt.Fprintf(w, "\tSPRITE \"%s\"\n", e.SpriteTag)
 	fmt.Fprintf(w, "ENDREGION\n\n")
 	return nil
 }
 
-func (r *Region) Read(token *AsciiReadToken) error {
-	r.VisTree = &VisTree{}
+func (e *Region) Read(token *AsciiReadToken) error {
+	e.VisTree = &VisTree{}
 	records, err := token.ReadProperty("REGIONTAG", 1)
 	if err != nil {
 		return err
 	}
-	r.Tag = records[1]
+	e.Tag = records[1]
+
+	records, err = token.ReadProperty("REVERBVOLUME", 1)
+	if err != nil {
+		return err
+	}
+	e.ReverbVolume, err = helper.ParseFloat32(records[1])
+	if err != nil {
+		return fmt.Errorf("reverb volume: %w", err)
+	}
+
+	records, err = token.ReadProperty("REVERBOFFSET", 1)
+	if err != nil {
+		return err
+	}
+	e.ReverbOffset, err = helper.ParseInt32(records[1])
+	if err != nil {
+		return fmt.Errorf("reverb offset: %w", err)
+	}
+
+	records, err = token.ReadProperty("REGIONFOG", 1)
+	if err != nil {
+		return err
+	}
+	e.RegionFog, err = helper.ParseInt(records[1])
+	if err != nil {
+		return fmt.Errorf("region fog: %w", err)
+	}
+
+	records, err = token.ReadProperty("GOURAND2", 1)
+	if err != nil {
+		return err
+	}
+	e.Gouraud2, err = helper.ParseInt(records[1])
+	if err != nil {
+		return fmt.Errorf("gourand2: %w", err)
+	}
+
+	records, err = token.ReadProperty("ENCODEDVISIBILITY", 1)
+	if err != nil {
+		return err
+	}
+	e.EncodedVisibility, err = helper.ParseInt(records[1])
+	if err != nil {
+		return fmt.Errorf("encoded visibility: %w", err)
+	}
+
+	records, err = token.ReadProperty("VISLISTBYTES", 1)
+	if err != nil {
+		return err
+	}
+	e.VisListBytes, err = helper.ParseInt(records[1])
+	if err != nil {
+		return fmt.Errorf("vis list bytes: %w", err)
+	}
+	if e.VisListBytes != 0 && e.VisListBytes != 1 {
+		return fmt.Errorf("vis list bytes: expected 0 or 1, got %d", e.VisListBytes)
+	}
 
 	records, err = token.ReadProperty("NUMREGIONVERTEX", 1)
 	if err != nil {
@@ -2296,7 +2494,7 @@ func (r *Region) Read(token *AsciiReadToken) error {
 		if err != nil {
 			return fmt.Errorf("region vertex %d: %w", i, err)
 		}
-		r.RegionVertices = append(r.RegionVertices, vert)
+		e.RegionVertices = append(e.RegionVertices, vert)
 	}
 
 	records, err = token.ReadProperty("NUMRENDERVERTICES", 1)
@@ -2317,7 +2515,7 @@ func (r *Region) Read(token *AsciiReadToken) error {
 		if err != nil {
 			return fmt.Errorf("render vertex %d: %w", i, err)
 		}
-		r.RenderVertices = append(r.RenderVertices, vert)
+		e.RenderVertices = append(e.RenderVertices, vert)
 	}
 
 	records, err = token.ReadProperty("NUMWALLS", 1)
@@ -2372,7 +2570,7 @@ func (r *Region) Read(token *AsciiReadToken) error {
 			return err
 		}
 
-		r.Walls = append(r.Walls, wall)
+		e.Walls = append(e.Walls, wall)
 	}
 
 	records, err = token.ReadProperty("NUMOBSTACLES", 1)
@@ -2427,7 +2625,7 @@ func (r *Region) Read(token *AsciiReadToken) error {
 			return err
 		}
 
-		r.Obstacles = append(r.Obstacles, obs)
+		e.Obstacles = append(e.Obstacles, obs)
 	}
 
 	records, err = token.ReadProperty("NUMCUTTINGOBSTACLES", 1)
@@ -2484,7 +2682,7 @@ func (r *Region) Read(token *AsciiReadToken) error {
 			return err
 		}
 
-		r.CuttingObstacles = append(r.CuttingObstacles, obs)
+		e.CuttingObstacles = append(e.CuttingObstacles, obs)
 	}
 
 	_, err = token.ReadProperty("VISTREE", 0)
@@ -2554,7 +2752,7 @@ func (r *Region) Read(token *AsciiReadToken) error {
 			return err
 		}
 
-		r.VisTree.VisNodes = append(r.VisTree.VisNodes, node)
+		e.VisTree.VisNodes = append(e.VisTree.VisNodes, node)
 
 	}
 
@@ -2604,7 +2802,7 @@ func (r *Region) Read(token *AsciiReadToken) error {
 			return err
 		}
 
-		r.VisTree.VisLists = append(r.VisTree.VisLists, list)
+		e.VisTree.VisLists = append(e.VisTree.VisLists, list)
 	}
 
 	_, err = token.ReadProperty("ENDVISTREE", 0)
@@ -2617,7 +2815,7 @@ func (r *Region) Read(token *AsciiReadToken) error {
 		return err
 	}
 
-	r.Sphere, err = helper.ParseFloat32Slice4(records[1:])
+	e.Sphere, err = helper.ParseFloat32Slice4(records[1:])
 	if err != nil {
 		return fmt.Errorf("sphere: %w", err)
 	}
@@ -2627,7 +2825,13 @@ func (r *Region) Read(token *AsciiReadToken) error {
 		return err
 	}
 
-	r.UserData = records[1]
+	e.UserData = records[1]
+
+	records, err = token.ReadProperty("SPRITE", 1)
+	if err != nil {
+		return err
+	}
+	e.SpriteTag = records[1]
 
 	_, err = token.ReadProperty("ENDREGION", 0)
 	if err != nil {
@@ -2637,16 +2841,51 @@ func (r *Region) Read(token *AsciiReadToken) error {
 	return nil
 }
 
-func (r *Region) ToRaw(srcWld *Wld, dst *raw.Wld) (int16, error) {
+func (e *Region) ToRaw(srcWld *Wld, dst *raw.Wld) (int16, error) {
+	if e.fragID != 0 {
+		return e.fragID, nil
+	}
 	wfRegion := &rawfrag.WldFragRegion{
-		RegionVertices: r.RegionVertices,
-		Sphere:         r.Sphere,
+		RegionVertices: e.RegionVertices,
+		Sphere:         e.Sphere,
+		ReverbVolume:   e.ReverbVolume,
+		ReverbOffset:   e.ReverbOffset,
 	}
 
-	if len(r.AmbientLightTag) > 0 {
-		aLightDef := srcWld.ByTag(r.AmbientLightTag)
+	if wfRegion.Sphere != [4]float32{0, 0, 0, 0} {
+		wfRegion.Flags |= 0x01
+	}
+
+	if e.ReverbVolume != 0 {
+		wfRegion.Flags |= 0x02
+	}
+
+	if e.ReverbOffset != 0 {
+		wfRegion.Flags |= 0x04
+	}
+
+	if e.RegionFog != 0 {
+		wfRegion.Flags |= 0x08
+	}
+
+	if e.Gouraud2 != 0 {
+		wfRegion.Flags |= 0x10
+	}
+
+	if e.EncodedVisibility != 0 {
+		wfRegion.Flags |= 0x20
+	}
+
+	//0x40
+
+	if e.VisListBytes != 0 {
+		wfRegion.Flags |= 0x80
+	}
+
+	if len(e.AmbientLightTag) > 0 {
+		aLightDef := srcWld.ByTag(e.AmbientLightTag)
 		if aLightDef == nil {
-			return 0, fmt.Errorf("ambient light def not found: %s", r.AmbientLightTag)
+			return 0, fmt.Errorf("ambient light def not found: %s", e.AmbientLightTag)
 		}
 
 		aLightRef, err := aLightDef.ToRaw(srcWld, dst)
@@ -2656,7 +2895,7 @@ func (r *Region) ToRaw(srcWld *Wld, dst *raw.Wld) (int16, error) {
 		wfRegion.AmbientLightRef = int32(aLightRef)
 	}
 
-	for _, node := range r.VisTree.VisNodes {
+	for _, node := range e.VisTree.VisNodes {
 		visNode := rawfrag.VisNode{
 			NormalABCD:   node.Normal,
 			VisListIndex: node.VisListIndex,
@@ -2666,30 +2905,55 @@ func (r *Region) ToRaw(srcWld *Wld, dst *raw.Wld) (int16, error) {
 		wfRegion.VisNodes = append(wfRegion.VisNodes, visNode)
 	}
 
-	wfRegion.NameRef = raw.NameAdd(r.Tag)
+	for _, list := range e.VisTree.VisLists {
+		visList := rawfrag.VisList{}
+
+		for _, rng := range list.Ranges {
+			visList.Ranges = append(visList.Ranges, byte(rng))
+		}
+
+		wfRegion.VisLists = append(wfRegion.VisLists, visList)
+	}
+
+	if e.SpriteTag != "" {
+		wfRegion.Flags |= 0x100
+		spriteDef := srcWld.ByTag(e.SpriteTag)
+		if spriteDef == nil {
+			return 0, fmt.Errorf("sprite def not found: %s", e.SpriteTag)
+		}
+
+		spriteRef, err := spriteDef.ToRaw(srcWld, dst)
+		if err != nil {
+			return 0, fmt.Errorf("sprite def to raw: %w", err)
+		}
+		wfRegion.MeshReference = int32(spriteRef)
+	}
+	wfRegion.NameRef = raw.NameAdd(e.Tag)
 
 	dst.Fragments = append(dst.Fragments, wfRegion)
+	e.fragID = int16(len(dst.Fragments))
 	return int16(len(dst.Fragments)), nil
 }
 
 type AmbientLight struct {
+	fragID     int16
 	Tag        string
 	LightTag   string
 	LightFlags uint32
 	Regions    []uint32
 }
 
-func (a *AmbientLight) Definition() string {
+func (e *AmbientLight) Definition() string {
 	return "AMBIENTLIGHT"
 }
 
-func (a *AmbientLight) Write(w io.Writer) error {
-	fmt.Fprintf(w, "%s\n", a.Definition())
-	fmt.Fprintf(w, "\tTAG \"%s\"\n", a.Tag)
-	fmt.Fprintf(w, "\tLIGHT \"%s\"\n", a.LightTag)
-	fmt.Fprintf(w, "\t// LIGHTFLAGS %d\n", a.LightFlags)
-	fmt.Fprintf(w, "\tREGIONLIST %d", len(a.Regions))
-	for _, region := range a.Regions {
+func (e *AmbientLight) Write(w io.Writer) error {
+	fmt.Fprintf(w, "%s\n", e.Definition())
+	fmt.Fprintf(w, "\tTAG \"%s\"\n", e.Tag)
+	fmt.Fprintf(w, "\tLIGHT \"%s\"\n", e.LightTag)
+	fmt.Fprintf(w, "\t// LIGHTFLAGS %d\n", e.LightFlags)
+	fmt.Fprintf(w, "\tREGIONLIST %d", len(e.Regions))
+	for _, region := range e.Regions {
 		fmt.Fprintf(w, " %d", region)
 	}
 	fmt.Fprintf(w, "\n")
@@ -2697,20 +2961,20 @@ func (a *AmbientLight) Write(w io.Writer) error {
 	return nil
 }
 
-func (a *AmbientLight) Read(r *AsciiReadToken) error {
+func (e *AmbientLight) Read(r *AsciiReadToken) error {
 	records, err := r.ReadProperty("TAG", 1)
 	if err != nil {
 		return err
 	}
 
-	a.Tag = records[1]
+	e.Tag = records[1]
 
 	records, err = r.ReadProperty("LIGHT", 1)
 	if err != nil {
 		return err
 	}
 
-	a.LightTag = records[1]
+	e.LightTag = records[1]
 
 	records, err = r.ReadProperty("REGIONLIST", 1)
 	if err != nil {
@@ -2728,7 +2992,7 @@ func (a *AmbientLight) Read(r *AsciiReadToken) error {
 			return fmt.Errorf("region %d: %w", i, err)
 		}
 
-		a.Regions = append(a.Regions, val)
+		e.Regions = append(e.Regions, val)
 	}
 
 	_, err = r.ReadProperty("ENDAMBIENTLIGHT", 0)
@@ -2739,13 +3003,17 @@ func (a *AmbientLight) Read(r *AsciiReadToken) error {
 	return nil
 }
 
-func (a *AmbientLight) ToRaw(srcWld *Wld, dst *raw.Wld) (int16, error) {
+func (e *AmbientLight) ToRaw(srcWld *Wld, dst *raw.Wld) (int16, error) {
+	if e.fragID != 0 {
+		return e.fragID, nil
+	}
+
 	wfAmbientLight := &rawfrag.WldFragAmbientLight{}
 
-	if len(a.LightTag) > 0 {
-		lightDef := srcWld.ByTag(a.LightTag)
+	if len(e.LightTag) > 0 {
+		lightDef := srcWld.ByTag(e.LightTag)
 		if lightDef == nil {
-			return 0, fmt.Errorf("light def not found: %s", a.LightTag)
+			return 0, fmt.Errorf("light def not found: %s", e.LightTag)
 		}
 
 		lightDefRef, err := lightDef.ToRaw(srcWld, dst)
@@ -2757,7 +3025,7 @@ func (a *AmbientLight) ToRaw(srcWld *Wld, dst *raw.Wld) (int16, error) {
 		wfLight := &rawfrag.WldFragLight{
 			//NameRef: ,
 			LightDefRef: int32(lightDefRef),
-			Flags:       a.LightFlags,
+			Flags:       e.LightFlags,
 		}
 
 		dst.Fragments = append(dst.Fragments, wfLight)
@@ -2765,42 +3033,44 @@ func (a *AmbientLight) ToRaw(srcWld *Wld, dst *raw.Wld) (int16, error) {
 		wfAmbientLight.LightRef = int32(len(dst.Fragments))
 	}
 
-	wfAmbientLight.NameRef = raw.NameAdd(a.Tag)
+	wfAmbientLight.NameRef = raw.NameAdd(e.Tag)
 
 	dst.Fragments = append(dst.Fragments, wfAmbientLight)
+	e.fragID = int16(len(dst.Fragments))
 	return int16(len(dst.Fragments)), nil
 }
 
 type Zone struct {
+	fragID   int16
 	Tag      string
 	Regions  []uint32
 	UserData string
 }
 
-func (z *Zone) Definition() string {
+func (e *Zone) Definition() string {
 	return "ZONE"
 }
 
-func (z *Zone) Write(w io.Writer) error {
-	fmt.Fprintf(w, "%s\n", z.Definition())
-	fmt.Fprintf(w, "\tTAG \"%s\"\n", z.Tag)
-	fmt.Fprintf(w, "\tREGIONLIST %d", len(z.Regions))
-	for _, region := range z.Regions {
+func (e *Zone) Write(w io.Writer) error {
+	fmt.Fprintf(w, "%s\n", e.Definition())
+	fmt.Fprintf(w, "\tTAG \"%s\"\n", e.Tag)
+	fmt.Fprintf(w, "\tREGIONLIST %d", len(e.Regions))
+	for _, region := range e.Regions {
 		fmt.Fprintf(w, " %d", region)
 	}
 	fmt.Fprintf(w, "\n")
-	fmt.Fprintf(w, "\tUSERDATA \"%s\"\n", z.UserData)
+	fmt.Fprintf(w, "\tUSERDATA \"%s\"\n", e.UserData)
 	fmt.Fprintf(w, "ENDZONE\n\n")
 	return nil
 }
 
-func (z *Zone) Read(r *AsciiReadToken) error {
+func (e *Zone) Read(r *AsciiReadToken) error {
 	records, err := r.ReadProperty("TAG", 1)
 	if err != nil {
 		return err
 	}
 
-	z.Tag = records[1]
+	e.Tag = records[1]
 
 	records, err = r.ReadProperty("REGIONLIST", 1)
 	if err != nil {
@@ -2818,7 +3088,7 @@ func (z *Zone) Read(r *AsciiReadToken) error {
 			return fmt.Errorf("region %d: %w", i, err)
 		}
 
-		z.Regions = append(z.Regions, val)
+		e.Regions = append(e.Regions, val)
 	}
 
 	records, err = r.ReadProperty("USERDATA", 1)
@@ -2826,7 +3096,7 @@ func (z *Zone) Read(r *AsciiReadToken) error {
 		return err
 	}
 
-	z.UserData = records[1]
+	e.UserData = records[1]
 
 	_, err = r.ReadProperty("ENDZONE", 0)
 	if err != nil {
@@ -2836,29 +3106,38 @@ func (z *Zone) Read(r *AsciiReadToken) error {
 	return nil
 }
 
-type RGBTrackDef struct {
-	Tag   string
-	Data1 uint32
-	Data2 uint32
-	Data4 uint32
-	Sleep uint32
-	RGBAs [][4]uint8
+func (e *Zone) ToRaw(srcWld *Wld, dst *raw.Wld) (int16, error) {
+	if e.fragID != 0 {
+		return e.fragID, nil
+	}
+
+	return -1, fmt.Errorf("zone not implemented")
 }
 
-func (r *RGBTrackDef) Definition() string {
+type RGBTrackDef struct {
+	fragID int16
+	Tag    string
+	Data1  uint32
+	Data2  uint32
+	Data4  uint32
+	Sleep  uint32
+	RGBAs  [][4]uint8
+}
+
+func (e *RGBTrackDef) Definition() string {
 	return "RGBDEFORMATIONTRACKDEF"
 }
 
-func (r *RGBTrackDef) Write(w io.Writer) error {
-	fmt.Fprintf(w, "%s\n", r.Definition())
-	fmt.Fprintf(w, "\tTAG \"%s\"\n", r.Tag)
-	fmt.Fprintf(w, "\t// NUMFRAMES %d // if this isn't 1, let xack know\n", r.Data1)
-	fmt.Fprintf(w, "\t// DATA2 %d // if this isn't 1, let xack know\n", r.Data2)
-	fmt.Fprintf(w, "\t// NUMVERTICES %d // // if this isn't 0, let xack know\n", r.Data4)
-	fmt.Fprintf(w, "\tSLEEP %d\n", r.Sleep)
+func (e *RGBTrackDef) Write(w io.Writer) error {
+	fmt.Fprintf(w, "%s\n", e.Definition())
+	fmt.Fprintf(w, "\tTAG \"%s\"\n", e.Tag)
+	fmt.Fprintf(w, "\t// NUMFRAMES %d // if this isn't 1, let xack know\n", e.Data1)
+	fmt.Fprintf(w, "\t// DATA2 %d // if this isn't 1, let xack know\n", e.Data2)
+	fmt.Fprintf(w, "\t// NUMVERTICES %d // // if this isn't 0, let xack know\n", e.Data4)
+	fmt.Fprintf(w, "\tSLEEP %d\n", e.Sleep)
 	fmt.Fprintf(w, "\tRGBDEFORMATIONFRAME")
-	fmt.Fprintf(w, "\t\tNUMRGBAS %d\n", len(r.RGBAs))
-	for i, rgba := range r.RGBAs {
+	fmt.Fprintf(w, "\t\tNUMRGBAS %d\n", len(e.RGBAs))
+	for i, rgba := range e.RGBAs {
 		fmt.Fprintf(w, "\t\tRGBA %d %d %d %d %d\n", i+1, rgba[0], rgba[1], rgba[2], rgba[3])
 	}
 	fmt.Fprintf(w, "\tENDRGBDEFORMATIONFRAME\n")
@@ -2866,12 +3145,12 @@ func (r *RGBTrackDef) Write(w io.Writer) error {
 	return nil
 }
 
-func (r *RGBTrackDef) Read(token *AsciiReadToken) error {
+func (e *RGBTrackDef) Read(token *AsciiReadToken) error {
 	records, err := token.ReadProperty("TAG", 1)
 	if err != nil {
 		return err
 	}
-	r.Tag = records[1]
+	e.Tag = records[1]
 
 	/* records, err = token.ReadProperty("NUMFRAMES", 1)
 	if err != nil {
@@ -2904,7 +3183,7 @@ func (r *RGBTrackDef) Read(token *AsciiReadToken) error {
 	if err != nil {
 		return err
 	}
-	r.Sleep, err = helper.ParseUint32(records[1])
+	e.Sleep, err = helper.ParseUint32(records[1])
 	if err != nil {
 		return fmt.Errorf("sleep: %w", err)
 	}
@@ -2941,7 +3220,7 @@ func (r *RGBTrackDef) Read(token *AsciiReadToken) error {
 				}
 			}
 
-			r.RGBAs = append(r.RGBAs, rgba)
+			e.RGBAs = append(e.RGBAs, rgba)
 		}
 
 		if records[1] == "ENDRGBDEFORMATIONFRAME" {
@@ -2957,55 +3236,60 @@ func (r *RGBTrackDef) Read(token *AsciiReadToken) error {
 	return nil
 }
 
-func (r *RGBTrackDef) ToRaw(srcWld *Wld, dst *raw.Wld) (int16, error) {
+func (e *RGBTrackDef) ToRaw(srcWld *Wld, dst *raw.Wld) (int16, error) {
+	if e.fragID != 0 {
+		return e.fragID, nil
+	}
 	wfRGBTrack := &rawfrag.WldFragDmRGBTrackDef{
-		RGBAs: r.RGBAs,
+		RGBAs: e.RGBAs,
 	}
 
-	wfRGBTrack.NameRef = raw.NameAdd(r.Tag)
+	wfRGBTrack.NameRef = raw.NameAdd(e.Tag)
 
 	dst.Fragments = append(dst.Fragments, wfRGBTrack)
+	e.fragID = int16(len(dst.Fragments))
 	return int16(len(dst.Fragments)), nil
 }
 
 // RGBTrack is a track instance for RGB deformation tracks
 type RGBTrack struct {
+	fragID        int16
 	Tag           string
 	DefinitionTag string
 	Flags         uint32
 }
 
-func (r *RGBTrack) Definition() string {
+func (e *RGBTrack) Definition() string {
 	return "RGBDEFORMATIONTRACKINSTANCE"
 }
 
-func (r *RGBTrack) Write(w io.Writer) error {
-	fmt.Fprintf(w, "%s\n", r.Definition())
-	fmt.Fprintf(w, "\tTAG \"%s\"\n", r.Tag)
-	fmt.Fprintf(w, "\tDEFINITION \"%s\"\n", r.DefinitionTag)
-	fmt.Fprintf(w, "\tFLAGS %d\n", r.Flags)
+func (e *RGBTrack) Write(w io.Writer) error {
+	fmt.Fprintf(w, "%s\n", e.Definition())
+	fmt.Fprintf(w, "\tTAG \"%s\"\n", e.Tag)
+	fmt.Fprintf(w, "\tDEFINITION \"%s\"\n", e.DefinitionTag)
+	fmt.Fprintf(w, "\tFLAGS %d\n", e.Flags)
 	fmt.Fprintf(w, "ENDRGBDEFORMATIONTRACKINSTANCE\n\n")
 	return nil
 }
 
-func (r *RGBTrack) Read(token *AsciiReadToken) error {
+func (e *RGBTrack) Read(token *AsciiReadToken) error {
 	records, err := token.ReadProperty("TAG", 1)
 	if err != nil {
 		return err
 	}
-	r.Tag = records[1]
+	e.Tag = records[1]
 
 	records, err = token.ReadProperty("DEFINITION", 1)
 	if err != nil {
 		return err
 	}
-	r.DefinitionTag = records[1]
+	e.DefinitionTag = records[1]
 
 	records, err = token.ReadProperty("FLAGS", 1)
 	if err != nil {
 		return err
 	}
-	r.Flags, err = helper.ParseUint32(records[1])
+	e.Flags, err = helper.ParseUint32(records[1])
 	if err != nil {
 		return fmt.Errorf("flags: %w", err)
 	}
@@ -3016,4 +3300,11 @@ func (r *RGBTrack) Read(token *AsciiReadToken) error {
 	}
 
 	return nil
+}
+
+func (e *RGBTrack) ToRaw(srcWld *Wld, dst *raw.Wld) (int16, error) {
+	if e.fragID != 0 {
+		return e.fragID, nil
+	}
+	return -1, fmt.Errorf("rgb track not implemented")
 }

@@ -63,10 +63,10 @@ func NameAdd(name string) int32 {
 		return 0
 	}
 
-	if name[len(name)-1:] != "\x00" {
+	/* if name[len(name)-1:] != "\x00" {
 		name += "\x00"
 	}
-
+	*/
 	if id := NameIndex(name); id != -1 {
 		return id
 	}

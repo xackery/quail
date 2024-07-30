@@ -26,8 +26,7 @@ func (e *WldFragLightDef) Write(w io.Writer) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
 	enc.Int32(e.NameRef)
 	enc.Uint32(e.Flags)
-	frameCount := uint32(len(e.LightLevels))
-	enc.Uint32(frameCount)
+	enc.Uint32(uint32(len(e.LightLevels)))
 	if e.Flags&0x1 != 0 {
 		enc.Uint32(e.FrameCurrentRef)
 	}

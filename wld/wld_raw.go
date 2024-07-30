@@ -648,6 +648,7 @@ func readRawFrag(wld *Wld, src *raw.Wld, fragment model.FragmentReadWriter) erro
 		}
 		light := &LightDef{
 			Tag:             raw.Name(fragData.NameRef),
+			Flags:           fragData.Flags,
 			Sleep:           fragData.Sleep,
 			FrameCurrentRef: fragData.FrameCurrentRef,
 			LightLevels:     fragData.LightLevels,
@@ -775,6 +776,28 @@ func readRawFrag(wld *Wld, src *raw.Wld, fragment model.FragmentReadWriter) erro
 			Tag:            raw.Name(fragData.NameRef),
 			RegionVertices: fragData.RegionVertices,
 			Sphere:         fragData.Sphere,
+			ReverbVolume:   fragData.ReverbVolume,
+			ReverbOffset:   fragData.ReverbOffset,
+		}
+		// 0x01 is sphere, we just copy
+		// 0x02 has reverb volume, we just copy
+		// 0x04 has reverb offset, we just copy
+		if fragData.Flags&0x08 == 0x08 {
+			region.RegionFog = 1
+		}
+		if fragData.Flags&0x10 == 0x10 {
+			region.Gouraud2 = 1
+		}
+		if fragData.Flags&0x20 == 0x20 {
+			region.EncodedVisibility = 1
+		}
+		// 0x40 unknown
+		if fragData.Flags&0x80 == 0x80 {
+			region.VisListBytes = 1
+		}
+
+		if fragData.MeshReference > 0 && fragData.Flags&0x100 != 0x100 {
+			fmt.Printf("region mesh ref %d but flag 0x100 not set\n", fragData.MeshReference)
 		}
 
 		if fragData.AmbientLightRef > 0 {
@@ -809,6 +832,20 @@ func readRawFrag(wld *Wld, src *raw.Wld, fragment model.FragmentReadWriter) erro
 			}
 
 			region.VisTree.VisLists = append(region.VisTree.VisLists, visListData)
+		}
+
+		if fragData.MeshReference > 0 {
+			if len(src.Fragments) < int(fragData.MeshReference) {
+				return fmt.Errorf("mesh ref %d not found", fragData.MeshReference)
+			}
+
+			rawMesh := src.Fragments[fragData.MeshReference]
+			switch mesh := rawMesh.(type) {
+			case *rawfrag.WldFragDmSpriteDef2:
+				region.SpriteTag = raw.Name(mesh.NameRef)
+			default:
+				return fmt.Errorf("unhandled mesh reference fragment type %d (%s) at offset %d", rawMesh.FragCode(), raw.FragName(rawMesh.FragCode()), i)
+			}
 		}
 
 		wld.Regions = append(wld.Regions, region)
