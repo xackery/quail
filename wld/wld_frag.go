@@ -1289,7 +1289,9 @@ func (e *ActorInst) ToRaw(srcWld *Wld, dst *raw.Wld) (int16, error) {
 		return e.fragID, nil
 	}
 	wfActorInst := &rawfrag.WldFragActor{
-		Flags: e.Flags,
+		Flags:          e.Flags,
+		BoundingRadius: e.BoundingRadius,
+		ScaleFactor:    e.Scale,
 	}
 
 	if e.DefinitionTag != "" {
@@ -1298,12 +1300,12 @@ func (e *ActorInst) ToRaw(srcWld *Wld, dst *raw.Wld) (int16, error) {
 			return -1, fmt.Errorf("actor definition %s not found", e.DefinitionTag)
 		}
 
-		_, err = actorDef.ToRaw(srcWld, dst)
+		actorDefRef, err := actorDef.ToRaw(srcWld, dst)
 		if err != nil {
 			return -1, fmt.Errorf("actor definition %s to raw: %w", e.DefinitionTag, err)
 		}
 
-		wfActorInst.ActorDefNameRef = raw.NameAdd(e.DefinitionTag)
+		wfActorInst.ActorDefRef = int32(actorDefRef)
 	}
 
 	if e.DMRGBTrackTag != "" {
@@ -3008,7 +3010,9 @@ func (e *AmbientLight) ToRaw(srcWld *Wld, dst *raw.Wld) (int16, error) {
 		return e.fragID, nil
 	}
 
-	wfAmbientLight := &rawfrag.WldFragAmbientLight{}
+	wfAmbientLight := &rawfrag.WldFragAmbientLight{
+		Regions: e.Regions,
+	}
 
 	if len(e.LightTag) > 0 {
 		lightDef := srcWld.ByTag(e.LightTag)

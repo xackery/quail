@@ -430,14 +430,14 @@ func readRawFrag(wld *Wld, src *raw.Wld, fragment model.FragmentReadWriter) erro
 		}
 
 		actorDefTag := ""
-		if fragData.ActorDefNameRef > 0 {
-			if len(src.Fragments) < int(fragData.ActorDefNameRef) {
-				return fmt.Errorf("actordef ref %d out of bounds", fragData.ActorDefNameRef)
+		if fragData.ActorDefRef > 0 {
+			if len(src.Fragments) < int(fragData.ActorDefRef) {
+				return fmt.Errorf("actordef ref %d out of bounds", fragData.ActorDefRef)
 			}
 
-			actorDef, ok := src.Fragments[fragData.ActorDefNameRef].(*rawfrag.WldFragActorDef)
+			actorDef, ok := src.Fragments[fragData.ActorDefRef].(*rawfrag.WldFragActorDef)
 			if !ok {
-				return fmt.Errorf("actordef ref %d not found", fragData.ActorDefNameRef)
+				return fmt.Errorf("actordef ref %d not found", fragData.ActorDefRef)
 			}
 			actorDefTag = raw.Name(actorDef.NameRef)
 		}
