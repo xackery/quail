@@ -89,6 +89,7 @@ func (a *AsciiReadToken) ReadProperty(name string, minNumArgs int) ([]string, er
 	}
 	property := ""
 	args := []string{}
+	isQuoted := false
 	for {
 		buf := make([]byte, 1)
 		_, err := a.Read(buf)
@@ -111,15 +112,28 @@ func (a *AsciiReadToken) ReadProperty(name string, minNumArgs int) ([]string, er
 			buf[0] = '\n'
 		}
 
+		if buf[0] == '"' {
+			isQuoted = !isQuoted
+			continue
+		}
+
+		if buf[0] == ' ' && !isQuoted {
+			args = append(args, strings.TrimSpace(property))
+			property = ""
+			continue
+		}
+
 		if buf[0] == '\t' {
 			buf[0] = ' '
 		}
 		if buf[0] == '\n' {
-			//fmt.Println(a.lineNumber, property)
-			if len(strings.TrimSpace(property)) == 0 {
+
+			if len(args) == 0 && len(strings.TrimSpace(property)) == 0 {
 				continue
 			}
-			args = strings.Split(strings.TrimSpace(property), " ")
+			args = append(args, strings.TrimSpace(property))
+			//fmt.Println(a.lineNumber, args)
+
 			if len(args) == 0 {
 				return args, fmt.Errorf("property %s has no arguments", name)
 			}
