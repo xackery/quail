@@ -67,14 +67,26 @@ func NameAdd(name string) int32 {
 		name += "\x00"
 	}
 	*/
-	if id := NameIndex(name); id != -1 {
-		return id
+	if id := NameOffset(name); id != -1 {
+		return -id
 	}
 	names = append(names, &nameEntry{offset: len(nameBuf), name: name})
 	lastRef := int32(len(nameBuf))
 	nameBuf = append(nameBuf, []byte(name)...)
 	nameBuf = append(nameBuf, 0)
 	return int32(-lastRef)
+}
+
+func NameOffset(name string) int32 {
+	if names == nil {
+		return -1
+	}
+	for _, v := range names {
+		if v.name == name {
+			return int32(v.offset)
+		}
+	}
+	return -1
 }
 
 // NameIndex is used when reading, returns the index of a name, or -1 if not found
