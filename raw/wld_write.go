@@ -34,9 +34,8 @@ func (wld *Wld) Write(w io.Writer) error {
 
 	enc.Uint32(wld.BspRegionCount) //bspRegionCount
 	tag.Mark("green", "bspRegionCount")
-	enc.Uint32(wld.Unk2) //unk2
-	tag.Mark("lime", "unk2")
 
+	maxFragSize := 0
 	totalFragSize := 0
 	totalFragBuf := bytes.NewBuffer(nil)
 	for i := range wld.Fragments {
@@ -54,9 +53,15 @@ func (wld *Wld) Write(w io.Writer) error {
 		chunkEnc.Bytes(fragBuf.Bytes())
 
 		totalFragSize += fragBuf.Len()
+		if fragBuf.Len() > maxFragSize {
+			maxFragSize = fragBuf.Len()
+		}
 
 		totalFragBuf.Write(chunkBuf.Bytes())
 	}
+
+	enc.Uint32(uint32(maxFragSize))
+	tag.Mark("lime", "max_object_bytes")
 
 	nameData := NameData()
 	enc.Uint32(uint32(len(nameData))) //hashSize

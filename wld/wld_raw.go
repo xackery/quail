@@ -1007,7 +1007,9 @@ func readRawFrag(wld *Wld, src *raw.Wld, fragment model.FragmentReadWriter) erro
 
 func (wld *Wld) WriteRaw(w io.Writer) error {
 	var err error
-	dst := &raw.Wld{}
+	dst := &raw.Wld{
+		IsOldWorld: true,
+	}
 	if dst.Fragments == nil {
 		dst.Fragments = []model.FragmentReadWriter{}
 	}
