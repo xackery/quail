@@ -123,7 +123,7 @@ func (a *AsciiReadToken) ReadProperty(name string, minNumArgs int) ([]string, er
 			if len(args) == 0 {
 				return args, fmt.Errorf("property %s has no arguments", name)
 			}
-			if args[0] != name {
+			if !strings.EqualFold(args[0], name) {
 				return args, fmt.Errorf("expected property '%s' got '%s'", name, args[0])
 			}
 			if minNumArgs > 0 && minNumArgs != len(args)-1 {
@@ -142,7 +142,7 @@ func (a *AsciiReadToken) ReadProperty(name string, minNumArgs int) ([]string, er
 		if len(property) > 1 && property[len(property)-1] == ' ' && buf[0] == ' ' {
 			continue
 		}
-		property += strings.ToUpper(string(buf))
+		property += string(buf)
 	}
 }
 

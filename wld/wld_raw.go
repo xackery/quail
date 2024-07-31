@@ -122,7 +122,6 @@ func readRawFrag(wld *Wld, src *raw.Wld, fragment model.FragmentReadWriter) erro
 		material := &MaterialDef{
 			Tag:                  raw.Name(fragData.NameRef),
 			RenderMethod:         model.RenderMethodStr(fragData.RenderMethod),
-			Flags:                fragData.Flags,
 			RGBPen:               fragData.RGBPen,
 			Brightness:           fragData.Brightness,
 			ScaledAmbient:        fragData.ScaledAmbient,
@@ -130,6 +129,9 @@ func readRawFrag(wld *Wld, src *raw.Wld, fragment model.FragmentReadWriter) erro
 			Pair2:                fragData.Pair2,
 			SimpleSpriteTag:      spriteTag,
 			SimpleSpriteInstFlag: spriteFlags,
+		}
+		if fragData.Flags&0x02 == 0x02 {
+			material.HasPairs = 1
 		}
 		wld.MaterialDefs = append(wld.MaterialDefs, material)
 	case rawfrag.FragCodeMaterialPalette:
@@ -1082,6 +1084,13 @@ func (wld *Wld) WriteRaw(w io.Writer) error {
 		_, err = actor.ToRaw(wld, dst)
 		if err != nil {
 			return fmt.Errorf("actor %s: %w", actor.Tag, err)
+		}
+	}
+
+	for _, zone := range wld.Zones {
+		_, err = zone.ToRaw(wld, dst)
+		if err != nil {
+			return fmt.Errorf("zone %s: %w", zone.Tag, err)
 		}
 	}
 

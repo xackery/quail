@@ -648,8 +648,8 @@ func (e *MaterialPalette) ToRaw(srcWld *Wld, dst *raw.Wld) (int16, error) {
 // MaterialDef is an entry MATERIALDEFINITION
 type MaterialDef struct {
 	fragID               int16
-	Tag                  string   // TAG %s
-	Flags                uint32   // FLAGS %d
+	Tag                  string // TAG %s
+	HasPairs             int
 	RenderMethod         string   // RENDERMETHOD %s
 	RGBPen               [4]uint8 // RGBPEN %d %d %d
 	Brightness           float32  // BRIGHTNESS %0.7f
@@ -667,17 +667,17 @@ func (e *MaterialDef) Definition() string {
 func (e *MaterialDef) Write(w io.Writer) error {
 	fmt.Fprintf(w, "%s\n", e.Definition())
 	fmt.Fprintf(w, "\tTAG \"%s\"\n", e.Tag)
-	fmt.Fprintf(w, "\t// FLAGS %d\n", e.Flags)
 	fmt.Fprintf(w, "\tRENDERMETHOD \"%s\"\n", e.RenderMethod)
-	fmt.Fprintf(w, "\tRGBPEN %d %d %d\n", e.RGBPen[0], e.RGBPen[1], e.RGBPen[2])
+	fmt.Fprintf(w, "\tRGBPEN %d %d %d %d\n", e.RGBPen[0], e.RGBPen[1], e.RGBPen[2], e.RGBPen[3])
 	fmt.Fprintf(w, "\tBRIGHTNESS %0.7f\n", e.Brightness)
 	fmt.Fprintf(w, "\tSCALEDAMBIENT %0.7f\n", e.ScaledAmbient)
 	fmt.Fprintf(w, "\tSIMPLESPRITEINST\n")
 	fmt.Fprintf(w, "\t\tTAG \"%s\"\n", e.SimpleSpriteTag)
 	fmt.Fprintf(w, "\t\t// FLAGS %d\n", e.SimpleSpriteInstFlag)
 	fmt.Fprintf(w, "\tENDSIMPLESPRITEINST\n")
-	fmt.Fprintf(w, "\t// PAIR1 %d\n", e.Pair1)
-	fmt.Fprintf(w, "\t// PAIR2 %0.7f\n", e.Pair2)
+	fmt.Fprintf(w, "\tHASPAIRS %d\n", e.HasPairs)
+	fmt.Fprintf(w, "\tPAIR1 %d\n", e.Pair1)
+	fmt.Fprintf(w, "\tPAIR2 %0.7f\n", e.Pair2)
 	fmt.Fprintf(w, "ENDMATERIALDEFINITION\n\n")
 	return nil
 }
@@ -695,12 +695,9 @@ func (e *MaterialDef) Read(r *AsciiReadToken) error {
 	}
 	e.RenderMethod = records[1]
 
-	records, err = r.ReadProperty("RGBPEN", 3)
+	records, err = r.ReadProperty("RGBPEN", 4)
 	if err != nil {
 		return err
-	}
-	if len(records) != 4 {
-		return fmt.Errorf("rgbpen: expected 4 records, got %d", len(records))
 	}
 	e.RGBPen, err = helper.ParseUint8Slice4(records[1:])
 	if err != nil {
@@ -741,6 +738,33 @@ func (e *MaterialDef) Read(r *AsciiReadToken) error {
 		return err
 	}
 
+	records, err = r.ReadProperty("HASPAIRS", 1)
+	if err != nil {
+		return err
+	}
+	e.HasPairs, err = helper.ParseInt(records[1])
+	if err != nil {
+		return fmt.Errorf("has pairs: %w", err)
+	}
+
+	records, err = r.ReadProperty("PAIR1", 1)
+	if err != nil {
+		return err
+	}
+	e.Pair1, err = helper.ParseUint32(records[1])
+	if err != nil {
+		return fmt.Errorf("pair1: %w", err)
+	}
+
+	records, err = r.ReadProperty("PAIR2", 1)
+	if err != nil {
+		return err
+	}
+	e.Pair2, err = helper.ParseFloat32(records[1])
+	if err != nil {
+		return fmt.Errorf("pair2: %w", err)
+	}
+
 	_, err = r.ReadProperty("ENDMATERIALDEFINITION", 0)
 	if err != nil {
 		return err
@@ -753,12 +777,16 @@ func (e *MaterialDef) ToRaw(srcWld *Wld, dst *raw.Wld) (int16, error) {
 	if e.fragID != 0 {
 		return e.fragID, nil
 	}
+
 	wfMaterialDef := &rawfrag.WldFragMaterialDef{
-		Flags:         e.Flags,
 		RenderMethod:  model.RenderMethodInt(e.RenderMethod),
 		RGBPen:        e.RGBPen,
 		Brightness:    e.Brightness,
 		ScaledAmbient: e.ScaledAmbient,
+	}
+
+	if e.HasPairs != 0 {
+		wfMaterialDef.Flags |= 0x02
 	}
 
 	if e.SimpleSpriteTag != "" {
@@ -910,9 +938,9 @@ func (e *SimpleSpriteDef) Read(r *AsciiReadToken) error {
 }
 
 func (e *SimpleSpriteDef) ToRaw(srcWld *Wld, dst *raw.Wld) (int16, error) {
-	if e.fragID != 0 {
-		return e.fragID, nil
-	}
+	//if e.fragID != 0 {
+	//	return e.fragID, nil
+	//}
 	flags := uint32(0)
 	wfSimpleSpriteDef := &rawfrag.WldFragSimpleSpriteDef{
 		Sleep: e.Sleep,
@@ -934,20 +962,17 @@ func (e *SimpleSpriteDef) ToRaw(srcWld *Wld, dst *raw.Wld) (int16, error) {
 
 	wfSimpleSpriteDef.Flags = flags
 
-	bmInfoRef := int16(0)
 	for _, frame := range e.SimpleSpriteFrames {
-
 		wfBMInfo := &rawfrag.WldFragBMInfo{
 			NameRef:      raw.NameAdd(frame.TextureTag),
 			TextureNames: []string{frame.TextureFile + "\x00"},
 		}
 
 		dst.Fragments = append(dst.Fragments, wfBMInfo)
-		bmInfoRef = int16(len(dst.Fragments))
+		wfSimpleSpriteDef.BitmapRefs = append(wfSimpleSpriteDef.BitmapRefs, uint32(len(dst.Fragments)))
 	}
 
 	wfSimpleSpriteDef.NameRef = raw.NameAdd(e.Tag)
-	wfSimpleSpriteDef.BitmapRefs = []uint32{uint32(bmInfoRef)}
 
 	dst.Fragments = append(dst.Fragments, wfSimpleSpriteDef)
 	e.fragID = int16(len(dst.Fragments))
@@ -3141,7 +3166,7 @@ func (e *Zone) Read(r *AsciiReadToken) error {
 
 	e.Tag = records[1]
 
-	records, err = r.ReadProperty("REGIONLIST", 1)
+	records, err = r.ReadProperty("REGIONLIST", -1)
 	if err != nil {
 		return err
 	}
@@ -3180,7 +3205,16 @@ func (e *Zone) ToRaw(srcWld *Wld, dst *raw.Wld) (int16, error) {
 		return e.fragID, nil
 	}
 
-	return -1, fmt.Errorf("zone not implemented")
+	wfZone := &rawfrag.WldFragZone{
+		NameRef:  raw.NameAdd(e.Tag),
+		Flags:    0,
+		Regions:  e.Regions,
+		UserData: e.UserData,
+	}
+
+	dst.Fragments = append(dst.Fragments, wfZone)
+	e.fragID = int16(len(dst.Fragments))
+	return int16(len(dst.Fragments)), nil
 }
 
 type RGBTrackDef struct {

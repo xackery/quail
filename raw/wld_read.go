@@ -98,7 +98,7 @@ func (wld *Wld) Read(r io.ReadSeeker) error {
 	totalRegions := 0
 	for i := uint32(0); i < fragmentCount; i++ {
 		data := fragments[i]
-		if len(data) > int(maxFragSize) {
+		if len(data) > int(maxFragSize+4) {
 			return fmt.Errorf("fragment %d (size: %d) exceeds max size %d", i, len(data), maxFragSize)
 		}
 		r := bytes.NewReader(data)
