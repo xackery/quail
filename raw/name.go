@@ -92,6 +92,7 @@ func NameIndex(name string) int32 {
 
 // NameData is used during writing, dumps the name cache
 func NameData() []byte {
+
 	return helper.WriteStringHash(string(nameBuf))
 }
 

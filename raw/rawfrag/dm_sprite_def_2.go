@@ -127,11 +127,11 @@ func (e *WldFragDmSpriteDef2) Write(w io.Writer) error {
 		}
 	}
 
-	for _, triangle := range e.Faces {
-		enc.Uint16(triangle.Flags)
-		enc.Uint16(triangle.Index[0])
-		enc.Uint16(triangle.Index[1])
-		enc.Uint16(triangle.Index[2])
+	for _, face := range e.Faces {
+		enc.Uint16(face.Flags)
+		enc.Uint16(face.Index[0])
+		enc.Uint16(face.Index[1])
+		enc.Uint16(face.Index[2])
 	}
 
 	for _, vertexPiece := range e.SkinAssignmentGroups {

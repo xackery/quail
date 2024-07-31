@@ -53,8 +53,22 @@ func readRawFrag(wld *Wld, src *raw.Wld, fragment model.FragmentReadWriter) erro
 			tag = fmt.Sprintf("%d_SPRITEDEF", i)
 		}
 		sprite := &SimpleSpriteDef{
-			Tag: tag,
+			Tag:   tag,
+			Sleep: fragData.Sleep,
 		}
+		if fragData.Flags&0x02 == 0x02 {
+			sprite.SkipFrames = 1
+		}
+		if fragData.Flags&0x04 == 0x04 {
+			sprite.Animated = 1
+		}
+		if fragData.Flags&0x10 == 0x10 {
+			sprite.HasSleep = 1
+		}
+		if fragData.Flags&0x20 == 0x20 {
+			sprite.CurrentFrame = 1
+		}
+
 		for _, bitmapRef := range fragData.BitmapRefs {
 			if bitmapRef == 0 {
 				return nil
@@ -107,6 +121,7 @@ func readRawFrag(wld *Wld, src *raw.Wld, fragment model.FragmentReadWriter) erro
 		}
 		material := &MaterialDef{
 			Tag:                  raw.Name(fragData.NameRef),
+			RenderMethod:         model.RenderMethodStr(fragData.RenderMethod),
 			Flags:                fragData.Flags,
 			RGBPen:               fragData.RGBPen,
 			Brightness:           fragData.Brightness,
@@ -195,14 +210,6 @@ func readRawFrag(wld *Wld, src *raw.Wld, fragment model.FragmentReadWriter) erro
 				float32(vn[0]) * scale,
 				float32(vn[1]) * scale,
 				float32(vn[2]) * scale,
-			})
-		}
-		for _, color := range fragData.Colors {
-			sprite.Colors = append(sprite.Colors, [4]uint8{
-				color[0],
-				color[1],
-				color[2],
-				color[3],
 			})
 		}
 		for _, face := range fragData.Faces {
@@ -682,6 +689,14 @@ func readRawFrag(wld *Wld, src *raw.Wld, fragment model.FragmentReadWriter) erro
 			CenterOffset:   fragData.CenterOffset,
 			BoundingRadius: fragData.BoundingRadius,
 			Vertices:       fragData.Vertices,
+		}
+
+		if fragData.Flags&0x01 == 0x01 {
+			sprite.HasCenterOffset = 1
+		}
+
+		if fragData.Flags&0x02 == 0x02 {
+			sprite.HasBoundingRadius = 1
 		}
 
 		for _, bspNode := range fragData.BspNodes {

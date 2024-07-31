@@ -32,10 +32,8 @@ func (wld *Wld) Write(w io.Writer) error {
 	enc.Uint32(uint32(len(wld.Fragments)))
 	tag.Mark("blue", "fragcount")
 
-	enc.Uint32(wld.BspRegionCount) //bspRegionCount
-	tag.Mark("green", "bspRegionCount")
-
 	maxFragSize := 0
+	totalRegionCount := 0
 	totalFragSize := 0
 	totalFragBuf := bytes.NewBuffer(nil)
 	for i := range wld.Fragments {
@@ -54,11 +52,19 @@ func (wld *Wld) Write(w io.Writer) error {
 
 		totalFragSize += fragBuf.Len()
 		if fragBuf.Len() > maxFragSize {
-			maxFragSize = fragBuf.Len()
+			maxFragSize = fragBuf.Len() + 8
+		}
+
+		_, ok := frag.(*rawfrag.WldFragRegion)
+		if ok {
+			totalRegionCount++
 		}
 
 		totalFragBuf.Write(chunkBuf.Bytes())
 	}
+
+	enc.Uint32(uint32(totalRegionCount)) //aka bspRegionCount
+	tag.Mark("green", "totalRegionCount")
 
 	enc.Uint32(uint32(maxFragSize))
 	tag.Mark("lime", "max_object_bytes")
@@ -67,8 +73,12 @@ func (wld *Wld) Write(w io.Writer) error {
 	enc.Uint32(uint32(len(nameData))) //hashSize
 	tag.Mark("green", "hashsize")
 
-	enc.Uint32(wld.Unk3) //unk3
-	tag.Mark("lime", "unk3")
+	if len(names) < 1 {
+		return fmt.Errorf("no names found")
+	}
+	enc.Uint32(uint32(len(names) - 1)) // there's a 0x00 string at start but it's not counted
+	tag.Mark("green", "string count")
+
 	enc.Bytes(nameData)
 	tag.Mark("red", "namehash")
 	enc.Bytes(totalFragBuf.Bytes())

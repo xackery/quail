@@ -369,16 +369,18 @@ func (e *DMSpriteDef2) ToRaw(srcWld *Wld, dst *raw.Wld) (int16, error) {
 		}
 	}
 	dmSpriteDef := &rawfrag.WldFragDmSpriteDef2{
-		NameRef:            raw.NameAdd(e.Tag),
-		Flags:              e.Flags,
-		MaterialPaletteRef: uint32(materialPaletteRef),
-		CenterOffset:       e.CenterOffset,
-		Params2:            e.Params2,
-		MaxDistance:        e.MaxDistance,
-		Min:                e.Min,
-		Max:                e.Max,
-		Scale:              e.FPScale,
-		Colors:             e.Colors,
+		NameRef:              raw.NameAdd(e.Tag),
+		Flags:                e.Flags,
+		MaterialPaletteRef:   uint32(materialPaletteRef),
+		CenterOffset:         e.CenterOffset,
+		Params2:              e.Params2,
+		MaxDistance:          e.MaxDistance,
+		Min:                  e.Min,
+		Max:                  e.Max,
+		Scale:                e.FPScale,
+		Colors:               e.Colors,
+		FaceMaterialGroups:   e.FaceMaterialGroups,
+		VertexMaterialGroups: e.VertexMaterialGroups,
 	}
 
 	for i, frag := range dst.Fragments {
@@ -390,6 +392,13 @@ func (e *DMSpriteDef2) ToRaw(srcWld *Wld, dst *raw.Wld) (int16, error) {
 	}
 
 	scale := float32(1 / float32(int(1)<<int(e.FPScale)))
+
+	for _, face := range e.Faces {
+		dmSpriteDef.Faces = append(dmSpriteDef.Faces, rawfrag.WldFragMeshFaceEntry{
+			Flags: face.Flags,
+			Index: face.Triangle,
+		})
+	}
 
 	for _, vert := range e.Vertices {
 		dmSpriteDef.Vertices = append(dmSpriteDef.Vertices, [3]int16{
@@ -785,7 +794,8 @@ type SimpleSpriteDef struct {
 	fragID             int16
 	Tag                string
 	SkipFrames         int
-	Sleep              int
+	HasSleep           int
+	Sleep              uint32
 	CurrentFrame       int
 	Animated           int
 	SimpleSpriteFrames []SimpleSpriteFrame
@@ -805,6 +815,7 @@ func (e *SimpleSpriteDef) Write(w io.Writer) error {
 	fmt.Fprintf(w, "\tSIMPLESPRITETAG \"%s\"\n", e.Tag)
 	fmt.Fprintf(w, "\tSKIPFRAMES %d\n", e.SkipFrames)
 	fmt.Fprintf(w, "\tANIMATED %d\n", e.Animated)
+	fmt.Fprintf(w, "\tHASSLEEP %d\n", e.HasSleep)
 	fmt.Fprintf(w, "\tSLEEP %d\n", e.Sleep)
 	fmt.Fprintf(w, "\tCURRENTFRAME %d\n", e.CurrentFrame)
 	fmt.Fprintf(w, "\tNUMFRAMES %d\n", len(e.SimpleSpriteFrames))
@@ -840,11 +851,20 @@ func (e *SimpleSpriteDef) Read(r *AsciiReadToken) error {
 		return fmt.Errorf("animated: %w", err)
 	}
 
+	records, err = r.ReadProperty("HASSLEEP", 1)
+	if err != nil {
+		return fmt.Errorf("HASSLEEP: %w", err)
+	}
+	e.HasSleep, err = helper.ParseInt(records[1])
+	if err != nil {
+		return fmt.Errorf("has sleep: %w", err)
+	}
+
 	records, err = r.ReadProperty("SLEEP", 1)
 	if err != nil {
 		return fmt.Errorf("SLEEP: %w", err)
 	}
-	e.Sleep, err = helper.ParseInt(records[1])
+	e.Sleep, err = helper.ParseUint32(records[1])
 	if err != nil {
 		return fmt.Errorf("sleep: %w", err)
 	}
@@ -881,17 +901,18 @@ func (e *SimpleSpriteDef) ToRaw(srcWld *Wld, dst *raw.Wld) (int16, error) {
 		return e.fragID, nil
 	}
 	flags := uint32(0)
-	wfSimpleSpriteDef := &rawfrag.WldFragSimpleSpriteDef{}
+	wfSimpleSpriteDef := &rawfrag.WldFragSimpleSpriteDef{
+		Sleep: e.Sleep,
+	}
 
 	if e.SkipFrames > 0 {
-		flags |= 0x01
+		flags |= 0x02
 	}
-	//flags |= 0x02
-	flags |= 0x04
+	//flags |= 0x04
 	if len(e.SimpleSpriteFrames) > 1 {
 		flags |= 0x08
 	}
-	if e.Sleep > 0 {
+	if e.HasSleep > 0 {
 		flags |= 0x10
 	}
 	if e.CurrentFrame > 0 {
@@ -1098,7 +1119,7 @@ func (e *ActorDef) ToRaw(srcWld *Wld, dst *raw.Wld) (int16, error) {
 					return -1, fmt.Errorf("sprite %s to raw: %w", lod.SpriteTag, err)
 				}
 				sprite := &rawfrag.WldFragSprite3D{
-					Flags:          0, // always 0?
+					Flags:          lod.SpriteFlags,
 					Sprite3DDefRef: int32(spriteRef),
 				}
 
@@ -1292,6 +1313,7 @@ func (e *ActorInst) ToRaw(srcWld *Wld, dst *raw.Wld) (int16, error) {
 		Flags:          e.Flags,
 		BoundingRadius: e.BoundingRadius,
 		ScaleFactor:    e.Scale,
+		Location:       e.Location,
 	}
 
 	if e.DefinitionTag != "" {
@@ -1550,13 +1572,15 @@ func (e *PointLight) ToRaw(srcWld *Wld, dst *raw.Wld) (int16, error) {
 
 // Sprite3DDef is a declaration of SPRITE3DDEF
 type Sprite3DDef struct {
-	fragID         int16
-	Tag            string
-	CenterOffset   [3]float32
-	BoundingRadius float32
-	SphereListTag  string
-	Vertices       [][3]float32
-	BSPNodes       []*BSPNode
+	fragID            int16
+	Tag               string
+	HasCenterOffset   int
+	CenterOffset      [3]float32
+	HasBoundingRadius int
+	BoundingRadius    float32
+	SphereListTag     string
+	Vertices          [][3]float32
+	BSPNodes          []*BSPNode
 }
 
 // BSPNode is a declaration of BSPNODE
@@ -1590,7 +1614,9 @@ func (e *Sprite3DDef) Definition() string {
 func (e *Sprite3DDef) Write(w io.Writer) error {
 	fmt.Fprintf(w, "%s\n", e.Definition())
 	fmt.Fprintf(w, "\tTAG \"%s\"\n", e.Tag)
+	fmt.Fprintf(w, "\tHASCENTEROFFSET %d\n", e.HasCenterOffset)
 	fmt.Fprintf(w, "\tCENTEROFFSET %0.7f %0.7f %0.7f\n", e.CenterOffset[0], e.CenterOffset[1], e.CenterOffset[2])
+	fmt.Fprintf(w, "\tHASBOUNDINGRADIUS %d\n", e.HasBoundingRadius)
 	fmt.Fprintf(w, "\tBOUNDINGRADIUS %0.7f\n", e.BoundingRadius)
 	fmt.Fprintf(w, "\tSPHERELIST \"%s\"\n", e.SphereListTag)
 	fmt.Fprintf(w, "\tNUMVERTICES %d\n", len(e.Vertices))
@@ -1625,6 +1651,15 @@ func (s *Sprite3DDef) Read(r *AsciiReadToken) error {
 	}
 	s.Tag = records[1]
 
+	records, err = r.ReadProperty("HASCENTEROFFSET", 1)
+	if err != nil {
+		return err
+	}
+	s.HasCenterOffset, err = helper.ParseInt(records[1])
+	if err != nil {
+		return fmt.Errorf("has center offset: %w", err)
+	}
+
 	records, err = r.ReadProperty("CENTEROFFSET", 3)
 	if err != nil {
 		return err
@@ -1632,6 +1667,15 @@ func (s *Sprite3DDef) Read(r *AsciiReadToken) error {
 	s.CenterOffset, err = helper.ParseFloat32Slice3(records[1:])
 	if err != nil {
 		return fmt.Errorf("center offset: %w", err)
+	}
+
+	records, err = r.ReadProperty("HASBOUNDINGRADIUS", 1)
+	if err != nil {
+		return err
+	}
+	s.HasBoundingRadius, err = helper.ParseInt(records[1])
+	if err != nil {
+		return fmt.Errorf("has bounding radius: %w", err)
 	}
 
 	records, err = r.ReadProperty("BOUNDINGRADIUS", 1)
@@ -1770,17 +1814,21 @@ func (e *Sprite3DDef) ToRaw(srcWld *Wld, dst *raw.Wld) (int16, error) {
 	if e.fragID != 0 {
 		return e.fragID, nil
 	}
-	flags := uint32(0)
 	wfSprite3DDef := &rawfrag.WldFragSprite3DDef{
-		Vertices: e.Vertices,
+		Vertices:       e.Vertices,
+		CenterOffset:   e.CenterOffset,
+		BoundingRadius: e.BoundingRadius,
 	}
 
-	if e.CenterOffset != [3]float32{0, 0, 0} {
-		flags |= 0x01
+	if e.HasCenterOffset != 0 {
+		wfSprite3DDef.Flags |= 0x01
+	}
+
+	if e.HasBoundingRadius != 0 {
+		wfSprite3DDef.Flags |= 0x02
 	}
 
 	if len(e.BSPNodes) > 0 {
-		flags |= 0x02
 
 		for _, node := range e.BSPNodes {
 			bnode := rawfrag.WldFragThreeDSpriteBspNode{
@@ -1801,8 +1849,6 @@ func (e *Sprite3DDef) ToRaw(srcWld *Wld, dst *raw.Wld) (int16, error) {
 			wfSprite3DDef.BspNodes = append(wfSprite3DDef.BspNodes, bnode)
 		}
 	}
-
-	wfSprite3DDef.Flags = flags
 
 	wfSprite3DDef.NameRef = raw.NameAdd(e.Tag)
 

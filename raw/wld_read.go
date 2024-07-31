@@ -14,13 +14,12 @@ import (
 )
 
 type Wld struct {
-	MetaFileName   string                     `yaml:"file_name"`
-	Version        uint32                     `yaml:"version"`
-	IsOldWorld     bool                       `yaml:"is_old_world"`
-	Fragments      []model.FragmentReadWriter `yaml:"fragments,omitempty"`
-	BspRegionCount uint32                     `yaml:"bsp_region_count"`
-	Unk2           uint32                     `yaml:"unk2"`
-	Unk3           uint32                     `yaml:"unk3"`
+	MetaFileName string                     `yaml:"file_name"`
+	Version      uint32                     `yaml:"version"`
+	IsOldWorld   bool                       `yaml:"is_old_world"`
+	Fragments    []model.FragmentReadWriter `yaml:"fragments,omitempty"`
+	Unk2         uint32                     `yaml:"unk2"`
+	Unk3         uint32                     `yaml:"unk3"`
 }
 
 func (wld *Wld) Identity() string {
@@ -55,14 +54,13 @@ func (wld *Wld) Read(r io.ReadSeeker) error {
 	fragmentCount := dec.Uint32()
 	tag.Mark("blue", "fragcount")
 
-	wld.BspRegionCount = dec.Uint32() //bspRegionCount
-	tag.Mark("green", "bspRegionCount")
-	wld.Unk2 = dec.Uint32() //unk2
-	tag.Mark("lime", "unk2")
+	bspRegionCount := dec.Uint32() //bspRegionCount
+	tag.Mark("green", "totalRegionCount")
+	maxFragSize := dec.Uint32() // max fragment size
 	hashSize := dec.Uint32()
 	tag.Mark("green", "hashsize")
-	wld.Unk3 = dec.Uint32() //unk3
-	tag.Mark("lime", "unk3")
+	stringCount := dec.Uint32() // string count
+	tag.Mark("lime", "string count")
 	hashRaw := dec.Bytes(int(hashSize))
 	nameData := helper.ReadStringHash(hashRaw)
 	tag.Mark("red", "namehash")
@@ -74,7 +72,6 @@ func (wld *Wld) Read(r io.ReadSeeker) error {
 	for i, b := range nameData {
 		if b == 0 {
 			names = append(names, &nameEntry{name: string(chunk), offset: lastOffset})
-
 			//nameBuf = append(nameBuf, []byte(string(chunk))...)
 			//nameBuf = append(nameBuf, 0)
 			chunk = []rune{}
@@ -87,6 +84,10 @@ func (wld *Wld) Read(r io.ReadSeeker) error {
 		chunk = append(chunk, b)
 	}
 
+	if len(names) != int(stringCount)+1 {
+		return fmt.Errorf("name count mismatch, wanted %d, got %d", stringCount, len(names))
+	}
+
 	nameBuf = hashRaw
 
 	fragments, err := readFragments(fragmentCount, r)
@@ -94,8 +95,12 @@ func (wld *Wld) Read(r io.ReadSeeker) error {
 		return fmt.Errorf("load: %w", err)
 	}
 
+	totalRegions := 0
 	for i := uint32(0); i < fragmentCount; i++ {
 		data := fragments[i]
+		if len(data) > int(maxFragSize) {
+			return fmt.Errorf("fragment %d (size: %d) exceeds max size %d", i, len(data), maxFragSize)
+		}
 		r := bytes.NewReader(data)
 
 		reader := NewFrag(r)
@@ -109,8 +114,16 @@ func (wld *Wld) Read(r io.ReadSeeker) error {
 		}
 		wld.Fragments = append(wld.Fragments, reader)
 
+		_, ok := reader.(*rawfrag.WldFragRegion)
+		if ok {
+			totalRegions++
+		}
+
 	}
 
+	if totalRegions != int(bspRegionCount) {
+		return fmt.Errorf("region count mismatch, wanted %d, got %d", bspRegionCount, totalRegions)
+	}
 	return nil
 }
 
@@ -138,10 +151,10 @@ func (wld *Wld) rawFrags(r io.ReadSeeker) ([][]byte, error) {
 
 	fragmentCount := dec.Uint32()
 
-	wld.BspRegionCount = dec.Uint32() //bspRegionCount
-	wld.Unk2 = dec.Uint32()           //unk2
+	_ = dec.Uint32() //bspRegionCount
+	_ = dec.Uint32() // max_fragment_size
 	hashSize := dec.Uint32()
-	wld.Unk3 = dec.Uint32() //unk3
+	_ = dec.Uint32() // string count
 	hashRaw := dec.Bytes(int(hashSize))
 	nameData := helper.ReadStringHash(hashRaw)
 
