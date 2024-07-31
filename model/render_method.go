@@ -15,7 +15,7 @@ func RenderMethodStr(in uint32) string {
 	if val, ok := methods[in]; ok {
 		return val
 	}
-	return fmt.Sprintf("UNKNOWN 0x%x", in)
+	return fmt.Sprintf("UNKNOWN_0x%x", in)
 }
 
 func RenderMethodInt(in string) uint32 {
@@ -166,5 +166,10 @@ var (
 		0x80000001: "USERDEFINED_2",
 		0x80000002: "USERDEFINED_3",
 		0x80000003: "USERDEFINED_4",
+		0x80000004: "USERDEFINED_5",
+		0x80000005: "USERDEFINED_6",
+		0x80000006: "USERDEFINED_7",
+		0x80000007: "USERDEFINED_8",
+		0x80000008: "USERDEFINED_9",
 	}
 )
