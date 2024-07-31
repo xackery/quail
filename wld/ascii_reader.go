@@ -108,26 +108,35 @@ func (a *AsciiReadToken) ReadProperty(name string, minNumArgs int) ([]string, er
 			if err != nil {
 				return args, fmt.Errorf("read comment: %w", err)
 			}
-			continue
+			buf[0] = '\n'
 		}
-		if buf[0] == '"' {
-			continue
-		}
+
 		if buf[0] == '\t' {
 			buf[0] = ' '
 		}
 		if buf[0] == '\n' {
-			if len(property) == 0 {
+			//fmt.Println(a.lineNumber, property)
+			if len(strings.TrimSpace(property)) == 0 {
 				continue
 			}
 			args = strings.Split(strings.TrimSpace(property), " ")
 			if len(args) == 0 {
 				return args, fmt.Errorf("property %s has no arguments", name)
 			}
-			if minNumArgs < len(args)-1 {
+			if args[0] != name {
+				return args, fmt.Errorf("expected property '%s' got '%s'", name, args[0])
+			}
+			if minNumArgs > 0 && minNumArgs != len(args)-1 {
 				return args, fmt.Errorf("property %s needs at least %d arguments, got %d", name, minNumArgs, len(args)-1)
 			}
 
+			if minNumArgs == -1 && len(args) == 1 {
+				return args, fmt.Errorf("property %s needs at least 1 argument, got 0", name)
+			}
+
+			for i := 1; i < len(args); i++ {
+				args[i] = strings.ReplaceAll(args[i], "\"", "")
+			}
 			return args, nil
 		}
 		if len(property) > 1 && property[len(property)-1] == ' ' && buf[0] == ' ' {
@@ -379,10 +388,9 @@ func (a *AsciiReadToken) readComment() error {
 			return fmt.Errorf("read comment: %w", err)
 		}
 		if buf[0] == '\n' {
-			break
+			return nil
 		}
 	}
-	return nil
 }
 
 func (a *AsciiReadToken) readRegions() error {

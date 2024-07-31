@@ -189,6 +189,9 @@ func ParseUint16Slice3(s []string) ([3]uint16, error) {
 }
 
 func ParseUint8Slice4(s []string) ([4]uint8, error) {
+	if len(s) != 4 {
+		return [4]uint8{}, nil
+	}
 	var arr [4]uint8
 	for i := 0; i < 4; i++ {
 		val, err := ParseUint8(s[i])

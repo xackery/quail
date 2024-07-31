@@ -93,7 +93,7 @@ func (e *DMSpriteDef2) Write(w io.Writer) error {
 	for i, face := range e.Faces {
 		fmt.Fprintf(w, "\tDMFACE2 //%d\n", i+1)
 		fmt.Fprintf(w, "\t\tFLAGS %d\n", face.Flags)
-		fmt.Fprintf(w, "\t\tTRIANGLE   %d %d %d\n", face.Triangle[0], face.Triangle[1], face.Triangle[2])
+		fmt.Fprintf(w, "\t\tTRIANGLE %d %d %d\n", face.Triangle[0], face.Triangle[1], face.Triangle[2])
 		fmt.Fprintf(w, "\tENDDMFACE2 //%d\n\n", i+1)
 	}
 	fmt.Fprintf(w, "\n")
@@ -281,7 +281,7 @@ func (e *DMSpriteDef2) Read(r *AsciiReadToken) error {
 		e.Faces = append(e.Faces, face)
 	}
 
-	records, err = r.ReadProperty("FACEMATERIALGROUPS", 1)
+	records, err = r.ReadProperty("FACEMATERIALGROUPS", -1)
 	if err != nil {
 		return err
 	}
@@ -302,7 +302,7 @@ func (e *DMSpriteDef2) Read(r *AsciiReadToken) error {
 		e.FaceMaterialGroups = append(e.FaceMaterialGroups, [2]uint16{uint16(val1), uint16(val2)})
 	}
 
-	records, err = r.ReadProperty("VERTEXMATERIALGROUPS", 1)
+	records, err = r.ReadProperty("VERTEXMATERIALGROUPS", -1)
 	if err != nil {
 		return err
 	}
@@ -668,7 +668,7 @@ func (e *MaterialDef) Write(w io.Writer) error {
 	fmt.Fprintf(w, "%s\n", e.Definition())
 	fmt.Fprintf(w, "\tTAG \"%s\"\n", e.Tag)
 	fmt.Fprintf(w, "\t// FLAGS %d\n", e.Flags)
-	fmt.Fprintf(w, "\tRENDERMETHOD %s\n", e.RenderMethod)
+	fmt.Fprintf(w, "\tRENDERMETHOD \"%s\"\n", e.RenderMethod)
 	fmt.Fprintf(w, "\tRGBPEN %d %d %d\n", e.RGBPen[0], e.RGBPen[1], e.RGBPen[2])
 	fmt.Fprintf(w, "\tBRIGHTNESS %0.7f\n", e.Brightness)
 	fmt.Fprintf(w, "\tSCALEDAMBIENT %0.7f\n", e.ScaledAmbient)
@@ -698,6 +698,9 @@ func (e *MaterialDef) Read(r *AsciiReadToken) error {
 	records, err = r.ReadProperty("RGBPEN", 3)
 	if err != nil {
 		return err
+	}
+	if len(records) != 4 {
+		return fmt.Errorf("rgbpen: expected 4 records, got %d", len(records))
 	}
 	e.RGBPen, err = helper.ParseUint8Slice4(records[1:])
 	if err != nil {
@@ -869,6 +872,16 @@ func (e *SimpleSpriteDef) Read(r *AsciiReadToken) error {
 		return fmt.Errorf("sleep: %w", err)
 	}
 
+	records, err = r.ReadProperty("CURRENTFRAME", 1)
+	if err != nil {
+		return fmt.Errorf("CURRENTFRAME: %w", err)
+	}
+
+	e.CurrentFrame, err = helper.ParseInt(records[1])
+	if err != nil {
+		return fmt.Errorf("current frame: %w", err)
+	}
+
 	records, err = r.ReadProperty("NUMFRAMES", 1)
 	if err != nil {
 		return fmt.Errorf("NUMFRAMES: %w", err)
@@ -1005,7 +1018,7 @@ func (e *ActorDef) Read(r *AsciiReadToken) error {
 		return fmt.Errorf("current action: %w", err)
 	}
 
-	records, err = r.ReadProperty("LOCATION", 3)
+	records, err = r.ReadProperty("LOCATION", 6)
 	if err != nil {
 		return err
 	}
@@ -1078,6 +1091,11 @@ func (e *ActorDef) Read(r *AsciiReadToken) error {
 
 		e.Actions = append(e.Actions, action)
 
+	}
+
+	_, err = r.ReadProperty("ENDACTORDEF", 0)
+	if err != nil {
+		return err
 	}
 
 	return nil
@@ -1631,7 +1649,7 @@ func (e *Sprite3DDef) Write(w io.Writer) error {
 			fmt.Fprintf(w, " %d", vert)
 		}
 		fmt.Fprintf(w, "\n")
-		fmt.Fprintf(w, "\t\tRENDERMETHOD %s\n", node.RenderMethod)
+		fmt.Fprintf(w, "\t\tRENDERMETHOD \"%s\"\n", node.RenderMethod)
 		fmt.Fprintf(w, "\t\tRENDERINFO\n")
 		fmt.Fprintf(w, "\t\t\tPEN %d\n", node.Pen)
 		fmt.Fprintf(w, "\t\tENDRENDERINFO\n")
@@ -1729,7 +1747,7 @@ func (s *Sprite3DDef) Read(r *AsciiReadToken) error {
 		if err != nil {
 			return err
 		}
-		records, err = r.ReadProperty("VERTEXLIST", 1)
+		records, err = r.ReadProperty("VERTEXLIST", -1)
 		if err != nil {
 			return err
 		}
@@ -1793,6 +1811,12 @@ func (s *Sprite3DDef) Read(r *AsciiReadToken) error {
 		if err != nil {
 			return fmt.Errorf("back tree: %w", err)
 		}
+
+		records, err = r.ReadProperty("SPRITE", 1)
+		if err != nil {
+			return err
+		}
+		node.SpriteTag = records[1]
 
 		_, err = r.ReadProperty("ENDBSPNODE", 0)
 		if err != nil {
@@ -2388,7 +2412,7 @@ func (e *Region) Write(w io.Writer) error {
 	fmt.Fprintf(w, "%s\n", e.Definition())
 	fmt.Fprintf(w, "\tREGIONTAG \"%s\"\n", e.Tag)
 	fmt.Fprintf(w, "\tREVERBVOLUME %0.7f\n", e.ReverbVolume)
-	fmt.Fprintf(w, "\tREVERBOFFSET %df\n", e.ReverbOffset)
+	fmt.Fprintf(w, "\tREVERBOFFSET %d\n", e.ReverbOffset)
 	fmt.Fprintf(w, "\tREGIONFOG %d\n", e.RegionFog)
 	fmt.Fprintf(w, "\tGOURAND2 %d\n", e.Gouraud2)
 	fmt.Fprintf(w, "\tENCODEDVISIBILITY %d\n", e.EncodedVisibility)
@@ -2821,7 +2845,7 @@ func (e *Region) Read(token *AsciiReadToken) error {
 			return err
 		}
 
-		records, err = token.ReadProperty("RANGE", 1)
+		records, err = token.ReadProperty("RANGE", -1)
 		if err != nil {
 			return err
 		}
@@ -2832,12 +2856,7 @@ func (e *Region) Read(token *AsciiReadToken) error {
 		}
 
 		for j := 0; j < numRanges; j++ {
-			records, err = token.ReadProperty("RANGE", 1)
-			if err != nil {
-				return err
-			}
-
-			val, err := helper.ParseInt8(records[1])
+			val, err := helper.ParseInt8(records[j+2])
 			if err != nil {
 				return fmt.Errorf("range %d: %w", j, err)
 			}
@@ -3024,7 +3043,7 @@ func (e *AmbientLight) Read(r *AsciiReadToken) error {
 
 	e.LightTag = records[1]
 
-	records, err = r.ReadProperty("REGIONLIST", 1)
+	records, err = r.ReadProperty("REGIONLIST", -1)
 	if err != nil {
 		return err
 	}

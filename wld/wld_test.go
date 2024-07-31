@@ -170,7 +170,7 @@ func TestBWldReadWriteRead(t *testing.T) {
 	}
 }
 
-func TestVWldAsciiWrite(t *testing.T) {
+func TestWCEWldReadWriteRead(t *testing.T) {
 	if os.Getenv("SINGLE_TEST") != "1" {
 		t.Skip("skipping test; SINGLE_TEST not set")
 	}
@@ -235,7 +235,7 @@ func TestVWldAsciiWrite(t *testing.T) {
 			if err != nil {
 				t.Fatalf("failed to write wld %s: %s", baseName, err.Error())
 			}
-
+			fmt.Println("wrote", fmt.Sprintf("%s/%s.src.wld", dirTest, baseName))
 			wld := &raw.Wld{}
 			err = wld.Read(bytes.NewReader(data))
 			if err != nil {
@@ -260,12 +260,43 @@ func TestVWldAsciiWrite(t *testing.T) {
 				t.Fatalf("failed to convert %s: %s", baseName, err.Error())
 			}
 
+			fmt.Println("read", fmt.Sprintf("%s/%s.src.wld", dirTest, baseName))
+
 			vwld.FileName = baseName + ".wld"
 
 			err = vwld.WriteAscii(dirTest+"/"+baseName, true)
 			if err != nil {
 				t.Fatalf("failed to write %s: %s", baseName, err.Error())
 			}
+
+			fmt.Println("wrote", fmt.Sprintf("%s/%s/_root.wce", dirTest, baseName))
+
+			// read back in
+
+			vwld2 := &Wld{}
+			err = vwld2.ReadAscii(fmt.Sprintf("%s/%s/_root.wce", dirTest, baseName))
+			if err != nil {
+				t.Fatalf("failed to read %s: %s", baseName, err.Error())
+			}
+
+			fmt.Println("read", fmt.Sprintf("%s/%s/_root.wce", dirTest, baseName))
+
+			// write back out
+
+			buf2 := bytes.NewBuffer(nil)
+
+			err = vwld2.WriteRaw(buf2)
+			if err != nil {
+				t.Fatalf("failed to write %s: %s", baseName, err.Error())
+			}
+
+			err = os.WriteFile(fmt.Sprintf("%s/%s.dst.wld", dirTest, baseName), buf2.Bytes(), 0644)
+			if err != nil {
+				t.Fatalf("failed to write wld %s: %s", baseName, err.Error())
+			}
+
+			fmt.Println("wrote", fmt.Sprintf("%s/%s.dst.wld", dirTest, baseName))
+
 		})
 	}
 }
