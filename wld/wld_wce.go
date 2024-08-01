@@ -13,6 +13,7 @@ import (
 // ReadAscii reads the ascii file at path
 func (wld *Wld) ReadAscii(path string) error {
 
+	wld.reset()
 	asciiReader, err := LoadAsciiFile(path, wld)
 	if err != nil {
 		return fmt.Errorf("%w", err)
@@ -57,6 +58,13 @@ func (wld *Wld) WriteAscii(path string, isDir bool) error {
 
 	lightsMap := map[string]bool{}
 	zoneMaterials := map[string]bool{}
+
+	if wld.GlobalAmbientLight != nil {
+		err = wld.GlobalAmbientLight.Write(rootBuf)
+		if err != nil {
+			return fmt.Errorf("global ambient light: %w", err)
+		}
+	}
 
 	w = rootBuf
 	for i := 0; i < len(wld.DMSpriteDef2s); i++ {

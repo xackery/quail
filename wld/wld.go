@@ -101,3 +101,29 @@ func (wld *Wld) ByTag(tag string) WldDefinitioner {
 	}
 	return nil
 }
+
+func (wld *Wld) reset() {
+	wld.GlobalAmbientLight = nil
+	wld.SimpleSpriteDefs = []*SimpleSpriteDef{}
+	wld.MaterialDefs = []*MaterialDef{}
+	wld.MaterialPalettes = []*MaterialPalette{}
+	wld.DMSpriteDefs = []*DMSpriteDef{}
+	wld.DMSpriteInsts = []*DMSprite{}
+	wld.DMSpriteDef2s = []*DMSpriteDef2{}
+	wld.ActorDefs = []*ActorDef{}
+	wld.ActorInsts = []*ActorInst{}
+	wld.LightDefs = []*LightDef{}
+	wld.PointLights = []*PointLight{}
+	wld.Sprite3DDefs = []*Sprite3DDef{}
+	wld.TrackInstances = []*TrackInstance{}
+	wld.TrackDefs = []*TrackDef{}
+	wld.HierarchicalSpriteDefs = []*HierarchicalSpriteDef{}
+	wld.PolyhedronDefs = []*PolyhedronDefinition{}
+	wld.WorldTrees = []*WorldTree{}
+	wld.Regions = []*Region{}
+	wld.AmbientLights = []*AmbientLight{}
+	wld.Zones = []*Zone{}
+	wld.RGBTrackDefs = []*RGBTrackDef{}
+	wld.RGBTrackInsts = []*RGBTrack{}
+
+}

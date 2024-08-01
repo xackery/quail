@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"fmt"
 	"strconv"
-	"strings"
 )
 
 type NullInt8 struct {
@@ -102,12 +101,12 @@ func wcVal(inVal interface{}) string {
 		if !val.Valid {
 			return "NULL"
 		}
-		return fmt.Sprintf("%f", val.Float32)
+		return fmt.Sprintf("%0.6e", val.Float32)
 	case NullFloat64:
 		if !val.Valid {
 			return "NULL"
 		}
-		return fmt.Sprintf("%f", val.Float64)
+		return fmt.Sprintf("%0.6e", val.Float64)
 	case NullString:
 		if !val.Valid {
 			return "NULL"
@@ -117,14 +116,14 @@ func wcVal(inVal interface{}) string {
 		if !val.Valid {
 			return "NULL NULL NULL"
 		}
-		return fmt.Sprintf("%0.7f %0.7f %0.7f", val.Float32Slice3[0], val.Float32Slice3[1], val.Float32Slice3[2])
+		return fmt.Sprintf("%0.6e %0.6e %0.6e", val.Float32Slice3[0], val.Float32Slice3[1], val.Float32Slice3[2])
 	case NullFloat32Slice6:
 		if !val.Valid {
 			return "NULL NULL NULL NULL NULL NULL"
 		}
-		return fmt.Sprintf("%0.7f %0.7f %0.7f %0.7f %0.7f %0.7f", val.Float32Slice6[0], val.Float32Slice6[1], val.Float32Slice6[2], val.Float32Slice6[3], val.Float32Slice6[4], val.Float32Slice6[5])
+		return fmt.Sprintf("%0.6e %0.6e %0.6e %0.6e %0.6e %0.6e", val.Float32Slice6[0], val.Float32Slice6[1], val.Float32Slice6[2], val.Float32Slice6[3], val.Float32Slice6[4], val.Float32Slice6[5])
 	default:
-		return fmt.Sprintf("%v", inVal)
+		return fmt.Sprintf("INVALID_%v", inVal)
 	}
 }
 
@@ -345,7 +344,7 @@ func parse(inVal interface{}, src ...string) error {
 			val.Valid = false
 			return nil
 		}
-		_, err := fmt.Sscanf(src[0], "%f %f %f", &val.Float32Slice3[0], &val.Float32Slice3[1], &val.Float32Slice3[2])
+		_, err := fmt.Sscanf(src[0], "%0.6e %0.6e %0.6e", &val.Float32Slice3[0], &val.Float32Slice3[1], &val.Float32Slice3[2])
 		if err != nil {
 			return err
 		}
@@ -356,11 +355,19 @@ func parse(inVal interface{}, src ...string) error {
 			val.Valid = false
 			return nil
 		}
-		_, err := fmt.Sscanf(strings.Join(src, " "), "%f %f %f %f %f %f", &val.Float32Slice6[0], &val.Float32Slice6[1], &val.Float32Slice6[2], &val.Float32Slice6[3], &val.Float32Slice6[4], &val.Float32Slice6[5])
-		if err != nil {
-			return err
+		if len(src) < 6 {
+			return fmt.Errorf("need 6 arguments: %v", src)
+		}
+
+		for i := 0; i < 6; i++ {
+			v, err := strconv.ParseFloat(src[i], 32)
+			if err != nil {
+				return err
+			}
+			val.Float32Slice6[i] = float32(v)
 		}
 		val.Valid = true
+
 		return nil
 
 	case *[4]uint8:

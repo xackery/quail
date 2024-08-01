@@ -282,56 +282,61 @@ func (a *AsciiReadToken) readDefinitions() error {
 			if err != nil {
 				return fmt.Errorf("%s: %w", defName, err)
 			}
-			switch (definitions[i]).(type) {
+			switch frag := (definitions[i]).(type) {
+			case *GlobalAmbientLightDef:
+				if a.wld.GlobalAmbientLight != nil {
+					return fmt.Errorf("duplicate global ambient light definition")
+				}
+				a.wld.GlobalAmbientLight = frag
+				definitions[i] = &GlobalAmbientLightDef{}
 			case *DMSpriteDef2:
-				a.wld.DMSpriteDef2s = append(a.wld.DMSpriteDef2s, definitions[i].(*DMSpriteDef2))
+				a.wld.DMSpriteDef2s = append(a.wld.DMSpriteDef2s, frag)
 				definitions[i] = &DMSpriteDef2{}
 			case *HierarchicalSpriteDef:
-				a.wld.HierarchicalSpriteDefs = append(a.wld.HierarchicalSpriteDefs, definitions[i].(*HierarchicalSpriteDef))
+				a.wld.HierarchicalSpriteDefs = append(a.wld.HierarchicalSpriteDefs, frag)
 				definitions[i] = &HierarchicalSpriteDef{}
 			case *MaterialDef:
-				a.wld.MaterialDefs = append(a.wld.MaterialDefs, definitions[i].(*MaterialDef))
+				a.wld.MaterialDefs = append(a.wld.MaterialDefs, frag)
 				definitions[i] = &MaterialDef{}
 			case *MaterialPalette:
-				a.wld.MaterialPalettes = append(a.wld.MaterialPalettes, definitions[i].(*MaterialPalette))
+				a.wld.MaterialPalettes = append(a.wld.MaterialPalettes, frag)
 				definitions[i] = &MaterialPalette{}
 			case *PolyhedronDefinition:
-				a.wld.PolyhedronDefs = append(a.wld.PolyhedronDefs, definitions[i].(*PolyhedronDefinition))
+				a.wld.PolyhedronDefs = append(a.wld.PolyhedronDefs, frag)
 				definitions[i] = &PolyhedronDefinition{}
 			case *SimpleSpriteDef:
-				a.wld.SimpleSpriteDefs = append(a.wld.SimpleSpriteDefs, definitions[i].(*SimpleSpriteDef))
+				a.wld.SimpleSpriteDefs = append(a.wld.SimpleSpriteDefs, frag)
 				definitions[i] = &SimpleSpriteDef{}
 			case *TrackDef:
-				a.wld.TrackDefs = append(a.wld.TrackDefs, definitions[i].(*TrackDef))
+				a.wld.TrackDefs = append(a.wld.TrackDefs, frag)
 				definitions[i] = &TrackDef{}
 			case *TrackInstance:
-				a.wld.TrackInstances = append(a.wld.TrackInstances, definitions[i].(*TrackInstance))
+				a.wld.TrackInstances = append(a.wld.TrackInstances, frag)
 				definitions[i] = &TrackInstance{}
 			case *LightDef:
-				a.wld.LightDefs = append(a.wld.LightDefs, definitions[i].(*LightDef))
+				a.wld.LightDefs = append(a.wld.LightDefs, frag)
 				definitions[i] = &LightDef{}
 			case *Sprite3DDef:
-				a.wld.Sprite3DDefs = append(a.wld.Sprite3DDefs, definitions[i].(*Sprite3DDef))
+				a.wld.Sprite3DDefs = append(a.wld.Sprite3DDefs, frag)
 				definitions[i] = &Sprite3DDef{}
 			case *WorldTree:
-				a.wld.WorldTrees = append(a.wld.WorldTrees, definitions[i].(*WorldTree))
+				a.wld.WorldTrees = append(a.wld.WorldTrees, frag)
 				definitions[i] = &WorldTree{}
 			case *Region:
-				a.wld.Regions = append(a.wld.Regions, definitions[i].(*Region))
+				a.wld.Regions = append(a.wld.Regions, frag)
 				definitions[i] = &Region{}
 			case *AmbientLight:
-				a.wld.AmbientLights = append(a.wld.AmbientLights, definitions[i].(*AmbientLight))
+				a.wld.AmbientLights = append(a.wld.AmbientLights, frag)
 				definitions[i] = &AmbientLight{}
 			case *ActorDef:
-				a.wld.ActorDefs = append(a.wld.ActorDefs, definitions[i].(*ActorDef))
+				a.wld.ActorDefs = append(a.wld.ActorDefs, frag)
 				definitions[i] = &ActorDef{}
 			case *ActorInst:
-				a.wld.ActorInsts = append(a.wld.ActorInsts, definitions[i].(*ActorInst))
+				a.wld.ActorInsts = append(a.wld.ActorInsts, frag)
 				definitions[i] = &ActorInst{}
 			case *Zone:
-				a.wld.Zones = append(a.wld.Zones, definitions[i].(*Zone))
+				a.wld.Zones = append(a.wld.Zones, frag)
 				definitions[i] = &Zone{}
-
 			}
 
 			break

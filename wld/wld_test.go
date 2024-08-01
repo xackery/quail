@@ -69,10 +69,10 @@ func TestBWldReadWriteRead(t *testing.T) {
 		baseName string
 		wldName  string
 	}{
+		//{baseName: "load2"},
 		//{baseName: "gequip4"},
 		//{baseName: "global_chr"}, // TODO:  anarelion asked mesh of EYE_DMSPRITEDEF check if the eye is just massive 22 units in size, where the other units in that file are just 1-2 units in size
-		{baseName: "load2"},
-		//{baseName: "qeynos"},
+		{baseName: "qeynos"},
 		//{baseName: "overc", wldName: "lights.wld"},
 		//{baseName: "gequip6"},
 		//{baseName: "load2", wldName: "lights.wld"},
@@ -188,8 +188,8 @@ func TestWCEWldReadWriteRead(t *testing.T) {
 		//{baseName: "gequip2"},
 		//{baseName: "qeynos_chr"},
 		//{baseName: "global_chr"}, // TODO:  anarelion asked mesh of EYE_DMSPRITEDEF check if the eye is just massive 22 units in size, where the other units in that file are just 1-2 units in size
-		{baseName: "load2"},
-		//{baseName: "qeynos"},
+		//{baseName: "load2"},
+		{baseName: "qeynos"},
 		//	{baseName: "qeynos", wldName: "lights.wld"},
 		//{baseName: "load2", wldName: "lights.wld"},
 		//{baseName: "load2", wldName: "load2.wld"},

@@ -10,7 +10,7 @@ import (
 )
 
 func (wld *Wld) ReadRaw(src *raw.Wld) error {
-
+	wld.reset()
 	for i := 1; i < len(src.Fragments); i++ {
 		fragment := src.Fragments[i]
 		err := readRawFrag(wld, src, fragment)
@@ -61,7 +61,7 @@ func readRawFrag(wld *Wld, src *raw.Wld, fragment model.FragmentReadWriter) erro
 		if fragData.Flags&0x04 == 0x04 {
 			sprite.Animated.Valid = true
 		}
-		if fragData.Flags&0x10 == 0x10 {
+		if fragData.Flags&0x10 == 0x10 && sprite.Animated.Valid {
 			sprite.Sleep.Valid = true
 			sprite.Sleep.Uint32 = fragData.Sleep
 		}
@@ -387,13 +387,19 @@ func readRawFrag(wld *Wld, src *raw.Wld, fragment model.FragmentReadWriter) erro
 			Tag:       raw.Name(fragData.NameRef),
 			Callback:  raw.Name(fragData.CallbackNameRef),
 			BoundsRef: fragData.BoundsRef,
-			Location:  fragData.Location,
 			Unk1:      fragData.Unk1,
 		}
 
 		if fragData.Flags&0x01 == 0x01 {
 			actor.CurrentAction.Valid = true
 			actor.CurrentAction.Uint32 = fragData.CurrentAction
+		}
+		if fragData.Flags&0x02 == 0x02 {
+			actor.Location.Valid = true
+			actor.Location.Float32Slice6 = fragData.Location
+		}
+		if fragData.Flags&0x40 == 0x40 {
+			actor.ActiveGeometry.Valid = true
 		}
 
 		if len(fragData.Actions) != len(fragData.FragmentRefs) {
