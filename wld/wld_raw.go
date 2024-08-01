@@ -31,16 +31,16 @@ func readRawFrag(wld *Wld, src *raw.Wld, fragment model.FragmentReadWriter) erro
 		if !ok {
 			return fmt.Errorf("invalid globalambientlightdef fragment at offset %d", i)
 		}
-		tag := raw.Name(fragData.NameRef)
-		if len(tag) == 0 {
-			if fragData.NameRef == 0xFF0000 {
-				tag = "GLOBALAMBIENT_LIGHTDEF"
-			}
-		}
-		if wld.GlobalAmbientLight != "" {
+		if wld.GlobalAmbientLight != nil {
 			return fmt.Errorf("duplicate globalambientlightdef found")
 		}
-		wld.GlobalAmbientLight = tag
+
+		wld.GlobalAmbientLight = &GlobalAmbientLightDef{}
+		wld.GlobalAmbientLight.Tag = "DEFAULT_AMBIENTLIGHT"
+		if fragData.NameRef != -16777216 {
+			wld.GlobalAmbientLight.Tag = raw.Name(fragData.NameRef)
+		}
+
 	case rawfrag.FragCodeBMInfo:
 		return nil
 	case rawfrag.FragCodeSimpleSpriteDef:
@@ -53,20 +53,21 @@ func readRawFrag(wld *Wld, src *raw.Wld, fragment model.FragmentReadWriter) erro
 			tag = fmt.Sprintf("%d_SPRITEDEF", i)
 		}
 		sprite := &SimpleSpriteDef{
-			Tag:   tag,
-			Sleep: fragData.Sleep,
+			Tag: tag,
 		}
 		if fragData.Flags&0x02 == 0x02 {
-			sprite.SkipFrames = 1
+			sprite.SkipFrames.Valid = true
 		}
 		if fragData.Flags&0x04 == 0x04 {
-			sprite.Animated = 1
+			sprite.Animated.Valid = true
 		}
 		if fragData.Flags&0x10 == 0x10 {
-			sprite.HasSleep = 1
+			sprite.Sleep.Valid = true
+			sprite.Sleep.Uint32 = fragData.Sleep
 		}
 		if fragData.Flags&0x20 == 0x20 {
-			sprite.CurrentFrame = 1
+			sprite.CurrentFrame.Valid = true
+			sprite.CurrentFrame.Int32 = fragData.CurrentFrame
 		}
 
 		for _, bitmapRef := range fragData.BitmapRefs {
@@ -118,20 +119,23 @@ func readRawFrag(wld *Wld, src *raw.Wld, fragment model.FragmentReadWriter) erro
 
 			spriteTag = raw.Name(spriteDef.NameRef)
 			spriteFlags = simpleSprite.Flags
+			if spriteFlags != 0x50 {
+				//	return fmt.Errorf("unknown sprite flag %d", spriteFlags)
+			}
 		}
 		material := &MaterialDef{
-			Tag:                  raw.Name(fragData.NameRef),
-			RenderMethod:         model.RenderMethodStr(fragData.RenderMethod),
-			RGBPen:               fragData.RGBPen,
-			Brightness:           fragData.Brightness,
-			ScaledAmbient:        fragData.ScaledAmbient,
-			Pair1:                fragData.Pair1,
-			Pair2:                fragData.Pair2,
-			SimpleSpriteTag:      spriteTag,
-			SimpleSpriteInstFlag: spriteFlags,
+			Tag:             raw.Name(fragData.NameRef),
+			RenderMethod:    model.RenderMethodStr(fragData.RenderMethod),
+			RGBPen:          fragData.RGBPen,
+			Brightness:      fragData.Brightness,
+			ScaledAmbient:   fragData.ScaledAmbient,
+			SimpleSpriteTag: spriteTag,
 		}
 		if fragData.Flags&0x02 == 0x02 {
-			material.HasPairs = 1
+			material.Pair1.Valid = true
+			material.Pair1.Uint32 = fragData.Pair1
+			material.Pair2.Valid = true
+			material.Pair2.Float32 = fragData.Pair2
 		}
 		wld.MaterialDefs = append(wld.MaterialDefs, material)
 	case rawfrag.FragCodeMaterialPalette:
@@ -177,7 +181,7 @@ func readRawFrag(wld *Wld, src *raw.Wld, fragment model.FragmentReadWriter) erro
 			Min:                  fragData.Min,
 			Max:                  fragData.Max,
 			FPScale:              fragData.Scale,
-			Colors:               fragData.Colors,
+			VertexColors:         fragData.Colors,
 			FaceMaterialGroups:   fragData.FaceMaterialGroups,
 			VertexMaterialGroups: fragData.VertexMaterialGroups,
 		}
@@ -380,12 +384,16 @@ func readRawFrag(wld *Wld, src *raw.Wld, fragment model.FragmentReadWriter) erro
 		}
 
 		actor := &ActorDef{
-			Tag:           raw.Name(fragData.NameRef),
-			Callback:      raw.Name(fragData.CallbackNameRef),
-			BoundsRef:     fragData.BoundsRef,
-			CurrentAction: fragData.CurrentAction,
-			Location:      fragData.Location,
-			Unk1:          fragData.Unk1,
+			Tag:       raw.Name(fragData.NameRef),
+			Callback:  raw.Name(fragData.CallbackNameRef),
+			BoundsRef: fragData.BoundsRef,
+			Location:  fragData.Location,
+			Unk1:      fragData.Unk1,
+		}
+
+		if fragData.Flags&0x01 == 0x01 {
+			actor.CurrentAction.Valid = true
+			actor.CurrentAction.Uint32 = fragData.CurrentAction
 		}
 
 		if len(fragData.Actions) != len(fragData.FragmentRefs) {
@@ -464,8 +472,54 @@ func readRawFrag(wld *Wld, src *raw.Wld, fragment model.FragmentReadWriter) erro
 			sphereRadius = sphereDef.Radius
 		}
 
-		trackTag := ""
-		if fragData.DMRGBTrackRef > 0 {
+		actor := &ActorInst{
+			Tag:           raw.Name(fragData.NameRef),
+			DefinitionTag: actorDefTag,
+			SphereRadius:  sphereRadius,
+			UserData:      fragData.UserData,
+		}
+
+		if fragData.Flags&0x01 == 0x01 {
+			actor.CurrentAction.Valid = true
+			actor.CurrentAction.Uint32 = fragData.CurrentAction
+		}
+
+		if fragData.Flags&0x02 == 0x02 {
+			actor.Location.Valid = true
+			actor.Location.Float32Slice6 = fragData.Location
+		}
+
+		if fragData.Flags&0x04 == 0x04 {
+			actor.BoundingRadius.Valid = true
+			actor.BoundingRadius.Float32 = fragData.BoundingRadius
+		}
+
+		if fragData.Flags&0x08 == 0x08 {
+			actor.Scale.Valid = true
+			actor.Scale.Float32 = fragData.ScaleFactor
+		}
+
+		if fragData.Flags&0x10 == 0x10 {
+			actor.SoundTag.Valid = true
+			actor.SoundTag.String = raw.Name(fragData.SoundNameRef)
+		}
+
+		if fragData.Flags&0x20 == 0x20 {
+			actor.Active.Valid = true
+		}
+
+		// 0x40 unknown
+		if fragData.Flags&0x80 == 0x80 {
+			actor.SpriteVolumeOnly.Valid = true
+		}
+
+		if fragData.Flags&0x100 == 0x100 {
+			actor.DMRGBTrackTag.Valid = true
+
+			trackTag := ""
+			if fragData.DMRGBTrackRef == 0 {
+				return fmt.Errorf("dmrgbtrack flag set, but ref is 0")
+			}
 			if len(src.Fragments) < int(fragData.DMRGBTrackRef) {
 				return fmt.Errorf("dmrgbtrack ref %d out of bounds", fragData.DMRGBTrackRef)
 			}
@@ -485,21 +539,7 @@ func readRawFrag(wld *Wld, src *raw.Wld, fragment model.FragmentReadWriter) erro
 			if trackDef.NameRef != 0 {
 				trackTag = raw.Name(trackDef.NameRef)
 			}
-		}
-
-		actor := &ActorInst{
-			Tag:            raw.Name(fragData.NameRef),
-			DefinitionTag:  actorDefTag,
-			Flags:          fragData.Flags,
-			SphereRadius:   sphereRadius,
-			DMRGBTrackTag:  trackTag,
-			CurrentAction:  fragData.CurrentAction,
-			Location:       fragData.Location,
-			Unk1:           fragData.Unk1,
-			BoundingRadius: fragData.BoundingRadius,
-			Scale:          fragData.ScaleFactor,
-			SoundTag:       raw.Name(fragData.SoundNameRef),
-			UserData:       fragData.UserData,
+			actor.DMRGBTrackTag.String = trackTag
 		}
 
 		wld.ActorInsts = append(wld.ActorInsts, actor)
@@ -656,13 +696,27 @@ func readRawFrag(wld *Wld, src *raw.Wld, fragment model.FragmentReadWriter) erro
 			return fmt.Errorf("invalid lightdef fragment at offset %d", i)
 		}
 		light := &LightDef{
-			Tag:             raw.Name(fragData.NameRef),
-			Flags:           fragData.Flags,
-			Sleep:           fragData.Sleep,
-			FrameCurrentRef: fragData.FrameCurrentRef,
-			LightLevels:     fragData.LightLevels,
-			Colors:          fragData.Colors,
+			Tag:         raw.Name(fragData.NameRef),
+			Flags:       fragData.Flags,
+			LightLevels: fragData.LightLevels,
+			Colors:      fragData.Colors,
 		}
+		if fragData.Flags&0x01 == 0x01 {
+			light.CurrentFrame.Valid = true
+			light.CurrentFrame.Uint32 = fragData.FrameCurrentRef
+		}
+		if fragData.Flags&0x02 == 0x02 {
+			light.Sleep.Valid = true
+			light.Sleep.Uint32 = fragData.Sleep
+		}
+		if fragData.Flags&0x04 == 0x04 {
+			light.LightLevels = fragData.LightLevels
+		} else {
+			if len(fragData.LightLevels) > 0 {
+				return fmt.Errorf("light levels found but flag 0x04 not set")
+			}
+		}
+
 		wld.LightDefs = append(wld.LightDefs, light)
 	case rawfrag.FragCodeLight:
 		return nil // light instances are ignored, since they're derived from other definitions
@@ -686,62 +740,80 @@ func readRawFrag(wld *Wld, src *raw.Wld, fragment model.FragmentReadWriter) erro
 		}
 
 		sprite := &Sprite3DDef{
-			Tag:            raw.Name(fragData.NameRef),
-			SphereListTag:  sphereListTag,
-			CenterOffset:   fragData.CenterOffset,
-			BoundingRadius: fragData.BoundingRadius,
-			Vertices:       fragData.Vertices,
+			Tag:           raw.Name(fragData.NameRef),
+			SphereListTag: sphereListTag,
+			Vertices:      fragData.Vertices,
 		}
 
 		if fragData.Flags&0x01 == 0x01 {
-			sprite.HasCenterOffset = 1
+			sprite.CenterOffset.Valid = true
+			sprite.CenterOffset.Float32Slice3 = fragData.CenterOffset
 		}
 
 		if fragData.Flags&0x02 == 0x02 {
-			sprite.HasBoundingRadius = 1
+			sprite.BoundingRadius.Valid = true
+			sprite.BoundingRadius.Float32 = fragData.BoundingRadius
 		}
 
 		for _, bspNode := range fragData.BspNodes {
 			node := &BSPNode{
-				FrontTree:     bspNode.FrontTree,
-				BackTree:      bspNode.BackTree,
-				Vertices:      bspNode.VertexIndexes,
-				RenderMethod:  model.RenderMethodStr(bspNode.RenderMethod),
-				Flags:         bspNode.RenderFlags,
-				Pen:           bspNode.RenderPen,
-				Brightness:    bspNode.RenderBrightness,
-				ScaledAmbient: bspNode.RenderScaledAmbient,
-				Origin:        bspNode.RenderUVInfoOrigin,
-				UAxis:         bspNode.RenderUVInfoUAxis,
-				VAxis:         bspNode.RenderUVInfoVAxis,
+				FrontTree:    bspNode.FrontTree,
+				BackTree:     bspNode.BackTree,
+				Vertices:     bspNode.VertexIndexes,
+				RenderMethod: model.RenderMethodStr(bspNode.RenderMethod),
 			}
 
-			if bspNode.RenderFlags&0x03 == 0x03 {
+			if bspNode.RenderFlags&0x01 == 0x01 {
+				node.Pen.Valid = true
+				node.Pen.Uint32 = bspNode.RenderPen
+			}
+
+			if bspNode.RenderFlags&0x02 == 0x02 {
+				node.Brightness.Valid = true
+				node.Brightness.Float32 = bspNode.RenderBrightness
+			}
+
+			if bspNode.RenderFlags&0x04 == 0x04 {
+				node.ScaledAmbient.Valid = true
+				node.ScaledAmbient.Float32 = bspNode.RenderScaledAmbient
+			}
+
+			if bspNode.RenderFlags&0x08 == 0x08 {
+				node.SpriteTag.Valid = true
 				if len(src.Fragments) < int(bspNode.RenderSimpleSpriteReference) {
 					return fmt.Errorf("sprite ref %d not found", bspNode.RenderSimpleSpriteReference)
 				}
 				spriteDef := src.Fragments[bspNode.RenderSimpleSpriteReference]
 				switch simpleSprite := spriteDef.(type) {
 				case *rawfrag.WldFragSimpleSpriteDef:
-					node.SpriteTag = raw.Name(simpleSprite.NameRef)
+					node.SpriteTag.String = raw.Name(simpleSprite.NameRef)
 				case *rawfrag.WldFragDMSpriteDef:
-					node.SpriteTag = raw.Name(simpleSprite.NameRef)
+					node.SpriteTag.String = raw.Name(simpleSprite.NameRef)
 				case *rawfrag.WldFragHierarchialSpriteDef:
-					node.SpriteTag = raw.Name(simpleSprite.NameRef)
+					node.SpriteTag.String = raw.Name(simpleSprite.NameRef)
 				case *rawfrag.WldFragSprite2D:
-					node.SpriteTag = raw.Name(simpleSprite.NameRef)
+					node.SpriteTag.String = raw.Name(simpleSprite.NameRef)
 				default:
 					return fmt.Errorf("unhandled render sprite reference fragment type %d at offset %d", spriteDef.FragCode(), i)
 				}
 			}
 
-			for _, uvMap := range bspNode.RenderUVMapEntries {
-				entry := BspNodeUVInfo{
-					UvOrigin: uvMap.UvOrigin,
-					UAxis:    uvMap.UAxis,
-					VAxis:    uvMap.VAxis,
-				}
-				node.RenderUVMapEntries = append(node.RenderUVMapEntries, entry)
+			if bspNode.RenderFlags&0x10 == 0x10 {
+				// has uvinfo
+				node.UvOrigin.Valid = true
+				node.UAxis.Valid = true
+				node.VAxis.Valid = true
+				node.UvOrigin.Float32Slice3 = bspNode.RenderUVInfoOrigin
+				node.UAxis.Float32Slice3 = bspNode.RenderUVInfoUAxis
+				node.VAxis.Float32Slice3 = bspNode.RenderUVInfoVAxis
+			}
+
+			if bspNode.RenderFlags&0x20 == 0x20 {
+				node.Uvs = bspNode.Uvs
+			}
+
+			if bspNode.RenderFlags&0x40 == 0x40 {
+				node.TwoSided = 1
 			}
 
 			sprite.BSPNodes = append(sprite.BSPNodes, node)
@@ -1032,10 +1104,14 @@ func (wld *Wld) WriteRaw(w io.Writer) error {
 	}
 	raw.NameClear()
 
-	globalAmbient := &rawfrag.WldFragGlobalAmbientLightDef{
-		//NameRef: raw.NameAdd(wld.GlobalAmbientLight),
+	if wld.GlobalAmbientLight != nil {
+		wld.isZone = true
+		_, err = wld.GlobalAmbientLight.ToRaw(wld, dst)
+		if err != nil {
+			return fmt.Errorf("global ambient light: %w", err)
+		}
+
 	}
-	dst.Fragments = append(dst.Fragments, globalAmbient)
 
 	for _, dmSprite := range wld.DMSpriteDef2s {
 		_, err = dmSprite.ToRaw(wld, dst)

@@ -33,13 +33,7 @@ type WldFragThreeDSpriteBspNode struct {
 	RenderUVInfoOrigin          [3]float32
 	RenderUVInfoUAxis           [3]float32
 	RenderUVInfoVAxis           [3]float32
-	RenderUVMapEntries          []WldFragThreeDSpriteBspNodeUVInfo
-}
-
-type WldFragThreeDSpriteBspNodeUVInfo struct {
-	UvOrigin [3]float32
-	UAxis    [3]float32
-	VAxis    [3]float32
+	Uvs                         [][2]float32
 }
 
 func (e *WldFragSprite3DDef) FragCode() int {
@@ -101,20 +95,13 @@ func (e *WldFragSprite3DDef) Write(w io.Writer) error {
 			enc.Float32(node.RenderUVInfoVAxis[2])
 		}
 		if node.RenderFlags&0x20 == 0x20 {
-			enc.Uint32(uint32(len(node.RenderUVMapEntries)))
-			for _, entry := range node.RenderUVMapEntries {
-				enc.Float32(entry.UvOrigin[0])
-				enc.Float32(entry.UvOrigin[1])
-				enc.Float32(entry.UvOrigin[2])
-				enc.Float32(entry.UAxis[0])
-				enc.Float32(entry.UAxis[1])
-				enc.Float32(entry.UAxis[2])
-				enc.Float32(entry.VAxis[0])
-				enc.Float32(entry.VAxis[1])
-				enc.Float32(entry.VAxis[2])
+			enc.Uint32(uint32(len(node.Uvs)))
+			for _, uv := range node.Uvs {
+				enc.Float32(uv[0])
+				enc.Float32(uv[1])
 			}
 		}
-		// two sided is 0x40
+		// two sided is 0x40 on flag, not needed to write
 	}
 	enc.Byte(0x00)
 	enc.Byte(0x00)
@@ -185,12 +172,8 @@ func (e *WldFragSprite3DDef) Read(r io.ReadSeeker) error {
 		if node.RenderFlags&0x20 == 0x20 {
 			renderUVMapEntryCount := dec.Uint32()
 			for j := 0; j < int(renderUVMapEntryCount); j++ {
-				v := WldFragThreeDSpriteBspNodeUVInfo{
-					UvOrigin: [3]float32{dec.Float32(), dec.Float32(), dec.Float32()},
-					UAxis:    [3]float32{dec.Float32(), dec.Float32(), dec.Float32()},
-					VAxis:    [3]float32{dec.Float32(), dec.Float32(), dec.Float32()},
-				}
-				node.RenderUVMapEntries = append(node.RenderUVMapEntries, v)
+				u := [2]float32{dec.Float32(), dec.Float32()}
+				node.Uvs = append(node.Uvs, u)
 			}
 		}
 		e.BspNodes = append(e.BspNodes, node)

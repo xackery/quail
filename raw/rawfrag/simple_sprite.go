@@ -11,7 +11,7 @@ import (
 // WldFragSimpleSprite is SimpleSprite in libeq, Texture Bitmap Info Reference in openzone, SIMPLESPRITEINST in wld, BitmapInfoReference in lantern
 type WldFragSimpleSprite struct {
 	NameRef   int32  `yaml:"name_ref"`
-	SpriteRef int16  `yaml:"sprite_ref"`
+	SpriteRef uint32 `yaml:"sprite_ref"`
 	Flags     uint32 `yaml:"flags"`
 }
 
@@ -22,7 +22,7 @@ func (e *WldFragSimpleSprite) FragCode() int {
 func (e *WldFragSimpleSprite) Write(w io.Writer) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
 	enc.Int32(e.NameRef)
-	enc.Int16(e.SpriteRef)
+	enc.Uint32(e.SpriteRef)
 	enc.Uint32(e.Flags)
 	enc.Bytes(make([]byte, 2)) // TODO: why 2 extra bytes?
 	err := enc.Error()
@@ -35,7 +35,7 @@ func (e *WldFragSimpleSprite) Write(w io.Writer) error {
 func (e *WldFragSimpleSprite) Read(r io.ReadSeeker) error {
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	e.NameRef = dec.Int32()
-	e.SpriteRef = dec.Int16()
+	e.SpriteRef = dec.Uint32()
 	e.Flags = dec.Uint32()
 	err := dec.Error()
 	if err != nil {

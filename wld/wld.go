@@ -11,8 +11,9 @@ var AsciiVersion = "v0.0.1"
 
 // Wld is a struct representing a Wld file
 type Wld struct {
+	isZone                 bool // true when the file is a zone file
 	FileName               string
-	GlobalAmbientLight     string
+	GlobalAmbientLight     *GlobalAmbientLightDef
 	Version                uint32
 	SimpleSpriteDefs       []*SimpleSpriteDef
 	MaterialDefs           []*MaterialDef

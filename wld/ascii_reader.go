@@ -7,8 +7,6 @@ import (
 	"path/filepath"
 	"strings"
 	"unicode"
-
-	"github.com/xackery/quail/helper"
 )
 
 type AsciiReadToken struct {
@@ -134,6 +132,10 @@ func (a *AsciiReadToken) ReadProperty(name string, minNumArgs int) ([]string, er
 			args = append(args, strings.TrimSpace(property))
 			//fmt.Println(a.lineNumber, args)
 
+			value := args[len(args)-1]
+			if !strings.HasSuffix(name, "?") && value == "NULL" {
+				return args, fmt.Errorf("invalid property NULL for %s", name)
+			}
 			if len(args) == 0 {
 				return args, fmt.Errorf("property %s has no arguments", name)
 			}
@@ -188,6 +190,7 @@ func (a *AsciiReadToken) readDefinitions() error {
 		&Zone{},
 		&RGBTrackDef{},
 		&RGBTrack{},
+		&GlobalAmbientLightDef{},
 	}
 
 	definition := ""
@@ -235,15 +238,7 @@ func (a *AsciiReadToken) readDefinitions() error {
 			definition = ""
 			continue
 		}
-		if strings.HasPrefix(definition, "NUMREGIONS") {
-			err = a.readRegions()
-			if err != nil {
-				return fmt.Errorf("regions: %w", err)
-			}
 
-			definition = ""
-			continue
-		}
 		if strings.HasSuffix(definition, "CPIWORLD") {
 			// read to newline
 			for {
@@ -405,44 +400,4 @@ func (a *AsciiReadToken) readComment() error {
 			return nil
 		}
 	}
-}
-
-func (a *AsciiReadToken) readRegions() error {
-	var err error
-	line := ""
-	for {
-		buf := make([]byte, 1)
-		_, err = a.Read(buf)
-		if err != nil {
-			return fmt.Errorf("read regions: %w", err)
-		}
-		if buf[0] == '\n' {
-			break
-		}
-		if buf[0] == ' ' {
-			continue
-		}
-		line += string(buf)
-	}
-	numRegions, err := helper.ParseInt(line)
-	if err != nil {
-		return fmt.Errorf("parse numregions: %w", err)
-	}
-
-	a.wld.Regions = make([]*Region, numRegions)
-	for i := 0; i < numRegions; i++ {
-		r := &Region{}
-		_, err = a.ReadProperty("REGION", 1)
-		if err != nil {
-			return fmt.Errorf("REGION: %w", err)
-		}
-		err = r.Read(a)
-		if err != nil {
-			return fmt.Errorf("read region: %w", err)
-		}
-
-		a.wld.Regions[i] = r
-	}
-
-	return nil
 }

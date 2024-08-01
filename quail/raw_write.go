@@ -120,7 +120,7 @@ func (e *Quail) wldWrite(wld *raw.Wld) error {
 
 					textureRefInst := &rawfrag.WldFragSimpleSprite{ // aka SimpleSprite
 						NameRef:   raw.NameAdd(srcProp.Value),
-						SpriteRef: int16(fragIndex - 1),
+						SpriteRef: uint32(fragIndex - 1),
 						Flags:     0x00000000,
 					}
 
