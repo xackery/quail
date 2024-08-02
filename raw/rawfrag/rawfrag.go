@@ -27,8 +27,8 @@ var (
 		0x0D: "ParticleSprite",
 		0x0E: "CompositeSpriteDef",
 		0x0F: "CompositeSprite",
-		0x10: "HierarchialSpriteDef",
-		0x11: "HierarchialSprite",
+		0x10: "HierarchicalSpriteDef",
+		0x11: "HierarchicalSprite",
 		0x12: "TrackDef",
 		0x13: "Track",
 		0x14: "ActorDef",
@@ -87,8 +87,8 @@ const (
 	FragCodeParticleSprite        = 0x0D // 13
 	FragCodeCompositeSpriteDef    = 0x0E // 14
 	FragCodeCompositeSprite       = 0x0F // 15
-	FragCodeHierarchialSpriteDef  = 0x10 // 16 HIERARCHICALSPRITEDEF
-	FragCodeHierarchialSprite     = 0x11 // 17
+	FragCodeHierarchicalSpriteDef = 0x10 // 16 HIERARCHICALSPRITEDEF
+	FragCodeHierarchicalSprite    = 0x11 // 17
 	FragCodeTrackDef              = 0x12 // 18 TRACKDEFINITION
 	FragCodeTrack                 = 0x13 // 19 TRACKINSTANCE
 	FragCodeActorDef              = 0x14 // 20 ACTORDEF
@@ -190,10 +190,10 @@ func NewFrag(r io.ReadSeeker) model.FragmentReadWriter {
 		return &WldFragCompositeSpriteDef{}
 	case FragCodeCompositeSprite:
 		return &WldFragCompositeSprite{}
-	case FragCodeHierarchialSpriteDef:
-		return &WldFragHierarchialSpriteDef{}
-	case FragCodeHierarchialSprite:
-		return &WldFragHierarchialSprite{}
+	case FragCodeHierarchicalSpriteDef:
+		return &WldFragHierarchicalSpriteDef{}
+	case FragCodeHierarchicalSprite:
+		return &WldFragHierarchicalSprite{}
 	case FragCodeTrackDef:
 		return &WldFragTrackDef{}
 	case FragCodeTrack:

@@ -83,6 +83,23 @@ func (wld *Wld) ByTag(tag string) WldDefinitioner {
 			}
 		}
 	}
+
+	if strings.HasSuffix(tag, "_TRACKDEF") {
+		for _, track := range wld.TrackDefs {
+			if track.Tag == tag {
+				return track
+			}
+		}
+	}
+
+	if strings.HasSuffix(tag, "_HS_DEF") {
+		for _, sprite := range wld.HierarchicalSpriteDefs {
+			if sprite.Tag == tag {
+				return sprite
+			}
+		}
+	}
+
 	for _, sprite := range wld.Sprite3DDefs {
 		if sprite.Tag == tag {
 			return sprite
@@ -97,6 +114,12 @@ func (wld *Wld) ByTag(tag string) WldDefinitioner {
 	for _, actor := range wld.ActorDefs {
 		if actor.Tag == tag {
 			return actor
+		}
+	}
+
+	for _, track := range wld.TrackInstances {
+		if track.Tag == tag {
+			return track
 		}
 	}
 	return nil

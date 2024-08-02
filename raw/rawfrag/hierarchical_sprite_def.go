@@ -8,11 +8,11 @@ import (
 	"github.com/xackery/encdec"
 )
 
-// WldFragHierarchialSpriteDef is HierarchialSpriteDef in libeq, SkeletonTrackSet in openzone, HIERARCHIALSPRITE in wld, SkeletonHierarchy in lantern
-type WldFragHierarchialSpriteDef struct {
+// WldFragHierarchicalSpriteDef is HierarchicalSpriteDef in libeq, SkeletonTrackSet in openzone, HIERARCHICALSPRITE in wld, SkeletonHierarchy in lantern
+type WldFragHierarchicalSpriteDef struct {
 	NameRef                     int32        `yaml:"name_ref"`
 	Flags                       uint32       `yaml:"flags"`
-	CollisionVolumeRef          uint32       `yaml:"collision_volume_ref"`
+	CollisionVolumeNameRef      uint32       `yaml:"collision_volume_ref"`
 	CenterOffset                [3]float32   `yaml:"center_offset"`
 	BoundingRadius              float32      `yaml:"bounding_radius"`
 	Dags                        []WldFragDag `yaml:"bones"`
@@ -25,19 +25,19 @@ type WldFragDag struct {
 	Flags                     uint32   `yaml:"flags"`
 	TrackRef                  uint32   `yaml:"track_ref"`
 	MeshOrSpriteOrParticleRef uint32   `yaml:"mesh_or_sprite_or_particle_ref"`
-	SubBones                  []uint32 `yaml:"sub_bones"`
+	SubDags                   []uint32 `yaml:"sub_bones"`
 }
 
-func (e *WldFragHierarchialSpriteDef) FragCode() int {
-	return FragCodeHierarchialSpriteDef
+func (e *WldFragHierarchicalSpriteDef) FragCode() int {
+	return FragCodeHierarchicalSpriteDef
 }
 
-func (e *WldFragHierarchialSpriteDef) Write(w io.Writer) error {
+func (e *WldFragHierarchicalSpriteDef) Write(w io.Writer) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
 	enc.Int32(e.NameRef)
 	enc.Uint32(e.Flags)
 	enc.Uint32(uint32(len(e.Dags)))
-	enc.Uint32(e.CollisionVolumeRef)
+	enc.Uint32(e.CollisionVolumeNameRef)
 	if e.Flags&0x1 != 0 {
 		enc.Float32(e.CenterOffset[0])
 		enc.Float32(e.CenterOffset[1])
@@ -53,8 +53,8 @@ func (e *WldFragHierarchialSpriteDef) Write(w io.Writer) error {
 		enc.Uint32(bone.Flags)
 		enc.Uint32(bone.TrackRef)
 		enc.Uint32(bone.MeshOrSpriteOrParticleRef)
-		enc.Uint32(uint32(len(bone.SubBones)))
-		for _, subCount := range bone.SubBones {
+		enc.Uint32(uint32(len(bone.SubDags)))
+		for _, subCount := range bone.SubDags {
 			enc.Uint32(subCount)
 		}
 	}
@@ -76,13 +76,13 @@ func (e *WldFragHierarchialSpriteDef) Write(w io.Writer) error {
 	return nil
 }
 
-func (e *WldFragHierarchialSpriteDef) Read(r io.ReadSeeker) error {
+func (e *WldFragHierarchicalSpriteDef) Read(r io.ReadSeeker) error {
 
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	e.NameRef = dec.Int32()
 	e.Flags = dec.Uint32()
 	numDags := dec.Uint32()
-	e.CollisionVolumeRef = dec.Uint32()
+	e.CollisionVolumeNameRef = dec.Uint32()
 	if e.Flags&0x1 != 0 {
 		e.CenterOffset = [3]float32{dec.Float32(), dec.Float32(), dec.Float32()}
 	}
@@ -99,7 +99,7 @@ func (e *WldFragHierarchialSpriteDef) Read(r io.ReadSeeker) error {
 		dag.MeshOrSpriteOrParticleRef = dec.Uint32()
 		subCount := dec.Uint32()
 		for j := 0; j < int(subCount); j++ {
-			dag.SubBones = append(dag.SubBones, dec.Uint32())
+			dag.SubDags = append(dag.SubDags, dec.Uint32())
 		}
 		e.Dags = append(e.Dags, dag)
 	}

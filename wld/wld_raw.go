@@ -120,6 +120,7 @@ func readRawFrag(wld *Wld, src *raw.Wld, fragment model.FragmentReadWriter) erro
 			spriteTag = raw.Name(spriteDef.NameRef)
 			spriteFlags = simpleSprite.Flags
 			if spriteFlags != 0x50 {
+				fmt.Printf("unknown sprite flag %d (ignored)\n", spriteFlags)
 				//	return fmt.Errorf("unknown sprite flag %d", spriteFlags)
 			}
 		}
@@ -241,22 +242,41 @@ func readRawFrag(wld *Wld, src *raw.Wld, fragment model.FragmentReadWriter) erro
 		}
 
 		track := &TrackDef{
-			Tag:   raw.Name(fragData.NameRef),
-			Flags: fragData.Flags,
+			Tag: raw.Name(fragData.NameRef),
 		}
 
-		for _, transform := range fragData.BoneTransforms {
+		for _, transform := range fragData.FrameTransforms {
 			frame := TrackFrameTransform{
-				PositionDenom: float32(transform.ShiftDenominator),
-				Rotation:      transform.Rotation,
+				XYZScale: transform.ShiftDenominator,
 			}
-			//TODO: fix scale
+			scale := 1.0 / float32(int(1<<transform.ShiftDenominator))
 
-			//scale := float32(1 / float32(int(1)<<int(frame.PositionDenom)))
-			scale := float32(1)
-			frame.Position[0] = float32(transform.Shift[0]) / scale
-			frame.Position[1] = float32(transform.Shift[1]) / scale
-			frame.Position[2] = float32(transform.Shift[2]) / scale
+			frame.XYZ = [3]float32{
+				float32(transform.Shift[0]) / scale,
+				float32(transform.Shift[1]) / scale,
+				float32(transform.Shift[2]) / scale,
+			}
+
+			if fragData.Flags&0x08 == 0x08 {
+				frame.RotScale.Valid = true
+				frame.RotScale.Int16 = transform.RotateDenominator
+				scale = 1.0 / float32(int(1<<transform.RotateDenominator))
+				frame.Rotation.Valid = true
+				frame.Rotation.Float32Slice3 = [3]float32{
+					float32(transform.Rotation[0]) / scale,
+					float32(transform.Rotation[1]) / scale,
+					float32(transform.Rotation[2]) / scale,
+				}
+			} else {
+				frame.RotScale.Valid = false
+				frame.LegacyRotation.Valid = true
+				frame.LegacyRotation.Float32Slice4 = [4]float32{
+					float32(transform.Rotation[0]) / scale,
+					float32(transform.Rotation[1]) / scale,
+					float32(transform.Rotation[2]) / scale,
+					float32(transform.Rotation[3]) / scale,
+				}
+			}
 
 			track.FrameTransforms = append(track.FrameTransforms, frame)
 		}
@@ -282,7 +302,8 @@ func readRawFrag(wld *Wld, src *raw.Wld, fragment model.FragmentReadWriter) erro
 			DefinitionTag: raw.Name(trackDef.NameRef),
 		}
 		if fragData.Flags&0x01 == 0x01 {
-			trackInst.Sleep = fragData.Sleep
+			trackInst.Sleep.Valid = true
+			trackInst.Sleep.Uint32 = fragData.Sleep
 		}
 		if fragData.Flags&0x02 == 0x02 {
 			trackInst.Reverse = 1
@@ -426,6 +447,25 @@ func readRawFrag(wld *Wld, src *raw.Wld, fragment model.FragmentReadWriter) erro
 							return fmt.Errorf("sprite3ddef ref %d not found", sprite.Sprite3DDefRef)
 						}
 						spriteTag = raw.Name(spriteDef.NameRef)
+					case *rawfrag.WldFragDMSprite:
+						if len(src.Fragments) < int(sprite.DMSpriteRef) {
+							return fmt.Errorf("dmsprite ref %d not found", sprite.DMSpriteRef)
+						}
+						spriteDef := src.Fragments[sprite.DMSpriteRef].(*rawfrag.WldFragDmSpriteDef2)
+						if !ok {
+							return fmt.Errorf("dmsprite ref %d not found", sprite.DMSpriteRef)
+						}
+						spriteTag = raw.Name(spriteDef.NameRef)
+					case *rawfrag.WldFragHierarchicalSprite:
+						if len(src.Fragments) < int(sprite.HierarchicalSpriteRef) {
+							return fmt.Errorf("hierarchicalsprite def ref %d not found", sprite.HierarchicalSpriteRef)
+						}
+						spriteDef, ok := src.Fragments[sprite.HierarchicalSpriteRef].(*rawfrag.WldFragHierarchicalSpriteDef)
+						if !ok {
+							return fmt.Errorf("hierarchicalsprite def ref %d not found", sprite.HierarchicalSpriteRef)
+						}
+						spriteTag = raw.Name(spriteDef.NameRef)
+
 					default:
 						return fmt.Errorf("unhandled sprite instance fragment type %d (%s) at offset %d", sprite.FragCode(), raw.FragName(sprite.FragCode()), i)
 					}
@@ -549,57 +589,63 @@ func readRawFrag(wld *Wld, src *raw.Wld, fragment model.FragmentReadWriter) erro
 		}
 
 		wld.ActorInsts = append(wld.ActorInsts, actor)
-	case rawfrag.FragCodeHierarchialSpriteDef:
-		fragData, ok := fragment.(*rawfrag.WldFragHierarchialSpriteDef)
+	case rawfrag.FragCodeHierarchicalSpriteDef:
+		fragData, ok := fragment.(*rawfrag.WldFragHierarchicalSpriteDef)
 		if !ok {
-			return fmt.Errorf("invalid hierarchialsprite fragment at offset %d", i)
+			return fmt.Errorf("invalid hierarchicalsprite fragment at offset %d", i)
 		}
 
-		polyhedronTag := ""
-		if fragData.CollisionVolumeRef != 0 && fragData.CollisionVolumeRef != 4294967293 {
-			if len(src.Fragments) < int(fragData.CollisionVolumeRef) {
-				return fmt.Errorf("collision volume ref %d out of bounds", fragData.CollisionVolumeRef)
-			}
-
-			switch collision := src.Fragments[fragData.CollisionVolumeRef].(type) {
-			case *rawfrag.WldFragPolyhedron:
-				polyhedronTag = raw.Name(collision.NameRef)
-			default:
-				return fmt.Errorf("unknown collision volume ref %d (%s)", fragData.CollisionVolumeRef, raw.FragName(collision.FragCode()))
-			}
-		}
-		if polyhedronTag != "" {
-			return fmt.Errorf("collision volume ref found as %s, report this to xack", polyhedronTag)
-		}
-
-		sprite := &HierarchicalSpriteDef{
-			Tag:            raw.Name(int32(fragData.NameRef)),
-			BoundingRadius: fragData.BoundingRadius,
-			CenterOffset:   fragData.CenterOffset,
-		}
-		if fragData.CollisionVolumeRef == 0xfffffffd {
-			sprite.DagCollision = 1
-		}
 		collisionTag := ""
-
-		for _, srcBone := range fragData.Dags {
-			if len(src.Fragments) < int(srcBone.TrackRef) {
-				return fmt.Errorf("track ref %d not found", srcBone.TrackRef)
+		if fragData.CollisionVolumeNameRef != 0 && fragData.CollisionVolumeNameRef != 4294967293 {
+			if len(src.Fragments) < int(fragData.CollisionVolumeNameRef) {
+				return fmt.Errorf("collision volume ref %d out of bounds", fragData.CollisionVolumeNameRef)
 			}
-			srcTrack, ok := src.Fragments[srcBone.TrackRef].(*rawfrag.WldFragTrack)
+
+			switch collision := src.Fragments[fragData.CollisionVolumeNameRef].(type) {
+			case *rawfrag.WldFragPolyhedron:
+				collisionTag = raw.Name(collision.NameRef)
+			default:
+				return fmt.Errorf("unknown collision volume ref %d (%s)", fragData.CollisionVolumeNameRef, raw.FragName(collision.FragCode()))
+			}
+		}
+		if fragData.CollisionVolumeNameRef == 4294967293 {
+			collisionTag = "SPECIAL_COLLISION"
+		}
+		if collisionTag != "" {
+			return fmt.Errorf("collision volume ref found as %s, report this to xack", collisionTag)
+		}
+
+		spriteDef := &HierarchicalSpriteDef{
+			Tag:                raw.Name(int32(fragData.NameRef)),
+			CollisionVolumeTag: collisionTag,
+		}
+		if fragData.Flags&0x01 == 0x01 {
+			spriteDef.CenterOffset.Valid = true
+			spriteDef.CenterOffset.Float32Slice3 = fragData.CenterOffset
+		}
+		if fragData.Flags&0x02 == 0x02 {
+			spriteDef.BoundingRadius.Valid = true
+			spriteDef.BoundingRadius.Float32 = fragData.BoundingRadius
+		}
+
+		for _, dag := range fragData.Dags {
+			if len(src.Fragments) < int(dag.TrackRef) {
+				return fmt.Errorf("track ref %d not found", dag.TrackRef)
+			}
+			srcTrack, ok := src.Fragments[dag.TrackRef].(*rawfrag.WldFragTrack)
 			if !ok {
-				return fmt.Errorf("track ref %d not found", srcBone.TrackRef)
+				return fmt.Errorf("track ref %d not found", dag.TrackRef)
 			}
 
 			spriteTag := ""
-			if srcBone.MeshOrSpriteOrParticleRef > 0 {
-				if len(src.Fragments) < int(srcBone.MeshOrSpriteOrParticleRef) {
-					return fmt.Errorf("mesh or sprite or particle ref %d not found", srcBone.MeshOrSpriteOrParticleRef)
+			if dag.MeshOrSpriteOrParticleRef > 0 {
+				if len(src.Fragments) < int(dag.MeshOrSpriteOrParticleRef) {
+					return fmt.Errorf("mesh or sprite or particle ref %d not found", dag.MeshOrSpriteOrParticleRef)
 				}
 
-				spriteInst, ok := src.Fragments[srcBone.MeshOrSpriteOrParticleRef].(*rawfrag.WldFragDMSprite)
+				spriteInst, ok := src.Fragments[dag.MeshOrSpriteOrParticleRef].(*rawfrag.WldFragDMSprite)
 				if !ok {
-					return fmt.Errorf("sprite ref %d not found", srcBone.MeshOrSpriteOrParticleRef)
+					return fmt.Errorf("sprite ref %d not found", dag.MeshOrSpriteOrParticleRef)
 				}
 
 				if len(src.Fragments) < int(spriteInst.DMSpriteRef) {
@@ -612,7 +658,7 @@ func readRawFrag(wld *Wld, src *raw.Wld, fragment model.FragmentReadWriter) erro
 					spriteTag = raw.Name(simpleSprite.NameRef)
 				case *rawfrag.WldFragDMSpriteDef:
 					spriteTag = raw.Name(simpleSprite.NameRef)
-				case *rawfrag.WldFragHierarchialSpriteDef:
+				case *rawfrag.WldFragHierarchicalSpriteDef:
 					spriteTag = raw.Name(simpleSprite.NameRef)
 				case *rawfrag.WldFragSprite2D:
 					spriteTag = raw.Name(simpleSprite.NameRef)
@@ -627,15 +673,16 @@ func readRawFrag(wld *Wld, src *raw.Wld, fragment model.FragmentReadWriter) erro
 			}
 
 			dag := Dag{
-				Tag:       raw.Name(srcBone.NameRef),
+				Tag:       raw.Name(dag.NameRef),
 				Track:     raw.Name(srcTrack.NameRef),
-				SubDags:   srcBone.SubBones,
+				SubDags:   dag.SubDags,
 				SpriteTag: spriteTag,
 			}
 
-			sprite.Dags = append(sprite.Dags, dag)
+			spriteDef.Dags = append(spriteDef.Dags, dag)
 		}
 
+		// based on fragData.Flags&0x100 == 0x100 {
 		for i := 0; i < len(fragData.DMSprites); i++ {
 			dmSpriteTag := ""
 			if len(src.Fragments) < int(fragData.DMSprites[i]) {
@@ -653,7 +700,7 @@ func readRawFrag(wld *Wld, src *raw.Wld, fragment model.FragmentReadWriter) erro
 				dmSpriteTag = raw.Name(spriteDef.NameRef)
 			case *rawfrag.WldFragDMSpriteDef:
 				dmSpriteTag = raw.Name(spriteDef.NameRef)
-			case *rawfrag.WldFragHierarchialSpriteDef:
+			case *rawfrag.WldFragHierarchicalSpriteDef:
 				dmSpriteTag = raw.Name(spriteDef.NameRef)
 			case *rawfrag.WldFragSprite2D:
 				dmSpriteTag = raw.Name(spriteDef.NameRef)
@@ -668,15 +715,15 @@ func readRawFrag(wld *Wld, src *raw.Wld, fragment model.FragmentReadWriter) erro
 				LinkSkinUpdatesToDagIndex: fragData.LinkSkinUpdatesToDagIndexes[i],
 			}
 
-			sprite.AttachedSkins = append(sprite.AttachedSkins, skin)
+			spriteDef.AttachedSkins = append(spriteDef.AttachedSkins, skin)
 		}
 
-		if sprite.DagCollision == 1 {
+		if spriteDef.CollisionVolumeTag != "" {
 			if collisionTag == "" {
 				return fmt.Errorf("collision volume ref not found")
 			}
 
-			for _, attachedSkin := range sprite.AttachedSkins {
+			for _, attachedSkin := range spriteDef.AttachedSkins {
 				isFound := false
 				for _, dmSprite := range wld.DMSpriteDef2s {
 					if dmSprite.Tag != attachedSkin.DMSpriteTag {
@@ -693,8 +740,8 @@ func readRawFrag(wld *Wld, src *raw.Wld, fragment model.FragmentReadWriter) erro
 			}
 		}
 
-		wld.HierarchicalSpriteDefs = append(wld.HierarchicalSpriteDefs, sprite)
-	case rawfrag.FragCodeHierarchialSprite:
+		wld.HierarchicalSpriteDefs = append(wld.HierarchicalSpriteDefs, spriteDef)
+	case rawfrag.FragCodeHierarchicalSprite:
 		return nil
 	case rawfrag.FragCodeLightDef:
 		fragData, ok := fragment.(*rawfrag.WldFragLightDef)
@@ -795,7 +842,7 @@ func readRawFrag(wld *Wld, src *raw.Wld, fragment model.FragmentReadWriter) erro
 					node.SpriteTag.String = raw.Name(simpleSprite.NameRef)
 				case *rawfrag.WldFragDMSpriteDef:
 					node.SpriteTag.String = raw.Name(simpleSprite.NameRef)
-				case *rawfrag.WldFragHierarchialSpriteDef:
+				case *rawfrag.WldFragHierarchicalSpriteDef:
 					node.SpriteTag.String = raw.Name(simpleSprite.NameRef)
 				case *rawfrag.WldFragSprite2D:
 					node.SpriteTag.String = raw.Name(simpleSprite.NameRef)
@@ -1125,6 +1172,12 @@ func (wld *Wld) WriteRaw(w io.Writer) error {
 			return fmt.Errorf("dmspritedef2 %s: %w", dmSprite.Tag, err)
 		}
 	}
+	for _, hiSprite := range wld.HierarchicalSpriteDefs {
+		_, err = hiSprite.ToRaw(wld, dst)
+		if err != nil {
+			return fmt.Errorf("hierarchicalsprite %s: %w", hiSprite.Tag, err)
+		}
+	}
 
 	for _, lightDef := range wld.LightDefs {
 		_, err = lightDef.ToRaw(wld, dst)
@@ -1169,6 +1222,29 @@ func (wld *Wld) WriteRaw(w io.Writer) error {
 		}
 	}
 
+	for _, track := range wld.TrackInstances {
+		if track.fragID > 0 {
+			continue
+		}
+
+		_, err = track.ToRaw(wld, dst)
+		if err != nil {
+			return fmt.Errorf("track %s: %w", track.Tag, err)
+		}
+
+	}
+
+	for _, actorDef := range wld.ActorDefs {
+		if actorDef.fragID > 0 {
+			continue
+		}
+
+		_, err = actorDef.ToRaw(wld, dst)
+		if err != nil {
+			return fmt.Errorf("actordef %s: %w", actorDef.Tag, err)
+		}
+	}
+
 	for _, zone := range wld.Zones {
 		_, err = zone.ToRaw(wld, dst)
 		if err != nil {
@@ -1193,6 +1269,11 @@ var animationPrefixesMap = map[string]struct{}{
 }
 
 func isAnimationPrefix(name string) bool {
-	_, exists := animationPrefixesMap[name]
+	if len(name) < 3 {
+		return false
+	}
+	prefix := name[:3]
+
+	_, exists := animationPrefixesMap[prefix]
 	return exists
 }

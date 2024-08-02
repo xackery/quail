@@ -40,6 +40,10 @@ type NullFloat32Slice3 struct {
 	Float32Slice3 [3]float32
 	Valid         bool
 }
+type NullFloat32Slice4 struct {
+	Float32Slice4 [4]float32
+	Valid         bool
+}
 type NullFloat32Slice6 struct {
 	Float32Slice6 [6]float32
 	Valid         bool
@@ -101,12 +105,12 @@ func wcVal(inVal interface{}) string {
 		if !val.Valid {
 			return "NULL"
 		}
-		return fmt.Sprintf("%0.6e", val.Float32)
+		return fmt.Sprintf("%0.7e", val.Float32)
 	case NullFloat64:
 		if !val.Valid {
 			return "NULL"
 		}
-		return fmt.Sprintf("%0.6e", val.Float64)
+		return fmt.Sprintf("%0.7e", val.Float64)
 	case NullString:
 		if !val.Valid {
 			return "NULL"
@@ -116,12 +120,17 @@ func wcVal(inVal interface{}) string {
 		if !val.Valid {
 			return "NULL NULL NULL"
 		}
-		return fmt.Sprintf("%0.6e %0.6e %0.6e", val.Float32Slice3[0], val.Float32Slice3[1], val.Float32Slice3[2])
+		return fmt.Sprintf("%0.7e %0.7e %0.7e", val.Float32Slice3[0], val.Float32Slice3[1], val.Float32Slice3[2])
+	case NullFloat32Slice4:
+		if !val.Valid {
+			return "NULL NULL NULL NULL"
+		}
+		return fmt.Sprintf("%0.7e %0.7e %0.7e %0.7e", val.Float32Slice4[0], val.Float32Slice4[1], val.Float32Slice4[2], val.Float32Slice4[3])
 	case NullFloat32Slice6:
 		if !val.Valid {
 			return "NULL NULL NULL NULL NULL NULL"
 		}
-		return fmt.Sprintf("%0.6e %0.6e %0.6e %0.6e %0.6e %0.6e", val.Float32Slice6[0], val.Float32Slice6[1], val.Float32Slice6[2], val.Float32Slice6[3], val.Float32Slice6[4], val.Float32Slice6[5])
+		return fmt.Sprintf("%0.7e %0.7e %0.7e %0.7e %0.7e %0.7e", val.Float32Slice6[0], val.Float32Slice6[1], val.Float32Slice6[2], val.Float32Slice6[3], val.Float32Slice6[4], val.Float32Slice6[5])
 	default:
 		return fmt.Sprintf("INVALID_%v", inVal)
 	}
@@ -344,10 +353,30 @@ func parse(inVal interface{}, src ...string) error {
 			val.Valid = false
 			return nil
 		}
-		_, err := fmt.Sscanf(src[0], "%0.6e %0.6e %0.6e", &val.Float32Slice3[0], &val.Float32Slice3[1], &val.Float32Slice3[2])
-		if err != nil {
-			return err
+
+		for i := 0; i < 3; i++ {
+			v, err := strconv.ParseFloat(src[i], 32)
+			if err != nil {
+				return err
+			}
+			val.Float32Slice3[i] = float32(v)
 		}
+		val.Valid = true
+		return nil
+	case *NullFloat32Slice4:
+		if src[0] == "NULL" {
+			val.Valid = false
+			return nil
+		}
+
+		for i := 0; i < 4; i++ {
+			v, err := strconv.ParseFloat(src[i], 32)
+			if err != nil {
+				return err
+			}
+			val.Float32Slice4[i] = float32(v)
+		}
+
 		val.Valid = true
 		return nil
 	case *NullFloat32Slice6:

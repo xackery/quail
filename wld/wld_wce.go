@@ -58,6 +58,10 @@ func (wld *Wld) WriteAscii(path string, isDir bool) error {
 
 	lightsMap := map[string]bool{}
 	zoneMaterials := map[string]bool{}
+	globalTracksWritten := map[string]bool{}
+	spriteAniWriters := map[string]*os.File{}
+	actorDefsWritten := map[string]bool{}
+	hierarchicalSpriteDefsWritten := map[string]bool{}
 
 	if wld.GlobalAmbientLight != nil {
 		err = wld.GlobalAmbientLight.Write(rootBuf)
@@ -180,11 +184,10 @@ func (wld *Wld) WriteAscii(path string, isDir bool) error {
 			fmt.Fprintf(rootBuf, "INCLUDE \"%s.MOD\"\n", strings.ToUpper(baseTag))
 		}
 		tracksWritten := map[string]bool{}
-		var aniBuf *os.File
 		for _, hierarchySprite := range wld.HierarchicalSpriteDefs {
 			isFound := false
 
-			if hierarchySprite.DMSpriteTag == dmSprite.Tag {
+			if hierarchySprite.CollisionVolumeTag == dmSprite.Tag {
 				isFound = true
 			}
 			if !isFound {
@@ -207,6 +210,8 @@ func (wld *Wld) WriteAscii(path string, isDir bool) error {
 			if !isFound {
 				continue
 			}
+
+			hierarchicalSpriteDefsWritten[hierarchySprite.Tag] = true
 
 			err = hierarchySprite.Write(w)
 			if err != nil {
@@ -241,17 +246,20 @@ func (wld *Wld) WriteAscii(path string, isDir bool) error {
 						}
 
 						trackBuf = dmBuf
-						if isAnimationPrefix(trackDef.Tag) {
-							if aniBuf == nil {
-								aniBuf, err = os.Create(path + "/" + baseTag + ".ani")
+						tag := strings.ToUpper(trackDef.Tag)
+						aniTag := wld.aniWriterTag(tag)
+						if aniTag != "" {
+							if spriteAniWriters[aniTag] == nil {
+								aniBuf, err := os.Create(path + "/" + strings.ToLower(aniTag) + ".ani")
 								if err != nil {
 									return err
 								}
-								defer aniBuf.Close()
 								writeAsciiHeader(aniBuf)
-							}
+								spriteAniWriters[aniTag] = aniBuf
 
-							trackBuf = aniBuf
+								fmt.Fprintf(rootBuf, "INCLUDE \"%s.ANI\"\n", strings.ToUpper(aniTag))
+							}
+							trackBuf = spriteAniWriters[aniTag]
 						}
 						err = trackDef.Write(trackBuf)
 						if err != nil {
@@ -259,6 +267,7 @@ func (wld *Wld) WriteAscii(path string, isDir bool) error {
 						}
 
 						tracksWritten[trackDef.Tag] = true
+						globalTracksWritten[trackDef.Tag] = true
 						break
 					}
 					if !isTrackDefFound {
@@ -268,20 +277,26 @@ func (wld *Wld) WriteAscii(path string, isDir bool) error {
 					isTrackFound = true
 
 					tracksWritten[dag.Track] = true
+					globalTracksWritten[dag.Track] = true
 
 					trackBuf = dmBuf
-					if isAnimationPrefix(dag.Track) {
-						if aniBuf == nil {
-							aniBuf, err = os.Create(path + "/" + baseTag + ".ani")
+					trackBuf = dmBuf
+					tag := strings.ToUpper(track.Tag)
+					aniTag := wld.aniWriterTag(tag)
+					if aniTag != "" {
+						if spriteAniWriters[aniTag] == nil {
+							aniBuf, err := os.Create(path + "/" + strings.ToLower(aniTag) + ".ani")
 							if err != nil {
 								return err
 							}
-							defer aniBuf.Close()
 							writeAsciiHeader(aniBuf)
-						}
+							spriteAniWriters[aniTag] = aniBuf
 
-						trackBuf = aniBuf
+							fmt.Fprintf(rootBuf, "INCLUDE \"%s.ANI\"\n", strings.ToUpper(aniTag))
+						}
+						trackBuf = spriteAniWriters[aniTag]
 					}
+
 					err = track.Write(trackBuf)
 					if err != nil {
 						return fmt.Errorf("track %s: %w", track.Tag, err)
@@ -293,6 +308,70 @@ func (wld *Wld) WriteAscii(path string, isDir bool) error {
 			}
 
 			break
+		}
+	}
+
+	w = rootBuf
+	for i := 0; i < len(wld.TrackInstances); i++ {
+		track := wld.TrackInstances[i]
+		if globalTracksWritten[track.Tag] {
+			continue
+		}
+
+		w = rootBuf
+		tag := strings.ToUpper(track.Tag)
+		aniTag := wld.aniWriterTag(tag)
+		if aniTag != "" {
+			if spriteAniWriters[aniTag] == nil {
+				aniBuf, err := os.Create(path + "/" + strings.ToLower(aniTag) + ".ani")
+				if err != nil {
+					return err
+				}
+				writeAsciiHeader(aniBuf)
+				spriteAniWriters[aniTag] = aniBuf
+
+				fmt.Fprintf(rootBuf, "INCLUDE \"%s.ANI\"\n", strings.ToUpper(aniTag))
+			}
+			w = spriteAniWriters[aniTag]
+		}
+
+		isTrackFound := false
+		for _, trackDef := range wld.TrackDefs {
+			if trackDef.Tag != track.DefinitionTag {
+				continue
+			}
+
+			w = rootBuf
+			tag := strings.ToUpper(trackDef.Tag)
+			aniTag := wld.aniWriterTag(tag)
+			if aniTag != "" {
+				if spriteAniWriters[aniTag] == nil {
+					aniBuf, err := os.Create(path + "/" + strings.ToLower(aniTag) + ".ani")
+					if err != nil {
+						return err
+					}
+					writeAsciiHeader(aniBuf)
+					spriteAniWriters[aniTag] = aniBuf
+
+					fmt.Fprintf(rootBuf, "INCLUDE \"%s.ANI\"\n", strings.ToUpper(aniTag))
+				}
+				w = spriteAniWriters[aniTag]
+			}
+			err = trackDef.Write(w)
+			if err != nil {
+				return fmt.Errorf("track def %s: %w", trackDef.Tag, err)
+			}
+
+			isTrackFound = true
+			break
+		}
+		if !isTrackFound {
+			return fmt.Errorf("track %s definition not found", track.DefinitionTag)
+		}
+
+		err = track.Write(w)
+		if err != nil {
+			return fmt.Errorf("track %s: %w", track.Tag, err)
 		}
 	}
 
@@ -437,25 +516,41 @@ func (wld *Wld) WriteAscii(path string, isDir bool) error {
 					continue
 				}
 
+				actorDefsWritten[actorDef.Tag] = true
+
 				for _, action := range actorDef.Actions {
 					for _, lod := range action.LevelOfDetails {
 						if lod.SpriteTag == "" {
 							continue
 						}
-						isActorSpriteFound := false
-						for _, sprite := range wld.Sprite3DDefs {
-							if sprite.Tag != lod.SpriteTag {
-								continue
-							}
 
+						spriteFrag := wld.ByTag(lod.SpriteTag)
+						if spriteFrag == nil {
+							return fmt.Errorf("actorinst %s actor %s sprite %s not found", actor.Tag, actorDef.Tag, lod.SpriteTag)
+						}
+
+						switch sprite := spriteFrag.(type) {
+						case *SimpleSpriteDef:
 							err = sprite.Write(w)
 							if err != nil {
 								return fmt.Errorf("sprite %s: %w", sprite.Tag, err)
 							}
-							isActorSpriteFound = true
-						}
-						if !isActorSpriteFound {
-							return fmt.Errorf("actor %s sprite %s not found", actorDef.Tag, lod.SpriteTag)
+						case *Sprite3DDef:
+							err = sprite.Write(w)
+							if err != nil {
+								return fmt.Errorf("sprite %s: %w", sprite.Tag, err)
+							}
+						case *HierarchicalSpriteDef:
+							if hierarchicalSpriteDefsWritten[sprite.Tag] {
+								continue
+							}
+							hierarchicalSpriteDefsWritten[sprite.Tag] = true
+							err = sprite.Write(w)
+							if err != nil {
+								return fmt.Errorf("sprite %s: %w", sprite.Tag, err)
+							}
+						default:
+							return fmt.Errorf("unknown sprite type %T", sprite)
 						}
 					}
 				}
@@ -480,6 +575,55 @@ func (wld *Wld) WriteAscii(path string, isDir bool) error {
 	}
 
 	w = rootBuf
+	for i := 0; i < len(wld.ActorDefs); i++ {
+		actorDef := wld.ActorDefs[i]
+		if actorDefsWritten[actorDef.Tag] {
+			continue
+		}
+		for _, action := range actorDef.Actions {
+			for _, lod := range action.LevelOfDetails {
+				if lod.SpriteTag == "" {
+					continue
+				}
+
+				spriteFrag := wld.ByTag(lod.SpriteTag)
+				if spriteFrag == nil {
+					return fmt.Errorf("actor %s sprite %s not found", actorDef.Tag, lod.SpriteTag)
+				}
+
+				switch sprite := spriteFrag.(type) {
+				case *SimpleSpriteDef:
+					err = sprite.Write(w)
+					if err != nil {
+						return fmt.Errorf("sprite %s: %w", sprite.Tag, err)
+					}
+				case *Sprite3DDef:
+					err = sprite.Write(w)
+					if err != nil {
+						return fmt.Errorf("sprite %s: %w", sprite.Tag, err)
+					}
+				case *HierarchicalSpriteDef:
+					if hierarchicalSpriteDefsWritten[sprite.Tag] {
+						continue
+					}
+					hierarchicalSpriteDefsWritten[sprite.Tag] = true
+					err = sprite.Write(w)
+					if err != nil {
+						return fmt.Errorf("sprite %s: %w", sprite.Tag, err)
+					}
+				default:
+					return fmt.Errorf("unknown sprite type %T", sprite)
+				}
+
+			}
+		}
+		err = actorDef.Write(w)
+		if err != nil {
+			return fmt.Errorf("actor def %s: %w", actorDef.Tag, err)
+		}
+	}
+
+	w = rootBuf
 	for i := 0; i < len(wld.Zones); i++ {
 		zone := wld.Zones[i]
 
@@ -489,10 +633,33 @@ func (wld *Wld) WriteAscii(path string, isDir bool) error {
 		}
 	}
 
+	for _, aniBuf := range spriteAniWriters {
+		aniBuf.Close()
+	}
+
 	return nil
 }
 
 func writeAsciiHeader(w io.Writer) {
 	fmt.Fprintf(w, "// wcemu %s\n", AsciiVersion)
 	fmt.Fprintf(w, "// This file was created by quail v%s\n\n", common.Version)
+}
+
+func (wld *Wld) aniWriterTag(name string) string {
+	if !isAnimationPrefix(name) {
+		return ""
+	}
+
+	if len(name) < 4 {
+		return ""
+	}
+	base := name[3:]
+	for _, sprite := range wld.DMSpriteDef2s {
+		spriteName := strings.TrimSuffix(sprite.Tag, "_DMSPRITEDEF")
+		if strings.HasPrefix(base, spriteName) {
+			return spriteName
+		}
+	}
+
+	return ""
 }

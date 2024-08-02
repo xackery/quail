@@ -189,3 +189,14 @@ biodiffwld-%:
 
 biodifftest:
 	biodiff test/src.frag test/dst.frag
+
+jddiff-%:
+	wld-cli extract test/$*.src.wld -f json test/$*.src.json
+	wld-cli extract test/$*.dst.wld -f json test/$*.dst.json
+	-jd test/$*.src.json test/$*.dst.json > test/$*.diff
+	code test/$*.diff
+
+jsondiff-%:
+	wld-cli extract test/$*.src.wld -f json test/$*.src.json
+	wld-cli extract test/$*.dst.wld -f json test/$*.dst.json
+	code -d test/$*.src.json test/$*.dst.json

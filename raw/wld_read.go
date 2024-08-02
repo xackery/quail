@@ -85,7 +85,8 @@ func (wld *Wld) Read(r io.ReadSeeker) error {
 	}
 
 	if len(names) != int(stringCount)+1 {
-		return fmt.Errorf("name count mismatch, wanted %d, got %d", stringCount, len(names))
+		fmt.Printf("name count mismatch, wanted %d, got %d (ignoring, openzone?)\n", stringCount, len(names))
+		//return fmt.Errorf("name count mismatch, wanted %d, got %d", stringCount, len(names))
 	}
 
 	nameBuf = hashRaw

@@ -172,6 +172,7 @@ func TestBWldReadWriteRead(t *testing.T) {
 }
 
 func TestWCEWldReadWriteRead(t *testing.T) {
+
 	if os.Getenv("SINGLE_TEST") != "1" {
 		t.Skip("skipping test; SINGLE_TEST not set")
 	}
@@ -185,11 +186,16 @@ func TestWCEWldReadWriteRead(t *testing.T) {
 		baseName string
 		wldName  string
 	}{
-		//{baseName: "gequip2"},
+		//{baseName: "gequip6"},
+		//{baseName: "crushbone"},
+		//{baseName: "gequip2"}, // hierarchical sprite
+		//{baseName: "hollows"},
+		//{baseName: "illithid_chr"},
+		{baseName: "beetle_chr"},
 		//{baseName: "qeynos_chr"},
 		//{baseName: "global_chr"}, // TODO:  anarelion asked mesh of EYE_DMSPRITEDEF check if the eye is just massive 22 units in size, where the other units in that file are just 1-2 units in size
 		//{baseName: "load2"},
-		{baseName: "qeynos"},
+		//{baseName: "qeynos"},
 		//	{baseName: "qeynos", wldName: "lights.wld"},
 		//{baseName: "load2", wldName: "lights.wld"},
 		//{baseName: "load2", wldName: "load2.wld"},
@@ -203,6 +209,10 @@ func TestWCEWldReadWriteRead(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.baseName, func(t *testing.T) {
+
+			if os.Getenv("TEST_ARG") != "" {
+				tt.baseName = os.Getenv("TEST_ARG")
+			}
 
 			baseName := tt.baseName
 			// copy original

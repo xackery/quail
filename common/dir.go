@@ -12,7 +12,6 @@ func IsTestExtensive() bool {
 
 func IsTest() bool {
 	return os.Getenv("IS_TEST") == "1"
-
 }
 
 // TestDir returns a testing directory
