@@ -13,7 +13,7 @@ var AsciiVersion = "v0.0.1"
 type Wld struct {
 	isZone                 bool // true when the file is a zone file
 	FileName               string
-	GlobalAmbientLight     *GlobalAmbientLightDef
+	GlobalAmbientLightDef  *GlobalAmbientLightDef
 	Version                uint32
 	SimpleSpriteDefs       []*SimpleSpriteDef
 	MaterialDefs           []*MaterialDef
@@ -126,7 +126,7 @@ func (wld *Wld) ByTag(tag string) WldDefinitioner {
 }
 
 func (wld *Wld) reset() {
-	wld.GlobalAmbientLight = nil
+	wld.GlobalAmbientLightDef = nil
 	wld.SimpleSpriteDefs = []*SimpleSpriteDef{}
 	wld.MaterialDefs = []*MaterialDef{}
 	wld.MaterialPalettes = []*MaterialPalette{}

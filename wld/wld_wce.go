@@ -58,13 +58,11 @@ func (wld *Wld) WriteAscii(path string, isDir bool) error {
 
 	lightsMap := map[string]bool{}
 	zoneMaterials := map[string]bool{}
-	globalTracksWritten := map[string]bool{}
 	spriteAniWriters := map[string]*os.File{}
-	actorDefsWritten := map[string]bool{}
-	hierarchicalSpriteDefsWritten := map[string]bool{}
+	defsWritten := map[string]bool{}
 
-	if wld.GlobalAmbientLight != nil {
-		err = wld.GlobalAmbientLight.Write(rootBuf)
+	if wld.GlobalAmbientLightDef != nil {
+		err = wld.GlobalAmbientLightDef.Write(rootBuf)
 		if err != nil {
 			return fmt.Errorf("global ambient light: %w", err)
 		}
@@ -73,7 +71,7 @@ func (wld *Wld) WriteAscii(path string, isDir bool) error {
 	w = rootBuf
 	for i := 0; i < len(wld.DMSpriteDef2s); i++ {
 		dmSprite := wld.DMSpriteDef2s[i]
-
+		defsWritten[dmSprite.Tag] = true
 		baseTag := strings.ToLower(strings.TrimSuffix(strings.ToUpper(dmSprite.Tag), "_DMSPRITEDEF"))
 
 		isZoneChunk := false
@@ -211,7 +209,7 @@ func (wld *Wld) WriteAscii(path string, isDir bool) error {
 				continue
 			}
 
-			hierarchicalSpriteDefsWritten[hierarchySprite.Tag] = true
+			defsWritten[hierarchySprite.Tag] = true
 
 			err = hierarchySprite.Write(w)
 			if err != nil {
@@ -231,6 +229,8 @@ func (wld *Wld) WriteAscii(path string, isDir bool) error {
 					if track.Tag != dag.Track {
 						continue
 					}
+
+					defsWritten[dag.Track] = true
 
 					isTrackDefFound := false
 
@@ -267,7 +267,7 @@ func (wld *Wld) WriteAscii(path string, isDir bool) error {
 						}
 
 						tracksWritten[trackDef.Tag] = true
-						globalTracksWritten[trackDef.Tag] = true
+						defsWritten[trackDef.Tag] = true
 						break
 					}
 					if !isTrackDefFound {
@@ -277,7 +277,7 @@ func (wld *Wld) WriteAscii(path string, isDir bool) error {
 					isTrackFound = true
 
 					tracksWritten[dag.Track] = true
-					globalTracksWritten[dag.Track] = true
+					defsWritten[dag.Track] = true
 
 					trackBuf = dmBuf
 					trackBuf = dmBuf
@@ -314,7 +314,7 @@ func (wld *Wld) WriteAscii(path string, isDir bool) error {
 	w = rootBuf
 	for i := 0; i < len(wld.TrackInstances); i++ {
 		track := wld.TrackInstances[i]
-		if globalTracksWritten[track.Tag] {
+		if defsWritten[track.Tag] {
 			continue
 		}
 
@@ -516,7 +516,7 @@ func (wld *Wld) WriteAscii(path string, isDir bool) error {
 					continue
 				}
 
-				actorDefsWritten[actorDef.Tag] = true
+				defsWritten[actorDef.Tag] = true
 
 				for _, action := range actorDef.Actions {
 					for _, lod := range action.LevelOfDetails {
@@ -541,16 +541,16 @@ func (wld *Wld) WriteAscii(path string, isDir bool) error {
 								return fmt.Errorf("sprite %s: %w", sprite.Tag, err)
 							}
 						case *HierarchicalSpriteDef:
-							if hierarchicalSpriteDefsWritten[sprite.Tag] {
+							if defsWritten[sprite.Tag] {
 								continue
 							}
-							hierarchicalSpriteDefsWritten[sprite.Tag] = true
+							defsWritten[sprite.Tag] = true
 							err = sprite.Write(w)
 							if err != nil {
 								return fmt.Errorf("sprite %s: %w", sprite.Tag, err)
 							}
 						default:
-							return fmt.Errorf("unknown sprite type %T", sprite)
+							return fmt.Errorf("actorInst '%s' actorDef %s unknown sprite type %T", actor.Tag, actorDef.Tag, sprite)
 						}
 					}
 				}
@@ -577,7 +577,7 @@ func (wld *Wld) WriteAscii(path string, isDir bool) error {
 	w = rootBuf
 	for i := 0; i < len(wld.ActorDefs); i++ {
 		actorDef := wld.ActorDefs[i]
-		if actorDefsWritten[actorDef.Tag] {
+		if defsWritten[actorDef.Tag] {
 			continue
 		}
 		for _, action := range actorDef.Actions {
@@ -597,22 +597,31 @@ func (wld *Wld) WriteAscii(path string, isDir bool) error {
 					if err != nil {
 						return fmt.Errorf("sprite %s: %w", sprite.Tag, err)
 					}
+					defsWritten[sprite.Tag] = true
 				case *Sprite3DDef:
 					err = sprite.Write(w)
 					if err != nil {
 						return fmt.Errorf("sprite %s: %w", sprite.Tag, err)
 					}
 				case *HierarchicalSpriteDef:
-					if hierarchicalSpriteDefsWritten[sprite.Tag] {
+					if defsWritten[sprite.Tag] {
 						continue
 					}
-					hierarchicalSpriteDefsWritten[sprite.Tag] = true
+					defsWritten[sprite.Tag] = true
 					err = sprite.Write(w)
 					if err != nil {
 						return fmt.Errorf("sprite %s: %w", sprite.Tag, err)
 					}
+				case *DMSpriteDef2:
+					if !defsWritten[sprite.Tag] {
+						err = sprite.Write(w)
+						if err != nil {
+							return fmt.Errorf("sprite %s: %w", sprite.Tag, err)
+						}
+						defsWritten[sprite.Tag] = true
+					}
 				default:
-					return fmt.Errorf("unknown sprite type %T", sprite)
+					return fmt.Errorf("actordef %s refs unknown sprite %s with type %T", actorDef.Tag, lod.SpriteTag, sprite)
 				}
 
 			}
@@ -653,10 +662,16 @@ func (wld *Wld) aniWriterTag(name string) string {
 	if len(name) < 4 {
 		return ""
 	}
-	base := name[3:]
+
+	base := strings.TrimSuffix(name, "_TRACKDEF")
+	base = strings.TrimSuffix(base, "_TRACK")
+
 	for _, sprite := range wld.DMSpriteDef2s {
 		spriteName := strings.TrimSuffix(sprite.Tag, "_DMSPRITEDEF")
 		if strings.HasPrefix(base, spriteName) {
+			return spriteName
+		}
+		if strings.HasSuffix(base, spriteName) {
 			return spriteName
 		}
 	}

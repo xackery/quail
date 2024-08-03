@@ -284,10 +284,10 @@ func (a *AsciiReadToken) readDefinitions() error {
 			}
 			switch frag := (definitions[i]).(type) {
 			case *GlobalAmbientLightDef:
-				if a.wld.GlobalAmbientLight != nil {
+				if a.wld.GlobalAmbientLightDef != nil {
 					return fmt.Errorf("duplicate global ambient light definition")
 				}
-				a.wld.GlobalAmbientLight = frag
+				a.wld.GlobalAmbientLightDef = frag
 				definitions[i] = &GlobalAmbientLightDef{}
 			case *DMSpriteDef2:
 				a.wld.DMSpriteDef2s = append(a.wld.DMSpriteDef2s, frag)
