@@ -9,6 +9,8 @@ require (
 	github.com/xackery/encdec v0.1.11
 )
 
+require github.com/go-test/deep v1.1.1
+
 require (
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect

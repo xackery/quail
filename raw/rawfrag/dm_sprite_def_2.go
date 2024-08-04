@@ -11,8 +11,12 @@ import (
 
 // WldFragDmSpriteDef2 is DmSpriteDef2 in libeq, WldFragDmSpriteDef2 in openzone, DMSPRITEDEF2 in wld, WldFragDmSpriteDef2 in lantern
 type WldFragDmSpriteDef2 struct {
-	NameRef int32  `yaml:"name_ref"`
-	Flags   uint32 `yaml:"flags"`
+	NameRef int32 `yaml:"name_ref"`
+	/*
+		0x10 (bit 4)
+		0x10000 (bit 16) seems to imply polyhedron
+	*/
+	Flags uint32
 
 	MaterialPaletteRef uint32 `yaml:"material_palette_ref"`
 	DMTrackRef         int32  // only used for flags/trees
@@ -69,6 +73,7 @@ func (e *WldFragDmSpriteDef2) Write(w io.Writer) error {
 
 	padStart := enc.Pos()
 	enc.Int32(e.NameRef)
+
 	enc.Uint32(e.Flags)
 
 	enc.Uint32(e.MaterialPaletteRef)

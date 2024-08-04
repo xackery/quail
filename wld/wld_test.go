@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/go-test/deep"
 	"github.com/xackery/quail/common"
 	"github.com/xackery/quail/pfs"
 	"github.com/xackery/quail/raw"
@@ -188,10 +189,11 @@ func TestWCEWldReadWriteRead(t *testing.T) {
 	}{
 		//{baseName: "gequip6"},
 		//{baseName: "crushbone"},
-		{baseName: "gequip2"}, // hierarchical sprite
+		//{baseName: "gequip2"}, // hierarchical sprite
+		//{baseName: "overthere_chr"},
 		//{baseName: "hollows"},
 		//{baseName: "illithid_chr"},
-		//{baseName: "beetle_chr"},
+		{baseName: "beetle_chr"},
 		//{baseName: "globalogm_chr"},
 		//{baseName: "qeynos_chr"},
 		//{baseName: "global_chr"}, // TODO:  anarelion asked mesh of EYE_DMSPRITEDEF check if the eye is just massive 22 units in size, where the other units in that file are just 1-2 units in size
@@ -327,9 +329,12 @@ func TestWCEWldFragMatch(t *testing.T) {
 		baseName string
 		wldName  string
 	}{
-		{baseName: "load2"},
+		//{baseName: "load2"},
 		//{baseName: "load2", wldName: "objects.wld"},
-		//{baseName: "beetle_chr"},
+		{baseName: "beetle_chr"},
+		//{baseName: "overthere_chr"},
+		//{baseName: "globalogm_chr"},
+
 	}
 	for _, tt := range tests {
 		t.Run(tt.baseName, func(t *testing.T) {
@@ -358,8 +363,6 @@ func TestWCEWldFragMatch(t *testing.T) {
 
 			if tt.wldName == "" {
 				tt.wldName = fmt.Sprintf("%s.wld", tt.baseName)
-			} else {
-				//	baseName = tt.wldName[:len(tt.wldName)-4]
 			}
 			// get wld
 			data, err := archive.File(tt.wldName)
@@ -371,23 +374,23 @@ func TestWCEWldFragMatch(t *testing.T) {
 				t.Fatalf("failed to write wld %s: %s", baseName, err.Error())
 			}
 			fmt.Println("wrote", fmt.Sprintf("%s/%s.src.wld", dirTest, baseName))
-			srcWld := &raw.Wld{}
-			err = srcWld.Read(bytes.NewReader(data))
+			rawWldSrc := &raw.Wld{}
+			err = rawWldSrc.Read(bytes.NewReader(data))
 			if err != nil {
 				t.Fatalf("failed to read %s: %s", baseName, err.Error())
 			}
 
-			vwld := &Wld{}
-			err = vwld.ReadRaw(srcWld)
+			wldSrc := &Wld{}
+			err = wldSrc.ReadRaw(rawWldSrc)
 			if err != nil {
 				t.Fatalf("failed to convert %s: %s", baseName, err.Error())
 			}
 
 			fmt.Println("read", fmt.Sprintf("%s/%s.src.wld", dirTest, baseName))
 
-			vwld.FileName = baseName + ".wld"
+			wldSrc.FileName = baseName + ".wld"
 
-			err = vwld.WriteAscii(dirTest+"/"+baseName, true)
+			err = wldSrc.WriteAscii(dirTest+"/"+baseName, true)
 			if err != nil {
 				t.Fatalf("failed to write %s: %s", baseName, err.Error())
 			}
@@ -396,8 +399,10 @@ func TestWCEWldFragMatch(t *testing.T) {
 
 			// read back in
 
-			vwld2 := &Wld{}
-			err = vwld2.ReadAscii(fmt.Sprintf("%s/%s/_root.wce", dirTest, baseName))
+			wldDst := &Wld{
+				FileName: baseName + ".wld",
+			}
+			err = wldDst.ReadAscii(fmt.Sprintf("%s/%s/_root.wce", dirTest, baseName))
 			if err != nil {
 				t.Fatalf("failed to read %s: %s", baseName, err.Error())
 			}
@@ -408,7 +413,7 @@ func TestWCEWldFragMatch(t *testing.T) {
 
 			dstBuf := bytes.NewBuffer(nil)
 
-			err = vwld2.WriteRaw(dstBuf)
+			err = wldDst.WriteRaw(dstBuf)
 			if err != nil {
 				t.Fatalf("failed to write %s: %s", baseName, err.Error())
 			}
@@ -420,23 +425,34 @@ func TestWCEWldFragMatch(t *testing.T) {
 
 			fmt.Println("wrote", fmt.Sprintf("%s/%s.dst.wld", dirTest, baseName))
 
-			wld3 := &raw.Wld{}
-			err = wld3.Read(bytes.NewReader(dstBuf.Bytes()))
+			rawWldDst := &raw.Wld{}
+
+			/* diff := deep.Equal(wldSrc, wldDst)
+			if diff != nil {
+				t.Fatalf("wld diff: %s", diff)
+			} */
+
+			err = rawWldDst.Read(bytes.NewReader(dstBuf.Bytes()))
 			if err != nil {
 				t.Fatalf("failed to read wld3 %s: %s", baseName, err.Error())
 			}
 
-			for i := 0; i < len(srcWld.Fragments); i++ {
-				srcFrag := srcWld.Fragments[i]
-				dstFrag := wld3.Fragments[i]
+			diff := deep.Equal(rawWldSrc, rawWldDst)
+			if diff != nil {
+				t.Fatalf("wld diff: %s", diff)
+			}
+
+			for i := 0; i < len(rawWldSrc.Fragments); i++ {
+				srcFrag := rawWldSrc.Fragments[i]
+				dstFrag := rawWldDst.Fragments[i]
 				if srcFrag.FragCode() != dstFrag.FragCode() {
 					t.Fatalf("fragment %d fragcode mismatch: src: %s, dst: %s", i, raw.FragName(srcFrag.FragCode()), raw.FragName(dstFrag.FragCode()))
 				}
 			}
 
-			for i := 0; i < len(srcWld.Fragments); i++ {
-				srcFrag := srcWld.Fragments[i]
-				dstFrag := wld3.Fragments[i]
+			for i := 0; i < len(rawWldSrc.Fragments); i++ {
+				srcFrag := rawWldSrc.Fragments[i]
+				dstFrag := rawWldDst.Fragments[i]
 
 				srcFragBuf := bytes.NewBuffer(nil)
 				err = srcFrag.Write(srcFragBuf)

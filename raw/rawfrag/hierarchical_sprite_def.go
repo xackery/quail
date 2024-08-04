@@ -12,7 +12,7 @@ import (
 type WldFragHierarchicalSpriteDef struct {
 	NameRef                     int32        `yaml:"name_ref"`
 	Flags                       uint32       `yaml:"flags"`
-	CollisionVolumeNameRef      uint32       `yaml:"collision_volume_ref"`
+	CollisionVolumeRef          uint32       `yaml:"collision_volume_ref"`
 	CenterOffset                [3]float32   `yaml:"center_offset"`
 	BoundingRadius              float32      `yaml:"bounding_radius"`
 	Dags                        []WldFragDag `yaml:"bones"`
@@ -37,7 +37,7 @@ func (e *WldFragHierarchicalSpriteDef) Write(w io.Writer) error {
 	enc.Int32(e.NameRef)
 	enc.Uint32(e.Flags)
 	enc.Uint32(uint32(len(e.Dags)))
-	enc.Uint32(e.CollisionVolumeNameRef)
+	enc.Uint32(e.CollisionVolumeRef)
 	if e.Flags&0x1 != 0 {
 		enc.Float32(e.CenterOffset[0])
 		enc.Float32(e.CenterOffset[1])
@@ -82,7 +82,7 @@ func (e *WldFragHierarchicalSpriteDef) Read(r io.ReadSeeker) error {
 	e.NameRef = dec.Int32()
 	e.Flags = dec.Uint32()
 	numDags := dec.Uint32()
-	e.CollisionVolumeNameRef = dec.Uint32()
+	e.CollisionVolumeRef = dec.Uint32()
 	if e.Flags&0x1 != 0 {
 		e.CenterOffset = [3]float32{dec.Float32(), dec.Float32(), dec.Float32()}
 	}

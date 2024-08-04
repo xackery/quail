@@ -3,6 +3,7 @@ package wld
 import (
 	"fmt"
 	"io"
+	"strings"
 
 	"github.com/xackery/quail/model"
 	"github.com/xackery/quail/raw"
@@ -341,7 +342,7 @@ func isAnimationPrefix(name string) bool {
 	if len(name) < 3 {
 		return false
 	}
-	prefix := name[:3]
+	prefix := strings.ToUpper(name[:3])
 
 	_, exists := animationPrefixesMap[prefix]
 	return exists

@@ -10,8 +10,8 @@ import (
 
 // WldFragActorDef is ActorDef in libeq, Static in openzone, ACTORDEF in wld
 type WldFragActorDef struct {
-	NameRef         int32  `yaml:"name_ref"`
-	Flags           uint32 `yaml:"flags"`
+	NameRef         int32 `yaml:"name_ref"`
+	Flags           uint32
 	CallbackNameRef int32  `yaml:"callback_name_ref"`
 	BoundsRef       int32  // ref to sphere, spherelist or polyhedron
 	CurrentAction   uint32 `yaml:"current_action"`
@@ -78,7 +78,7 @@ func (e *WldFragActorDef) Read(r io.ReadSeeker) error {
 	actionCount := dec.Uint32()
 	fragmentRefCount := dec.Uint32()
 	e.BoundsRef = dec.Int32()
-	if e.Flags&0x1 == 0x1 {
+	if e.Flags&0x01 == 0x01 {
 		e.CurrentAction = dec.Uint32()
 	}
 	if e.Flags&0x2 == 0x2 {

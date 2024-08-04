@@ -100,6 +100,14 @@ func (wld *Wld) ByTag(tag string) WldDefinitioner {
 		}
 	}
 
+	if strings.HasSuffix(tag, "_POLYHDEF") {
+		for _, polyhedron := range wld.PolyhedronDefs {
+			if polyhedron.Tag == tag {
+				return polyhedron
+			}
+		}
+	}
+
 	for _, sprite := range wld.Sprite3DDefs {
 		if sprite.Tag == tag {
 			return sprite

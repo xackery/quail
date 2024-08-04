@@ -105,12 +105,12 @@ func wcVal(inVal interface{}) string {
 		if !val.Valid {
 			return "NULL"
 		}
-		return fmt.Sprintf("%0.7e", val.Float32)
+		return fmt.Sprintf("%0.8e", val.Float32)
 	case NullFloat64:
 		if !val.Valid {
 			return "NULL"
 		}
-		return fmt.Sprintf("%0.7e", val.Float64)
+		return fmt.Sprintf("%0.8e", val.Float64)
 	case NullString:
 		if !val.Valid {
 			return "NULL"
@@ -120,17 +120,17 @@ func wcVal(inVal interface{}) string {
 		if !val.Valid {
 			return "NULL NULL NULL"
 		}
-		return fmt.Sprintf("%0.7e %0.7e %0.7e", val.Float32Slice3[0], val.Float32Slice3[1], val.Float32Slice3[2])
+		return fmt.Sprintf("%0.8e %0.8e %0.8e", val.Float32Slice3[0], val.Float32Slice3[1], val.Float32Slice3[2])
 	case NullFloat32Slice4:
 		if !val.Valid {
 			return "NULL NULL NULL NULL"
 		}
-		return fmt.Sprintf("%0.7e %0.7e %0.7e %0.7e", val.Float32Slice4[0], val.Float32Slice4[1], val.Float32Slice4[2], val.Float32Slice4[3])
+		return fmt.Sprintf("%0.8e %0.8e %0.8e %0.8e", val.Float32Slice4[0], val.Float32Slice4[1], val.Float32Slice4[2], val.Float32Slice4[3])
 	case NullFloat32Slice6:
 		if !val.Valid {
 			return "NULL NULL NULL NULL NULL NULL"
 		}
-		return fmt.Sprintf("%0.7e %0.7e %0.7e %0.7e %0.7e %0.7e", val.Float32Slice6[0], val.Float32Slice6[1], val.Float32Slice6[2], val.Float32Slice6[3], val.Float32Slice6[4], val.Float32Slice6[5])
+		return fmt.Sprintf("%0.8e %0.8e %0.8e %0.8e %0.8e %0.8e", val.Float32Slice6[0], val.Float32Slice6[1], val.Float32Slice6[2], val.Float32Slice6[3], val.Float32Slice6[4], val.Float32Slice6[5])
 	default:
 		return fmt.Sprintf("INVALID_%v", inVal)
 	}
