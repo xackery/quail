@@ -6,13 +6,13 @@ var tests = []struct {
 	baseName string
 	wldName  string
 }{
-	//{baseName: "load2.s3d", }, // OK
-	//{baseName: "load2.s3d", wldName: "objects.wld"}, // OK
-	//{baseName: "load2.s3d", wldName: "lights.wld"}, // OK
-	//{baseName: "qeynos.s3d"},  // OK
-	//{baseName: "qeynos.s3d", wldName: "objects.wld"}, // OK
-	//{baseName: "qeynos.s3d", wldName: "lights.wld"},  // OK
-	//{baseName: "globalogm_chr.s3d"}, // OK
+	//{baseName: "load2"}, // OK
+	//{baseName: "load2", wldName: "objects.wld"}, // OK
+	//{baseName: "load2", wldName: "lights.wld"}, // OK
+	//{baseName: "qeynos"},  // OK
+	//{baseName: "qeynos", wldName: "objects.wld"}, // OK
+	//{baseName: "qeynos", wldName: "lights.wld"},  // OK
+	//{baseName: "globalogm_chr"}, // OK
 	//{baseName: "qeynos_chr"}, // Needs work
 	{baseName: "beetle_chr"},
 }

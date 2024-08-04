@@ -33,24 +33,24 @@ func (e *WldFragTrackDef) Write(w io.Writer) error {
 	enc.Uint32(uint32(len(e.FrameTransforms)))
 	for _, ft := range e.FrameTransforms {
 		if e.Flags&0x08 == 0x08 {
-			enc.Int16(ft.RotateDenominator)
-			enc.Int16(ft.Rotation[0])
-			enc.Int16(ft.Rotation[1])
-			enc.Int16(ft.Rotation[2])
-			enc.Int16(ft.Shift[0])
-			enc.Int16(ft.Shift[1])
-			enc.Int16(ft.Shift[2])
-			enc.Int16(ft.ShiftDenominator)
+			enc.Int8(int8(ft.RotateDenominator))
+			enc.Int8(int8(ft.Rotation[0]))
+			enc.Int8(int8(ft.Rotation[1]))
+			enc.Int8(int8(ft.Rotation[2]))
+			enc.Int8(int8(ft.ShiftDenominator))
+			enc.Int8(int8(ft.Shift[0]))
+			enc.Int8(int8(ft.Shift[1]))
+			enc.Int8(int8(ft.Shift[2]))
 			continue
 		}
-		enc.Int8(int8(ft.RotateDenominator))
-		enc.Int8(int8(ft.Shift[0]))
-		enc.Int8(int8(ft.Shift[1]))
-		enc.Int8(int8(ft.Shift[2]))
-		enc.Int8(int8(ft.Rotation[0]))
-		enc.Int8(int8(ft.Rotation[1]))
-		enc.Int8(int8(ft.Rotation[2]))
-		enc.Int8(int8(ft.Rotation[3]))
+		enc.Int16(ft.ShiftDenominator)
+		enc.Int16(ft.Shift[0])
+		enc.Int16(ft.Shift[1])
+		enc.Int16(ft.Shift[2])
+		enc.Int16(ft.Rotation[0])
+		enc.Int16(ft.Rotation[1])
+		enc.Int16(ft.Rotation[2])
+		enc.Int16(ft.RotateDenominator)
 	}
 
 	err := enc.Error()
@@ -62,16 +62,13 @@ func (e *WldFragTrackDef) Write(w io.Writer) error {
 }
 
 func (e *WldFragTrackDef) Read(r io.ReadSeeker) error {
-
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	e.NameRef = dec.Int32()
 	e.Flags = dec.Uint32()
-	boneCount := dec.Uint32()
-	for i := 0; i < int(boneCount); i++ {
+	frameCount := dec.Uint32()
+	for i := 0; i < int(frameCount); i++ {
 		ft := WldFragTrackBoneTransform{}
 		if e.Flags&0x08 == 0x08 {
-			e.FrameTransforms = append(e.FrameTransforms, ft)
-
 			ft.RotateDenominator = int16(dec.Int8())
 			ft.Rotation[0] = int16(dec.Int8())
 			ft.Rotation[1] = int16(dec.Int8())
@@ -80,7 +77,7 @@ func (e *WldFragTrackDef) Read(r io.ReadSeeker) error {
 			ft.Shift[0] = int16(dec.Int8())
 			ft.Shift[1] = int16(dec.Int8())
 			ft.Shift[2] = int16(dec.Int8())
-
+			e.FrameTransforms = append(e.FrameTransforms, ft)
 			continue
 		}
 		ft.ShiftDenominator = dec.Int16()
@@ -92,7 +89,6 @@ func (e *WldFragTrackDef) Read(r io.ReadSeeker) error {
 		ft.Rotation[2] = dec.Int16()
 		ft.RotateDenominator = dec.Int16()
 		e.FrameTransforms = append(e.FrameTransforms, ft)
-
 	}
 
 	err := dec.Error()

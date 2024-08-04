@@ -3,6 +3,7 @@ package wld
 import (
 	"fmt"
 	"io"
+	"math"
 	"strconv"
 
 	"github.com/xackery/quail/model"
@@ -79,7 +80,7 @@ type DMSpriteDef2 struct {
 	Flags                uint32
 	DmTrackTag           string
 	Fragment3Ref         int32
-	Fragment4Ref         int32
+	TextureTag           string
 	Params2              [3]uint32
 	MaxDistance          float32
 	Min                  [3]float32
@@ -181,6 +182,7 @@ func (e *DMSpriteDef2) Write(w io.Writer) error {
 	}
 	fmt.Fprintf(w, "\n")
 	fmt.Fprintf(w, "\tBOUNDINGRADIUS %0.8e\n", e.BoundingRadius)
+	fmt.Fprintf(w, "\tTEXTURE \"%s\"\n", e.TextureTag)
 	fmt.Fprintf(w, "\n")
 	fmt.Fprintf(w, "\tFPSCALE %d\n", e.FPScale)
 	fmt.Fprintf(w, "ENDDMSPRITEDEF2\n\n")
@@ -304,19 +306,20 @@ func (e *DMSpriteDef2) Read(r *AsciiReadToken) error {
 		return fmt.Errorf("num skin assignments: %w", err)
 	}
 
-	for i := 0; i < numSkinAssignments; i++ {
+	for i := 0; i < numSkinAssignments*2; i++ {
 		val1 := int16(0)
-		err = parse(&val1, records[i+1])
+		err = parse(&val1, records[i+2])
 		if err != nil {
 			return fmt.Errorf("skin assignment %d: %w", i, err)
 		}
 
 		val2 := int16(0)
-		err = parse(&val2, records[i+2])
+		err = parse(&val2, records[i+3])
 		if err != nil {
 			return fmt.Errorf("skin assignment %d: %w", i, err)
 		}
 		e.SkinAssignmentGroups = append(e.SkinAssignmentGroups, [2]int16{int16(val1), int16(val2)})
+		i++
 	}
 
 	records, err = r.ReadProperty("MATERIALPALETTE", 1)
@@ -402,7 +405,7 @@ func (e *DMSpriteDef2) Read(r *AsciiReadToken) error {
 		return fmt.Errorf("num face material groups: %w", err)
 	}
 
-	for i := 0; i < numFaceMaterialGroups; i++ {
+	for i := 0; i < numFaceMaterialGroups*2; i++ {
 		val1, err := strconv.ParseUint(records[i+2], 10, 16)
 		if err != nil {
 			return fmt.Errorf("face material group %d: %w", i, err)
@@ -412,6 +415,7 @@ func (e *DMSpriteDef2) Read(r *AsciiReadToken) error {
 			return fmt.Errorf("face material group %d: %w", i, err)
 		}
 		e.FaceMaterialGroups = append(e.FaceMaterialGroups, [2]uint16{uint16(val1), uint16(val2)})
+		i++
 	}
 
 	records, err = r.ReadProperty("VERTEXMATERIALGROUPS", -1)
@@ -424,7 +428,7 @@ func (e *DMSpriteDef2) Read(r *AsciiReadToken) error {
 		return fmt.Errorf("num vertex material groups: %w", err)
 	}
 
-	for i := 0; i < numVertexMaterialGroups; i++ {
+	for i := 0; i < numVertexMaterialGroups*2; i++ {
 		val1, err := strconv.ParseInt(records[i+2], 10, 16)
 		if err != nil {
 			return fmt.Errorf("vertex material group %d: %w", i, err)
@@ -434,6 +438,7 @@ func (e *DMSpriteDef2) Read(r *AsciiReadToken) error {
 			return fmt.Errorf("vertex material group %d: %w", i, err)
 		}
 		e.VertexMaterialGroups = append(e.VertexMaterialGroups, [2]int16{int16(val1), int16(val2)})
+		i++
 	}
 
 	records, err = r.ReadProperty("BOUNDINGRADIUS", 1)
@@ -444,6 +449,12 @@ func (e *DMSpriteDef2) Read(r *AsciiReadToken) error {
 	if err != nil {
 		return fmt.Errorf("bounding radius: %w", err)
 	}
+
+	records, err = r.ReadProperty("TEXTURE", 1)
+	if err != nil {
+		return err
+	}
+	e.TextureTag = records[1]
 
 	records, err = r.ReadProperty("FPSCALE", 1)
 	if err != nil {
@@ -494,6 +505,21 @@ func (e *DMSpriteDef2) ToRaw(wld *Wld, rawWld *raw.Wld) (int16, error) {
 		Colors:               e.VertexColors,
 		FaceMaterialGroups:   e.FaceMaterialGroups,
 		VertexMaterialGroups: e.VertexMaterialGroups,
+	}
+
+	if e.TextureTag != "" {
+		// bminfo refs are not mapped cleanly, so we get to iterate fragments to find it
+		for i, frag := range rawWld.Fragments {
+			_, ok := frag.(*rawfrag.WldFragBMInfo)
+			if !ok {
+				continue
+			}
+			dmSpriteDef.Fragment4Ref = int32(i) + 1
+			break
+		}
+		if dmSpriteDef.Fragment4Ref == 0 {
+			return -1, fmt.Errorf("texture %s not found", e.TextureTag)
+		}
 	}
 
 	dmSpriteDef.Flags = 0x03
@@ -582,7 +608,16 @@ func (e *DMSpriteDef2) FromRaw(wld *Wld, rawWld *raw.Wld, frag *rawfrag.WldFragD
 
 	e.DmTrackTag = raw.Name(frag.DMTrackRef)
 	e.Fragment3Ref = frag.Fragment3Ref
-	e.Fragment4Ref = frag.Fragment4Ref
+	if frag.Fragment4Ref > 0 {
+		if len(rawWld.Fragments) < int(frag.Fragment4Ref) {
+			return fmt.Errorf("fragment4 (bminfo) ref %d out of bounds", frag.Fragment4Ref)
+		}
+		bmInfo, ok := rawWld.Fragments[frag.Fragment4Ref].(*rawfrag.WldFragBMInfo)
+		if !ok {
+			return fmt.Errorf("fragment4 (bminfo) ref %d not found", frag.Fragment4Ref)
+		}
+		e.TextureTag = raw.Name(bmInfo.NameRef)
+	}
 	e.CenterOffset = frag.CenterOffset
 	e.Params2 = frag.Params2
 	e.MaxDistance = frag.MaxDistance
@@ -961,15 +996,16 @@ func (e *MaterialPalette) FromRaw(wld *Wld, rawWld *raw.Wld, frag *rawfrag.WldFr
 
 // MaterialDef is an entry MATERIALDEFINITION
 type MaterialDef struct {
-	fragID          int16
-	Tag             string   // TAG %s
-	RenderMethod    string   // RENDERMETHOD %s
-	RGBPen          [4]uint8 // RGBPEN %d %d %d
-	Brightness      float32  // BRIGHTNESS %0.8e
-	ScaledAmbient   float32  // SCALEDAMBIENT %0.8e
-	SimpleSpriteTag string   // SIMPLESPRITEINST
-	Pair1           NullUint32
-	Pair2           NullFloat32
+	fragID             int16
+	Tag                string
+	SpriteHexFiftyFlag int
+	RenderMethod       string
+	RGBPen             [4]uint8
+	Brightness         float32
+	ScaledAmbient      float32
+	SimpleSpriteTag    string
+	Pair1              NullUint32
+	Pair2              NullFloat32
 }
 
 func (e *MaterialDef) Definition() string {
@@ -985,6 +1021,7 @@ func (e *MaterialDef) Write(w io.Writer) error {
 	fmt.Fprintf(w, "\tSCALEDAMBIENT %0.8e\n", e.ScaledAmbient)
 	fmt.Fprintf(w, "\tSIMPLESPRITEINST\n")
 	fmt.Fprintf(w, "\t\tTAG \"%s\"\n", e.SimpleSpriteTag)
+	fmt.Fprintf(w, "\t\tHEXFIFTYFLAG %d\n", e.SpriteHexFiftyFlag)
 	fmt.Fprintf(w, "\tENDSIMPLESPRITEINST\n")
 	fmt.Fprintf(w, "\tPAIRS? %s %s\n", wcVal(e.Pair1), wcVal(e.Pair2))
 	fmt.Fprintf(w, "ENDMATERIALDEFINITION\n\n")
@@ -1041,6 +1078,15 @@ func (e *MaterialDef) Read(r *AsciiReadToken) error {
 		return err
 	}
 	e.SimpleSpriteTag = records[1]
+
+	records, err = r.ReadProperty("HEXFIFTYFLAG", 1)
+	if err != nil {
+		return err
+	}
+	err = parse(&e.SpriteHexFiftyFlag, records[1])
+	if err != nil {
+		return fmt.Errorf("hex fifty flag: %w", err)
+	}
 
 	_, err = r.ReadProperty("ENDSIMPLESPRITEINST", 0)
 	if err != nil {
@@ -1107,7 +1153,9 @@ func (e *MaterialDef) ToRaw(wld *Wld, rawWld *raw.Wld) (int16, error) {
 			SpriteRef: uint32(spriteDefRef),
 		}
 
-		wfSprite.Flags = 0x50 // just a static generic thing
+		if e.SpriteHexFiftyFlag > 0 {
+			wfSprite.Flags |= 0x50
+		}
 		rawWld.Fragments = append(rawWld.Fragments, wfSprite)
 
 		spriteRef := int16(len(rawWld.Fragments))
@@ -1127,8 +1175,6 @@ func (e *MaterialDef) FromRaw(wld *Wld, rawWld *raw.Wld, frag *rawfrag.WldFragMa
 		return fmt.Errorf("frag is not materialdef (wrong fragcode?)")
 	}
 
-	spriteTag := ""
-	spriteFlags := uint32(0)
 	if frag.SimpleSpriteRef > 0 {
 		if len(rawWld.Fragments) < int(frag.SimpleSpriteRef) {
 			return fmt.Errorf("simplesprite ref %d out of bounds", frag.SimpleSpriteRef)
@@ -1144,20 +1190,17 @@ func (e *MaterialDef) FromRaw(wld *Wld, rawWld *raw.Wld, frag *rawfrag.WldFragMa
 		if !ok {
 			return fmt.Errorf("sprite ref %d not found", simpleSprite.SpriteRef)
 		}
-
-		spriteTag = raw.Name(spriteDef.NameRef)
-		spriteFlags = simpleSprite.Flags
-		if spriteFlags != 0x50 {
-			fmt.Printf("materialdef %s unknown sprite flag %d (ignored)\n", spriteTag, spriteFlags)
-			//	return fmt.Errorf("unknown sprite flag %d", spriteFlags)
+		if spriteDef.Flags&0x50 != 0 {
+			e.SpriteHexFiftyFlag = 1
 		}
+
+		e.SimpleSpriteTag = raw.Name(spriteDef.NameRef)
 	}
 	e.Tag = raw.Name(frag.NameRef)
 	e.RenderMethod = model.RenderMethodStr(frag.RenderMethod)
 	e.RGBPen = frag.RGBPen
 	e.Brightness = frag.Brightness
 	e.ScaledAmbient = frag.ScaledAmbient
-	e.SimpleSpriteTag = spriteTag
 	if frag.Flags&0x02 == 0x02 {
 		e.Pair1.Valid = true
 		e.Pair1.Uint32 = frag.Pair1
@@ -1619,8 +1662,6 @@ func (e *ActorDef) FromRaw(wld *Wld, rawWld *raw.Wld, frag *rawfrag.WldFragActor
 		return fmt.Errorf("frag is not actordef (wrong fragcode?)")
 	}
 
-	var ok bool
-
 	e.Tag = raw.Name(frag.NameRef)
 	e.Callback = raw.Name(frag.CallbackNameRef)
 	e.BoundsRef = frag.BoundsRef
@@ -1655,7 +1696,7 @@ func (e *ActorDef) FromRaw(wld *Wld, rawWld *raw.Wld, frag *rawfrag.WldFragActor
 				switch sprite := rawWld.Fragments[spriteRef].(type) {
 				case *rawfrag.WldFragSprite3D:
 					if len(rawWld.Fragments) < int(sprite.Sprite3DDefRef) {
-						return fmt.Errorf("sprite3ddef ref %d not found", sprite.Sprite3DDefRef)
+						return fmt.Errorf("sprite3ddef ref %d out of range", sprite.Sprite3DDefRef)
 					}
 					spriteDef, ok := rawWld.Fragments[sprite.Sprite3DDefRef].(*rawfrag.WldFragSprite3DDef)
 					if !ok {
@@ -1664,9 +1705,9 @@ func (e *ActorDef) FromRaw(wld *Wld, rawWld *raw.Wld, frag *rawfrag.WldFragActor
 					spriteTag = raw.Name(spriteDef.NameRef)
 				case *rawfrag.WldFragDMSprite:
 					if len(rawWld.Fragments) < int(sprite.DMSpriteRef) {
-						return fmt.Errorf("dmsprite ref %d not found", sprite.DMSpriteRef)
+						return fmt.Errorf("dmsprite ref %d out of range", sprite.DMSpriteRef)
 					}
-					spriteDef := rawWld.Fragments[sprite.DMSpriteRef].(*rawfrag.WldFragDmSpriteDef2)
+					spriteDef, ok := rawWld.Fragments[sprite.DMSpriteRef].(*rawfrag.WldFragDmSpriteDef2)
 					if !ok {
 						return fmt.Errorf("dmsprite ref %d not found", sprite.DMSpriteRef)
 					}
@@ -3160,9 +3201,7 @@ func (e *TrackInstance) ToRaw(wld *Wld, rawWld *raw.Wld) (int16, error) {
 		return e.fragID, nil
 	}
 
-	wfTrack := &rawfrag.WldFragTrack{
-		NameRef: raw.NameAdd(e.Tag),
-	}
+	wfTrack := &rawfrag.WldFragTrack{}
 
 	if e.DefinitionTag == "" {
 		return -1, fmt.Errorf("track instance %s has no definition", e.Tag)
@@ -3183,6 +3222,7 @@ func (e *TrackInstance) ToRaw(wld *Wld, rawWld *raw.Wld) (int16, error) {
 		return -1, fmt.Errorf("track instance %s refers to trackdef %s but it failed to convert: %w", e.Tag, e.DefinitionTag, err)
 	}
 
+	wfTrack.NameRef = raw.NameAdd(e.Tag)
 	wfTrack.TrackRef = int32(trackDefRef)
 	if e.Sleep.Valid {
 		wfTrack.Flags |= 0x01
@@ -3363,7 +3403,10 @@ func (e *TrackDef) ToRaw(wld *Wld, rawWld *raw.Wld) (int16, error) {
 			ShiftDenominator: frame.XYZScale,
 		}
 
-		scale := float32(1 / float32(int(1)<<int(frame.XYZScale)))
+		scale := float32(1)
+		if frame.XYZScale > 0 {
+			scale = float32(1 / float32(int(1)<<int(frame.XYZScale)))
+		}
 
 		wfFrame.Shift = [3]int16{
 			int16(frame.XYZ[0] * scale),
@@ -3374,7 +3417,10 @@ func (e *TrackDef) ToRaw(wld *Wld, rawWld *raw.Wld) (int16, error) {
 		if frame.RotScale.Valid {
 			wfTrack.Flags |= 0x08
 			wfFrame.RotateDenominator = frame.RotScale.Int16
-			scale = float32(1 / float32(int(1)<<int(frame.RotScale.Int16)))
+			scale = 1
+			if frame.RotScale.Int16 > 0 {
+				scale = float32(1 / float32(int(1)<<int(frame.RotScale.Int16)))
+			}
 			if !frame.Rotation.Valid {
 				return -1, fmt.Errorf("rotscale was set but not rotationabc")
 			}
@@ -3418,36 +3464,44 @@ func (e *TrackDef) FromRaw(wld *Wld, rawWld *raw.Wld, frag *rawfrag.WldFragTrack
 
 	e.Tag = raw.Name(frag.NameRef)
 
-	for _, transform := range frag.FrameTransforms {
+	for _, fragFrame := range frag.FrameTransforms {
 		frame := TrackFrameTransform{
-			XYZScale: transform.ShiftDenominator,
+			XYZScale: fragFrame.ShiftDenominator,
 		}
-		scale := 1.0 / float32(int(1<<transform.ShiftDenominator))
-
+		scale := float32(1.0)
+		if fragFrame.ShiftDenominator > 0 {
+			scale = 1.0 / float32(int(1<<fragFrame.ShiftDenominator))
+		}
+		if fragFrame.ShiftDenominator < 0 {
+			scale = float32(math.Pow(2, float64(-fragFrame.ShiftDenominator)))
+		}
 		frame.XYZ = [3]float32{
-			float32(transform.Shift[0]) / scale,
-			float32(transform.Shift[1]) / scale,
-			float32(transform.Shift[2]) / scale,
+			float32(fragFrame.Shift[0]) / scale,
+			float32(fragFrame.Shift[1]) / scale,
+			float32(fragFrame.Shift[2]) / scale,
 		}
 
 		if frag.Flags&0x08 == 0x08 {
 			frame.RotScale.Valid = true
-			frame.RotScale.Int16 = transform.RotateDenominator
-			scale = 1.0 / float32(int(1<<transform.RotateDenominator))
+			frame.RotScale.Int16 = fragFrame.RotateDenominator
+			scale = float32(1)
+			if fragFrame.RotateDenominator > 0 {
+				scale = 1.0 / float32(int(1<<fragFrame.RotateDenominator))
+			}
 			frame.Rotation.Valid = true
 			frame.Rotation.Float32Slice3 = [3]float32{
-				float32(transform.Rotation[0]) / scale,
-				float32(transform.Rotation[1]) / scale,
-				float32(transform.Rotation[2]) / scale,
+				float32(fragFrame.Rotation[0]) / scale,
+				float32(fragFrame.Rotation[1]) / scale,
+				float32(fragFrame.Rotation[2]) / scale,
 			}
 		} else {
 			frame.RotScale.Valid = false
 			frame.LegacyRotation.Valid = true
 			frame.LegacyRotation.Float32Slice4 = [4]float32{
-				float32(transform.Rotation[0]) / scale,
-				float32(transform.Rotation[1]) / scale,
-				float32(transform.Rotation[2]) / scale,
-				float32(transform.Rotation[3]) / scale,
+				float32(fragFrame.Rotation[0]) / scale,
+				float32(fragFrame.Rotation[1]) / scale,
+				float32(fragFrame.Rotation[2]) / scale,
+				float32(fragFrame.Rotation[3]) / scale,
 			}
 		}
 
@@ -3458,13 +3512,14 @@ func (e *TrackDef) FromRaw(wld *Wld, rawWld *raw.Wld, frag *rawfrag.WldFragTrack
 }
 
 type HierarchicalSpriteDef struct {
-	fragID             int16
-	Tag                string
-	Dags               []Dag
-	AttachedSkins      []AttachedSkin
-	CenterOffset       NullFloat32Slice3
-	BoundingRadius     NullFloat32
-	CollisionVolumeTag string
+	fragID            int16
+	Tag               string
+	Dags              []Dag
+	AttachedSkins     []AttachedSkin
+	CenterOffset      NullFloat32Slice3 // 0x01
+	BoundingRadius    NullFloat32       // 0x02
+	HexTwoHundredFlag int               // 0x200
+	PolyhedronTag     string
 }
 
 type Dag struct {
@@ -3510,10 +3565,13 @@ func (e *HierarchicalSpriteDef) Write(w io.Writer) error {
 	}
 	fmt.Fprintf(w, "\n")
 
+	fmt.Fprintf(w, "\tPOLYHEDRON\n")
+	fmt.Fprintf(w, "\t\tDEFINITION \"%s\"\n", e.PolyhedronTag)
+	fmt.Fprintf(w, "\tENDPOLYHEDRON\n")
+
 	fmt.Fprintf(w, "\tCENTEROFFSET? %s\n", wcVal(e.CenterOffset))
 	fmt.Fprintf(w, "\tBOUNDINGRADIUS? %s\n", wcVal(e.BoundingRadius))
-
-	fmt.Fprintf(w, "\tDAGCOLLISION \"%s\"\n", e.CollisionVolumeTag)
+	fmt.Fprintf(w, "\tHEXTWOHUNDREDFLAG %d\n", e.HexTwoHundredFlag)
 
 	fmt.Fprintf(w, "ENDHIERARCHICALSPRITEDEF\n\n")
 	return nil
@@ -3628,6 +3686,22 @@ func (e *HierarchicalSpriteDef) Read(r *AsciiReadToken) error {
 		e.AttachedSkins = append(e.AttachedSkins, skin)
 	}
 
+	_, err = r.ReadProperty("POLYHEDRON", 0)
+	if err != nil {
+		return err
+	}
+
+	records, err = r.ReadProperty("DEFINITION", 1)
+	if err != nil {
+		return err
+	}
+	e.PolyhedronTag = records[1]
+
+	_, err = r.ReadProperty("ENDPOLYHEDRON", 0)
+	if err != nil {
+		return err
+	}
+
 	records, err = r.ReadProperty("CENTEROFFSET?", 3)
 	if err != nil {
 		return err
@@ -3646,11 +3720,14 @@ func (e *HierarchicalSpriteDef) Read(r *AsciiReadToken) error {
 		return fmt.Errorf("bounding radius: %w", err)
 	}
 
-	records, err = r.ReadProperty("DAGCOLLISION", 1)
+	records, err = r.ReadProperty("HEXTWOHUNDREDFLAG", 1)
 	if err != nil {
 		return err
 	}
-	e.CollisionVolumeTag = records[1]
+	err = parse(&e.HexTwoHundredFlag, records[1])
+	if err != nil {
+		return fmt.Errorf("hex two hundred flag: %w", err)
+	}
 
 	_, err = r.ReadProperty("ENDHIERARCHICALSPRITEDEF", 0)
 	if err != nil {
@@ -3667,13 +3744,13 @@ func (e *HierarchicalSpriteDef) ToRaw(wld *Wld, rawWld *raw.Wld) (int16, error) 
 
 	wfHierarchicalSpriteDef := &rawfrag.WldFragHierarchicalSpriteDef{}
 
-	if e.CollisionVolumeTag == "SPECIAL_COLLISION" {
+	if e.PolyhedronTag == "SPECIAL_COLLISION" {
 		wfHierarchicalSpriteDef.CollisionVolumeRef = 4294967293
 	}
-	if e.CollisionVolumeTag != "" && e.CollisionVolumeTag != "SPECIAL_COLLISION" {
-		collusionDef := wld.ByTag(e.CollisionVolumeTag)
+	if e.PolyhedronTag != "" && e.PolyhedronTag != "SPECIAL_COLLISION" {
+		collusionDef := wld.ByTag(e.PolyhedronTag)
 		if collusionDef == nil {
-			return -1, fmt.Errorf("collision volume not found: %s", e.CollisionVolumeTag)
+			return -1, fmt.Errorf("collision volume not found: %s", e.PolyhedronTag)
 		}
 		collisionTag := ""
 		switch sprite := collusionDef.(type) {
@@ -3695,6 +3772,30 @@ func (e *HierarchicalSpriteDef) ToRaw(wld *Wld, rawWld *raw.Wld) (int16, error) 
 		wfHierarchicalSpriteDef.Flags |= 0x02
 		wfHierarchicalSpriteDef.BoundingRadius = e.BoundingRadius.Float32
 	}
+
+	if e.HexTwoHundredFlag > 0 {
+		wfHierarchicalSpriteDef.Flags |= 0x200
+	}
+
+	for _, dag := range e.Dags {
+
+		trackFrag := wld.ByTag(dag.Track)
+		if trackFrag == nil {
+			return -1, fmt.Errorf("track not found: %s", dag.Track)
+		}
+
+		track, ok := trackFrag.(*TrackInstance)
+		if !ok {
+			return -1, fmt.Errorf("invalid track type: %T", trackFrag)
+		}
+
+		_, err := track.ToRaw(wld, rawWld)
+		if err != nil {
+			return -1, fmt.Errorf("track to raw: %w", err)
+		}
+
+	}
+	wfHierarchicalSpriteDef.NameRef = raw.NameAdd(e.Tag)
 
 	for _, dag := range e.Dags {
 		wfDag := rawfrag.WldFragDag{}
@@ -3728,8 +3829,10 @@ func (e *HierarchicalSpriteDef) ToRaw(wld *Wld, rawWld *raw.Wld) (int16, error) 
 				wfDag.MeshOrSpriteOrParticleRef = uint32(spriteDef.fragID)
 			case *Sprite3DDef:
 				wfDag.MeshOrSpriteOrParticleRef = uint32(spriteDef.fragID)
+			case *DMSpriteDef2:
+				wfDag.MeshOrSpriteOrParticleRef = uint32(spriteDef.fragID)
 			default:
-				return -1, fmt.Errorf("unsupported sprite instance type: %T", spriteDefFrag)
+				return -1, fmt.Errorf("unsupported toraw dag spritetag instance type: %T", spriteDefFrag)
 			}
 		}
 
@@ -3768,12 +3871,11 @@ func (e *HierarchicalSpriteDef) ToRaw(wld *Wld, rawWld *raw.Wld) (int16, error) 
 			rawWld.Fragments = append(rawWld.Fragments, wfSprite)
 			spriteRef = int16(len(rawWld.Fragments))
 		default:
-			return -1, fmt.Errorf("unsupported sprite instance type: %T", spriteDefFrag)
+			return -1, fmt.Errorf("unsupported toraw attachedskin sprite instance type: %T", spriteDefFrag)
 		}
 
 		wfHierarchicalSpriteDef.DMSprites = append(wfHierarchicalSpriteDef.DMSprites, uint32(spriteRef))
 	}
-	wfHierarchicalSpriteDef.NameRef = raw.NameAdd(e.Tag)
 
 	rawWld.Fragments = append(rawWld.Fragments, wfHierarchicalSpriteDef)
 	e.fragID = int16(len(rawWld.Fragments))
@@ -3804,22 +3906,25 @@ func (e *HierarchicalSpriteDef) FromRaw(wld *Wld, rawWld *raw.Wld, frag *rawfrag
 			if !ok {
 				return fmt.Errorf("collision def ref type incorrect: %T", collisionFragDef)
 			}
-			e.CollisionVolumeTag = raw.Name(collisionDef.NameRef)
+			e.PolyhedronTag = raw.Name(collisionDef.NameRef)
 		default:
 			return fmt.Errorf("unknown collision volume ref %d (%s)", frag.CollisionVolumeRef, raw.FragName(collision.FragCode()))
 		}
 	}
 	if frag.CollisionVolumeRef == 4294967293 {
-		e.CollisionVolumeTag = "SPECIAL_COLLISION"
+		e.PolyhedronTag = "SPECIAL_COLLISION"
 	}
 	e.Tag = raw.Name(frag.NameRef)
-	if frag.Flags&0x01 == 0x01 {
+	if frag.Flags&0x01 != 0 {
 		e.CenterOffset.Valid = true
 		e.CenterOffset.Float32Slice3 = frag.CenterOffset
 	}
-	if frag.Flags&0x02 == 0x02 {
+	if frag.Flags&0x02 != 0 {
 		e.BoundingRadius.Valid = true
 		e.BoundingRadius.Float32 = frag.BoundingRadius
+	}
+	if frag.Flags&0x200 != 0 {
+		e.HexTwoHundredFlag = 1
 	}
 
 	for _, dag := range frag.Dags {
@@ -3862,8 +3967,8 @@ func (e *HierarchicalSpriteDef) FromRaw(wld *Wld, rawWld *raw.Wld, frag *rawfrag
 				return fmt.Errorf("unhandled mesh or sprite or particle reference fragment type %d (%s)", spriteDef.FragCode(), raw.FragName(spriteDef.FragCode()))
 			}
 		}
-		if spriteTag != "" && e.CollisionVolumeTag == "" {
-			e.CollisionVolumeTag = spriteTag
+		if spriteTag != "" && e.PolyhedronTag == "" {
+			e.PolyhedronTag = spriteTag
 		}
 
 		dag := Dag{

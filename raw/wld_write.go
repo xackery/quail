@@ -29,7 +29,16 @@ func (wld *Wld) Write(w io.Writer) error {
 	}
 	tag.Mark("red", "header")
 
-	enc.Uint32(uint32(len(wld.Fragments)))
+	if len(wld.Fragments) == 0 {
+		return fmt.Errorf("no fragments found")
+	}
+
+	_, hasDefaultFrag := wld.Fragments[0].(*rawfrag.WldFragDefault)
+	if !hasDefaultFrag {
+		return fmt.Errorf("first fragment must be WldFragDefault")
+	}
+
+	enc.Uint32(uint32(len(wld.Fragments) - 1))
 	tag.Mark("blue", "fragcount")
 
 	maxFragSize := 0
@@ -38,6 +47,12 @@ func (wld *Wld) Write(w io.Writer) error {
 	totalFragBuf := bytes.NewBuffer(nil)
 	for i := range wld.Fragments {
 		frag := wld.Fragments[i]
+		if frag.FragCode() == rawfrag.FragCodeDefault {
+			if i != 0 {
+				return fmt.Errorf("default fragment must be first fragment")
+			}
+			continue
+		}
 		fragBuf := bytes.NewBuffer(nil)
 		chunkBuf := bytes.NewBuffer(nil)
 		chunkEnc := encdec.NewEncoder(chunkBuf, binary.LittleEndian)

@@ -331,7 +331,8 @@ func TestWCEWldFragMatch(t *testing.T) {
 	}{
 		//{baseName: "load2"},
 		//{baseName: "load2", wldName: "objects.wld"},
-		{baseName: "beetle_chr"},
+		//{baseName: "beetle_chr"},
+		//{baseName: "qeynos_chr"},
 		//{baseName: "overthere_chr"},
 		//{baseName: "globalogm_chr"},
 

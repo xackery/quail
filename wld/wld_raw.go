@@ -322,6 +322,7 @@ func (wld *Wld) WriteRaw(w io.Writer) error {
 		}
 	}
 
+	dst.Fragments = append([]model.FragmentReadWriter{&rawfrag.WldFragDefault{}}, dst.Fragments...)
 	return dst.Write(w)
 }
 

@@ -85,8 +85,6 @@ func TestWceReadWrite(t *testing.T) {
 
 			fmt.Println("wrote", fmt.Sprintf("%s/%s/_root.wce", dirTest, baseName))
 
-			// read back in
-
 			wldDst := &wld.Wld{
 				FileName: baseName + ".wld",
 			}

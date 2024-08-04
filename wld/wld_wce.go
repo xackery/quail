@@ -185,7 +185,7 @@ func (wld *Wld) WriteAscii(path string, isDir bool) error {
 		for _, hierarchySprite := range wld.HierarchicalSpriteDefs {
 			isFound := false
 
-			if hierarchySprite.CollisionVolumeTag == dmSprite.Tag {
+			if hierarchySprite.PolyhedronTag == dmSprite.Tag {
 				isFound = true
 			}
 			if !isFound {
