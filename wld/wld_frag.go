@@ -2034,9 +2034,9 @@ func (e *ActorInst) FromRaw(wld *Wld, rawWld *raw.Wld, frag *rawfrag.WldFragActo
 type LightDef struct {
 	fragID       int16
 	Tag          string
-	Flags        uint32
 	CurrentFrame NullUint32
 	Sleep        NullUint32
+	SkipFrames   int
 	LightLevels  []float32
 	Colors       [][3]float32
 }
@@ -2054,11 +2054,7 @@ func (e *LightDef) Write(w io.Writer) error {
 		fmt.Fprintf(w, "\tLIGHTLEVELS %0.8f\n", level)
 	}
 	fmt.Fprintf(w, "\tSLEEP? %s\n", wcVal(e.Sleep))
-	isSkipFrames := 0
-	if e.Flags&0x08 == 0x08 {
-		isSkipFrames = 1
-	}
-	fmt.Fprintf(w, "\tSKIPFRAMES %d\n", isSkipFrames)
+	fmt.Fprintf(w, "\tSKIPFRAMES %d\n", e.SkipFrames)
 	fmt.Fprintf(w, "\tNUMCOLORS %d\n", len(e.Colors))
 	for _, color := range e.Colors {
 		fmt.Fprintf(w, "\tCOLOR %0.8f %0.8f %0.8f\n", color[0], color[1], color[2])
@@ -2120,7 +2116,7 @@ func (e *LightDef) Read(r *AsciiReadToken) error {
 		return err
 	}
 	if records[1] == "1" {
-		e.Flags |= 0x08
+		e.SkipFrames = 1
 	}
 
 	records, err = r.ReadProperty("NUMCOLORS", 1)
@@ -2162,7 +2158,6 @@ func (e *LightDef) ToRaw(wld *Wld, rawWld *raw.Wld) (int16, error) {
 
 	wfLightDef := &rawfrag.WldFragLightDef{
 		NameRef: raw.NameAdd(e.Tag),
-		Flags:   e.Flags,
 	}
 
 	if e.CurrentFrame.Valid {
@@ -2179,7 +2174,10 @@ func (e *LightDef) ToRaw(wld *Wld, rawWld *raw.Wld) (int16, error) {
 		wfLightDef.Flags |= 0x04
 		wfLightDef.LightLevels = e.LightLevels
 	}
-	// TODO: skip_frames 0x08
+
+	if e.SkipFrames > 0 {
+		wfLightDef.Flags |= 0x08
+	}
 
 	if len(e.Colors) > 1 {
 		wfLightDef.Flags |= 0x10
@@ -2197,7 +2195,6 @@ func (e *LightDef) FromRaw(wld *Wld, rawWld *raw.Wld, frag *rawfrag.WldFragLight
 	}
 
 	e.Tag = raw.Name(frag.NameRef)
-	e.Flags = frag.Flags
 	e.LightLevels = frag.LightLevels
 	e.Colors = frag.Colors
 	if frag.Flags&0x01 == 0x01 {

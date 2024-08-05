@@ -6,7 +6,8 @@ var tests = []struct {
 	baseName string
 	wldName  string
 }{
-	//{baseName: "load2"}, // OK
+	{baseName: "load2"}, // OK
+	//{baseName: "beetle_chr"}, // OK
 	//{baseName: "load2", wldName: "objects.wld"}, // OK
 	//{baseName: "load2", wldName: "lights.wld"}, // OK
 	//{baseName: "qeynos"},  // OK
@@ -14,7 +15,6 @@ var tests = []struct {
 	//{baseName: "qeynos", wldName: "lights.wld"},  // OK
 	//{baseName: "globalogm_chr"}, // OK
 	//{baseName: "qeynos_chr"}, // Needs work
-	{baseName: "beetle_chr"},
 }
 
 func TestStep1(t *testing.T) {
