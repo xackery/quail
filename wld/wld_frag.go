@@ -623,11 +623,15 @@ func (e *DMSpriteDef2) FromRaw(wld *Wld, rawWld *raw.Wld, frag *rawfrag.WldFragD
 		if len(rawWld.Fragments) < int(frag.Fragment4Ref) {
 			return fmt.Errorf("fragment4 (bminfo) ref %d out of bounds", frag.Fragment4Ref)
 		}
-		bmInfo, ok := rawWld.Fragments[frag.Fragment4Ref].(*rawfrag.WldFragBMInfo)
-		if !ok {
-			return fmt.Errorf("fragment4 (bminfo) ref %d not found", frag.Fragment4Ref)
+		frag4 := rawWld.Fragments[frag.Fragment4Ref]
+		switch frag4Def := frag4.(type) {
+		case *rawfrag.WldFragBMInfo:
+			e.TextureTag = raw.Name(frag4Def.NameRef)
+		case *rawfrag.WldFragPolyhedron:
+			e.TextureTag = raw.Name(frag4Def.NameRef)
+		default:
+			return fmt.Errorf("fragment4 unknown type %T", frag4)
 		}
-		e.TextureTag = raw.Name(bmInfo.NameRef)
 	}
 	e.CenterOffset = frag.CenterOffset
 	e.Params2 = frag.Params2
@@ -1123,7 +1127,7 @@ func (e *MaterialDef) FromRaw(wld *Wld, rawWld *raw.Wld, frag *rawfrag.WldFragMa
 		if !ok {
 			return fmt.Errorf("sprite ref %d not found", simpleSprite.SpriteRef)
 		}
-		if spriteDef.Flags&0x50 != 0 {
+		if spriteDef.Flags&0x50 == 0x50 {
 			e.SpriteHexFiftyFlag = 1
 		}
 
