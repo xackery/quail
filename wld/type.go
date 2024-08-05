@@ -475,7 +475,6 @@ func parse(inVal interface{}, src ...string) error {
 			val[i] = uint16(v)
 		}
 		return nil
-
 	default:
 		return fmt.Errorf("unknown type: %T", inVal)
 	}

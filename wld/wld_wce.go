@@ -464,44 +464,23 @@ func (wld *Wld) WriteAscii(path string, isDir bool) error {
 		actor := wld.ActorInsts[i]
 
 		if actor.DMRGBTrackTag.Valid {
-			isTrackFound := false
 			isTrackDefFound := false
-			for _, track := range wld.RGBTrackInsts {
-				for _, trackDef := range wld.RGBTrackDefs {
-					if trackDef.Tag != track.DefinitionTag {
-						continue
-					}
-					if trackDef.Tag != actor.DMRGBTrackTag.String {
-						continue
-					}
-
-					isTrackDefFound = true
-					err = trackDef.Write(w)
-					if err != nil {
-						return fmt.Errorf("track def %s: %w", trackDef.Tag, err)
-					}
-					break
-				}
-				if !isTrackDefFound {
+			for _, trackDef := range wld.RGBTrackDefs {
+				if trackDef.Tag != actor.DMRGBTrackTag.String {
 					continue
 				}
 
-				err = track.Write(w)
+				isTrackDefFound = true
+				err = trackDef.Write(w)
 				if err != nil {
-					return fmt.Errorf("track %s: %w", track.Tag, err)
+					return fmt.Errorf("track def %s: %w", trackDef.Tag, err)
 				}
-
-				isTrackFound = true
 				break
 			}
 
-			if !isTrackFound {
-				return fmt.Errorf("actor '%s' track %s not found", actor.Tag, actor.DMRGBTrackTag.String)
-			}
 			if !isTrackDefFound {
 				return fmt.Errorf("actor '%s' track %s definition not found", actor.Tag, actor.DMRGBTrackTag.String)
 			}
-
 		}
 
 		if actor.DefinitionTag == "!UNK" {

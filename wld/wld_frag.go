@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"strconv"
+	"strings"
 
 	"github.com/xackery/quail/model"
 	"github.com/xackery/quail/raw"
@@ -1691,20 +1692,21 @@ type ActorLevelOfDetail struct {
 
 // ActorInst is a declaration of ACTORINST
 type ActorInst struct {
-	fragID           int16
-	Tag              string
-	DefinitionTag    string
-	CurrentAction    NullUint32
-	Location         NullFloat32Slice6
-	BoundingRadius   NullFloat32
-	Scale            NullFloat32
-	SoundTag         NullString
-	Active           NullUint32
-	SpriteVolumeOnly NullUint32
-	DMRGBTrackTag    NullString
-	SphereTag        string
-	SphereRadius     float32
-	UserData         string
+	fragID            int16
+	Tag               string
+	DefinitionTag     string
+	CurrentAction     NullUint32
+	Location          NullFloat32Slice6
+	BoundingRadius    NullFloat32
+	Scale             NullFloat32
+	SoundTag          NullString
+	Active            NullUint32
+	SpriteVolumeOnly  NullUint32
+	DMRGBTrackTag     NullString
+	SphereTag         string
+	SphereRadius      float32
+	HexTwoHundredFlag int
+	UserData          string
 }
 
 func (e *ActorInst) Definition() string {
@@ -1725,6 +1727,7 @@ func (e *ActorInst) Write(w io.Writer) error {
 	fmt.Fprintf(w, "\tDMRGBTRACK? \"%s\"\n", wcVal(e.DMRGBTrackTag))
 	fmt.Fprintf(w, "\tSPHERE \"%s\"\n", e.SphereTag)
 	fmt.Fprintf(w, "\tSPHERERADIUS %0.8e\n", e.SphereRadius)
+	fmt.Fprintf(w, "\tHEXTWOHUNDREDFLAG %d\n", e.HexTwoHundredFlag)
 	fmt.Fprintf(w, "\tUSERDATA \"%s\"\n", e.UserData)
 	fmt.Fprintf(w, "ENDACTORINST\n\n")
 	return nil
@@ -1830,6 +1833,15 @@ func (e *ActorInst) Read(r *AsciiReadToken) error {
 		return fmt.Errorf("sphere radius: %w", err)
 	}
 
+	records, err = r.ReadProperty("HEXTWOHUNDREDFLAG", 1)
+	if err != nil {
+		return err
+	}
+	err = parse(&e.HexTwoHundredFlag, records[1])
+	if err != nil {
+		return fmt.Errorf("hex two hundred flag: %w", err)
+	}
+
 	records, err = r.ReadProperty("USERDATA", 1)
 	if err != nil {
 		return err
@@ -1852,16 +1864,15 @@ func (e *ActorInst) ToRaw(wld *Wld, rawWld *raw.Wld) (int16, error) {
 
 	if e.DefinitionTag != "" {
 		actorDef := wld.ByTag(e.DefinitionTag)
-		if actorDef == nil {
-			return -1, fmt.Errorf("actor definition %s not found", e.DefinitionTag)
-		}
+		if actorDef != nil {
 
-		actorDefRef, err := actorDef.ToRaw(wld, rawWld)
-		if err != nil {
-			return -1, fmt.Errorf("actor definition %s to raw: %w", e.DefinitionTag, err)
-		}
+			actorDefRef, err := actorDef.ToRaw(wld, rawWld)
+			if err != nil {
+				return -1, fmt.Errorf("actor definition %s to raw: %w", e.DefinitionTag, err)
+			}
 
-		wfActorInst.ActorDefRef = int32(actorDefRef)
+			wfActorInst.ActorDefRef = int32(actorDefRef)
+		}
 	}
 
 	if e.CurrentAction.Valid {
@@ -1894,21 +1905,37 @@ func (e *ActorInst) ToRaw(wld *Wld, rawWld *raw.Wld) (int16, error) {
 	}
 
 	if e.SpriteVolumeOnly.Valid {
-		wfActorInst.Flags |= 0x40
+		wfActorInst.Flags |= 0x80
 	}
 
 	if e.DMRGBTrackTag.Valid {
+		wfActorInst.Flags |= 0x100
 		dmRGBTrackDef := wld.ByTag(e.DMRGBTrackTag.String)
 		if dmRGBTrackDef == nil {
 			return -1, fmt.Errorf("dm rgb track def %s not found", e.DMRGBTrackTag.String)
 		}
 
-		dmRGBTrackRef, err := dmRGBTrackDef.ToRaw(wld, rawWld)
+		dmRGBDefTrackRef, err := dmRGBTrackDef.ToRaw(wld, rawWld)
 		if err != nil {
 			return -1, fmt.Errorf("dm rgb track %s to raw: %w", e.DMRGBTrackTag.String, err)
 		}
 
+		wfRGBTrack := &rawfrag.WldFragDmRGBTrack{
+			NameRef:  0,
+			TrackRef: int32(dmRGBDefTrackRef),
+			Flags:    0,
+		}
+		if e.DefinitionTag != "" && wfActorInst.ActorDefRef == 0 {
+			// in some cases, a string ref occurs instead
+			wfActorInst.ActorDefRef = raw.NameAdd(e.DefinitionTag)
+		}
+		rawWld.Fragments = append(rawWld.Fragments, wfRGBTrack)
+		dmRGBTrackRef := int16(len(rawWld.Fragments))
 		wfActorInst.DMRGBTrackRef = int32(dmRGBTrackRef)
+	}
+
+	if e.HexTwoHundredFlag > 0 {
+		wfActorInst.Flags |= 0x200
 	}
 
 	if e.SphereRadius > 0 {
@@ -1934,16 +1961,20 @@ func (e *ActorInst) FromRaw(wld *Wld, rawWld *raw.Wld, frag *rawfrag.WldFragActo
 	}
 
 	actorDefTag := ""
-	if frag.ActorDefRef > 0 {
-		if len(rawWld.Fragments) < int(frag.ActorDefRef) {
-			return fmt.Errorf("actordef ref %d out of bounds", frag.ActorDefRef)
+	if frag.ActorDefRef != 0 {
+		actorDefTag = raw.Name(frag.ActorDefRef) // some times it's just a string ref
+		if !strings.HasSuffix(actorDefTag, "_ACTORDEF") {
+			if len(rawWld.Fragments) < int(frag.ActorDefRef) {
+				return fmt.Errorf("actordef ref %d out of bounds", frag.ActorDefRef)
+			}
+
+			actorDef, ok := rawWld.Fragments[frag.ActorDefRef].(*rawfrag.WldFragActorDef)
+			if !ok {
+				return fmt.Errorf("actordef ref %d not found", frag.ActorDefRef)
+			}
+			actorDefTag = raw.Name(actorDef.NameRef)
 		}
 
-		actorDef, ok := rawWld.Fragments[frag.ActorDefRef].(*rawfrag.WldFragActorDef)
-		if !ok {
-			return fmt.Errorf("actordef ref %d not found", frag.ActorDefRef)
-		}
-		actorDefTag = raw.Name(actorDef.NameRef)
 	}
 
 	if len(rawWld.Fragments) < int(frag.SphereRef) {
@@ -2025,6 +2056,10 @@ func (e *ActorInst) FromRaw(wld *Wld, rawWld *raw.Wld, frag *rawfrag.WldFragActo
 			trackTag = raw.Name(trackDef.NameRef)
 		}
 		e.DMRGBTrackTag.String = trackTag
+	}
+
+	if frag.Flags&0x200 == 0x200 {
+		e.HexTwoHundredFlag = 1
 	}
 
 	return nil
@@ -5101,14 +5136,14 @@ func (e *RGBTrackDef) Definition() string {
 func (e *RGBTrackDef) Write(w io.Writer) error {
 	fmt.Fprintf(w, "%s\n", e.Definition())
 	fmt.Fprintf(w, "\tTAG \"%s\"\n", e.Tag)
-	fmt.Fprintf(w, "\tDATA1 %d", e.Data1)
-	fmt.Fprintf(w, "\tDATA2 %d", e.Data2)
+	fmt.Fprintf(w, "\tDATA1 %d\n", e.Data1)
+	fmt.Fprintf(w, "\tDATA2 %d\n", e.Data2)
 	fmt.Fprintf(w, "\tSLEEP %d\n", e.Sleep)
-	fmt.Fprintf(w, "\tDATA4 %d", e.Data4)
+	fmt.Fprintf(w, "\tDATA4 %d\n", e.Data4)
 	fmt.Fprintf(w, "\tRGBDEFORMATIONFRAME\n")
 	fmt.Fprintf(w, "\t\tNUMRGBAS %d\n", len(e.RGBAs))
-	for i, rgba := range e.RGBAs {
-		fmt.Fprintf(w, "\t\tRGBA %d %d %d %d %d\n", i+1, rgba[0], rgba[1], rgba[2], rgba[3])
+	for _, rgba := range e.RGBAs {
+		fmt.Fprintf(w, "\t\tRGBA %d %d %d %d\n", rgba[0], rgba[1], rgba[2], rgba[3])
 	}
 	fmt.Fprintf(w, "\tENDRGBDEFORMATIONFRAME\n")
 	fmt.Fprintf(w, "ENDRGBDEFORMATIONTRACKDEF\n\n")
@@ -5163,37 +5198,35 @@ func (e *RGBTrackDef) Read(token *AsciiReadToken) error {
 		return err
 	}
 
-	for {
+	records, err = token.ReadProperty("NUMRGBAS", 1)
+	if err != nil {
+		return err
+	}
 
-		records, err = token.ReadProperty("NUMRGBAS", 1)
+	numRGBAs := int(0)
+	err = parse(&numRGBAs, records[1])
+	if err != nil {
+		return fmt.Errorf("num rgbas: %w", err)
+	}
+
+	for i := 0; i < numRGBAs; i++ {
+		records, err = token.ReadProperty("RGBA", 4)
 		if err != nil {
 			return err
 		}
 
-		numRGBAs := int(0)
-		err = parse(&numRGBAs, records[1])
+		rgba := [4]uint8{}
+
+		err = parse(&rgba, records[1:]...)
 		if err != nil {
-			return fmt.Errorf("num rgbas: %w", err)
+			return fmt.Errorf("rgba: %w", err)
 		}
+		e.RGBAs = append(e.RGBAs, rgba)
+	}
 
-		for i := 0; i < numRGBAs; i++ {
-			records, err = token.ReadProperty("RGBA", 4)
-			if err != nil {
-				return err
-			}
-
-			rgba := [4]uint8{}
-
-			err = parse(&rgba[0], records[1:]...)
-			if err != nil {
-				return fmt.Errorf("rgba: %w", err)
-			}
-			e.RGBAs = append(e.RGBAs, rgba)
-		}
-
-		if records[1] == "ENDRGBDEFORMATIONFRAME" {
-			break
-		}
+	_, err = token.ReadProperty("ENDRGBDEFORMATIONFRAME", 0)
+	if err != nil {
+		return err
 	}
 
 	_, err = token.ReadProperty("ENDRGBDEFORMATIONTRACKDEF", 0)
@@ -5230,82 +5263,5 @@ func (e *RGBTrackDef) FromRaw(wld *Wld, rawWld *raw.Wld, frag *rawfrag.WldFragDm
 	e.Sleep = frag.Sleep
 	e.Data4 = frag.Data4
 	e.RGBAs = frag.RGBAs
-	return nil
-}
-
-// RGBTrack is a track instance for RGB deformation tracks
-type RGBTrack struct {
-	fragID        int16
-	Tag           string
-	DefinitionTag string
-	Flags         uint32
-}
-
-func (e *RGBTrack) Definition() string {
-	return "RGBDEFORMATIONTRACKINSTANCE"
-}
-
-func (e *RGBTrack) Write(w io.Writer) error {
-	fmt.Fprintf(w, "%s\n", e.Definition())
-	fmt.Fprintf(w, "\tTAG \"%s\"\n", e.Tag)
-	fmt.Fprintf(w, "\tDEFINITION \"%s\"\n", e.DefinitionTag)
-	fmt.Fprintf(w, "\tFLAGS %d\n", e.Flags)
-	fmt.Fprintf(w, "ENDRGBDEFORMATIONTRACKINSTANCE\n\n")
-	return nil
-}
-
-func (e *RGBTrack) Read(token *AsciiReadToken) error {
-	records, err := token.ReadProperty("TAG", 1)
-	if err != nil {
-		return err
-	}
-	e.Tag = records[1]
-
-	records, err = token.ReadProperty("DEFINITION", 1)
-	if err != nil {
-		return err
-	}
-	e.DefinitionTag = records[1]
-
-	records, err = token.ReadProperty("FLAGS", 1)
-	if err != nil {
-		return err
-	}
-	err = parse(&e.Flags, records[1])
-	if err != nil {
-		return fmt.Errorf("flags: %w", err)
-	}
-
-	_, err = token.ReadProperty("ENDRGBDEFORMATIONTRACKINSTANCE", 0)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (e *RGBTrack) ToRaw(wld *Wld, rawWld *raw.Wld) (int16, error) {
-	if e.fragID != 0 {
-		return e.fragID, nil
-	}
-	return -1, fmt.Errorf("rgb track not implemented")
-}
-
-func (e *RGBTrack) FromRaw(wld *Wld, rawWld *raw.Wld, frag *rawfrag.WldFragDmRGBTrack) error {
-	if frag.TrackRef > 0 {
-		if len(rawWld.Fragments) < int(frag.TrackRef) {
-			return fmt.Errorf("dmrgbtrackdef ref %d not found", frag.TrackRef)
-		}
-
-		trackDef, ok := rawWld.Fragments[frag.TrackRef].(*rawfrag.WldFragDmRGBTrackDef)
-		if !ok {
-			return fmt.Errorf("dmrgbtrackdef ref %d not found", frag.TrackRef)
-		}
-		e.DefinitionTag = raw.Name(trackDef.NameRef)
-	}
-
-	e.Tag = raw.Name(frag.NameRef)
-	e.Flags = frag.Flags
-
 	return nil
 }

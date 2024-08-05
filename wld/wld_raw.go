@@ -196,14 +196,7 @@ func readRawFrag(wld *Wld, rawWld *raw.Wld, fragment model.FragmentReadWriter) e
 			return fmt.Errorf("dmrgbtrackdef: %w", err)
 		}
 		wld.RGBTrackDefs = append(wld.RGBTrackDefs, def)
-
 	case rawfrag.FragCodeDmRGBTrack:
-		def := &RGBTrack{}
-		err := def.FromRaw(wld, rawWld, fragment.(*rawfrag.WldFragDmRGBTrack))
-		if err != nil {
-			return fmt.Errorf("dmrgbtrack: %w", err)
-		}
-		wld.RGBTrackInsts = append(wld.RGBTrackInsts, def)
 	default:
 		return fmt.Errorf("unhandled fragment type %d (%s)", fragment.FragCode(), raw.FragName(fragment.FragCode()))
 	}

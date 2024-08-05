@@ -189,7 +189,6 @@ func (a *AsciiReadToken) readDefinitions() error {
 		&WorldTree{},
 		&Zone{},
 		&RGBTrackDef{},
-		&RGBTrack{},
 		&GlobalAmbientLightDef{},
 	}
 
@@ -337,6 +336,9 @@ func (a *AsciiReadToken) readDefinitions() error {
 			case *Zone:
 				a.wld.Zones = append(a.wld.Zones, frag)
 				definitions[i] = &Zone{}
+			case *RGBTrackDef:
+				a.wld.RGBTrackDefs = append(a.wld.RGBTrackDefs, frag)
+				definitions[i] = &RGBTrackDef{}
 			}
 
 			break

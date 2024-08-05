@@ -34,7 +34,6 @@ type Wld struct {
 	AmbientLights          []*AmbientLight
 	Zones                  []*Zone
 	RGBTrackDefs           []*RGBTrackDef
-	RGBTrackInsts          []*RGBTrack
 }
 
 type WldDefinitioner interface {
@@ -107,6 +106,14 @@ func (wld *Wld) ByTag(tag string) WldDefinitioner {
 		}
 	}
 
+	if strings.HasSuffix(tag, "_DMT") {
+		for _, track := range wld.RGBTrackDefs {
+			if track.Tag == tag {
+				return track
+			}
+		}
+	}
+
 	for _, sprite := range wld.Sprite3DDefs {
 		if sprite.Tag == tag {
 			return sprite
@@ -153,6 +160,5 @@ func (wld *Wld) reset() {
 	wld.AmbientLights = []*AmbientLight{}
 	wld.Zones = []*Zone{}
 	wld.RGBTrackDefs = []*RGBTrackDef{}
-	wld.RGBTrackInsts = []*RGBTrack{}
 
 }
