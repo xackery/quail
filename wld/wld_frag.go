@@ -3,7 +3,6 @@ package wld
 import (
 	"fmt"
 	"io"
-	"math"
 	"strconv"
 
 	"github.com/xackery/quail/model"
@@ -77,7 +76,6 @@ func (e *GlobalAmbientLightDef) FromRaw(wld *Wld, rawWld *raw.Wld, frag *rawfrag
 type DMSpriteDef2 struct {
 	fragID               int16
 	Tag                  string
-	Flags                uint32
 	DmTrackTag           string
 	Fragment3Ref         int32
 	TextureTag           string
@@ -99,6 +97,7 @@ type DMSpriteDef2 struct {
 	BoundingRadius       float32
 	FPScale              uint16
 	PolyhedronTag        string
+	HexThreeFlag         int
 }
 
 type Face struct {
@@ -121,7 +120,6 @@ func (e *DMSpriteDef2) Definition() string {
 func (e *DMSpriteDef2) Write(w io.Writer) error {
 	fmt.Fprintf(w, "%s\n", e.Definition())
 	fmt.Fprintf(w, "\tTAG \"%s\"\n", e.Tag)
-	fmt.Fprintf(w, "\t// FLAGS \"%d\" // need to assess\n", e.Flags)
 	fmt.Fprintf(w, "\tCENTEROFFSET %0.8e %0.8e %0.8e\n", e.CenterOffset[0], e.CenterOffset[1], e.CenterOffset[2])
 	fmt.Fprintf(w, "\n")
 	fmt.Fprintf(w, "\tNUMVERTICES %d\n", len(e.Vertices))
@@ -185,6 +183,7 @@ func (e *DMSpriteDef2) Write(w io.Writer) error {
 	fmt.Fprintf(w, "\tTEXTURE \"%s\"\n", e.TextureTag)
 	fmt.Fprintf(w, "\n")
 	fmt.Fprintf(w, "\tFPSCALE %d\n", e.FPScale)
+	fmt.Fprintf(w, "\tHEXTHREEFLAG %d\n", e.HexThreeFlag)
 	fmt.Fprintf(w, "ENDDMSPRITEDEF2\n\n")
 	return nil
 }
@@ -465,6 +464,15 @@ func (e *DMSpriteDef2) Read(r *AsciiReadToken) error {
 		return fmt.Errorf("fpscale: %w", err)
 	}
 
+	records, err = r.ReadProperty("HEXTHREEFLAG", 1)
+	if err != nil {
+		return err
+	}
+	err = parse(&e.HexThreeFlag, records[1])
+	if err != nil {
+		return fmt.Errorf("hexthreeflag: %w", err)
+	}
+
 	_, err = r.ReadProperty("ENDDMSPRITEDEF2", 0)
 	if err != nil {
 		return err
@@ -522,10 +530,13 @@ func (e *DMSpriteDef2) ToRaw(wld *Wld, rawWld *raw.Wld) (int16, error) {
 		}
 	}
 
-	dmSpriteDef.Flags = 0x03
-	//dmSpriteDef.Flags = 0x00014003
 	if wld.isZone {
 		dmSpriteDef.Flags = 0x00018003
+	}
+	if e.HexThreeFlag > 0 {
+		dmSpriteDef.Flags |= 0x03
+	} else if !wld.isZone {
+		dmSpriteDef.Flags = 0x00014003
 	}
 
 	/* for i, frag := range rawWld.Fragments {
@@ -594,7 +605,6 @@ func (e *DMSpriteDef2) FromRaw(wld *Wld, rawWld *raw.Wld, frag *rawfrag.WldFragD
 	}
 
 	e.Tag = raw.Name(frag.NameRef)
-	e.Flags = frag.Flags
 	if frag.MaterialPaletteRef > 0 {
 		if len(rawWld.Fragments) < int(frag.MaterialPaletteRef) {
 			return fmt.Errorf("materialpalette ref %d out of bounds", frag.MaterialPaletteRef)
@@ -655,6 +665,10 @@ func (e *DMSpriteDef2) FromRaw(wld *Wld, rawWld *raw.Wld, frag *rawfrag.WldFragD
 			Flags:    face.Flags,
 			Triangle: face.Index,
 		})
+	}
+
+	if frag.Flags&0x03 != 0 {
+		e.HexThreeFlag = 1
 	}
 
 	e.FaceMaterialGroups = frag.FaceMaterialGroups
@@ -804,88 +818,6 @@ func (e *DMSpriteDef) FromRaw(wld *Wld, rawWld *raw.Wld, frag *rawfrag.WldFragDM
 
 	return nil
 
-}
-
-// DMSprite is a declaration of DMSPRITEINSTANCE
-type DMSprite struct {
-	fragID        int16
-	Tag           string
-	DefinitionTag string
-	Param         uint32
-}
-
-func (e *DMSprite) Definition() string {
-	return "DMSPRITEINSTANCE"
-}
-
-func (e *DMSprite) Write(w io.Writer) error {
-	fmt.Fprintf(w, "%s\n", e.Definition())
-	fmt.Fprintf(w, "\tTAG \"%s\"\n", e.Tag)
-	fmt.Fprintf(w, "\tDEFINITION \"%s\"\n", e.DefinitionTag)
-	fmt.Fprintf(w, "\tPARAM %d\n", e.Param)
-	fmt.Fprintf(w, "ENDDMSPRITEINSTANCE\n\n")
-	return nil
-}
-
-func (e *DMSprite) Read(r *AsciiReadToken) error {
-	records, err := r.ReadProperty("TAG", 1)
-	if err != nil {
-		return err
-	}
-	e.Tag = records[1]
-
-	records, err = r.ReadProperty("DEFINITION", 1)
-	if err != nil {
-		return err
-	}
-
-	e.DefinitionTag = records[1]
-
-	records, err = r.ReadProperty("PARAM", 1)
-	if err != nil {
-		return err
-	}
-
-	err = parse(&e.Param, records[1])
-	if err != nil {
-		return fmt.Errorf("param: %w", err)
-	}
-
-	_, err = r.ReadProperty("ENDDMSPRITEINSTANCE", 0)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (e *DMSprite) ToRaw(wld *Wld, rawWld *raw.Wld) (int16, error) {
-	if e.fragID != 0 {
-		return e.fragID, nil
-	}
-
-	return -1, fmt.Errorf("not implemented")
-}
-
-func (e *DMSprite) FromRaw(wld *Wld, rawWld *raw.Wld, frag *rawfrag.WldFragDMSprite) error {
-	if frag == nil {
-		return fmt.Errorf("frag is not dmsprite (wrong fragcode?)")
-	}
-
-	if len(rawWld.Fragments) < int(frag.DMSpriteRef) {
-		return fmt.Errorf("dmspritedef ref %d not found", frag.DMSpriteRef)
-	}
-
-	dmSpriteDef, ok := rawWld.Fragments[frag.DMSpriteRef].(*rawfrag.WldFragDmSpriteDef2)
-	if !ok {
-		return fmt.Errorf("dmspritedef ref %d not found", frag.DMSpriteRef)
-	}
-
-	e.Tag = raw.Name(frag.NameRef)
-	e.DefinitionTag = raw.Name(dmSpriteDef.NameRef)
-	e.Param = frag.Params
-
-	return nil
 }
 
 // MaterialPalette is a declaration of MATERIALPALETTE
@@ -3274,7 +3206,7 @@ func (e *TrackInstance) FromRaw(wld *Wld, rawWld *raw.Wld, frag *rawfrag.WldFrag
 type TrackDef struct {
 	fragID          int16
 	Tag             string
-	FrameTransforms []TrackFrameTransform
+	FrameTransforms []*TrackFrameTransform
 }
 
 type TrackFrameTransform struct {
@@ -3303,6 +3235,7 @@ func (e *TrackDef) Write(w io.Writer) error {
 		fmt.Fprintf(w, "\tENDFRAMETRANSFORM\n")
 	}
 	fmt.Fprintf(w, "ENDTRACKDEFINITION\n\n")
+
 	return nil
 }
 
@@ -3324,7 +3257,7 @@ func (e *TrackDef) Read(r *AsciiReadToken) error {
 	}
 
 	for i := 0; i < numFrames; i++ {
-		frame := TrackFrameTransform{}
+		frame := &TrackFrameTransform{}
 		_, err = r.ReadProperty("FRAMETRANSFORM", 0)
 		if err != nil {
 			return err
@@ -3403,10 +3336,13 @@ func (e *TrackDef) ToRaw(wld *Wld, rawWld *raw.Wld) (int16, error) {
 			ShiftDenominator: frame.XYZScale,
 		}
 
-		scale := float32(1)
-		if frame.XYZScale > 0 {
+		scale := float32(1.0)
+		/* if frame.XYZScale > 0 {
 			scale = float32(1 / float32(int(1)<<int(frame.XYZScale)))
 		}
+		if frame.XYZScale < 0 {
+			scale = float32(math.Pow(2, float64(-frame.XYZScale)))
+		} */
 
 		wfFrame.Shift = [3]int16{
 			int16(frame.XYZ[0] * scale),
@@ -3415,15 +3351,9 @@ func (e *TrackDef) ToRaw(wld *Wld, rawWld *raw.Wld) (int16, error) {
 		}
 
 		if frame.RotScale.Valid {
-			wfTrack.Flags |= 0x08
 			wfFrame.RotateDenominator = frame.RotScale.Int16
-			scale = 1
-			if frame.RotScale.Int16 > 0 {
-				scale = float32(1 / float32(int(1)<<int(frame.RotScale.Int16)))
-			}
-			if !frame.Rotation.Valid {
-				return -1, fmt.Errorf("rotscale was set but not rotationabc")
-			}
+
+			wfTrack.Flags |= 0x08
 
 			wfFrame.Rotation = [4]int16{
 				int16(frame.Rotation.Float32Slice3[0] * scale),
@@ -3432,20 +3362,25 @@ func (e *TrackDef) ToRaw(wld *Wld, rawWld *raw.Wld) (int16, error) {
 				0,
 			}
 		}
+
 		if !frame.RotScale.Valid {
-			if frame.Rotation.Valid {
-				return -1, fmt.Errorf("rotationabc was set but not rotscale")
-			}
 			if !frame.LegacyRotation.Valid {
 				return -1, fmt.Errorf("rotscale was set, but legacyrotationabcd is null")
 			}
+			scale = 1
+			/* if frame.RotScale.Int16 > 0 {
+				scale = float32(1 / float32(int(1)<<int(frame.RotScale.Int16)))
+			}
+			if !frame.Rotation.Valid {
+				return -1, fmt.Errorf("rotscale was set but not rotationabc")
+			} */
+
 			wfFrame.Rotation = [4]int16{
 				int16(frame.LegacyRotation.Float32Slice4[0] * scale),
 				int16(frame.LegacyRotation.Float32Slice4[1] * scale),
 				int16(frame.LegacyRotation.Float32Slice4[2] * scale),
 				int16(frame.LegacyRotation.Float32Slice4[3] * scale),
 			}
-
 		}
 
 		wfTrack.FrameTransforms = append(wfTrack.FrameTransforms, wfFrame)
@@ -3465,29 +3400,29 @@ func (e *TrackDef) FromRaw(wld *Wld, rawWld *raw.Wld, frag *rawfrag.WldFragTrack
 	e.Tag = raw.Name(frag.NameRef)
 
 	for _, fragFrame := range frag.FrameTransforms {
-		frame := TrackFrameTransform{
+		frame := &TrackFrameTransform{
 			XYZScale: fragFrame.ShiftDenominator,
 		}
 		scale := float32(1.0)
-		if fragFrame.ShiftDenominator > 0 {
+		/* if fragFrame.ShiftDenominator > 0 {
 			scale = 1.0 / float32(int(1<<fragFrame.ShiftDenominator))
 		}
 		if fragFrame.ShiftDenominator < 0 {
 			scale = float32(math.Pow(2, float64(-fragFrame.ShiftDenominator)))
-		}
+		} */
 		frame.XYZ = [3]float32{
 			float32(fragFrame.Shift[0]) / scale,
 			float32(fragFrame.Shift[1]) / scale,
 			float32(fragFrame.Shift[2]) / scale,
 		}
 
-		if frag.Flags&0x08 == 0x08 {
+		if frag.Flags&0x08 != 0 {
 			frame.RotScale.Valid = true
 			frame.RotScale.Int16 = fragFrame.RotateDenominator
 			scale = float32(1)
-			if fragFrame.RotateDenominator > 0 {
-				scale = 1.0 / float32(int(1<<fragFrame.RotateDenominator))
-			}
+			//if fragFrame.RotateDenominator > 0 {
+			//	scale = 1.0 / float32(int(1<<fragFrame.RotateDenominator))
+			//}
 			frame.Rotation.Valid = true
 			frame.Rotation.Float32Slice3 = [3]float32{
 				float32(fragFrame.Rotation[0]) / scale,

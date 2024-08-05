@@ -19,7 +19,6 @@ type Wld struct {
 	MaterialDefs           []*MaterialDef
 	MaterialPalettes       []*MaterialPalette
 	DMSpriteDefs           []*DMSpriteDef
-	DMSpriteInsts          []*DMSprite
 	DMSpriteDef2s          []*DMSpriteDef2
 	ActorDefs              []*ActorDef
 	ActorInsts             []*ActorInst
@@ -139,7 +138,6 @@ func (wld *Wld) reset() {
 	wld.MaterialDefs = []*MaterialDef{}
 	wld.MaterialPalettes = []*MaterialPalette{}
 	wld.DMSpriteDefs = []*DMSpriteDef{}
-	wld.DMSpriteInsts = []*DMSprite{}
 	wld.DMSpriteDef2s = []*DMSpriteDef2{}
 	wld.ActorDefs = []*ActorDef{}
 	wld.ActorInsts = []*ActorInst{}

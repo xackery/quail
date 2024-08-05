@@ -62,6 +62,7 @@ func TestWceReadWrite(t *testing.T) {
 				t.Fatalf("failed to write wld %s: %s", baseName, err.Error())
 			}
 			fmt.Println("wrote", fmt.Sprintf("%s/%s.src.wld", dirTest, baseName))
+
 			rawWldSrc := &raw.Wld{}
 			err = rawWldSrc.Read(bytes.NewReader(data))
 			if err != nil {
@@ -123,9 +124,28 @@ func TestWceReadWrite(t *testing.T) {
 				t.Fatalf("failed to read wld3 %s: %s", baseName, err.Error())
 			}
 
-			diff := deep.Equal(rawWldSrc, rawWldDst)
+			dstBuf2 := bytes.NewBuffer(nil)
+
+			err = rawWldDst.Write(dstBuf2)
+			if err != nil {
+				t.Fatalf("failed to write %s: %s", baseName, err.Error())
+			}
+
+			err = os.WriteFile(fmt.Sprintf("%s/%s.dst2.wld", dirTest, baseName), dstBuf2.Bytes(), 0644)
+			if err != nil {
+				t.Fatalf("failed to write wld %s: %s", baseName, err.Error())
+			}
+
+			fmt.Println("wrote", fmt.Sprintf("%s/%s.dst2.wld", dirTest, baseName))
+
+			diff := deep.Equal(wldSrc, wldDst)
 			if diff != nil {
 				t.Fatalf("wld diff: %s", diff)
+			}
+
+			diff = deep.Equal(rawWldSrc, rawWldDst)
+			if diff != nil {
+				t.Fatalf("rawWld diff: %s", diff)
 			}
 
 			for i := 0; i < len(rawWldSrc.Fragments); i++ {

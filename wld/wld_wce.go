@@ -666,6 +666,9 @@ func (wld *Wld) aniWriterTag(name string) string {
 	base := strings.TrimSuffix(name, "_TRACKDEF")
 	base = strings.TrimSuffix(base, "_TRACK")
 
+	// remove prefix
+	base = base[4:]
+
 	for _, sprite := range wld.DMSpriteDef2s {
 		spriteName := strings.TrimSuffix(sprite.Tag, "_DMSPRITEDEF")
 		if strings.HasPrefix(base, spriteName) {

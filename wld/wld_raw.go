@@ -95,12 +95,6 @@ func readRawFrag(wld *Wld, rawWld *raw.Wld, fragment model.FragmentReadWriter) e
 		}
 		wld.DMSpriteDefs = append(wld.DMSpriteDefs, def)
 	case rawfrag.FragCodeDMSprite:
-		def := &DMSprite{}
-		err := def.FromRaw(wld, rawWld, fragment.(*rawfrag.WldFragDMSprite))
-		if err != nil {
-			return fmt.Errorf("dmsprite: %w", err)
-		}
-		wld.DMSpriteInsts = append(wld.DMSpriteInsts, def)
 	case rawfrag.FragCodeActorDef:
 		def := &ActorDef{}
 		err := def.FromRaw(wld, rawWld, fragment.(*rawfrag.WldFragActorDef))
