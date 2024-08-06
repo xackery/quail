@@ -157,10 +157,10 @@ func (e *DMSpriteDef2) Write(w io.Writer) error {
 	fmt.Fprintf(w, "\tNUMFACE2S %d\n", len(e.Faces))
 	fmt.Fprintf(w, "\n")
 	for i, face := range e.Faces {
-		fmt.Fprintf(w, "\tDMFACE2 //%d\n", i+1)
+		fmt.Fprintf(w, "\tDMFACE2 //%d\n", i)
 		fmt.Fprintf(w, "\t\tFLAGS %d\n", face.Flags)
 		fmt.Fprintf(w, "\t\tTRIANGLE %d %d %d\n", face.Triangle[0], face.Triangle[1], face.Triangle[2])
-		fmt.Fprintf(w, "\tENDDMFACE2 //%d\n\n", i+1)
+		fmt.Fprintf(w, "\tENDDMFACE2 //%d\n\n", i)
 	}
 	fmt.Fprintf(w, "\n")
 	fmt.Fprintf(w, "\t// meshops are not supported\n")
@@ -2465,7 +2465,7 @@ func (e *Sprite3DDef) Write(w io.Writer) error {
 	}
 	fmt.Fprintf(w, "\tNUMBSPNODES %d\n", len(e.BSPNodes))
 	for i, node := range e.BSPNodes {
-		fmt.Fprintf(w, "\tBSPNODE //%d\n", i+1)
+		fmt.Fprintf(w, "\tBSPNODE //%d\n", i)
 		fmt.Fprintf(w, "\t\tVERTEXLIST %d", len(node.Vertices))
 		for _, vert := range node.Vertices {
 			fmt.Fprintf(w, " %d", vert)
@@ -2488,7 +2488,7 @@ func (e *Sprite3DDef) Write(w io.Writer) error {
 		fmt.Fprintf(w, "\t\tENDRENDERINFO\n")
 		fmt.Fprintf(w, "\t\tFRONTTREE %d\n", node.FrontTree)
 		fmt.Fprintf(w, "\t\tBACKTREE %d\n", node.BackTree)
-		fmt.Fprintf(w, "\tENDBSPNODE // %d\n", i+1)
+		fmt.Fprintf(w, "\tENDBSPNODE // %d\n", i)
 	}
 	fmt.Fprintf(w, "END3DSPRITEDEF\n\n")
 	return nil
@@ -2933,13 +2933,13 @@ func (e *PolyhedronDefinition) Write(w io.Writer) error {
 	}
 	fmt.Fprintf(w, "\tNUMFACES %d\n", len(e.Faces))
 	for i, face := range e.Faces {
-		fmt.Fprintf(w, "\tFACE %d\n", i+1)
+		fmt.Fprintf(w, "\tFACE %d\n", i)
 		fmt.Fprintf(w, "\t\tVERTEXLIST %d", len(face.Vertices))
 		for _, vert := range face.Vertices {
 			fmt.Fprintf(w, " %d", vert)
 		}
 		fmt.Fprintf(w, "\n")
-		fmt.Fprintf(w, "\tENDFACE %d\n", i+1)
+		fmt.Fprintf(w, "\tENDFACE %d\n", i)
 	}
 	fmt.Fprintf(w, "ENDPOLYHEDRONDEFINITION\n\n")
 	return nil
@@ -4014,12 +4014,12 @@ func (e *WorldTree) Write(w io.Writer) error {
 	fmt.Fprintf(w, "\tTAG \"%s\"\n", e.Tag)
 	fmt.Fprintf(w, "\tNUMWORLDNODES %d\n", len(e.WorldNodes))
 	for i, node := range e.WorldNodes {
-		fmt.Fprintf(w, "\tWORLDNODE // %d\n", i+1)
+		fmt.Fprintf(w, "\tWORLDNODE // %d\n", i)
 		fmt.Fprintf(w, "\t\tNORMALABCD %0.8e %0.8e %0.8e %0.8e\n", node.Normals[0], node.Normals[1], node.Normals[2], node.Normals[3])
 		fmt.Fprintf(w, "\t\tWORLDREGIONTAG \"%s\"\n", node.WorldRegionTag)
 		fmt.Fprintf(w, "\t\tFRONTTREE %d\n", node.FrontTree)
 		fmt.Fprintf(w, "\t\tBACKTREE %d\n", node.BackTree)
-		fmt.Fprintf(w, "\tENDWORLDNODE // %d\n", i+1)
+		fmt.Fprintf(w, "\tENDWORLDNODE // %d\n", i)
 	}
 	fmt.Fprintf(w, "ENDWORLDTREE\n\n")
 	return nil
@@ -4211,53 +4211,53 @@ func (e *Region) Write(w io.Writer) error {
 	}
 	fmt.Fprintf(w, "\tNUMWALLS %d\n", len(e.Walls))
 	for i, wall := range e.Walls {
-		fmt.Fprintf(w, "\tWALL // %d\n", i+1)
+		fmt.Fprintf(w, "\tWALL // %d\n", i)
 		fmt.Fprintf(w, "\t\tNORMALABCD %0.8e %0.8e %0.8e %0.8e\n", wall.Normal[0], wall.Normal[1], wall.Normal[2], wall.Normal[3])
 		fmt.Fprintf(w, "\t\tNUMVERTICES %d\n", len(wall.Vertices))
 		for _, vert := range wall.Vertices {
 			fmt.Fprintf(w, "\t\tXYZ %0.8e %0.8e %0.8e\n", vert[0], vert[1], vert[2])
 		}
-		fmt.Fprintf(w, "\tENDWALL // %d\n", i+1)
+		fmt.Fprintf(w, "\tENDWALL // %d\n", i)
 	}
 	fmt.Fprintf(w, "\tNUMOBSTACLES %d\n", len(e.Obstacles))
 	for i, obs := range e.Obstacles {
-		fmt.Fprintf(w, "\tOBSTACLE // %d\n", i+1)
+		fmt.Fprintf(w, "\tOBSTACLE // %d\n", i)
 		fmt.Fprintf(w, "\t\tNORMALABCD %0.8e %0.8e %0.8e %0.8e\n", obs.Normal[0], obs.Normal[1], obs.Normal[2], obs.Normal[3])
 		fmt.Fprintf(w, "\t\tNUMVERTICES %d\n", len(obs.Vertices))
 		for _, vert := range obs.Vertices {
 			fmt.Fprintf(w, "\t\tXYZ %0.8e %0.8e %0.8e\n", vert[0], vert[1], vert[2])
 		}
-		fmt.Fprintf(w, "\tENDOBSTACLE // %d\n", i+1)
+		fmt.Fprintf(w, "\tENDOBSTACLE // %d\n", i)
 	}
 	fmt.Fprintf(w, "\tNUMCUTTINGOBSTACLES %d\n", len(e.CuttingObstacles))
 	for i, obs := range e.CuttingObstacles {
-		fmt.Fprintf(w, "\tCUTTINGOBSTACLE // %d\n", i+1)
+		fmt.Fprintf(w, "\tCUTTINGOBSTACLE // %d\n", i)
 		fmt.Fprintf(w, "\t\tNORMALABCD %0.8e %0.8e %0.8e %0.8e\n", obs.Normal[0], obs.Normal[1], obs.Normal[2], obs.Normal[3])
 		fmt.Fprintf(w, "\t\tNUMVERTICES %d\n", len(obs.Vertices))
 		for _, vert := range obs.Vertices {
 			fmt.Fprintf(w, "\t\tXYZ %0.8e %0.8e %0.8e\n", vert[0], vert[1], vert[2])
 		}
-		fmt.Fprintf(w, "\tENDCUTTINGOBSTACLE // %d\n", i+1)
+		fmt.Fprintf(w, "\tENDCUTTINGOBSTACLE // %d\n", i)
 	}
 	fmt.Fprintf(w, "\tVISTREE\n")
 	fmt.Fprintf(w, "\t\tNUMVISNODE %d\n", len(e.VisTree.VisNodes))
 	for i, node := range e.VisTree.VisNodes {
-		fmt.Fprintf(w, "\t\tVISNODE // %d\n", i+1)
+		fmt.Fprintf(w, "\t\tVISNODE // %d\n", i)
 		fmt.Fprintf(w, "\t\t\tNORMALABCD %0.8e %0.8e %0.8e %0.8e\n", node.Normal[0], node.Normal[1], node.Normal[2], node.Normal[3])
 		fmt.Fprintf(w, "\t\t\tVISLISTINDEX %d\n", node.VisListIndex)
 		fmt.Fprintf(w, "\t\t\tFRONTTREE %d\n", node.FrontTree)
 		fmt.Fprintf(w, "\t\t\tBACKTREE %d\n", node.BackTree)
-		fmt.Fprintf(w, "\t\tENDVISNODE // %d\n", i+1)
+		fmt.Fprintf(w, "\t\tENDVISNODE // %d\n", i)
 	}
 	fmt.Fprintf(w, "\t\tNUMVISIBLELIST %d\n", len(e.VisTree.VisLists))
 	for i, list := range e.VisTree.VisLists {
-		fmt.Fprintf(w, "\t\tVISLIST // %d\n", i+1)
+		fmt.Fprintf(w, "\t\tVISLIST // %d\n", i)
 		fmt.Fprintf(w, "\t\t\tRANGE %d", len(list.Ranges))
 		for _, val := range list.Ranges {
 			fmt.Fprintf(w, " %d", val)
 		}
 		fmt.Fprintf(w, "\n")
-		fmt.Fprintf(w, "\t\tENDVISIBLELIST // %d\n", i+1)
+		fmt.Fprintf(w, "\t\tENDVISLIST // %d\n", i)
 	}
 	fmt.Fprintf(w, "\tENDVISTREE\n")
 	fmt.Fprintf(w, "\tSPHERE %0.8e %0.8e %0.8e %0.8e\n", e.Sphere[0], e.Sphere[1], e.Sphere[2], e.Sphere[3])
