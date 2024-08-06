@@ -3514,7 +3514,7 @@ func (e *HierarchicalSpriteDef) Write(w io.Writer) error {
 	fmt.Fprintf(w, "\tTAG \"%s\"\n", e.Tag)
 	fmt.Fprintf(w, "\tNUMDAGS %d\n", len(e.Dags))
 	for i, dag := range e.Dags {
-		fmt.Fprintf(w, "\tDAG // %d\n", i+1)
+		fmt.Fprintf(w, "\tDAG // %d\n", i)
 		fmt.Fprintf(w, "\t\tTAG \"%s\"\n", dag.Tag)
 		fmt.Fprintf(w, "\t\tSPRITE \"%s\"\n", dag.SpriteTag)
 		fmt.Fprintf(w, "\t\tTRACK \"%s\"\n", dag.Track)
@@ -3523,7 +3523,7 @@ func (e *HierarchicalSpriteDef) Write(w io.Writer) error {
 			fmt.Fprintf(w, " %d", subDag)
 		}
 		fmt.Fprintf(w, "\n")
-		fmt.Fprintf(w, "\tENDDAG // %d\n", i+1)
+		fmt.Fprintf(w, "\tENDDAG // %d\n", i)
 	}
 	fmt.Fprintf(w, "\n")
 	fmt.Fprintf(w, "\tNUMATTACHEDSKINS %d\n", len(e.AttachedSkins))
