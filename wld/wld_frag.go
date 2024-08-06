@@ -78,8 +78,6 @@ type DMSpriteDef2 struct {
 	fragID               int16
 	Tag                  string
 	DmTrackTag           string
-	Fragment3Ref         int32
-	TextureTag           string
 	Params2              [3]uint32
 	MaxDistance          float32
 	Min                  [3]float32
@@ -181,7 +179,6 @@ func (e *DMSpriteDef2) Write(w io.Writer) error {
 	}
 	fmt.Fprintf(w, "\n")
 	fmt.Fprintf(w, "\tBOUNDINGRADIUS %0.8e\n", e.BoundingRadius)
-	fmt.Fprintf(w, "\tTEXTURE \"%s\"\n", e.TextureTag)
 	fmt.Fprintf(w, "\n")
 	fmt.Fprintf(w, "\tFPSCALE %d\n", e.FPScale)
 	fmt.Fprintf(w, "\tHEXTHREEFLAG %d\n", e.HexThreeFlag)
@@ -450,12 +447,6 @@ func (e *DMSpriteDef2) Read(r *AsciiReadToken) error {
 		return fmt.Errorf("bounding radius: %w", err)
 	}
 
-	records, err = r.ReadProperty("TEXTURE", 1)
-	if err != nil {
-		return err
-	}
-	e.TextureTag = records[1]
-
 	records, err = r.ReadProperty("FPSCALE", 1)
 	if err != nil {
 		return err
@@ -516,18 +507,27 @@ func (e *DMSpriteDef2) ToRaw(wld *Wld, rawWld *raw.Wld) (int16, error) {
 		VertexMaterialGroups: e.VertexMaterialGroups,
 	}
 
-	if e.TextureTag != "" {
-		// bminfo refs are not mapped cleanly, so we get to iterate fragments to find it
-		for i, frag := range rawWld.Fragments {
-			_, ok := frag.(*rawfrag.WldFragBMInfo)
-			if !ok {
-				continue
+	if e.PolyhedronTag != "" {
+		polyhedron := wld.ByTag(e.PolyhedronTag)
+		if polyhedron == nil {
+			// bminfo refs are not mapped cleanly, so we get to iterate fragments to find it
+			for i, frag := range rawWld.Fragments {
+				_, ok := frag.(*rawfrag.WldFragBMInfo)
+				if !ok {
+					continue
+				}
+				dmSpriteDef.Fragment4Ref = int32(i) + 1
+				break
 			}
-			dmSpriteDef.Fragment4Ref = int32(i) + 1
-			break
-		}
-		if dmSpriteDef.Fragment4Ref == 0 {
-			return -1, fmt.Errorf("texture %s not found", e.TextureTag)
+			if dmSpriteDef.Fragment4Ref == 0 {
+				return -1, fmt.Errorf("polyhedron polygon/bminfo %s not found", e.PolyhedronTag)
+			}
+		} else {
+			polyhedronRef, err := polyhedron.ToRaw(wld, rawWld)
+			if err != nil {
+				return -1, fmt.Errorf("polyhedron %s to raw: %w", e.PolyhedronTag, err)
+			}
+			dmSpriteDef.Fragment4Ref = int32(polyhedronRef)
 		}
 	}
 
@@ -618,7 +618,7 @@ func (e *DMSpriteDef2) FromRaw(wld *Wld, rawWld *raw.Wld, frag *rawfrag.WldFragD
 	}
 
 	e.DmTrackTag = raw.Name(frag.DMTrackRef)
-	e.Fragment3Ref = frag.Fragment3Ref
+
 	if frag.Fragment4Ref > 0 {
 		if len(rawWld.Fragments) < int(frag.Fragment4Ref) {
 			return fmt.Errorf("fragment4 (bminfo) ref %d out of bounds", frag.Fragment4Ref)
@@ -626,9 +626,9 @@ func (e *DMSpriteDef2) FromRaw(wld *Wld, rawWld *raw.Wld, frag *rawfrag.WldFragD
 		frag4 := rawWld.Fragments[frag.Fragment4Ref]
 		switch frag4Def := frag4.(type) {
 		case *rawfrag.WldFragBMInfo:
-			e.TextureTag = raw.Name(frag4Def.NameRef)
+			e.PolyhedronTag = raw.Name(frag4Def.NameRef)
 		case *rawfrag.WldFragPolyhedron:
-			e.TextureTag = raw.Name(frag4Def.NameRef)
+			e.PolyhedronTag = raw.Name(frag4Def.NameRef)
 		default:
 			return fmt.Errorf("fragment4 unknown type %T", frag4)
 		}
@@ -1127,7 +1127,7 @@ func (e *MaterialDef) FromRaw(wld *Wld, rawWld *raw.Wld, frag *rawfrag.WldFragMa
 		if !ok {
 			return fmt.Errorf("sprite ref %d not found", simpleSprite.SpriteRef)
 		}
-		if spriteDef.Flags&0x50 == 0x50 {
+		if simpleSprite.Flags&0x50 != 0 {
 			e.SpriteHexFiftyFlag = 1
 		}
 
@@ -4661,7 +4661,7 @@ func (e *Region) Read(token *AsciiReadToken) error {
 			list.Ranges = append(list.Ranges, val)
 		}
 
-		_, err = token.ReadProperty("ENDVISIBLELIST", 0)
+		_, err = token.ReadProperty("ENDVISLIST", 0)
 		if err != nil {
 			return err
 		}

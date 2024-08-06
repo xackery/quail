@@ -1,6 +1,7 @@
 package wld
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"os"
@@ -28,51 +29,133 @@ func (wld *Wld) ReadAscii(path string) error {
 
 func (wld *Wld) WriteAscii(path string, isDir bool) error {
 	var err error
-	//var err error
+	var ok bool
 
 	err = os.MkdirAll(path, os.ModePerm)
 	if err != nil {
 		return fmt.Errorf("mkdir: %w", err)
 	}
-
-	rootPath := path + "/_root.wce"
-	if wld.FileName == "objects.wld" {
-		rootPath = path + "/_objects.wce"
-	}
-	if wld.FileName == "lights.wld" {
-		rootPath = path + "/_lights.wce"
-	}
-	if !isDir {
-		rootPath = path + "/" + wld.FileName
-	}
-
-	var w *os.File
-	rootBuf, err := os.Create(rootPath)
-	if err != nil {
-		return err
-	}
-	defer rootBuf.Close()
-	writeAsciiHeader(rootBuf)
-
-	// now we can write
+	var w io.Writer
 
 	lightsMap := map[string]bool{}
 	zoneMaterials := map[string]bool{}
-	spriteAniWriters := map[string]*os.File{}
+	modWriters := map[string]*os.File{}
 	defsWritten := map[string]bool{}
+	zoneName := filepath.Base(path)
 
-	if wld.GlobalAmbientLightDef != nil {
-		err = wld.GlobalAmbientLightDef.Write(rootBuf)
-		if err != nil {
-			return fmt.Errorf("global ambient light: %w", err)
+	rootBuf, err := os.Create(fmt.Sprintf("%s/_root.wce", path))
+	if err != nil {
+		return err
+	}
+	writeAsciiHeader(rootBuf)
+	defer rootBuf.Close()
+
+	baseTags := []string{}
+	for _, dmSprite := range wld.DMSpriteDef2s {
+		if len(dmSprite.Tag) < 3 {
+			return fmt.Errorf("dmsprite %s tag too short", dmSprite.Tag)
+		}
+		baseTag := baseTagTrim(dmSprite.Tag)
+		isFound := false
+		for _, tag := range baseTags {
+			if tag == baseTag {
+				isFound = true
+				break
+			}
+		}
+		if !isFound {
+			baseTags = append(baseTags, baseTag)
+		}
+	}
+	for _, track := range wld.TrackInstances {
+		if len(track.Tag) < 3 {
+			return fmt.Errorf("trackdef %s tag too short", track.Tag)
+		}
+		baseTag := wld.aniWriterTag(track.Tag)
+		if len(baseTag) < 1 {
+			return fmt.Errorf("trackd %s tag too short (%s)", track.Tag, baseTag)
+		}
+		isFound := false
+		for _, tag := range baseTags {
+			if tag == baseTag {
+				isFound = true
+				break
+			}
+		}
+		if !isFound {
+			baseTags = append(baseTags, baseTag)
 		}
 	}
 
-	w = rootBuf
+	zoneBuf, err := os.Create(fmt.Sprintf("%s/%s.zon", path, strings.ToLower(zoneName)))
+	if err != nil {
+		return err
+	}
+	writeAsciiHeader(zoneBuf)
+
+	modWriters[zoneName] = zoneBuf
+	for _, baseTag := range baseTags {
+		if wld.isZone {
+
+			modWriters[baseTag+"_ani"] = zoneBuf
+			modWriters[baseTag+"_root"] = rootBuf
+		} else {
+			rootBuf.WriteString(fmt.Sprintf("INCLUDE \"%s/_ROOT.WCE\"\n", strings.ToUpper(baseTag)))
+
+			err = os.MkdirAll(fmt.Sprintf("%s/%s", path, strings.ToLower(baseTag)), os.ModePerm)
+			if err != nil {
+				return fmt.Errorf("mkdir: %w", err)
+			}
+
+			wceBuf, err := os.Create(fmt.Sprintf("%s/%s/_root.wce", path, strings.ToLower(baseTag)))
+			if err != nil {
+				return err
+			}
+			defer wceBuf.Close()
+			writeAsciiHeader(wceBuf)
+			modWriters[baseTag+"_root"] = wceBuf
+
+			wceBuf.WriteString(fmt.Sprintf("INCLUDE \"%s.MOD\"\n", strings.ToUpper(baseTag)))
+			wceBuf.WriteString(fmt.Sprintf("INCLUDE \"%s.ANI\"\n", strings.ToUpper(baseTag)))
+
+			modBuf, err := os.Create(fmt.Sprintf("%s/%s/%s.mod", path, strings.ToLower(baseTag), strings.ToLower(baseTag)))
+			if err != nil {
+				return err
+			}
+			defer modBuf.Close()
+			writeAsciiHeader(modBuf)
+			modWriters[baseTag] = modBuf
+
+			aniBuf, err := os.Create(fmt.Sprintf("%s/%s/%s.ani", path, strings.ToLower(baseTag), strings.ToLower(baseTag)))
+			if err != nil {
+				return err
+			}
+			defer aniBuf.Close()
+			writeAsciiHeader(aniBuf)
+			modWriters[baseTag+"_ani"] = aniBuf
+		}
+	}
+
+	w = modWriters[zoneName]
+	if wld.GlobalAmbientLightDef != nil {
+		err = wld.GlobalAmbientLightDef.Write(w)
+		if err != nil {
+			return fmt.Errorf("global ambient light: %w", err)
+		}
+		wld.isZone = true
+	}
+
 	for i := 0; i < len(wld.DMSpriteDef2s); i++ {
 		dmSprite := wld.DMSpriteDef2s[i]
+		if dmSprite.Tag == "PREPE_DMSPRITEDEF" {
+			fmt.Println("here")
+		}
+		baseTag := baseTagTrim(dmSprite.Tag)
+		w, ok = modWriters[baseTag]
+		if !ok {
+			return fmt.Errorf("dmsprite %s writer not found (basetag %s)", dmSprite.Tag, baseTag)
+		}
 		defsWritten[dmSprite.Tag] = true
-		baseTag := strings.ToLower(strings.TrimSuffix(strings.ToUpper(dmSprite.Tag), "_DMSPRITEDEF"))
 
 		isZoneChunk := false
 		// if baseTag is r### then foo
@@ -80,21 +163,6 @@ func (wld *Wld) WriteAscii(path string, isDir bool) error {
 			regionChunk := 0
 			chunkCount, err := fmt.Sscanf(baseTag, "r%d", &regionChunk)
 			isZoneChunk = err == nil && chunkCount == 1
-		}
-
-		var dmBuf *os.File
-		if !isZoneChunk {
-			dmBuf, err = os.Create(path + "/" + baseTag + ".mod")
-			if err != nil {
-				return err
-			}
-			defer dmBuf.Close()
-			writeAsciiHeader(dmBuf)
-
-			w = dmBuf
-		} else {
-			w = rootBuf
-			dmBuf = rootBuf
 		}
 
 		if dmSprite.MaterialPaletteTag != "" && !zoneMaterials[dmSprite.MaterialPaletteTag] {
@@ -161,6 +229,7 @@ func (wld *Wld) WriteAscii(path string, isDir bool) error {
 				if polyhedron.Tag != dmSprite.PolyhedronTag {
 					continue
 				}
+				defsWritten[polyhedron.Tag] = true
 				err = polyhedron.Write(w)
 				if err != nil {
 					return fmt.Errorf("polyhedron %s: %w", polyhedron.Tag, err)
@@ -179,7 +248,7 @@ func (wld *Wld) WriteAscii(path string, isDir bool) error {
 			return fmt.Errorf("dm sprite def %s: %w", dmSprite.Tag, err)
 		}
 		if !isZoneChunk {
-			fmt.Fprintf(rootBuf, "INCLUDE \"%s.MOD\"\n", strings.ToUpper(baseTag))
+			//		fmt.Fprintf(rootBuf, "INCLUDE \"%s.MOD\"\n", strings.ToUpper(baseTag))
 		}
 		tracksWritten := map[string]bool{}
 		for _, hierarchySprite := range wld.HierarchicalSpriteDefs {
@@ -234,7 +303,6 @@ func (wld *Wld) WriteAscii(path string, isDir bool) error {
 
 					isTrackDefFound := false
 
-					var trackBuf *os.File
 					for _, trackDef := range wld.TrackDefs {
 						if trackDef.Tag != track.DefinitionTag {
 							continue
@@ -245,23 +313,7 @@ func (wld *Wld) WriteAscii(path string, isDir bool) error {
 							break
 						}
 
-						trackBuf = dmBuf
-						tag := strings.ToUpper(trackDef.Tag)
-						aniTag := wld.aniWriterTag(tag)
-						if aniTag != "" {
-							if spriteAniWriters[aniTag] == nil {
-								aniBuf, err := os.Create(path + "/" + strings.ToLower(aniTag) + ".ani")
-								if err != nil {
-									return err
-								}
-								writeAsciiHeader(aniBuf)
-								spriteAniWriters[aniTag] = aniBuf
-
-								fmt.Fprintf(rootBuf, "INCLUDE \"%s.ANI\"\n", strings.ToUpper(aniTag))
-							}
-							trackBuf = spriteAniWriters[aniTag]
-						}
-						err = trackDef.Write(trackBuf)
+						err = trackDef.Write(w)
 						if err != nil {
 							return fmt.Errorf("track def %s: %w", trackDef.Tag, err)
 						}
@@ -279,25 +331,7 @@ func (wld *Wld) WriteAscii(path string, isDir bool) error {
 					tracksWritten[dag.Track] = true
 					defsWritten[dag.Track] = true
 
-					trackBuf = dmBuf
-					trackBuf = dmBuf
-					tag := strings.ToUpper(track.Tag)
-					aniTag := wld.aniWriterTag(tag)
-					if aniTag != "" {
-						if spriteAniWriters[aniTag] == nil {
-							aniBuf, err := os.Create(path + "/" + strings.ToLower(aniTag) + ".ani")
-							if err != nil {
-								return err
-							}
-							writeAsciiHeader(aniBuf)
-							spriteAniWriters[aniTag] = aniBuf
-
-							fmt.Fprintf(rootBuf, "INCLUDE \"%s.ANI\"\n", strings.ToUpper(aniTag))
-						}
-						trackBuf = spriteAniWriters[aniTag]
-					}
-
-					err = track.Write(trackBuf)
+					err = track.Write(w)
 					if err != nil {
 						return fmt.Errorf("track %s: %w", track.Tag, err)
 					}
@@ -311,28 +345,18 @@ func (wld *Wld) WriteAscii(path string, isDir bool) error {
 		}
 	}
 
-	w = rootBuf
 	for i := 0; i < len(wld.TrackInstances); i++ {
 		track := wld.TrackInstances[i]
 		if defsWritten[track.Tag] {
 			continue
 		}
-
-		w = rootBuf
-		tag := strings.ToUpper(track.Tag)
-		aniTag := wld.aniWriterTag(tag)
-		if aniTag != "" {
-			if spriteAniWriters[aniTag] == nil {
-				aniBuf, err := os.Create(path + "/" + strings.ToLower(aniTag) + ".ani")
-				if err != nil {
-					return err
-				}
-				writeAsciiHeader(aniBuf)
-				spriteAniWriters[aniTag] = aniBuf
-
-				fmt.Fprintf(rootBuf, "INCLUDE \"%s.ANI\"\n", strings.ToUpper(aniTag))
-			}
-			w = spriteAniWriters[aniTag]
+		if track.Tag == "C10BOX02_TRACK" {
+			fmt.Println("here")
+		}
+		baseTag := wld.aniWriterTag(track.Tag)
+		w, ok = modWriters[baseTag+"_ani"]
+		if !ok {
+			return fmt.Errorf("track %s writer not found (basetag %s)", track.Tag, baseTag)
 		}
 
 		isTrackFound := false
@@ -341,22 +365,6 @@ func (wld *Wld) WriteAscii(path string, isDir bool) error {
 				continue
 			}
 
-			w = rootBuf
-			tag := strings.ToUpper(trackDef.Tag)
-			aniTag := wld.aniWriterTag(tag)
-			if aniTag != "" {
-				if spriteAniWriters[aniTag] == nil {
-					aniBuf, err := os.Create(path + "/" + strings.ToLower(aniTag) + ".ani")
-					if err != nil {
-						return err
-					}
-					writeAsciiHeader(aniBuf)
-					spriteAniWriters[aniTag] = aniBuf
-
-					fmt.Fprintf(rootBuf, "INCLUDE \"%s.ANI\"\n", strings.ToUpper(aniTag))
-				}
-				w = spriteAniWriters[aniTag]
-			}
 			err = trackDef.Write(w)
 			if err != nil {
 				return fmt.Errorf("track def %s: %w", trackDef.Tag, err)
@@ -375,16 +383,23 @@ func (wld *Wld) WriteAscii(path string, isDir bool) error {
 		}
 	}
 
-	w = rootBuf
 	for i := 0; i < len(wld.PolyhedronDefs); i++ {
 		polyhedron := wld.PolyhedronDefs[i]
+		if defsWritten[polyhedron.Tag] {
+			continue
+		}
+		baseTag := baseTagTrim(polyhedron.Tag)
+		w, ok = modWriters[baseTag]
+		if !ok {
+			return fmt.Errorf("polyhedron %s writer not found (basetag %s)", polyhedron.Tag, baseTag)
+		}
 		err = polyhedron.Write(w)
 		if err != nil {
 			return fmt.Errorf("polyhedron %s: %w", polyhedron.Tag, err)
 		}
 	}
 
-	w = rootBuf
+	w = modWriters[zoneName]
 	for i := 0; i < len(wld.PointLights); i++ {
 		pointLight := wld.PointLights[i]
 
@@ -415,7 +430,7 @@ func (wld *Wld) WriteAscii(path string, isDir bool) error {
 		}
 	}
 
-	w = rootBuf
+	w = modWriters[zoneName]
 	for i := 0; i < len(wld.LightDefs); i++ {
 		lightDef := wld.LightDefs[i]
 		if lightsMap[lightDef.Tag] {
@@ -429,7 +444,7 @@ func (wld *Wld) WriteAscii(path string, isDir bool) error {
 		}
 	}
 
-	w = rootBuf
+	w = modWriters[zoneName]
 	for i := 0; i < len(wld.WorldTrees); i++ {
 		worldTree := wld.WorldTrees[i]
 
@@ -439,7 +454,7 @@ func (wld *Wld) WriteAscii(path string, isDir bool) error {
 		}
 	}
 
-	w = rootBuf
+	w = modWriters[zoneName]
 	for i := 0; i < len(wld.Regions); i++ {
 		region := wld.Regions[i]
 
@@ -449,7 +464,7 @@ func (wld *Wld) WriteAscii(path string, isDir bool) error {
 		}
 	}
 
-	w = rootBuf
+	w = modWriters[zoneName]
 	for i := 0; i < len(wld.AmbientLights); i++ {
 		ambientLight := wld.AmbientLights[i]
 
@@ -459,9 +474,16 @@ func (wld *Wld) WriteAscii(path string, isDir bool) error {
 		}
 	}
 
-	w = rootBuf
+	w = modWriters[zoneName]
 	for i := 0; i < len(wld.ActorInsts); i++ {
 		actor := wld.ActorInsts[i]
+		baseTag := baseTagTrim(actor.Tag)
+		if modWriters[baseTag] != nil {
+			w, ok = modWriters[baseTag]
+			if !ok {
+				return fmt.Errorf("actor %s writer not found (basetag %s)", actor.Tag, baseTag)
+			}
+		}
 
 		if actor.DMRGBTrackTag.Valid {
 			isTrackDefFound := false
@@ -493,6 +515,14 @@ func (wld *Wld) WriteAscii(path string, isDir bool) error {
 				actorDef := wld.ActorDefs[j]
 				if actorDef.Tag != actor.DefinitionTag {
 					continue
+				}
+
+				baseTag = baseTagTrim(actorDef.Tag)
+				if modWriters[baseTag] != nil {
+					w, ok = modWriters[baseTag]
+					if !ok {
+						return fmt.Errorf("actor def %s writer not found (basetag %s)", actorDef.Tag, baseTag)
+					}
 				}
 
 				defsWritten[actorDef.Tag] = true
@@ -553,11 +583,18 @@ func (wld *Wld) WriteAscii(path string, isDir bool) error {
 		}
 	}
 
-	w = rootBuf
+	w = modWriters[zoneName]
 	for i := 0; i < len(wld.ActorDefs); i++ {
 		actorDef := wld.ActorDefs[i]
 		if defsWritten[actorDef.Tag] {
 			continue
+		}
+		baseTag := baseTagTrim(actorDef.Tag)
+		if modWriters[baseTag] != nil {
+			w, ok = modWriters[baseTag]
+			if !ok {
+				return fmt.Errorf("actor def %s writer not found (basetag %s)", actorDef.Tag, baseTag)
+			}
 		}
 		for _, action := range actorDef.Actions {
 			for _, lod := range action.LevelOfDetails {
@@ -611,7 +648,7 @@ func (wld *Wld) WriteAscii(path string, isDir bool) error {
 		}
 	}
 
-	w = rootBuf
+	w = modWriters[zoneName]
 	for i := 0; i < len(wld.Zones); i++ {
 		zone := wld.Zones[i]
 
@@ -621,8 +658,43 @@ func (wld *Wld) WriteAscii(path string, isDir bool) error {
 		}
 	}
 
-	for _, aniBuf := range spriteAniWriters {
-		aniBuf.Close()
+	data, err := os.ReadFile(fmt.Sprintf("%s/%s.zon", path, strings.ToLower(zoneName)))
+	if err != nil {
+		return fmt.Errorf("read %s: %w", fmt.Sprintf("%s/%s.zon", path, strings.ToLower(zoneName)), err)
+	}
+
+	if len(data) < 60 {
+		err = os.Remove(fmt.Sprintf("%s/%s.zon", path, strings.ToLower(zoneName)))
+		if err != nil {
+			return fmt.Errorf("remove %s: %w", fmt.Sprintf("%s/%s.zon", path, strings.ToLower(zoneName)), err)
+		}
+	} else {
+		rootBuf.WriteString(fmt.Sprintf("INCLUDE \"%s.ZON\"\n", strings.ToUpper(zoneName)))
+	}
+
+	for _, tag := range baseTags {
+		// read .ani files
+		aniPath := fmt.Sprintf("%s/%s/%s.ani", path, strings.ToLower(tag), strings.ToLower(tag))
+		data, err := os.ReadFile(aniPath)
+		if err != nil {
+			return fmt.Errorf("read %s: %w", aniPath, err)
+		}
+		if len(data) < 60 {
+			err = os.Remove(aniPath)
+			if err != nil {
+				return fmt.Errorf("remove %s: %w", aniPath, err)
+			}
+
+			buf := &bytes.Buffer{}
+			writeAsciiHeader(buf)
+			fmt.Fprintf(buf, "INCLUDE \"%s.MOD\"\n", strings.ToUpper(tag))
+
+			err = os.WriteFile(fmt.Sprintf("%s/%s/_root.wce", path, strings.ToLower(tag)), buf.Bytes(), os.ModePerm)
+			if err != nil {
+				return fmt.Errorf("write %s: %w", fmt.Sprintf("%s/%s/_root.wce", path, strings.ToLower(tag)), err)
+			}
+		}
+
 	}
 
 	return nil
@@ -634,29 +706,867 @@ func writeAsciiHeader(w io.Writer) {
 }
 
 func (wld *Wld) aniWriterTag(name string) string {
-	if !isAnimationPrefix(name) {
-		return ""
-	}
-
-	if len(name) < 4 {
-		return ""
-	}
 
 	base := strings.TrimSuffix(name, "_TRACKDEF")
 	base = strings.TrimSuffix(base, "_TRACK")
+	if isAnimationPrefix(base) {
+		base = base[3:]
+	}
 
-	// remove prefix
-	base = base[4:]
+	if len(base) < 4 {
+		return base
+	}
 
-	for _, sprite := range wld.DMSpriteDef2s {
-		spriteName := strings.TrimSuffix(sprite.Tag, "_DMSPRITEDEF")
-		if strings.HasPrefix(base, spriteName) {
-			return spriteName
+	if len(base) == 3 {
+		if raceIDs[base[:3]] {
+			return base[:3]
 		}
-		if strings.HasSuffix(base, spriteName) {
-			return spriteName
+	}
+	for race := range raceIDs {
+		if base == race {
+			return base
 		}
 	}
 
-	return ""
+	if len(base) > 3 {
+		base = base[:3]
+	}
+
+	for _, sprite := range wld.DMSpriteDef2s {
+		spriteName := strings.TrimSuffix(sprite.Tag, "_DMSPRITEDEF")
+		if strings.HasPrefix(spriteName, base) {
+			return base
+		}
+		if strings.HasSuffix(spriteName, base) {
+			return base
+		}
+	}
+
+	return base
+}
+
+var raceIDs = map[string]bool{
+	"AAM":          true,
+	"ABH":          true,
+	"AEL":          true,
+	"AHF":          true,
+	"AHM":          true,
+	"AIE":          true,
+	"AKF":          true,
+	"AKM":          true,
+	"AKN":          true,
+	"ALA":          true,
+	"ALG":          true,
+	"ALL":          true,
+	"ALR":          true,
+	"AMP":          true,
+	"AMY":          true,
+	"ANS":          true,
+	"APX":          true,
+	"ARM":          true,
+	"ARO":          true,
+	"ARROW":        true,
+	"ASM":          true,
+	"AVI":          true,
+	"AVK":          true,
+	"AXA":          true,
+	"B01":          true,
+	"B02":          true,
+	"B03":          true,
+	"B04":          true,
+	"B05":          true,
+	"B06":          true,
+	"B07":          true,
+	"B08":          true,
+	"B09":          true,
+	"B10":          true,
+	"BAC":          true,
+	"BAF":          true,
+	"BAL":          true,
+	"BAM":          true,
+	"BAR":          true,
+	"BAS":          true,
+	"BAT":          true,
+	"BDR":          true,
+	"BEA":          true,
+	"BEH":          true,
+	"BEL":          true,
+	"BER":          true,
+	"BET":          true,
+	"BFC":          true,
+	"BFF":          true,
+	"BFR":          true,
+	"BGB":          true,
+	"BGF":          true,
+	"BGG":          true,
+	"BGM":          true,
+	"BIX":          true,
+	"BKD":          true,
+	"BKN":          true,
+	"BLV":          true,
+	"BNF":          true,
+	"BNM":          true,
+	"BNR":          true,
+	"BNX":          true,
+	"BNY":          true,
+	"BOAT":         true,
+	"BON":          true,
+	"BOX":          true,
+	"BRC":          true,
+	"BRE":          true,
+	"BRF":          true,
+	"BRI":          true,
+	"BRL":          true,
+	"BRM":          true,
+	"BRN":          true,
+	"BRV":          true,
+	"BRX":          true,
+	"BSE":          true,
+	"BSG":          true,
+	"BTL":          true,
+	"BTM":          true,
+	"BTN":          true,
+	"BTP":          true,
+	"BTS":          true,
+	"BTX":          true,
+	"BUB":          true,
+	"BUR":          true,
+	"BUU":          true,
+	"BVK":          true,
+	"BWD":          true,
+	"BXI":          true,
+	"CAK":          true,
+	"CAM":          true,
+	"CAT":          true,
+	"CAZ":          true,
+	"CCD":          true,
+	"CDF":          true,
+	"CDM":          true,
+	"CDR":          true,
+	"CEF":          true,
+	"CEM":          true,
+	"CEN":          true,
+	"CHM":          true,
+	"CHT":          true,
+	"CLA":          true,
+	"CLB":          true,
+	"CLF":          true,
+	"CLG":          true,
+	"CLM":          true,
+	"CLN":          true,
+	"CLQ":          true,
+	"CLS":          true,
+	"CLV":          true,
+	"CLW":          true,
+	"CNP":          true,
+	"CNT":          true,
+	"COC":          true,
+	"COF":          true,
+	"COK":          true,
+	"COM":          true,
+	"CPF":          true,
+	"CPM":          true,
+	"CPT":          true,
+	"CRB":          true,
+	"CRH":          true,
+	"CRL":          true,
+	"CRO":          true,
+	"CRS":          true,
+	"CRY":          true,
+	"CSE":          true,
+	"CST":          true,
+	"CTH":          true,
+	"CUB":          true,
+	"CWB":          true,
+	"CWG":          true,
+	"CWR":          true,
+	"DAF":          true,
+	"DAM":          true,
+	"DBP":          true,
+	"DBX":          true,
+	"DCF":          true,
+	"DCM":          true,
+	"DDM":          true,
+	"DDV":          true,
+	"DEN":          true,
+	"DER":          true,
+	"DEV":          true,
+	"DIA":          true,
+	"DIW":          true,
+	"DJI":          true,
+	"DKE":          true,
+	"DKF":          true,
+	"DKM":          true,
+	"DLK":          true,
+	"DMA":          true,
+	"DML":          true,
+	"DPF":          true,
+	"DPM":          true,
+	"DR2":          true,
+	"DRA":          true,
+	"DRC":          true,
+	"DRE":          true,
+	"DRF":          true,
+	"DRG":          true,
+	"DRI":          true,
+	"DRK":          true,
+	"DRL":          true,
+	"DRM":          true,
+	"DRN":          true,
+	"DRP":          true,
+	"DRS":          true,
+	"DRU":          true,
+	"DRV":          true,
+	"DSB":          true,
+	"DSF":          true,
+	"DSG":          true,
+	"DV6":          true,
+	"DVF":          true,
+	"DVL":          true,
+	"DVM":          true,
+	"DVS":          true,
+	"DWF":          true,
+	"DWM":          true,
+	"DYN":          true,
+	"EAE":          true,
+	"ECS":          true,
+	"EEF":          true,
+	"EEL":          true,
+	"EEM":          true,
+	"EEY":          true,
+	"EFE":          true,
+	"EFR":          true,
+	"EGF":          true,
+	"EGM":          true,
+	"ELE":          true,
+	"ELF":          true,
+	"ELM":          true,
+	"EMP":          true,
+	"ENA":          true,
+	"EPF":          true,
+	"EPM":          true,
+	"ERF":          true,
+	"ERM":          true,
+	"ERO":          true,
+	"ERU":          true,
+	"EVE":          true,
+	"EXO":          true,
+	"EYE":          true,
+	"FAF":          true,
+	"FAM":          true,
+	"FAN":          true,
+	"FBF":          true,
+	"FBM":          true,
+	"FDR":          true,
+	"FEF":          true,
+	"FEL":          true,
+	"FEM":          true,
+	"FEN":          true,
+	"FGG":          true,
+	"FGH":          true,
+	"FGI":          true,
+	"FGP":          true,
+	"FGT":          true,
+	"FIE":          true,
+	"FIS":          true,
+	"FKN":          true,
+	"FLG":          true,
+	"FMO":          true,
+	"FMP":          true,
+	"FMT":          true,
+	"FNG":          true,
+	"FPF":          true,
+	"FPM":          true,
+	"FRA":          true,
+	"FRD":          true,
+	"FRF":          true,
+	"FRG":          true,
+	"FRM":          true,
+	"FRO":          true,
+	"FRT":          true,
+	"FRY":          true,
+	"FSG":          true,
+	"FSK":          true,
+	"FUD":          true,
+	"FUG":          true,
+	"FUN":          true,
+	"G00":          true,
+	"G01":          true,
+	"G02":          true,
+	"G03":          true,
+	"G04":          true,
+	"G05":          true,
+	"GAL":          true,
+	"GAM":          true,
+	"GAR":          true,
+	"GBL":          true,
+	"GBM":          true,
+	"GBN":          true,
+	"GCB":          true,
+	"GDF":          true,
+	"GDM":          true,
+	"GDR":          true,
+	"GEF":          true,
+	"GEM":          true,
+	"GEN":          true,
+	"GFC":          true,
+	"GFF":          true,
+	"GFM":          true,
+	"GFO":          true,
+	"GFR":          true,
+	"GFS":          true,
+	"GGL":          true,
+	"GGY":          true,
+	"GHF":          true,
+	"GHM":          true,
+	"GHO":          true,
+	"GHU":          true,
+	"GIA":          true,
+	"GIG":          true,
+	"GLB":          true,
+	"GLC":          true,
+	"GLM":          true,
+	"GMF":          true,
+	"GMM":          true,
+	"GMN":          true,
+	"GND":          true,
+	"GNF":          true,
+	"GNL":          true,
+	"GNM":          true,
+	"GNN":          true,
+	"GOB":          true,
+	"GOD":          true,
+	"GOF":          true,
+	"GOJ":          true,
+	"GOL":          true,
+	"GOM":          true,
+	"GOO":          true,
+	"GOR":          true,
+	"GPF":          true,
+	"GPM":          true,
+	"GR1":          true,
+	"GRA":          true,
+	"GRD":          true,
+	"GRF":          true,
+	"GRG":          true,
+	"GRI":          true,
+	"GRL":          true,
+	"GRM":          true,
+	"GRN":          true,
+	"GSF":          true,
+	"GSM":          true,
+	"GSN":          true,
+	"GSP":          true,
+	"GTD":          true,
+	"GUA":          true,
+	"GUL":          true,
+	"GUM":          true,
+	"GUS":          true,
+	"GVK":          true,
+	"GYA":          true,
+	"GYO":          true,
+	"HAF":          true,
+	"HAG":          true,
+	"HAM":          true,
+	"HAR":          true,
+	"HDL":          true,
+	"HDV":          true,
+	"HHF":          true,
+	"HHM":          true,
+	"HIF":          true,
+	"HIM":          true,
+	"HIP":          true,
+	"HLF":          true,
+	"HLG":          true,
+	"HLM":          true,
+	"HNF":          true,
+	"HNM":          true,
+	"HOM":          true,
+	"HPF":          true,
+	"HPM":          true,
+	"HRP":          true,
+	"HRS":          true,
+	"HSF":          true,
+	"HSM":          true,
+	"HSN":          true,
+	"HSS":          true,
+	"HUF":          true,
+	"HUM":          true,
+	"HYC":          true,
+	"HYD":          true,
+	"I00":          true,
+	"I01":          true,
+	"I02":          true,
+	"I03":          true,
+	"I04":          true,
+	"I05":          true,
+	"I06":          true,
+	"I07":          true,
+	"I08":          true,
+	"I09":          true,
+	"I10":          true,
+	"I11":          true,
+	"I12":          true,
+	"I13":          true,
+	"I14":          true,
+	"I15":          true,
+	"I16":          true,
+	"I17":          true,
+	"I18":          true,
+	"I19":          true,
+	"I20":          true,
+	"I21":          true,
+	"I22":          true,
+	"I23":          true,
+	"I24":          true,
+	"I25":          true,
+	"I26":          true,
+	"I27":          true,
+	"I28":          true,
+	"I29":          true,
+	"I30":          true,
+	"I31":          true,
+	"I32":          true,
+	"IBR":          true,
+	"ICF":          true,
+	"ICM":          true,
+	"ICN":          true,
+	"ICY":          true,
+	"IEC":          true,
+	"IFC":          true,
+	"IHU":          true,
+	"IKF":          true,
+	"IKG":          true,
+	"IKH":          true,
+	"IKM":          true,
+	"IKS":          true,
+	"ILA":          true,
+	"ILB":          true,
+	"IMP":          true,
+	"INN":          true,
+	"INV":          true,
+	"ISB":          true,
+	"ISC":          true,
+	"ISE":          true,
+	"IVF":          true,
+	"IVM":          true,
+	"IWB":          true,
+	"IWF":          true,
+	"IWH":          true,
+	"IWM":          true,
+	"IZF":          true,
+	"IZM":          true,
+	"JKR":          true,
+	"JUB":          true,
+	"KAF":          true,
+	"KAM":          true,
+	"KAN":          true,
+	"KAR":          true,
+	"KBD":          true,
+	"KDG":          true,
+	"KED":          true,
+	"KEF":          true,
+	"KEM":          true,
+	"KES":          true,
+	"KGO":          true,
+	"KHA":          true,
+	"KNG":          true,
+	"KOB":          true,
+	"KOP":          true,
+	"KOR":          true,
+	"KRB":          true,
+	"KRF":          true,
+	"KRK":          true,
+	"KRM":          true,
+	"KRN":          true,
+	"LAUNCH":       true,
+	"LAUNCHM":      true,
+	"LCR":          true,
+	"LDR":          true,
+	"LEE":          true,
+	"LEP":          true,
+	"LGA":          true,
+	"LGR":          true,
+	"LIF":          true,
+	"LIM":          true,
+	"LIZ":          true,
+	"LMF":          true,
+	"LMM":          true,
+	"LSP":          true,
+	"LSQ":          true,
+	"LTH":          true,
+	"LU2":          true,
+	"LU3":          true,
+	"LU4":          true,
+	"LUC":          true,
+	"LUG":          true,
+	"LUJ":          true,
+	"LVR":          true,
+	"LYC":          true,
+	"MAL":          true,
+	"MAM":          true,
+	"MAP":          true,
+	"MAR":          true,
+	"MBL":          true,
+	"MBR":          true,
+	"MBX":          true,
+	"MCH":          true,
+	"MCL":          true,
+	"MCP":          true,
+	"MCR":          true,
+	"MCS":          true,
+	"MDR":          true,
+	"MEP":          true,
+	"MER":          true,
+	"MES":          true,
+	"MFR":          true,
+	"MGL":          true,
+	"MHB":          true,
+	"MHY":          true,
+	"MIF":          true,
+	"MIM":          true,
+	"MIN":          true,
+	"MINIPOM200":   true,
+	"MKG":          true,
+	"MKI":          true,
+	"MMF":          true,
+	"MMM":          true,
+	"MMV":          true,
+	"MMY":          true,
+	"MNR":          true,
+	"MNT":          true,
+	"MOI":          true,
+	"MOS":          true,
+	"MPG":          true,
+	"MPH":          true,
+	"MPU":          true,
+	"MRD":          true,
+	"MRH":          true,
+	"MRK":          true,
+	"MRP":          true,
+	"MRT":          true,
+	"MSC":          true,
+	"MSD":          true,
+	"MSL":          true,
+	"MSO":          true,
+	"MTA":          true,
+	"MTC":          true,
+	"MTH":          true,
+	"MTL":          true,
+	"MTP":          true,
+	"MTR":          true,
+	"MUD":          true,
+	"MUH":          true,
+	"MUR":          true,
+	"MWI":          true,
+	"MWM":          true,
+	"MWO":          true,
+	"MWR":          true,
+	"MYG":          true,
+	"NBT":          true,
+	"NET":          true,
+	"NGF":          true,
+	"NGM":          true,
+	"NIN":          true,
+	"NMG":          true,
+	"NMH":          true,
+	"NMP":          true,
+	"NMW":          true,
+	"NPT":          true,
+	"NYD":          true,
+	"NYM":          true,
+	"OBJ_BLIMP":    true,
+	"OBP_MELDRATH": true,
+	"OGF":          true,
+	"OGM":          true,
+	"OKF":          true,
+	"OKM":          true,
+	"ONF":          true,
+	"ONM":          true,
+	"ONT":          true,
+	"OPF":          true,
+	"OPM":          true,
+	"ORB":          true,
+	"ORC":          true,
+	"ORK":          true,
+	"OTM":          true,
+	"OWB":          true,
+	"PAF":          true,
+	"PBR":          true,
+	"PEG":          true,
+	"PG3":          true,
+	"PGS":          true,
+	"PHX":          true,
+	"PIF":          true,
+	"PIM":          true,
+	"PIR":          true,
+	"PMA":          true,
+	"PPOINT":       true,
+	"PRE":          true,
+	"PRI":          true,
+	"PRT":          true,
+	"PSC":          true,
+	"PUM":          true,
+	"PUS":          true,
+	"PYS":          true,
+	"QCF":          true,
+	"QCM":          true,
+	"QZT":          true,
+	"RAK":          true,
+	"RAL":          true,
+	"RAP":          true,
+	"RAT":          true,
+	"RAZ":          true,
+	"RDG":          true,
+	"REA":          true,
+	"REF":          true,
+	"REM":          true,
+	"REN":          true,
+	"RGM":          true,
+	"RHI":          true,
+	"RHP":          true,
+	"RIF":          true,
+	"RIM":          true,
+	"RKP":          true,
+	"RNB":          true,
+	"ROB":          true,
+	"ROE":          true,
+	"ROM":          true,
+	"RON":          true,
+	"ROW":          true,
+	"RPF":          true,
+	"RPT":          true,
+	"RTH":          true,
+	"RTN":          true,
+	"RZM":          true,
+	"S01":          true,
+	"SAR":          true,
+	"SAT":          true,
+	"SBU":          true,
+	"SCA":          true,
+	"SCC":          true,
+	"SCE":          true,
+	"SCH":          true,
+	"SCO":          true,
+	"SCR":          true,
+	"SCU":          true,
+	"SCW":          true,
+	"SDC":          true,
+	"SDE":          true,
+	"SDF":          true,
+	"SDM":          true,
+	"SDR":          true,
+	"SDV":          true,
+	"SEA":          true,
+	"SED":          true,
+	"SEF":          true,
+	"SEG":          true,
+	"SEM":          true,
+	"SER":          true,
+	"SEY":          true,
+	"SGO":          true,
+	"SGR":          true,
+	"SHA":          true,
+	"SHD":          true,
+	"SHE":          true,
+	"SHF":          true,
+	"SHI":          true,
+	"SHIP":         true,
+	"SHL":          true,
+	"SHM":          true,
+	"SHN":          true,
+	"SHP":          true,
+	"SHR":          true,
+	"SHS":          true,
+	"SIF":          true,
+	"SIM":          true,
+	"SIN":          true,
+	"SIR":          true,
+	"SKB":          true,
+	"SKE":          true,
+	"SKI":          true,
+	"SKL":          true,
+	"SKN":          true,
+	"SKR":          true,
+	"SKT":          true,
+	"SKU":          true,
+	"SLG":          true,
+	"SMA":          true,
+	"SMD":          true,
+	"SNA":          true,
+	"SND":          true,
+	"SNE":          true,
+	"SNK":          true,
+	"SNN":          true,
+	"SOK":          true,
+	"SOL":          true,
+	"SOS":          true,
+	"SOW":          true,
+	"SPB":          true,
+	"SPC":          true,
+	"SPD":          true,
+	"SPE":          true,
+	"SPH":          true,
+	"SPI":          true,
+	"SPL":          true,
+	"SPQ":          true,
+	"SPR":          true,
+	"SPT":          true,
+	"SPW":          true,
+	"SPX":          true,
+	"SRG":          true,
+	"SRK":          true,
+	"SRN":          true,
+	"SRO":          true,
+	"SRV":          true,
+	"SRW":          true,
+	"SSA":          true,
+	"SSK":          true,
+	"SSN":          true,
+	"STA":          true,
+	"STC":          true,
+	"STF":          true,
+	"STG":          true,
+	"STM":          true,
+	"STR":          true,
+	"STU":          true,
+	"SUC":          true,
+	"SVO":          true,
+	"SWC":          true,
+	"SWI":          true,
+	"SWO":          true,
+	"SYN":          true,
+	"SZK":          true,
+	"T00":          true,
+	"T01":          true,
+	"T02":          true,
+	"T03":          true,
+	"T04":          true,
+	"T05":          true,
+	"T06":          true,
+	"T07":          true,
+	"T08":          true,
+	"T09":          true,
+	"T10":          true,
+	"T11":          true,
+	"T12":          true,
+	"T13":          true,
+	"TAC":          true,
+	"TAR":          true,
+	"TAZ":          true,
+	"TBF":          true,
+	"TBL":          true,
+	"TBM":          true,
+	"TBU":          true,
+	"TEF":          true,
+	"TEG":          true,
+	"TEL":          true,
+	"TEM":          true,
+	"TEN":          true,
+	"TGL":          true,
+	"TGO":          true,
+	"THO":          true,
+	"TIG":          true,
+	"TIN":          true,
+	"TLN":          true,
+	"TMB":          true,
+	"TMR":          true,
+	"TMT":          true,
+	"TNF":          true,
+	"TNM":          true,
+	"TNT":          true,
+	"TOT":          true,
+	"TPB":          true,
+	"TPF":          true,
+	"TPL":          true,
+	"TPM":          true,
+	"TPN":          true,
+	"TPO":          true,
+	"TRA":          true,
+	"TRE":          true,
+	"TRF":          true,
+	"TRG":          true,
+	"TRI":          true,
+	"TRK":          true,
+	"TRM":          true,
+	"TRN":          true,
+	"TRQ":          true,
+	"TRT":          true,
+	"TRW":          true,
+	"TSE":          true,
+	"TSF":          true,
+	"TSM":          true,
+	"TTB":          true,
+	"TUN":          true,
+	"TVP":          true,
+	"TWF":          true,
+	"TZF":          true,
+	"TZM":          true,
+	"UDF":          true,
+	"UDK":          true,
+	"UNB":          true,
+	"UNI":          true,
+	"UNM":          true,
+	"UVK":          true,
+	"VAC":          true,
+	"VAF":          true,
+	"VAL":          true,
+	"VAM":          true,
+	"VAS":          true,
+	"VAZ":          true,
+	"VEG":          true,
+	"VEK":          true,
+	"VNM":          true,
+	"VOL":          true,
+	"VPF":          true,
+	"VPM":          true,
+	"VRM":          true,
+	"VSF":          true,
+	"VSG":          true,
+	"VSK":          true,
+	"VSM":          true,
+	"VST":          true,
+	"WAE":          true,
+	"WAL":          true,
+	"WAS":          true,
+	"WBU":          true,
+	"WEL":          true,
+	"WER":          true,
+	"WET":          true,
+	"WIL":          true,
+	"WLF":          true,
+	"WLM":          true,
+	"WMP":          true,
+	"WOE":          true,
+	"WOF":          true,
+	"WOK":          true,
+	"WOL":          true,
+	"WOM":          true,
+	"WOR":          true,
+	"WRB":          true,
+	"WRF":          true,
+	"WRM":          true,
+	"WRU":          true,
+	"WRW":          true,
+	"WUF":          true,
+	"WUR":          true,
+	"WWF":          true,
+	"WYR":          true,
+	"WYV":          true,
+	"XAL":          true,
+	"XEF":          true,
+	"XEG":          true,
+	"XEM":          true,
+	"XHF":          true,
+	"XHM":          true,
+	"XIM":          true,
+	"YAK":          true,
+	"YET":          true,
+	"ZBC":          true,
+	"ZEB":          true,
+	"ZEL":          true,
+	"ZMF":          true,
+	"ZMM":          true,
+	"ZOF":          true,
+	"ZOM":          true,
 }

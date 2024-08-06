@@ -186,7 +186,7 @@ func (e *WldFragDmSpriteDef2) Read(r io.ReadSeeker) error {
 	e.MaterialPaletteRef = dec.Uint32()
 	e.DMTrackRef = dec.Int32() //used by flags/trees only
 
-	e.Fragment3Ref = dec.Int32() // unknown, usually empty
+	e.Fragment3Ref = dec.Int32() // has polyhedron ref
 	e.Fragment4Ref = dec.Int32() // unknown, This usually seems to reference the first [TextureImagesFragment] fragment in the file.
 
 	e.CenterOffset[0] = dec.Float32() // for zone meshes, x coordinate of the center of the mesh

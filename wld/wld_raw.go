@@ -220,20 +220,55 @@ func (wld *Wld) WriteRaw(w io.Writer) error {
 		if err != nil {
 			return fmt.Errorf("global ambient light: %w", err)
 		}
-
 	}
 
-	for _, dmSprite := range wld.DMSpriteDef2s {
-		_, err = dmSprite.ToRaw(wld, dst)
-		if err != nil {
-			return fmt.Errorf("dmspritedef2 %s: %w", dmSprite.Tag, err)
+	if !wld.isZone {
+		baseTags := []string{}
+		for _, dmSprite := range wld.DMSpriteDef2s {
+			if dmSprite.Tag == "" {
+				return fmt.Errorf("dmspritedef tag is empty")
+			}
+			baseTags = append(baseTags, baseTagTrim(dmSprite.Tag))
 		}
-	}
-	for _, hiSprite := range wld.HierarchicalSpriteDefs {
-		_, err = hiSprite.ToRaw(wld, dst)
-		if err != nil {
-			return fmt.Errorf("hierarchicalsprite %s: %w", hiSprite.Tag, err)
+
+		for _, baseTag := range baseTags {
+
+			for _, dmSprite := range wld.DMSpriteDef2s {
+				dmBaseTag := baseTagTrim(dmSprite.Tag)
+				if baseTag != dmBaseTag {
+					continue
+				}
+				_, err = dmSprite.ToRaw(wld, dst)
+				if err != nil {
+					return fmt.Errorf("dmspritedef %s: %w", dmSprite.Tag, err)
+				}
+			}
+
+			for _, hiSprite := range wld.HierarchicalSpriteDefs {
+				hiBaseTag := baseTagTrim(hiSprite.Tag)
+				if baseTag != hiBaseTag {
+					continue
+				}
+				_, err = hiSprite.ToRaw(wld, dst)
+				if err != nil {
+					return fmt.Errorf("hierarchicalsprite %s: %w", hiSprite.Tag, err)
+				}
+			}
 		}
+	} else {
+		for _, dmSprite := range wld.DMSpriteDef2s {
+			_, err = dmSprite.ToRaw(wld, dst)
+			if err != nil {
+				return fmt.Errorf("dmspritedef2 %s: %w", dmSprite.Tag, err)
+			}
+		}
+		for _, hiSprite := range wld.HierarchicalSpriteDefs {
+			_, err = hiSprite.ToRaw(wld, dst)
+			if err != nil {
+				return fmt.Errorf("hierarchicalsprite %s: %w", hiSprite.Tag, err)
+			}
+		}
+
 	}
 
 	for _, lightDef := range wld.LightDefs {
@@ -334,4 +369,31 @@ func isAnimationPrefix(name string) bool {
 
 	_, exists := animationPrefixesMap[prefix]
 	return exists
+}
+
+func baseTagTrim(tag string) string {
+	if len(tag) < 2 {
+		return tag
+	}
+	index := strings.Index(tag, "_")
+	if index > 0 {
+		tag = tag[:index]
+	}
+	// find suffix first number
+	for i := 0; i < len(tag); i++ {
+		if tag[i] >= '0' && tag[i] <= '9' {
+			tag = tag[:i]
+			break
+		}
+	}
+
+	if len(tag) > 4 && strings.HasSuffix(tag, "HE") {
+		tag = tag[:len(tag)-2]
+	}
+
+	if tag == "PREPE" {
+		tag = "PRE"
+	}
+
+	return tag
 }

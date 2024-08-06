@@ -28,7 +28,7 @@ func LoadAsciiFile(path string, wld *Wld) (*AsciiReadToken, error) {
 		reader:     r,
 		wld:        wld,
 	}
-	a.basePath = filepath.Dir(path)
+	a.basePath = filepath.Dir(strings.ToLower(path))
 
 	err = a.readDefinitions()
 	if err != nil {
@@ -49,14 +49,14 @@ func caseInsensitiveOpen(path string) (*os.File, error) {
 	dir := filepath.Dir(path)
 	base := filepath.Base(path)
 
-	entries, err := os.ReadDir(dir)
+	entries, err := os.ReadDir(strings.ToLower(dir))
 	if err != nil {
 		return nil, err
 	}
 
 	for _, entry := range entries {
 		if strings.EqualFold(entry.Name(), base) {
-			return os.Open(filepath.Join(dir, entry.Name()))
+			return os.Open(filepath.Join(strings.ToLower(dir), entry.Name()))
 		}
 	}
 
