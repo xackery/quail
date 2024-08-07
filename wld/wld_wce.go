@@ -29,26 +29,11 @@ func (wld *Wld) ReadAscii(path string) error {
 
 func (wld *Wld) WriteAscii(path string, isDir bool) error {
 	var err error
-	var ok bool
 
 	err = os.MkdirAll(path, os.ModePerm)
 	if err != nil {
 		return fmt.Errorf("mkdir: %w", err)
 	}
-	var w io.Writer
-
-	lightsMap := map[string]bool{}
-	zoneMaterials := map[string]bool{}
-	modWriters := map[string]*os.File{}
-	defsWritten := map[string]bool{}
-	zoneName := filepath.Base(path)
-
-	rootBuf, err := os.Create(fmt.Sprintf("%s/_root.wce", path))
-	if err != nil {
-		return err
-	}
-	writeAsciiHeader(rootBuf)
-	defer rootBuf.Close()
 
 	baseTags := []string{}
 	for _, dmSprite := range wld.DMSpriteDef2s {
@@ -67,6 +52,57 @@ func (wld *Wld) WriteAscii(path string, isDir bool) error {
 			baseTags = append(baseTags, baseTag)
 		}
 	}
+
+	err = wld.writeAsciiData(path, isDir, baseTags)
+	if err != nil {
+		return err
+	}
+
+	for _, tag := range baseTags {
+		// read .ani files
+		aniPath := fmt.Sprintf("%s/%s/%s.ani", path, strings.ToLower(tag), strings.ToLower(tag))
+		data, err := os.ReadFile(aniPath)
+		if err != nil {
+			return fmt.Errorf("read %s: %w", aniPath, err)
+		}
+		if len(data) < 60 {
+			err = os.Remove(aniPath)
+			if err != nil {
+				return fmt.Errorf("remove %s: %w", aniPath, err)
+			}
+
+			buf := &bytes.Buffer{}
+			writeAsciiHeader(buf)
+			fmt.Fprintf(buf, "INCLUDE \"%s.MOD\"\n", strings.ToUpper(tag))
+
+			err = os.WriteFile(fmt.Sprintf("%s/%s/_root.wce", path, strings.ToLower(tag)), buf.Bytes(), os.ModePerm)
+			if err != nil {
+				return fmt.Errorf("write %s: %w", fmt.Sprintf("%s/%s/_root.wce", path, strings.ToLower(tag)), err)
+			}
+		}
+
+	}
+
+	return nil
+}
+
+func (wld *Wld) writeAsciiData(path string, isDir bool, baseTags []string) error {
+	var w io.Writer
+	var ok bool
+
+	lightsMap := map[string]bool{}
+	zoneMaterials := map[string]bool{}
+	modWriters := map[string]*os.File{}
+	defsWritten := map[string]bool{}
+	zoneName := filepath.Base(path)
+
+	rootBuf, err := os.Create(fmt.Sprintf("%s/_root.wce", path))
+	if err != nil {
+		return err
+	}
+	writeAsciiHeader(rootBuf)
+	defer rootBuf.Close()
+
 	for _, track := range wld.TrackInstances {
 		if len(track.Tag) < 3 {
 			return fmt.Errorf("trackdef %s tag too short", track.Tag)
@@ -697,32 +733,6 @@ func (wld *Wld) WriteAscii(path string, isDir bool) error {
 	} else {
 		rootBuf.WriteString("INCLUDE \"ZONE.MOD\"\n")
 	}
-
-	for _, tag := range baseTags {
-		// read .ani files
-		aniPath := fmt.Sprintf("%s/%s/%s.ani", path, strings.ToLower(tag), strings.ToLower(tag))
-		data, err := os.ReadFile(aniPath)
-		if err != nil {
-			return fmt.Errorf("read %s: %w", aniPath, err)
-		}
-		if len(data) < 60 {
-			err = os.Remove(aniPath)
-			if err != nil {
-				return fmt.Errorf("remove %s: %w", aniPath, err)
-			}
-
-			buf := &bytes.Buffer{}
-			writeAsciiHeader(buf)
-			fmt.Fprintf(buf, "INCLUDE \"%s.MOD\"\n", strings.ToUpper(tag))
-
-			err = os.WriteFile(fmt.Sprintf("%s/%s/_root.wce", path, strings.ToLower(tag)), buf.Bytes(), os.ModePerm)
-			if err != nil {
-				return fmt.Errorf("write %s: %w", fmt.Sprintf("%s/%s/_root.wce", path, strings.ToLower(tag)), err)
-			}
-		}
-
-	}
-
 	return nil
 }
 
