@@ -62,8 +62,7 @@ func (wld *Wld) WriteAscii(path string, isDir bool) error {
 	if err != nil {
 		return err
 	}
-
-	rootBuf.Close()
+	defer rootBuf.Close()
 
 	data, err := os.ReadFile(fmt.Sprintf("%s/zone.mod", path))
 	if err != nil {
@@ -731,6 +730,10 @@ func (wld *Wld) writeAsciiData(path string, isDir bool, baseTags []string, rootB
 		if err != nil {
 			return fmt.Errorf("zone %s: %w", zone.Tag, err)
 		}
+	}
+
+	for _, writer := range modWriters {
+		writer.Close()
 	}
 
 	return nil
