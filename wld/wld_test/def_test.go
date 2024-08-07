@@ -9,9 +9,22 @@ var tests = []struct {
 	//{baseName: "load2"}, // OK
 	//{baseName: "beetle_chr"}, // OK
 	//{baseName: "load2", wldName: "objects.wld"}, // OK
+	//{baseName: "crushbone"}, // OK
+	//{baseName: "crushbone", wldName: "objects.wld"}, // OK
+	//{baseName: "crushbone", wldName: "lights.wld"},
+	//{baseName: "qeynos_chr"}, // Needs work
+	//{baseName: "crushbone_chr"}, // OK
+	//{baseName: "freporte_chr"},
+	//{baseName: "chequip"},
+	//{baseName: "gequip"},
+	//{baseName: "gequip2"},
+	//{baseName: "global2_chr"},
+	//{baseName: "globaldaf_chr"},
+	{baseName: "globalhum_chr"},
+
+	//{baseName: "freporte"},
+	//{baseName: "qeynos"}, // OK
 	//{baseName: "load2", wldName: "lights.wld"}, // EMPTY
-	{baseName: "qeynos_chr"}, // Needs work
-	//{baseName: "qeynos"},
 	//{baseName: "qeynos", wldName: "objects.wld"},
 	//{baseName: "qeynos", wldName: "lights.wld"},
 	//{baseName: "globalogm_chr"},

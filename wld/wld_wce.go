@@ -72,12 +72,15 @@ func (wld *Wld) WriteAscii(path string, isDir bool) error {
 			return fmt.Errorf("trackdef %s tag too short", track.Tag)
 		}
 		baseTag := wld.aniWriterTag(track.Tag)
+		if track.modelTag != "" {
+			baseTag = track.modelTag
+		}
 		if len(baseTag) < 1 {
 			return fmt.Errorf("trackd %s tag too short (%s)", track.Tag, baseTag)
 		}
 		isFound := false
 		for _, tag := range baseTags {
-			if tag == baseTag {
+			if tag == baseTag || tag == track.modelTag {
 				isFound = true
 				break
 			}
@@ -147,9 +150,6 @@ func (wld *Wld) WriteAscii(path string, isDir bool) error {
 
 	for i := 0; i < len(wld.DMSpriteDef2s); i++ {
 		dmSprite := wld.DMSpriteDef2s[i]
-		if dmSprite.Tag == "PREPE_DMSPRITEDEF" {
-			fmt.Println("here")
-		}
 		baseTag := baseTagTrim(dmSprite.Tag)
 		w, ok = modWriters[baseTag]
 		if !ok {
@@ -179,6 +179,8 @@ func (wld *Wld) WriteAscii(path string, isDir bool) error {
 						if materialDef.Tag != materialTag {
 							continue
 						}
+
+						defsWritten[materialDef.Tag] = true
 
 						if materialDef.SimpleSpriteTag != "" {
 							isSimpleSpriteFound := false
@@ -224,23 +226,33 @@ func (wld *Wld) WriteAscii(path string, isDir bool) error {
 		}
 
 		if dmSprite.PolyhedronTag != "" {
-			isPolyFound := false
-			for _, polyhedron := range wld.PolyhedronDefs {
-				if polyhedron.Tag != dmSprite.PolyhedronTag {
-					continue
-				}
-				defsWritten[polyhedron.Tag] = true
-				err = polyhedron.Write(w)
+			poly := wld.ByTag(dmSprite.PolyhedronTag)
+			if poly == nil {
+				return fmt.Errorf("dmsprite %s polyhedron %s not found", dmSprite.Tag, dmSprite.PolyhedronTag)
+			}
+			switch polyDef := poly.(type) {
+			case *PolyhedronDefinition:
+				err = polyDef.Write(w)
 				if err != nil {
-					return fmt.Errorf("polyhedron %s: %w", polyhedron.Tag, err)
+					return fmt.Errorf("polyhedron %s: %w", polyDef.Tag, err)
 				}
-				isPolyFound = true
-				break
+				defsWritten[polyDef.Tag] = true
+			case *SimpleSpriteDef:
+				err = polyDef.Write(w)
+				if err != nil {
+					return fmt.Errorf("simple sprite %s: %w", polyDef.Tag, err)
+				}
+				defsWritten[polyDef.Tag] = true
+			case *Sprite3DDef:
+				err = polyDef.Write(w)
+				if err != nil {
+					return fmt.Errorf("sprite 3d %s: %w", polyDef.Tag, err)
+				}
+				defsWritten[polyDef.Tag] = true
+			default:
+				return fmt.Errorf("dmsprite %s polyhedron %s unknown type %T", dmSprite.Tag, dmSprite.PolyhedronTag, poly)
 			}
-			if !isPolyFound {
-				fmt.Printf("polyhedron %s not found\n", dmSprite.PolyhedronTag)
-				//	return fmt.Errorf("polyhedron %s not found", dmSprite.PolyhedronTag)
-			}
+
 		}
 
 		err = dmSprite.Write(w)
@@ -295,7 +307,7 @@ func (wld *Wld) WriteAscii(path string, isDir bool) error {
 
 				isTrackFound := false
 				for _, track := range wld.TrackInstances {
-					if track.Tag != dag.Track {
+					if track.Tag != dag.Track && track.modelTag != dag.Track {
 						continue
 					}
 
@@ -350,11 +362,9 @@ func (wld *Wld) WriteAscii(path string, isDir bool) error {
 		if defsWritten[track.Tag] {
 			continue
 		}
-		if track.Tag == "C10BOX02_TRACK" {
-			fmt.Println("here")
-		}
 		baseTag := wld.aniWriterTag(track.Tag)
-		w, ok = modWriters[baseTag+"_ani"]
+
+		w, ok = modWriters[track.modelTag+"_ani"]
 		if !ok {
 			return fmt.Errorf("track %s writer not found (basetag %s)", track.Tag, baseTag)
 		}
@@ -629,6 +639,22 @@ func (wld *Wld) WriteAscii(path string, isDir bool) error {
 						return fmt.Errorf("sprite %s: %w", sprite.Tag, err)
 					}
 				case *DMSpriteDef2:
+					if !defsWritten[sprite.Tag] {
+						err = sprite.Write(w)
+						if err != nil {
+							return fmt.Errorf("sprite %s: %w", sprite.Tag, err)
+						}
+						defsWritten[sprite.Tag] = true
+					}
+				case *BlitSpriteDefinition:
+					if !defsWritten[sprite.Tag] {
+						err = sprite.Write(w)
+						if err != nil {
+							return fmt.Errorf("sprite %s: %w", sprite.Tag, err)
+						}
+						defsWritten[sprite.Tag] = true
+					}
+				case *Sprite2DDef:
 					if !defsWritten[sprite.Tag] {
 						err = sprite.Write(w)
 						if err != nil {

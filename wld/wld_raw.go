@@ -47,9 +47,21 @@ func readRawFrag(wld *Wld, rawWld *raw.Wld, fragment model.FragmentReadWriter) e
 	case rawfrag.FragCodeSimpleSprite:
 		//return fmt.Errorf("simplesprite fragment found, but not expected")
 	case rawfrag.FragCodeBlitSpriteDef:
-		return fmt.Errorf("blitsprite fragment found, but not expected")
+		def := &BlitSpriteDefinition{}
+		err := def.FromRaw(wld, rawWld, fragment.(*rawfrag.WldFragBlitSpriteDef))
+		if err != nil {
+			return fmt.Errorf("blitspritedef: %w", err)
+		}
+		wld.BlitSpriteDefinitions = append(wld.BlitSpriteDefinitions, def)
+	case rawfrag.FragCodeBlitSprite:
+
 	case rawfrag.FragCodeParticleCloudDef:
-		return fmt.Errorf("particlecloud fragment found, but not expected")
+		def := &ParticleCloudDef{}
+		err := def.FromRaw(wld, rawWld, fragment.(*rawfrag.WldFragParticleCloudDef))
+		if err != nil {
+			return fmt.Errorf("particleclouddef: %w", err)
+		}
+		wld.ParticleCloudDefs = append(wld.ParticleCloudDefs, def)
 	case rawfrag.FragCodeMaterialDef:
 		def := &MaterialDef{}
 		err := def.FromRaw(wld, rawWld, fragment.(*rawfrag.WldFragMaterialDef))
@@ -70,9 +82,13 @@ func readRawFrag(wld *Wld, rawWld *raw.Wld, fragment model.FragmentReadWriter) e
 		if err != nil {
 			return fmt.Errorf("dmspritedef2: %w", err)
 		}
+		wld.lastReadModelTag = baseTagTrim(def.Tag)
+
 		wld.DMSpriteDef2s = append(wld.DMSpriteDef2s, def)
 	case rawfrag.FragCodeTrackDef:
-		def := &TrackDef{}
+		def := &TrackDef{
+			modelTag: wld.lastReadModelTag,
+		}
 		err := def.FromRaw(wld, rawWld, fragment.(*rawfrag.WldFragTrackDef))
 		if err != nil {
 			return fmt.Errorf("trackdef: %w", err)
@@ -80,13 +96,14 @@ func readRawFrag(wld *Wld, rawWld *raw.Wld, fragment model.FragmentReadWriter) e
 		wld.TrackDefs = append(wld.TrackDefs, def)
 
 	case rawfrag.FragCodeTrack:
-		def := &TrackInstance{}
+		def := &TrackInstance{
+			modelTag: wld.lastReadModelTag,
+		}
 		err := def.FromRaw(wld, rawWld, fragment.(*rawfrag.WldFragTrack))
 		if err != nil {
 			return fmt.Errorf("track: %w", err)
 		}
 		wld.TrackInstances = append(wld.TrackInstances, def)
-
 	case rawfrag.FragCodeDMSpriteDef:
 		def := &DMSpriteDef{}
 		err := def.FromRaw(wld, rawWld, fragment.(*rawfrag.WldFragDMSpriteDef))
@@ -197,6 +214,14 @@ func readRawFrag(wld *Wld, rawWld *raw.Wld, fragment model.FragmentReadWriter) e
 		}
 		wld.RGBTrackDefs = append(wld.RGBTrackDefs, def)
 	case rawfrag.FragCodeDmRGBTrack:
+	case rawfrag.FragCodeSprite2DDef:
+		def := &Sprite2DDef{}
+		err := def.FromRaw(wld, rawWld, fragment.(*rawfrag.WldFragSprite2DDef))
+		if err != nil {
+			return fmt.Errorf("sprite2ddef: %w", err)
+		}
+		wld.Sprite2DDefs = append(wld.Sprite2DDefs, def)
+	case rawfrag.FragCodeSprite2D:
 	default:
 		return fmt.Errorf("unhandled fragment type %d (%s)", fragment.FragCode(), raw.FragName(fragment.FragCode()))
 	}
@@ -228,8 +253,19 @@ func (wld *Wld) WriteRaw(w io.Writer) error {
 			if dmSprite.Tag == "" {
 				return fmt.Errorf("dmspritedef tag is empty")
 			}
-			baseTags = append(baseTags, baseTagTrim(dmSprite.Tag))
+			isUnique := true
+			for _, baseTag := range baseTags {
+				if baseTag == baseTagTrim(dmSprite.Tag) {
+					isUnique = false
+					break
+				}
+			}
+			if isUnique {
+				baseTags = append(baseTags, baseTagTrim(dmSprite.Tag))
+			}
 		}
+
+		//sort.Strings(baseTags)
 
 		for _, baseTag := range baseTags {
 
@@ -252,6 +288,46 @@ func (wld *Wld) WriteRaw(w io.Writer) error {
 				_, err = hiSprite.ToRaw(wld, dst)
 				if err != nil {
 					return fmt.Errorf("hierarchicalsprite %s: %w", hiSprite.Tag, err)
+				}
+			}
+
+			for _, track := range wld.TrackInstances {
+				if !isAnimationPrefix(track.Tag) {
+					continue
+				}
+				trBaseTag := wld.aniWriterTag(track.Tag)
+
+				if baseTag != trBaseTag && track.modelTag != baseTag {
+					continue
+				}
+				_, err = track.ToRaw(wld, dst)
+				if err != nil {
+					return fmt.Errorf("track %s: %w", track.Tag, err)
+				}
+			}
+
+			for _, matDef := range wld.MaterialDefs {
+				shortTag := baseTag
+				if len(baseTag) > 3 {
+					shortTag = baseTag[:3]
+				}
+				if !strings.HasPrefix(matDef.Tag, shortTag) {
+					continue
+				}
+
+				_, err = matDef.ToRaw(wld, dst)
+				if err != nil {
+					return fmt.Errorf("materialdef %s: %w", matDef.Tag, err)
+				}
+			}
+
+			for _, actorDef := range wld.ActorDefs {
+				if baseTag != baseTagTrim(actorDef.Tag) {
+					continue
+				}
+				_, err = actorDef.ToRaw(wld, dst)
+				if err != nil {
+					return fmt.Errorf("actordef %s: %w", actorDef.Tag, err)
 				}
 			}
 		}

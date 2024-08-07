@@ -11,7 +11,8 @@ var AsciiVersion = "v0.0.1"
 
 // Wld is a struct representing a Wld file
 type Wld struct {
-	isZone                 bool // true when the file is a zone file
+	isZone                 bool   // true when the file is a zone file
+	lastReadModelTag       string // last model tag read
 	FileName               string
 	GlobalAmbientLightDef  *GlobalAmbientLightDef
 	Version                uint32
@@ -34,6 +35,9 @@ type Wld struct {
 	AmbientLights          []*AmbientLight
 	Zones                  []*Zone
 	RGBTrackDefs           []*RGBTrackDef
+	BlitSpriteDefinitions  []*BlitSpriteDefinition
+	ParticleCloudDefs      []*ParticleCloudDef
+	Sprite2DDefs           []*Sprite2DDef
 }
 
 type WldDefinitioner interface {
@@ -50,6 +54,18 @@ func (wld *Wld) ByTag(tag string) WldDefinitioner {
 		for _, sprite := range wld.SimpleSpriteDefs {
 			if sprite.Tag == tag {
 				return sprite
+			}
+		}
+		for _, sprite := range wld.BlitSpriteDefinitions {
+			if sprite.Tag == tag {
+				return sprite
+			}
+		}
+	}
+	if strings.HasSuffix(tag, "_PCD") {
+		for _, cloud := range wld.ParticleCloudDefs {
+			if cloud.Tag == tag {
+				return cloud
 			}
 		}
 	}
@@ -69,6 +85,11 @@ func (wld *Wld) ByTag(tag string) WldDefinitioner {
 	}
 	if strings.HasSuffix(tag, "_DMSPRITEDEF") {
 		for _, sprite := range wld.DMSpriteDef2s {
+			if sprite.Tag == tag {
+				return sprite
+			}
+		}
+		for _, sprite := range wld.DMSpriteDefs {
 			if sprite.Tag == tag {
 				return sprite
 			}
@@ -114,6 +135,14 @@ func (wld *Wld) ByTag(tag string) WldDefinitioner {
 		}
 	}
 
+	if strings.HasSuffix(tag, "_SPB") {
+		for _, sprite := range wld.BlitSpriteDefinitions {
+			if sprite.Tag == tag {
+				return sprite
+			}
+		}
+	}
+
 	for _, sprite := range wld.Sprite3DDefs {
 		if sprite.Tag == tag {
 			return sprite
@@ -136,11 +165,18 @@ func (wld *Wld) ByTag(tag string) WldDefinitioner {
 			return track
 		}
 	}
+
+	for _, sprite := range wld.Sprite2DDefs {
+		if sprite.Tag == tag {
+			return sprite
+		}
+	}
 	return nil
 }
 
 func (wld *Wld) reset() {
 	wld.GlobalAmbientLightDef = nil
+	wld.lastReadModelTag = ""
 	wld.SimpleSpriteDefs = []*SimpleSpriteDef{}
 	wld.MaterialDefs = []*MaterialDef{}
 	wld.MaterialPalettes = []*MaterialPalette{}
@@ -160,5 +196,7 @@ func (wld *Wld) reset() {
 	wld.AmbientLights = []*AmbientLight{}
 	wld.Zones = []*Zone{}
 	wld.RGBTrackDefs = []*RGBTrackDef{}
-
+	wld.BlitSpriteDefinitions = []*BlitSpriteDefinition{}
+	wld.ParticleCloudDefs = []*ParticleCloudDef{}
+	wld.Sprite2DDefs = []*Sprite2DDef{}
 }

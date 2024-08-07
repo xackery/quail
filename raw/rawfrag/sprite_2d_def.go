@@ -6,33 +6,32 @@ import (
 	"io"
 
 	"github.com/xackery/encdec"
-	"github.com/xackery/quail/model"
 )
 
 // WldFragSprite2DDef is Sprite2DDef in libeq, Two-Dimensional Object in openzone, 2DSPRITEDEF in wld, Fragment06 in lantern
 type WldFragSprite2DDef struct {
-	NameRef                     int32           `yaml:"name_ref"`
-	Flags                       uint32          `yaml:"flags"`
-	TextureCount                uint32          `yaml:"texture_count"`
-	PitchCount                  uint32          `yaml:"pitch_count"`
-	Scale                       model.Vector2   `yaml:"scale"`
-	SphereRef                   uint32          `yaml:"sphere_ref"`
-	DepthScale                  float32         `yaml:"depth_scale"`
-	CenterOffset                model.Vector3   `yaml:"center_offset"`
-	BoundingRadius              float32         `yaml:"bounding_radius"`
-	CurrentFrameRef             int32           `yaml:"current_frame_ref"`
-	Sleep                       uint32          `yaml:"sleep"`
-	Headings                    []uint32        `yaml:"headings"`
-	RenderMethod                uint32          `yaml:"render_method"`
-	RenderFlags                 uint32          `yaml:"render_flags"`
-	RenderPen                   uint32          `yaml:"render_pen"`
-	RenderBrightness            float32         `yaml:"render_brightness"`
-	RenderScaledAmbient         float32         `yaml:"render_scaled_ambient"`
-	RenderSimpleSpriteReference uint32          `yaml:"render_simple_sprite_reference"`
-	RenderUVInfoOrigin          model.Vector3   `yaml:"render_uv_info_origin"`
-	RenderUVInfoUAxis           model.Vector3   `yaml:"render_uv_info_u_axis"`
-	RenderUVInfoVAxis           model.Vector3   `yaml:"render_uv_info_v_axis"`
-	RenderUVMapEntries          []model.Vector2 `yaml:"render_uv_map_entries"`
+	NameRef                     int32
+	Flags                       uint32
+	TextureCount                uint32
+	PitchCount                  uint32
+	Scale                       [2]float32
+	SphereListRef               uint32
+	DepthScale                  float32
+	CenterOffset                [3]float32
+	BoundingRadius              float32
+	CurrentFrameRef             int32
+	Sleep                       uint32
+	Headings                    []uint32
+	RenderMethod                uint32
+	RenderFlags                 uint8
+	RenderPen                   uint32
+	RenderBrightness            float32
+	RenderScaledAmbient         float32
+	RenderSimpleSpriteReference uint32
+	RenderUVInfoOrigin          [3]float32
+	RenderUVInfoUAxis           [3]float32
+	RenderUVInfoVAxis           [3]float32
+	Uvs                         [][2]float32
 }
 
 func (e *WldFragSprite2DDef) FragCode() int {
@@ -45,16 +44,17 @@ func (e *WldFragSprite2DDef) Write(w io.Writer) error {
 	enc.Uint32(e.Flags)
 	enc.Uint32(e.TextureCount)
 	enc.Uint32(e.PitchCount)
-	enc.Float32(e.Scale.X)
-	enc.Float32(e.Scale.Y)
-	enc.Uint32(e.SphereRef)
+
+	enc.Float32(e.Scale[0])
+	enc.Float32(e.Scale[1])
+	enc.Uint32(e.SphereListRef)
 	if e.Flags&0x80 == 0x80 {
 		enc.Float32(e.DepthScale)
 	}
 	if e.Flags&0x01 == 0x01 {
-		enc.Float32(e.CenterOffset.X)
-		enc.Float32(e.CenterOffset.Y)
-		enc.Float32(e.CenterOffset.Z)
+		enc.Float32(e.CenterOffset[0])
+		enc.Float32(e.CenterOffset[1])
+		enc.Float32(e.CenterOffset[2])
 	}
 	if e.Flags&0x02 == 0x02 {
 		enc.Float32(e.BoundingRadius)
@@ -70,7 +70,8 @@ func (e *WldFragSprite2DDef) Write(w io.Writer) error {
 	}
 	if e.Flags&0x10 == 0x10 {
 		enc.Uint32(e.RenderMethod)
-		enc.Uint32(e.RenderFlags)
+		enc.Uint8(e.RenderFlags)
+
 		if e.RenderFlags&0x01 == 0x01 {
 			enc.Uint32(e.RenderPen)
 		}
@@ -84,21 +85,21 @@ func (e *WldFragSprite2DDef) Write(w io.Writer) error {
 			enc.Uint32(e.RenderSimpleSpriteReference)
 		}
 		if e.RenderFlags&0x10 == 0x10 {
-			enc.Float32(e.RenderUVInfoOrigin.X)
-			enc.Float32(e.RenderUVInfoOrigin.Y)
-			enc.Float32(e.RenderUVInfoOrigin.Z)
-			enc.Float32(e.RenderUVInfoUAxis.X)
-			enc.Float32(e.RenderUVInfoUAxis.Y)
-			enc.Float32(e.RenderUVInfoUAxis.Z)
-			enc.Float32(e.RenderUVInfoVAxis.X)
-			enc.Float32(e.RenderUVInfoVAxis.Y)
-			enc.Float32(e.RenderUVInfoVAxis.Z)
+			enc.Float32(e.RenderUVInfoOrigin[0])
+			enc.Float32(e.RenderUVInfoOrigin[1])
+			enc.Float32(e.RenderUVInfoOrigin[2])
+			enc.Float32(e.RenderUVInfoUAxis[0])
+			enc.Float32(e.RenderUVInfoUAxis[1])
+			enc.Float32(e.RenderUVInfoUAxis[2])
+			enc.Float32(e.RenderUVInfoVAxis[0])
+			enc.Float32(e.RenderUVInfoVAxis[1])
+			enc.Float32(e.RenderUVInfoVAxis[2])
 		}
 		if e.RenderFlags&0x20 == 0x20 {
-			enc.Uint32(uint32(len(e.RenderUVMapEntries)))
-			for _, entry := range e.RenderUVMapEntries {
-				enc.Float32(entry.X)
-				enc.Float32(entry.Y)
+			enc.Uint32(uint32(len(e.Uvs)))
+			for _, uv := range e.Uvs {
+				enc.Float32(uv[0])
+				enc.Float32(uv[1])
 			}
 		}
 	}
@@ -116,16 +117,16 @@ func (e *WldFragSprite2DDef) Read(r io.ReadSeeker) error {
 	e.Flags = dec.Uint32()
 	e.TextureCount = dec.Uint32()
 	e.PitchCount = dec.Uint32()
-	e.Scale.X = dec.Float32()
-	e.Scale.Y = dec.Float32()
-	e.SphereRef = dec.Uint32()
+	e.Scale[0] = dec.Float32()
+	e.Scale[1] = dec.Float32()
+	e.SphereListRef = dec.Uint32()
 	if e.Flags&0x80 == 0x80 {
 		e.DepthScale = dec.Float32()
 	}
 	if e.Flags&0x01 == 0x01 {
-		e.CenterOffset.X = dec.Float32()
-		e.CenterOffset.Y = dec.Float32()
-		e.CenterOffset.Z = dec.Float32()
+		e.CenterOffset[0] = dec.Float32()
+		e.CenterOffset[1] = dec.Float32()
+		e.CenterOffset[2] = dec.Float32()
 	}
 	if e.Flags&0x02 == 0x02 {
 		e.BoundingRadius = dec.Float32()
@@ -142,7 +143,8 @@ func (e *WldFragSprite2DDef) Read(r io.ReadSeeker) error {
 	}
 	if e.Flags&0x10 == 0x10 {
 		e.RenderMethod = dec.Uint32()
-		e.RenderFlags = dec.Uint32()
+		e.RenderFlags = dec.Uint8()
+
 		if e.RenderFlags&0x01 == 0x01 {
 			e.RenderPen = dec.Uint32()
 		}
@@ -156,23 +158,21 @@ func (e *WldFragSprite2DDef) Read(r io.ReadSeeker) error {
 			e.RenderSimpleSpriteReference = dec.Uint32()
 		}
 		if e.RenderFlags&0x10 == 0x10 {
-			e.RenderUVInfoOrigin.X = dec.Float32()
-			e.RenderUVInfoOrigin.Y = dec.Float32()
-			e.RenderUVInfoOrigin.Z = dec.Float32()
-			e.RenderUVInfoUAxis.X = dec.Float32()
-			e.RenderUVInfoUAxis.Y = dec.Float32()
-			e.RenderUVInfoUAxis.Z = dec.Float32()
-			e.RenderUVInfoVAxis.X = dec.Float32()
-			e.RenderUVInfoVAxis.Y = dec.Float32()
-			e.RenderUVInfoVAxis.Z = dec.Float32()
+			e.RenderUVInfoOrigin[0] = dec.Float32()
+			e.RenderUVInfoOrigin[1] = dec.Float32()
+			e.RenderUVInfoOrigin[2] = dec.Float32()
+			e.RenderUVInfoUAxis[0] = dec.Float32()
+			e.RenderUVInfoUAxis[1] = dec.Float32()
+			e.RenderUVInfoUAxis[2] = dec.Float32()
+			e.RenderUVInfoVAxis[0] = dec.Float32()
+			e.RenderUVInfoVAxis[1] = dec.Float32()
+			e.RenderUVInfoVAxis[2] = dec.Float32()
 		}
 		if e.RenderFlags&0x20 == 0x20 {
-			renderUVMapEntrycount := dec.Uint32()
-			for i := uint32(0); i < renderUVMapEntrycount; i++ {
-				v := model.Vector2{}
-				v.X = dec.Float32()
-				v.Y = dec.Float32()
-				e.RenderUVMapEntries = append(e.RenderUVMapEntries, v)
+			renderUVMapEntryCount := dec.Uint32()
+			for j := 0; j < int(renderUVMapEntryCount); j++ {
+				u := [2]float32{dec.Float32(), dec.Float32()}
+				e.Uvs = append(e.Uvs, u)
 			}
 		}
 	}

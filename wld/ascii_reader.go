@@ -190,6 +190,9 @@ func (a *AsciiReadToken) readDefinitions() error {
 		&Zone{},
 		&RGBTrackDef{},
 		&GlobalAmbientLightDef{},
+		&ParticleCloudDef{},
+		&BlitSpriteDefinition{},
+		&Sprite2DDef{},
 	}
 
 	definition := ""
@@ -289,6 +292,7 @@ func (a *AsciiReadToken) readDefinitions() error {
 				a.wld.GlobalAmbientLightDef = frag
 				definitions[i] = &GlobalAmbientLightDef{}
 			case *DMSpriteDef2:
+				a.wld.lastReadModelTag = frag.Tag
 				a.wld.DMSpriteDef2s = append(a.wld.DMSpriteDef2s, frag)
 				definitions[i] = &DMSpriteDef2{}
 			case *HierarchicalSpriteDef:
@@ -307,9 +311,11 @@ func (a *AsciiReadToken) readDefinitions() error {
 				a.wld.SimpleSpriteDefs = append(a.wld.SimpleSpriteDefs, frag)
 				definitions[i] = &SimpleSpriteDef{}
 			case *TrackDef:
+				frag.modelTag = a.wld.lastReadModelTag
 				a.wld.TrackDefs = append(a.wld.TrackDefs, frag)
 				definitions[i] = &TrackDef{}
 			case *TrackInstance:
+				frag.modelTag = a.wld.lastReadModelTag
 				a.wld.TrackInstances = append(a.wld.TrackInstances, frag)
 				definitions[i] = &TrackInstance{}
 			case *LightDef:
@@ -339,6 +345,15 @@ func (a *AsciiReadToken) readDefinitions() error {
 			case *RGBTrackDef:
 				a.wld.RGBTrackDefs = append(a.wld.RGBTrackDefs, frag)
 				definitions[i] = &RGBTrackDef{}
+			case *ParticleCloudDef:
+				a.wld.ParticleCloudDefs = append(a.wld.ParticleCloudDefs, frag)
+				definitions[i] = &ParticleCloudDef{}
+			case *BlitSpriteDefinition:
+				a.wld.BlitSpriteDefinitions = append(a.wld.BlitSpriteDefinitions, frag)
+				definitions[i] = &BlitSpriteDefinition{}
+			case *Sprite2DDef:
+				a.wld.Sprite2DDefs = append(a.wld.Sprite2DDefs, frag)
+				definitions[i] = &Sprite2DDef{}
 			}
 
 			break

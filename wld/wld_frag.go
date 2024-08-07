@@ -28,14 +28,14 @@ func (e *GlobalAmbientLightDef) Write(w io.Writer) error {
 	return nil
 }
 
-func (e *GlobalAmbientLightDef) Read(r *AsciiReadToken) error {
-	records, err := r.ReadProperty("TAG", 1)
+func (e *GlobalAmbientLightDef) Read(token *AsciiReadToken) error {
+	records, err := token.ReadProperty("TAG", 1)
 	if err != nil {
 		return err
 	}
 	e.Tag = records[1]
 
-	_, err = r.ReadProperty("ENDGLOBALAMBIENTLIGHTDEF", 0)
+	_, err = token.ReadProperty("ENDGLOBALAMBIENTLIGHTDEF", 0)
 	if err != nil {
 		return err
 	}
@@ -186,14 +186,14 @@ func (e *DMSpriteDef2) Write(w io.Writer) error {
 	return nil
 }
 
-func (e *DMSpriteDef2) Read(r *AsciiReadToken) error {
-	records, err := r.ReadProperty("TAG", 1)
+func (e *DMSpriteDef2) Read(token *AsciiReadToken) error {
+	records, err := token.ReadProperty("TAG", 1)
 	if err != nil {
 		return err
 	}
 	e.Tag = records[1]
 
-	records, err = r.ReadProperty("CENTEROFFSET", 3)
+	records, err = token.ReadProperty("CENTEROFFSET", 3)
 	if err != nil {
 		return err
 	}
@@ -202,7 +202,7 @@ func (e *DMSpriteDef2) Read(r *AsciiReadToken) error {
 		return fmt.Errorf("center offset: %w", err)
 	}
 
-	records, err = r.ReadProperty("NUMVERTICES", 1)
+	records, err = token.ReadProperty("NUMVERTICES", 1)
 	if err != nil {
 		return err
 	}
@@ -212,7 +212,7 @@ func (e *DMSpriteDef2) Read(r *AsciiReadToken) error {
 		return err
 	}
 	for i := 0; i < numVertices; i++ {
-		records, err = r.ReadProperty("XYZ", 3)
+		records, err = token.ReadProperty("XYZ", 3)
 		if err != nil {
 			return err
 		}
@@ -224,7 +224,7 @@ func (e *DMSpriteDef2) Read(r *AsciiReadToken) error {
 		e.Vertices = append(e.Vertices, vert)
 	}
 
-	records, err = r.ReadProperty("NUMUVS", 1)
+	records, err = token.ReadProperty("NUMUVS", 1)
 	if err != nil {
 		return err
 	}
@@ -235,7 +235,7 @@ func (e *DMSpriteDef2) Read(r *AsciiReadToken) error {
 	}
 
 	for i := 0; i < numUVs; i++ {
-		records, err = r.ReadProperty("UV", 2)
+		records, err = token.ReadProperty("UV", 2)
 		if err != nil {
 			return err
 		}
@@ -247,7 +247,7 @@ func (e *DMSpriteDef2) Read(r *AsciiReadToken) error {
 		e.UVs = append(e.UVs, uv)
 	}
 
-	records, err = r.ReadProperty("NUMVERTEXNORMALS", 1)
+	records, err = token.ReadProperty("NUMVERTEXNORMALS", 1)
 	if err != nil {
 		return err
 	}
@@ -258,7 +258,7 @@ func (e *DMSpriteDef2) Read(r *AsciiReadToken) error {
 	}
 
 	for i := 0; i < numNormals; i++ {
-		records, err = r.ReadProperty("XYZ", 3)
+		records, err = token.ReadProperty("XYZ", 3)
 		if err != nil {
 			return err
 		}
@@ -270,7 +270,7 @@ func (e *DMSpriteDef2) Read(r *AsciiReadToken) error {
 		e.VertexNormals = append(e.VertexNormals, normal)
 	}
 
-	records, err = r.ReadProperty("NUMVERTEXCOLORS", 1)
+	records, err = token.ReadProperty("NUMVERTEXCOLORS", 1)
 	if err != nil {
 		return err
 	}
@@ -281,7 +281,7 @@ func (e *DMSpriteDef2) Read(r *AsciiReadToken) error {
 	}
 
 	for i := 0; i < numColors; i++ {
-		records, err = r.ReadProperty("RGBA", 4)
+		records, err = token.ReadProperty("RGBA", 4)
 		if err != nil {
 			return err
 		}
@@ -293,7 +293,7 @@ func (e *DMSpriteDef2) Read(r *AsciiReadToken) error {
 		e.VertexColors = append(e.VertexColors, color)
 	}
 
-	records, err = r.ReadProperty("SKINASSIGNMENTGROUPS", -1)
+	records, err = token.ReadProperty("SKINASSIGNMENTGROUPS", -1)
 	if err != nil {
 		return err
 	}
@@ -319,27 +319,27 @@ func (e *DMSpriteDef2) Read(r *AsciiReadToken) error {
 		i++
 	}
 
-	records, err = r.ReadProperty("MATERIALPALETTE", 1)
+	records, err = token.ReadProperty("MATERIALPALETTE", 1)
 	if err != nil {
 		return err
 	}
 	e.MaterialPaletteTag = records[1]
 
-	_, err = r.ReadProperty("POLYHEDRON", 0)
+	_, err = token.ReadProperty("POLYHEDRON", 0)
 	if err != nil {
 		return err
 	}
-	records, err = r.ReadProperty("DEFINITION", 1)
+	records, err = token.ReadProperty("DEFINITION", 1)
 	if err != nil {
 		return err
 	}
 	e.PolyhedronTag = records[1]
-	_, err = r.ReadProperty("ENDPOLYHEDRON", 0)
+	_, err = token.ReadProperty("ENDPOLYHEDRON", 0)
 	if err != nil {
 		return err
 	}
 
-	records, err = r.ReadProperty("NUMFACE2S", 1)
+	records, err = token.ReadProperty("NUMFACE2S", 1)
 	if err != nil {
 		return err
 	}
@@ -352,11 +352,11 @@ func (e *DMSpriteDef2) Read(r *AsciiReadToken) error {
 
 	for i := 0; i < numFaces; i++ {
 		face := &Face{}
-		_, err = r.ReadProperty("DMFACE2", 0)
+		_, err = token.ReadProperty("DMFACE2", 0)
 		if err != nil {
 			return err
 		}
-		records, err = r.ReadProperty("FLAGS", 1)
+		records, err = token.ReadProperty("FLAGS", 1)
 		if err != nil {
 			return err
 		}
@@ -365,7 +365,7 @@ func (e *DMSpriteDef2) Read(r *AsciiReadToken) error {
 			return fmt.Errorf("face %d flags: %w", i, err)
 		}
 
-		records, err = r.ReadProperty("TRIANGLE", 3)
+		records, err = token.ReadProperty("TRIANGLE", 3)
 		if err != nil {
 			return err
 		}
@@ -374,7 +374,7 @@ func (e *DMSpriteDef2) Read(r *AsciiReadToken) error {
 			return fmt.Errorf("face %d triangle: %w", i, err)
 		}
 
-		_, err = r.ReadProperty("ENDDMFACE2", 0)
+		_, err = token.ReadProperty("ENDDMFACE2", 0)
 		if err != nil {
 			return err
 		}
@@ -382,7 +382,7 @@ func (e *DMSpriteDef2) Read(r *AsciiReadToken) error {
 		e.Faces = append(e.Faces, face)
 	}
 
-	records, err = r.ReadProperty("MAXDISTANCE", 1)
+	records, err = token.ReadProperty("MAXDISTANCE", 1)
 	if err != nil {
 		return err
 	}
@@ -392,7 +392,7 @@ func (e *DMSpriteDef2) Read(r *AsciiReadToken) error {
 		return fmt.Errorf("max distance: %w", err)
 	}
 
-	records, err = r.ReadProperty("FACEMATERIALGROUPS", -1)
+	records, err = token.ReadProperty("FACEMATERIALGROUPS", -1)
 	if err != nil {
 		return err
 	}
@@ -415,7 +415,7 @@ func (e *DMSpriteDef2) Read(r *AsciiReadToken) error {
 		i++
 	}
 
-	records, err = r.ReadProperty("VERTEXMATERIALGROUPS", -1)
+	records, err = token.ReadProperty("VERTEXMATERIALGROUPS", -1)
 	if err != nil {
 		return err
 	}
@@ -438,7 +438,7 @@ func (e *DMSpriteDef2) Read(r *AsciiReadToken) error {
 		i++
 	}
 
-	records, err = r.ReadProperty("BOUNDINGRADIUS", 1)
+	records, err = token.ReadProperty("BOUNDINGRADIUS", 1)
 	if err != nil {
 		return err
 	}
@@ -447,7 +447,7 @@ func (e *DMSpriteDef2) Read(r *AsciiReadToken) error {
 		return fmt.Errorf("bounding radius: %w", err)
 	}
 
-	records, err = r.ReadProperty("FPSCALE", 1)
+	records, err = token.ReadProperty("FPSCALE", 1)
 	if err != nil {
 		return err
 	}
@@ -456,7 +456,7 @@ func (e *DMSpriteDef2) Read(r *AsciiReadToken) error {
 		return fmt.Errorf("fpscale: %w", err)
 	}
 
-	records, err = r.ReadProperty("HEXTHREEFLAG", 1)
+	records, err = token.ReadProperty("HEXTHREEFLAG", 1)
 	if err != nil {
 		return err
 	}
@@ -465,7 +465,7 @@ func (e *DMSpriteDef2) Read(r *AsciiReadToken) error {
 		return fmt.Errorf("hexthreeflag: %w", err)
 	}
 
-	_, err = r.ReadProperty("ENDDMSPRITEDEF2", 0)
+	_, err = token.ReadProperty("ENDDMSPRITEDEF2", 0)
 	if err != nil {
 		return err
 	}
@@ -619,7 +619,11 @@ func (e *DMSpriteDef2) FromRaw(wld *Wld, rawWld *raw.Wld, frag *rawfrag.WldFragD
 
 	e.DmTrackTag = raw.Name(frag.DMTrackRef)
 
-	if frag.Fragment4Ref > 0 {
+	if frag.Fragment4Ref != 0 {
+		if frag.Fragment4Ref < 0 {
+			frag.Fragment4Ref = -frag.Fragment4Ref
+		}
+
 		if len(rawWld.Fragments) < int(frag.Fragment4Ref) {
 			return fmt.Errorf("fragment4 (bminfo) ref %d out of bounds", frag.Fragment4Ref)
 		}
@@ -628,10 +632,23 @@ func (e *DMSpriteDef2) FromRaw(wld *Wld, rawWld *raw.Wld, frag *rawfrag.WldFragD
 		case *rawfrag.WldFragBMInfo:
 			e.PolyhedronTag = raw.Name(frag4Def.NameRef)
 		case *rawfrag.WldFragPolyhedron:
+			if len(rawWld.Fragments) < int(frag4Def.FragmentRef) {
+				return fmt.Errorf("fragment4 (polygon) ref %d out of bounds", frag4Def.FragmentRef)
+			}
+
+			frag4 = rawWld.Fragments[frag4Def.FragmentRef]
+			switch frag4Def := frag4.(type) {
+			case *rawfrag.WldFragPolyhedronDef:
+				e.PolyhedronTag = raw.Name(frag4Def.NameRef)
+			default:
+				return fmt.Errorf("fragment4 wanted polyhedrondef, got unknown type %T", frag4)
+			}
+		case *rawfrag.WldFragSimpleSpriteDef:
 			e.PolyhedronTag = raw.Name(frag4Def.NameRef)
 		default:
 			return fmt.Errorf("fragment4 unknown type %T", frag4)
 		}
+
 	}
 	e.CenterOffset = frag.CenterOffset
 	e.Params2 = frag.Params2
@@ -753,7 +770,7 @@ func (e *DMSpriteDef) Write(w io.Writer) error {
 	return fmt.Errorf("not implemented")
 }
 
-func (e *DMSpriteDef) Read(r *AsciiReadToken) error {
+func (e *DMSpriteDef) Read(token *AsciiReadToken) error {
 	return fmt.Errorf("not implemented")
 }
 
@@ -848,14 +865,14 @@ func (e *MaterialPalette) Write(w io.Writer) error {
 	return nil
 }
 
-func (e *MaterialPalette) Read(r *AsciiReadToken) error {
-	records, err := r.ReadProperty("TAG", 1)
+func (e *MaterialPalette) Read(token *AsciiReadToken) error {
+	records, err := token.ReadProperty("TAG", 1)
 	if err != nil {
 		return fmt.Errorf("TAG: %w", err)
 	}
 	e.Tag = records[1]
 
-	records, err = r.ReadProperty("NUMMATERIALS", 1)
+	records, err = token.ReadProperty("NUMMATERIALS", 1)
 	if err != nil {
 		return fmt.Errorf("NUMMATERIALS: %w", err)
 	}
@@ -866,14 +883,14 @@ func (e *MaterialPalette) Read(r *AsciiReadToken) error {
 	}
 
 	for i := 0; i < numMaterials; i++ {
-		records, err = r.ReadProperty("MATERIAL", 1)
+		records, err = token.ReadProperty("MATERIAL", 1)
 		if err != nil {
 			return fmt.Errorf("MATERIAL: %w", err)
 		}
 		e.Materials = append(e.Materials, records[1])
 	}
 
-	_, err = r.ReadProperty("ENDMATERIALPALETTE", 0)
+	_, err = token.ReadProperty("ENDMATERIALPALETTE", 0)
 	if err != nil {
 		return fmt.Errorf("ENDMATERIALPALETTE: %w", err)
 	}
@@ -965,20 +982,20 @@ func (e *MaterialDef) Write(w io.Writer) error {
 	return nil
 }
 
-func (e *MaterialDef) Read(r *AsciiReadToken) error {
-	records, err := r.ReadProperty("TAG", 1)
+func (e *MaterialDef) Read(token *AsciiReadToken) error {
+	records, err := token.ReadProperty("TAG", 1)
 	if err != nil {
 		return err
 	}
 	e.Tag = records[1]
 
-	records, err = r.ReadProperty("RENDERMETHOD", 1)
+	records, err = token.ReadProperty("RENDERMETHOD", 1)
 	if err != nil {
 		return err
 	}
 	e.RenderMethod = records[1]
 
-	records, err = r.ReadProperty("RGBPEN", 4)
+	records, err = token.ReadProperty("RGBPEN", 4)
 	if err != nil {
 		return err
 	}
@@ -987,7 +1004,7 @@ func (e *MaterialDef) Read(r *AsciiReadToken) error {
 		return fmt.Errorf("rgbpen: %w", err)
 	}
 
-	records, err = r.ReadProperty("BRIGHTNESS", 1)
+	records, err = token.ReadProperty("BRIGHTNESS", 1)
 	if err != nil {
 		return err
 	}
@@ -996,7 +1013,7 @@ func (e *MaterialDef) Read(r *AsciiReadToken) error {
 		return fmt.Errorf("brightness: %w", err)
 	}
 
-	records, err = r.ReadProperty("SCALEDAMBIENT", 1)
+	records, err = token.ReadProperty("SCALEDAMBIENT", 1)
 	if err != nil {
 		return err
 	}
@@ -1005,18 +1022,18 @@ func (e *MaterialDef) Read(r *AsciiReadToken) error {
 		return fmt.Errorf("scaled ambient: %w", err)
 	}
 
-	_, err = r.ReadProperty("SIMPLESPRITEINST", 0)
+	_, err = token.ReadProperty("SIMPLESPRITEINST", 0)
 	if err != nil {
 		return err
 	}
 
-	records, err = r.ReadProperty("TAG", 1)
+	records, err = token.ReadProperty("TAG", 1)
 	if err != nil {
 		return err
 	}
 	e.SimpleSpriteTag = records[1]
 
-	records, err = r.ReadProperty("HEXFIFTYFLAG", 1)
+	records, err = token.ReadProperty("HEXFIFTYFLAG", 1)
 	if err != nil {
 		return err
 	}
@@ -1025,12 +1042,12 @@ func (e *MaterialDef) Read(r *AsciiReadToken) error {
 		return fmt.Errorf("hex fifty flag: %w", err)
 	}
 
-	_, err = r.ReadProperty("ENDSIMPLESPRITEINST", 0)
+	_, err = token.ReadProperty("ENDSIMPLESPRITEINST", 0)
 	if err != nil {
 		return err
 	}
 
-	records, err = r.ReadProperty("PAIRS?", 2)
+	records, err = token.ReadProperty("PAIRS?", 2)
 	if err != nil {
 		return err
 	}
@@ -1045,7 +1062,7 @@ func (e *MaterialDef) Read(r *AsciiReadToken) error {
 		return fmt.Errorf("pair1: %w", err)
 	}
 
-	_, err = r.ReadProperty("ENDMATERIALDEFINITION", 0)
+	_, err = token.ReadProperty("ENDMATERIALDEFINITION", 0)
 	if err != nil {
 		return err
 	}
@@ -1125,7 +1142,7 @@ func (e *MaterialDef) FromRaw(wld *Wld, rawWld *raw.Wld, frag *rawfrag.WldFragMa
 		}
 		spriteDef, ok := rawWld.Fragments[simpleSprite.SpriteRef].(*rawfrag.WldFragSimpleSpriteDef)
 		if !ok {
-			return fmt.Errorf("sprite ref %d not found", simpleSprite.SpriteRef)
+			return fmt.Errorf("material's simple sprite ref %d not found", simpleSprite.SpriteRef)
 		}
 		if simpleSprite.Flags&0x50 != 0 {
 			e.SpriteHexFiftyFlag = 1
@@ -1182,14 +1199,14 @@ func (e *SimpleSpriteDef) Write(w io.Writer) error {
 	return nil
 }
 
-func (e *SimpleSpriteDef) Read(r *AsciiReadToken) error {
-	records, err := r.ReadProperty("SIMPLESPRITETAG", 0)
+func (e *SimpleSpriteDef) Read(token *AsciiReadToken) error {
+	records, err := token.ReadProperty("SIMPLESPRITETAG", 0)
 	if err != nil {
 		return fmt.Errorf("SIMPLESPRITETAG: %w", err)
 	}
 	e.Tag = records[1]
 
-	records, err = r.ReadProperty("SKIPFRAMES?", 1)
+	records, err = token.ReadProperty("SKIPFRAMES?", 1)
 	if err != nil {
 		return fmt.Errorf("SKIPFRAMES?: %w", err)
 	}
@@ -1199,7 +1216,7 @@ func (e *SimpleSpriteDef) Read(r *AsciiReadToken) error {
 		return fmt.Errorf("skip frames: %w", err)
 	}
 
-	records, err = r.ReadProperty("ANIMATED?", 1)
+	records, err = token.ReadProperty("ANIMATED?", 1)
 	if err != nil {
 		return fmt.Errorf("ANIMATED?: %w", err)
 	}
@@ -1208,7 +1225,7 @@ func (e *SimpleSpriteDef) Read(r *AsciiReadToken) error {
 		return fmt.Errorf("animated: %w", err)
 	}
 
-	records, err = r.ReadProperty("SLEEP?", 1)
+	records, err = token.ReadProperty("SLEEP?", 1)
 	if err != nil {
 		return fmt.Errorf("SLEEP?: %w", err)
 	}
@@ -1217,7 +1234,7 @@ func (e *SimpleSpriteDef) Read(r *AsciiReadToken) error {
 		return fmt.Errorf("sleep: %w", err)
 	}
 
-	records, err = r.ReadProperty("CURRENTFRAME?", 1)
+	records, err = token.ReadProperty("CURRENTFRAME?", 1)
 	if err != nil {
 		return fmt.Errorf("CURRENTFRAME?: %w", err)
 	}
@@ -1227,7 +1244,7 @@ func (e *SimpleSpriteDef) Read(r *AsciiReadToken) error {
 		return fmt.Errorf("current frame: %w", err)
 	}
 
-	records, err = r.ReadProperty("NUMFRAMES", 1)
+	records, err = token.ReadProperty("NUMFRAMES", 1)
 	if err != nil {
 		return fmt.Errorf("NUMFRAMES: %w", err)
 	}
@@ -1238,7 +1255,7 @@ func (e *SimpleSpriteDef) Read(r *AsciiReadToken) error {
 	}
 
 	for i := 0; i < numFrames; i++ {
-		records, err = r.ReadProperty("FRAME", 2)
+		records, err = token.ReadProperty("FRAME", 2)
 		if err != nil {
 			return fmt.Errorf("FRAME: %w", err)
 		}
@@ -1248,7 +1265,7 @@ func (e *SimpleSpriteDef) Read(r *AsciiReadToken) error {
 		})
 	}
 
-	_, err = r.ReadProperty("ENDSIMPLESPRITEDEF", 0)
+	_, err = token.ReadProperty("ENDSIMPLESPRITEDEF", 0)
 	if err != nil {
 		return fmt.Errorf("ENDSIMPLESPRITEDEF: %w", err)
 	}
@@ -1386,20 +1403,20 @@ func (e *ActorDef) Write(w io.Writer) error {
 	return nil
 }
 
-func (e *ActorDef) Read(r *AsciiReadToken) error {
-	records, err := r.ReadProperty("ACTORTAG", 1)
+func (e *ActorDef) Read(token *AsciiReadToken) error {
+	records, err := token.ReadProperty("ACTORTAG", 1)
 	if err != nil {
 		return err
 	}
 	e.Tag = records[1]
 
-	records, err = r.ReadProperty("CALLBACK", 1)
+	records, err = token.ReadProperty("CALLBACK", 1)
 	if err != nil {
 		return err
 	}
 	e.Callback = records[1]
 
-	records, err = r.ReadProperty("CURRENTACTION?", 1)
+	records, err = token.ReadProperty("CURRENTACTION?", 1)
 	if err != nil {
 		return err
 	}
@@ -1408,7 +1425,7 @@ func (e *ActorDef) Read(r *AsciiReadToken) error {
 		return fmt.Errorf("current action: %w", err)
 	}
 
-	records, err = r.ReadProperty("LOCATION?", 6)
+	records, err = token.ReadProperty("LOCATION?", 6)
 	if err != nil {
 		return err
 	}
@@ -1417,7 +1434,7 @@ func (e *ActorDef) Read(r *AsciiReadToken) error {
 		return fmt.Errorf("location: %w", err)
 	}
 
-	records, err = r.ReadProperty("ACTIVEGEOMETRY?", 1)
+	records, err = token.ReadProperty("ACTIVEGEOMETRY?", 1)
 	if err != nil {
 		return err
 	}
@@ -1426,7 +1443,7 @@ func (e *ActorDef) Read(r *AsciiReadToken) error {
 		return fmt.Errorf("active geometry: %w", err)
 	}
 
-	records, err = r.ReadProperty("NUMACTIONS", 1)
+	records, err = token.ReadProperty("NUMACTIONS", 1)
 	if err != nil {
 		return err
 	}
@@ -1438,12 +1455,12 @@ func (e *ActorDef) Read(r *AsciiReadToken) error {
 
 	for i := 0; i < numActions; i++ {
 		action := ActorAction{}
-		_, err = r.ReadProperty("ACTION", 0)
+		_, err = token.ReadProperty("ACTION", 0)
 		if err != nil {
 			return err
 		}
 
-		records, err = r.ReadProperty("NUMLEVELSOFDETAIL", 1)
+		records, err = token.ReadProperty("NUMLEVELSOFDETAIL", 1)
 		if err != nil {
 			return err
 		}
@@ -1456,18 +1473,18 @@ func (e *ActorDef) Read(r *AsciiReadToken) error {
 
 		for j := 0; j < numLod; j++ {
 			lod := ActorLevelOfDetail{}
-			_, err = r.ReadProperty("LEVELOFDETAIL", 0)
+			_, err = token.ReadProperty("LEVELOFDETAIL", 0)
 			if err != nil {
 				return err
 			}
 
-			records, err = r.ReadProperty("SPRITE", 1)
+			records, err = token.ReadProperty("SPRITE", 1)
 			if err != nil {
 				return err
 			}
 			lod.SpriteTag = records[1]
 
-			records, err = r.ReadProperty("MINDISTANCE", 1)
+			records, err = token.ReadProperty("MINDISTANCE", 1)
 			if err != nil {
 				return err
 			}
@@ -1477,7 +1494,7 @@ func (e *ActorDef) Read(r *AsciiReadToken) error {
 				return fmt.Errorf("min distance: %w", err)
 			}
 
-			_, err = r.ReadProperty("ENDLEVELOFDETAIL", 0)
+			_, err = token.ReadProperty("ENDLEVELOFDETAIL", 0)
 			if err != nil {
 				return err
 			}
@@ -1485,7 +1502,7 @@ func (e *ActorDef) Read(r *AsciiReadToken) error {
 			action.LevelOfDetails = append(action.LevelOfDetails, lod)
 		}
 
-		_, err = r.ReadProperty("ENDACTION", 0)
+		_, err = token.ReadProperty("ENDACTION", 0)
 		if err != nil {
 			return err
 		}
@@ -1494,7 +1511,7 @@ func (e *ActorDef) Read(r *AsciiReadToken) error {
 
 	}
 
-	_, err = r.ReadProperty("ENDACTORDEF", 0)
+	_, err = token.ReadProperty("ENDACTORDEF", 0)
 	if err != nil {
 		return err
 	}
@@ -1541,11 +1558,21 @@ func (e *ActorDef) ToRaw(wld *Wld, rawWld *raw.Wld) (int16, error) {
 			var spriteRef int16
 			spriteVar := wld.ByTag(lod.SpriteTag)
 			if spriteVar == nil {
-				return -1, fmt.Errorf("sprite %s not found", lod.SpriteTag)
+				return -1, fmt.Errorf("lod sprite %s not found", lod.SpriteTag)
 			}
 			switch spriteDef := spriteVar.(type) {
 			case *DMSpriteDef2:
+
 				spriteRef, err = spriteDef.ToRaw(wld, rawWld)
+				if err != nil {
+					return -1, fmt.Errorf("sprite %s to raw: %w", lod.SpriteTag, err)
+				}
+				sprite := &rawfrag.WldFragDMSprite{
+					DMSpriteRef: int32(spriteRef),
+				}
+
+				rawWld.Fragments = append(rawWld.Fragments, sprite)
+				spriteRef = int16(len(rawWld.Fragments))
 			case *Sprite3DDef:
 				spriteRef, err = spriteDef.ToRaw(wld, rawWld)
 				if err != nil {
@@ -1572,6 +1599,30 @@ func (e *ActorDef) ToRaw(wld *Wld, rawWld *raw.Wld) (int16, error) {
 
 				rawWld.Fragments = append(rawWld.Fragments, sprite)
 				spriteRef = int16(len(rawWld.Fragments))
+			case *BlitSpriteDefinition:
+				spriteRef, err = spriteDef.ToRaw(wld, rawWld)
+				if err != nil {
+					return -1, fmt.Errorf("sprite %s to raw: %w", lod.SpriteTag, err)
+				}
+
+				sprite := &rawfrag.WldFragBlitSprite{
+					BlitSpriteRef: int32(spriteRef),
+				}
+
+				rawWld.Fragments = append(rawWld.Fragments, sprite)
+				spriteRef = int16(len(rawWld.Fragments))
+			case *Sprite2DDef:
+				spriteRef, err = spriteDef.ToRaw(wld, rawWld)
+				if err != nil {
+					return -1, fmt.Errorf("sprite %s to raw: %w", lod.SpriteTag, err)
+				}
+
+				sprite := &rawfrag.WldFragSprite2D{
+					TwoDSpriteRef: uint32(spriteRef),
+				}
+
+				rawWld.Fragments = append(rawWld.Fragments, sprite)
+				spriteRef = int16(len(rawWld.Fragments))
 			default:
 				return -1, fmt.Errorf("actordef %s lod %s unknown sprite type %T", e.Tag, lod.SpriteTag, spriteDef)
 			}
@@ -1586,8 +1637,8 @@ func (e *ActorDef) ToRaw(wld *Wld, rawWld *raw.Wld) (int16, error) {
 		actorDef.Actions = append(actorDef.Actions, actorAction)
 	}
 
-	actorDef.NameRef = raw.NameAdd(e.Tag)
 	actorDef.CallbackNameRef = raw.NameAdd(e.Callback)
+	actorDef.NameRef = raw.NameAdd(e.Tag)
 
 	rawWld.Fragments = append(rawWld.Fragments, actorDef)
 	e.fragID = int16(len(rawWld.Fragments))
@@ -1658,7 +1709,24 @@ func (e *ActorDef) FromRaw(wld *Wld, rawWld *raw.Wld, frag *rawfrag.WldFragActor
 						return fmt.Errorf("hierarchicalsprite def ref %d not found", sprite.HierarchicalSpriteRef)
 					}
 					spriteTag = raw.Name(spriteDef.NameRef)
-
+				case *rawfrag.WldFragBlitSprite:
+					if len(rawWld.Fragments) < int(sprite.BlitSpriteRef) {
+						return fmt.Errorf("blitsprite def ref %d not found", sprite.BlitSpriteRef)
+					}
+					spriteDef, ok := rawWld.Fragments[sprite.BlitSpriteRef].(*rawfrag.WldFragBlitSpriteDef)
+					if !ok {
+						return fmt.Errorf("blitsprite def ref %d not found", sprite.BlitSpriteRef)
+					}
+					spriteTag = raw.Name(spriteDef.NameRef)
+				case *rawfrag.WldFragSprite2D:
+					if len(rawWld.Fragments) < int(sprite.TwoDSpriteRef) {
+						return fmt.Errorf("sprite2d def ref %d not found", sprite.TwoDSpriteRef)
+					}
+					spriteDef, ok := rawWld.Fragments[sprite.TwoDSpriteRef].(*rawfrag.WldFragSprite2DDef)
+					if !ok {
+						return fmt.Errorf("sprite2d def ref %d not found", sprite.TwoDSpriteRef)
+					}
+					spriteTag = raw.Name(spriteDef.NameRef)
 				default:
 					return fmt.Errorf("unhandled sprite instance fragment type %d (%s)", sprite.FragCode(), raw.FragName(sprite.FragCode()))
 				}
@@ -1737,20 +1805,20 @@ func (e *ActorInst) Write(w io.Writer) error {
 	return nil
 }
 
-func (e *ActorInst) Read(r *AsciiReadToken) error {
-	records, err := r.ReadProperty("TAG", 1)
+func (e *ActorInst) Read(token *AsciiReadToken) error {
+	records, err := token.ReadProperty("TAG", 1)
 	if err != nil {
 		return err
 	}
 	e.Tag = records[1]
 
-	records, err = r.ReadProperty("DEFINITION", 1)
+	records, err = token.ReadProperty("DEFINITION", 1)
 	if err != nil {
 		return err
 	}
 	e.DefinitionTag = records[1]
 
-	records, err = r.ReadProperty("CURRENTACTION?", 1)
+	records, err = token.ReadProperty("CURRENTACTION?", 1)
 	if err != nil {
 		return err
 	}
@@ -1759,7 +1827,7 @@ func (e *ActorInst) Read(r *AsciiReadToken) error {
 		return fmt.Errorf("current action: %w", err)
 	}
 
-	records, err = r.ReadProperty("LOCATION?", 6)
+	records, err = token.ReadProperty("LOCATION?", 6)
 	if err != nil {
 		return err
 	}
@@ -1768,7 +1836,7 @@ func (e *ActorInst) Read(r *AsciiReadToken) error {
 		return fmt.Errorf("location: %w", err)
 	}
 
-	records, err = r.ReadProperty("BOUNDINGRADIUS?", 1)
+	records, err = token.ReadProperty("BOUNDINGRADIUS?", 1)
 	if err != nil {
 		return err
 	}
@@ -1777,7 +1845,7 @@ func (e *ActorInst) Read(r *AsciiReadToken) error {
 		return fmt.Errorf("bounding radius: %w", err)
 	}
 
-	records, err = r.ReadProperty("SCALEFACTOR?", 1)
+	records, err = token.ReadProperty("SCALEFACTOR?", 1)
 	if err != nil {
 		return err
 	}
@@ -1786,7 +1854,7 @@ func (e *ActorInst) Read(r *AsciiReadToken) error {
 		return fmt.Errorf("scale factor: %w", err)
 	}
 
-	records, err = r.ReadProperty("SOUND?", 1)
+	records, err = token.ReadProperty("SOUND?", 1)
 	if err != nil {
 		return err
 	}
@@ -1795,7 +1863,7 @@ func (e *ActorInst) Read(r *AsciiReadToken) error {
 		return fmt.Errorf("sound: %w", err)
 	}
 
-	records, err = r.ReadProperty("ACTIVE?", 1)
+	records, err = token.ReadProperty("ACTIVE?", 1)
 	if err != nil {
 		return err
 	}
@@ -1804,7 +1872,7 @@ func (e *ActorInst) Read(r *AsciiReadToken) error {
 		return fmt.Errorf("active: %w", err)
 	}
 
-	records, err = r.ReadProperty("SPRITEVOLUMEONLY?", 1)
+	records, err = token.ReadProperty("SPRITEVOLUMEONLY?", 1)
 	if err != nil {
 		return err
 	}
@@ -1813,7 +1881,7 @@ func (e *ActorInst) Read(r *AsciiReadToken) error {
 		return fmt.Errorf("sprite volume only: %w", err)
 	}
 
-	records, err = r.ReadProperty("DMRGBTRACK?", 1)
+	records, err = token.ReadProperty("DMRGBTRACK?", 1)
 	if err != nil {
 		return err
 	}
@@ -1822,13 +1890,13 @@ func (e *ActorInst) Read(r *AsciiReadToken) error {
 		return fmt.Errorf("dm rgb track: %w", err)
 	}
 
-	records, err = r.ReadProperty("SPHERE", 1)
+	records, err = token.ReadProperty("SPHERE", 1)
 	if err != nil {
 		return err
 	}
 	e.SphereTag = records[1]
 
-	records, err = r.ReadProperty("SPHERERADIUS", 1)
+	records, err = token.ReadProperty("SPHERERADIUS", 1)
 	if err != nil {
 		return err
 	}
@@ -1837,7 +1905,7 @@ func (e *ActorInst) Read(r *AsciiReadToken) error {
 		return fmt.Errorf("sphere radius: %w", err)
 	}
 
-	records, err = r.ReadProperty("HEXTWOHUNDREDFLAG", 1)
+	records, err = token.ReadProperty("HEXTWOHUNDREDFLAG", 1)
 	if err != nil {
 		return err
 	}
@@ -1846,13 +1914,13 @@ func (e *ActorInst) Read(r *AsciiReadToken) error {
 		return fmt.Errorf("hex two hundred flag: %w", err)
 	}
 
-	records, err = r.ReadProperty("USERDATA", 1)
+	records, err = token.ReadProperty("USERDATA", 1)
 	if err != nil {
 		return err
 	}
 	e.UserData = records[1]
 
-	_, err = r.ReadProperty("ENDACTORINST", 0)
+	_, err = token.ReadProperty("ENDACTORINST", 0)
 	if err != nil {
 		return err
 	}
@@ -2102,14 +2170,14 @@ func (e *LightDef) Write(w io.Writer) error {
 	return nil
 }
 
-func (e *LightDef) Read(r *AsciiReadToken) error {
-	records, err := r.ReadProperty("TAG", 1)
+func (e *LightDef) Read(token *AsciiReadToken) error {
+	records, err := token.ReadProperty("TAG", 1)
 	if err != nil {
 		return err
 	}
 	e.Tag = records[1]
 
-	records, err = r.ReadProperty("CURRENTFRAME?", 1)
+	records, err = token.ReadProperty("CURRENTFRAME?", 1)
 	if err != nil {
 		return err
 	}
@@ -2118,7 +2186,7 @@ func (e *LightDef) Read(r *AsciiReadToken) error {
 		return fmt.Errorf("current frame: %w", err)
 	}
 
-	records, err = r.ReadProperty("NUMFRAMES", 1)
+	records, err = token.ReadProperty("NUMFRAMES", 1)
 	if err != nil {
 		return err
 	}
@@ -2129,7 +2197,7 @@ func (e *LightDef) Read(r *AsciiReadToken) error {
 	}
 
 	for i := 0; i < numFrames; i++ {
-		records, err = r.ReadProperty("LIGHTLEVELS", 1)
+		records, err = token.ReadProperty("LIGHTLEVELS", 1)
 		if err != nil {
 			return err
 		}
@@ -2141,7 +2209,7 @@ func (e *LightDef) Read(r *AsciiReadToken) error {
 		e.LightLevels = append(e.LightLevels, level)
 	}
 
-	records, err = r.ReadProperty("SLEEP?", 1)
+	records, err = token.ReadProperty("SLEEP?", 1)
 	if err != nil {
 		return err
 	}
@@ -2150,7 +2218,7 @@ func (e *LightDef) Read(r *AsciiReadToken) error {
 		return fmt.Errorf("sleep: %w", err)
 	}
 
-	records, err = r.ReadProperty("SKIPFRAMES", 1)
+	records, err = token.ReadProperty("SKIPFRAMES", 1)
 	if err != nil {
 		return err
 	}
@@ -2158,7 +2226,7 @@ func (e *LightDef) Read(r *AsciiReadToken) error {
 		e.SkipFrames = 1
 	}
 
-	records, err = r.ReadProperty("NUMCOLORS", 1)
+	records, err = token.ReadProperty("NUMCOLORS", 1)
 	if err != nil {
 		return err
 	}
@@ -2169,7 +2237,7 @@ func (e *LightDef) Read(r *AsciiReadToken) error {
 	}
 
 	for i := 0; i < numColors; i++ {
-		records, err = r.ReadProperty("COLOR", 3)
+		records, err = token.ReadProperty("COLOR", 3)
 		if err != nil {
 			return err
 		}
@@ -2182,7 +2250,7 @@ func (e *LightDef) Read(r *AsciiReadToken) error {
 		e.Colors = append(e.Colors, color)
 	}
 
-	_, err = r.ReadProperty("ENDLIGHTDEFINITION", 0)
+	_, err = token.ReadProperty("ENDLIGHTDEFINITION", 0)
 	if err != nil {
 		return err
 	}
@@ -2218,7 +2286,7 @@ func (e *LightDef) ToRaw(wld *Wld, rawWld *raw.Wld) (int16, error) {
 		wfLightDef.Flags |= 0x08
 	}
 
-	if len(e.Colors) > 1 {
+	if len(e.Colors) > 0 {
 		wfLightDef.Flags |= 0x10
 		wfLightDef.Colors = e.Colors
 	}
@@ -2250,6 +2318,10 @@ func (e *LightDef) FromRaw(wld *Wld, rawWld *raw.Wld, frag *rawfrag.WldFragLight
 		if len(frag.LightLevels) > 0 {
 			return fmt.Errorf("light levels found but flag 0x04 not set")
 		}
+	}
+
+	if frag.Flags&0x10 != 0 {
+		e.Colors = frag.Colors
 	}
 
 	return nil
@@ -2286,20 +2358,20 @@ func (e *PointLight) Write(w io.Writer) error {
 	return nil
 }
 
-func (e *PointLight) Read(r *AsciiReadToken) error {
-	records, err := r.ReadProperty("TAG", 1)
+func (e *PointLight) Read(token *AsciiReadToken) error {
+	records, err := token.ReadProperty("TAG", 1)
 	if err != nil {
 		return err
 	}
 	e.Tag = records[1]
 
-	records, err = r.ReadProperty("LIGHT", 1)
+	records, err = token.ReadProperty("LIGHT", 1)
 	if err != nil {
 		return err
 	}
 	e.LightTag = records[1]
 
-	records, err = r.ReadProperty("STATIC", 1)
+	records, err = token.ReadProperty("STATIC", 1)
 	if err != nil {
 		return err
 	}
@@ -2308,7 +2380,7 @@ func (e *PointLight) Read(r *AsciiReadToken) error {
 		return fmt.Errorf("static: %w", err)
 	}
 
-	records, err = r.ReadProperty("STATICINFLUENCE", 1)
+	records, err = token.ReadProperty("STATICINFLUENCE", 1)
 	if err != nil {
 		return err
 	}
@@ -2317,7 +2389,7 @@ func (e *PointLight) Read(r *AsciiReadToken) error {
 		return fmt.Errorf("static influence: %w", err)
 	}
 
-	records, err = r.ReadProperty("HASREGIONS", 1)
+	records, err = token.ReadProperty("HASREGIONS", 1)
 	if err != nil {
 		return err
 	}
@@ -2326,7 +2398,7 @@ func (e *PointLight) Read(r *AsciiReadToken) error {
 		return fmt.Errorf("has regions: %w", err)
 	}
 
-	records, err = r.ReadProperty("XYZ", 3)
+	records, err = token.ReadProperty("XYZ", 3)
 	if err != nil {
 		return err
 	}
@@ -2335,7 +2407,7 @@ func (e *PointLight) Read(r *AsciiReadToken) error {
 		return fmt.Errorf("location: %w", err)
 	}
 
-	records, err = r.ReadProperty("RADIUSOFINFLUENCE", 1)
+	records, err = token.ReadProperty("RADIUSOFINFLUENCE", 1)
 	if err != nil {
 		return err
 	}
@@ -2494,14 +2566,14 @@ func (e *Sprite3DDef) Write(w io.Writer) error {
 	return nil
 }
 
-func (s *Sprite3DDef) Read(r *AsciiReadToken) error {
-	records, err := r.ReadProperty("TAG", 1)
+func (s *Sprite3DDef) Read(token *AsciiReadToken) error {
+	records, err := token.ReadProperty("TAG", 1)
 	if err != nil {
 		return err
 	}
 	s.Tag = records[1]
 
-	records, err = r.ReadProperty("CENTEROFFSET?", 3)
+	records, err = token.ReadProperty("CENTEROFFSET?", 3)
 	if err != nil {
 		return err
 	}
@@ -2510,7 +2582,7 @@ func (s *Sprite3DDef) Read(r *AsciiReadToken) error {
 		return fmt.Errorf("center offset: %w", err)
 	}
 
-	records, err = r.ReadProperty("BOUNDINGRADIUS?", 1)
+	records, err = token.ReadProperty("BOUNDINGRADIUS?", 1)
 	if err != nil {
 		return err
 	}
@@ -2519,13 +2591,13 @@ func (s *Sprite3DDef) Read(r *AsciiReadToken) error {
 		return fmt.Errorf("bounding radius: %w", err)
 	}
 
-	records, err = r.ReadProperty("SPHERELIST", 1)
+	records, err = token.ReadProperty("SPHERELIST", 1)
 	if err != nil {
 		return err
 	}
 	s.SphereListTag = records[1]
 
-	records, err = r.ReadProperty("NUMVERTICES", 1)
+	records, err = token.ReadProperty("NUMVERTICES", 1)
 	if err != nil {
 		return err
 	}
@@ -2536,7 +2608,7 @@ func (s *Sprite3DDef) Read(r *AsciiReadToken) error {
 	}
 
 	for i := 0; i < numVertices; i++ {
-		records, err = r.ReadProperty("XYZ", 3)
+		records, err = token.ReadProperty("XYZ", 3)
 		if err != nil {
 			return err
 		}
@@ -2549,7 +2621,7 @@ func (s *Sprite3DDef) Read(r *AsciiReadToken) error {
 		s.Vertices = append(s.Vertices, vert)
 	}
 
-	records, err = r.ReadProperty("NUMBSPNODES", 1)
+	records, err = token.ReadProperty("NUMBSPNODES", 1)
 	if err != nil {
 		return err
 	}
@@ -2561,11 +2633,11 @@ func (s *Sprite3DDef) Read(r *AsciiReadToken) error {
 
 	for i := 0; i < numBSPNodes; i++ {
 		node := &BSPNode{}
-		_, err = r.ReadProperty("BSPNODE", 0)
+		_, err = token.ReadProperty("BSPNODE", 0)
 		if err != nil {
 			return err
 		}
-		records, err = r.ReadProperty("VERTEXLIST", -1)
+		records, err = token.ReadProperty("VERTEXLIST", -1)
 		if err != nil {
 			return err
 		}
@@ -2586,19 +2658,19 @@ func (s *Sprite3DDef) Read(r *AsciiReadToken) error {
 			node.Vertices = append(node.Vertices, val)
 		}
 
-		records, err = r.ReadProperty("RENDERMETHOD", 1)
+		records, err = token.ReadProperty("RENDERMETHOD", 1)
 		if err != nil {
 			return err
 		}
 
 		node.RenderMethod = records[1]
 
-		_, err = r.ReadProperty("RENDERINFO", 0)
+		_, err = token.ReadProperty("RENDERINFO", 0)
 		if err != nil {
 			return err
 		}
 
-		records, err = r.ReadProperty("PEN?", 1)
+		records, err = token.ReadProperty("PEN?", 1)
 		if err != nil {
 			return err
 		}
@@ -2607,7 +2679,7 @@ func (s *Sprite3DDef) Read(r *AsciiReadToken) error {
 			return fmt.Errorf("render pen: %w", err)
 		}
 
-		records, err = r.ReadProperty("BRIGHTNESS?", 1)
+		records, err = token.ReadProperty("BRIGHTNESS?", 1)
 		if err != nil {
 			return err
 		}
@@ -2616,7 +2688,7 @@ func (s *Sprite3DDef) Read(r *AsciiReadToken) error {
 			return fmt.Errorf("render brightness: %w", err)
 		}
 
-		records, err = r.ReadProperty("SCALEDAMBIENT?", 1)
+		records, err = token.ReadProperty("SCALEDAMBIENT?", 1)
 		if err != nil {
 			return err
 		}
@@ -2625,7 +2697,7 @@ func (s *Sprite3DDef) Read(r *AsciiReadToken) error {
 			return fmt.Errorf("render scaled ambient: %w", err)
 		}
 
-		records, err = r.ReadProperty("SPRITE?", 1)
+		records, err = token.ReadProperty("SPRITE?", 1)
 		if err != nil {
 			return err
 		}
@@ -2634,7 +2706,7 @@ func (s *Sprite3DDef) Read(r *AsciiReadToken) error {
 			return fmt.Errorf("render sprite: %w", err)
 		}
 
-		records, err = r.ReadProperty("UVORIGIN?", 3)
+		records, err = token.ReadProperty("UVORIGIN?", 3)
 		if err != nil {
 			return err
 		}
@@ -2643,7 +2715,7 @@ func (s *Sprite3DDef) Read(r *AsciiReadToken) error {
 			return fmt.Errorf("render uv origin: %w", err)
 		}
 
-		records, err = r.ReadProperty("UAXIS?", 3)
+		records, err = token.ReadProperty("UAXIS?", 3)
 		if err != nil {
 			return err
 		}
@@ -2652,7 +2724,7 @@ func (s *Sprite3DDef) Read(r *AsciiReadToken) error {
 			return fmt.Errorf("render u axis: %w", err)
 		}
 
-		records, err = r.ReadProperty("VAXIS?", 3)
+		records, err = token.ReadProperty("VAXIS?", 3)
 		if err != nil {
 			return err
 		}
@@ -2661,7 +2733,7 @@ func (s *Sprite3DDef) Read(r *AsciiReadToken) error {
 			return fmt.Errorf("render v axis: %w", err)
 		}
 
-		records, err = r.ReadProperty("UVCOUNT", 1)
+		records, err = token.ReadProperty("UVCOUNT", 1)
 		if err != nil {
 			return err
 		}
@@ -2672,7 +2744,7 @@ func (s *Sprite3DDef) Read(r *AsciiReadToken) error {
 		}
 
 		for j := 0; j < numUVs; j++ {
-			records, err = r.ReadProperty("UV", 2)
+			records, err = token.ReadProperty("UV", 2)
 			if err != nil {
 				return err
 			}
@@ -2684,7 +2756,7 @@ func (s *Sprite3DDef) Read(r *AsciiReadToken) error {
 			node.Uvs = append(node.Uvs, uv)
 		}
 
-		records, err = r.ReadProperty("TWOSIDED", 1)
+		records, err = token.ReadProperty("TWOSIDED", 1)
 		if err != nil {
 			return err
 		}
@@ -2693,12 +2765,12 @@ func (s *Sprite3DDef) Read(r *AsciiReadToken) error {
 			return fmt.Errorf("two sided: %w", err)
 		}
 
-		_, err = r.ReadProperty("ENDRENDERINFO", 0)
+		_, err = token.ReadProperty("ENDRENDERINFO", 0)
 		if err != nil {
 			return err
 		}
 
-		records, err = r.ReadProperty("FRONTTREE", 1)
+		records, err = token.ReadProperty("FRONTTREE", 1)
 		if err != nil {
 			return err
 		}
@@ -2708,7 +2780,7 @@ func (s *Sprite3DDef) Read(r *AsciiReadToken) error {
 			return fmt.Errorf("front tree: %w", err)
 		}
 
-		records, err = r.ReadProperty("BACKTREE", 1)
+		records, err = token.ReadProperty("BACKTREE", 1)
 		if err != nil {
 			return err
 		}
@@ -2718,7 +2790,7 @@ func (s *Sprite3DDef) Read(r *AsciiReadToken) error {
 			return fmt.Errorf("back tree: %w", err)
 		}
 
-		_, err = r.ReadProperty("ENDBSPNODE", 0)
+		_, err = token.ReadProperty("ENDBSPNODE", 0)
 		if err != nil {
 			return err
 		}
@@ -2726,7 +2798,7 @@ func (s *Sprite3DDef) Read(r *AsciiReadToken) error {
 		s.BSPNodes = append(s.BSPNodes, node)
 	}
 
-	_, err = r.ReadProperty("END3DSPRITEDEF", 0)
+	_, err = token.ReadProperty("END3DSPRITEDEF", 0)
 	if err != nil {
 		return err
 	}
@@ -2945,14 +3017,14 @@ func (e *PolyhedronDefinition) Write(w io.Writer) error {
 	return nil
 }
 
-func (e *PolyhedronDefinition) Read(r *AsciiReadToken) error {
-	records, err := r.ReadProperty("TAG", 1)
+func (e *PolyhedronDefinition) Read(token *AsciiReadToken) error {
+	records, err := token.ReadProperty("TAG", 1)
 	if err != nil {
 		return err
 	}
 	e.Tag = records[1]
 
-	records, err = r.ReadProperty("BOUNDINGRADIUS", 1)
+	records, err = token.ReadProperty("BOUNDINGRADIUS", 1)
 	if err != nil {
 		return err
 	}
@@ -2961,7 +3033,7 @@ func (e *PolyhedronDefinition) Read(r *AsciiReadToken) error {
 		return fmt.Errorf("bounding radius: %w", err)
 	}
 
-	records, err = r.ReadProperty("SCALEFACTOR", 1)
+	records, err = token.ReadProperty("SCALEFACTOR", 1)
 	if err != nil {
 		return err
 	}
@@ -2970,7 +3042,7 @@ func (e *PolyhedronDefinition) Read(r *AsciiReadToken) error {
 		return fmt.Errorf("scale factor: %w", err)
 	}
 
-	records, err = r.ReadProperty("NUMVERTICES", 1)
+	records, err = token.ReadProperty("NUMVERTICES", 1)
 	if err != nil {
 		return err
 	}
@@ -2982,7 +3054,7 @@ func (e *PolyhedronDefinition) Read(r *AsciiReadToken) error {
 	}
 
 	for i := 0; i < numVertices; i++ {
-		records, err = r.ReadProperty("XYZ", 3)
+		records, err = token.ReadProperty("XYZ", 3)
 		if err != nil {
 			return err
 		}
@@ -2994,7 +3066,7 @@ func (e *PolyhedronDefinition) Read(r *AsciiReadToken) error {
 		e.Vertices = append(e.Vertices, vert)
 	}
 
-	records, err = r.ReadProperty("NUMFACES", 1)
+	records, err = token.ReadProperty("NUMFACES", 1)
 	if err != nil {
 		return err
 	}
@@ -3006,12 +3078,12 @@ func (e *PolyhedronDefinition) Read(r *AsciiReadToken) error {
 
 	for i := 0; i < numFaces; i++ {
 		face := &PolyhedronDefinitionFace{}
-		_, err = r.ReadProperty("FACE", 0)
+		_, err = token.ReadProperty("FACE", 0)
 		if err != nil {
 			return err
 		}
 
-		records, err = r.ReadProperty("VERTEXLIST", -1)
+		records, err = token.ReadProperty("VERTEXLIST", -1)
 		if err != nil {
 			return err
 		}
@@ -3033,7 +3105,7 @@ func (e *PolyhedronDefinition) Read(r *AsciiReadToken) error {
 			face.Vertices = append(face.Vertices, val)
 		}
 
-		_, err = r.ReadProperty("ENDFACE", 0)
+		_, err = token.ReadProperty("ENDFACE", 0)
 		if err != nil {
 			return err
 		}
@@ -3041,7 +3113,7 @@ func (e *PolyhedronDefinition) Read(r *AsciiReadToken) error {
 		e.Faces = append(e.Faces, face)
 	}
 
-	_, err = r.ReadProperty("ENDPOLYHEDRONDEFINITION", 0)
+	_, err = token.ReadProperty("ENDPOLYHEDRONDEFINITION", 0)
 	if err != nil {
 		return err
 	}
@@ -3094,6 +3166,7 @@ func (e *PolyhedronDefinition) FromRaw(wld *Wld, rawWld *raw.Wld, frag *rawfrag.
 
 type TrackInstance struct {
 	fragID        int16
+	modelTag      string
 	Tag           string
 	DefinitionTag string
 	Interpolate   int
@@ -3116,20 +3189,20 @@ func (e *TrackInstance) Write(w io.Writer) error {
 	return nil
 }
 
-func (e *TrackInstance) Read(r *AsciiReadToken) error {
-	records, err := r.ReadProperty("TAG", 1)
+func (e *TrackInstance) Read(token *AsciiReadToken) error {
+	records, err := token.ReadProperty("TAG", 1)
 	if err != nil {
 		return err
 	}
 	e.Tag = records[1]
 
-	records, err = r.ReadProperty("DEFINITION", 1)
+	records, err = token.ReadProperty("DEFINITION", 1)
 	if err != nil {
 		return err
 	}
 	e.DefinitionTag = records[1]
 
-	records, err = r.ReadProperty("INTERPOLATE", 1)
+	records, err = token.ReadProperty("INTERPOLATE", 1)
 	if err != nil {
 		return err
 	}
@@ -3138,7 +3211,7 @@ func (e *TrackInstance) Read(r *AsciiReadToken) error {
 		return fmt.Errorf("interpolate: %w", err)
 	}
 
-	records, err = r.ReadProperty("REVERSE", 1)
+	records, err = token.ReadProperty("REVERSE", 1)
 	if err != nil {
 		return err
 	}
@@ -3147,7 +3220,7 @@ func (e *TrackInstance) Read(r *AsciiReadToken) error {
 		return fmt.Errorf("reverse: %w", err)
 	}
 
-	records, err = r.ReadProperty("SLEEP?", 1)
+	records, err = token.ReadProperty("SLEEP?", 1)
 	if err != nil {
 		return err
 	}
@@ -3156,7 +3229,7 @@ func (e *TrackInstance) Read(r *AsciiReadToken) error {
 		return fmt.Errorf("sleep: %w", err)
 	}
 
-	_, err = r.ReadProperty("ENDTRACKINSTANCE", 0)
+	_, err = token.ReadProperty("ENDTRACKINSTANCE", 0)
 	if err != nil {
 		return err
 	}
@@ -3241,6 +3314,7 @@ func (e *TrackInstance) FromRaw(wld *Wld, rawWld *raw.Wld, frag *rawfrag.WldFrag
 
 type TrackDef struct {
 	fragID          int16
+	modelTag        string
 	Tag             string
 	FrameTransforms []*TrackFrameTransform
 }
@@ -3275,14 +3349,14 @@ func (e *TrackDef) Write(w io.Writer) error {
 	return nil
 }
 
-func (e *TrackDef) Read(r *AsciiReadToken) error {
-	records, err := r.ReadProperty("TAG", 1)
+func (e *TrackDef) Read(token *AsciiReadToken) error {
+	records, err := token.ReadProperty("TAG", 1)
 	if err != nil {
 		return err
 	}
 	e.Tag = records[1]
 
-	records, err = r.ReadProperty("NUMFRAMES", 1)
+	records, err = token.ReadProperty("NUMFRAMES", 1)
 	if err != nil {
 		return err
 	}
@@ -3294,12 +3368,12 @@ func (e *TrackDef) Read(r *AsciiReadToken) error {
 
 	for i := 0; i < numFrames; i++ {
 		frame := &TrackFrameTransform{}
-		_, err = r.ReadProperty("FRAMETRANSFORM", 0)
+		_, err = token.ReadProperty("FRAMETRANSFORM", 0)
 		if err != nil {
 			return err
 		}
 
-		records, err = r.ReadProperty("XYZSCALE", 1)
+		records, err = token.ReadProperty("XYZSCALE", 1)
 		if err != nil {
 			return err
 		}
@@ -3308,7 +3382,7 @@ func (e *TrackDef) Read(r *AsciiReadToken) error {
 			return fmt.Errorf("xyz scale: %w", err)
 		}
 
-		records, err = r.ReadProperty("XYZ", 3)
+		records, err = token.ReadProperty("XYZ", 3)
 		if err != nil {
 			return err
 		}
@@ -3317,7 +3391,7 @@ func (e *TrackDef) Read(r *AsciiReadToken) error {
 			return fmt.Errorf("xyz: %w", err)
 		}
 
-		records, err = r.ReadProperty("ROTSCALE?", 1)
+		records, err = token.ReadProperty("ROTSCALE?", 1)
 		if err != nil {
 			return err
 		}
@@ -3326,7 +3400,7 @@ func (e *TrackDef) Read(r *AsciiReadToken) error {
 			return fmt.Errorf("rot scale: %w", err)
 		}
 
-		records, err = r.ReadProperty("ROTABC?", 3)
+		records, err = token.ReadProperty("ROTABC?", 3)
 		if err != nil {
 			return err
 		}
@@ -3335,7 +3409,7 @@ func (e *TrackDef) Read(r *AsciiReadToken) error {
 			return fmt.Errorf("rotabc: %w", err)
 		}
 
-		records, err = r.ReadProperty("LEGACYROTATIONABCD?", 4)
+		records, err = token.ReadProperty("LEGACYROTATIONABCD?", 4)
 		if err != nil {
 			return err
 		}
@@ -3344,7 +3418,7 @@ func (e *TrackDef) Read(r *AsciiReadToken) error {
 			return fmt.Errorf("legacy rotation: %w", err)
 		}
 
-		_, err = r.ReadProperty("ENDFRAMETRANSFORM", 0)
+		_, err = token.ReadProperty("ENDFRAMETRANSFORM", 0)
 		if err != nil {
 			return err
 		}
@@ -3352,7 +3426,7 @@ func (e *TrackDef) Read(r *AsciiReadToken) error {
 		e.FrameTransforms = append(e.FrameTransforms, frame)
 	}
 
-	_, err = r.ReadProperty("ENDTRACKDEFINITION", 0)
+	_, err = token.ReadProperty("ENDTRACKDEFINITION", 0)
 	if err != nil {
 		return err
 	}
@@ -3361,9 +3435,9 @@ func (e *TrackDef) Read(r *AsciiReadToken) error {
 }
 
 func (e *TrackDef) ToRaw(wld *Wld, rawWld *raw.Wld) (int16, error) {
-	if e.fragID != 0 {
-		return e.fragID, nil
-	}
+	//if e.fragID != 0 {
+	//	return e.fragID, nil
+	//}
 
 	wfTrack := &rawfrag.WldFragTrackDef{}
 
@@ -3548,14 +3622,14 @@ func (e *HierarchicalSpriteDef) Write(w io.Writer) error {
 	return nil
 }
 
-func (e *HierarchicalSpriteDef) Read(r *AsciiReadToken) error {
-	records, err := r.ReadProperty("TAG", 1)
+func (e *HierarchicalSpriteDef) Read(token *AsciiReadToken) error {
+	records, err := token.ReadProperty("TAG", 1)
 	if err != nil {
 		return err
 	}
 	e.Tag = records[1]
 
-	records, err = r.ReadProperty("NUMDAGS", 1)
+	records, err = token.ReadProperty("NUMDAGS", 1)
 	if err != nil {
 		return err
 	}
@@ -3567,30 +3641,30 @@ func (e *HierarchicalSpriteDef) Read(r *AsciiReadToken) error {
 
 	for i := 0; i < numDags; i++ {
 		dag := Dag{}
-		_, err = r.ReadProperty("DAG", 0)
+		_, err = token.ReadProperty("DAG", 0)
 		if err != nil {
 			return err
 		}
 
-		records, err = r.ReadProperty("TAG", 1)
+		records, err = token.ReadProperty("TAG", 1)
 		if err != nil {
 			return err
 		}
 		dag.Tag = records[1]
 
-		records, err = r.ReadProperty("SPRITE", 1)
+		records, err = token.ReadProperty("SPRITE", 1)
 		if err != nil {
 			return err
 		}
 		dag.SpriteTag = records[1]
 
-		records, err = r.ReadProperty("TRACK", 1)
+		records, err = token.ReadProperty("TRACK", 1)
 		if err != nil {
 			return err
 		}
 		dag.Track = records[1]
 
-		records, err = r.ReadProperty("SUBDAGLIST", -1)
+		records, err = token.ReadProperty("SUBDAGLIST", -1)
 		if err != nil {
 			return err
 		}
@@ -3611,7 +3685,7 @@ func (e *HierarchicalSpriteDef) Read(r *AsciiReadToken) error {
 			dag.SubDags = append(dag.SubDags, val)
 		}
 
-		_, err = r.ReadProperty("ENDDAG", 0)
+		_, err = token.ReadProperty("ENDDAG", 0)
 		if err != nil {
 			return err
 		}
@@ -3619,7 +3693,7 @@ func (e *HierarchicalSpriteDef) Read(r *AsciiReadToken) error {
 		e.Dags = append(e.Dags, dag)
 	}
 
-	records, err = r.ReadProperty("NUMATTACHEDSKINS", 1)
+	records, err = token.ReadProperty("NUMATTACHEDSKINS", 1)
 	if err != nil {
 		return err
 	}
@@ -3630,18 +3704,18 @@ func (e *HierarchicalSpriteDef) Read(r *AsciiReadToken) error {
 	}
 
 	for i := 0; i < numAttachedSkins; i++ {
-		_, err = r.ReadProperty("ATTACHEDSKIN", 0)
+		_, err = token.ReadProperty("ATTACHEDSKIN", 0)
 		if err != nil {
 			return err
 		}
 		skin := AttachedSkin{}
-		records, err = r.ReadProperty("DMSPRITE", 1)
+		records, err = token.ReadProperty("DMSPRITE", 1)
 		if err != nil {
 			return err
 		}
 		skin.DMSpriteTag = records[1]
 
-		records, err = r.ReadProperty("LINKSKINUPDATESTODAGINDEX", 1)
+		records, err = token.ReadProperty("LINKSKINUPDATESTODAGINDEX", 1)
 		if err != nil {
 			return err
 		}
@@ -3650,30 +3724,30 @@ func (e *HierarchicalSpriteDef) Read(r *AsciiReadToken) error {
 			return fmt.Errorf("link skin updates to dag index: %w", err)
 		}
 
-		_, err = r.ReadProperty("ENDATTACHEDSKIN", 0)
+		_, err = token.ReadProperty("ENDATTACHEDSKIN", 0)
 		if err != nil {
 			return err
 		}
 		e.AttachedSkins = append(e.AttachedSkins, skin)
 	}
 
-	_, err = r.ReadProperty("POLYHEDRON", 0)
+	_, err = token.ReadProperty("POLYHEDRON", 0)
 	if err != nil {
 		return err
 	}
 
-	records, err = r.ReadProperty("DEFINITION", 1)
+	records, err = token.ReadProperty("DEFINITION", 1)
 	if err != nil {
 		return err
 	}
 	e.PolyhedronTag = records[1]
 
-	_, err = r.ReadProperty("ENDPOLYHEDRON", 0)
+	_, err = token.ReadProperty("ENDPOLYHEDRON", 0)
 	if err != nil {
 		return err
 	}
 
-	records, err = r.ReadProperty("CENTEROFFSET?", 3)
+	records, err = token.ReadProperty("CENTEROFFSET?", 3)
 	if err != nil {
 		return err
 	}
@@ -3682,7 +3756,7 @@ func (e *HierarchicalSpriteDef) Read(r *AsciiReadToken) error {
 		return fmt.Errorf("center offset: %w", err)
 	}
 
-	records, err = r.ReadProperty("BOUNDINGRADIUS?", 1)
+	records, err = token.ReadProperty("BOUNDINGRADIUS?", 1)
 	if err != nil {
 		return err
 	}
@@ -3691,7 +3765,7 @@ func (e *HierarchicalSpriteDef) Read(r *AsciiReadToken) error {
 		return fmt.Errorf("bounding radius: %w", err)
 	}
 
-	records, err = r.ReadProperty("HEXTWOHUNDREDFLAG", 1)
+	records, err = token.ReadProperty("HEXTWOHUNDREDFLAG", 1)
 	if err != nil {
 		return err
 	}
@@ -3700,7 +3774,7 @@ func (e *HierarchicalSpriteDef) Read(r *AsciiReadToken) error {
 		return fmt.Errorf("hex two hundred flag: %w", err)
 	}
 
-	_, err = r.ReadProperty("ENDHIERARCHICALSPRITEDEF", 0)
+	_, err = token.ReadProperty("ENDHIERARCHICALSPRITEDEF", 0)
 	if err != nil {
 		return err
 	}
@@ -3726,6 +3800,12 @@ func (e *HierarchicalSpriteDef) ToRaw(wld *Wld, rawWld *raw.Wld) (int16, error) 
 		collisionTag := ""
 		switch sprite := collusionDef.(type) {
 		case *PolyhedronDefinition:
+			collisionTag = sprite.Tag
+		case *DMSpriteDef2: // chequip has this on EYE_HS_DEF
+			collisionTag = sprite.Tag
+		case *BlitSpriteDefinition:
+			collisionTag = sprite.Tag
+		case *DMSpriteDef:
 			collisionTag = sprite.Tag
 		default:
 			return -1, fmt.Errorf("unsupported collision volume type: %T", collusionDef)
@@ -3766,7 +3846,6 @@ func (e *HierarchicalSpriteDef) ToRaw(wld *Wld, rawWld *raw.Wld) (int16, error) 
 		}
 
 	}
-	wfHierarchicalSpriteDef.NameRef = raw.NameAdd(e.Tag)
 
 	for _, dag := range e.Dags {
 		wfDag := rawfrag.WldFragDag{}
@@ -3802,6 +3881,8 @@ func (e *HierarchicalSpriteDef) ToRaw(wld *Wld, rawWld *raw.Wld) (int16, error) 
 				wfDag.MeshOrSpriteOrParticleRef = uint32(spriteDef.fragID)
 			case *DMSpriteDef2:
 				wfDag.MeshOrSpriteOrParticleRef = uint32(spriteDef.fragID)
+			case *BlitSpriteDefinition:
+				wfDag.MeshOrSpriteOrParticleRef = uint32(spriteDef.fragID)
 			default:
 				return -1, fmt.Errorf("unsupported toraw dag spritetag instance type: %T", spriteDefFrag)
 			}
@@ -3824,7 +3905,7 @@ func (e *HierarchicalSpriteDef) ToRaw(wld *Wld, rawWld *raw.Wld) (int16, error) 
 		spriteRef := int16(0)
 		spriteDefFrag := wld.ByTag(skin.DMSpriteTag)
 		if spriteDefFrag == nil {
-			return -1, fmt.Errorf("sprite def not found: %s", skin.DMSpriteTag)
+			return -1, fmt.Errorf("skin sprite def not found: %s", skin.DMSpriteTag)
 		}
 		switch spriteDef := spriteDefFrag.(type) {
 		case *DMSpriteDef2:
@@ -3847,6 +3928,7 @@ func (e *HierarchicalSpriteDef) ToRaw(wld *Wld, rawWld *raw.Wld) (int16, error) 
 
 		wfHierarchicalSpriteDef.DMSprites = append(wfHierarchicalSpriteDef.DMSprites, uint32(spriteRef))
 	}
+	wfHierarchicalSpriteDef.NameRef = raw.NameAdd(e.Tag)
 
 	rawWld.Fragments = append(rawWld.Fragments, wfHierarchicalSpriteDef)
 	e.fragID = int16(len(rawWld.Fragments))
@@ -3913,16 +3995,27 @@ func (e *HierarchicalSpriteDef) FromRaw(wld *Wld, rawWld *raw.Wld, frag *rawfrag
 				return fmt.Errorf("mesh or sprite or particle ref %d not found", dag.MeshOrSpriteOrParticleRef)
 			}
 
-			spriteInst, ok := rawWld.Fragments[dag.MeshOrSpriteOrParticleRef].(*rawfrag.WldFragDMSprite)
-			if !ok {
-				return fmt.Errorf("sprite ref %d not found", dag.MeshOrSpriteOrParticleRef)
+			spriteFrag := rawWld.Fragments[dag.MeshOrSpriteOrParticleRef]
+			if spriteFrag == nil {
+				return fmt.Errorf("mesh or sprite or particle ref %d not found", dag.MeshOrSpriteOrParticleRef)
 			}
 
-			if len(rawWld.Fragments) < int(spriteInst.DMSpriteRef) {
-				return fmt.Errorf("dmsprite ref %d not found", spriteInst.DMSpriteRef)
+			spriteRef := int16(0)
+
+			switch sprite := spriteFrag.(type) {
+			case *rawfrag.WldFragDMSprite:
+				spriteRef = int16(sprite.DMSpriteRef)
+			case *rawfrag.WldFragParticleCloudDef:
+				spriteRef = int16(sprite.BlitSpriteDefRef)
+			default:
+				return fmt.Errorf("unhandled sprite instance or particle reference fragment type %d (%s)", spriteFrag.FragCode(), raw.FragName(spriteFrag.FragCode()))
 			}
 
-			spriteDef := rawWld.Fragments[spriteInst.DMSpriteRef]
+			if len(rawWld.Fragments) < int(spriteRef) {
+				return fmt.Errorf("sprite instance/particle ref %d out of range", spriteRef)
+			}
+
+			spriteDef := rawWld.Fragments[spriteRef]
 			switch simpleSprite := spriteDef.(type) {
 			case *rawfrag.WldFragSimpleSpriteDef:
 				spriteTag = raw.Name(simpleSprite.NameRef)
@@ -3933,6 +4026,8 @@ func (e *HierarchicalSpriteDef) FromRaw(wld *Wld, rawWld *raw.Wld, frag *rawfrag
 			case *rawfrag.WldFragSprite2D:
 				spriteTag = raw.Name(simpleSprite.NameRef)
 			case *rawfrag.WldFragDmSpriteDef2:
+				spriteTag = raw.Name(simpleSprite.NameRef)
+			case *rawfrag.WldFragBlitSpriteDef:
 				spriteTag = raw.Name(simpleSprite.NameRef)
 			default:
 				return fmt.Errorf("unhandled mesh or sprite or particle reference fragment type %d (%s)", spriteDef.FragCode(), raw.FragName(spriteDef.FragCode()))
@@ -4025,14 +4120,14 @@ func (e *WorldTree) Write(w io.Writer) error {
 	return nil
 }
 
-func (e *WorldTree) Read(r *AsciiReadToken) error {
-	records, err := r.ReadProperty("TAG", 1)
+func (e *WorldTree) Read(token *AsciiReadToken) error {
+	records, err := token.ReadProperty("TAG", 1)
 	if err != nil {
 		return err
 	}
 	e.Tag = records[1]
 
-	records, err = r.ReadProperty("NUMWORLDNODES", 1)
+	records, err = token.ReadProperty("NUMWORLDNODES", 1)
 	if err != nil {
 		return err
 	}
@@ -4045,12 +4140,12 @@ func (e *WorldTree) Read(r *AsciiReadToken) error {
 
 	for i := 0; i < numNodes; i++ {
 		node := &WorldNode{}
-		_, err = r.ReadProperty("WORLDNODE", 0)
+		_, err = token.ReadProperty("WORLDNODE", 0)
 		if err != nil {
 			return err
 		}
 
-		records, err = r.ReadProperty("NORMALABCD", 4)
+		records, err = token.ReadProperty("NORMALABCD", 4)
 		if err != nil {
 			return err
 		}
@@ -4059,13 +4154,13 @@ func (e *WorldTree) Read(r *AsciiReadToken) error {
 			return fmt.Errorf("normals: %w", err)
 		}
 
-		records, err = r.ReadProperty("WORLDREGIONTAG", 1)
+		records, err = token.ReadProperty("WORLDREGIONTAG", 1)
 		if err != nil {
 			return err
 		}
 		node.WorldRegionTag = records[1]
 
-		records, err = r.ReadProperty("FRONTTREE", 1)
+		records, err = token.ReadProperty("FRONTTREE", 1)
 		if err != nil {
 			return err
 		}
@@ -4074,7 +4169,7 @@ func (e *WorldTree) Read(r *AsciiReadToken) error {
 			return fmt.Errorf("front tree: %w", err)
 		}
 
-		records, err = r.ReadProperty("BACKTREE", 1)
+		records, err = token.ReadProperty("BACKTREE", 1)
 		if err != nil {
 			return err
 		}
@@ -4083,7 +4178,7 @@ func (e *WorldTree) Read(r *AsciiReadToken) error {
 			return fmt.Errorf("back tree: %w", err)
 		}
 
-		_, err = r.ReadProperty("ENDWORLDNODE", 0)
+		_, err = token.ReadProperty("ENDWORLDNODE", 0)
 		if err != nil {
 			return err
 		}
@@ -4092,7 +4187,7 @@ func (e *WorldTree) Read(r *AsciiReadToken) error {
 
 	}
 
-	_, err = r.ReadProperty("ENDWORLDTREE", 0)
+	_, err = token.ReadProperty("ENDWORLDTREE", 0)
 	if err != nil {
 		return err
 	}
@@ -4107,9 +4202,29 @@ func (e *WorldTree) ToRaw(wld *Wld, rawWld *raw.Wld) (int16, error) {
 	wfWorldTree := &rawfrag.WldFragWorldTree{}
 
 	for _, node := range e.WorldNodes {
+
+		regionRef := int32(0)
+		if node.WorldRegionTag != "" {
+			regionFrag := wld.ByTag(node.WorldRegionTag)
+			if regionFrag == nil {
+				return -1, fmt.Errorf("region not found: %s", node.WorldRegionTag)
+			}
+			region, ok := regionFrag.(*Region)
+			if !ok {
+				return -1, fmt.Errorf("invalid region type: %T", regionFrag)
+			}
+			if !strings.HasPrefix(region.Tag, "R") {
+				return -1, fmt.Errorf("invalid region tag (needs R Prefix): %s", region.Tag)
+			}
+			regionVal, err := strconv.Atoi(region.Tag[1:])
+			if err != nil {
+				return -1, fmt.Errorf("invalid region tag (Should be R########): %s", region.Tag)
+			}
+			regionRef = int32(regionVal)
+		}
 		wfNode := rawfrag.WorldTreeNode{
 			Normal:    node.Normals,
-			RegionRef: -raw.NameAdd(node.WorldRegionTag),
+			RegionRef: regionRef,
 			FrontRef:  int32(node.FrontTree),
 			BackRef:   int32(node.BackTree),
 		}
@@ -4130,9 +4245,13 @@ func (e *WorldTree) FromRaw(wld *Wld, rawWld *raw.Wld, frag *rawfrag.WldFragWorl
 	}
 
 	for _, srcNode := range frag.Nodes {
+		regionTag := ""
+		if srcNode.RegionRef > 0 {
+			regionTag = fmt.Sprintf("R%06d", srcNode.RegionRef)
+		}
 		node := &WorldNode{
 			Normals:        srcNode.Normal,
-			WorldRegionTag: raw.Name(srcNode.RegionRef),
+			WorldRegionTag: regionTag,
 			FrontTree:      uint32(srcNode.FrontRef),
 			BackTree:       uint32(srcNode.BackRef),
 		}
@@ -4783,7 +4902,7 @@ func (e *Region) ToRaw(wld *Wld, rawWld *raw.Wld) (int16, error) {
 		wfRegion.Flags |= 0x100
 		spriteDef := wld.ByTag(e.SpriteTag)
 		if spriteDef == nil {
-			return 0, fmt.Errorf("sprite def not found: %s", e.SpriteTag)
+			return 0, fmt.Errorf("region sprite def not found: %s", e.SpriteTag)
 		}
 
 		spriteRef, err := spriteDef.ToRaw(wld, rawWld)
@@ -4908,22 +5027,22 @@ func (e *AmbientLight) Write(w io.Writer) error {
 	return nil
 }
 
-func (e *AmbientLight) Read(r *AsciiReadToken) error {
-	records, err := r.ReadProperty("TAG", 1)
+func (e *AmbientLight) Read(token *AsciiReadToken) error {
+	records, err := token.ReadProperty("TAG", 1)
 	if err != nil {
 		return err
 	}
 
 	e.Tag = records[1]
 
-	records, err = r.ReadProperty("LIGHT", 1)
+	records, err = token.ReadProperty("LIGHT", 1)
 	if err != nil {
 		return err
 	}
 
 	e.LightTag = records[1]
 
-	records, err = r.ReadProperty("REGIONLIST", -1)
+	records, err = token.ReadProperty("REGIONLIST", -1)
 	if err != nil {
 		return err
 	}
@@ -4944,7 +5063,7 @@ func (e *AmbientLight) Read(r *AsciiReadToken) error {
 		e.Regions = append(e.Regions, val)
 	}
 
-	_, err = r.ReadProperty("ENDAMBIENTLIGHT", 0)
+	_, err = token.ReadProperty("ENDAMBIENTLIGHT", 0)
 	if err != nil {
 		return err
 	}
@@ -5051,15 +5170,15 @@ func (e *Zone) Write(w io.Writer) error {
 	return nil
 }
 
-func (e *Zone) Read(r *AsciiReadToken) error {
-	records, err := r.ReadProperty("TAG", 1)
+func (e *Zone) Read(token *AsciiReadToken) error {
+	records, err := token.ReadProperty("TAG", 1)
 	if err != nil {
 		return err
 	}
 
 	e.Tag = records[1]
 
-	records, err = r.ReadProperty("REGIONLIST", -1)
+	records, err = token.ReadProperty("REGIONLIST", -1)
 	if err != nil {
 		return err
 	}
@@ -5080,14 +5199,14 @@ func (e *Zone) Read(r *AsciiReadToken) error {
 		e.Regions = append(e.Regions, val)
 	}
 
-	records, err = r.ReadProperty("USERDATA", 1)
+	records, err = token.ReadProperty("USERDATA", 1)
 	if err != nil {
 		return err
 	}
 
 	e.UserData = records[1]
 
-	_, err = r.ReadProperty("ENDZONE", 0)
+	_, err = token.ReadProperty("ENDZONE", 0)
 	if err != nil {
 		return err
 	}
@@ -5267,5 +5386,893 @@ func (e *RGBTrackDef) FromRaw(wld *Wld, rawWld *raw.Wld, frag *rawfrag.WldFragDm
 	e.Sleep = frag.Sleep
 	e.Data4 = frag.Data4
 	e.RGBAs = frag.RGBAs
+	return nil
+}
+
+type BlitSpriteDefinition struct {
+	fragID    int16
+	Tag       string
+	SpriteTag string
+	Unknown   int32
+}
+
+func (e *BlitSpriteDefinition) Definition() string {
+	return "BLITSPRITEDEFINITION"
+}
+
+func (e *BlitSpriteDefinition) Write(w io.Writer) error {
+	fmt.Fprintf(w, "%s\n", e.Definition())
+	fmt.Fprintf(w, "\tTAG \"%s\"\n", e.Tag)
+	fmt.Fprintf(w, "\tSPRITE \"%s\"\n", e.SpriteTag)
+	fmt.Fprintf(w, "\tUNKNOWN %d\n", e.Unknown)
+	fmt.Fprintf(w, "ENDBLITSPRITEDEFINITION\n\n")
+	return nil
+}
+
+func (e *BlitSpriteDefinition) Read(token *AsciiReadToken) error {
+	records, err := token.ReadProperty("TAG", 1)
+	if err != nil {
+		return err
+	}
+	e.Tag = records[1]
+
+	records, err = token.ReadProperty("SPRITE", 1)
+	if err != nil {
+		return err
+	}
+	e.SpriteTag = records[1]
+
+	records, err = token.ReadProperty("UNKNOWN", 1)
+	if err != nil {
+		return err
+	}
+	err = parse(&e.Unknown, records[1])
+	if err != nil {
+		return fmt.Errorf("unknown: %w", err)
+	}
+
+	_, err = token.ReadProperty("ENDBLITSPRITEDEFINITION", 0)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (e *BlitSpriteDefinition) ToRaw(wld *Wld, rawWld *raw.Wld) (int16, error) {
+	if e.fragID != 0 {
+		return e.fragID, nil
+	}
+	wfBlitSprite := &rawfrag.WldFragBlitSpriteDef{
+		Unknown: e.Unknown,
+	}
+
+	spriteDef := wld.ByTag(e.SpriteTag)
+	if spriteDef != nil {
+		spriteRef, err := spriteDef.ToRaw(wld, rawWld)
+		if err != nil {
+			return 0, fmt.Errorf("sprite def to raw: %w", err)
+		}
+		wfBlitSprite.SpriteInstanceRef = uint32(spriteRef)
+	}
+
+	wfBlitSprite.NameRef = raw.NameAdd(e.Tag)
+
+	rawWld.Fragments = append(rawWld.Fragments, wfBlitSprite)
+	e.fragID = int16(len(rawWld.Fragments))
+	return int16(len(rawWld.Fragments)), nil
+}
+
+func (e *BlitSpriteDefinition) FromRaw(wld *Wld, rawWld *raw.Wld, frag *rawfrag.WldFragBlitSpriteDef) error {
+	if frag == nil {
+		return fmt.Errorf("frag is not blit sprite def (wrong fragcode?)")
+	}
+
+	e.Tag = raw.Name(frag.NameRef)
+	if len(rawWld.Fragments) < int(frag.SpriteInstanceRef) {
+		return fmt.Errorf("blit sprite ref %d out of bounds", frag.SpriteInstanceRef)
+	}
+	sprite := rawWld.Fragments[frag.SpriteInstanceRef]
+
+	spriteDef, ok := sprite.(*rawfrag.WldFragSimpleSprite)
+	if !ok {
+		return fmt.Errorf("blit sprite def ref %d not found", frag.SpriteInstanceRef)
+	}
+
+	e.SpriteTag = raw.Name(spriteDef.NameRef)
+	e.Unknown = frag.Unknown
+	return nil
+}
+
+type ParticleCloudDef struct {
+	fragID                int16
+	Tag                   string
+	ParticleTag           string
+	SettingOne            uint32
+	SettingTwo            uint32
+	Movement              string
+	HighOpacity           int
+	FollowItem            int
+	SimultaneousParticles uint32
+	UnkSix                uint32
+	UnkSeven              uint32
+	UnkEight              uint32
+	UnkNine               uint32
+	UnkTen                uint32
+	SpawnRadius           float32
+	SpawnAngle            float32
+	SpawnLifespan         uint32
+	SpawnVelocity         float32
+	SpawnNormal           [3]float32
+	SpawnRate             uint32
+	SpawnScale            float32
+	Color                 [4]uint8
+}
+
+func (e *ParticleCloudDef) Definition() string {
+	return "PARTICLECLOUDDEF"
+}
+
+func (e *ParticleCloudDef) Write(w io.Writer) error {
+	fmt.Fprintf(w, "%s\n", e.Definition())
+	fmt.Fprintf(w, "\tTAG \"%s\"\n", e.Tag)
+	fmt.Fprintf(w, "\tPARTICLETAG \"%s\"\n", e.ParticleTag)
+	fmt.Fprintf(w, "\tSETTINGONE %d\n", e.SettingOne)
+	fmt.Fprintf(w, "\tSETTINGTWO %d\n", e.SettingTwo)
+	fmt.Fprintf(w, "\tMOVEMENT \"%s\" // SPHERE, PLANE, STREAM, NONE\n", e.Movement)
+	fmt.Fprintf(w, "\tHIGHOPACITY %d\n", e.HighOpacity)
+	fmt.Fprintf(w, "\tFOLLOWITEM %d\n", e.FollowItem)
+	fmt.Fprintf(w, "\tSIMULTANEOUSPARTICLES %d\n", e.SimultaneousParticles)
+	fmt.Fprintf(w, "\tUNKSIX %d\n", e.UnkSix)
+	fmt.Fprintf(w, "\tUNKSEVEN %d\n", e.UnkSeven)
+	fmt.Fprintf(w, "\tUNKEIGHT %d\n", e.UnkEight)
+	fmt.Fprintf(w, "\tUNKNINE %d\n", e.UnkNine)
+	fmt.Fprintf(w, "\tUNKTEN %d\n", e.UnkTen)
+	fmt.Fprintf(w, "\tSPAWN\n")
+	fmt.Fprintf(w, "\t\tRADIUS %0.8e\n", e.SpawnRadius)
+	fmt.Fprintf(w, "\t\tANGLE %0.8e\n", e.SpawnAngle)
+	fmt.Fprintf(w, "\t\tLIFESPAN %d\n", e.SpawnLifespan)
+	fmt.Fprintf(w, "\t\tVELOCITY %0.8e\n", e.SpawnVelocity)
+	fmt.Fprintf(w, "\t\tNORMALXYZ %s\n", wcVal(e.SpawnNormal))
+	fmt.Fprintf(w, "\t\tRATE %d\n", e.SpawnRate)
+	fmt.Fprintf(w, "\t\tSCALE %0.8e\n", e.SpawnScale)
+	fmt.Fprintf(w, "\tENDSPAWN\n")
+	fmt.Fprintf(w, "\tCOLOR %d %d %d %d\n", e.Color[0], e.Color[1], e.Color[2], e.Color[3])
+	fmt.Fprintf(w, "ENDPARTICLECLOUDDEF\n\n")
+	return nil
+}
+
+func (e *ParticleCloudDef) Read(token *AsciiReadToken) error {
+	records, err := token.ReadProperty("TAG", 1)
+	if err != nil {
+		return err
+	}
+	e.Tag = records[1]
+
+	records, err = token.ReadProperty("PARTICLETAG", 1)
+	if err != nil {
+		return err
+	}
+	e.ParticleTag = records[1]
+
+	records, err = token.ReadProperty("SETTINGONE", 1)
+	if err != nil {
+		return err
+	}
+	err = parse(&e.SettingOne, records[1])
+	if err != nil {
+		return fmt.Errorf("setting one: %w", err)
+	}
+
+	records, err = token.ReadProperty("SETTINGTWO", 1)
+	if err != nil {
+		return err
+	}
+	err = parse(&e.SettingTwo, records[1])
+	if err != nil {
+		return fmt.Errorf("setting two: %w", err)
+	}
+
+	records, err = token.ReadProperty("MOVEMENT", 1)
+	if err != nil {
+		return err
+	}
+	e.Movement = records[1]
+
+	records, err = token.ReadProperty("HIGHOPACITY", 1)
+	if err != nil {
+		return err
+	}
+	err = parse(&e.HighOpacity, records[1])
+	if err != nil {
+		return fmt.Errorf("high opacity: %w", err)
+	}
+
+	records, err = token.ReadProperty("FOLLOWITEM", 1)
+	if err != nil {
+		return err
+	}
+	err = parse(&e.FollowItem, records[1])
+	if err != nil {
+		return fmt.Errorf("follow item: %w", err)
+	}
+
+	records, err = token.ReadProperty("SIMULTANEOUSPARTICLES", 1)
+	if err != nil {
+		return err
+	}
+	err = parse(&e.SimultaneousParticles, records[1])
+	if err != nil {
+		return fmt.Errorf("simultaneous particles: %w", err)
+	}
+
+	records, err = token.ReadProperty("UNKSIX", 1)
+	if err != nil {
+		return err
+	}
+	err = parse(&e.UnkSix, records[1])
+	if err != nil {
+		return fmt.Errorf("unk six: %w", err)
+	}
+
+	records, err = token.ReadProperty("UNKSEVEN", 1)
+	if err != nil {
+		return err
+	}
+	err = parse(&e.UnkSeven, records[1])
+	if err != nil {
+		return fmt.Errorf("unk seven: %w", err)
+	}
+
+	records, err = token.ReadProperty("UNKEIGHT", 1)
+	if err != nil {
+		return err
+	}
+	err = parse(&e.UnkEight, records[1])
+	if err != nil {
+		return fmt.Errorf("unk eight: %w", err)
+	}
+
+	records, err = token.ReadProperty("UNKNINE", 1)
+	if err != nil {
+		return err
+	}
+	err = parse(&e.UnkNine, records[1])
+	if err != nil {
+		return fmt.Errorf("unk nine: %w", err)
+	}
+
+	records, err = token.ReadProperty("UNKTEN", 1)
+	if err != nil {
+		return err
+	}
+	err = parse(&e.UnkTen, records[1])
+	if err != nil {
+		return fmt.Errorf("unk ten: %w", err)
+	}
+
+	_, err = token.ReadProperty("SPAWN", 0)
+	if err != nil {
+		return err
+	}
+
+	records, err = token.ReadProperty("RADIUS", 1)
+	if err != nil {
+		return err
+	}
+	err = parse(&e.SpawnRadius, records[1])
+	if err != nil {
+		return fmt.Errorf("spawn radius: %w", err)
+	}
+
+	records, err = token.ReadProperty("ANGLE", 1)
+	if err != nil {
+		return err
+	}
+	err = parse(&e.SpawnAngle, records[1])
+	if err != nil {
+		return fmt.Errorf("spawn angle: %w", err)
+	}
+
+	records, err = token.ReadProperty("LIFESPAN", 1)
+	if err != nil {
+		return err
+	}
+	err = parse(&e.SpawnLifespan, records[1])
+	if err != nil {
+		return fmt.Errorf("spawn lifespan: %w", err)
+	}
+
+	records, err = token.ReadProperty("VELOCITY", 1)
+	if err != nil {
+		return err
+	}
+	err = parse(&e.SpawnVelocity, records[1])
+	if err != nil {
+		return fmt.Errorf("spawn velocity: %w", err)
+	}
+
+	records, err = token.ReadProperty("NORMALXYZ", 3)
+	if err != nil {
+		return err
+	}
+	err = parse(&e.SpawnNormal, records[1:]...)
+	if err != nil {
+		return fmt.Errorf("spawn normal: %w", err)
+	}
+
+	records, err = token.ReadProperty("RATE", 1)
+	if err != nil {
+		return err
+	}
+	err = parse(&e.SpawnRate, records[1])
+	if err != nil {
+		return fmt.Errorf("spawn rate: %w", err)
+	}
+
+	records, err = token.ReadProperty("SCALE", 1)
+	if err != nil {
+		return err
+	}
+
+	err = parse(&e.SpawnScale, records[1])
+	if err != nil {
+		return fmt.Errorf("spawn scale: %w", err)
+	}
+
+	_, err = token.ReadProperty("ENDSPAWN", 0)
+	if err != nil {
+		return err
+	}
+
+	records, err = token.ReadProperty("COLOR", 4)
+	if err != nil {
+		return err
+	}
+	err = parse(&e.Color, records[1:]...)
+	if err != nil {
+		return fmt.Errorf("color: %w", err)
+	}
+
+	_, err = token.ReadProperty("ENDPARTICLECLOUDDEF", 0)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (e *ParticleCloudDef) ToRaw(wld *Wld, rawWld *raw.Wld) (int16, error) {
+	if e.fragID != 0 {
+		return e.fragID, nil
+	}
+	wfParticleCloud := &rawfrag.WldFragParticleCloudDef{
+		SettingOne:            e.SettingOne,
+		SettingTwo:            e.SettingTwo,
+		SimultaneousParticles: e.SimultaneousParticles,
+		Unk6:                  e.UnkSix,
+		Unk7:                  e.UnkSeven,
+		Unk8:                  e.UnkEight,
+		Unk9:                  e.UnkNine,
+		Unk10:                 e.UnkTen,
+		SpawnRadius:           e.SpawnRadius,
+		SpawnAngle:            e.SpawnAngle,
+		SpawnLifespan:         e.SpawnLifespan,
+		SpawnVelocity:         e.SpawnVelocity,
+		SpawnNormal:           e.SpawnNormal,
+		SpawnRate:             e.SpawnRate,
+		SpawnScale:            e.SpawnScale,
+		Color:                 e.Color,
+	}
+
+	if e.HighOpacity != 0 {
+		wfParticleCloud.Flags |= 0x01
+	}
+	if e.FollowItem != 0 {
+		wfParticleCloud.Flags |= 0x02
+	}
+
+	switch e.Movement {
+	case "SPHERE":
+		wfParticleCloud.ParticleMovement = 1
+	case "PLANE":
+		wfParticleCloud.ParticleMovement = 2
+	case "STREAM":
+		wfParticleCloud.ParticleMovement = 3
+	case "NONE":
+		wfParticleCloud.ParticleMovement = 4
+	default:
+		return 0, fmt.Errorf("unknown movement type %s", e.Movement)
+	}
+
+	blitSpriteDef := wld.ByTag(e.ParticleTag)
+	if blitSpriteDef == nil {
+		return 0, fmt.Errorf("particle tag not found: %s", e.ParticleTag)
+	}
+
+	blitSpriteDefRef, err := blitSpriteDef.ToRaw(wld, rawWld)
+	if err != nil {
+		return 0, fmt.Errorf("particle tag blit to raw: %w", err)
+	}
+	wfParticleCloud.BlitSpriteDefRef = uint32(blitSpriteDefRef)
+
+	wfParticleCloud.NameRef = raw.NameAdd(e.Tag)
+
+	rawWld.Fragments = append(rawWld.Fragments, wfParticleCloud)
+	e.fragID = int16(len(rawWld.Fragments))
+	return int16(len(rawWld.Fragments)), nil
+}
+
+func (e *ParticleCloudDef) FromRaw(wld *Wld, rawWld *raw.Wld, frag *rawfrag.WldFragParticleCloudDef) error {
+	if frag == nil {
+		return fmt.Errorf("frag is not particle cloud def (wrong fragcode?)")
+	}
+
+	e.Tag = raw.Name(frag.NameRef)
+	if len(rawWld.Fragments) < int(frag.BlitSpriteDefRef) {
+		return fmt.Errorf("blit sprite def ref %d out of bounds", frag.BlitSpriteDefRef)
+	}
+	blitSpriteDefRef := rawWld.Fragments[frag.BlitSpriteDefRef]
+
+	blitSpriteDef, ok := blitSpriteDefRef.(*rawfrag.WldFragBlitSpriteDef)
+	if !ok {
+		return fmt.Errorf("blit sprite def ref %d not found", frag.BlitSpriteDefRef)
+	}
+
+	e.ParticleTag = raw.Name(blitSpriteDef.NameRef)
+	e.SettingOne = frag.SettingTwo
+	e.SettingTwo = frag.SettingTwo
+	switch frag.ParticleMovement {
+	case 1:
+		e.Movement = "SPHERE"
+	case 2:
+		e.Movement = "PLANE"
+	case 3:
+		e.Movement = "STREAM"
+	case 4:
+		e.Movement = "NONE"
+	default:
+		return fmt.Errorf("unknown movement type %d", frag.ParticleMovement)
+	}
+	if frag.Flags&0x01 == 0x01 {
+		e.HighOpacity = 1
+	}
+	if frag.Flags&0x02 == 0x02 {
+		e.FollowItem = 1
+	}
+	e.SimultaneousParticles = frag.SimultaneousParticles
+	e.UnkSix = frag.Unk6
+	e.UnkSeven = frag.Unk7
+	e.UnkEight = frag.Unk8
+	e.UnkNine = frag.Unk9
+	e.UnkTen = frag.Unk10
+	e.SpawnRadius = frag.SpawnRadius
+	e.SpawnAngle = frag.SpawnAngle
+	e.SpawnLifespan = frag.SpawnLifespan
+	e.SpawnVelocity = frag.SpawnVelocity
+	e.SpawnNormal = frag.SpawnNormal
+	e.SpawnRate = frag.SpawnRate
+	e.SpawnScale = frag.SpawnScale
+	e.Color = frag.Color
+	return nil
+}
+
+type Sprite2DDef struct {
+	fragID          int16
+	Tag             string
+	Scale           [2]float32
+	SphereListTag   string
+	DepthScale      float32
+	CenterOffset    [3]float32
+	BoundingRadius  float32
+	CurrentFrameRef int32
+	Sleep           uint32
+	Headings        []uint32
+	RenderMethod    string
+	Pen             NullUint32
+	Brightness      NullFloat32
+	ScaledAmbient   NullFloat32
+	SpriteTag       NullString
+	UvOrigin        NullFloat32Slice3
+	UAxis           NullFloat32Slice3
+	VAxis           NullFloat32Slice3
+	Uvs             [][2]float32
+	TwoSided        int
+}
+
+func (e *Sprite2DDef) Definition() string {
+	return "SPRITE2DDEF"
+}
+
+func (e *Sprite2DDef) Write(w io.Writer) error {
+	fmt.Fprintf(w, "%s\n", e.Definition())
+	fmt.Fprintf(w, "\tTAG \"%s\"\n", e.Tag)
+	fmt.Fprintf(w, "\tSCALE %0.8e %0.8e\n", e.Scale[0], e.Scale[1])
+	fmt.Fprintf(w, "\tSPHERELISTTAG \"%s\"\n", e.SphereListTag)
+	fmt.Fprintf(w, "\tDEPTHSCALE %0.8e\n", e.DepthScale)
+	fmt.Fprintf(w, "\tCENTEROFFSET %s\n", wcVal(e.CenterOffset))
+	fmt.Fprintf(w, "\tBOUNDINGRADIUS %0.8e\n", e.BoundingRadius)
+	fmt.Fprintf(w, "\tCURRENTFRAMEREF %d\n", e.CurrentFrameRef)
+	fmt.Fprintf(w, "\tSLEEP %d\n", e.Sleep)
+	fmt.Fprintf(w, "\tHEADINGS %d", len(e.Headings))
+	for _, heading := range e.Headings {
+		fmt.Fprintf(w, " %d", heading)
+	}
+	fmt.Fprintf(w, "\n")
+	fmt.Fprintf(w, "\n")
+	fmt.Fprintf(w, "\t\tRENDERMETHOD \"%s\"\n", e.RenderMethod)
+	fmt.Fprintf(w, "\t\tRENDERINFO\n")
+	fmt.Fprintf(w, "\t\t\tPEN? %s\n", wcVal(e.Pen))
+	fmt.Fprintf(w, "\t\t\tBRIGHTNESS? %s\n", wcVal(e.Brightness))
+	fmt.Fprintf(w, "\t\t\tSCALEDAMBIENT? %s\n", wcVal(e.ScaledAmbient))
+	fmt.Fprintf(w, "\t\t\tSPRITE? \"%s\"\n", wcVal(e.SpriteTag))
+	fmt.Fprintf(w, "\t\t\tUVORIGIN? %s\n", wcVal(e.UvOrigin))
+	fmt.Fprintf(w, "\t\t\tUAXIS? %s\n", wcVal(e.UAxis))
+	fmt.Fprintf(w, "\t\t\tVAXIS? %s\n", wcVal(e.VAxis))
+	fmt.Fprintf(w, "\t\t\tUVCOUNT %d\n", len(e.Uvs))
+	for _, uv := range e.Uvs {
+		fmt.Fprintf(w, "\t\t\tUV %s\n", wcVal(uv))
+	}
+	fmt.Fprintf(w, "\t\t\tTWOSIDED %d\n", e.TwoSided)
+	fmt.Fprintf(w, "\t\tENDRENDERINFO\n")
+	fmt.Fprintf(w, "ENDSPRITE2DDEF\n\n")
+	return nil
+}
+
+func (e *Sprite2DDef) Read(token *AsciiReadToken) error {
+	records, err := token.ReadProperty("TAG", 1)
+	if err != nil {
+		return err
+	}
+	e.Tag = records[1]
+
+	records, err = token.ReadProperty("SCALE", 2)
+	if err != nil {
+		return err
+	}
+	err = parse(&e.Scale, records[1:]...)
+	if err != nil {
+		return fmt.Errorf("scale: %w", err)
+	}
+
+	records, err = token.ReadProperty("SPHERELISTTAG", 1)
+	if err != nil {
+		return err
+	}
+	e.SphereListTag = records[1]
+
+	records, err = token.ReadProperty("DEPTHSCALE", 1)
+	if err != nil {
+		return err
+	}
+	err = parse(&e.DepthScale, records[1])
+	if err != nil {
+		return fmt.Errorf("depth scale: %w", err)
+	}
+
+	records, err = token.ReadProperty("CENTEROFFSET", 3)
+	if err != nil {
+		return err
+	}
+	err = parse(&e.CenterOffset, records[1:]...)
+	if err != nil {
+		return fmt.Errorf("center offset: %w", err)
+	}
+
+	records, err = token.ReadProperty("BOUNDINGRADIUS", 1)
+	if err != nil {
+		return err
+	}
+	err = parse(&e.BoundingRadius, records[1])
+	if err != nil {
+		return fmt.Errorf("bounding radius: %w", err)
+	}
+
+	records, err = token.ReadProperty("CURRENTFRAMEREF", 1)
+	if err != nil {
+		return err
+	}
+	err = parse(&e.CurrentFrameRef, records[1])
+	if err != nil {
+		return fmt.Errorf("current frame ref: %w", err)
+	}
+
+	records, err = token.ReadProperty("SLEEP", 1)
+	if err != nil {
+		return err
+	}
+	err = parse(&e.Sleep, records[1])
+	if err != nil {
+		return fmt.Errorf("sleep: %w", err)
+	}
+
+	records, err = token.ReadProperty("HEADINGS", -1)
+	if err != nil {
+		return err
+	}
+
+	numHeadings := int(0)
+	err = parse(&numHeadings, records[1])
+	if err != nil {
+		return fmt.Errorf("num headings: %w", err)
+	}
+
+	for i := 0; i < numHeadings; i++ {
+		val := uint32(0)
+		err = parse(&val, records[i+2])
+		if err != nil {
+			return fmt.Errorf("heading %d: %w", i, err)
+		}
+
+		e.Headings = append(e.Headings, val)
+	}
+
+	records, err = token.ReadProperty("RENDERMETHOD", 1)
+	if err != nil {
+		return err
+	}
+
+	e.RenderMethod = records[1]
+
+	_, err = token.ReadProperty("RENDERINFO", 0)
+	if err != nil {
+		return err
+	}
+
+	records, err = token.ReadProperty("PEN?", 1)
+	if err != nil {
+		return err
+	}
+	err = parse(&e.Pen, records[1])
+	if err != nil {
+		return fmt.Errorf("render pen: %w", err)
+	}
+
+	records, err = token.ReadProperty("BRIGHTNESS?", 1)
+	if err != nil {
+		return err
+	}
+	err = parse(&e.Brightness, records[1])
+	if err != nil {
+		return fmt.Errorf("render brightness: %w", err)
+	}
+
+	records, err = token.ReadProperty("SCALEDAMBIENT?", 1)
+	if err != nil {
+		return err
+	}
+	err = parse(&e.ScaledAmbient, records[1])
+	if err != nil {
+		return fmt.Errorf("render scaled ambient: %w", err)
+	}
+
+	records, err = token.ReadProperty("SPRITE?", 1)
+	if err != nil {
+		return err
+	}
+	err = parse(&e.SpriteTag, records[1])
+	if err != nil {
+		return fmt.Errorf("render sprite: %w", err)
+	}
+
+	records, err = token.ReadProperty("UVORIGIN?", 3)
+	if err != nil {
+		return err
+	}
+	err = parse(&e.UvOrigin, records[1:]...)
+	if err != nil {
+		return fmt.Errorf("render uv origin: %w", err)
+	}
+
+	records, err = token.ReadProperty("UAXIS?", 3)
+	if err != nil {
+		return err
+	}
+	err = parse(&e.UAxis, records[1:]...)
+	if err != nil {
+		return fmt.Errorf("render u axis: %w", err)
+	}
+
+	records, err = token.ReadProperty("VAXIS?", 3)
+	if err != nil {
+		return err
+	}
+	err = parse(&e.VAxis, records[1:]...)
+	if err != nil {
+		return fmt.Errorf("render v axis: %w", err)
+	}
+
+	records, err = token.ReadProperty("UVCOUNT", 1)
+	if err != nil {
+		return err
+	}
+	numUVs := int(0)
+	err = parse(&numUVs, records[1])
+	if err != nil {
+		return fmt.Errorf("num uvs: %w", err)
+	}
+
+	for j := 0; j < numUVs; j++ {
+		records, err = token.ReadProperty("UV", 2)
+		if err != nil {
+			return err
+		}
+		uv := [2]float32{}
+		err = parse(&uv, records[1:]...)
+		if err != nil {
+			return fmt.Errorf("uv %d: %w", j, err)
+		}
+		e.Uvs = append(e.Uvs, uv)
+	}
+
+	records, err = token.ReadProperty("TWOSIDED", 1)
+	if err != nil {
+		return err
+	}
+	err = parse(&e.TwoSided, records[1])
+	if err != nil {
+		return fmt.Errorf("two sided: %w", err)
+	}
+
+	_, err = token.ReadProperty("ENDRENDERINFO", 0)
+	if err != nil {
+		return err
+	}
+
+	_, err = token.ReadProperty("ENDSPRITE2DDEF", 0)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (e *Sprite2DDef) ToRaw(wld *Wld, rawWld *raw.Wld) (int16, error) {
+	if e.fragID != 0 {
+		return e.fragID, nil
+	}
+	wfSprite2D := &rawfrag.WldFragSprite2DDef{
+		Scale:           e.Scale,
+		DepthScale:      e.DepthScale,
+		CenterOffset:    e.CenterOffset,
+		BoundingRadius:  e.BoundingRadius,
+		CurrentFrameRef: e.CurrentFrameRef,
+		Sleep:           e.Sleep,
+		Headings:        e.Headings,
+		RenderMethod:    model.RenderMethodInt(e.RenderMethod),
+	}
+
+	if e.Pen.Valid {
+		wfSprite2D.RenderFlags |= 0x01
+		wfSprite2D.RenderPen = e.Pen.Uint32
+	}
+
+	if e.Brightness.Valid {
+		wfSprite2D.RenderFlags |= 0x02
+		wfSprite2D.RenderBrightness = e.Brightness.Float32
+	}
+
+	if e.ScaledAmbient.Valid {
+		wfSprite2D.RenderFlags |= 0x04
+		wfSprite2D.RenderScaledAmbient = e.ScaledAmbient.Float32
+	}
+
+	if e.SpriteTag.Valid {
+		wfSprite2D.RenderFlags |= 0x08
+		wfSprite2D.RenderSimpleSpriteReference = uint32(raw.NameAdd(e.SpriteTag.String))
+	}
+
+	if e.UvOrigin.Valid {
+		wfSprite2D.RenderFlags |= 0x10
+		wfSprite2D.RenderUVInfoOrigin = e.UvOrigin.Float32Slice3
+		wfSprite2D.RenderUVInfoUAxis = e.UAxis.Float32Slice3
+		wfSprite2D.RenderUVInfoVAxis = e.VAxis.Float32Slice3
+	}
+
+	if len(e.Uvs) > 0 {
+		wfSprite2D.RenderFlags |= 0x20
+		wfSprite2D.Uvs = e.Uvs
+	}
+
+	if e.SphereListTag != "" {
+		sphereList := wld.ByTag(e.SphereListTag)
+		if sphereList == nil {
+			return 0, fmt.Errorf("sphere list tag not found: %s", e.SphereListTag)
+		}
+
+		sphereListRef, err := sphereList.ToRaw(wld, rawWld)
+		if err != nil {
+			return 0, fmt.Errorf("sphere list to raw: %w", err)
+		}
+		wfSprite2D.SphereListRef = uint32(sphereListRef)
+	}
+	wfSprite2D.NameRef = raw.NameAdd(e.Tag)
+
+	rawWld.Fragments = append(rawWld.Fragments, wfSprite2D)
+	e.fragID = int16(len(rawWld.Fragments))
+	return int16(len(rawWld.Fragments)), nil
+}
+
+func (e *Sprite2DDef) FromRaw(wld *Wld, rawWld *raw.Wld, frag *rawfrag.WldFragSprite2DDef) error {
+	if frag == nil {
+		return fmt.Errorf("frag is not sprite 2d def (wrong fragcode?)")
+	}
+
+	e.Tag = raw.Name(frag.NameRef)
+
+	if frag.SphereListRef > 0 {
+		if len(rawWld.Fragments) < int(frag.SphereListRef) {
+			return fmt.Errorf("sphere list ref %d out of bounds", frag.SphereListRef)
+		}
+		sphereListRef := rawWld.Fragments[frag.SphereListRef]
+
+		sphereList, ok := sphereListRef.(*rawfrag.WldFragSphereList)
+		if !ok {
+			return fmt.Errorf("sphere list ref %d not found", frag.SphereListRef)
+		}
+
+		e.SphereListTag = raw.Name(sphereList.NameRef)
+	}
+	e.Scale = frag.Scale
+	e.DepthScale = frag.DepthScale
+	e.CenterOffset = frag.CenterOffset
+	e.BoundingRadius = frag.BoundingRadius
+	e.CurrentFrameRef = frag.CurrentFrameRef
+	e.Sleep = frag.Sleep
+	e.Headings = frag.Headings
+
+	e.RenderMethod = model.RenderMethodStr(frag.RenderMethod)
+	if frag.RenderFlags&0x01 == 0x01 {
+		e.Pen.Valid = true
+		e.Pen.Uint32 = frag.RenderPen
+	}
+
+	if frag.RenderFlags&0x02 == 0x02 {
+		e.Brightness.Valid = true
+		e.Brightness.Float32 = frag.RenderBrightness
+	}
+
+	if frag.RenderFlags&0x04 == 0x04 {
+		e.ScaledAmbient.Valid = true
+		e.ScaledAmbient.Float32 = frag.RenderScaledAmbient
+	}
+
+	if frag.RenderFlags&0x08 == 0x08 {
+		e.SpriteTag.Valid = true
+		if len(rawWld.Fragments) < int(frag.RenderSimpleSpriteReference) {
+			return fmt.Errorf("sprite2d's simple sprite ref %d not found", frag.RenderSimpleSpriteReference)
+		}
+		spriteDef := rawWld.Fragments[frag.RenderSimpleSpriteReference]
+		switch simpleSprite := spriteDef.(type) {
+		case *rawfrag.WldFragSimpleSpriteDef:
+			e.SpriteTag.String = raw.Name(simpleSprite.NameRef)
+		case *rawfrag.WldFragDMSpriteDef:
+			e.SpriteTag.String = raw.Name(simpleSprite.NameRef)
+		case *rawfrag.WldFragHierarchicalSpriteDef:
+			e.SpriteTag.String = raw.Name(simpleSprite.NameRef)
+		case *rawfrag.WldFragSprite2D:
+			e.SpriteTag.String = raw.Name(simpleSprite.NameRef)
+		default:
+			return fmt.Errorf("unhandled render sprite reference fragment type %d", spriteDef.FragCode())
+		}
+	}
+
+	if frag.RenderFlags&0x10 == 0x10 {
+		// has uvinfo
+		e.UvOrigin.Valid = true
+		e.UAxis.Valid = true
+		e.VAxis.Valid = true
+		e.UvOrigin.Float32Slice3 = frag.RenderUVInfoOrigin
+		e.UAxis.Float32Slice3 = frag.RenderUVInfoUAxis
+		e.VAxis.Float32Slice3 = frag.RenderUVInfoVAxis
+	}
+
+	if frag.RenderFlags&0x20 == 0x20 {
+		e.Uvs = frag.Uvs
+	}
+
+	if frag.RenderFlags&0x40 == 0x40 {
+		e.TwoSided = 1
+	}
 	return nil
 }
