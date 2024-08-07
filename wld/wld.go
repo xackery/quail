@@ -171,6 +171,17 @@ func (wld *Wld) ByTag(tag string) WldDefinitioner {
 			return sprite
 		}
 	}
+
+	for _, sprite := range wld.SimpleSpriteDefs {
+		if sprite.Tag == tag {
+			return sprite
+		}
+		if strings.HasSuffix(sprite.Tag, "_SPRITE") && !strings.HasSuffix(tag, "_SPRITE") {
+			if sprite.Tag == tag+"_SPRITE" {
+				return sprite
+			}
+		}
+	}
 	return nil
 }
 

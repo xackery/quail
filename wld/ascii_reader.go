@@ -193,6 +193,7 @@ func (a *AsciiReadToken) readDefinitions() error {
 		&ParticleCloudDef{},
 		&BlitSpriteDefinition{},
 		&Sprite2DDef{},
+		&PointLight{},
 	}
 
 	definition := ""
@@ -354,6 +355,9 @@ func (a *AsciiReadToken) readDefinitions() error {
 			case *Sprite2DDef:
 				a.wld.Sprite2DDefs = append(a.wld.Sprite2DDefs, frag)
 				definitions[i] = &Sprite2DDef{}
+			case *PointLight:
+				a.wld.PointLights = append(a.wld.PointLights, frag)
+				definitions[i] = &PointLight{}
 			}
 
 			break

@@ -507,7 +507,7 @@ func (e *DMSpriteDef2) ToRaw(wld *Wld, rawWld *raw.Wld) (int16, error) {
 		VertexMaterialGroups: e.VertexMaterialGroups,
 	}
 
-	if e.PolyhedronTag != "" {
+	if e.PolyhedronTag != "" && (!strings.HasPrefix(e.Tag, "R") || !wld.isZone) {
 		polyhedron := wld.ByTag(e.PolyhedronTag)
 		if polyhedron == nil {
 			// bminfo refs are not mapped cleanly, so we get to iterate fragments to find it
@@ -2414,6 +2414,11 @@ func (e *PointLight) Read(token *AsciiReadToken) error {
 	err = parse(&e.Radius, records[1])
 	if err != nil {
 		return fmt.Errorf("radius of influence: %w", err)
+	}
+
+	_, err = token.ReadProperty("ENDPOINTLIGHT", 0)
+	if err != nil {
+		return err
 	}
 
 	return nil
