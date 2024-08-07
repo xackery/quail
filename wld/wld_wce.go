@@ -53,11 +53,31 @@ func (wld *Wld) WriteAscii(path string, isDir bool) error {
 		}
 	}
 
-	err = wld.writeAsciiData(path, isDir, baseTags)
+	rootBuf, err := os.Create(fmt.Sprintf("%s/_root.wce", path))
+	if err != nil {
+		return err
+	}
+	writeAsciiHeader(rootBuf)
+	err = wld.writeAsciiData(path, isDir, baseTags, rootBuf)
 	if err != nil {
 		return err
 	}
 
+	rootBuf.Close()
+
+	data, err := os.ReadFile(fmt.Sprintf("%s/zone.mod", path))
+	if err != nil {
+		return fmt.Errorf("read %s: %w", fmt.Sprintf("%s/zone.mod", path), err)
+	}
+
+	if len(data) < 60 {
+		err = os.Remove(fmt.Sprintf("%s/zone.mod", path))
+		if err != nil {
+			return fmt.Errorf("remove %s: %w", fmt.Sprintf("%s/zone.mod", path), err)
+		}
+	} else {
+		rootBuf.WriteString("INCLUDE \"ZONE.MOD\"\n")
+	}
 	for _, tag := range baseTags {
 		// read .ani files
 		aniPath := fmt.Sprintf("%s/%s/%s.ani", path, strings.ToLower(tag), strings.ToLower(tag))
@@ -86,7 +106,7 @@ func (wld *Wld) WriteAscii(path string, isDir bool) error {
 	return nil
 }
 
-func (wld *Wld) writeAsciiData(path string, isDir bool, baseTags []string) error {
+func (wld *Wld) writeAsciiData(path string, isDir bool, baseTags []string, rootBuf *os.File) error {
 	var w io.Writer
 	var ok bool
 
@@ -95,13 +115,6 @@ func (wld *Wld) writeAsciiData(path string, isDir bool, baseTags []string) error
 	modWriters := map[string]*os.File{}
 	defsWritten := map[string]bool{}
 	zoneName := filepath.Base(path)
-
-	rootBuf, err := os.Create(fmt.Sprintf("%s/_root.wce", path))
-	if err != nil {
-		return err
-	}
-	writeAsciiHeader(rootBuf)
-	defer rootBuf.Close()
 
 	for _, track := range wld.TrackInstances {
 		if len(track.Tag) < 3 {
@@ -720,19 +733,6 @@ func (wld *Wld) writeAsciiData(path string, isDir bool, baseTags []string) error
 		}
 	}
 
-	data, err := os.ReadFile(fmt.Sprintf("%s/zone.mod", path))
-	if err != nil {
-		return fmt.Errorf("read %s: %w", fmt.Sprintf("%s/zone.mod", path), err)
-	}
-
-	if len(data) < 60 {
-		err = os.Remove(fmt.Sprintf("%s/zone.mod", path))
-		if err != nil {
-			return fmt.Errorf("remove %s: %w", fmt.Sprintf("%s/zone.mod", path), err)
-		}
-	} else {
-		rootBuf.WriteString("INCLUDE \"ZONE.MOD\"\n")
-	}
 	return nil
 }
 
