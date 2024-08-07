@@ -11,7 +11,7 @@ var tests = []struct {
 	//{baseName: "load2", wldName: "objects.wld"}, // OK
 	//{baseName: "crushbone"}, // OK
 	//{baseName: "crushbone", wldName: "objects.wld"}, // OK
-	//{baseName: "crushbone", wldName: "lights.wld"},
+	{baseName: "crushbone", wldName: "lights.wld"},
 	//{baseName: "qeynos_chr"}, // Needs work
 	//{baseName: "crushbone_chr"}, // OK
 	//{baseName: "freporte_chr"},
@@ -20,8 +20,8 @@ var tests = []struct {
 	//{baseName: "gequip2"},
 	//{baseName: "global2_chr"},
 	//{baseName: "globaldaf_chr"},
-	{baseName: "globalhum_chr"},
-
+	//{baseName: "globalhum_chr"},
+	//{baseName: "global_chr"}, // original human etc
 	//{baseName: "freporte"},
 	//{baseName: "qeynos"}, // OK
 	//{baseName: "load2", wldName: "lights.wld"}, // EMPTY

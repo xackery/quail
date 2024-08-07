@@ -90,7 +90,7 @@ func (wld *Wld) WriteAscii(path string, isDir bool) error {
 		}
 	}
 
-	zoneBuf, err := os.Create(fmt.Sprintf("%s/%s.zon", path, strings.ToLower(zoneName)))
+	zoneBuf, err := os.Create(fmt.Sprintf("%s/zone.mod", path))
 	if err != nil {
 		return err
 	}
@@ -684,18 +684,18 @@ func (wld *Wld) WriteAscii(path string, isDir bool) error {
 		}
 	}
 
-	data, err := os.ReadFile(fmt.Sprintf("%s/%s.zon", path, strings.ToLower(zoneName)))
+	data, err := os.ReadFile(fmt.Sprintf("%s/zone.mod", path))
 	if err != nil {
-		return fmt.Errorf("read %s: %w", fmt.Sprintf("%s/%s.zon", path, strings.ToLower(zoneName)), err)
+		return fmt.Errorf("read %s: %w", fmt.Sprintf("%s/zone.mod", path), err)
 	}
 
 	if len(data) < 60 {
-		err = os.Remove(fmt.Sprintf("%s/%s.zon", path, strings.ToLower(zoneName)))
+		err = os.Remove(fmt.Sprintf("%s/zone.mod", path))
 		if err != nil {
-			return fmt.Errorf("remove %s: %w", fmt.Sprintf("%s/%s.zon", path, strings.ToLower(zoneName)), err)
+			return fmt.Errorf("remove %s: %w", fmt.Sprintf("%s/zone.mod", path), err)
 		}
 	} else {
-		rootBuf.WriteString(fmt.Sprintf("INCLUDE \"%s.ZON\"\n", strings.ToUpper(zoneName)))
+		rootBuf.WriteString("INCLUDE \"ZONE.MOD\"\n")
 	}
 
 	for _, tag := range baseTags {

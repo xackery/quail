@@ -11,54 +11,54 @@ import (
 
 // WldFragDMSpriteDef is DmSpriteDef in libeq, Alternate Mesh in openzone, DMSPRITEDEF in wld, LegacyMesh in lantern
 type WldFragDMSpriteDef struct {
-	NameRef           int32                          `yaml:"name_ref"`
-	Flags             uint32                         `yaml:"flags"`
-	Fragment1Maybe    int16                          `yaml:"fragment_1_maybe"`
-	MaterialReference uint32                         `yaml:"material_reference"`
-	Fragment3         uint32                         `yaml:"fragment_3"`
-	CenterPosition    [3]float32                     `yaml:"center_position"`
-	Params2           uint32                         `yaml:"params_2"`
-	Something2        uint32                         `yaml:"something_2"`
-	Something3        uint32                         `yaml:"something_3"`
-	Vertices          [][3]float32                   `yaml:"verticies"`
-	TexCoords         [][3]float32                   `yaml:"tex_coords"`
-	Normals           [][3]float32                   `yaml:"normals"`
-	Colors            []int32                        `yaml:"colors"`
-	Polygons          []WldFragDMSpriteSpritePolygon `yaml:"polygons"`
-	VertexPieces      []WldFragDMSpriteVertexPiece   `yaml:"vertex_pieces"`
-	PostVertexFlag    uint32                         `yaml:"post_vertex_flag"`
-	RenderGroups      []WldFragDMSpriteRenderGroup   `yaml:"render_groups"`
-	VertexTex         [][2]float32                   `yaml:"vertex_tex"`
-	Size6Pieces       []WldFragDMSpriteSize6Entry    `yaml:"size_6_pieces"`
+	NameRef           int32
+	Flags             uint32
+	Fragment1Maybe    int16
+	MaterialReference uint32
+	Fragment3         uint32
+	CenterPosition    [3]float32
+	Params2           uint32
+	Something2        uint32
+	Something3        uint32
+	Vertices          [][3]float32
+	TexCoords         [][3]float32
+	Normals           [][3]float32
+	Colors            []int32
+	Polygons          []WldFragDMSpriteSpritePolygon
+	VertexPieces      []WldFragDMSpriteVertexPiece
+	PostVertexFlag    uint32
+	RenderGroups      []WldFragDMSpriteRenderGroup
+	VertexTex         [][2]float32
+	Size6Pieces       []WldFragDMSpriteSize6Entry
 }
 
 type WldFragDMSpriteSpritePolygon struct {
-	Flag int16 `yaml:"flag"`
-	Unk1 int16 `yaml:"unk_1"`
-	Unk2 int16 `yaml:"unk_2"`
-	Unk3 int16 `yaml:"unk_3"`
-	Unk4 int16 `yaml:"unk_4"`
-	I1   int16 `yaml:"i_1"`
-	I2   int16 `yaml:"i_2"`
-	I3   int16 `yaml:"i_3"`
+	Flag int16
+	Unk1 int16
+	Unk2 int16
+	Unk3 int16
+	Unk4 int16
+	I1   int16
+	I2   int16
+	I3   int16
 }
 
 type WldFragDMSpriteVertexPiece struct {
-	Count  int16 `yaml:"count"`
-	Offset int16 `yaml:"offset"`
+	Count  int16
+	Offset int16
 }
 
 type WldFragDMSpriteRenderGroup struct {
-	PolygonCount int16 `yaml:"polygon_count"`
-	MaterialId   int16 `yaml:"material_id"`
+	PolygonCount int16
+	MaterialId   int16
 }
 
 type WldFragDMSpriteSize6Entry struct {
-	Unk1 uint32 `yaml:"unk_1"`
-	Unk2 uint32 `yaml:"unk_2"`
-	Unk3 uint32 `yaml:"unk_3"`
-	Unk4 uint32 `yaml:"unk_4"`
-	Unk5 uint32 `yaml:"unk_5"`
+	Unk1 uint32
+	Unk2 uint32
+	Unk3 uint32
+	Unk4 uint32
+	Unk5 uint32
 }
 
 func (e *WldFragDMSpriteDef) FragCode() int {

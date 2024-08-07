@@ -50,9 +50,16 @@ func runConvertE(cmd *cobra.Command, args []string) error {
 
 	q := quail.New()
 
-	err = q.PfsRead(srcPath)
-	if err != nil {
-		return fmt.Errorf("pfs read: %w", err)
+	if srcExt == ".quail" {
+		err = q.DirRead(srcPath)
+		if err != nil {
+			return fmt.Errorf("quail read dir: %w", err)
+		}
+	} else {
+		err = q.PfsRead(srcPath)
+		if err != nil {
+			return fmt.Errorf("pfs read: %w", err)
+		}
 	}
 
 	dstExt := filepath.Ext(dstPath)

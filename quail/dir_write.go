@@ -40,13 +40,20 @@ func (q *Quail) DirWrite(path string) error {
 		}
 	}
 	if q.wldObject != nil {
-		err = q.wldObject.WriteAscii(path, true)
+		err = q.wldObject.WriteAscii(path+"/_lights/", true)
 		if err != nil {
 			return err
 		}
 	}
 	if q.wldLights != nil {
-		err = q.wldLights.WriteAscii(path, true)
+		err = q.wldLights.WriteAscii(path+"/_objects/", true)
+		if err != nil {
+			return err
+		}
+	}
+
+	for name, texture := range q.Textures {
+		err = os.WriteFile(path+"/"+name, texture, 0644)
 		if err != nil {
 			return err
 		}
