@@ -714,74 +714,416 @@ func (e *DMSpriteDef2) FromRaw(wld *Wld, rawWld *raw.Wld, frag *rawfrag.WldFragD
 
 // DMSpriteDef is a declaration of DMSPRITEDEF
 type DMSpriteDef struct {
-	fragID         int16
-	Tag            string
-	Flags          uint32
-	Fragment1Maybe int16
-	Material       string
-	Fragment3      uint32
-	CenterPosition [3]float32
-	Params2        uint32
-	Something2     uint32
-	Something3     uint32
-	Verticies      [][3]float32
-	TexCoords      [][3]float32
-	Normals        [][3]float32
-	Colors         []int32
-	Polygons       []*DMSpriteDefSpritePolygon
-	VertexPieces   []*DMSpriteDefVertexPiece
-	PostVertexFlag uint32
-	RenderGroups   []*DMSpriteDefRenderGroup
-	VertexTex      [][2]float32
-	Size6Pieces    []*DMSpriteDefSize6Entry
+	fragID               int16
+	Tag                  string
+	Fragment1            int16
+	MaterialPaletteTag   string
+	Fragment3            uint32
+	Center               [3]float32
+	Params1              [3]float32
+	Vertices             [][3]float32
+	TexCoords            [][2]float32
+	Normals              [][3]float32
+	Colors               []int32
+	Faces                []DMSpriteDefFace
+	Meshops              []DMSpriteDefMeshOp
+	SkinAssignmentGroups [][2]uint16
+	Data8                []uint32 // 0x200 flag
+	FaceMaterialGroups   [][2]int16
+	VertexMaterialGroups [][2]int16
+	Params2              NullFloat32Slice3
+	Params3              NullFloat32Slice6
 }
 
-type DMSpriteDefSpritePolygon struct {
-	Flag int16
-	Unk1 int16
-	Unk2 int16
-	Unk3 int16
-	Unk4 int16
-	I1   int16
-	I2   int16
-	I3   int16
+type DMSpriteDefFace struct {
+	Flags         uint16
+	Data          [4]uint16
+	VertexIndexes [3]uint16
 }
 
-type DMSpriteDefVertexPiece struct {
-	Count  int16
-	Offset int16
-}
-
-type DMSpriteDefRenderGroup struct {
-	PolygonCount int16
-	MaterialId   int16
-}
-
-type DMSpriteDefSize6Entry struct {
-	Unk1 uint32
-	Unk2 uint32
-	Unk3 uint32
-	Unk4 uint32
-	Unk5 uint32
+type DMSpriteDefMeshOp struct {
+	TypeField   uint32
+	VertexIndex uint32
+	Offset      float32
+	Param1      uint16
+	Param2      uint16
 }
 
 func (e *DMSpriteDef) Definition() string {
-	return "DMSPRITEDEF"
+	return "DMSPRITEDEFINITION"
 }
 
 func (e *DMSpriteDef) Write(w io.Writer) error {
-	return fmt.Errorf("not implemented")
+	fmt.Fprintf(w, "%s\n", e.Definition())
+	fmt.Fprintf(w, "\tTAG \"%s\"\n", e.Tag)
+	fmt.Fprintf(w, "\tFRAGMENT1 %d\n", e.Fragment1)
+	fmt.Fprintf(w, "\tMATERIALPALETTE \"%s\"\n", e.MaterialPaletteTag)
+	fmt.Fprintf(w, "\tFRAGMENT3 %d\n", e.Fragment3)
+	fmt.Fprintf(w, "\tCENTER %0.8e %0.8e %0.8e\n", e.Center[0], e.Center[1], e.Center[2])
+	fmt.Fprintf(w, "\tPARAMS1 %0.8e %0.8e %0.8e\n", e.Params1[0], e.Params1[1], e.Params1[2])
+	fmt.Fprintf(w, "\n")
+	fmt.Fprintf(w, "\tNUMVERTICES %d\n", len(e.Vertices))
+	for _, vert := range e.Vertices {
+		fmt.Fprintf(w, "\tXYZ %0.8e %0.8e %0.8e\n", vert[0], vert[1], vert[2])
+	}
+	fmt.Fprintf(w, "\n")
+	fmt.Fprintf(w, "\tNUMTEXCOORDS %d\n", len(e.TexCoords))
+	for _, tex := range e.TexCoords {
+		fmt.Fprintf(w, "\tUV %0.8e %0.8e\n", tex[0], tex[1])
+	}
+	fmt.Fprintf(w, "\n")
+	fmt.Fprintf(w, "\tNUMNORMALS %d\n", len(e.Normals))
+	for _, normal := range e.Normals {
+		fmt.Fprintf(w, "\tXYZ %0.8e %0.8e %0.8e\n", normal[0], normal[1], normal[2])
+	}
+	fmt.Fprintf(w, "\n")
+	fmt.Fprintf(w, "\tNUMCOLORS %d\n", len(e.Colors))
+	for _, color := range e.Colors {
+		fmt.Fprintf(w, "\tRGBA %d %d %d %d\n", color>>24, (color>>16)&0xff, (color>>8)&0xff, color&0xff)
+	}
+	fmt.Fprintf(w, "\n")
+	fmt.Fprintf(w, "\tSKINASSIGNMENTGROUPS %d", len(e.SkinAssignmentGroups))
+	for _, sa := range e.SkinAssignmentGroups {
+		fmt.Fprintf(w, " %d %d", sa[0], sa[1])
+	}
+	fmt.Fprintf(w, "\n")
+	fmt.Fprintf(w, "\tDATA8 %d", len(e.Data8))
+	for _, d8 := range e.Data8 {
+		fmt.Fprintf(w, " %d", d8)
+	}
+	fmt.Fprintf(w, "\n")
+	fmt.Fprintf(w, "\tFACEMATERIALGROUPS %d", len(e.FaceMaterialGroups))
+	for _, fmg := range e.FaceMaterialGroups {
+		fmt.Fprintf(w, " %d %d", fmg[0], fmg[1])
+	}
+	fmt.Fprintf(w, "\n")
+	fmt.Fprintf(w, "\tVERTEXMATERIALGROUPS %d", len(e.VertexMaterialGroups))
+	for _, vmg := range e.VertexMaterialGroups {
+		fmt.Fprintf(w, " %d %d", vmg[0], vmg[1])
+	}
+	fmt.Fprintf(w, "\n")
+	fmt.Fprintf(w, "\tPARAMS2? %s\n", wcVal(e.Params2))
+	fmt.Fprintf(w, "\tPARAMS3? %s\n", wcVal(e.Params3))
+	fmt.Fprintf(w, "ENDDMSPRITEDEFINITION\n\n")
+	return nil
 }
 
 func (e *DMSpriteDef) Read(token *AsciiReadToken) error {
-	return fmt.Errorf("not implemented")
+	records, err := token.ReadProperty("TAG", 1)
+	if err != nil {
+		return err
+	}
+	e.Tag = records[1]
+
+	records, err = token.ReadProperty("FRAGMENT1", 1)
+	if err != nil {
+		return err
+	}
+	err = parse(&e.Fragment1, records[1])
+	if err != nil {
+		return fmt.Errorf("fragment1: %w", err)
+	}
+
+	records, err = token.ReadProperty("MATERIALPALETTE", 1)
+	if err != nil {
+		return err
+	}
+	e.MaterialPaletteTag = records[1]
+
+	records, err = token.ReadProperty("FRAGMENT3", 1)
+	if err != nil {
+		return err
+	}
+	err = parse(&e.Fragment3, records[1])
+	if err != nil {
+		return fmt.Errorf("fragment3: %w", err)
+	}
+
+	records, err = token.ReadProperty("CENTER", 3)
+	if err != nil {
+		return err
+	}
+	err = parse(&e.Center, records[1:]...)
+	if err != nil {
+		return fmt.Errorf("center: %w", err)
+	}
+
+	records, err = token.ReadProperty("PARAMS1", 3)
+	if err != nil {
+		return err
+	}
+	err = parse(&e.Params1, records[1:]...)
+	if err != nil {
+		return fmt.Errorf("params1: %w", err)
+	}
+
+	records, err = token.ReadProperty("NUMVERTICES", 1)
+	if err != nil {
+		return err
+	}
+	numVertices := int(0)
+	err = parse(&numVertices, records[1])
+	if err != nil {
+		return fmt.Errorf("num vertices: %w", err)
+	}
+	for i := 0; i < numVertices; i++ {
+		records, err = token.ReadProperty("XYZ", 3)
+		if err != nil {
+			return err
+		}
+		vert := [3]float32{}
+		err = parse(&vert, records[1:]...)
+		if err != nil {
+			return fmt.Errorf("vertex %d: %w", i, err)
+		}
+		e.Vertices = append(e.Vertices, vert)
+	}
+
+	records, err = token.ReadProperty("NUMTEXCOORDS", 1)
+	if err != nil {
+		return err
+	}
+
+	numUVs := int(0)
+	err = parse(&numUVs, records[1])
+	if err != nil {
+		return fmt.Errorf("num uvs: %w", err)
+	}
+
+	for i := 0; i < numUVs; i++ {
+		records, err = token.ReadProperty("UV", 2)
+		if err != nil {
+			return err
+		}
+		uv := [2]float32{}
+		err = parse(&uv, records[1:]...)
+		if err != nil {
+			return fmt.Errorf("uv %d: %w", i, err)
+		}
+		e.TexCoords = append(e.TexCoords, uv)
+	}
+
+	records, err = token.ReadProperty("NUMNORMALS", 1)
+	if err != nil {
+		return err
+	}
+
+	numNormals := int(0)
+	err = parse(&numNormals, records[1])
+	if err != nil {
+		return fmt.Errorf("num normals: %w", err)
+	}
+
+	for i := 0; i < numNormals; i++ {
+		records, err = token.ReadProperty("XYZ", 3)
+		if err != nil {
+			return err
+		}
+		normal := [3]float32{}
+		err = parse(&normal, records[1:]...)
+		if err != nil {
+			return fmt.Errorf("normal %d: %w", i, err)
+		}
+		e.Normals = append(e.Normals, normal)
+	}
+
+	records, err = token.ReadProperty("NUMCOLORS", 1)
+	if err != nil {
+		return err
+	}
+
+	numColors := int(0)
+	err = parse(&numColors, records[1])
+	if err != nil {
+		return fmt.Errorf("num colors: %w", err)
+	}
+
+	for i := 0; i < numColors; i++ {
+		records, err = token.ReadProperty("RGBA", 4)
+		if err != nil {
+			return err
+		}
+		color := int32(0)
+		err = parse(&color, records[1:]...)
+		if err != nil {
+			return fmt.Errorf("color %d: %w", i, err)
+		}
+		e.Colors = append(e.Colors, color)
+	}
+
+	records, err = token.ReadProperty("SKINASSIGNMENTGROUPS", -1)
+	if err != nil {
+		return err
+	}
+
+	numSkinAssignments := int(0)
+	err = parse(&numSkinAssignments, records[1])
+	if err != nil {
+		return fmt.Errorf("num skin assignments: %w", err)
+	}
+
+	for i := 0; i < numSkinAssignments*2; i++ {
+
+		val1 := uint16(0)
+		err = parse(&val1, records[i+2])
+		if err != nil {
+			return fmt.Errorf("skin assignment %d: %w", i, err)
+		}
+
+		val2 := uint16(0)
+		err = parse(&val2, records[i+3])
+		if err != nil {
+			return fmt.Errorf("skin assignment %d: %w", i, err)
+		}
+		e.SkinAssignmentGroups = append(e.SkinAssignmentGroups, [2]uint16{val1, val2})
+		i++
+	}
+
+	records, err = token.ReadProperty("DATA8", -1)
+	if err != nil {
+		return err
+	}
+
+	for _, record := range records[1:] {
+		val := uint32(0)
+		err = parse(&val, record)
+		if err != nil {
+			return fmt.Errorf("data8: %w", err)
+		}
+		e.Data8 = append(e.Data8, val)
+	}
+
+	records, err = token.ReadProperty("FACEMATERIALGROUPS", -1)
+	if err != nil {
+		return err
+	}
+
+	numFaceMaterialGroups := int(0)
+	err = parse(&numFaceMaterialGroups, records[1])
+	if err != nil {
+		return fmt.Errorf("num face material groups: %w", err)
+	}
+
+	for i := 0; i < numFaceMaterialGroups*2; i++ {
+		val1 := int16(0)
+		err = parse(&val1, records[i+2])
+		if err != nil {
+			return fmt.Errorf("face material group %d: %w", i, err)
+		}
+
+		val2 := int16(0)
+		err = parse(&val2, records[i+3])
+		if err != nil {
+			return fmt.Errorf("face material group %d: %w", i, err)
+		}
+		e.FaceMaterialGroups = append(e.FaceMaterialGroups, [2]int16{val1, val2})
+		i++
+	}
+
+	records, err = token.ReadProperty("VERTEXMATERIALGROUPS", -1)
+	if err != nil {
+		return err
+	}
+
+	numVertexMaterialGroups := int(0)
+	err = parse(&numVertexMaterialGroups, records[1])
+	if err != nil {
+		return fmt.Errorf("num vertex material groups: %w", err)
+	}
+
+	for i := 0; i < numVertexMaterialGroups*2; i++ {
+		val1 := int16(0)
+		err = parse(&val1, records[i+2])
+		if err != nil {
+			return fmt.Errorf("vertex material group %d: %w", i, err)
+		}
+
+		val2 := int16(0)
+		err = parse(&val2, records[i+3])
+		if err != nil {
+			return fmt.Errorf("vertex material group %d: %w", i, err)
+		}
+		e.VertexMaterialGroups = append(e.VertexMaterialGroups, [2]int16{val1, val2})
+		i++
+	}
+
+	records, err = token.ReadProperty("PARAMS2?", 3)
+	if err != nil {
+		return err
+	}
+	err = parse(&e.Params2, records[1:]...)
+	if err != nil {
+		return fmt.Errorf("params2: %w", err)
+	}
+
+	records, err = token.ReadProperty("PARAMS3?", 6)
+	if err != nil {
+		return err
+	}
+
+	err = parse(&e.Params3, records[1:]...)
+	if err != nil {
+		return fmt.Errorf("params3: %w", err)
+	}
+
+	_, err = token.ReadProperty("ENDDMSPRITEDEFINITION", 0)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (e *DMSpriteDef) ToRaw(wld *Wld, rawWld *raw.Wld) (int16, error) {
 	if e.fragID != 0 {
 		return e.fragID, nil
 	}
-	return -1, fmt.Errorf("not implemented")
+	wfDMSpriteDef := &rawfrag.WldFragDMSpriteDef{}
+	wfDMSpriteDef.NameRef = raw.NameAdd(e.Tag)
+	wfDMSpriteDef.Fragment1 = e.Fragment1
+	if e.MaterialPaletteTag != "" {
+		wfDMSpriteDef.MaterialPaletteRef = uint32(raw.NameAdd(e.MaterialPaletteTag))
+	}
+	wfDMSpriteDef.Fragment3 = e.Fragment3
+	wfDMSpriteDef.Center = e.Center
+	wfDMSpriteDef.Params1 = e.Params1
+	wfDMSpriteDef.Vertices = e.Vertices
+	wfDMSpriteDef.TexCoords = e.TexCoords
+	wfDMSpriteDef.Normals = e.Normals
+	wfDMSpriteDef.Colors = e.Colors
+	for _, face := range e.Faces {
+		wfDMSpriteDef.Faces = append(wfDMSpriteDef.Faces, rawfrag.WldFragDMSpriteDefFace{
+			Flags:         face.Flags,
+			Data:          face.Data,
+			VertexIndexes: face.VertexIndexes,
+		})
+	}
+	for _, meshop := range e.Meshops {
+		wfDMSpriteDef.Meshops = append(wfDMSpriteDef.Meshops, rawfrag.WldFragDMSpriteDefMeshOp{
+			TypeField:   meshop.TypeField,
+			VertexIndex: meshop.VertexIndex,
+			Offset:      meshop.Offset,
+			Param1:      meshop.Param1,
+			Param2:      meshop.Param2,
+		})
+	}
+	wfDMSpriteDef.SkinAssignmentGroups = e.SkinAssignmentGroups
+	wfDMSpriteDef.Data8 = e.Data8
+	wfDMSpriteDef.FaceMaterialGroups = e.FaceMaterialGroups
+	wfDMSpriteDef.VertexMaterialGroups = e.VertexMaterialGroups
+	if e.Params2.Valid {
+		wfDMSpriteDef.Flags |= 0x2000
+		wfDMSpriteDef.Params2 = e.Params2.Float32Slice3
+	}
+	if e.Params3.Valid {
+		wfDMSpriteDef.Flags |= 0x4000
+		wfDMSpriteDef.Params3 = e.Params3.Float32Slice6
+	}
+
+	rawWld.Fragments = append(rawWld.Fragments, wfDMSpriteDef)
+	e.fragID = int16(len(rawWld.Fragments))
+
+	return int16(len(rawWld.Fragments)), nil
 }
 
 func (e *DMSpriteDef) FromRaw(wld *Wld, rawWld *raw.Wld, frag *rawfrag.WldFragDMSpriteDef) error {
@@ -789,56 +1131,52 @@ func (e *DMSpriteDef) FromRaw(wld *Wld, rawWld *raw.Wld, frag *rawfrag.WldFragDM
 		return fmt.Errorf("frag is not dmspritedef (wrong fragcode?)")
 	}
 	e.Tag = raw.Name(frag.NameRef)
-	e.Flags = frag.Flags
-	e.Fragment1Maybe = frag.Fragment1Maybe
-	e.Material = raw.Name(int32(frag.MaterialReference))
+	e.Fragment1 = frag.Fragment1
+	if frag.MaterialPaletteRef > 0 {
+		if len(rawWld.Fragments) < int(frag.MaterialPaletteRef) {
+			return fmt.Errorf("materialpalette ref %d out of bounds", frag.MaterialPaletteRef)
+		}
+		materialPalette, ok := rawWld.Fragments[frag.MaterialPaletteRef].(*rawfrag.WldFragMaterialPalette)
+		if !ok {
+			return fmt.Errorf("materialpalette ref %d not found", frag.MaterialPaletteRef)
+		}
+		e.MaterialPaletteTag = raw.Name(materialPalette.NameRef)
+	}
 	e.Fragment3 = frag.Fragment3
-	e.CenterPosition = frag.CenterPosition
-	e.Params2 = frag.Params2
-	e.Something2 = frag.Something2
-	e.Something3 = frag.Something3
-	e.Verticies = frag.Vertices
+	e.Center = frag.Center
+	e.Params1 = frag.Params1
+	e.Vertices = frag.Vertices
 	e.TexCoords = frag.TexCoords
 	e.Normals = frag.Normals
 	e.Colors = frag.Colors
-	e.PostVertexFlag = frag.PostVertexFlag
-	e.VertexTex = frag.VertexTex
-
-	for _, polygon := range frag.Polygons {
-		e.Polygons = append(e.Polygons, &DMSpriteDefSpritePolygon{
-			Flag: polygon.Flag,
-			Unk1: polygon.Unk1,
-			Unk2: polygon.Unk2,
-			Unk3: polygon.Unk3,
-			Unk4: polygon.Unk4,
-			I1:   polygon.I1,
-			I2:   polygon.I2,
-			I3:   polygon.I3,
+	for _, face := range frag.Faces {
+		e.Faces = append(e.Faces, DMSpriteDefFace{
+			Flags:         face.Flags,
+			Data:          face.Data,
+			VertexIndexes: face.VertexIndexes,
 		})
 	}
-
-	for _, vertexPiece := range frag.VertexPieces {
-		e.VertexPieces = append(e.VertexPieces, &DMSpriteDefVertexPiece{
-			Count:  vertexPiece.Count,
-			Offset: vertexPiece.Offset,
+	for _, meshop := range frag.Meshops {
+		e.Meshops = append(e.Meshops, DMSpriteDefMeshOp{
+			TypeField:   meshop.TypeField,
+			VertexIndex: meshop.VertexIndex,
+			Offset:      meshop.Offset,
+			Param1:      meshop.Param1,
+			Param2:      meshop.Param2,
 		})
 	}
-
-	for _, renderGroup := range frag.RenderGroups {
-		e.RenderGroups = append(e.RenderGroups, &DMSpriteDefRenderGroup{
-			PolygonCount: renderGroup.PolygonCount,
-			MaterialId:   renderGroup.MaterialId,
-		})
+	e.SkinAssignmentGroups = frag.SkinAssignmentGroups
+	e.Data8 = frag.Data8
+	e.FaceMaterialGroups = frag.FaceMaterialGroups
+	e.VertexMaterialGroups = frag.VertexMaterialGroups
+	if frag.Flags&0x2000 != 0 {
+		e.Params2.Valid = true
+		e.Params2.Float32Slice3 = frag.Params2
 	}
 
-	for _, size6Piece := range frag.Size6Pieces {
-		e.Size6Pieces = append(e.Size6Pieces, &DMSpriteDefSize6Entry{
-			Unk1: size6Piece.Unk1,
-			Unk2: size6Piece.Unk2,
-			Unk3: size6Piece.Unk3,
-			Unk4: size6Piece.Unk4,
-			Unk5: size6Piece.Unk5,
-		})
+	if frag.Flags&0x4000 != 0 {
+		e.Params3.Valid = true
+		e.Params3.Float32Slice6 = frag.Params3
 	}
 
 	return nil
@@ -3921,6 +4259,20 @@ func (e *HierarchicalSpriteDef) ToRaw(wld *Wld, rawWld *raw.Wld) (int16, error) 
 			spriteDefRef, err := spriteDef.ToRaw(wld, rawWld)
 			if err != nil {
 				return -1, fmt.Errorf("dmspritedef2 to raw: %w", err)
+			}
+
+			wfSprite := &rawfrag.WldFragDMSprite{
+				//NameRef:     raw.NameAdd(skin.DMSpriteTag),
+				DMSpriteRef: int32(spriteDefRef),
+				Params:      0,
+			}
+
+			rawWld.Fragments = append(rawWld.Fragments, wfSprite)
+			spriteRef = int16(len(rawWld.Fragments))
+		case *DMSpriteDef:
+			spriteDefRef, err := spriteDef.ToRaw(wld, rawWld)
+			if err != nil {
+				return -1, fmt.Errorf("dmspritedef to raw: %w", err)
 			}
 
 			wfSprite := &rawfrag.WldFragDMSprite{

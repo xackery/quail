@@ -9,10 +9,10 @@ var tests = []struct {
 	//{baseName: "load2"}, // OK
 	//{baseName: "beetle_chr"}, // OK
 	//{baseName: "load2", wldName: "objects.wld"}, // OK
-	{baseName: "crushbone"}, // OK
+	//{baseName: "crushbone"}, // OK
 	//{baseName: "crushbone", wldName: "objects.wld"}, // OK
 	//{baseName: "crushbone", wldName: "lights.wld"},
-	//{baseName: "qeynos_chr"}, // Needs work
+	{baseName: "qeynos_chr"}, // Needs work
 	//{baseName: "crushbone_chr"}, // OK
 	//{baseName: "freporte_chr"},
 	//{baseName: "chequip"},

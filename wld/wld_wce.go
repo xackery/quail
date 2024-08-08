@@ -38,6 +38,22 @@ func (wld *Wld) WriteAscii(path string, isDir bool) error {
 	baseTags := []string{}
 	for _, dmSprite := range wld.DMSpriteDef2s {
 		if len(dmSprite.Tag) < 3 {
+			return fmt.Errorf("dmspritedef2 %s tag too short", dmSprite.Tag)
+		}
+		baseTag := baseTagTrim(dmSprite.Tag)
+		isFound := false
+		for _, tag := range baseTags {
+			if tag == baseTag {
+				isFound = true
+				break
+			}
+		}
+		if !isFound {
+			baseTags = append(baseTags, baseTag)
+		}
+	}
+	for _, dmSprite := range wld.DMSpriteDefs {
+		if len(dmSprite.Tag) < 3 {
 			return fmt.Errorf("dmsprite %s tag too short", dmSprite.Tag)
 		}
 		baseTag := baseTagTrim(dmSprite.Tag)
@@ -320,6 +336,200 @@ func (wld *Wld) writeAsciiData(path string, isDir bool, baseTags []string, rootB
 				return fmt.Errorf("dmsprite %s polyhedron %s unknown type %T", dmSprite.Tag, dmSprite.PolyhedronTag, poly)
 			}
 
+		}
+
+		err = dmSprite.Write(w)
+		if err != nil {
+			return fmt.Errorf("dm sprite def %s: %w", dmSprite.Tag, err)
+		}
+		if !isZoneChunk {
+			//		fmt.Fprintf(rootBuf, "INCLUDE \"%s.MOD\"\n", strings.ToUpper(baseTag))
+		}
+		tracksWritten := map[string]bool{}
+		for _, hierarchySprite := range wld.HierarchicalSpriteDefs {
+			isFound := false
+
+			if hierarchySprite.PolyhedronTag == dmSprite.Tag {
+				isFound = true
+			}
+			if !isFound {
+				for _, skin := range hierarchySprite.AttachedSkins {
+					if skin.DMSpriteTag != dmSprite.Tag {
+						continue
+					}
+					isFound = true
+					break
+				}
+			}
+			if !isFound {
+				for _, dag := range hierarchySprite.Dags {
+					if dag.SpriteTag == dmSprite.Tag {
+						isFound = true
+						break
+					}
+				}
+			}
+			if !isFound {
+				continue
+			}
+
+			defsWritten[hierarchySprite.Tag] = true
+
+			err = hierarchySprite.Write(w)
+			if err != nil {
+				return fmt.Errorf("hierarchical sprite %s: %w", hierarchySprite.Tag, err)
+			}
+
+			for _, dag := range hierarchySprite.Dags {
+				if dag.Track == "" {
+					continue
+				}
+				if tracksWritten[dag.Track] {
+					continue
+				}
+
+				isTrackFound := false
+				for _, track := range wld.TrackInstances {
+					if track.Tag != dag.Track && track.modelTag != dag.Track {
+						continue
+					}
+
+					defsWritten[dag.Track] = true
+
+					isTrackDefFound := false
+
+					for _, trackDef := range wld.TrackDefs {
+						if trackDef.Tag != track.DefinitionTag {
+							continue
+						}
+						isTrackDefFound = true
+
+						if tracksWritten[trackDef.Tag] {
+							break
+						}
+
+						err = trackDef.Write(w)
+						if err != nil {
+							return fmt.Errorf("track def %s: %w", trackDef.Tag, err)
+						}
+
+						tracksWritten[trackDef.Tag] = true
+						defsWritten[trackDef.Tag] = true
+						break
+					}
+					if !isTrackDefFound {
+						return fmt.Errorf("hierarchy %s track %s definition not found", hierarchySprite.Tag, track.DefinitionTag)
+					}
+
+					isTrackFound = true
+
+					tracksWritten[dag.Track] = true
+					defsWritten[dag.Track] = true
+
+					err = track.Write(w)
+					if err != nil {
+						return fmt.Errorf("track %s: %w", track.Tag, err)
+					}
+				}
+				if !isTrackFound {
+					return fmt.Errorf("hierarchy %s track %s not found", hierarchySprite.Tag, dag.Track)
+				}
+			}
+
+			break
+		}
+	}
+
+	for i := 0; i < len(wld.DMSpriteDefs); i++ {
+		dmSprite := wld.DMSpriteDefs[i]
+		baseTag := baseTagTrim(dmSprite.Tag)
+		if !wld.isZone {
+			modDefsWritten = map[string]bool{}
+		}
+		w, ok = modWriters[baseTag]
+		if !ok {
+			return fmt.Errorf("dmsprite %s writer not found (basetag %s)", dmSprite.Tag, baseTag)
+		}
+		defsWritten[dmSprite.Tag] = true
+
+		isZoneChunk := false
+		// if baseTag is r### then foo
+		if strings.HasPrefix(baseTag, "r") {
+			regionChunk := 0
+			chunkCount, err := fmt.Sscanf(baseTag, "r%d", &regionChunk)
+			isZoneChunk = err == nil && chunkCount == 1
+		}
+
+		if dmSprite.MaterialPaletteTag != "" && !zoneMaterials[dmSprite.MaterialPaletteTag] {
+
+			isMaterialPaletteFound := false
+			for _, materialPal := range wld.MaterialPalettes {
+				if materialPal.Tag != dmSprite.MaterialPaletteTag {
+					continue
+				}
+
+				if modDefsWritten[materialPal.Tag] {
+					continue
+				}
+				modDefsWritten[materialPal.Tag] = true
+
+				for _, materialTag := range materialPal.Materials {
+					isMaterialDefFound := false
+					for _, materialDef := range wld.MaterialDefs {
+						if materialDef.Tag != materialTag {
+							continue
+						}
+
+						if modDefsWritten[materialDef.Tag] {
+							continue
+						}
+						modDefsWritten[materialDef.Tag] = true
+
+						if materialDef.SimpleSpriteTag != "" {
+							isSimpleSpriteFound := false
+							for _, simpleSprite := range wld.SimpleSpriteDefs {
+								if simpleSprite.Tag != materialDef.SimpleSpriteTag {
+									continue
+								}
+								isSimpleSpriteFound = true
+								if modDefsWritten[simpleSprite.Tag] {
+									continue
+								}
+								modDefsWritten[simpleSprite.Tag] = true
+								err = simpleSprite.Write(w)
+								if err != nil {
+									return fmt.Errorf("simple sprite %s: %w", simpleSprite.Tag, err)
+								}
+								break
+							}
+							if !isSimpleSpriteFound {
+								return fmt.Errorf("simple sprite %s not found", materialDef.SimpleSpriteTag)
+							}
+						}
+
+						isMaterialDefFound = true
+						err = materialDef.Write(w)
+						if err != nil {
+							return fmt.Errorf("material %s: %w", materialDef.Tag, err)
+						}
+						break
+					}
+					if !isMaterialDefFound {
+						return fmt.Errorf("dmsprite %s materialdef %s not found", dmSprite.Tag, materialTag)
+					}
+				}
+
+				isMaterialPaletteFound = true
+				err = materialPal.Write(w)
+				if err != nil {
+					return fmt.Errorf("material palette %s: %w", materialPal.Tag, err)
+				}
+				break
+			}
+			if !isMaterialPaletteFound {
+				return fmt.Errorf("material palette %s not found", dmSprite.MaterialPaletteTag)
+			}
+			zoneMaterials[dmSprite.MaterialPaletteTag] = true
 		}
 
 		err = dmSprite.Write(w)

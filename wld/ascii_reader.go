@@ -175,25 +175,26 @@ func (a *AsciiReadToken) readDefinitions() error {
 		&ActorDef{},
 		&ActorInst{},
 		&AmbientLight{},
+		&BlitSpriteDefinition{},
+		&DMSpriteDef{},
 		&DMSpriteDef2{},
+		&GlobalAmbientLightDef{},
 		&HierarchicalSpriteDef{},
 		&LightDef{},
 		&MaterialDef{},
 		&MaterialPalette{},
+		&ParticleCloudDef{},
+		&PointLight{},
 		&PolyhedronDefinition{},
 		&Region{},
+		&RGBTrackDef{},
 		&SimpleSpriteDef{},
+		&Sprite2DDef{},
 		&Sprite3DDef{},
 		&TrackDef{},
 		&TrackInstance{},
 		&WorldTree{},
 		&Zone{},
-		&RGBTrackDef{},
-		&GlobalAmbientLightDef{},
-		&ParticleCloudDef{},
-		&BlitSpriteDefinition{},
-		&Sprite2DDef{},
-		&PointLight{},
 	}
 
 	definition := ""
@@ -358,6 +359,11 @@ func (a *AsciiReadToken) readDefinitions() error {
 			case *PointLight:
 				a.wld.PointLights = append(a.wld.PointLights, frag)
 				definitions[i] = &PointLight{}
+			case *DMSpriteDef:
+				a.wld.DMSpriteDefs = append(a.wld.DMSpriteDefs, frag)
+				definitions[i] = &DMSpriteDef{}
+			default:
+				return fmt.Errorf("unknown definition type for rebuild: %T", definitions[i])
 			}
 
 			break
