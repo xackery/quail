@@ -75,28 +75,33 @@ func (e *GlobalAmbientLightDef) FromRaw(wld *Wld, rawWld *raw.Wld, frag *rawfrag
 
 // DMSpriteDef2 is a declaration of DMSpriteDef2
 type DMSpriteDef2 struct {
-	fragID               int16
-	Tag                  string
-	DmTrackTag           string
-	Params2              [3]uint32
-	MaxDistance          float32
-	Min                  [3]float32
-	Max                  [3]float32
-	CenterOffset         [3]float32
-	Vertices             [][3]float32
-	UVs                  [][2]float32
-	VertexNormals        [][3]float32
-	VertexColors         [][4]uint8
-	SkinAssignmentGroups [][2]int16
-	MaterialPaletteTag   string
-	Faces                []*Face
-	MeshOps              []*MeshOp
-	FaceMaterialGroups   [][2]uint16
-	VertexMaterialGroups [][2]int16
-	BoundingRadius       float32
-	FPScale              uint16
-	PolyhedronTag        string
-	HexThreeFlag         int
+	fragID                int16
+	Tag                   string
+	DmTrackTag            string
+	Params2               [3]uint32
+	MaxDistance           float32
+	Min                   [3]float32
+	Max                   [3]float32
+	CenterOffset          [3]float32
+	Vertices              [][3]float32
+	UVs                   [][2]float32
+	VertexNormals         [][3]float32
+	VertexColors          [][4]uint8
+	SkinAssignmentGroups  [][2]int16
+	MaterialPaletteTag    string
+	Faces                 []*Face
+	MeshOps               []*MeshOp
+	FaceMaterialGroups    [][2]uint16
+	VertexMaterialGroups  [][2]int16
+	BoundingRadius        float32
+	FPScale               uint16
+	PolyhedronTag         string
+	HexOneFlag            uint16
+	HexTwoFlag            uint16
+	HexFourThousandFlag   uint16
+	HexEightThousandFlag  uint16
+	HexTenThousandFlag    uint16
+	HexTwentyThousandFlag uint16
 }
 
 type Face struct {
@@ -181,7 +186,13 @@ func (e *DMSpriteDef2) Write(w io.Writer) error {
 	fmt.Fprintf(w, "\tBOUNDINGRADIUS %0.8e\n", e.BoundingRadius)
 	fmt.Fprintf(w, "\n")
 	fmt.Fprintf(w, "\tFPSCALE %d\n", e.FPScale)
-	fmt.Fprintf(w, "\tHEXTHREEFLAG %d\n", e.HexThreeFlag)
+	fmt.Fprintf(w, "\tHEXONEFLAG %d\n", e.HexOneFlag)
+	fmt.Fprintf(w, "\tHEXTWOFLAG %d\n", e.HexTwoFlag)
+	fmt.Fprintf(w, "\tHEXFOURTOUSANDFLAG %d\n", e.HexFourThousandFlag)
+	fmt.Fprintf(w, "\tHEXEIGHTTOUSANDFLAG %d\n", e.HexEightThousandFlag)
+	fmt.Fprintf(w, "\tHEXTENTHOUSANDFLAG %d\n", e.HexTenThousandFlag)
+	fmt.Fprintf(w, "\tHEXTWENTYTHOUSANDFLAG %d\n", e.HexTwentyThousandFlag)
+
 	fmt.Fprintf(w, "ENDDMSPRITEDEF2\n\n")
 	return nil
 }
@@ -456,13 +467,58 @@ func (e *DMSpriteDef2) Read(token *AsciiReadToken) error {
 		return fmt.Errorf("fpscale: %w", err)
 	}
 
-	records, err = token.ReadProperty("HEXTHREEFLAG", 1)
+	records, err = token.ReadProperty("HEXONEFLAG", 1)
 	if err != nil {
 		return err
 	}
-	err = parse(&e.HexThreeFlag, records[1])
+	err = parse(&e.HexOneFlag, records[1])
 	if err != nil {
-		return fmt.Errorf("hexthreeflag: %w", err)
+		return fmt.Errorf("hexoneflag: %w", err)
+	}
+
+	records, err = token.ReadProperty("HEXTWOFLAG", 1)
+	if err != nil {
+		return err
+	}
+	err = parse(&e.HexTwoFlag, records[1])
+	if err != nil {
+		return fmt.Errorf("hextwoflag: %w", err)
+	}
+
+	records, err = token.ReadProperty("HEXFOURTOUSANDFLAG", 1)
+	if err != nil {
+		return err
+	}
+	err = parse(&e.HexFourThousandFlag, records[1])
+	if err != nil {
+		return fmt.Errorf("hexfourthousandflag: %w", err)
+	}
+
+	records, err = token.ReadProperty("HEXEIGHTTOUSANDFLAG", 1)
+	if err != nil {
+		return err
+	}
+	err = parse(&e.HexEightThousandFlag, records[1])
+	if err != nil {
+		return fmt.Errorf("hexeightthousandflag: %w", err)
+	}
+
+	records, err = token.ReadProperty("HEXTENTHOUSANDFLAG", 1)
+	if err != nil {
+		return err
+	}
+	err = parse(&e.HexTenThousandFlag, records[1])
+	if err != nil {
+		return fmt.Errorf("hextenthousandflag: %w", err)
+	}
+
+	records, err = token.ReadProperty("HEXTWENTYTHOUSANDFLAG", 1)
+	if err != nil {
+		return err
+	}
+	err = parse(&e.HexTwentyThousandFlag, records[1])
+	if err != nil {
+		return fmt.Errorf("hextwentythousandflag: %w", err)
 	}
 
 	_, err = token.ReadProperty("ENDDMSPRITEDEF2", 0)
@@ -494,7 +550,6 @@ func (e *DMSpriteDef2) ToRaw(wld *Wld, rawWld *raw.Wld) (int16, error) {
 	}
 
 	dmSpriteDef := &rawfrag.WldFragDmSpriteDef2{
-		NameRef:              raw.NameAdd(e.Tag),
 		MaterialPaletteRef:   uint32(materialPaletteRef),
 		CenterOffset:         e.CenterOffset,
 		Params2:              e.Params2,
@@ -518,15 +573,30 @@ func (e *DMSpriteDef2) ToRaw(wld *Wld, rawWld *raw.Wld) (int16, error) {
 				break
 			}
 		} else {
-			polyhedron := wld.ByTag(e.PolyhedronTag)
-			if polyhedron == nil {
+			polyhedronFrag := wld.ByTag(e.PolyhedronTag)
+			if polyhedronFrag == nil {
 				return -1, fmt.Errorf("polyhedron %s not found", e.PolyhedronTag)
 			}
-			polyhedronRef, err := polyhedron.ToRaw(wld, rawWld)
-			if err != nil {
-				return -1, fmt.Errorf("polyhedron %s to raw: %w", e.PolyhedronTag, err)
+
+			switch polyhedron := polyhedronFrag.(type) {
+			case *PolyhedronDefinition:
+
+				polyhedronRef, err := polyhedron.ToRaw(wld, rawWld)
+				if err != nil {
+					return -1, fmt.Errorf("polyhedron %s to raw: %w", e.PolyhedronTag, err)
+				}
+
+				wfPoly := &rawfrag.WldFragPolyhedron{
+					FragmentRef: int32(polyhedronRef),
+				}
+				rawWld.Fragments = append(rawWld.Fragments, wfPoly)
+
+				dmSpriteDef.Fragment4Ref = int32(len(rawWld.Fragments))
+			case *SimpleSpriteDef:
+				dmSpriteDef.Fragment4Ref = int32(polyhedron.fragID)
+			default:
+				return -1, fmt.Errorf("polyhedrontag %T unhandled", polyhedron)
 			}
-			dmSpriteDef.Fragment4Ref = int32(polyhedronRef)
 		}
 
 		if dmSpriteDef.Fragment4Ref == 0 {
@@ -534,14 +604,26 @@ func (e *DMSpriteDef2) ToRaw(wld *Wld, rawWld *raw.Wld) (int16, error) {
 		}
 	}
 
-	if wld.isZone {
-		dmSpriteDef.Flags = 0x00018003
+	if e.HexOneFlag != 0 {
+		dmSpriteDef.Flags |= 0x1
 	}
-	if e.HexThreeFlag > 0 {
-		dmSpriteDef.Flags |= 0x03
-	} else if !wld.isZone {
-		dmSpriteDef.Flags = 0x00014003
+	if e.HexTwoFlag != 0 {
+		dmSpriteDef.Flags |= 0x2
 	}
+	if e.HexFourThousandFlag != 0 {
+		dmSpriteDef.Flags |= 0x4000
+	}
+	if e.HexEightThousandFlag != 0 {
+		dmSpriteDef.Flags |= 0x8000
+	}
+	if e.HexTenThousandFlag != 0 {
+		dmSpriteDef.Flags |= 0x10000
+	}
+	if e.HexTwentyThousandFlag != 0 {
+		dmSpriteDef.Flags |= 0x20000
+	}
+
+	dmSpriteDef.NameRef = raw.NameAdd(e.Tag)
 
 	/* for i, frag := range rawWld.Fragments {
 		_, ok := frag.(*rawfrag.WldFragBMInfo)
@@ -692,8 +774,23 @@ func (e *DMSpriteDef2) FromRaw(wld *Wld, rawWld *raw.Wld, frag *rawfrag.WldFragD
 		})
 	}
 
-	if frag.Flags&0x03 != 0 {
-		e.HexThreeFlag = 1
+	if frag.Flags&0x1 != 0 {
+		e.HexOneFlag = 1
+	}
+	if frag.Flags&0x2 != 0 {
+		e.HexTwoFlag = 1
+	}
+	if frag.Flags&0x4000 != 0 {
+		e.HexFourThousandFlag = 1
+	}
+	if frag.Flags&0x8000 != 0 {
+		e.HexEightThousandFlag = 1
+	}
+	if frag.Flags&0x10000 != 0 {
+		e.HexTenThousandFlag = 1
+	}
+	if frag.Flags&0x20000 != 0 {
+		e.HexTwentyThousandFlag = 1
 	}
 
 	e.FaceMaterialGroups = frag.FaceMaterialGroups
@@ -1712,6 +1809,7 @@ type ActorDef struct {
 	Unk1           uint32
 	Actions        []ActorAction
 	Unk2           uint32
+	HasEightyFlag  int
 }
 
 func (e *ActorDef) Definition() string {
@@ -1740,6 +1838,7 @@ func (e *ActorDef) Write(w io.Writer) error {
 		fmt.Fprintf(w, "\tENDACTION\n")
 	}
 	fmt.Fprintf(w, "\t// UNK2 %d\n", e.Unk2)
+	fmt.Fprintf(w, "\tHASEIGHTYFLAG %d\n", e.HasEightyFlag)
 	fmt.Fprintf(w, "ENDACTORDEF\n\n")
 	return nil
 }
@@ -1852,6 +1951,16 @@ func (e *ActorDef) Read(token *AsciiReadToken) error {
 
 	}
 
+	records, err = token.ReadProperty("HASEIGHTYFLAG", 1)
+	if err != nil {
+		return err
+	}
+
+	err = parse(&e.HasEightyFlag, records[1])
+	if err != nil {
+		return fmt.Errorf("has eighty flag: %w", err)
+	}
+
 	_, err = token.ReadProperty("ENDACTORDEF", 0)
 	if err != nil {
 		return err
@@ -1884,6 +1993,10 @@ func (e *ActorDef) ToRaw(wld *Wld, rawWld *raw.Wld) (int16, error) {
 	if e.ActiveGeometry.Valid {
 		actorDef.Flags |= 0x40
 		//actorDef.ActiveGeometry = e.ActiveGeometry.Uint32
+	}
+
+	if e.HasEightyFlag > 0 {
+		actorDef.Flags |= 0x80
 	}
 
 	for _, action := range e.Actions {
@@ -2006,6 +2119,10 @@ func (e *ActorDef) FromRaw(wld *Wld, rawWld *raw.Wld, frag *rawfrag.WldFragActor
 	}
 	if frag.Flags&0x40 == 0x40 {
 		e.ActiveGeometry.Valid = true
+	}
+
+	if frag.Flags&0x80 == 0x80 {
+		e.HasEightyFlag = 1
 	}
 
 	if len(frag.Actions) != len(frag.FragmentRefs) {
@@ -3324,11 +3441,11 @@ func (e *Sprite3DDef) FromRaw(wld *Wld, rawWld *raw.Wld, frag *rawfrag.WldFragSp
 type PolyhedronDefinition struct {
 	fragID         int16
 	Tag            string
-	Flags          uint32
 	BoundingRadius float32
 	ScaleFactor    float32
 	Vertices       [][3]float32
 	Faces          [][]uint32
+	HexOneFlag     int
 }
 
 type PolyhedronDefinitionFace struct {
@@ -3342,7 +3459,6 @@ func (e *PolyhedronDefinition) Definition() string {
 func (e *PolyhedronDefinition) Write(w io.Writer) error {
 	fmt.Fprintf(w, "%s\n", e.Definition())
 	fmt.Fprintf(w, "\tTAG \"%s\"\n", e.Tag)
-	fmt.Fprintf(w, "\tFLAGS %d // we have no idea on these\n", e.Flags)
 	fmt.Fprintf(w, "\tBOUNDINGRADIUS %0.8e\n", e.BoundingRadius)
 	fmt.Fprintf(w, "\tSCALEFACTOR %0.8e\n", e.ScaleFactor)
 	fmt.Fprintf(w, "\tNUMVERTICES %d\n", len(e.Vertices))
@@ -3357,6 +3473,7 @@ func (e *PolyhedronDefinition) Write(w io.Writer) error {
 		}
 		fmt.Fprintf(w, "\n")
 	}
+	fmt.Fprintf(w, "\tHEXONEFLAG %d\n", e.HexOneFlag)
 	fmt.Fprintf(w, "ENDPOLYHEDRONDEFINITION\n\n")
 	return nil
 }
@@ -3367,15 +3484,6 @@ func (e *PolyhedronDefinition) Read(token *AsciiReadToken) error {
 		return err
 	}
 	e.Tag = records[1]
-
-	records, err = token.ReadProperty("FLAGS", 1)
-	if err != nil {
-		return err
-	}
-	err = parse(&e.Flags, records[1])
-	if err != nil {
-		return fmt.Errorf("flags: %w", err)
-	}
 
 	records, err = token.ReadProperty("BOUNDINGRADIUS", 1)
 	if err != nil {
@@ -3455,6 +3563,15 @@ func (e *PolyhedronDefinition) Read(token *AsciiReadToken) error {
 		e.Faces = append(e.Faces, faceVals)
 	}
 
+	records, err = token.ReadProperty("HEXONEFLAG", 1)
+	if err != nil {
+		return err
+	}
+	err = parse(&e.HexOneFlag, records[1])
+	if err != nil {
+		return fmt.Errorf("hex one flag: %w", err)
+	}
+
 	_, err = token.ReadProperty("ENDPOLYHEDRONDEFINITION", 0)
 	if err != nil {
 		return err
@@ -3470,11 +3587,14 @@ func (e *PolyhedronDefinition) ToRaw(wld *Wld, rawWld *raw.Wld) (int16, error) {
 
 	wfPolyhedronDef := &rawfrag.WldFragPolyhedronDef{
 		NameRef:        raw.NameAdd(e.Tag),
-		Flags:          e.Flags,
 		BoundingRadius: e.BoundingRadius,
 		ScaleFactor:    e.ScaleFactor,
 		Vertices:       e.Vertices,
 		Faces:          e.Faces,
+	}
+
+	if e.HexOneFlag > 0 {
+		wfPolyhedronDef.Flags |= 0x01
 	}
 
 	rawWld.Fragments = append(rawWld.Fragments, wfPolyhedronDef)
@@ -3484,11 +3604,13 @@ func (e *PolyhedronDefinition) ToRaw(wld *Wld, rawWld *raw.Wld) (int16, error) {
 
 func (e *PolyhedronDefinition) FromRaw(wld *Wld, rawWld *raw.Wld, frag *rawfrag.WldFragPolyhedronDef) error {
 	e.Tag = raw.Name(frag.NameRef)
-	e.Flags = frag.Flags
 	e.BoundingRadius = frag.BoundingRadius
 	e.ScaleFactor = frag.ScaleFactor
 	e.Vertices = frag.Vertices
 	e.Faces = frag.Faces
+	if frag.Flags&0x01 != 0 {
+		e.HexOneFlag = 1
+	}
 
 	return nil
 }
@@ -3922,14 +4044,15 @@ func (e *TrackDef) FromRaw(wld *Wld, rawWld *raw.Wld, frag *rawfrag.WldFragTrack
 }
 
 type HierarchicalSpriteDef struct {
-	fragID            int16
-	Tag               string
-	Dags              []Dag
-	AttachedSkins     []AttachedSkin
-	CenterOffset      NullFloat32Slice3 // 0x01
-	BoundingRadius    NullFloat32       // 0x02
-	HexTwoHundredFlag int               // 0x200
-	PolyhedronTag     string
+	fragID                int16
+	Tag                   string
+	Dags                  []Dag
+	AttachedSkins         []AttachedSkin
+	CenterOffset          NullFloat32Slice3 // 0x01
+	BoundingRadius        NullFloat32       // 0x02
+	HexTwoHundredFlag     int               // 0x200
+	HexTwentyThousandFlag int               // 0x20000
+	PolyhedronTag         string
 }
 
 type Dag struct {
@@ -3982,6 +4105,7 @@ func (e *HierarchicalSpriteDef) Write(w io.Writer) error {
 	fmt.Fprintf(w, "\tCENTEROFFSET? %s\n", wcVal(e.CenterOffset))
 	fmt.Fprintf(w, "\tBOUNDINGRADIUS? %s\n", wcVal(e.BoundingRadius))
 	fmt.Fprintf(w, "\tHEXTWOHUNDREDFLAG %d\n", e.HexTwoHundredFlag)
+	fmt.Fprintf(w, "\tHEXTWENTYTHOUSANDFLAG %d\n", e.HexTwentyThousandFlag)
 
 	fmt.Fprintf(w, "ENDHIERARCHICALSPRITEDEF\n\n")
 	return nil
@@ -4139,6 +4263,15 @@ func (e *HierarchicalSpriteDef) Read(token *AsciiReadToken) error {
 		return fmt.Errorf("hex two hundred flag: %w", err)
 	}
 
+	records, err = token.ReadProperty("HEXTWENTYTHOUSANDFLAG", 1)
+	if err != nil {
+		return err
+	}
+	err = parse(&e.HexTwentyThousandFlag, records[1])
+	if err != nil {
+		return fmt.Errorf("hex twenty thousand flag: %w", err)
+	}
+
 	_, err = token.ReadProperty("ENDHIERARCHICALSPRITEDEF", 0)
 	if err != nil {
 		return err
@@ -4192,6 +4325,9 @@ func (e *HierarchicalSpriteDef) ToRaw(wld *Wld, rawWld *raw.Wld) (int16, error) 
 	if e.HexTwoHundredFlag > 0 {
 		wfHierarchicalSpriteDef.Flags |= 0x200
 	}
+	if e.HexTwentyThousandFlag > 0 {
+		wfHierarchicalSpriteDef.Flags |= 0x20000
+	}
 
 	for _, dag := range e.Dags {
 
@@ -4237,17 +4373,90 @@ func (e *HierarchicalSpriteDef) ToRaw(wld *Wld, rawWld *raw.Wld) (int16, error) 
 			}
 			switch spriteDef := spriteDefFrag.(type) {
 			case *SimpleSpriteDef:
-				wfDag.MeshOrSpriteOrParticleRef = uint32(spriteDef.fragID)
+				spriteDefRef, err := spriteDef.ToRaw(wld, rawWld)
+				if err != nil {
+					return -1, fmt.Errorf("dmspritedef to raw: %w", err)
+				}
+
+				wfSprite := &rawfrag.WldFragDMSprite{
+					//NameRef:     raw.NameAdd(skin.DMSpriteTag),
+					DMSpriteRef: int32(spriteDefRef),
+					Params:      0,
+				}
+
+				rawWld.Fragments = append(rawWld.Fragments, wfSprite)
+				wfDag.MeshOrSpriteOrParticleRef = uint32(len(rawWld.Fragments))
 			case *DMSpriteDef:
-				wfDag.MeshOrSpriteOrParticleRef = uint32(spriteDef.fragID)
+				spriteDefRef, err := spriteDef.ToRaw(wld, rawWld)
+				if err != nil {
+					return -1, fmt.Errorf("dmspritedef to raw: %w", err)
+				}
+
+				wfSprite := &rawfrag.WldFragDMSprite{
+					//NameRef:     raw.NameAdd(skin.DMSpriteTag),
+					DMSpriteRef: int32(spriteDefRef),
+					Params:      0,
+				}
+
+				rawWld.Fragments = append(rawWld.Fragments, wfSprite)
+				wfDag.MeshOrSpriteOrParticleRef = uint32(len(rawWld.Fragments))
 			case *HierarchicalSpriteDef:
-				wfDag.MeshOrSpriteOrParticleRef = uint32(spriteDef.fragID)
+				spriteDefRef, err := spriteDef.ToRaw(wld, rawWld)
+				if err != nil {
+					return -1, fmt.Errorf("dmspritedef to raw: %w", err)
+				}
+
+				wfSprite := &rawfrag.WldFragDMSprite{
+					//NameRef:     raw.NameAdd(skin.DMSpriteTag),
+					DMSpriteRef: int32(spriteDefRef),
+					Params:      0,
+				}
+
+				rawWld.Fragments = append(rawWld.Fragments, wfSprite)
+				wfDag.MeshOrSpriteOrParticleRef = uint32(len(rawWld.Fragments))
 			case *Sprite3DDef:
-				wfDag.MeshOrSpriteOrParticleRef = uint32(spriteDef.fragID)
+
+				spriteDefRef, err := spriteDef.ToRaw(wld, rawWld)
+				if err != nil {
+					return -1, fmt.Errorf("dmspritedef to raw: %w", err)
+				}
+
+				wfSprite := &rawfrag.WldFragDMSprite{
+					//NameRef:     raw.NameAdd(skin.DMSpriteTag),
+					DMSpriteRef: int32(spriteDefRef),
+					Params:      0,
+				}
+
+				rawWld.Fragments = append(rawWld.Fragments, wfSprite)
+				wfDag.MeshOrSpriteOrParticleRef = uint32(len(rawWld.Fragments))
 			case *DMSpriteDef2:
-				wfDag.MeshOrSpriteOrParticleRef = uint32(spriteDef.fragID)
+				spriteDefRef, err := spriteDef.ToRaw(wld, rawWld)
+				if err != nil {
+					return -1, fmt.Errorf("dmspritedef to raw: %w", err)
+				}
+
+				wfSprite := &rawfrag.WldFragDMSprite{
+					//NameRef:     raw.NameAdd(skin.DMSpriteTag),
+					DMSpriteRef: int32(spriteDefRef),
+					Params:      0,
+				}
+
+				rawWld.Fragments = append(rawWld.Fragments, wfSprite)
+				wfDag.MeshOrSpriteOrParticleRef = uint32(len(rawWld.Fragments))
 			case *BlitSpriteDefinition:
-				wfDag.MeshOrSpriteOrParticleRef = uint32(spriteDef.fragID)
+				spriteDefRef, err := spriteDef.ToRaw(wld, rawWld)
+				if err != nil {
+					return -1, fmt.Errorf("dmspritedef to raw: %w", err)
+				}
+
+				wfSprite := &rawfrag.WldFragDMSprite{
+					//NameRef:     raw.NameAdd(skin.DMSpriteTag),
+					DMSpriteRef: int32(spriteDefRef),
+					Params:      0,
+				}
+
+				rawWld.Fragments = append(rawWld.Fragments, wfSprite)
+				wfDag.MeshOrSpriteOrParticleRef = uint32(len(rawWld.Fragments))
 			default:
 				return -1, fmt.Errorf("unsupported toraw dag spritetag instance type: %T", spriteDefFrag)
 			}
@@ -4357,6 +4566,9 @@ func (e *HierarchicalSpriteDef) FromRaw(wld *Wld, rawWld *raw.Wld, frag *rawfrag
 	}
 	if frag.Flags&0x200 != 0 {
 		e.HexTwoHundredFlag = 1
+	}
+	if frag.Flags&0x20000 != 0 {
+		e.HexTwentyThousandFlag = 1
 	}
 
 	for _, dag := range frag.Dags {
