@@ -507,10 +507,8 @@ func (e *DMSpriteDef2) ToRaw(wld *Wld, rawWld *raw.Wld) (int16, error) {
 		VertexMaterialGroups: e.VertexMaterialGroups,
 	}
 
-	if e.PolyhedronTag != "" && (!strings.HasPrefix(e.Tag, "R") || !wld.isZone) {
-		polyhedron := wld.ByTag(e.PolyhedronTag)
-		if polyhedron == nil {
-			// bminfo refs are not mapped cleanly, so we get to iterate fragments to find it
+	if e.PolyhedronTag != "" { //&& (!strings.HasPrefix(e.Tag, "R") || !wld.isZone)
+		if strings.HasPrefix(e.Tag, "R") && wld.isZone {
 			for i, frag := range rawWld.Fragments {
 				_, ok := frag.(*rawfrag.WldFragBMInfo)
 				if !ok {
@@ -519,15 +517,20 @@ func (e *DMSpriteDef2) ToRaw(wld *Wld, rawWld *raw.Wld) (int16, error) {
 				dmSpriteDef.Fragment4Ref = int32(i) + 1
 				break
 			}
-			if dmSpriteDef.Fragment4Ref == 0 {
-				return -1, fmt.Errorf("polyhedron polygon/bminfo %s not found", e.PolyhedronTag)
-			}
 		} else {
+			polyhedron := wld.ByTag(e.PolyhedronTag)
+			if polyhedron == nil {
+				return -1, fmt.Errorf("polyhedron %s not found", e.PolyhedronTag)
+			}
 			polyhedronRef, err := polyhedron.ToRaw(wld, rawWld)
 			if err != nil {
 				return -1, fmt.Errorf("polyhedron %s to raw: %w", e.PolyhedronTag, err)
 			}
 			dmSpriteDef.Fragment4Ref = int32(polyhedronRef)
+		}
+
+		if dmSpriteDef.Fragment4Ref == 0 {
+			return -1, fmt.Errorf("polyhedron polygon/bminfo %s not found", e.PolyhedronTag)
 		}
 	}
 
@@ -1637,8 +1640,8 @@ func (e *ActorDef) ToRaw(wld *Wld, rawWld *raw.Wld) (int16, error) {
 		actorDef.Actions = append(actorDef.Actions, actorAction)
 	}
 
-	actorDef.CallbackNameRef = raw.NameAdd(e.Callback)
 	actorDef.NameRef = raw.NameAdd(e.Tag)
+	actorDef.CallbackNameRef = raw.NameAdd(e.Callback)
 
 	rawWld.Fragments = append(rawWld.Fragments, actorDef)
 	e.fragID = int16(len(rawWld.Fragments))
@@ -3851,6 +3854,7 @@ func (e *HierarchicalSpriteDef) ToRaw(wld *Wld, rawWld *raw.Wld) (int16, error) 
 		}
 
 	}
+	wfHierarchicalSpriteDef.NameRef = raw.NameAdd(e.Tag)
 
 	for _, dag := range e.Dags {
 		wfDag := rawfrag.WldFragDag{}
@@ -3933,7 +3937,6 @@ func (e *HierarchicalSpriteDef) ToRaw(wld *Wld, rawWld *raw.Wld) (int16, error) 
 
 		wfHierarchicalSpriteDef.DMSprites = append(wfHierarchicalSpriteDef.DMSprites, uint32(spriteRef))
 	}
-	wfHierarchicalSpriteDef.NameRef = raw.NameAdd(e.Tag)
 
 	rawWld.Fragments = append(rawWld.Fragments, wfHierarchicalSpriteDef)
 	e.fragID = int16(len(rawWld.Fragments))
