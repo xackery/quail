@@ -402,6 +402,9 @@ func (wld *Wld) writeAsciiData(path string, isDir bool, baseTags []string, rootB
 						if trackDef.Tag != track.DefinitionTag {
 							continue
 						}
+						if trackDef.TagIndex != track.DefinitionTagIndex {
+							continue
+						}
 						isTrackDefFound = true
 
 						if tracksWritten[trackDef.Tag] {
@@ -596,6 +599,9 @@ func (wld *Wld) writeAsciiData(path string, isDir bool, baseTags []string, rootB
 						if trackDef.Tag != track.DefinitionTag {
 							continue
 						}
+						if trackDef.TagIndex != track.DefinitionTagIndex {
+							continue
+						}
 						isTrackDefFound = true
 
 						if tracksWritten[trackDef.Tag] {
@@ -649,6 +655,9 @@ func (wld *Wld) writeAsciiData(path string, isDir bool, baseTags []string, rootB
 		isTrackFound := false
 		for _, trackDef := range wld.TrackDefs {
 			if trackDef.Tag != track.DefinitionTag {
+				continue
+			}
+			if trackDef.TagIndex != track.DefinitionTagIndex {
 				continue
 			}
 

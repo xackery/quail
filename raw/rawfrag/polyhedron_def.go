@@ -12,17 +12,10 @@ import (
 type WldFragPolyhedronDef struct {
 	NameRef        int32
 	Flags          uint32
-	NumVertices    uint32                  // size1 in libeq
-	NumFaces       uint32                  // size2 in libeq
-	BoundingRadius float32                 // params1 in libeq
-	ScaleFactor    float32                 // params2 in libeq
-	Vertices       [][3]float32            // entries1 in libeq
-	Faces          []WldFragPolyhedronFace // entries2 in libeq
-}
-
-type WldFragPolyhedronFace struct {
-	NumVertices uint32
-	Vertices    []uint32
+	BoundingRadius float32      // params1 in libeq
+	ScaleFactor    float32      // params2 in libeq
+	Vertices       [][3]float32 // entries1 in libeq
+	Faces          [][]uint32   // entries2 in libeq
 }
 
 func (e *WldFragPolyhedronDef) FragCode() int {
@@ -33,8 +26,8 @@ func (e *WldFragPolyhedronDef) Write(w io.Writer) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
 	enc.Int32(e.NameRef)
 	enc.Uint32(e.Flags)
-	enc.Uint32(e.NumVertices)
-	enc.Uint32(e.NumFaces)
+	enc.Uint32(uint32(len(e.Vertices)))
+	enc.Uint32(uint32(len(e.Faces)))
 	enc.Float32(e.BoundingRadius)
 	enc.Float32(e.ScaleFactor)
 	for _, entry := range e.Vertices {
@@ -42,9 +35,9 @@ func (e *WldFragPolyhedronDef) Write(w io.Writer) error {
 		enc.Float32(entry[1])
 		enc.Float32(entry[2])
 	}
-	for _, entry := range e.Faces {
-		enc.Uint32(entry.NumVertices)
-		for _, unk2 := range entry.Vertices {
+	for _, faceEntries := range e.Faces {
+		enc.Uint32(uint32(len(faceEntries)))
+		for _, unk2 := range faceEntries {
 			enc.Uint32(unk2)
 		}
 	}
@@ -59,20 +52,21 @@ func (e *WldFragPolyhedronDef) Read(r io.ReadSeeker) error {
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	e.NameRef = dec.Int32()
 	e.Flags = dec.Uint32()
-	e.NumVertices = dec.Uint32()
-	e.NumFaces = dec.Uint32()
+	vertexCount := dec.Uint32()
+	faceCount := dec.Uint32()
 	e.BoundingRadius = dec.Float32()
 	e.ScaleFactor = dec.Float32()
-	for i := uint32(0); i < e.NumVertices; i++ {
-		e.Vertices = append(e.Vertices, [3]float32{dec.Float32(), dec.Float32(), dec.Float32()})
+	e.Vertices = make([][3]float32, vertexCount)
+	for i := range e.Vertices {
+		e.Vertices[i] = [3]float32{dec.Float32(), dec.Float32(), dec.Float32()}
 	}
-	for i := uint32(0); i < e.NumFaces; i++ {
-		entry := WldFragPolyhedronFace{}
-		entry.NumVertices = dec.Uint32()
-		for j := uint32(0); j < entry.NumVertices; j++ {
-			entry.Vertices = append(entry.Vertices, dec.Uint32())
+	e.Faces = make([][]uint32, faceCount)
+	for i := range e.Faces {
+		entryCount := dec.Uint32()
+		e.Faces[i] = make([]uint32, entryCount)
+		for j := range e.Faces[i] {
+			e.Faces[i][j] = dec.Uint32()
 		}
-		e.Faces = append(e.Faces, entry)
 	}
 	err := dec.Error()
 	if err != nil {

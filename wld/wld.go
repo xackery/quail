@@ -11,8 +11,9 @@ var AsciiVersion = "v0.0.1"
 
 // Wld is a struct representing a Wld file
 type Wld struct {
-	isZone                 bool   // true when the file is a zone file
-	lastReadModelTag       string // last model tag read
+	isZone                 bool           // true when the file is a zone file
+	lastReadModelTag       string         // last model tag read
+	tagIndexes             map[string]int // used when parsing to keep track of indexes
 	FileName               string
 	GlobalAmbientLightDef  *GlobalAmbientLightDef
 	Version                uint32
@@ -185,9 +186,51 @@ func (wld *Wld) ByTag(tag string) WldDefinitioner {
 	return nil
 }
 
+// ByTagWithIndex returns a instance by tag with index included
+func (wld *Wld) ByTagWithIndex(tag string, index int) WldDefinitioner {
+	if tag == "" {
+		return nil
+	}
+
+	if strings.HasSuffix(tag, "_TRACK") {
+		for _, track := range wld.TrackInstances {
+			if track.Tag == tag && track.TagIndex == index {
+				return track
+			}
+		}
+	}
+
+	if strings.HasSuffix(tag, "_TRACKDEF") {
+		for _, track := range wld.TrackDefs {
+			if track.Tag == tag && track.TagIndex == index {
+				return track
+			}
+		}
+	}
+
+	return nil
+}
+
+// NextTagIndex returns the next available index for a tag
+func (wld *Wld) NextTagIndex(tag string) int {
+	if tag == "" {
+		return 0
+	}
+
+	_, ok := wld.tagIndexes[tag]
+	if !ok {
+		wld.tagIndexes[tag] = 0
+		return 0
+	}
+
+	wld.tagIndexes[tag]++
+	return wld.tagIndexes[tag]
+}
+
 func (wld *Wld) reset() {
 	wld.GlobalAmbientLightDef = nil
 	wld.lastReadModelTag = ""
+	wld.tagIndexes = make(map[string]int)
 	wld.SimpleSpriteDefs = []*SimpleSpriteDef{}
 	wld.MaterialDefs = []*MaterialDef{}
 	wld.MaterialPalettes = []*MaterialPalette{}

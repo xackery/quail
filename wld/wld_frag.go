@@ -3328,7 +3328,7 @@ type PolyhedronDefinition struct {
 	BoundingRadius float32
 	ScaleFactor    float32
 	Vertices       [][3]float32
-	Faces          []*PolyhedronDefinitionFace
+	Faces          [][]uint32
 }
 
 type PolyhedronDefinitionFace struct {
@@ -3342,7 +3342,7 @@ func (e *PolyhedronDefinition) Definition() string {
 func (e *PolyhedronDefinition) Write(w io.Writer) error {
 	fmt.Fprintf(w, "%s\n", e.Definition())
 	fmt.Fprintf(w, "\tTAG \"%s\"\n", e.Tag)
-	fmt.Fprintf(w, "\t// FLAGS %d\n", e.Flags)
+	fmt.Fprintf(w, "\tFLAGS %d // we have no idea on these\n", e.Flags)
 	fmt.Fprintf(w, "\tBOUNDINGRADIUS %0.8e\n", e.BoundingRadius)
 	fmt.Fprintf(w, "\tSCALEFACTOR %0.8e\n", e.ScaleFactor)
 	fmt.Fprintf(w, "\tNUMVERTICES %d\n", len(e.Vertices))
@@ -3350,14 +3350,12 @@ func (e *PolyhedronDefinition) Write(w io.Writer) error {
 		fmt.Fprintf(w, "\tXYZ %0.8e %0.8e %0.8e\n", vert[0], vert[1], vert[2])
 	}
 	fmt.Fprintf(w, "\tNUMFACES %d\n", len(e.Faces))
-	for i, face := range e.Faces {
-		fmt.Fprintf(w, "\tFACE %d\n", i)
-		fmt.Fprintf(w, "\t\tVERTEXLIST %d", len(face.Vertices))
-		for _, vert := range face.Vertices {
-			fmt.Fprintf(w, " %d", vert)
+	for _, faces := range e.Faces {
+		fmt.Fprintf(w, "\tVERTEXLIST %d", len(faces))
+		for _, face := range faces {
+			fmt.Fprintf(w, " %d", face)
 		}
 		fmt.Fprintf(w, "\n")
-		fmt.Fprintf(w, "\tENDFACE %d\n", i)
 	}
 	fmt.Fprintf(w, "ENDPOLYHEDRONDEFINITION\n\n")
 	return nil
@@ -3369,6 +3367,15 @@ func (e *PolyhedronDefinition) Read(token *AsciiReadToken) error {
 		return err
 	}
 	e.Tag = records[1]
+
+	records, err = token.ReadProperty("FLAGS", 1)
+	if err != nil {
+		return err
+	}
+	err = parse(&e.Flags, records[1])
+	if err != nil {
+		return fmt.Errorf("flags: %w", err)
+	}
 
 	records, err = token.ReadProperty("BOUNDINGRADIUS", 1)
 	if err != nil {
@@ -3423,12 +3430,6 @@ func (e *PolyhedronDefinition) Read(token *AsciiReadToken) error {
 	}
 
 	for i := 0; i < numFaces; i++ {
-		face := &PolyhedronDefinitionFace{}
-		_, err = token.ReadProperty("FACE", 0)
-		if err != nil {
-			return err
-		}
-
 		records, err = token.ReadProperty("VERTEXLIST", -1)
 		if err != nil {
 			return err
@@ -3442,21 +3443,16 @@ func (e *PolyhedronDefinition) Read(token *AsciiReadToken) error {
 		if len(records) != numVertices+2 {
 			return fmt.Errorf("vertex list: expected %d, got %d", numVertices, len(records)-2)
 		}
+		faceVals := []uint32{}
 		for j := 0; j < numVertices; j++ {
 			val := uint32(0)
 			err = parse(&val, records[j+2])
 			if err != nil {
 				return fmt.Errorf("vertex %d: %w", j, err)
 			}
-			face.Vertices = append(face.Vertices, val)
+			faceVals = append(faceVals, val)
 		}
-
-		_, err = token.ReadProperty("ENDFACE", 0)
-		if err != nil {
-			return err
-		}
-
-		e.Faces = append(e.Faces, face)
+		e.Faces = append(e.Faces, faceVals)
 	}
 
 	_, err = token.ReadProperty("ENDPOLYHEDRONDEFINITION", 0)
@@ -3474,50 +3470,39 @@ func (e *PolyhedronDefinition) ToRaw(wld *Wld, rawWld *raw.Wld) (int16, error) {
 
 	wfPolyhedronDef := &rawfrag.WldFragPolyhedronDef{
 		NameRef:        raw.NameAdd(e.Tag),
+		Flags:          e.Flags,
 		BoundingRadius: e.BoundingRadius,
 		ScaleFactor:    e.ScaleFactor,
 		Vertices:       e.Vertices,
-	}
-
-	for _, face := range e.Faces {
-		f := rawfrag.WldFragPolyhedronFace{
-			Vertices: face.Vertices,
-		}
-
-		wfPolyhedronDef.Faces = append(wfPolyhedronDef.Faces, f)
+		Faces:          e.Faces,
 	}
 
 	rawWld.Fragments = append(rawWld.Fragments, wfPolyhedronDef)
 	e.fragID = int16(len(rawWld.Fragments))
 	return int16(len(rawWld.Fragments)), nil
-
 }
 
 func (e *PolyhedronDefinition) FromRaw(wld *Wld, rawWld *raw.Wld, frag *rawfrag.WldFragPolyhedronDef) error {
 	e.Tag = raw.Name(frag.NameRef)
+	e.Flags = frag.Flags
 	e.BoundingRadius = frag.BoundingRadius
 	e.ScaleFactor = frag.ScaleFactor
 	e.Vertices = frag.Vertices
-
-	for _, srcFace := range frag.Faces {
-		face := &PolyhedronDefinitionFace{
-			Vertices: srcFace.Vertices,
-		}
-
-		e.Faces = append(e.Faces, face)
-	}
+	e.Faces = frag.Faces
 
 	return nil
 }
 
 type TrackInstance struct {
-	fragID        int16
-	modelTag      string
-	Tag           string
-	DefinitionTag string
-	Interpolate   int
-	Reverse       int
-	Sleep         NullUint32
+	fragID             int16
+	modelTag           string
+	Tag                string
+	TagIndex           int
+	DefinitionTag      string
+	DefinitionTagIndex int
+	Interpolate        int
+	Reverse            int
+	Sleep              NullUint32
 }
 
 func (e *TrackInstance) Definition() string {
@@ -3527,7 +3512,9 @@ func (e *TrackInstance) Definition() string {
 func (e *TrackInstance) Write(w io.Writer) error {
 	fmt.Fprintf(w, "%s\n", e.Definition())
 	fmt.Fprintf(w, "\tTAG \"%s\"\n", e.Tag)
+	fmt.Fprintf(w, "\tTAGINDEX %d\n", e.TagIndex)
 	fmt.Fprintf(w, "\tDEFINITION \"%s\"\n", e.DefinitionTag)
+	fmt.Fprintf(w, "\tDEFINITIONINDEX %d\n", e.DefinitionTagIndex)
 	fmt.Fprintf(w, "\tINTERPOLATE %d\n", e.Interpolate)
 	fmt.Fprintf(w, "\tREVERSE %d\n", e.Reverse)
 	fmt.Fprintf(w, "\tSLEEP? %s\n", wcVal(e.Sleep))
@@ -3542,11 +3529,29 @@ func (e *TrackInstance) Read(token *AsciiReadToken) error {
 	}
 	e.Tag = records[1]
 
+	records, err = token.ReadProperty("TAGINDEX", 1)
+	if err != nil {
+		return err
+	}
+	err = parse(&e.TagIndex, records[1])
+	if err != nil {
+		return fmt.Errorf("tag index: %w", err)
+	}
+
 	records, err = token.ReadProperty("DEFINITION", 1)
 	if err != nil {
 		return err
 	}
 	e.DefinitionTag = records[1]
+
+	records, err = token.ReadProperty("DEFINITIONINDEX", 1)
+	if err != nil {
+		return err
+	}
+	err = parse(&e.DefinitionTagIndex, records[1])
+	if err != nil {
+		return fmt.Errorf("definition tag index: %w", err)
+	}
 
 	records, err = token.ReadProperty("INTERPOLATE", 1)
 	if err != nil {
@@ -3594,7 +3599,7 @@ func (e *TrackInstance) ToRaw(wld *Wld, rawWld *raw.Wld) (int16, error) {
 		return -1, fmt.Errorf("track instance %s has no definition", e.Tag)
 	}
 
-	trackDefFrag := wld.ByTag(e.DefinitionTag)
+	trackDefFrag := wld.ByTagWithIndex(e.DefinitionTag, e.DefinitionTagIndex)
 	if trackDefFrag == nil {
 		return -1, fmt.Errorf("track instance %s refers to trackdef %s but it does not exist", e.Tag, e.DefinitionTag)
 	}
@@ -3642,7 +3647,9 @@ func (e *TrackInstance) FromRaw(wld *Wld, rawWld *raw.Wld, frag *rawfrag.WldFrag
 	}
 
 	e.Tag = raw.Name(frag.NameRef)
+	e.TagIndex = wld.NextTagIndex(e.Tag)
 	e.DefinitionTag = raw.Name(trackDef.NameRef)
+	e.DefinitionTagIndex = wld.tagIndexes[e.DefinitionTag]
 
 	if frag.Flags&0x01 == 0x01 {
 		e.Sleep.Valid = true
@@ -3662,6 +3669,7 @@ type TrackDef struct {
 	fragID          int16
 	modelTag        string
 	Tag             string
+	TagIndex        int
 	FrameTransforms []*TrackFrameTransform
 }
 
@@ -3680,6 +3688,7 @@ func (e *TrackDef) Definition() string {
 func (e *TrackDef) Write(w io.Writer) error {
 	fmt.Fprintf(w, "%s\n", e.Definition())
 	fmt.Fprintf(w, "\tTAG \"%s\"\n", e.Tag)
+	fmt.Fprintf(w, "\tTAGINDEX %d\n", e.TagIndex)
 	fmt.Fprintf(w, "\tNUMFRAMES %d\n", len(e.FrameTransforms))
 	for _, frame := range e.FrameTransforms {
 		fmt.Fprintf(w, "\tFRAMETRANSFORM\n")
@@ -3701,6 +3710,15 @@ func (e *TrackDef) Read(token *AsciiReadToken) error {
 		return err
 	}
 	e.Tag = records[1]
+
+	records, err = token.ReadProperty("TAGINDEX", 1)
+	if err != nil {
+		return err
+	}
+	err = parse(&e.TagIndex, records[1])
+	if err != nil {
+		return fmt.Errorf("tag index: %w", err)
+	}
 
 	records, err = token.ReadProperty("NUMFRAMES", 1)
 	if err != nil {
@@ -3854,6 +3872,7 @@ func (e *TrackDef) FromRaw(wld *Wld, rawWld *raw.Wld, frag *rawfrag.WldFragTrack
 	}
 
 	e.Tag = raw.Name(frag.NameRef)
+	e.TagIndex = wld.NextTagIndex(e.Tag)
 
 	for _, fragFrame := range frag.FrameTransforms {
 		frame := &TrackFrameTransform{

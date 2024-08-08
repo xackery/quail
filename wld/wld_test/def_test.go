@@ -7,7 +7,7 @@ var tests = []struct {
 	wldName  string
 }{
 	//{baseName: "load2"}, // OK
-	//{baseName: "beetle_chr"}, // OK
+	//{baseName: "beetle_chr"}, // fails since openzone alignemnts
 	//{baseName: "load2", wldName: "objects.wld"}, // OK
 	//{baseName: "crushbone"}, // OK
 	//{baseName: "crushbone", wldName: "objects.wld"}, // OK
