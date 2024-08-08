@@ -1978,8 +1978,8 @@ func (e *ActorDef) ToRaw(wld *Wld, rawWld *raw.Wld) (int16, error) {
 		actorDef.Actions = append(actorDef.Actions, actorAction)
 	}
 
-	actorDef.NameRef = raw.NameAdd(e.Tag)
 	actorDef.CallbackNameRef = raw.NameAdd(e.Callback)
+	actorDef.NameRef = raw.NameAdd(e.Tag)
 
 	rawWld.Fragments = append(rawWld.Fragments, actorDef)
 	e.fragID = int16(len(rawWld.Fragments))
@@ -4192,7 +4192,6 @@ func (e *HierarchicalSpriteDef) ToRaw(wld *Wld, rawWld *raw.Wld) (int16, error) 
 		}
 
 	}
-	wfHierarchicalSpriteDef.NameRef = raw.NameAdd(e.Tag)
 
 	for _, dag := range e.Dags {
 		wfDag := rawfrag.WldFragDag{}
@@ -4241,6 +4240,7 @@ func (e *HierarchicalSpriteDef) ToRaw(wld *Wld, rawWld *raw.Wld) (int16, error) 
 		wfDag.SubDags = dag.SubDags
 		wfHierarchicalSpriteDef.Dags = append(wfHierarchicalSpriteDef.Dags, wfDag)
 	}
+	wfHierarchicalSpriteDef.NameRef = raw.NameAdd(e.Tag)
 
 	for _, skin := range e.AttachedSkins {
 		wfHierarchicalSpriteDef.LinkSkinUpdatesToDagIndexes = append(wfHierarchicalSpriteDef.LinkSkinUpdatesToDagIndexes, skin.LinkSkinUpdatesToDagIndex)
