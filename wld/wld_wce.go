@@ -113,6 +113,7 @@ func (wld *Wld) writeAsciiData(path string, isDir bool, baseTags []string, rootB
 	zoneMaterials := map[string]bool{}
 	modWriters := map[string]*os.File{}
 	defsWritten := map[string]bool{}
+	modDefsWritten := map[string]bool{}
 	zoneName := filepath.Base(path)
 
 	for _, track := range wld.TrackInstances {
@@ -199,6 +200,9 @@ func (wld *Wld) writeAsciiData(path string, isDir bool, baseTags []string, rootB
 	for i := 0; i < len(wld.DMSpriteDef2s); i++ {
 		dmSprite := wld.DMSpriteDef2s[i]
 		baseTag := baseTagTrim(dmSprite.Tag)
+		if !wld.isZone {
+			modDefsWritten = map[string]bool{}
+		}
 		w, ok = modWriters[baseTag]
 		if !ok {
 			return fmt.Errorf("dmsprite %s writer not found (basetag %s)", dmSprite.Tag, baseTag)
@@ -221,6 +225,11 @@ func (wld *Wld) writeAsciiData(path string, isDir bool, baseTags []string, rootB
 					continue
 				}
 
+				if modDefsWritten[materialPal.Tag] {
+					continue
+				}
+				modDefsWritten[materialPal.Tag] = true
+
 				for _, materialTag := range materialPal.Materials {
 					isMaterialDefFound := false
 					for _, materialDef := range wld.MaterialDefs {
@@ -228,7 +237,10 @@ func (wld *Wld) writeAsciiData(path string, isDir bool, baseTags []string, rootB
 							continue
 						}
 
-						defsWritten[materialDef.Tag] = true
+						if modDefsWritten[materialDef.Tag] {
+							continue
+						}
+						modDefsWritten[materialDef.Tag] = true
 
 						if materialDef.SimpleSpriteTag != "" {
 							isSimpleSpriteFound := false
@@ -237,6 +249,10 @@ func (wld *Wld) writeAsciiData(path string, isDir bool, baseTags []string, rootB
 									continue
 								}
 								isSimpleSpriteFound = true
+								if modDefsWritten[simpleSprite.Tag] {
+									continue
+								}
+								modDefsWritten[simpleSprite.Tag] = true
 								err = simpleSprite.Write(w)
 								if err != nil {
 									return fmt.Errorf("simple sprite %s: %w", simpleSprite.Tag, err)
@@ -286,9 +302,12 @@ func (wld *Wld) writeAsciiData(path string, isDir bool, baseTags []string, rootB
 				}
 				defsWritten[polyDef.Tag] = true
 			case *SimpleSpriteDef:
-				err = polyDef.Write(w)
-				if err != nil {
-					return fmt.Errorf("simple sprite %s: %w", polyDef.Tag, err)
+				if modDefsWritten[polyDef.Tag] != true {
+					err = polyDef.Write(w)
+					if err != nil {
+						return fmt.Errorf("simple sprite %s: %w", polyDef.Tag, err)
+					}
+					modDefsWritten[polyDef.Tag] = true
 				}
 				defsWritten[polyDef.Tag] = true
 			case *Sprite3DDef:
