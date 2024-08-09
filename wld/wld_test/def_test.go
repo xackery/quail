@@ -9,13 +9,15 @@ var tests = []struct {
 	baseName string
 	wldName  string
 }{
+	//{baseName: "global_chr"}, // original human etc
+
 	//{baseName: "load2"}, // OK
 	//{baseName: "beetle_chr"}, // fails since openzone alignemnts
 	//{baseName: "load2", wldName: "objects.wld"}, // OK
-	//{baseName: "crushbone"}, // OK
+	//{baseName: "crushbone"},                         // OK
 	//{baseName: "crushbone", wldName: "objects.wld"}, // OK
 	//{baseName: "crushbone", wldName: "lights.wld"},
-	//{baseName: "qeynos_chr"}, // Needs work
+	{baseName: "qeynos_chr"}, // Needs work
 	//{baseName: "crushbone_chr"}, // OK
 	//{baseName: "freporte_chr"},
 	//{baseName: "chequip"},
@@ -24,7 +26,6 @@ var tests = []struct {
 	//{baseName: "global2_chr"},
 	//{baseName: "globaldaf_chr"},
 	//{baseName: "globalhum_chr"},
-	{baseName: "global_chr"}, // original human etc
 	//{baseName: "freporte"},
 	//{baseName: "qeynos"}, // OK
 	//{baseName: "load2", wldName: "lights.wld"}, // EMPTY

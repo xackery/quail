@@ -11,57 +11,50 @@ import (
 
 // WldFragDmSpriteDef2 is DmSpriteDef2 in libeq, WldFragDmSpriteDef2 in openzone, DMSPRITEDEF2 in wld, WldFragDmSpriteDef2 in lantern
 type WldFragDmSpriteDef2 struct {
-	NameRef int32 `yaml:"name_ref"`
-	/*
-		0x10 (bit 4)
-		0x10000 (bit 16) seems to imply polyhedron
-	*/
-	Flags uint32
-
-	MaterialPaletteRef uint32 `yaml:"material_palette_ref"`
-	DMTrackRef         int32  // only used for flags/trees
-
-	Fragment3Ref int32      `yaml:"fragment_3_ref"`
-	Fragment4Ref int32      `yaml:"fragment_4_ref"` // unknown, usually ref to first texture
-	CenterOffset [3]float32 `yaml:"center"`
-	Params2      [3]uint32  `yaml:"params_2"`
-
-	MaxDistance          float32                `yaml:"max_distance"`
-	Min                  [3]float32             `yaml:"min"`
-	Max                  [3]float32             `yaml:"max"`
-	Scale                uint16                 `yaml:"scale"`
-	Vertices             [][3]int16             `yaml:"vertices"`
-	UVs                  [][2]int16             `yaml:"uvs"`
-	VertexNormals        [][3]int8              `yaml:"normals"`
-	Colors               [][4]uint8             `yaml:"colors"`
-	Faces                []WldFragMeshFaceEntry `yaml:"triangles"`
-	FaceMaterialGroups   [][2]uint16            `yaml:"triangle_materials"`
+	NameRef              int32
+	Flags                uint32
+	MaterialPaletteRef   uint32
+	DMTrackRef           int32 // only used for flags/trees
+	Fragment3Ref         int32
+	Fragment4Ref         int32 // unknown, usually ref to first texture
+	CenterOffset         [3]float32
+	Params2              [3]uint32
+	BoundingRadius       float32 // AKA max_distance in libeq
+	BoundingBoxMin       [3]float32
+	BoundingBoxMax       [3]float32
+	Scale                uint16
+	Vertices             [][3]int16
+	UVs                  [][2]int16
+	VertexNormals        [][3]int8
+	Colors               [][4]uint8
+	Faces                []WldFragMeshFaceEntry
+	FaceMaterialGroups   [][2]uint16
 	SkinAssignmentGroups [][2]int16
 	VertexMaterialGroups [][2]int16
-	MeshOps              []WldFragMeshOpEntry `yaml:"mesh_ops"`
+	MeshOps              []WldFragMeshOpEntry
 }
 
 type WldFragMeshFaceEntry struct {
-	Flags uint16    `yaml:"flags"`
-	Index [3]uint16 `yaml:"indexes"`
+	Flags uint16
+	Index [3]uint16
 }
 
 type WldFragMeshSkinAssignmentGroup struct {
-	Count  int16 `yaml:"count"`
-	Index1 int16 `yaml:"index_1"`
+	Count  int16
+	Index1 int16
 }
 
 type WldFragMeshFaceMaterialGroup struct {
-	Count      uint16 `yaml:"count"`
-	MaterialID uint16 `yaml:"material_id"`
+	Count      uint16
+	MaterialID uint16
 }
 
 type WldFragMeshOpEntry struct {
-	Index1    uint16  `yaml:"index_1"`
-	Index2    uint16  `yaml:"index_2"`
-	Offset    float32 `yaml:"offset"`
-	Param1    uint8   `yaml:"param_1"`
-	TypeField uint8   `yaml:"type_field"`
+	Index1    uint16
+	Index2    uint16
+	Offset    float32
+	Param1    uint8
+	TypeField uint8
 }
 
 func (e *WldFragDmSpriteDef2) FragCode() int {
@@ -90,13 +83,13 @@ func (e *WldFragDmSpriteDef2) Write(w io.Writer) error {
 	enc.Uint32(e.Params2[1])
 	enc.Uint32(e.Params2[2])
 
-	enc.Float32(e.MaxDistance)
-	enc.Float32(e.Min[0])
-	enc.Float32(e.Min[1])
-	enc.Float32(e.Min[2])
-	enc.Float32(e.Max[0])
-	enc.Float32(e.Max[1])
-	enc.Float32(e.Max[2])
+	enc.Float32(e.BoundingRadius)
+	enc.Float32(e.BoundingBoxMin[0])
+	enc.Float32(e.BoundingBoxMin[1])
+	enc.Float32(e.BoundingBoxMin[2])
+	enc.Float32(e.BoundingBoxMax[0])
+	enc.Float32(e.BoundingBoxMax[1])
+	enc.Float32(e.BoundingBoxMax[2])
 
 	enc.Uint16(uint16(len(e.Vertices)))
 	enc.Uint16(uint16(len(e.UVs)))
@@ -197,13 +190,13 @@ func (e *WldFragDmSpriteDef2) Read(r io.ReadSeeker) error {
 	e.Params2[1] = dec.Uint32() // unknown, usually empty
 	e.Params2[2] = dec.Uint32() // unknown, usually empty
 
-	e.MaxDistance = dec.Float32() // Given the values in center, this seems to contain the maximum distance between any vertex and that position. It seems to define a radius from that position within which the mesh lies.
-	e.Min[0] = dec.Float32()      // min x, y, and z coords in absolute coords of any vertex in the mesh.
-	e.Min[1] = dec.Float32()
-	e.Min[2] = dec.Float32()
-	e.Max[0] = dec.Float32() // max x, y, and z coords in absolute coords of any vertex in the mesh.
-	e.Max[1] = dec.Float32()
-	e.Max[2] = dec.Float32()
+	e.BoundingRadius = dec.Float32()    // Given the values in center, this seems to contain the maximum distance between any vertex and that position. It seems to define a radius from that position within which the mesh lies.
+	e.BoundingBoxMin[0] = dec.Float32() // min x, y, and z coords in absolute coords of any vertex in the mesh.
+	e.BoundingBoxMin[1] = dec.Float32()
+	e.BoundingBoxMin[2] = dec.Float32()
+	e.BoundingBoxMax[0] = dec.Float32() // max x, y, and z coords in absolute coords of any vertex in the mesh.
+	e.BoundingBoxMax[1] = dec.Float32()
+	e.BoundingBoxMax[2] = dec.Float32()
 
 	vertexCount := dec.Uint16()   // number of vertices in the mesh (called position_count in libeq)
 	uvCount := dec.Uint16()       // number of uv in the mesh (called texture_coordinate_count in libeq)

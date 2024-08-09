@@ -79,9 +79,8 @@ type DMSpriteDef2 struct {
 	Tag                   string
 	DmTrackTag            string
 	Params2               [3]uint32
-	MaxDistance           float32
-	Min                   [3]float32
-	Max                   [3]float32
+	BoundingBoxMin        [3]float32
+	BoundingBoxMax        [3]float32
 	CenterOffset          [3]float32
 	Vertices              [][3]float32
 	UVs                   [][2]float32
@@ -172,7 +171,6 @@ func (e *DMSpriteDef2) Write(w io.Writer) error {
 		fmt.Fprintf(w, "\t// TODO: MESHOP %d %d %0.8e %d %d\n", meshOp.Index1, meshOp.Index2, meshOp.Offset, meshOp.Param1, meshOp.TypeField)
 	}
 	fmt.Fprintf(w, "\n")
-	fmt.Fprintf(w, "\tMAXDISTANCE %0.8e\n", e.MaxDistance)
 	fmt.Fprintf(w, "\tFACEMATERIALGROUPS %d", len(e.FaceMaterialGroups))
 	for _, group := range e.FaceMaterialGroups {
 		fmt.Fprintf(w, " %d %d", group[0], group[1])
@@ -183,6 +181,9 @@ func (e *DMSpriteDef2) Write(w io.Writer) error {
 		fmt.Fprintf(w, " %d %d", group[0], group[1])
 	}
 	fmt.Fprintf(w, "\n")
+	fmt.Fprintf(w, "\tBOUNDINGBOXMIN %0.8e %0.8e %0.8e\n", e.BoundingBoxMin[0], e.BoundingBoxMin[1], e.BoundingBoxMin[2])
+	fmt.Fprintf(w, "\tBOUNDINGBOXMAX %0.8e %0.8e %0.8e\n", e.BoundingBoxMax[0], e.BoundingBoxMax[1], e.BoundingBoxMax[2])
+
 	fmt.Fprintf(w, "\tBOUNDINGRADIUS %0.8e\n", e.BoundingRadius)
 	fmt.Fprintf(w, "\n")
 	fmt.Fprintf(w, "\tFPSCALE %d\n", e.FPScale)
@@ -393,16 +394,6 @@ func (e *DMSpriteDef2) Read(token *AsciiReadToken) error {
 		e.Faces = append(e.Faces, face)
 	}
 
-	records, err = token.ReadProperty("MAXDISTANCE", 1)
-	if err != nil {
-		return err
-	}
-
-	err = parse(&e.MaxDistance, records[1])
-	if err != nil {
-		return fmt.Errorf("max distance: %w", err)
-	}
-
 	records, err = token.ReadProperty("FACEMATERIALGROUPS", -1)
 	if err != nil {
 		return err
@@ -447,6 +438,24 @@ func (e *DMSpriteDef2) Read(token *AsciiReadToken) error {
 		}
 		e.VertexMaterialGroups = append(e.VertexMaterialGroups, [2]int16{int16(val1), int16(val2)})
 		i++
+	}
+
+	records, err = token.ReadProperty("BOUNDINGBOXMIN", 3)
+	if err != nil {
+		return err
+	}
+	err = parse(&e.BoundingBoxMin, records[1:]...)
+	if err != nil {
+		return fmt.Errorf("bounding box min: %w", err)
+	}
+
+	records, err = token.ReadProperty("BOUNDINGBOXMAX", 3)
+	if err != nil {
+		return err
+	}
+	err = parse(&e.BoundingBoxMax, records[1:]...)
+	if err != nil {
+		return fmt.Errorf("bounding box max: %w", err)
 	}
 
 	records, err = token.ReadProperty("BOUNDINGRADIUS", 1)
@@ -553,9 +562,9 @@ func (e *DMSpriteDef2) ToRaw(wld *Wld, rawWld *raw.Wld) (int16, error) {
 		MaterialPaletteRef:   uint32(materialPaletteRef),
 		CenterOffset:         e.CenterOffset,
 		Params2:              e.Params2,
-		MaxDistance:          e.MaxDistance,
-		Min:                  e.Min,
-		Max:                  e.Max,
+		BoundingRadius:       e.BoundingRadius,
+		BoundingBoxMin:       e.BoundingBoxMin,
+		BoundingBoxMax:       e.BoundingBoxMax,
 		Scale:                e.FPScale,
 		Colors:               e.VertexColors,
 		FaceMaterialGroups:   e.FaceMaterialGroups,
@@ -745,9 +754,9 @@ func (e *DMSpriteDef2) FromRaw(wld *Wld, rawWld *raw.Wld, frag *rawfrag.WldFragD
 	}
 	e.CenterOffset = frag.CenterOffset
 	e.Params2 = frag.Params2
-	e.MaxDistance = frag.MaxDistance
-	e.Min = frag.Min
-	e.Max = frag.Max
+	e.BoundingRadius = frag.BoundingRadius
+	e.BoundingBoxMin = frag.BoundingBoxMin
+	e.BoundingBoxMax = frag.BoundingBoxMax
 	e.FPScale = frag.Scale
 
 	scale := 1.0 / float32(int(1<<frag.Scale))
