@@ -36,6 +36,8 @@ func (q *Quail) RawRead(in raw.ReadWriter) error {
 		return q.mdsRead(val)
 	case *raw.Unk:
 		return nil
+	case *raw.Txt:
+		return nil
 	default:
 		return fmt.Errorf("unknown type %T", val)
 	}
