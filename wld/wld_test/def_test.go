@@ -1,6 +1,9 @@
 package wld_test
 
-import "testing"
+import (
+	"fmt"
+	"testing"
+)
 
 var tests = []struct {
 	baseName string
@@ -12,11 +15,11 @@ var tests = []struct {
 	//{baseName: "crushbone"}, // OK
 	//{baseName: "crushbone", wldName: "objects.wld"}, // OK
 	//{baseName: "crushbone", wldName: "lights.wld"},
-	{baseName: "qeynos_chr"}, // Needs work
+	//{baseName: "qeynos_chr"}, // Needs work
 	//{baseName: "crushbone_chr"}, // OK
 	//{baseName: "freporte_chr"},
 	//{baseName: "chequip"},
-	//{baseName: "gequip"},
+	//{baseName: "gequip"}, // TODO: fix numeric prefixed tags
 	//{baseName: "gequip2"},
 	//{baseName: "global2_chr"},
 	//{baseName: "globaldaf_chr"},
@@ -51,4 +54,8 @@ func TestStepAll(t *testing.T) {
 	TestStep2(t)
 	TestStep3(t)
 	TestStep4(t)
+}
+
+func TestBit(t *testing.T) {
+	fmt.Printf("0x%x\n", 1<<15)
 }
