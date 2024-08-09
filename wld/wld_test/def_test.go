@@ -17,10 +17,10 @@ var tests = []struct {
 	//{baseName: "crushbone"},                         // OK
 	//{baseName: "crushbone", wldName: "objects.wld"}, // OK
 	//{baseName: "crushbone", wldName: "lights.wld"},
-	{baseName: "qeynos_chr"}, // Needs work
+	//{baseName: "qeynos_chr"}, // Needs work
 	//{baseName: "crushbone_chr"}, // OK
 	//{baseName: "freporte_chr"},
-	//{baseName: "chequip"},
+	{baseName: "chequip"},
 	//{baseName: "gequip"}, // TODO: fix numeric prefixed tags
 	//{baseName: "gequip2"},
 	//{baseName: "global2_chr"},

@@ -4641,6 +4641,8 @@ func (e *HierarchicalSpriteDef) FromRaw(wld *Wld, rawWld *raw.Wld, frag *rawfrag
 				spriteTag = raw.Name(simpleSprite.NameRef)
 			case *rawfrag.WldFragBlitSpriteDef:
 				spriteTag = raw.Name(simpleSprite.NameRef)
+			case *rawfrag.WldFragBMInfo:
+				spriteTag = raw.Name(simpleSprite.NameRef)
 			default:
 				return fmt.Errorf("unhandled mesh or sprite or particle reference fragment type %d (%s)", spriteDef.FragCode(), raw.FragName(spriteDef.FragCode()))
 			}
