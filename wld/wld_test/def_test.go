@@ -9,7 +9,7 @@ var tests = []struct {
 	baseName string
 	wldName  string
 }{
-	//{baseName: "global_chr"}, // original human etc
+	{baseName: "global_chr"}, // original human etc
 
 	//{baseName: "load2"}, // OK
 	//{baseName: "beetle_chr"}, // fails since openzone alignemnts
@@ -20,7 +20,7 @@ var tests = []struct {
 	//{baseName: "qeynos_chr"}, // Needs work
 	//{baseName: "crushbone_chr"}, // OK
 	//{baseName: "freporte_chr"},
-	{baseName: "chequip"},
+	//{baseName: "chequip"},
 	//{baseName: "gequip"}, // TODO: fix numeric prefixed tags
 	//{baseName: "gequip2"},
 	//{baseName: "global2_chr"},

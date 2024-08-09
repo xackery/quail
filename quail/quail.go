@@ -137,6 +137,8 @@ func Open(name string, r io.ReadSeeker) (interface{}, error) {
 			return nil, fmt.Errorf("wld.Decode: %w", err)
 		}
 		return wld, nil
+	case ".sph":
+		return nil, nil
 	case ".sps": // map file, safely ignored
 		return nil, nil
 	}
