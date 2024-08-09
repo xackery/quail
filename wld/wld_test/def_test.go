@@ -24,7 +24,7 @@ var tests = []struct {
 	//{baseName: "global2_chr"},
 	//{baseName: "globaldaf_chr"},
 	//{baseName: "globalhum_chr"},
-	//{baseName: "global_chr"}, // original human etc
+	{baseName: "global_chr"}, // original human etc
 	//{baseName: "freporte"},
 	//{baseName: "qeynos"}, // OK
 	//{baseName: "load2", wldName: "lights.wld"}, // EMPTY

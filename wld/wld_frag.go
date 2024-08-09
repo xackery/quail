@@ -593,7 +593,15 @@ func (e *DMSpriteDef2) ToRaw(wld *Wld, rawWld *raw.Wld) (int16, error) {
 
 				dmSpriteDef.Fragment4Ref = int32(len(rawWld.Fragments))
 			case *SimpleSpriteDef:
-				dmSpriteDef.Fragment4Ref = int32(polyhedron.fragID)
+				if polyhedron.fragID == 0 {
+					spriteDefFragID, err := polyhedron.ToRaw(wld, rawWld)
+					if err != nil {
+						return -1, fmt.Errorf("polyhedron %s to raw: %w", e.PolyhedronTag, err)
+					}
+					dmSpriteDef.Fragment4Ref = int32(spriteDefFragID)
+				} else {
+					dmSpriteDef.Fragment4Ref = int32(polyhedron.fragID)
+				}
 			default:
 				return -1, fmt.Errorf("polyhedrontag %T unhandled", polyhedron)
 			}
@@ -645,16 +653,16 @@ func (e *DMSpriteDef2) ToRaw(wld *Wld, rawWld *raw.Wld) (int16, error) {
 
 	for _, uv := range e.UVs {
 		dmSpriteDef.UVs = append(dmSpriteDef.UVs, [2]int16{
-			int16(uv[0] / scale),
-			int16(uv[1] / scale),
+			int16(uv[0] * 256),
+			int16(uv[1] * 256),
 		})
 	}
 
 	for _, normal := range e.VertexNormals {
 		dmSpriteDef.VertexNormals = append(dmSpriteDef.VertexNormals, [3]int8{
-			int8(normal[0] / scale),
-			int8(normal[1] / scale),
-			int8(normal[2] / scale),
+			int8(normal[0] * 128),
+			int8(normal[1] * 128),
+			int8(normal[2] * 128),
 		})
 	}
 
@@ -753,15 +761,15 @@ func (e *DMSpriteDef2) FromRaw(wld *Wld, rawWld *raw.Wld, frag *rawfrag.WldFragD
 	}
 	for _, uv := range frag.UVs {
 		e.UVs = append(e.UVs, [2]float32{
-			float32(uv[0]) * scale,
-			float32(uv[1]) * scale,
+			float32(uv[0]) / float32(256),
+			float32(uv[1]) / float32(256),
 		})
 	}
 	for _, vn := range frag.VertexNormals {
 		e.VertexNormals = append(e.VertexNormals, [3]float32{
-			float32(vn[0]) * scale,
-			float32(vn[1]) * scale,
-			float32(vn[2]) * scale,
+			float32(vn[0]) / float32(128),
+			float32(vn[1]) / float32(128),
+			float32(vn[2]) / float32(128),
 		})
 	}
 
@@ -4600,6 +4608,10 @@ func (e *HierarchicalSpriteDef) FromRaw(wld *Wld, rawWld *raw.Wld, frag *rawfrag
 				spriteRef = int16(sprite.BlitSpriteDefRef)
 			default:
 				return fmt.Errorf("unhandled sprite instance or particle reference fragment type %d (%s)", spriteFrag.FragCode(), raw.FragName(spriteFrag.FragCode()))
+			}
+
+			if spriteRef < 0 {
+				spriteRef = -spriteRef
 			}
 
 			if len(rawWld.Fragments) < int(spriteRef) {
