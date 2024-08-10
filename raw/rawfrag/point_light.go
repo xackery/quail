@@ -21,7 +21,7 @@ func (e *WldFragPointLight) FragCode() int {
 	return FragCodePointLight
 }
 
-func (e *WldFragPointLight) Write(w io.Writer) error {
+func (e *WldFragPointLight) Write(w io.Writer, isNewWorld bool) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
 	enc.Int32(e.NameRef)
 	enc.Int32(e.LightRef)
@@ -38,7 +38,7 @@ func (e *WldFragPointLight) Write(w io.Writer) error {
 	return nil
 }
 
-func (e *WldFragPointLight) Read(r io.ReadSeeker) error {
+func (e *WldFragPointLight) Read(r io.ReadSeeker, isNewWorld bool) error {
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	e.NameRef = dec.Int32()
 	e.LightRef = dec.Int32()
@@ -67,7 +67,7 @@ func (e *WldFragAmbientLight) FragCode() int {
 	return FragCodeAmbientLight
 }
 
-func (e *WldFragAmbientLight) Write(w io.Writer) error {
+func (e *WldFragAmbientLight) Write(w io.Writer, isNewWorld bool) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
 	enc.Int32(e.NameRef)
 	enc.Int32(e.LightRef)
@@ -83,7 +83,7 @@ func (e *WldFragAmbientLight) Write(w io.Writer) error {
 	return nil
 }
 
-func (e *WldFragAmbientLight) Read(r io.ReadSeeker) error {
+func (e *WldFragAmbientLight) Read(r io.ReadSeeker, isNewWorld bool) error {
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	e.NameRef = dec.Int32()
 	e.LightRef = dec.Int32()

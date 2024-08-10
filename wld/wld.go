@@ -11,6 +11,7 @@ var AsciiVersion = "v0.0.1"
 
 // Wld is a struct representing a Wld file
 type Wld struct {
+	isNewWorld             bool           // true when the file is a new world file
 	isZone                 bool           // true when the file is a zone file
 	lastReadModelTag       string         // last model tag read
 	tagIndexes             map[string]int // used when parsing to keep track of indexes

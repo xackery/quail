@@ -41,7 +41,7 @@ func TestRawFragReadWrite(t *testing.T) {
 				t.Fatalf("failed to open wld %s: %s", wldName, err.Error())
 			}
 
-			fragments, err := tmpFragments(bytes.NewReader(data))
+			fragments, isNewWorld, err := tmpFragments(bytes.NewReader(data))
 			if err != nil {
 				t.Fatalf("failed to read fragments: %s", err.Error())
 			}
@@ -54,21 +54,21 @@ func TestRawFragReadWrite(t *testing.T) {
 					t.Fatalf("frag %d read: unsupported fragment", i)
 				}
 
-				err = srcFragRW.Read(fragBuf)
+				err = srcFragRW.Read(fragBuf, isNewWorld)
 				if err != nil {
 					t.Fatalf("frag %d 0x%x (%s) read: %s", i+1, srcFragRW.FragCode(), rawfrag.FragName(int(srcFragRW.FragCode())), err.Error())
 				}
 
 				buf := &bytes.Buffer{}
 
-				err = srcFragRW.Write(buf)
+				err = srcFragRW.Write(buf, isNewWorld)
 				if err != nil {
 					t.Fatalf("frag %d 0x%x (%s) write: %s", i+1, srcFragRW.FragCode(), rawfrag.FragName(int(srcFragRW.FragCode())), err.Error())
 				}
 
 				fragBuf.Seek(0, io.SeekStart)
 				dstFragRW := rawfrag.NewFrag(fragBuf)
-				err = dstFragRW.Read(bytes.NewReader(buf.Bytes()))
+				err = dstFragRW.Read(bytes.NewReader(buf.Bytes()), isNewWorld)
 				if err != nil {
 					t.Fatalf("frag %d 0x%x (%s) read: %s", i+1, dstFragRW.FragCode(), rawfrag.FragName(int(dstFragRW.FragCode())), err.Error())
 				}
@@ -84,11 +84,12 @@ func TestRawFragReadWrite(t *testing.T) {
 	}
 }
 
-func tmpFragments(r io.ReadSeeker) (fragments [][]byte, err error) {
+func tmpFragments(r io.ReadSeeker) (fragments [][]byte, isNewWorld bool, err error) {
 
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	_ = dec.Bytes(4)
-	_ = int(dec.Uint32())
+	version := dec.Uint32()
+	isNewWorld = version == 0x1000C800
 
 	fragmentCount := dec.Uint32()
 	_ = dec.Uint32() //unk1
@@ -107,12 +108,12 @@ func tmpFragments(r io.ReadSeeker) (fragments [][]byte, err error) {
 
 		fragPosition, err := r.Seek(0, io.SeekCurrent)
 		if err != nil {
-			return nil, fmt.Errorf("frag position seek %d/%d: %w", fragOffset, fragmentCount, err)
+			return nil, isNewWorld, fmt.Errorf("frag position seek %d/%d: %w", fragOffset, fragmentCount, err)
 		}
 		data := make([]byte, fragSize)
 		_, err = r.Read(data)
 		if err != nil {
-			return nil, fmt.Errorf("read frag %d/%d: %w", fragOffset, fragmentCount, err)
+			return nil, isNewWorld, fmt.Errorf("read frag %d/%d: %w", fragOffset, fragmentCount, err)
 		}
 
 		data = append(fragCode, data...)
@@ -121,12 +122,12 @@ func tmpFragments(r io.ReadSeeker) (fragments [][]byte, err error) {
 
 		_, err = r.Seek(fragPosition+int64(fragSize), io.SeekStart)
 		if err != nil {
-			return nil, fmt.Errorf("seek end of frag %d/%d: %w", fragOffset, fragmentCount, err)
+			return nil, isNewWorld, fmt.Errorf("seek end of frag %d/%d: %w", fragOffset, fragmentCount, err)
 		}
 	}
 
 	if dec.Error() != nil {
-		return nil, fmt.Errorf("read: %w", dec.Error())
+		return nil, isNewWorld, fmt.Errorf("read: %w", dec.Error())
 	}
-	return fragments, nil
+	return fragments, isNewWorld, nil
 }

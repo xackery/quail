@@ -19,7 +19,7 @@ func (e *WldFragDefaultPaletteFile) FragCode() int {
 	return FragCodeDefaultPaletteFile
 }
 
-func (e *WldFragDefaultPaletteFile) Write(w io.Writer) error {
+func (e *WldFragDefaultPaletteFile) Write(w io.Writer, isNewWorld bool) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
 	enc.Int32(e.NameRef)
 	enc.Uint16(e.NameLength)
@@ -31,7 +31,7 @@ func (e *WldFragDefaultPaletteFile) Write(w io.Writer) error {
 	return nil
 }
 
-func (e *WldFragDefaultPaletteFile) Read(r io.ReadSeeker) error {
+func (e *WldFragDefaultPaletteFile) Read(r io.ReadSeeker, isNewWorld bool) error {
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	e.NameRef = dec.Int32()
 	e.NameLength = dec.Uint16()

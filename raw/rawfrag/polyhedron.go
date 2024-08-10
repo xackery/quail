@@ -20,7 +20,7 @@ func (e *WldFragPolyhedron) FragCode() int {
 	return FragCodePolyhedron
 }
 
-func (e *WldFragPolyhedron) Write(w io.Writer) error {
+func (e *WldFragPolyhedron) Write(w io.Writer, isNewWorld bool) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
 	enc.Int32(e.NameRef)
 	enc.Int32(e.FragmentRef)
@@ -33,7 +33,7 @@ func (e *WldFragPolyhedron) Write(w io.Writer) error {
 	return nil
 }
 
-func (e *WldFragPolyhedron) Read(r io.ReadSeeker) error {
+func (e *WldFragPolyhedron) Read(r io.ReadSeeker, isNewWorld bool) error {
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	e.NameRef = dec.Int32()
 	e.FragmentRef = dec.Int32()

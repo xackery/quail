@@ -9,7 +9,8 @@ var tests = []struct {
 	baseName string
 	wldName  string
 }{
-	{baseName: "global_chr"}, // original human etc
+	//{baseName: "global_chr"}, // original human etc
+	{baseName: "abysmal"},
 
 	//{baseName: "load2"}, // OK
 	//{baseName: "beetle_chr"}, // fails since openzone alignemnts

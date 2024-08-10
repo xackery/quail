@@ -16,7 +16,7 @@ import (
 type Wld struct {
 	MetaFileName string                     `yaml:"file_name"`
 	Version      uint32                     `yaml:"version"`
-	IsOldWorld   bool                       `yaml:"is_old_world"`
+	IsNewWorld   bool                       `yaml:"is_old_world"`
 	Fragments    []model.FragmentReadWriter `yaml:"fragments,omitempty"`
 	Unk2         uint32                     `yaml:"unk2"`
 	Unk3         uint32                     `yaml:"unk3"`
@@ -41,12 +41,12 @@ func (wld *Wld) Read(r io.ReadSeeker) error {
 	wld.Version = dec.Uint32()
 	tag.Mark("red", "header")
 
-	wld.IsOldWorld = false
+	wld.IsNewWorld = false
 	switch wld.Version {
 	case 0x00015500:
-		wld.IsOldWorld = true
+		wld.IsNewWorld = false
 	case 0x1000C800:
-		wld.IsOldWorld = false
+		wld.IsNewWorld = true
 	default:
 		return fmt.Errorf("unknown wld version %d", wld.Version)
 	}
@@ -109,12 +109,20 @@ func (wld *Wld) Read(r io.ReadSeeker) error {
 			return fmt.Errorf("unknown fragment at offset %d", i)
 		}
 
-		err = reader.Read(r)
+		err = reader.Read(r, wld.IsNewWorld)
 		if err != nil {
 			return fmt.Errorf("frag %d 0x%x (%s) read: %w", i, reader.FragCode(), FragName(int(reader.FragCode())), err)
 		}
 		wld.Fragments = append(wld.Fragments, reader)
 
+		pos, err := r.Seek(0, io.SeekCurrent)
+		if err != nil {
+			return fmt.Errorf("fragment %d (size: %d) seek: %w", i, len(data), err)
+		}
+		if pos != int64(len(data)) {
+			fmt.Printf("fragment %d seek mismatch (%d/%d) (%T)\n", i, pos, len(data), reader)
+			//			return fmt.Errorf("fragment %d seek mismatch (%d/%d) (%T)", i, pos, len(data), reader)
+		}
 		_, ok := reader.(*rawfrag.WldFragRegion)
 		if ok {
 			totalRegions++
@@ -140,12 +148,12 @@ func (wld *Wld) rawFrags(r io.ReadSeeker) ([][]byte, error) {
 	wld.Version = dec.Uint32()
 	tag.Mark("red", "header")
 
-	wld.IsOldWorld = false
+	wld.IsNewWorld = true
 	switch wld.Version {
 	case 0x00015500:
-		wld.IsOldWorld = true
+		wld.IsNewWorld = false
 	case 0x1000C800:
-		wld.IsOldWorld = false
+		wld.IsNewWorld = true
 	default:
 		return nil, fmt.Errorf("unknown wld version %d", wld.Version)
 	}

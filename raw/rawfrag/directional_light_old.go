@@ -10,10 +10,10 @@ func (e *WldFragDirectionalLightOld) FragCode() int {
 	return FragCodeDirectionalLightOld
 }
 
-func (e *WldFragDirectionalLightOld) Write(w io.Writer) error {
+func (e *WldFragDirectionalLightOld) Write(w io.Writer, isNewWorld bool) error {
 	return nil
 }
 
-func (e *WldFragDirectionalLightOld) Read(r io.ReadSeeker) error {
+func (e *WldFragDirectionalLightOld) Read(r io.ReadSeeker, isNewWorld bool) error {
 	return nil
 }

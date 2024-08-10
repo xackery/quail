@@ -10,10 +10,10 @@ func (e *WldFragUserData) FragCode() int {
 	return FragCodeUserData
 }
 
-func (e *WldFragUserData) Write(w io.Writer) error {
+func (e *WldFragUserData) Write(w io.Writer, isNewWorld bool) error {
 	return nil
 }
 
-func (e *WldFragUserData) Read(r io.ReadSeeker) error {
+func (e *WldFragUserData) Read(r io.ReadSeeker, isNewWorld bool) error {
 	return nil
 }

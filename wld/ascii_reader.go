@@ -195,6 +195,7 @@ func (a *AsciiReadToken) readDefinitions() error {
 		&TrackInstance{},
 		&WorldTree{},
 		&Zone{},
+		&WorldDef{},
 	}
 
 	definition := ""
@@ -362,6 +363,9 @@ func (a *AsciiReadToken) readDefinitions() error {
 			case *DMSpriteDef:
 				a.wld.DMSpriteDefs = append(a.wld.DMSpriteDefs, frag)
 				definitions[i] = &DMSpriteDef{}
+			case *WorldDef:
+				a.wld.isNewWorld = frag.NewWorld > 0
+				definitions[i] = &WorldDef{}
 			default:
 				return fmt.Errorf("unknown definition type for rebuild: %T", definitions[i])
 			}

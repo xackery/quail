@@ -20,7 +20,7 @@ func (e *WldFragBMInfo) FragCode() int {
 	return FragCodeBMInfo
 }
 
-func (e *WldFragBMInfo) Write(w io.Writer) error {
+func (e *WldFragBMInfo) Write(w io.Writer, isNewWorld bool) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
 	start := enc.Pos()
 
@@ -44,7 +44,7 @@ func (e *WldFragBMInfo) Write(w io.Writer) error {
 	return nil
 }
 
-func (e *WldFragBMInfo) Read(r io.ReadSeeker) error {
+func (e *WldFragBMInfo) Read(r io.ReadSeeker, isNewWorld bool) error {
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	e.NameRef = dec.Int32()
 	textureCount := dec.Int32()

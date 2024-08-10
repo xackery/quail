@@ -11,6 +11,43 @@ import (
 	"github.com/xackery/quail/raw/rawfrag"
 )
 
+// WorldDef stores data about the world itself
+type WorldDef struct {
+	NewWorld int
+}
+
+// Definition returns the definition of the WorldDef
+func (e *WorldDef) Definition() string {
+	return "WORLDDEF"
+}
+
+// Write writes the WorldDef to the writer
+func (e *WorldDef) Write(w io.Writer) error {
+	fmt.Fprintf(w, "%s\n", e.Definition())
+	fmt.Fprintf(w, "\tNEWWORLD %d\n", e.NewWorld)
+	fmt.Fprintf(w, "ENDWORLDDEF\n\n")
+	return nil
+}
+
+// Read reads the WorldDef from the reader
+func (e *WorldDef) Read(token *AsciiReadToken) error {
+	records, err := token.ReadProperty("NEWWORLD", 1)
+	if err != nil {
+		return err
+	}
+	err = parse(&e.NewWorld, records[1])
+	if err != nil {
+		return fmt.Errorf("newworld: %w", err)
+	}
+
+	_, err = token.ReadProperty("ENDWORLDDEF", 0)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // GlobalAmbientLightDef is a declaration of GLOBALAMBIENTLIGHTDEF
 type GlobalAmbientLightDef struct {
 	fragID int16
@@ -661,9 +698,9 @@ func (e *DMSpriteDef2) ToRaw(wld *Wld, rawWld *raw.Wld) (int16, error) {
 	}
 
 	for _, uv := range e.UVs {
-		dmSpriteDef.UVs = append(dmSpriteDef.UVs, [2]int16{
-			int16(uv[0] * 256),
-			int16(uv[1] * 256),
+		dmSpriteDef.UVs = append(dmSpriteDef.UVs, [2]int32{
+			int32(uv[0] * 256),
+			int32(uv[1] * 256),
 		})
 	}
 

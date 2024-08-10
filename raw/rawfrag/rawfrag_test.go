@@ -151,7 +151,7 @@ func TestFragment(t *testing.T) {
 					t.Fatalf("frag %d read: unsupported fragment", i)
 				}
 
-				err = reader.Read(r)
+				err = reader.Read(r, false)
 				if err != nil {
 					t.Fatalf("frag %d 0x%x (%s) read: %s", i, reader.FragCode(), FragName(int(reader.FragCode())), err.Error())
 				}
@@ -164,7 +164,7 @@ func TestFragment(t *testing.T) {
 				buf := common.NewByteSeekerTest()
 				buf.Write(srcData[:4])
 
-				err = reader.Write(buf)
+				err = reader.Write(buf, false)
 				if err != nil {
 					t.Fatalf("frag %d 0x%x (%s) write: %s", i, reader.FragCode(), FragName(int(reader.FragCode())), err.Error())
 				}

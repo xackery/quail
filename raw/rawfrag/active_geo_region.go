@@ -10,10 +10,10 @@ func (e *WldFragActiveGeoRegion) FragCode() int {
 	return FragCodeActiveGeoRegion
 }
 
-func (e *WldFragActiveGeoRegion) Write(w io.Writer) error {
+func (e *WldFragActiveGeoRegion) Write(w io.Writer, isNewWorld bool) error {
 	return nil
 }
 
-func (e *WldFragActiveGeoRegion) Read(r io.ReadSeeker) error {
+func (e *WldFragActiveGeoRegion) Read(r io.ReadSeeker, isNewWorld bool) error {
 	return nil
 }

@@ -19,7 +19,7 @@ func (e *WldFragSprite2D) FragCode() int {
 	return FragCodeSprite2D
 }
 
-func (e *WldFragSprite2D) Write(w io.Writer) error {
+func (e *WldFragSprite2D) Write(w io.Writer, isNewWorld bool) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
 	enc.Int32(e.NameRef)
 	enc.Uint32(e.TwoDSpriteRef)
@@ -31,7 +31,7 @@ func (e *WldFragSprite2D) Write(w io.Writer) error {
 	return nil
 }
 
-func (e *WldFragSprite2D) Read(r io.ReadSeeker) error {
+func (e *WldFragSprite2D) Read(r io.ReadSeeker, isNewWorld bool) error {
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	e.NameRef = dec.Int32()
 	e.TwoDSpriteRef = dec.Uint32()

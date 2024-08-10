@@ -28,7 +28,7 @@ func (e *WldFragActor) FragCode() int {
 	return FragCodeActor
 }
 
-func (e *WldFragActor) Write(w io.Writer) error {
+func (e *WldFragActor) Write(w io.Writer, isNewWorld bool) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
 	enc.Int32(e.NameRef)
 	enc.Int32(e.ActorDefRef)
@@ -67,7 +67,7 @@ func (e *WldFragActor) Write(w io.Writer) error {
 	return nil
 }
 
-func (e *WldFragActor) Read(r io.ReadSeeker) error {
+func (e *WldFragActor) Read(r io.ReadSeeker, isNewWorld bool) error {
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	e.NameRef = dec.Int32()
 	e.ActorDefRef = dec.Int32()

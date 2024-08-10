@@ -22,7 +22,7 @@ func (e *WldFragDmRGBTrackDef) FragCode() int {
 	return FragCodeDmRGBTrackDef
 }
 
-func (e *WldFragDmRGBTrackDef) Write(w io.Writer) error {
+func (e *WldFragDmRGBTrackDef) Write(w io.Writer, isNewWorld bool) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
 
 	enc.Int32(e.NameRef)
@@ -54,7 +54,7 @@ func (e *WldFragDmRGBTrackDef) Write(w io.Writer) error {
 	return nil
 }
 
-func (e *WldFragDmRGBTrackDef) Read(r io.ReadSeeker) error {
+func (e *WldFragDmRGBTrackDef) Read(r io.ReadSeeker, isNewWorld bool) error {
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 
 	e.NameRef = dec.Int32()

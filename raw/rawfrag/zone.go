@@ -21,7 +21,7 @@ func (e *WldFragZone) FragCode() int {
 	return FragCodeZone
 }
 
-func (e *WldFragZone) Write(w io.Writer) error {
+func (e *WldFragZone) Write(w io.Writer, isNewWorld bool) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
 	userData := helper.WriteStringHash(e.UserData)
 
@@ -46,7 +46,7 @@ func (e *WldFragZone) Write(w io.Writer) error {
 	return nil
 }
 
-func (e *WldFragZone) Read(r io.ReadSeeker) error {
+func (e *WldFragZone) Read(r io.ReadSeeker, isNewWorld bool) error {
 
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	e.NameRef = dec.Int32()

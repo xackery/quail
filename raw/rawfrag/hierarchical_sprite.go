@@ -19,7 +19,7 @@ func (e *WldFragHierarchicalSprite) FragCode() int {
 	return FragCodeHierarchicalSprite
 }
 
-func (e *WldFragHierarchicalSprite) Write(w io.Writer) error {
+func (e *WldFragHierarchicalSprite) Write(w io.Writer, isNewWorld bool) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
 	enc.Uint32(e.NameRef)
 	enc.Uint32(e.HierarchicalSpriteRef)
@@ -31,7 +31,7 @@ func (e *WldFragHierarchicalSprite) Write(w io.Writer) error {
 	return nil
 }
 
-func (e *WldFragHierarchicalSprite) Read(r io.ReadSeeker) error {
+func (e *WldFragHierarchicalSprite) Read(r io.ReadSeeker, isNewWorld bool) error {
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	e.NameRef = dec.Uint32()
 	e.HierarchicalSpriteRef = dec.Uint32()

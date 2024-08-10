@@ -9,11 +9,11 @@ type FragmentReadWriter interface {
 }
 
 type FragmentReader interface {
-	Read(w io.ReadSeeker) error
+	Read(w io.ReadSeeker, isNewWorld bool) error
 	FragCode() int
 }
 
 // FragmentWriter2 is used to write a fragment in wld format
 type FragmentWriter interface {
-	Write(w io.Writer) error
+	Write(w io.Writer, isNewWorld bool) error
 }

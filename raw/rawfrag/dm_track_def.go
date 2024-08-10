@@ -10,11 +10,11 @@ func (e *WldFragDMTrackDef) FragCode() int {
 	return FragCodeDMTrackDef
 }
 
-func (e *WldFragDMTrackDef) Write(w io.Writer) error {
+func (e *WldFragDMTrackDef) Write(w io.Writer, isNewWorld bool) error {
 	return nil
 }
 
-func (e *WldFragDMTrackDef) Read(r io.ReadSeeker) error {
+func (e *WldFragDMTrackDef) Read(r io.ReadSeeker, isNewWorld bool) error {
 	return nil
 }
 
@@ -26,10 +26,10 @@ func (e *WldFragDMTrack) FragCode() int {
 	return FragCodeDMTrack
 }
 
-func (e *WldFragDMTrack) Write(w io.Writer) error {
+func (e *WldFragDMTrack) Write(w io.Writer, isNewWorld bool) error {
 	return nil
 }
 
-func (e *WldFragDMTrack) Read(r io.ReadSeeker) error {
+func (e *WldFragDMTrack) Read(r io.ReadSeeker, isNewWorld bool) error {
 	return nil
 }

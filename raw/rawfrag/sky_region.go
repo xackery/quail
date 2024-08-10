@@ -10,10 +10,10 @@ func (e *WldFragSkyRegion) FragCode() int {
 	return FragCodeSkyRegion
 }
 
-func (e *WldFragSkyRegion) Write(w io.Writer) error {
+func (e *WldFragSkyRegion) Write(w io.Writer, isNewWorld bool) error {
 	return nil
 }
 
-func (e *WldFragSkyRegion) Read(r io.ReadSeeker) error {
+func (e *WldFragSkyRegion) Read(r io.ReadSeeker, isNewWorld bool) error {
 	return nil
 }

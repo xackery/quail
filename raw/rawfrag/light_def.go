@@ -22,7 +22,7 @@ func (e *WldFragLightDef) FragCode() int {
 	return FragCodeLightDef
 }
 
-func (e *WldFragLightDef) Write(w io.Writer) error {
+func (e *WldFragLightDef) Write(w io.Writer, isNewWorld bool) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
 	enc.Int32(e.NameRef)
 	enc.Uint32(e.Flags)
@@ -52,7 +52,7 @@ func (e *WldFragLightDef) Write(w io.Writer) error {
 	return nil
 }
 
-func (e *WldFragLightDef) Read(r io.ReadSeeker) error {
+func (e *WldFragLightDef) Read(r io.ReadSeeker, isNewWorld bool) error {
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	e.NameRef = dec.Int32()
 	e.Flags = dec.Uint32()

@@ -24,7 +24,7 @@ type WldFragDmSpriteDef2 struct {
 	BoundingBoxMax       [3]float32
 	Scale                uint16
 	Vertices             [][3]int16
-	UVs                  [][2]int16
+	UVs                  [][2]int32
 	VertexNormals        [][3]int8
 	Colors               [][4]uint8
 	Faces                []WldFragMeshFaceEntry
@@ -61,7 +61,7 @@ func (e *WldFragDmSpriteDef2) FragCode() int {
 	return FragCodeDmSpriteDef2
 }
 
-func (e *WldFragDmSpriteDef2) Write(w io.Writer) error {
+func (e *WldFragDmSpriteDef2) Write(w io.Writer, isNewWorld bool) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
 
 	padStart := enc.Pos()
@@ -109,8 +109,13 @@ func (e *WldFragDmSpriteDef2) Write(w io.Writer) error {
 	}
 
 	for _, uv := range e.UVs {
-		enc.Int16(uv[0])
-		enc.Int16(uv[1])
+		if isNewWorld {
+			enc.Int32(uv[0])
+			enc.Int32(uv[1])
+		} else {
+			enc.Int16(int16(uv[0]))
+			enc.Int16(int16(uv[1]))
+		}
 	}
 
 	for _, normal := range e.VertexNormals {
@@ -171,7 +176,7 @@ func (e *WldFragDmSpriteDef2) Write(w io.Writer) error {
 	return nil
 }
 
-func (e *WldFragDmSpriteDef2) Read(r io.ReadSeeker) error {
+func (e *WldFragDmSpriteDef2) Read(r io.ReadSeeker, isNewWorld bool) error {
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	e.NameRef = dec.Int32()
 	e.Flags = dec.Uint32() // flags, currently unknown, zone meshes are 0x00018003, placeable objects are 0x00014003
@@ -227,7 +232,11 @@ func (e *WldFragDmSpriteDef2) Read(r io.ReadSeeker) error {
 	}
 
 	for i := 0; i < int(uvCount); i++ {
-		e.UVs = append(e.UVs, [2]int16{dec.Int16(), dec.Int16()})
+		if isNewWorld {
+			e.UVs = append(e.UVs, [2]int32{dec.Int32(), dec.Int32()})
+		} else {
+			e.UVs = append(e.UVs, [2]int32{int32(dec.Int16()), int32(dec.Int16())})
+		}
 	}
 
 	for i := 0; i < int(normalCount); i++ {

@@ -27,10 +27,10 @@ func (e *WldFragDmTrackDef2) FragCode() int {
 	return FragCodeDmTrackDef2
 }
 
-func (e *WldFragDmTrackDef2) Write(w io.Writer) error {
+func (e *WldFragDmTrackDef2) Write(w io.Writer, isNewWorld bool) error {
 	return nil
 }
 
-func (e *WldFragDmTrackDef2) Read(r io.ReadSeeker) error {
+func (e *WldFragDmTrackDef2) Read(r io.ReadSeeker, isNewWorld bool) error {
 	return nil
 }

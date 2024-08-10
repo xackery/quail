@@ -18,7 +18,7 @@ func (e *WldFragGlobalAmbientLightDef) FragCode() int {
 }
 
 // Read writes the fragment to the writer
-func (e *WldFragGlobalAmbientLightDef) Write(w io.Writer) error {
+func (e *WldFragGlobalAmbientLightDef) Write(w io.Writer, isNewWorld bool) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
 	if e.NameRef == 0 {
 		e.NameRef = -16777216
@@ -31,7 +31,7 @@ func (e *WldFragGlobalAmbientLightDef) Write(w io.Writer) error {
 	return nil
 }
 
-func (e *WldFragGlobalAmbientLightDef) Read(r io.ReadSeeker) error {
+func (e *WldFragGlobalAmbientLightDef) Read(r io.ReadSeeker, isNewWorld bool) error {
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	e.NameRef = dec.Int32()
 

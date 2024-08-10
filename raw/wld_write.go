@@ -22,7 +22,7 @@ func (wld *Wld) Write(w io.Writer) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
 	tag.NewWithCoder(enc)
 	enc.Bytes([]byte{0x02, 0x3D, 0x50, 0x54}) // header
-	if wld.IsOldWorld {
+	if !wld.IsNewWorld {
 		enc.Uint32(0x00015500)
 	} else {
 		enc.Uint32(0x1000C800)
@@ -57,7 +57,7 @@ func (wld *Wld) Write(w io.Writer) error {
 		chunkBuf := bytes.NewBuffer(nil)
 		chunkEnc := encdec.NewEncoder(chunkBuf, binary.LittleEndian)
 
-		err := frag.Write(fragBuf)
+		err := frag.Write(fragBuf, wld.IsNewWorld)
 		if err != nil {
 			return fmt.Errorf("write fragment id %d 0x%x (%s): %w", i, frag.FragCode(), FragName(frag.FragCode()), err)
 		}

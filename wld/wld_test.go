@@ -456,13 +456,13 @@ func TestWCEWldFragMatch(t *testing.T) {
 				dstFrag := rawWldDst.Fragments[i]
 
 				srcFragBuf := bytes.NewBuffer(nil)
-				err = srcFrag.Write(srcFragBuf)
+				err = srcFrag.Write(srcFragBuf, rawWldSrc.IsNewWorld)
 				if err != nil {
 					t.Fatalf("failed to write src frag %d: %s", i, err.Error())
 				}
 
 				dstFragBuf := bytes.NewBuffer(nil)
-				err = dstFrag.Write(dstFragBuf)
+				err = dstFrag.Write(dstFragBuf, rawWldSrc.IsNewWorld)
 				if err != nil {
 					t.Fatalf("failed to write dst frag %d: %s", i, err.Error())
 				}

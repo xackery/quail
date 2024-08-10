@@ -18,7 +18,7 @@ func (e *WldFragSphere) FragCode() int {
 	return FragCodeSphere
 }
 
-func (e *WldFragSphere) Write(w io.Writer) error {
+func (e *WldFragSphere) Write(w io.Writer, isNewWorld bool) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
 	enc.Int32(e.NameRef)
 	enc.Float32(e.Radius)
@@ -29,7 +29,7 @@ func (e *WldFragSphere) Write(w io.Writer) error {
 	return nil
 }
 
-func (e *WldFragSphere) Read(r io.ReadSeeker) error {
+func (e *WldFragSphere) Read(r io.ReadSeeker, isNewWorld bool) error {
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	e.NameRef = dec.Int32()
 	e.Radius = dec.Float32()

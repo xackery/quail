@@ -323,7 +323,7 @@ func TestWldVsWldCli(t *testing.T) {
 				src := wld.Fragments[i]
 				dst := rawFrags[i]
 
-				err = src.Write(buf)
+				err = src.Write(buf, wld.IsNewWorld)
 				if err != nil {
 					t.Fatalf("failed to write frag %d: %s", i, err.Error())
 				}
@@ -407,7 +407,7 @@ func TestWldVsRawFrag(t *testing.T) {
 				// take off initial opcode bytes
 				dst = dst[4:]
 
-				err = src.Write(buf)
+				err = src.Write(buf, wld.IsNewWorld)
 				if err != nil {
 					t.Fatalf("failed to write frag %d: %s", i, err.Error())
 				}

@@ -19,7 +19,7 @@ func (e *WldFragParticleSprite) FragCode() int {
 	return FragCodeParticleSprite
 }
 
-func (e *WldFragParticleSprite) Write(w io.Writer) error {
+func (e *WldFragParticleSprite) Write(w io.Writer, isNewWorld bool) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
 	enc.Int32(e.NameRef)
 	enc.Int32(e.ParticleSpriteDefRef)
@@ -31,7 +31,7 @@ func (e *WldFragParticleSprite) Write(w io.Writer) error {
 	return nil
 }
 
-func (e *WldFragParticleSprite) Read(r io.ReadSeeker) error {
+func (e *WldFragParticleSprite) Read(r io.ReadSeeker, isNewWorld bool) error {
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	e.NameRef = dec.Int32()
 	e.ParticleSpriteDefRef = dec.Int32()
