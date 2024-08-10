@@ -698,10 +698,17 @@ func (e *DMSpriteDef2) ToRaw(wld *Wld, rawWld *raw.Wld) (int16, error) {
 	}
 
 	for _, uv := range e.UVs {
-		dmSpriteDef.UVs = append(dmSpriteDef.UVs, [2]int32{
-			int32(uv[0] * 256),
-			int32(uv[1] * 256),
-		})
+		if wld.WorldDef.NewWorld > 0 {
+			dmSpriteDef.UVs = append(dmSpriteDef.UVs, [2]int32{
+				int32(uv[0]),
+				int32(uv[1]),
+			})
+		} else {
+			dmSpriteDef.UVs = append(dmSpriteDef.UVs, [2]int32{
+				int32(uv[0] * 256),
+				int32(uv[1] * 256),
+			})
+		}
 	}
 
 	for _, normal := range e.VertexNormals {
@@ -806,10 +813,17 @@ func (e *DMSpriteDef2) FromRaw(wld *Wld, rawWld *raw.Wld, frag *rawfrag.WldFragD
 		})
 	}
 	for _, uv := range frag.UVs {
-		e.UVs = append(e.UVs, [2]float32{
-			float32(uv[0]) / float32(256),
-			float32(uv[1]) / float32(256),
-		})
+		if rawWld.IsNewWorld {
+			e.UVs = append(e.UVs, [2]float32{
+				float32(uv[0]),
+				float32(uv[1]),
+			})
+		} else {
+			e.UVs = append(e.UVs, [2]float32{
+				float32(uv[0]) / float32(256),
+				float32(uv[1]) / float32(256),
+			})
+		}
 	}
 	for _, vn := range frag.VertexNormals {
 		e.VertexNormals = append(e.VertexNormals, [3]float32{
