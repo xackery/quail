@@ -24,7 +24,7 @@ type WldFragDmSpriteDef2 struct {
 	BoundingBoxMax       [3]float32
 	Scale                uint16
 	Vertices             [][3]int16
-	UVs                  [][2]int32
+	UVs                  [][2]float32
 	VertexNormals        [][3]int8
 	Colors               [][4]uint8
 	Faces                []WldFragMeshFaceEntry
@@ -110,8 +110,8 @@ func (e *WldFragDmSpriteDef2) Write(w io.Writer, isNewWorld bool) error {
 
 	for _, uv := range e.UVs {
 		if isNewWorld {
-			enc.Int32(uv[0])
-			enc.Int32(uv[1])
+			enc.Int32(int32(uv[0]))
+			enc.Int32(int32(uv[1]))
 		} else {
 			enc.Int16(int16(uv[0]))
 			enc.Int16(int16(uv[1]))
@@ -233,9 +233,9 @@ func (e *WldFragDmSpriteDef2) Read(r io.ReadSeeker, isNewWorld bool) error {
 
 	for i := 0; i < int(uvCount); i++ {
 		if isNewWorld {
-			e.UVs = append(e.UVs, [2]int32{dec.Int32(), dec.Int32()})
+			e.UVs = append(e.UVs, [2]float32{dec.Float32(), dec.Float32()})
 		} else {
-			e.UVs = append(e.UVs, [2]int32{int32(dec.Int16()), int32(dec.Int16())})
+			e.UVs = append(e.UVs, [2]float32{float32(dec.Int16()), float32(dec.Int16())})
 		}
 	}
 

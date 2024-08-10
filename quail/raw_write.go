@@ -173,7 +173,7 @@ func (e *Quail) wldWrite(wld *raw.Wld) error {
 			mesh.Vertices = append(mesh.Vertices, [3]int16{int16(srcVert.Position.X / scale), int16(srcVert.Position.Y / scale), int16(srcVert.Position.Z / scale)})
 			mesh.VertexNormals = append(mesh.VertexNormals, [3]int8{int8(srcVert.Normal.X), int8(srcVert.Normal.Y), int8(srcVert.Normal.Z)})
 			mesh.Colors = append(mesh.Colors, [4]uint8{srcVert.Tint.R, srcVert.Tint.G, srcVert.Tint.B, srcVert.Tint.A})
-			mesh.UVs = append(mesh.UVs, [2]int32{int32(srcVert.Uv.X * 256), int32(srcVert.Uv.Y * 256)})
+			mesh.UVs = append(mesh.UVs, [2]float32{float32(srcVert.Uv.X * 256), float32(srcVert.Uv.Y * 256)})
 		}
 
 		for _, srcTriangle := range mod.Triangles {
