@@ -81,27 +81,30 @@ func TestFragFlags(t *testing.T) {
 			for i := 0; i < len(rawWld.Fragments); i++ {
 				fragRaw := rawWld.Fragments[i]
 
-				frag, ok := fragRaw.(*rawfrag.WldFragDmTrackDef2)
+				frag, ok := fragRaw.(*rawfrag.WldFragDmSpriteDef2)
 				if !ok {
 					continue
 				}
-				flags := frag.Flags
 
-				if flagsMap[int(flags)] != nil {
-					continue
-				}
 				tagName := raw.Name(int32(frag.NameRef))
-				hexFlagDump := hexFlagDump(int(flags))
-				flagsMap[int(flags)] = &flagEntry{
-					baseName:    s3dName,
-					wldName:     wldName,
-					fragID:      i,
-					tagName:     tagName,
-					hexFlagDump: hexFlagDump,
-				}
-				flagSorts = append(flagSorts, int(flags))
-				fmt.Printf("Flag %d found in %s/%s/%s fragID %d %s\n", flags, s3dName, wldName, tagName, i, hexFlagDump)
 
+				for _, face := range frag.Faces {
+					flags := uint32(face.Flags)
+					if flagsMap[int(flags)] != nil {
+						continue
+					}
+
+					hexFlagDump := hexFlagDump(int(flags))
+					flagsMap[int(flags)] = &flagEntry{
+						baseName:    s3dName,
+						wldName:     wldName,
+						fragID:      i,
+						tagName:     tagName,
+						hexFlagDump: hexFlagDump,
+					}
+					flagSorts = append(flagSorts, int(flags))
+					fmt.Printf("Flag %d found in %s/%s/%s fragID %d %s\n", flags, s3dName, wldName, tagName, i, hexFlagDump)
+				}
 			}
 		}
 	}

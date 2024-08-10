@@ -141,7 +141,7 @@ type DMSpriteDef2 struct {
 }
 
 type Face struct {
-	Flags    uint16
+	Passable int
 	Triangle [3]uint16
 }
 
@@ -197,7 +197,7 @@ func (e *DMSpriteDef2) Write(w io.Writer) error {
 	fmt.Fprintf(w, "\n")
 	for i, face := range e.Faces {
 		fmt.Fprintf(w, "\tDMFACE2 //%d\n", i)
-		fmt.Fprintf(w, "\t\tFLAGS %d\n", face.Flags)
+		fmt.Fprintf(w, "\t\tPASSABLE %d\n", face.Passable)
 		fmt.Fprintf(w, "\t\tTRIANGLE %d %d %d\n", face.Triangle[0], face.Triangle[1], face.Triangle[2])
 		fmt.Fprintf(w, "\tENDDMFACE2 //%d\n\n", i)
 	}
@@ -405,13 +405,13 @@ func (e *DMSpriteDef2) Read(token *AsciiReadToken) error {
 		if err != nil {
 			return err
 		}
-		records, err = token.ReadProperty("FLAGS", 1)
+		records, err = token.ReadProperty("PASSABLE", 1)
 		if err != nil {
 			return err
 		}
-		err = parse(&face.Flags, records[1])
+		err = parse(&face.Passable, records[1])
 		if err != nil {
-			return fmt.Errorf("face %d flags: %w", i, err)
+			return fmt.Errorf("face %d hex ten flag: %w", i, err)
 		}
 
 		records, err = token.ReadProperty("TRIANGLE", 3)
@@ -721,10 +721,14 @@ func (e *DMSpriteDef2) ToRaw(wld *Wld, rawWld *raw.Wld) (int16, error) {
 
 	dmSpriteDef.Colors = e.VertexColors
 	for _, face := range e.Faces {
-		dmSpriteDef.Faces = append(dmSpriteDef.Faces, rawfrag.WldFragMeshFaceEntry{
-			Flags: face.Flags,
+		wfFace := &rawfrag.WldFragMeshFaceEntry{
 			Index: face.Triangle,
-		})
+		}
+		if face.Passable != 0 {
+			wfFace.Flags |= 0x10
+		}
+
+		dmSpriteDef.Faces = append(dmSpriteDef.Faces, *wfFace)
 	}
 
 	dmSpriteDef.FaceMaterialGroups = e.FaceMaterialGroups
@@ -836,10 +840,13 @@ func (e *DMSpriteDef2) FromRaw(wld *Wld, rawWld *raw.Wld, frag *rawfrag.WldFragD
 	e.VertexColors = frag.Colors
 
 	for _, face := range frag.Faces {
-		e.Faces = append(e.Faces, &Face{
-			Flags:    face.Flags,
+		f := &Face{
 			Triangle: face.Index,
-		})
+		}
+		if face.Flags&0x10 != 0 {
+			f.Passable = 1
+		}
+		e.Faces = append(e.Faces, f)
 	}
 
 	if frag.Flags&0x1 != 0 {
