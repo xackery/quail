@@ -205,6 +205,14 @@ func (wld *Wld) writeAsciiData(path string, isDir bool, baseTags []string, rootB
 	}
 
 	w = modWriters[zoneName]
+
+	if wld.WorldDef != nil {
+		err = wld.WorldDef.Write(w)
+		if err != nil {
+			return fmt.Errorf("world def: %w", err)
+		}
+	}
+
 	if wld.GlobalAmbientLightDef != nil {
 		err = wld.GlobalAmbientLightDef.Write(w)
 		if err != nil {

@@ -364,7 +364,10 @@ func (a *AsciiReadToken) readDefinitions() error {
 				a.wld.DMSpriteDefs = append(a.wld.DMSpriteDefs, frag)
 				definitions[i] = &DMSpriteDef{}
 			case *WorldDef:
-				a.wld.isNewWorld = frag.NewWorld > 0
+				if a.wld.WorldDef != nil {
+					return fmt.Errorf("duplicate world definition")
+				}
+				a.wld.WorldDef = frag
 				definitions[i] = &WorldDef{}
 			default:
 				return fmt.Errorf("unknown definition type for rebuild: %T", definitions[i])

@@ -12,6 +12,10 @@ import (
 
 func (wld *Wld) ReadRaw(src *raw.Wld) error {
 	wld.reset()
+	wld.WorldDef = &WorldDef{}
+	if src.IsNewWorld {
+		wld.WorldDef.NewWorld = 1
+	}
 	for i := 1; i < len(src.Fragments); i++ {
 		fragment := src.Fragments[i]
 		err := readRawFrag(wld, src, fragment)
