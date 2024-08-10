@@ -176,47 +176,47 @@ func (e *Quail) S3DExport(fileVersion uint32, pfsVersion int, path string) error
 	defer pfs.Close()
 
 	isSomethingWritten := false
-	if e.wld != nil {
+	if e.Wld != nil {
 		buf := &bytes.Buffer{}
 
-		err := e.wld.WriteRaw(buf)
+		err := e.Wld.WriteRaw(buf)
 		if err != nil {
 			return fmt.Errorf("write wld: %w", err)
 		}
 
-		err = pfs.Add(e.wld.FileName, buf.Bytes())
+		err = pfs.Add(e.Wld.FileName, buf.Bytes())
 		if err != nil {
-			return fmt.Errorf("addWld %s: %w", e.wld.FileName, err)
+			return fmt.Errorf("addWld %s: %w", e.Wld.FileName, err)
 		}
 		isSomethingWritten = true
 	}
 
-	if e.wldObject != nil {
+	if e.WldObject != nil {
 		buf := &bytes.Buffer{}
 
-		err := e.wldObject.WriteRaw(buf)
+		err := e.WldObject.WriteRaw(buf)
 		if err != nil {
 			return fmt.Errorf("write wld: %w", err)
 		}
 
 		err = pfs.Add("objects.wld", buf.Bytes())
 		if err != nil {
-			return fmt.Errorf("addWld %s: %w", e.wld.FileName, err)
+			return fmt.Errorf("addWld %s: %w", e.Wld.FileName, err)
 		}
 		isSomethingWritten = true
 	}
 
-	if e.wldLights != nil {
+	if e.WldLights != nil {
 		buf := &bytes.Buffer{}
 
-		err := e.wldLights.WriteRaw(buf)
+		err := e.WldLights.WriteRaw(buf)
 		if err != nil {
 			return fmt.Errorf("write wld: %w", err)
 		}
 
 		err = pfs.Add("lights.wld", buf.Bytes())
 		if err != nil {
-			return fmt.Errorf("addWld %s: %w", e.wld.FileName, err)
+			return fmt.Errorf("addWld %s: %w", e.Wld.FileName, err)
 		}
 		isSomethingWritten = true
 	}

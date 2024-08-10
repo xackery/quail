@@ -33,20 +33,20 @@ func (q *Quail) DirWrite(path string) error {
 		return fmt.Errorf("path %s is not a directory", path)
 	}
 
-	if q.wld != nil {
-		err = q.wld.WriteAscii(path, true)
+	if q.Wld != nil {
+		err = q.Wld.WriteAscii(path, true)
 		if err != nil {
 			return err
 		}
 	}
-	if q.wldObject != nil {
-		err = q.wldObject.WriteAscii(path+"/_objects/", true)
+	if q.WldObject != nil {
+		err = q.WldObject.WriteAscii(path+"/_objects/", true)
 		if err != nil {
 			return err
 		}
 	}
-	if q.wldLights != nil {
-		err = q.wldLights.WriteAscii(path+"/_lights/", true)
+	if q.WldLights != nil {
+		err = q.WldLights.WriteAscii(path+"/_lights/", true)
 		if err != nil {
 			return err
 		}

@@ -20,11 +20,11 @@ func (q *Quail) wldRead(srcWld *raw.Wld, filename string) error {
 	}
 
 	if strings.ToLower(filename) == "objects.wld" {
-		q.wldObject = wld
+		q.WldObject = wld
 	} else if strings.ToLower(filename) == "lights.wld" {
-		q.wldLights = wld
+		q.WldLights = wld
 	} else {
-		q.wld = wld
+		q.Wld = wld
 	}
 
 	return nil
