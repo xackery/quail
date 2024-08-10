@@ -10,22 +10,21 @@ import (
 
 // WldFragRegion is Region in libeq, Bsp WldFragRegion in openzone, REGION in wld, BspRegion in lantern
 type WldFragRegion struct {
-	NameRef              int32        `yaml:"name_ref"`
-	Flags                uint32       `yaml:"flags"`
-	AmbientLightRef      int32        `yaml:"ambient_light_ref"`
-	CuttingObstacleCount uint32       `yaml:"cutting_obstacle_count"`
-	RegionVertices       [][3]float32 `yaml:"region_vertices"`
-	RegionProximals      [][2]float32 `yaml:"region_proximals"`
-	RenderVertices       [][3]float32 `yaml:"render_vertices"`
-	Walls                []Wall       `yaml:"walls"`
-	Obstacles            []Obstacle   `yaml:"obstacles"`
-	VisNodes             []VisNode    `yaml:"visible_nodes"`
-	VisLists             []VisList    `yaml:"vis_lists"`
-	Sphere               [4]float32   `yaml:"sphere"`
-	ReverbVolume         float32
-	ReverbOffset         int32
-	UserData             string
-	MeshReference        int32
+	NameRef         int32        `yaml:"name_ref"`
+	Flags           uint32       `yaml:"flags"`
+	AmbientLightRef int32        `yaml:"ambient_light_ref"`
+	RegionVertices  [][3]float32 `yaml:"region_vertices"`
+	RegionProximals [][2]float32 `yaml:"region_proximals"`
+	RenderVertices  [][3]float32 `yaml:"render_vertices"`
+	Walls           []Wall       `yaml:"walls"`
+	Obstacles       []Obstacle   `yaml:"obstacles"`
+	VisNodes        []VisNode    `yaml:"visible_nodes"`
+	VisLists        []VisList    `yaml:"vis_lists"`
+	Sphere          [4]float32   `yaml:"sphere"`
+	ReverbVolume    float32
+	ReverbOffset    int32
+	UserData        string
+	MeshReference   int32
 }
 
 type Wall struct {
@@ -82,7 +81,7 @@ func (e *WldFragRegion) Write(w io.Writer, isNewWorld bool) error {
 	enc.Uint32(uint32(len(e.RenderVertices)))
 	enc.Uint32(uint32(len(e.Walls)))
 	enc.Uint32(uint32(len(e.Obstacles)))
-	enc.Uint32(e.CuttingObstacleCount)
+	enc.Uint32(0) // cuttingobstaclecount
 	enc.Uint32(uint32(len(e.VisNodes)))
 	enc.Uint32(uint32(len(e.VisLists)))
 	for _, regionVertex := range e.RegionVertices {
@@ -197,7 +196,7 @@ func (e *WldFragRegion) Write(w io.Writer, isNewWorld bool) error {
 		enc.Uint32(0)
 	}
 
-	if e.Flags&0x100 != 0 { // has mesh reference
+	if e.Flags&0x100 != 0 || e.Flags&0x40 != 0 { // has mesh reference
 		enc.Int32(e.MeshReference)
 	}
 
@@ -223,7 +222,10 @@ func (e *WldFragRegion) Read(r io.ReadSeeker, isNewWorld bool) error {
 	renderVertexCount := dec.Uint32()
 	wallCount := dec.Uint32()
 	obstacleCount := dec.Uint32()
-	e.CuttingObstacleCount = dec.Uint32()
+	cuttingObstacleCount := dec.Uint32()
+	if cuttingObstacleCount > 0 {
+		return fmt.Errorf("you found an unknown cutting obstacle count! Let xack know")
+	}
 	visibleNodeCount := dec.Uint32()
 	visListCount := dec.Uint32()
 	for i := uint32(0); i < regionVertexCount; i++ {
@@ -340,13 +342,9 @@ func (e *WldFragRegion) Read(r io.ReadSeeker, isNewWorld bool) error {
 		e.ReverbOffset = dec.Int32()
 	}
 
-	if e.Flags&0x40 == 0x40 {
-		return fmt.Errorf("you found an unknown flag 0x40 region! Let xack know")
-	}
-
 	e.UserData = dec.StringLenPrefixUint32()
 
-	if e.Flags&0x100 != 0 { // has mesh reference
+	if e.Flags&0x100 != 0 || e.Flags&0x40 != 0 { // has mesh reference
 		e.MeshReference = dec.Int32()
 	}
 

@@ -120,8 +120,21 @@ func (wld *Wld) Read(r io.ReadSeeker) error {
 			return fmt.Errorf("fragment %d (size: %d) seek: %w", i, len(data), err)
 		}
 		if pos != int64(len(data)) {
-			fmt.Printf("fragment %d seek mismatch (%d/%d) (%T)\n", i, pos, len(data), reader)
-			//			return fmt.Errorf("fragment %d seek mismatch (%d/%d) (%T)", i, pos, len(data), reader)
+			isNonZero := false
+			for i, bdata := range data {
+				if int64(i) > pos {
+					continue
+				}
+				if bdata != 0 {
+					isNonZero = true
+					break
+				}
+			}
+			if !isNonZero {
+				fmt.Printf("fragment %d seek mismatch (%d/%d) (%T)\n", i, pos, len(data), reader)
+
+				fmt.Printf("fragment %d data: %x\n", i, data[pos:])
+			}
 		}
 		_, ok := reader.(*rawfrag.WldFragRegion)
 		if ok {
