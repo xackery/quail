@@ -4138,10 +4138,11 @@ type HierarchicalSpriteDef struct {
 }
 
 type Dag struct {
-	Tag       string
-	Track     string
-	SubDags   []uint32
-	SpriteTag string
+	Tag        string
+	Track      string
+	TrackIndex int
+	SubDags    []uint32
+	SpriteTag  string
 }
 
 type AttachedSkin struct {
@@ -4162,6 +4163,7 @@ func (e *HierarchicalSpriteDef) Write(w io.Writer) error {
 		fmt.Fprintf(w, "\t\tTAG \"%s\"\n", dag.Tag)
 		fmt.Fprintf(w, "\t\tSPRITE \"%s\"\n", dag.SpriteTag)
 		fmt.Fprintf(w, "\t\tTRACK \"%s\"\n", dag.Track)
+		fmt.Fprintf(w, "\t\tTRACKINDEX %d\n", dag.TrackIndex)
 		fmt.Fprintf(w, "\t\tSUBDAGLIST %d", len(dag.SubDags))
 		for _, subDag := range dag.SubDags {
 			fmt.Fprintf(w, " %d", subDag)
@@ -4234,6 +4236,15 @@ func (e *HierarchicalSpriteDef) Read(token *AsciiReadToken) error {
 			return err
 		}
 		dag.Track = records[1]
+
+		records, err = token.ReadProperty("TRACKINDEX", 1)
+		if err != nil {
+			return err
+		}
+		err = parse(&dag.TrackIndex, records[1])
+		if err != nil {
+			return fmt.Errorf("track index: %w", err)
+		}
 
 		records, err = token.ReadProperty("SUBDAGLIST", -1)
 		if err != nil {
@@ -4413,9 +4424,9 @@ func (e *HierarchicalSpriteDef) ToRaw(wld *Wld, rawWld *raw.Wld) (int16, error) 
 
 	for _, dag := range e.Dags {
 
-		trackFrag := wld.ByTag(dag.Track)
+		trackFrag := wld.ByTagWithIndex(dag.Track, dag.TrackIndex)
 		if trackFrag == nil {
-			return -1, fmt.Errorf("track not found: %s", dag.Track)
+			return -1, fmt.Errorf("track not found: %s index %d", dag.Track, dag.TrackIndex)
 		}
 
 		track, ok := trackFrag.(*TrackInstance)
@@ -4433,9 +4444,9 @@ func (e *HierarchicalSpriteDef) ToRaw(wld *Wld, rawWld *raw.Wld) (int16, error) 
 	for _, dag := range e.Dags {
 		wfDag := rawfrag.WldFragDag{}
 
-		trackFrag := wld.ByTag(dag.Track)
+		trackFrag := wld.ByTagWithIndex(dag.Track, dag.TrackIndex)
 		if trackFrag == nil {
-			return -1, fmt.Errorf("track not found: %s", dag.Track)
+			return -1, fmt.Errorf("track not found: %s index %d", dag.Track, dag.TrackIndex)
 		}
 
 		track, ok := trackFrag.(*TrackInstance)
@@ -4717,10 +4728,11 @@ func (e *HierarchicalSpriteDef) FromRaw(wld *Wld, rawWld *raw.Wld, frag *rawfrag
 		}
 
 		dag := Dag{
-			Tag:       raw.Name(dag.NameRef),
-			Track:     raw.Name(srcTrack.NameRef),
-			SubDags:   dag.SubDags,
-			SpriteTag: spriteTag,
+			Tag:        raw.Name(dag.NameRef),
+			Track:      raw.Name(srcTrack.NameRef),
+			TrackIndex: wld.tagIndexes[raw.Name(srcTrack.NameRef)],
+			SubDags:    dag.SubDags,
+			SpriteTag:  spriteTag,
 		}
 
 		e.Dags = append(e.Dags, dag)

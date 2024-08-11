@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/go-test/deep"
 	"github.com/xackery/quail/common"
@@ -86,6 +87,7 @@ func TestWceReadWrite(t *testing.T) {
 
 			fmt.Println("wrote", fmt.Sprintf("%s/%s/_root.wce", dirTest, baseName))
 
+			start := time.Now()
 			wldDst := &wld.Wld{
 				FileName: baseName + ".wld",
 			}
@@ -95,6 +97,7 @@ func TestWceReadWrite(t *testing.T) {
 			}
 
 			fmt.Println("read", fmt.Sprintf("%s/%s/_root.wce", dirTest, baseName))
+			fmt.Printf("read wce in %0.2f seconds\n", time.Since(start).Seconds())
 
 			// write back out
 

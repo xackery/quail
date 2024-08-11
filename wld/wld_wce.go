@@ -396,7 +396,8 @@ func (wld *Wld) writeAsciiData(path string, isDir bool, baseTags []string, rootB
 				if dag.Track == "" {
 					continue
 				}
-				if tracksWritten[dag.Track] {
+				trackUUID := fmt.Sprintf("%s_%d", dag.Track, dag.TrackIndex)
+				if tracksWritten[trackUUID] {
 					continue
 				}
 
@@ -406,11 +407,17 @@ func (wld *Wld) writeAsciiData(path string, isDir bool, baseTags []string, rootB
 						continue
 					}
 
-					defsWritten[dag.Track] = true
+					if track.TagIndex != dag.TrackIndex {
+						continue
+					}
+
+					defsWritten[trackUUID] = true
 
 					isTrackDefFound := false
 
 					for _, trackDef := range wld.TrackDefs {
+						trackDefUUID := fmt.Sprintf("%s_%d", trackDef.Tag, trackDef.TagIndex)
+
 						if trackDef.Tag != track.DefinitionTag {
 							continue
 						}
@@ -419,7 +426,7 @@ func (wld *Wld) writeAsciiData(path string, isDir bool, baseTags []string, rootB
 						}
 						isTrackDefFound = true
 
-						if tracksWritten[trackDef.Tag] {
+						if tracksWritten[trackDefUUID] {
 							break
 						}
 
@@ -428,8 +435,8 @@ func (wld *Wld) writeAsciiData(path string, isDir bool, baseTags []string, rootB
 							return fmt.Errorf("track def %s: %w", trackDef.Tag, err)
 						}
 
-						tracksWritten[trackDef.Tag] = true
-						defsWritten[trackDef.Tag] = true
+						tracksWritten[trackDefUUID] = true
+						defsWritten[trackDefUUID] = true
 						break
 					}
 					if !isTrackDefFound {
@@ -438,8 +445,8 @@ func (wld *Wld) writeAsciiData(path string, isDir bool, baseTags []string, rootB
 
 					isTrackFound = true
 
-					tracksWritten[dag.Track] = true
-					defsWritten[dag.Track] = true
+					tracksWritten[trackUUID] = true
+					defsWritten[trackUUID] = true
 
 					err = track.Write(w)
 					if err != nil {
@@ -447,7 +454,7 @@ func (wld *Wld) writeAsciiData(path string, isDir bool, baseTags []string, rootB
 					}
 				}
 				if !isTrackFound {
-					return fmt.Errorf("hierarchy %s track %s not found", hierarchySprite.Tag, dag.Track)
+					return fmt.Errorf("dnspritedef2 hierarchy %s track %s not found", hierarchySprite.Tag, dag.Track)
 				}
 			}
 
@@ -597,7 +604,9 @@ func (wld *Wld) writeAsciiData(path string, isDir bool, baseTags []string, rootB
 				if dag.Track == "" {
 					continue
 				}
-				if tracksWritten[dag.Track] {
+
+				trackUUID := fmt.Sprintf("%s_%d", dag.Track, dag.TrackIndex)
+				if tracksWritten[trackUUID] {
 					continue
 				}
 
@@ -606,8 +615,18 @@ func (wld *Wld) writeAsciiData(path string, isDir bool, baseTags []string, rootB
 					if track.Tag != dag.Track && track.modelTag != dag.Track {
 						continue
 					}
+					if track.TagIndex != dag.TrackIndex {
+						continue
+					}
 
-					defsWritten[dag.Track] = true
+					trackUUID := fmt.Sprintf("%s_%d", track.DefinitionTag, track.DefinitionTagIndex)
+
+					if defsWritten[trackUUID] {
+						isTrackFound = true
+						break
+					}
+
+					defsWritten[trackUUID] = true
 
 					isTrackDefFound := false
 
@@ -620,7 +639,9 @@ func (wld *Wld) writeAsciiData(path string, isDir bool, baseTags []string, rootB
 						}
 						isTrackDefFound = true
 
-						if tracksWritten[trackDef.Tag] {
+						trackDefUUID := fmt.Sprintf("%s_%d", trackDef.Tag, trackDef.TagIndex)
+
+						if tracksWritten[trackDefUUID] {
 							break
 						}
 
@@ -629,18 +650,18 @@ func (wld *Wld) writeAsciiData(path string, isDir bool, baseTags []string, rootB
 							return fmt.Errorf("track def %s: %w", trackDef.Tag, err)
 						}
 
-						tracksWritten[trackDef.Tag] = true
-						defsWritten[trackDef.Tag] = true
+						tracksWritten[trackDefUUID] = true
+						defsWritten[trackDefUUID] = true
 						break
 					}
 					if !isTrackDefFound {
-						return fmt.Errorf("hierarchy %s track %s definition not found", hierarchySprite.Tag, track.DefinitionTag)
+						return fmt.Errorf("dmsprite hierarchy %s track %s definition not found", hierarchySprite.Tag, track.DefinitionTag)
 					}
 
 					isTrackFound = true
 
-					tracksWritten[dag.Track] = true
-					defsWritten[dag.Track] = true
+					tracksWritten[trackUUID] = true
+					defsWritten[trackUUID] = true
 
 					err = track.Write(w)
 					if err != nil {
@@ -648,7 +669,7 @@ func (wld *Wld) writeAsciiData(path string, isDir bool, baseTags []string, rootB
 					}
 				}
 				if !isTrackFound {
-					return fmt.Errorf("hierarchy %s track %s not found", hierarchySprite.Tag, dag.Track)
+					return fmt.Errorf("dmsprite hierarchy %s track %s not found", hierarchySprite.Tag, dag.Track)
 				}
 			}
 
