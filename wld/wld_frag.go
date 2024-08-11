@@ -51,7 +51,7 @@ func (e *WorldDef) Read(token *AsciiReadToken) error {
 // GlobalAmbientLightDef is a declaration of GLOBALAMBIENTLIGHTDEF
 type GlobalAmbientLightDef struct {
 	fragID int16
-	Tag    string
+	Color  [4]uint8
 }
 
 func (e *GlobalAmbientLightDef) Definition() string {
@@ -60,17 +60,20 @@ func (e *GlobalAmbientLightDef) Definition() string {
 
 func (e *GlobalAmbientLightDef) Write(w io.Writer) error {
 	fmt.Fprintf(w, "%s\n", e.Definition())
-	fmt.Fprintf(w, "\tTAG \"%s\"\n", e.Tag)
+	fmt.Fprintf(w, "\tCOLOR %d %d %d %d\n", e.Color[0], e.Color[1], e.Color[2], e.Color[3])
 	fmt.Fprintf(w, "ENDGLOBALAMBIENTLIGHTDEF\n\n")
 	return nil
 }
 
 func (e *GlobalAmbientLightDef) Read(token *AsciiReadToken) error {
-	records, err := token.ReadProperty("TAG", 1)
+	records, err := token.ReadProperty("Color", 4)
 	if err != nil {
 		return err
 	}
-	e.Tag = records[1]
+	err = parse(&e.Color, records[1:]...)
+	if err != nil {
+		return fmt.Errorf("color: %w", err)
+	}
 
 	_, err = token.ReadProperty("ENDGLOBALAMBIENTLIGHTDEF", 0)
 	if err != nil {
@@ -85,10 +88,7 @@ func (e *GlobalAmbientLightDef) ToRaw(wld *Wld, rawWld *raw.Wld) (int16, error) 
 		return e.fragID, nil
 	}
 	wfGlobalAmbientLightDef := &rawfrag.WldFragGlobalAmbientLightDef{
-		NameRef: -16777216,
-	}
-	if e.Tag != "DEFAULT_AMBIENTLIGHT" {
-		wfGlobalAmbientLightDef.NameRef = raw.NameAdd(e.Tag)
+		Color: e.Color,
 	}
 
 	rawWld.Fragments = append(rawWld.Fragments, wfGlobalAmbientLightDef)
@@ -100,11 +100,7 @@ func (e *GlobalAmbientLightDef) FromRaw(wld *Wld, rawWld *raw.Wld, frag *rawfrag
 	if wld.GlobalAmbientLightDef != nil {
 		return fmt.Errorf("duplicate globalambientlightdef found")
 	}
-
-	e.Tag = "DEFAULT_AMBIENTLIGHT"
-	if frag.NameRef != -16777216 {
-		e.Tag = raw.Name(frag.NameRef)
-	}
+	e.Color = frag.Color
 	wld.GlobalAmbientLightDef = e
 
 	return nil
@@ -1820,7 +1816,9 @@ func (e *SimpleSpriteDef) ToRaw(wld *Wld, rawWld *raw.Wld) (int16, error) {
 		for _, frame := range e.SimpleSpriteFrames {
 			nameRef := raw.NameAdd(frame.TextureTag)
 			if wfBMInfo.NameRef != 0 && nameRef != wfBMInfo.NameRef {
-				return -1, fmt.Errorf("simple sprite frames must have the same texture tag (%s fails this)", frame.TextureTag)
+				rawWld.Fragments = append(rawWld.Fragments, wfBMInfo)
+				wfSimpleSpriteDef.BitmapRefs = append(wfSimpleSpriteDef.BitmapRefs, uint32(len(rawWld.Fragments)))
+				wfBMInfo = &rawfrag.WldFragBMInfo{}
 			}
 			wfBMInfo.NameRef = nameRef
 			wfBMInfo.TextureNames = append(wfBMInfo.TextureNames, frame.TextureFile+"\x00")
@@ -1845,7 +1843,7 @@ func (e *SimpleSpriteDef) FromRaw(wld *Wld, rawWld *raw.Wld, frag *rawfrag.WldFr
 	if frag.Flags&0x02 == 0x02 {
 		e.SkipFrames.Valid = true
 	}
-	if frag.Flags&0x04 == 0x04 {
+	if frag.Flags&0x08 == 0x08 {
 		e.Animated.Valid = true
 	}
 	if frag.Flags&0x10 == 0x10 {
@@ -5646,7 +5644,7 @@ func (e *Region) FromRaw(wld *Wld, rawWld *raw.Wld, frag *rawfrag.WldFragRegion)
 			return fmt.Errorf("ambient light ref %d not found", frag.AmbientLightRef)
 		}
 
-		ambientLight, ok := rawWld.Fragments[frag.AmbientLightRef].(*rawfrag.WldFragGlobalAmbientLightDef)
+		ambientLight, ok := rawWld.Fragments[frag.AmbientLightRef].(*rawfrag.WldFragAmbientLight)
 		if !ok {
 			return fmt.Errorf("ambient light ref %d not found", frag.AmbientLightRef)
 		}

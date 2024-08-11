@@ -12,7 +12,7 @@ var tests = []struct {
 	//{baseName: "globalelf_chr"},
 	//{baseName: "crushbone"}, // OK
 	//{baseName: "abysmal"},
-	{baseName: "global_chr"}, // original human etc
+	//{baseName: "global_chr"}, // original human etc
 
 	//{baseName: "load2"}, // OK
 	//{baseName: "beetle_chr"}, // fails since openzone alignemnts
@@ -29,6 +29,7 @@ var tests = []struct {
 	//{baseName: "globaldaf_chr"},
 	//{baseName: "globalhum_chr"},
 	//{baseName: "freporte"},
+	{baseName: "neriakc"},
 	//{baseName: "qeynos"}, // OK
 	//{baseName: "load2", wldName: "lights.wld"}, // EMPTY
 	//{baseName: "qeynos", wldName: "objects.wld"},
