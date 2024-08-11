@@ -85,6 +85,12 @@ func (wld *Wld) Write(w io.Writer) error {
 	tag.Mark("lime", "max_object_bytes")
 
 	nameData := NameData()
+
+	// pad namedata with 0's so it's divisible by 4
+	for len(nameData)%4 != 0 {
+		nameData = append(nameData, 0)
+	}
+
 	enc.Uint32(uint32(len(nameData))) //hashSize
 	tag.Mark("green", "hashsize")
 
