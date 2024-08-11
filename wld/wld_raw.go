@@ -455,9 +455,11 @@ func isAnimationPrefix(name string) bool {
 }
 
 func baseTagTrim(tag string) string {
+	tag = strings.ReplaceAll(tag, " ", "")
 	if len(tag) < 2 {
 		return tag
 	}
+
 	index := strings.Index(tag, "_")
 	if index > 0 {
 		tag = tag[:index]
