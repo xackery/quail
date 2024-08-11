@@ -1,15 +1,9 @@
 package quail
 
 import (
-	"bytes"
 	"fmt"
-	"image"
-	"image/draw"
-	"image/png"
 	"os"
 	"strings"
-
-	"github.com/malashin/dds"
 )
 
 // DirWrite exports the quail target to a directory
@@ -58,12 +52,12 @@ func (q *Quail) DirWrite(path string) error {
 		}
 	}
 
-	for name, texture := range q.Textures {
+	for name, data := range q.Textures {
 
-		data, err := fixWonkyDDS(name, texture)
+		/* data, err := fixWonkyDDS(name, texture)
 		if err != nil {
 			return err
-		}
+		} */
 		err = os.WriteFile(path+"/"+name, data, 0644)
 		if err != nil {
 			return err
@@ -73,6 +67,7 @@ func (q *Quail) DirWrite(path string) error {
 	return nil
 }
 
+/*
 func fixWonkyDDS(name string, data []byte) ([]byte, error) {
 	if len(data) == 0 {
 		return data, nil
@@ -109,3 +104,4 @@ func fixWonkyDDS(name string, data []byte) ([]byte, error) {
 	}
 	return data, nil
 }
+*/
