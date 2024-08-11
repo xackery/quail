@@ -10,10 +10,9 @@ var tests = []struct {
 	wldName  string
 }{
 	//{baseName: "globalelf_chr"},
-	//{baseName: "crushbone"}, // OK
+	{baseName: "crushbone"}, // OK
 	//{baseName: "abysmal"},
 	//{baseName: "global_chr"}, // original human etc
-
 	//{baseName: "load2"}, // OK
 	//{baseName: "beetle_chr"}, // fails since openzone alignemnts
 	//{baseName: "load2", wldName: "objects.wld"}, // OK
@@ -29,7 +28,7 @@ var tests = []struct {
 	//{baseName: "globaldaf_chr"},
 	//{baseName: "globalhum_chr"},
 	//{baseName: "freporte"},
-	{baseName: "neriakc"},
+	//{baseName: "neriakc"}, // OK
 	//{baseName: "qeynos"}, // OK
 	//{baseName: "load2", wldName: "lights.wld"}, // EMPTY
 	//{baseName: "qeynos", wldName: "objects.wld"},
@@ -53,11 +52,16 @@ func TestStep4(t *testing.T) {
 	TestWceReadWrite(t)
 }
 
+func TestStep5(t *testing.T) {
+	TestWceDoubleReadWrite(t)
+}
+
 func TestStepAll(t *testing.T) {
 	TestStep1(t)
 	TestStep2(t)
 	TestStep3(t)
 	TestStep4(t)
+	TestStep5(t)
 }
 
 func TestBit(t *testing.T) {

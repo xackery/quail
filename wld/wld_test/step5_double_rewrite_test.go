@@ -15,7 +15,7 @@ import (
 	"github.com/xackery/quail/wld"
 )
 
-func TestWceReadWrite(t *testing.T) {
+func TestWceDoubleReadWrite(t *testing.T) {
 	if os.Getenv("SINGLE_TEST") != "1" {
 		t.Skip("skipping test; SINGLE_TEST not set")
 	}
@@ -181,6 +181,34 @@ func TestWceReadWrite(t *testing.T) {
 				}
 			}
 			log.Debugf("Processed %d fragments for %s", len(rawWldSrc.Fragments), tt.baseName)
+
+			// now let's try writing ascii out again and reading it back
+
+			err = wldDst.WriteAscii(dirTest + "/" + baseName + ".dst")
+			if err != nil {
+				t.Fatalf("failed to write %s: %s", baseName, err.Error())
+			}
+
+			fmt.Println("wrote", fmt.Sprintf("%s/%s.dst/_root.wce", dirTest, baseName))
+
+			start = time.Now()
+			wldDst2 := &wld.Wld{
+				FileName: baseName + ".wld",
+			}
+
+			err = wldDst2.ReadAscii(fmt.Sprintf("%s/%s.dst/_root.wce", dirTest, baseName))
+			if err != nil {
+				t.Fatalf("failed to read %s: %s", baseName, err.Error())
+			}
+
+			fmt.Println("read", fmt.Sprintf("%s/%s.dst/_root.wce", dirTest, baseName))
+			fmt.Printf("read wce in %0.2f seconds\n", time.Since(start).Seconds())
+
+			diff = deep.Equal(wldDst, wldDst2)
+			if diff != nil {
+				t.Fatalf("wld diff: %s", diff)
+			}
+
 		})
 	}
 }

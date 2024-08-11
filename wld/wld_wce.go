@@ -27,7 +27,7 @@ func (wld *Wld) ReadAscii(path string) error {
 	return nil
 }
 
-func (wld *Wld) WriteAscii(path string, isDir bool) error {
+func (wld *Wld) WriteAscii(path string) error {
 	var err error
 
 	err = os.MkdirAll(path, os.ModePerm)
@@ -74,7 +74,7 @@ func (wld *Wld) WriteAscii(path string, isDir bool) error {
 		return err
 	}
 	writeAsciiHeader(rootBuf)
-	err = wld.writeAsciiData(path, isDir, baseTags, rootBuf)
+	err = wld.writeAsciiData(path, baseTags, rootBuf)
 	if err != nil {
 		return err
 	}
@@ -121,7 +121,7 @@ func (wld *Wld) WriteAscii(path string, isDir bool) error {
 	return nil
 }
 
-func (wld *Wld) writeAsciiData(path string, isDir bool, baseTags []string, rootBuf *os.File) error {
+func (wld *Wld) writeAsciiData(path string, baseTags []string, rootBuf *os.File) error {
 	var w io.Writer
 	var ok bool
 

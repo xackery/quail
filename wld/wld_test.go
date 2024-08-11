@@ -278,7 +278,7 @@ func TestWCEWldReadWriteRead(t *testing.T) {
 
 			vwld.FileName = baseName + ".wld"
 
-			err = vwld.WriteAscii(dirTest+"/"+baseName, true)
+			err = vwld.WriteAscii(dirTest + "/" + baseName)
 			if err != nil {
 				t.Fatalf("failed to write %s: %s", baseName, err.Error())
 			}
@@ -391,7 +391,7 @@ func TestWCEWldFragMatch(t *testing.T) {
 
 			wldSrc.FileName = baseName + ".wld"
 
-			err = wldSrc.WriteAscii(dirTest+"/"+baseName, true)
+			err = wldSrc.WriteAscii(dirTest + "/" + baseName)
 			if err != nil {
 				t.Fatalf("failed to write %s: %s", baseName, err.Error())
 			}
@@ -545,7 +545,7 @@ func TestAsciiReadWriteRead(t *testing.T) {
 				t.Fatalf("Failed readascii: %s", err.Error())
 			}
 
-			err = wld.WriteAscii("testdata/temp/", true)
+			err = wld.WriteAscii("testdata/temp/")
 			if err != nil {
 				t.Fatalf("Failed writeascii: %s", err.Error())
 			}

@@ -34,19 +34,19 @@ func (q *Quail) DirWrite(path string) error {
 	}
 
 	if q.Wld != nil {
-		err = q.Wld.WriteAscii(path, true)
+		err = q.Wld.WriteAscii(path)
 		if err != nil {
 			return err
 		}
 	}
 	if q.WldObject != nil {
-		err = q.WldObject.WriteAscii(path+"/_objects/", true)
+		err = q.WldObject.WriteAscii(path + "/_objects/")
 		if err != nil {
 			return err
 		}
 	}
 	if q.WldLights != nil {
-		err = q.WldLights.WriteAscii(path+"/_lights/", true)
+		err = q.WldLights.WriteAscii(path + "/_lights/")
 		if err != nil {
 			return err
 		}
