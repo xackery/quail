@@ -18,8 +18,11 @@ func init() {
 var convertCmd = &cobra.Command{
 	Use:   "convert",
 	Short: "Take one file, convert to another",
-	Long:  `Supports eqg, s3d, and wcemu files`,
-	RunE:  runConvert,
+	Long: `Supports eqg, s3d, and quail (wcemu) files
+Usage: quail convert <src> <dst>
+Example: quail convert foo.s3d foo.quail - Takes foo.s3d and creates a folder called foo.quail
+Example: quail convert foo.quail foo.s3d - Takes foo.quail folder and creates a foo.s3d file`,
+	RunE: runConvert,
 }
 
 func runConvert(cmd *cobra.Command, args []string) error {
