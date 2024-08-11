@@ -1,6 +1,7 @@
 package wld
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"os"
@@ -45,7 +46,7 @@ func (a *AsciiReadToken) Close() error {
 }
 
 // caseInsensitiveOpen attempts to open a file in a case-insensitive manner.
-func caseInsensitiveOpen(path string) (*os.File, error) {
+func caseInsensitiveOpen(path string) (*bytes.Buffer, error) {
 	dir := filepath.Dir(path)
 	base := filepath.Base(path)
 
@@ -56,7 +57,12 @@ func caseInsensitiveOpen(path string) (*os.File, error) {
 
 	for _, entry := range entries {
 		if strings.EqualFold(entry.Name(), base) {
-			return os.Open(filepath.Join(strings.ToLower(dir), entry.Name()))
+			data, err := os.ReadFile(filepath.Join(strings.ToLower(dir), entry.Name()))
+			if err != nil {
+				return nil, err
+			}
+			return bytes.NewBuffer(data), nil
+			//			return os.Open(filepath.Join(strings.ToLower(dir), entry.Name()))
 		}
 	}
 
