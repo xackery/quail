@@ -606,51 +606,51 @@ func (e *DMSpriteDef2) ToRaw(wld *Wld, rawWld *raw.Wld) (int16, error) {
 
 	if e.PolyhedronTag != "" { //&& (!strings.HasPrefix(e.Tag, "R") || !wld.isZone)
 		if strings.HasPrefix(e.Tag, "R") && wld.isZone {
-			for i, frag := range rawWld.Fragments {
+			if e.PolyhedronTag == "NEGATIVE_TWO" {
+				dmSpriteDef.Fragment4Ref = -2
+			}
+			if dmSpriteDef.Fragment4Ref != -2 {
+				return -1, fmt.Errorf("zone region polyhedron should be NEGATIVE_TWO, not %s", e.PolyhedronTag)
+			}
+			/* 			for i, frag := range rawWld.Fragments {
 				_, ok := frag.(*rawfrag.WldFragBMInfo)
 				if !ok {
 					continue
 				}
 				dmSpriteDef.Fragment4Ref = int32(i) + 1
 				break
-			}
+			} */
 		} else {
-			polyhedronFrag := wld.ByTag(e.PolyhedronTag)
-			if polyhedronFrag == nil {
-				return -1, fmt.Errorf("polyhedron %s not found", e.PolyhedronTag)
-			}
-
-			switch polyhedron := polyhedronFrag.(type) {
-			case *PolyhedronDefinition:
-
-				polyhedronRef, err := polyhedron.ToRaw(wld, rawWld)
-				if err != nil {
-					return -1, fmt.Errorf("polyhedron %s to raw: %w", e.PolyhedronTag, err)
+			if e.PolyhedronTag == "NEGATIVE_TWO" {
+				dmSpriteDef.Fragment4Ref = -2
+			} else {
+				polyhedronFrag := wld.ByTag(e.PolyhedronTag)
+				if polyhedronFrag == nil {
+					return -1, fmt.Errorf("polyhedron %s not found", e.PolyhedronTag)
 				}
 
-				wfPoly := &rawfrag.WldFragPolyhedron{
-					FragmentRef: int32(polyhedronRef),
-				}
-				rawWld.Fragments = append(rawWld.Fragments, wfPoly)
+				switch polyhedron := polyhedronFrag.(type) {
+				case *PolyhedronDefinition:
 
-				dmSpriteDef.Fragment4Ref = int32(len(rawWld.Fragments))
-			case *SimpleSpriteDef:
-				if polyhedron.fragID == 0 {
-					spriteDefFragID, err := polyhedron.ToRaw(wld, rawWld)
+					polyhedronRef, err := polyhedron.ToRaw(wld, rawWld)
 					if err != nil {
 						return -1, fmt.Errorf("polyhedron %s to raw: %w", e.PolyhedronTag, err)
 					}
-					dmSpriteDef.Fragment4Ref = int32(spriteDefFragID)
-				} else {
-					dmSpriteDef.Fragment4Ref = int32(polyhedron.fragID)
+
+					wfPoly := &rawfrag.WldFragPolyhedron{
+						FragmentRef: int32(polyhedronRef),
+					}
+					rawWld.Fragments = append(rawWld.Fragments, wfPoly)
+
+					dmSpriteDef.Fragment4Ref = int32(len(rawWld.Fragments))
+				default:
+					return -1, fmt.Errorf("polyhedrontag %T unhandled", polyhedron)
 				}
-			default:
-				return -1, fmt.Errorf("polyhedrontag %T unhandled", polyhedron)
 			}
 		}
 
 		if dmSpriteDef.Fragment4Ref == 0 {
-			return -1, fmt.Errorf("polyhedron polygon/bminfo %s not found", e.PolyhedronTag)
+			return -1, fmt.Errorf("polyhedron polygon %s not found", e.PolyhedronTag)
 		}
 	}
 
@@ -766,33 +766,29 @@ func (e *DMSpriteDef2) FromRaw(wld *Wld, rawWld *raw.Wld, frag *rawfrag.WldFragD
 	e.DmTrackTag = raw.Name(frag.DMTrackRef)
 
 	if frag.Fragment4Ref != 0 {
-		if frag.Fragment4Ref < 0 {
-			frag.Fragment4Ref = -frag.Fragment4Ref
-		}
-
-		if len(rawWld.Fragments) < int(frag.Fragment4Ref) {
-			return fmt.Errorf("fragment4 (bminfo) ref %d out of bounds", frag.Fragment4Ref)
-		}
-		frag4 := rawWld.Fragments[frag.Fragment4Ref]
-		switch frag4Def := frag4.(type) {
-		case *rawfrag.WldFragBMInfo:
-			e.PolyhedronTag = raw.Name(frag4Def.NameRef)
-		case *rawfrag.WldFragPolyhedron:
-			if len(rawWld.Fragments) < int(frag4Def.FragmentRef) {
-				return fmt.Errorf("fragment4 (polygon) ref %d out of bounds", frag4Def.FragmentRef)
+		if frag.Fragment4Ref == -2 {
+			e.PolyhedronTag = "NEGATIVE_TWO"
+		} else {
+			if len(rawWld.Fragments) < int(frag.Fragment4Ref) {
+				return fmt.Errorf("fragment4 (bminfo) ref %d out of bounds", frag.Fragment4Ref)
 			}
-
-			frag4 = rawWld.Fragments[frag4Def.FragmentRef]
+			frag4 := rawWld.Fragments[frag.Fragment4Ref]
 			switch frag4Def := frag4.(type) {
-			case *rawfrag.WldFragPolyhedronDef:
-				e.PolyhedronTag = raw.Name(frag4Def.NameRef)
+			case *rawfrag.WldFragPolyhedron:
+				if len(rawWld.Fragments) < int(frag4Def.FragmentRef) {
+					return fmt.Errorf("fragment4 (polygon) ref %d out of bounds", frag4Def.FragmentRef)
+				}
+
+				frag4 = rawWld.Fragments[frag4Def.FragmentRef]
+				switch frag4Def := frag4.(type) {
+				case *rawfrag.WldFragPolyhedronDef:
+					e.PolyhedronTag = raw.Name(frag4Def.NameRef)
+				default:
+					return fmt.Errorf("fragment4 wanted polyhedrondef, got unknown type %T", frag4)
+				}
 			default:
-				return fmt.Errorf("fragment4 wanted polyhedrondef, got unknown type %T", frag4)
+				return fmt.Errorf("fragment4 unknown type %T", frag4)
 			}
-		case *rawfrag.WldFragSimpleSpriteDef:
-			e.PolyhedronTag = raw.Name(frag4Def.NameRef)
-		default:
-			return fmt.Errorf("fragment4 unknown type %T", frag4)
 		}
 
 	}

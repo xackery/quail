@@ -261,6 +261,8 @@ func (wld *Wld) writeAsciiData(path string, baseTags []string, rootBuf *os.File)
 							continue
 						}
 
+						isMaterialDefFound = true
+
 						if modDefsWritten[materialDef.Tag] {
 							continue
 						}
@@ -289,7 +291,6 @@ func (wld *Wld) writeAsciiData(path string, baseTags []string, rootBuf *os.File)
 							}
 						}
 
-						isMaterialDefFound = true
 						err = materialDef.Write(w)
 						if err != nil {
 							return fmt.Errorf("material %s: %w", materialDef.Tag, err)
@@ -297,7 +298,7 @@ func (wld *Wld) writeAsciiData(path string, baseTags []string, rootBuf *os.File)
 						break
 					}
 					if !isMaterialDefFound {
-						return fmt.Errorf("dmsprite %s materialdef %s not found", dmSprite.Tag, materialTag)
+						return fmt.Errorf("dmspritedef2 %s materialdef %s not found", dmSprite.Tag, materialTag)
 					}
 				}
 
@@ -314,7 +315,7 @@ func (wld *Wld) writeAsciiData(path string, baseTags []string, rootBuf *os.File)
 			zoneMaterials[dmSprite.MaterialPaletteTag] = true
 		}
 
-		if dmSprite.PolyhedronTag != "" {
+		if dmSprite.PolyhedronTag != "" && dmSprite.PolyhedronTag != "NEGATIVE_TWO" {
 			poly := wld.ByTag(dmSprite.PolyhedronTag)
 			if poly == nil {
 				return fmt.Errorf("dmsprite %s polyhedron %s not found", dmSprite.Tag, dmSprite.PolyhedronTag)
@@ -324,15 +325,6 @@ func (wld *Wld) writeAsciiData(path string, baseTags []string, rootBuf *os.File)
 				err = polyDef.Write(w)
 				if err != nil {
 					return fmt.Errorf("polyhedron %s: %w", polyDef.Tag, err)
-				}
-				defsWritten[polyDef.Tag] = true
-			case *SimpleSpriteDef:
-				if modDefsWritten[polyDef.Tag] != true {
-					err = polyDef.Write(w)
-					if err != nil {
-						return fmt.Errorf("simple sprite %s: %w", polyDef.Tag, err)
-					}
-					modDefsWritten[polyDef.Tag] = true
 				}
 				defsWritten[polyDef.Tag] = true
 			case *Sprite3DDef:
