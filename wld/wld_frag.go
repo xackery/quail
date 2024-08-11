@@ -1798,9 +1798,9 @@ func (e *SimpleSpriteDef) ToRaw(wld *Wld, rawWld *raw.Wld) (int16, error) {
 		flags |= 0x02
 	}
 	//flags |= 0x04
-	if len(e.SimpleSpriteFrames) > 1 {
-		flags |= 0x08
-	}
+	//if len(e.SimpleSpriteFrames) > 1 {
+	//	flags |= 0x08
+	//}
 
 	if e.Animated.Valid {
 		flags |= 0x08
@@ -1815,10 +1815,15 @@ func (e *SimpleSpriteDef) ToRaw(wld *Wld, rawWld *raw.Wld) (int16, error) {
 
 	wfSimpleSpriteDef.Flags = flags
 
-	for _, frame := range e.SimpleSpriteFrames {
-		wfBMInfo := &rawfrag.WldFragBMInfo{
-			NameRef:      raw.NameAdd(frame.TextureTag),
-			TextureNames: []string{frame.TextureFile + "\x00"},
+	if len(e.SimpleSpriteFrames) > 0 {
+		wfBMInfo := &rawfrag.WldFragBMInfo{}
+		for _, frame := range e.SimpleSpriteFrames {
+			nameRef := raw.NameAdd(frame.TextureTag)
+			if wfBMInfo.NameRef != 0 && nameRef != wfBMInfo.NameRef {
+				return -1, fmt.Errorf("simple sprite frames must have the same texture tag (%s fails this)", frame.TextureTag)
+			}
+			wfBMInfo.NameRef = nameRef
+			wfBMInfo.TextureNames = append(wfBMInfo.TextureNames, frame.TextureFile+"\x00")
 		}
 
 		rawWld.Fragments = append(rawWld.Fragments, wfBMInfo)
@@ -1864,10 +1869,12 @@ func (e *SimpleSpriteDef) FromRaw(wld *Wld, rawWld *raw.Wld, frag *rawfrag.WldFr
 		if !ok {
 			return fmt.Errorf("invalid bitmap ref %d", bitmapRef)
 		}
-		e.SimpleSpriteFrames = append(e.SimpleSpriteFrames, SimpleSpriteFrame{
-			TextureTag:  raw.Name(bmInfo.NameRef),
-			TextureFile: bmInfo.TextureNames[0],
-		})
+		for _, name := range bmInfo.TextureNames {
+			e.SimpleSpriteFrames = append(e.SimpleSpriteFrames, SimpleSpriteFrame{
+				TextureTag:  raw.Name(bmInfo.NameRef),
+				TextureFile: name,
+			})
+		}
 	}
 	return nil
 }

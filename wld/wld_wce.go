@@ -265,6 +265,7 @@ func (wld *Wld) writeAsciiData(path string, isDir bool, baseTags []string, rootB
 							continue
 						}
 						modDefsWritten[materialDef.Tag] = true
+						defsWritten[materialDef.Tag] = true
 
 						if materialDef.SimpleSpriteTag != "" {
 							isSimpleSpriteFound := false
@@ -381,6 +382,9 @@ func (wld *Wld) writeAsciiData(path string, isDir bool, baseTags []string, rootB
 				continue
 			}
 
+			if defsWritten[hierarchySprite.Tag] {
+				break
+			}
 			defsWritten[hierarchySprite.Tag] = true
 
 			err = hierarchySprite.Write(w)
@@ -449,6 +453,7 @@ func (wld *Wld) writeAsciiData(path string, isDir bool, baseTags []string, rootB
 
 			break
 		}
+
 	}
 
 	for i := 0; i < len(wld.DMSpriteDefs); i++ {
@@ -495,6 +500,7 @@ func (wld *Wld) writeAsciiData(path string, isDir bool, baseTags []string, rootB
 							continue
 						}
 						modDefsWritten[materialDef.Tag] = true
+						defsWritten[materialDef.Tag] = true
 
 						if materialDef.SimpleSpriteTag != "" {
 							isSimpleSpriteFound := false
@@ -577,7 +583,9 @@ func (wld *Wld) writeAsciiData(path string, isDir bool, baseTags []string, rootB
 			if !isFound {
 				continue
 			}
-
+			if defsWritten[hierarchySprite.Tag] {
+				break
+			}
 			defsWritten[hierarchySprite.Tag] = true
 
 			err = hierarchySprite.Write(w)
@@ -731,6 +739,48 @@ func (wld *Wld) writeAsciiData(path string, isDir bool, baseTags []string, rootB
 		err = pointLight.Write(w)
 		if err != nil {
 			return fmt.Errorf("point light %s: %w", pointLight.Tag, err)
+		}
+	}
+
+	w = modWriters[zoneName]
+	for i := 0; i < len(wld.MaterialDefs); i++ {
+		materialDef := wld.MaterialDefs[i]
+		if defsWritten[materialDef.Tag] {
+			continue
+		}
+		defsWritten[materialDef.Tag] = true
+		baseTag := baseTagTrim(materialDef.Tag)
+		if modWriters[baseTag] != nil {
+			w, ok = modWriters[baseTag]
+			if !ok {
+				return fmt.Errorf("material def %s writer not found (basetag %s)", materialDef.Tag, baseTag)
+			}
+		}
+
+		if materialDef.SimpleSpriteTag != "" {
+			isSimpleSpriteFound := false
+			for _, simpleSprite := range wld.SimpleSpriteDefs {
+				if simpleSprite.Tag != materialDef.SimpleSpriteTag {
+					continue
+				}
+				isSimpleSpriteFound = true
+				if modDefsWritten[simpleSprite.Tag] {
+					continue
+				}
+				modDefsWritten[simpleSprite.Tag] = true
+				err = simpleSprite.Write(w)
+				if err != nil {
+					return fmt.Errorf("simple sprite %s: %w", simpleSprite.Tag, err)
+				}
+				break
+			}
+			if !isSimpleSpriteFound {
+				return fmt.Errorf("simple sprite %s not found", materialDef.SimpleSpriteTag)
+			}
+		}
+		err = materialDef.Write(w)
+		if err != nil {
+			return fmt.Errorf("material def %s: %w", materialDef.Tag, err)
 		}
 	}
 

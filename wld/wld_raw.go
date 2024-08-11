@@ -295,21 +295,6 @@ func (wld *Wld) WriteRaw(w io.Writer) error {
 				}
 			}
 
-			for _, track := range wld.TrackInstances {
-				if !isAnimationPrefix(track.Tag) {
-					continue
-				}
-				trBaseTag := wld.aniWriterTag(track.Tag)
-
-				if baseTag != trBaseTag && track.modelTag != baseTag {
-					continue
-				}
-				_, err = track.ToRaw(wld, dst)
-				if err != nil {
-					return fmt.Errorf("track %s: %w", track.Tag, err)
-				}
-			}
-
 			for _, matDef := range wld.MaterialDefs {
 				shortTag := baseTag
 				if len(baseTag) > 3 {
@@ -322,6 +307,21 @@ func (wld *Wld) WriteRaw(w io.Writer) error {
 				_, err = matDef.ToRaw(wld, dst)
 				if err != nil {
 					return fmt.Errorf("materialdef %s: %w", matDef.Tag, err)
+				}
+			}
+
+			for _, track := range wld.TrackInstances {
+				if !isAnimationPrefix(track.Tag) {
+					continue
+				}
+				trBaseTag := wld.aniWriterTag(track.Tag)
+
+				if baseTag != trBaseTag && track.modelTag != baseTag {
+					continue
+				}
+				_, err = track.ToRaw(wld, dst)
+				if err != nil {
+					return fmt.Errorf("track %s: %w", track.Tag, err)
 				}
 			}
 
@@ -473,6 +473,10 @@ func baseTagTrim(tag string) string {
 
 	if tag == "PREPE" {
 		tag = "PRE"
+	}
+
+	if strings.HasSuffix(tag, "EYE") && len(tag) >= 6 {
+		tag = tag[:len(tag)-3]
 	}
 
 	return tag

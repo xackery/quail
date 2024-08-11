@@ -9,14 +9,14 @@ var tests = []struct {
 	baseName string
 	wldName  string
 }{
+	{baseName: "globalelf_chr"},
+	//{baseName: "crushbone"}, // OK
+	//{baseName: "abysmal"},
 	//{baseName: "global_chr"}, // original human etc
-	{baseName: "abysmal"},
-	{baseName: "crushbone"},
 
 	//{baseName: "load2"}, // OK
 	//{baseName: "beetle_chr"}, // fails since openzone alignemnts
 	//{baseName: "load2", wldName: "objects.wld"}, // OK
-	//{baseName: "crushbone"}, // OK
 	//{baseName: "crushbone", wldName: "objects.wld"}, // OK
 	//{baseName: "crushbone", wldName: "lights.wld"},
 	//{baseName: "qeynos_chr"}, // Needs work
