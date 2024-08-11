@@ -7,7 +7,10 @@ require (
 	github.com/xackery/encdec v0.1.11
 )
 
-require github.com/go-test/deep v1.1.1
+require (
+	github.com/go-test/deep v1.1.1
+	github.com/malashin/dds v0.0.0-20190511100755-ab62708f5fe5
+)
 
 require github.com/kr/pretty v0.3.1 // indirect
 
