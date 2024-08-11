@@ -73,7 +73,7 @@ func (wld *Wld) WriteAscii(path string) error {
 	if err != nil {
 		return err
 	}
-	writeAsciiHeader(rootBuf)
+	wld.writeAsciiHeader(rootBuf)
 	err = wld.writeAsciiData(path, baseTags, rootBuf)
 	if err != nil {
 		return err
@@ -107,7 +107,7 @@ func (wld *Wld) WriteAscii(path string) error {
 			}
 
 			buf := &bytes.Buffer{}
-			writeAsciiHeader(buf)
+			wld.writeAsciiHeader(buf)
 			fmt.Fprintf(buf, "INCLUDE \"%s.MOD\"\n", strings.ToUpper(tag))
 
 			err = os.WriteFile(fmt.Sprintf("%s/%s/_root.wce", path, strings.ToLower(tag)), buf.Bytes(), os.ModePerm)
@@ -159,7 +159,7 @@ func (wld *Wld) writeAsciiData(path string, baseTags []string, rootBuf *os.File)
 	if err != nil {
 		return err
 	}
-	writeAsciiHeader(zoneBuf)
+	wld.writeAsciiHeader(zoneBuf)
 
 	modWriters[zoneName] = zoneBuf
 	for _, baseTag := range baseTags {
@@ -180,7 +180,7 @@ func (wld *Wld) writeAsciiData(path string, baseTags []string, rootBuf *os.File)
 				return err
 			}
 			defer wceBuf.Close()
-			writeAsciiHeader(wceBuf)
+			wld.writeAsciiHeader(wceBuf)
 			modWriters[baseTag+"_root"] = wceBuf
 
 			wceBuf.WriteString(fmt.Sprintf("INCLUDE \"%s.MOD\"\n", strings.ToUpper(baseTag)))
@@ -191,7 +191,7 @@ func (wld *Wld) writeAsciiData(path string, baseTags []string, rootBuf *os.File)
 				return err
 			}
 			defer modBuf.Close()
-			writeAsciiHeader(modBuf)
+			wld.writeAsciiHeader(modBuf)
 			modWriters[baseTag] = modBuf
 
 			aniBuf, err := os.Create(fmt.Sprintf("%s/%s/%s.ani", path, strings.ToLower(baseTag), strings.ToLower(baseTag)))
@@ -199,7 +199,7 @@ func (wld *Wld) writeAsciiData(path string, baseTags []string, rootBuf *os.File)
 				return err
 			}
 			defer aniBuf.Close()
-			writeAsciiHeader(aniBuf)
+			wld.writeAsciiHeader(aniBuf)
 			modWriters[baseTag+"_ani"] = aniBuf
 		}
 	}
@@ -1056,9 +1056,10 @@ func (wld *Wld) writeAsciiData(path string, baseTags []string, rootBuf *os.File)
 	return nil
 }
 
-func writeAsciiHeader(w io.Writer) {
+func (wld *Wld) writeAsciiHeader(w io.Writer) {
 	fmt.Fprintf(w, "// wcemu %s\n", AsciiVersion)
-	fmt.Fprintf(w, "// This file was created by quail v%s\n\n", common.Version)
+	fmt.Fprintf(w, "// This file was created by quail v%s\n", common.Version)
+	fmt.Fprintf(w, "// Original file: %s\n\n", wld.FileName)
 }
 
 func (wld *Wld) aniWriterTag(name string) string {
