@@ -238,6 +238,9 @@ func (wld *Wld) WriteRaw(w io.Writer) error {
 	dst := &raw.Wld{
 		IsNewWorld: false,
 	}
+	if wld.WorldDef != nil && wld.WorldDef.NewWorld == 1 {
+		dst.IsNewWorld = true
+	}
 	if dst.Fragments == nil {
 		dst.Fragments = []model.FragmentReadWriter{}
 	}
