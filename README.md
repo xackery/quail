@@ -1,4 +1,5 @@
-![quail](https://github.com/user-attachments/assets/c991fed5-aa78-4416-be81-a824f925eb9b) [![quail](quail.png)](https://github.com/xackery/quail/releases/latest) [![GoDoc](https://godoc.org/github.com/xackery/quail?status.svg)](https://godoc.org/github.com/xackery/quail) [![Go Report Card](https://goreportcard.com/badge/github.com/xackery/quail)](https://goreportcard.com/report/github.com/xackery/quail)
+![quail-logo](https://github.com/user-attachments/assets/5f816cc1-b7c0-412a-b885-e5e607e04f97)
+[![quail](quail.png)](https://github.com/xackery/quail/releases/latest) [![GoDoc](https://godoc.org/github.com/xackery/quail?status.svg)](https://godoc.org/github.com/xackery/quail) [![Go Report Card](https://goreportcard.com/badge/github.com/xackery/quail)](https://goreportcard.com/report/github.com/xackery/quail)
 
 
 Quail is a command line EverQuest archive manager.
