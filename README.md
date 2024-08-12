@@ -1,10 +1,13 @@
-# quail - Ever[Q]uest [U]niversal [A]rchive, [I]mport and [L]oader tool
+![quail](https://github.com/user-attachments/assets/c991fed5-aa78-4416-be81-a824f925eb9b) [![quail](quail.png)](https://github.com/xackery/quail/releases/latest) [![GoDoc](https://godoc.org/github.com/xackery/quail?status.svg)](https://godoc.org/github.com/xackery/quail) [![Go Report Card](https://goreportcard.com/badge/github.com/xackery/quail)](https://goreportcard.com/report/github.com/xackery/quail)
 
-[![GoDoc](https://godoc.org/github.com/xackery/quail?status.svg)](https://godoc.org/github.com/xackery/quail) [![Go Report Card](https://goreportcard.com/badge/github.com/xackery/quail)](https://goreportcard.com/report/github.com/xackery/quail) [![Platform Tests & Build](https://github.com/xackery/quail/actions/workflows/build_workflow.yml/badge.svg)](https://github.com/xackery/quail/actions/workflows/build_workflow.yml)
 
-[![quail](quail.png)](https://github.com/xackery/quail/releases/latest)
+Quail is a command line EverQuest archive manager.
 
-Quail is a command line EverQuest pfs manager. The two primary ways to use it is with the extract/compress commands to turn a pfs archive into a folder to inspect and manipulate (then reverse), or do import/export to blender via [quail-addon](https://github.com/xackery/quail-addon).
+You can use it to extract content from EQG, S3D, and other pfs-based files.
+
+You can also use it with [WCEmu](https://docs.eqemu.io/client/wcemu/) to modify content.
+
+For a more user-friendly approach, I suggest [quail-addon](https://github.com/xackery/quail-addon).
 
 You can [find the latest download of quail in releases](https://github.com/xackery/quail/releases/latest)
 
