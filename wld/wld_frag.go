@@ -2091,11 +2091,21 @@ func (e *ActorDef) ToRaw(wld *Wld, rawWld *raw.Wld) (int16, error) {
 				return -1, fmt.Errorf("lod sprite %s not found", lod.SpriteTag)
 			}
 			switch spriteDef := spriteVar.(type) {
-			case *DMSpriteDef2:
-
+			case *DMSpriteDef:
 				spriteRef, err = spriteDef.ToRaw(wld, rawWld)
 				if err != nil {
-					return -1, fmt.Errorf("sprite %s to raw: %w", lod.SpriteTag, err)
+					return -1, fmt.Errorf("dmspritedef %s to raw: %w", lod.SpriteTag, err)
+				}
+				sprite := &rawfrag.WldFragDMSprite{
+					DMSpriteRef: int32(spriteRef),
+				}
+
+				rawWld.Fragments = append(rawWld.Fragments, sprite)
+				spriteRef = int16(len(rawWld.Fragments))
+			case *DMSpriteDef2:
+				spriteRef, err = spriteDef.ToRaw(wld, rawWld)
+				if err != nil {
+					return -1, fmt.Errorf("dmspritedef2 %s to raw: %w", lod.SpriteTag, err)
 				}
 				sprite := &rawfrag.WldFragDMSprite{
 					DMSpriteRef: int32(spriteRef),
@@ -2106,7 +2116,7 @@ func (e *ActorDef) ToRaw(wld *Wld, rawWld *raw.Wld) (int16, error) {
 			case *Sprite3DDef:
 				spriteRef, err = spriteDef.ToRaw(wld, rawWld)
 				if err != nil {
-					return -1, fmt.Errorf("sprite %s to raw: %w", lod.SpriteTag, err)
+					return -1, fmt.Errorf("3dspritedef %s to raw: %w", lod.SpriteTag, err)
 				}
 				sprite := &rawfrag.WldFragSprite3D{
 					Flags:          lod.SpriteFlags,
@@ -2118,7 +2128,7 @@ func (e *ActorDef) ToRaw(wld *Wld, rawWld *raw.Wld) (int16, error) {
 			case *HierarchicalSpriteDef:
 				spriteRef, err = spriteDef.ToRaw(wld, rawWld)
 				if err != nil {
-					return -1, fmt.Errorf("sprite %s to raw: %w", lod.SpriteTag, err)
+					return -1, fmt.Errorf("hierchcicalspritedef %s to raw: %w", lod.SpriteTag, err)
 				}
 
 				sprite := &rawfrag.WldFragHierarchicalSprite{
@@ -2132,7 +2142,7 @@ func (e *ActorDef) ToRaw(wld *Wld, rawWld *raw.Wld) (int16, error) {
 			case *BlitSpriteDefinition:
 				spriteRef, err = spriteDef.ToRaw(wld, rawWld)
 				if err != nil {
-					return -1, fmt.Errorf("sprite %s to raw: %w", lod.SpriteTag, err)
+					return -1, fmt.Errorf("blitspritedef %s to raw: %w", lod.SpriteTag, err)
 				}
 
 				sprite := &rawfrag.WldFragBlitSprite{
@@ -2144,7 +2154,7 @@ func (e *ActorDef) ToRaw(wld *Wld, rawWld *raw.Wld) (int16, error) {
 			case *Sprite2DDef:
 				spriteRef, err = spriteDef.ToRaw(wld, rawWld)
 				if err != nil {
-					return -1, fmt.Errorf("sprite %s to raw: %w", lod.SpriteTag, err)
+					return -1, fmt.Errorf("2dspritedef %s to raw: %w", lod.SpriteTag, err)
 				}
 
 				sprite := &rawfrag.WldFragSprite2D{
@@ -2229,11 +2239,14 @@ func (e *ActorDef) FromRaw(wld *Wld, rawWld *raw.Wld, frag *rawfrag.WldFragActor
 					if len(rawWld.Fragments) < int(sprite.DMSpriteRef) {
 						return fmt.Errorf("dmsprite ref %d out of range", sprite.DMSpriteRef)
 					}
-					spriteDef, ok := rawWld.Fragments[sprite.DMSpriteRef].(*rawfrag.WldFragDmSpriteDef2)
-					if !ok {
-						return fmt.Errorf("dmsprite ref %d not found", sprite.DMSpriteRef)
+					switch spriteDef := rawWld.Fragments[sprite.DMSpriteRef].(type) {
+					case *rawfrag.WldFragDMSpriteDef:
+						spriteTag = raw.Name(spriteDef.NameRef)
+					case *rawfrag.WldFragDmSpriteDef2:
+						spriteTag = raw.Name(spriteDef.NameRef)
+					default:
+						return fmt.Errorf("unhandled dmsprite instance def fragment type %d (%s)", sprite.FragCode(), raw.FragName(sprite.FragCode()))
 					}
-					spriteTag = raw.Name(spriteDef.NameRef)
 				case *rawfrag.WldFragHierarchicalSprite:
 					if len(rawWld.Fragments) < int(sprite.HierarchicalSpriteRef) {
 						return fmt.Errorf("hierarchicalsprite def ref %d not found", sprite.HierarchicalSpriteRef)

@@ -1019,6 +1019,15 @@ func (wld *Wld) writeAsciiData(path string, baseTags []string, rootBuf *os.File)
 						}
 						defsWritten[sprite.Tag] = true
 					}
+				case *DMSpriteDef:
+					if !defsWritten[sprite.Tag] {
+						err = sprite.Write(w)
+						if err != nil {
+							return fmt.Errorf("sprite %s: %w", sprite.Tag, err)
+						}
+						defsWritten[sprite.Tag] = true
+					}
+
 				default:
 					return fmt.Errorf("actordef %s refs unknown sprite %s with type %T", actorDef.Tag, lod.SpriteTag, sprite)
 				}

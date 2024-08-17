@@ -283,6 +283,17 @@ func (wld *Wld) WriteRaw(w io.Writer) error {
 				}
 				_, err = dmSprite.ToRaw(wld, dst)
 				if err != nil {
+					return fmt.Errorf("dmspritedef2 %s: %w", dmSprite.Tag, err)
+				}
+			}
+
+			for _, dmSprite := range wld.DMSpriteDefs {
+				dmBaseTag := baseTagTrim(dmSprite.Tag)
+				if baseTag != dmBaseTag {
+					continue
+				}
+				_, err = dmSprite.ToRaw(wld, dst)
+				if err != nil {
 					return fmt.Errorf("dmspritedef %s: %w", dmSprite.Tag, err)
 				}
 			}
