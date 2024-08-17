@@ -85,6 +85,13 @@ func (wld *Wld) ByTag(tag string) WldDefinitioner {
 			}
 		}
 	}
+	if strings.HasSuffix(tag, "_SPB") {
+		for _, sprite := range wld.BlitSpriteDefinitions {
+			if sprite.Tag == tag {
+				return sprite
+			}
+		}
+	}
 	if strings.HasSuffix(tag, "_DMSPRITEDEF") {
 		for _, sprite := range wld.DMSpriteDef2s {
 			if sprite.Tag == tag {
