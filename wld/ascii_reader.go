@@ -6,27 +6,29 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
-	"unicode"
 )
+
+var regexLine = regexp.MustCompile(`"([^"]*)"|(\S+)`)
 
 type AsciiReadToken struct {
 	basePath       string
 	lineNumber     int
-	reader         io.Reader
+	buf            *bytes.Buffer
 	wld            *Wld
 	totalLineCount int // will be higher than lineNumber due to includes
 }
 
 // LoadAsciiFile returns a new AsciiReader that reads from r.
 func LoadAsciiFile(path string, wld *Wld) (*AsciiReadToken, error) {
-	r, err := caseInsensitiveOpen(path)
+	buf, err := caseInsensitiveOpen(path)
 	if err != nil {
 		return nil, err
 	}
 	a := &AsciiReadToken{
 		lineNumber: 0,
-		reader:     r,
+		buf:        buf,
 		wld:        wld,
 	}
 	a.basePath = filepath.Dir(strings.ToLower(path))
@@ -39,9 +41,6 @@ func LoadAsciiFile(path string, wld *Wld) (*AsciiReadToken, error) {
 }
 
 func (a *AsciiReadToken) Close() error {
-	if c, ok := a.reader.(io.Closer); ok {
-		return c.Close()
-	}
 	return nil
 }
 
@@ -56,30 +55,64 @@ func caseInsensitiveOpen(path string) (*bytes.Buffer, error) {
 	}
 
 	for _, entry := range entries {
-		if strings.EqualFold(entry.Name(), base) {
-			data, err := os.ReadFile(filepath.Join(strings.ToLower(dir), entry.Name()))
-			if err != nil {
-				return nil, err
-			}
-			return bytes.NewBuffer(data), nil
-			//			return os.Open(filepath.Join(strings.ToLower(dir), entry.Name()))
+		if !strings.EqualFold(entry.Name(), base) {
+			continue
 		}
+		data, err := os.ReadFile(filepath.Join(strings.ToLower(dir), entry.Name()))
+		if err != nil {
+			return nil, err
+		}
+		return bytes.NewBuffer(data), nil
+		//			return os.Open(filepath.Join(strings.ToLower(dir), entry.Name()))
 	}
 
 	return nil, fmt.Errorf("file %s not found", path)
 }
 
 // Read reads up to len(p) bytes into p. It returns the number of bytes read (0 <= n <= len(p)) and any error encountered.
-func (a *AsciiReadToken) Read(p []byte) (n int, err error) {
-	n, err = a.reader.Read(p)
-	if n > 0 {
-		for _, b := range p {
-			if b == '\n' {
-				a.lineNumber++
-			}
+func (a *AsciiReadToken) ReadLine() (string, error) {
+	line := ""
+	p := make([]byte, 1)
+	for {
+		_, err := a.buf.Read(p)
+		if err != nil {
+			return "", err
+		}
+		if p[0] != '\n' {
+			line += string(p)
+			continue
+		}
+		a.lineNumber++
+		if strings.HasPrefix(strings.TrimSpace(line), "//") {
+			line = ""
+			continue
+		}
+		if strings.TrimSpace(line) == "" {
+			line = ""
+			continue
+		}
+		return line, nil
+	}
+}
+
+func (a *AsciiReadToken) ReadSegmentedLine() ([]string, error) {
+	line, err := a.ReadLine()
+	if err != nil {
+		return nil, err
+	}
+	matches := regexLine.FindAllStringSubmatch(line, -1)
+	args := []string{}
+	for _, match := range matches {
+		if match[2] == "//" {
+			break
+		}
+		if match[1] != "" {
+			args = append(args, match[1])
+		} else {
+			args = append(args, match[2])
 		}
 	}
-	return
+	return args, nil
 }
 
 type PropOpt struct {
@@ -91,81 +124,36 @@ func (a *AsciiReadToken) ReadProperty(name string, minNumArgs int) ([]string, er
 	if name == "" {
 		return nil, fmt.Errorf("property name is empty")
 	}
-	property := ""
-	args := []string{}
-	isQuoted := false
-	for {
-		buf := make([]byte, 1)
-		_, err := a.Read(buf)
-		if err != nil {
-			return args, err
-		}
-		if buf[0] == '/' {
-			_, err = a.Read(buf)
-			if err != nil {
-				return args, fmt.Errorf("read comment: %w", err)
-			}
-			if buf[0] != '/' {
-				property += "/"
-				continue
-			}
-			err = a.readComment()
-			if err != nil {
-				return args, fmt.Errorf("read comment: %w", err)
-			}
-			buf[0] = '\n'
-		}
-
-		if buf[0] == '"' {
-			isQuoted = !isQuoted
-			continue
-		}
-
-		if buf[0] == ' ' && !isQuoted {
-			args = append(args, strings.TrimSpace(property))
-			property = ""
-			continue
-		}
-
-		if buf[0] == '\t' {
-			buf[0] = ' '
-		}
-		if buf[0] == '\n' {
-
-			if len(args) == 0 && len(strings.TrimSpace(property)) == 0 {
-				continue
-			}
-			args = append(args, strings.TrimSpace(property))
-			//fmt.Println(a.lineNumber, args)
-
-			value := args[len(args)-1]
-			if !strings.HasSuffix(name, "?") && value == "NULL" {
-				return args, fmt.Errorf("invalid property NULL for %s", name)
-			}
-			if len(args) == 0 {
-				return args, fmt.Errorf("property %s has no arguments", name)
-			}
-			if !strings.EqualFold(args[0], name) {
-				return args, fmt.Errorf("expected property '%s' got '%s'", name, args[0])
-			}
-			if minNumArgs > 0 && minNumArgs != len(args)-1 {
-				return args, fmt.Errorf("property %s needs at least %d arguments, got %d", name, minNumArgs, len(args)-1)
-			}
-
-			if minNumArgs == -1 && len(args) == 1 {
-				return args, fmt.Errorf("property %s needs at least 1 argument, got 0", name)
-			}
-
-			for i := 1; i < len(args); i++ {
-				args[i] = strings.ReplaceAll(args[i], "\"", "")
-			}
-			return args, nil
-		}
-		if len(property) > 1 && property[len(property)-1] == ' ' && buf[0] == ' ' {
-			continue
-		}
-		property += string(buf)
+	args, err := a.ReadSegmentedLine()
+	if err != nil {
+		return args, fmt.Errorf("read property %s: %w", name, err)
 	}
+	if len(args) == 0 {
+		return args, fmt.Errorf("property %s has no arguments", name)
+	}
+
+	value := args[len(args)-1]
+	if !strings.HasSuffix(name, "?") && value == "NULL" {
+		return args, fmt.Errorf("invalid property NULL for %s", name)
+	}
+	if len(args) == 0 {
+		return args, fmt.Errorf("property %s has no arguments", name)
+	}
+	if !strings.EqualFold(args[0], name) {
+		return args, fmt.Errorf("expected property '%s' got '%s'", name, args[0])
+	}
+	if minNumArgs > 0 && minNumArgs != len(args)-1 {
+		return args, fmt.Errorf("property %s needs %d arguments, got %d", name, minNumArgs, len(args)-1)
+	}
+
+	if minNumArgs == -1 && len(args) == 1 {
+		return args, fmt.Errorf("property %s needs at least 1 argument, got 0", name)
+	}
+
+	for i := 1; i < len(args); i++ {
+		args[i] = strings.ReplaceAll(args[i], "\"", "")
+	}
+	return args, nil
 }
 
 func (a *AsciiReadToken) TotalLineCountRead() int {
@@ -206,76 +194,27 @@ func (a *AsciiReadToken) readDefinitions() error {
 
 	definition := ""
 	for {
-		buf := make([]byte, 1)
-		_, err := a.Read(buf)
+		args, err := a.ReadSegmentedLine()
 		if err != nil {
 			if err == io.EOF {
 				break
 			}
 			return fmt.Errorf("read: %w", err)
 		}
-		if buf[0] == '\n' {
-			if definition != "" {
-				break
-			}
+		if len(args) == 0 {
 			continue
 		}
 
-		if buf[0] == '/' {
-			_, err = a.Read(buf)
-			if err != nil {
-				return fmt.Errorf("read comment: %w", err)
-			}
-			if buf[0] == '/' {
-				err = a.readComment()
-				if err != nil {
-					return fmt.Errorf("read comment: %w", err)
-				}
-				continue
-			}
-		}
-
-		// check if buf[0] is a letter
-		if !unicode.IsLetter(rune(buf[0])) && !unicode.IsNumber(rune(buf[0])) {
-			continue
-		}
-
-		definition += strings.ToUpper(string(buf))
+		definition = strings.ToUpper(string(args[0]))
 		if strings.HasPrefix(definition, "INCLUDE") {
-			err = a.readInclude()
+			err = a.readInclude(args)
 			if err != nil {
 				return fmt.Errorf("include: %w", err)
 			}
 			definition = ""
 			continue
 		}
-
-		if strings.HasSuffix(definition, "CPIWORLD") {
-			// read to newline
-			for {
-				_, err = a.Read(buf)
-				if err != nil {
-					return fmt.Errorf("read cpiworld: %w", err)
-				}
-				if buf[0] == '\n' {
-					break
-				}
-			}
-			definition = ""
-			continue
-		}
-		if strings.HasSuffix(definition, "ENDWORLD") {
-			// read to newline
-			for {
-				_, err = a.Read(buf)
-				if err != nil {
-					return fmt.Errorf("read endworld: %w", err)
-				}
-				if buf[0] == '\n' {
-					break
-				}
-			}
-			definition = ""
+		if strings.HasPrefix(definition, "//") {
 			continue
 		}
 
@@ -387,32 +326,12 @@ func (a *AsciiReadToken) readDefinitions() error {
 	return nil
 }
 
-func (a *AsciiReadToken) readInclude() error {
-	filename := ""
-	for {
-		buf := make([]byte, 1)
-		_, err := a.Read(buf)
-		if err != nil {
-			return err
-		}
-		if buf[0] == ' ' {
-			continue
-		}
-		if buf[0] == '\n' {
-			if filename == "" {
-				return fmt.Errorf("include: missing filename")
-			}
-			return fmt.Errorf("include: missing end quote")
-		}
-		if filename != "" && buf[0] == '"' {
-			break
-		}
-		if buf[0] == '"' {
-			continue
-		}
-		filename += string(buf)
+func (a *AsciiReadToken) readInclude(args []string) error {
+	if len(args) != 2 {
+		return fmt.Errorf("INCLUDE needs 1 argument")
 	}
-	path := a.basePath + "/" + filename
+
+	path := a.basePath + "/" + args[1]
 	ir, err := LoadAsciiFile(path, a.wld)
 	if err != nil {
 		return fmt.Errorf("new ascii reader: %w", err)
@@ -430,17 +349,4 @@ func (a *AsciiReadToken) readInclude() error {
 	}
 
 	return nil
-}
-
-func (a *AsciiReadToken) readComment() error {
-	for {
-		buf := make([]byte, 1)
-		_, err := a.Read(buf)
-		if err != nil {
-			return fmt.Errorf("read comment: %w", err)
-		}
-		if buf[0] == '\n' {
-			return nil
-		}
-	}
 }

@@ -6677,7 +6677,7 @@ func (e *ParticleCloudDef) Write(token *AsciiWriteToken) error {
 	fmt.Fprintf(w, "\tPARTICLETAG \"%s\"\n", e.ParticleTag)
 	fmt.Fprintf(w, "\tSETTINGONE %d\n", e.SettingOne)
 	fmt.Fprintf(w, "\tSETTINGTWO %d\n", e.SettingTwo)
-	fmt.Fprintf(w, "\tMOVEMENT \"%s\"\n", e.Movement) // SPHERE, PLANE, STREAM, NONE\n", e.Movement)
+	fmt.Fprintf(w, "\tMOVEMENT \"%s\" // SPHERE, PLANE, STREAM, NONE\n", e.Movement)
 	fmt.Fprintf(w, "\tHIGHOPACITY %d\n", e.HighOpacity)
 	fmt.Fprintf(w, "\tFOLLOWITEM %d\n", e.FollowItem)
 	fmt.Fprintf(w, "\tSIMULTANEOUSPARTICLES %d\n", e.SimultaneousParticles)
