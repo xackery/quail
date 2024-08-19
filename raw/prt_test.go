@@ -9,7 +9,6 @@ import (
 
 	"github.com/xackery/quail/common"
 	"github.com/xackery/quail/pfs"
-	"github.com/xackery/quail/tag"
 )
 
 func TestPrtRead(t *testing.T) {
@@ -68,7 +67,6 @@ func TestPrtRead(t *testing.T) {
 				err = prt.Read(bytes.NewReader(file.Data()))
 				if err != nil {
 					os.WriteFile(fmt.Sprintf("%s/%s", dirTest, file.Name()), file.Data(), 0644)
-					tag.Write(fmt.Sprintf("%s/%s.tags", dirTest, file.Name()))
 					t.Fatalf("failed to read %s: %s", tt.name, err.Error())
 				}
 
@@ -129,7 +127,6 @@ func TestPrtWrite(t *testing.T) {
 				err = prt.Read(bytes.NewReader(file.Data()))
 				if err != nil {
 					os.WriteFile(fmt.Sprintf("%s/%s", dirTest, file.Name()), file.Data(), 0644)
-					tag.Write(fmt.Sprintf("%s/%s.tags", dirTest, file.Name()))
 					t.Fatalf("failed to read %s: %s", tt.name, err.Error())
 				}
 

@@ -6,7 +6,6 @@ import (
 	"path/filepath"
 
 	"github.com/spf13/cobra"
-	"github.com/xackery/quail/log"
 	"github.com/xackery/quail/quail"
 )
 
@@ -28,7 +27,7 @@ Example: quail convert foo.quail foo.s3d - Takes foo.quail folder and creates a 
 func runConvert(cmd *cobra.Command, args []string) error {
 	err := runConvertE(cmd, args)
 	if err != nil {
-		log.Printf("Failed: %s", err.Error())
+		fmt.Printf("Failed: %s\n", err.Error())
 		os.Exit(1)
 	}
 	return nil
@@ -39,7 +38,6 @@ func runConvertE(cmd *cobra.Command, args []string) error {
 		fmt.Println("Usage: quail convert <src> <dst>")
 		os.Exit(1)
 	}
-	log.SetLogLevel(0)
 	srcPath := args[0]
 	dstPath := args[1]
 	fi, err := os.Stat(srcPath)

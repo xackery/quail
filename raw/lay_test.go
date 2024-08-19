@@ -9,7 +9,6 @@ import (
 
 	"github.com/xackery/quail/common"
 	"github.com/xackery/quail/pfs"
-	"github.com/xackery/quail/tag"
 )
 
 func TestLayRead(t *testing.T) {
@@ -70,7 +69,6 @@ func TestLayRead(t *testing.T) {
 					if err != nil {
 						t.Fatalf("failed to write %s: %s", tt.name, err.Error())
 					}
-					tag.Write(fmt.Sprintf("%s/%s.tags", dirTest, file.Name()))
 					t.Fatalf("failed to read %s: %s", tt.name, err.Error())
 				}
 			}
@@ -136,7 +134,6 @@ func TestLayWrite(t *testing.T) {
 					if err != nil {
 						t.Fatalf("failed to write %s: %s", tt.name, err.Error())
 					}
-					tag.Write(fmt.Sprintf("%s/%s.tags", dirTest, file.Name()))
 					t.Fatalf("failed to read %s: %s", tt.name, err.Error())
 				}
 

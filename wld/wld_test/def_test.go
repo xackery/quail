@@ -3,6 +3,7 @@ package wld_test
 import (
 	"fmt"
 	"testing"
+	"time"
 )
 
 var tests = []struct {
@@ -12,7 +13,7 @@ var tests = []struct {
 	//{baseName: "frontiermtns_chr"},
 	//{baseName: "crushbone"},
 	//{baseName: "twilight"},
-	{baseName: "global6_chr"},
+	//{baseName: "global6_chr"},
 	//{baseName: "globalelf_chr"},
 	//{baseName: "arena"}, // OK
 	//{baseName: "abysmal"},
@@ -23,7 +24,7 @@ var tests = []struct {
 	//{baseName: "crushbone", wldName: "objects.wld"}, // OK
 	//{baseName: "crushbone", wldName: "lights.wld"},
 	//{baseName: "qeynos_chr"}, // Needs work
-	//{baseName: "crushbone_chr"}, // OK
+	{baseName: "crushbone_chr"},
 	//{baseName: "freporte_chr"},
 	//{baseName: "chequip"},
 	//{baseName: "gequip"}, // TODO: fix numeric prefixed tags
@@ -74,4 +75,22 @@ func TestStepAll(t *testing.T) {
 
 func TestBit(t *testing.T) {
 	fmt.Printf("0x%x\n", 1<<15)
+}
+
+func TestPastGoodTests(t *testing.T) {
+
+	start := time.Now()
+
+	tests = []struct {
+		baseName string
+		wldName  string
+	}{
+		{baseName: "crushbone"},
+		{baseName: "arena"},
+		{baseName: "neriakc"},
+	}
+
+	TestStep4(t)
+
+	fmt.Printf("Took %0.2f seconds for %d total tests\n", time.Since(start).Seconds(), len(tests))
 }

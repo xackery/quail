@@ -8,7 +8,6 @@ import (
 	"sync"
 
 	"github.com/xackery/encdec"
-	"github.com/xackery/quail/log"
 )
 
 var (
@@ -105,9 +104,6 @@ func Add(from, to int64, color, caption string) {
 	if flag.Lookup("test.v") == nil {
 		return
 	}
-	if log.LogLevel() != 0 {
-		return
-	}
 	mu.Lock()
 	defer mu.Unlock()
 	tags = append(tags, tag{
@@ -129,9 +125,6 @@ func Addf(from, to int64, color, format string, args ...interface{}) {
 // Add creates a new tag with random color
 func AddRand(from, to int64, caption string) {
 	if flag.Lookup("test.v") == nil {
-		return
-	}
-	if log.LogLevel() != 0 {
 		return
 	}
 	mu.Lock()

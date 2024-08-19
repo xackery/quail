@@ -10,7 +10,6 @@ import (
 
 	"github.com/go-test/deep"
 	"github.com/xackery/encdec"
-	"github.com/xackery/quail/log"
 	"github.com/xackery/quail/pfs"
 	"github.com/xackery/quail/raw/rawfrag"
 )
@@ -66,7 +65,10 @@ func TestRawFragReadWrite(t *testing.T) {
 					t.Fatalf("frag %d 0x%x (%s) write: %s", i+1, srcFragRW.FragCode(), rawfrag.FragName(int(srcFragRW.FragCode())), err.Error())
 				}
 
-				fragBuf.Seek(0, io.SeekStart)
+				_, err = fragBuf.Seek(0, io.SeekStart)
+				if err != nil {
+					t.Fatalf("frag %d 0x%x (%s) seek: %s", i+1, srcFragRW.FragCode(), rawfrag.FragName(int(srcFragRW.FragCode())), err.Error())
+				}
 				dstFragRW := rawfrag.NewFrag(fragBuf)
 				err = dstFragRW.Read(bytes.NewReader(buf.Bytes()), isNewWorld)
 				if err != nil {
@@ -79,7 +81,7 @@ func TestRawFragReadWrite(t *testing.T) {
 				}
 
 			}
-			log.Debugf("Processed %d fragments for %s", len(fragments), tt.baseName)
+			fmt.Printf("Processed %d fragments for %s\n", len(fragments), tt.baseName)
 		})
 	}
 }

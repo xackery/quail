@@ -138,13 +138,13 @@ func (e *Pfs) Write(w io.WriteSeeker) error {
 	if err != nil {
 		return fmt.Errorf("fileOffset: %w", err)
 	}
-	pos += 4
+	//pos += 4
 
 	err = binary.Write(w, binary.LittleEndian, uint32(len(fileBuffer.Bytes())))
 	if err != nil {
 		return fmt.Errorf("fileBuffer count: %w", err)
 	}
-	pos += int64(len(fileBuffer.Bytes()))
+	//pos += int64(len(fileBuffer.Bytes()))
 
 	err = binary.Write(w, binary.LittleEndian, [5]byte{'S', 'T', 'E', 'V', 'E'})
 	if err != nil {

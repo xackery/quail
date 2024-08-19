@@ -10,7 +10,6 @@ import (
 
 	"github.com/xackery/quail/common"
 	"github.com/xackery/quail/pfs"
-	"github.com/xackery/quail/tag"
 	"gopkg.in/yaml.v3"
 )
 
@@ -152,7 +151,6 @@ func TestWldRewrite(t *testing.T) {
 				t.Fatalf("failed to read %s: %s", tt.name, err.Error())
 			}
 
-			err = tag.Write(fmt.Sprintf("%s/%s.src.wld.tags", dirTest, tt.name))
 			if err != nil {
 				t.Fatalf("failed to write tag %s: %s", tt.name, err.Error())
 			}
@@ -193,7 +191,6 @@ func TestWldRewrite(t *testing.T) {
 				t.Fatalf("failed to write %s: %s", tt.name, err.Error())
 			}
 
-			err = tag.Write(fmt.Sprintf("%s/%s.dst.wld.tags", dirTest, tt.name))
 			if err != nil {
 				t.Fatalf("failed to write tag %s: %s", tt.name, err.Error())
 			}

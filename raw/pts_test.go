@@ -9,7 +9,6 @@ import (
 
 	"github.com/xackery/quail/common"
 	"github.com/xackery/quail/pfs"
-	"github.com/xackery/quail/tag"
 )
 
 func TestPtsRead(t *testing.T) {
@@ -54,7 +53,6 @@ func TestPtsRead(t *testing.T) {
 				err = pts.Read(bytes.NewReader(file.Data()))
 				if err != nil {
 					os.WriteFile(fmt.Sprintf("%s/%s", dirTest, file.Name()), file.Data(), 0644)
-					tag.Write(fmt.Sprintf("%s/%s.tags", dirTest, file.Name()))
 					t.Fatalf("failed to read %s: %s", tt.name, err.Error())
 				}
 
@@ -103,7 +101,6 @@ func TestPtsWrite(t *testing.T) {
 				err = pts.Read(bytes.NewReader(file.Data()))
 				if tt.isDump {
 					os.WriteFile(fmt.Sprintf("%s/%s.src.pts", dirTest, file.Name()), file.Data(), 0644)
-					tag.Write(fmt.Sprintf("%s/%s.src.pts.tags", dirTest, file.Name()))
 					fmt.Printf("dumped to %s\n", fmt.Sprintf("%s/%s.src.pts", dirTest, file.Name()))
 				}
 				if err != nil {
@@ -114,7 +111,6 @@ func TestPtsWrite(t *testing.T) {
 				err = pts.Write(buf)
 				if tt.isDump {
 					os.WriteFile(fmt.Sprintf("%s/%s.dst.pts", dirTest, file.Name()), buf.Bytes(), 0644)
-					tag.Write(fmt.Sprintf("%s/%s.dst.pts.tags", dirTest, file.Name()))
 					fmt.Printf("dumped to %s\n", fmt.Sprintf("%s/%s.dst.pts", dirTest, file.Name()))
 				}
 				if err != nil {

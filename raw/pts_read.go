@@ -7,7 +7,6 @@ import (
 
 	"github.com/xackery/encdec"
 	"github.com/xackery/quail/model"
-	"github.com/xackery/quail/tag"
 )
 
 // Pts is a particle point
@@ -42,14 +41,11 @@ func (pts *Pts) Read(r io.ReadSeeker) error {
 		return fmt.Errorf("invalid header %s, wanted EQPT", header)
 	}
 
-	tag.New()
-
 	particleCount := dec.Uint32()
 	pts.Version = dec.Uint32()
 	if pts.Version != 1 {
 		return fmt.Errorf("invalid version %d, wanted 1", pts.Version)
 	}
-	tag.Add(0, dec.Pos(), "red", "header")
 
 	for i := 0; i < int(particleCount); i++ {
 		entry := &PtsEntry{}
@@ -70,14 +66,12 @@ func (pts *Pts) Read(r io.ReadSeeker) error {
 		entry.Scale.Z = dec.Float32()
 
 		pts.Entries = append(pts.Entries, entry)
-		tag.AddRand(tag.LastPos(), dec.Pos(), fmt.Sprintf("%d|%s|%s", i, entry.Name, entry.BoneName))
 	}
 
 	if dec.Error() != nil {
 		return fmt.Errorf("read: %w", dec.Error())
 	}
 
-	//log.Debugf("%s (pts) readd %d entries", pts.Header.Name, len(pts.Entries))
 	return nil
 }
 

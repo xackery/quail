@@ -10,7 +10,6 @@ import (
 
 	"github.com/xackery/quail/common"
 	"github.com/xackery/quail/pfs"
-	"github.com/xackery/quail/tag"
 )
 
 func TestZonRead(t *testing.T) {
@@ -58,7 +57,6 @@ func TestZonRead(t *testing.T) {
 
 				err = zon.Read(bytes.NewReader(file.Data()))
 				os.WriteFile(fmt.Sprintf("%s/%s", dirTest, file.Name()), file.Data(), 0644)
-				tag.Write(fmt.Sprintf("%s/%s.tags", dirTest, file.Name()))
 				if err != nil {
 					t.Fatalf("failed to read %s: %s", tt.name, err.Error())
 				}
@@ -130,7 +128,6 @@ func TestZonWrite(t *testing.T) {
 			zon := &Zon{}
 			err = zon.Read(bytes.NewReader(data))
 			os.WriteFile(fmt.Sprintf("%s/%s", dirTest, fileName), data, 0644)
-			tag.Write(fmt.Sprintf("%s/%s.tags", dirTest, fileName))
 			if err != nil {
 				t.Fatalf("failed to read %s: %s", tt.name, err.Error())
 			}
@@ -221,7 +218,6 @@ func TestZonWriteV4(t *testing.T) {
 			zon := &Zon{}
 			err = zon.ReadV4(bytes.NewReader(data))
 			os.WriteFile(fmt.Sprintf("%s/%s", dirTest, tt.name), data, 0644)
-			tag.Write(fmt.Sprintf("%s/%s.tags", dirTest, tt.name))
 			if err != nil {
 				t.Fatalf("failed to read %s: %s", tt.name, err.Error())
 			}

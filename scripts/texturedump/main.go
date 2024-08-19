@@ -6,7 +6,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/xackery/quail/log"
 	"github.com/xackery/quail/quail"
 )
 
@@ -29,7 +28,6 @@ func run() error {
 	}
 
 	fmt.Println("path:", path)
-	log.SetLogLevel(1)
 
 	outDir := filepath.Join(path, "textures")
 	err = os.MkdirAll(outDir, 0755)

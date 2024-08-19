@@ -6,7 +6,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/xackery/quail/log"
 	"github.com/xackery/quail/pfs"
 )
 
@@ -25,8 +24,6 @@ func run() error {
 	}
 	path := os.Args[1]
 	fmt.Println("path:", path)
-
-	log.SetLogLevel(1)
 
 	var prefixAnims = make(map[string]bool)
 	var suffixAnims = make(map[string]bool)
@@ -65,7 +62,10 @@ func run() error {
 			switch fext {
 			case ".ani":
 				animName := name[0 : len(name)-4]
-				aw.WriteString(fmt.Sprintf("%s|%s\n", pfsName, animName))
+				_, err = aw.WriteString(fmt.Sprintf("%s|%s\n", pfsName, animName))
+				if err != nil {
+					return fmt.Errorf("write all.txt: %w", err)
+				}
 				if strings.Contains(animName, "_") {
 					records := strings.Split(animName, "_")
 					prefixAnims[records[0]] = true

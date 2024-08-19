@@ -21,7 +21,6 @@ import (
 	"path/filepath"
 
 	"github.com/spf13/cobra"
-	"github.com/xackery/quail/log"
 	"github.com/xackery/quail/quail"
 )
 
@@ -40,7 +39,7 @@ var wadCmd = &cobra.Command{
 func runWad(cmd *cobra.Command, args []string) error {
 	err := runWadE(cmd, args)
 	if err != nil {
-		log.Printf("Failed: %s", err.Error())
+		fmt.Printf("Failed: %s\n", err.Error())
 		os.Exit(1)
 	}
 	return nil
@@ -51,7 +50,6 @@ func runWadE(cmd *cobra.Command, args []string) error {
 		fmt.Println("Usage: quail wad <src> <dst>")
 		os.Exit(1)
 	}
-	log.SetLogLevel(0)
 	srcPath := args[0]
 	dstPath := args[1]
 	fi, err := os.Stat(srcPath)

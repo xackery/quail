@@ -6,7 +6,6 @@ import (
 	"io"
 
 	"github.com/xackery/encdec"
-	"github.com/xackery/quail/tag"
 )
 
 // Prt is a Particle Render
@@ -48,8 +47,6 @@ func (prt *Prt) Read(r io.ReadSeeker) error {
 		return fmt.Errorf("invalid header %s, wanted EQGS", header)
 	}
 
-	tag.New()
-
 	particleCount := dec.Uint32()
 	prt.Version = dec.Uint32()
 	if prt.Version < 4 {
@@ -84,7 +81,7 @@ func (prt *Prt) Read(r io.ReadSeeker) error {
 		return fmt.Errorf("read: %w", dec.Error())
 	}
 
-	//log.Debugf("%s (prt) readd %d entries", render.Header.Name, len(render.Entries))
+	//fmt.Printf("%s (prt) readd %d entries\n", render.Header.Name, len(render.Entries))
 	return nil
 }
 

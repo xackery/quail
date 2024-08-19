@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
-	"github.com/xackery/quail/log"
 	"github.com/xackery/quail/pfs"
 	"github.com/xackery/quail/raw"
 	"gopkg.in/yaml.v3"
@@ -31,7 +30,7 @@ var inspectCmd = &cobra.Command{
 func runInspect(cmd *cobra.Command, args []string) {
 	err := runInspectE(cmd, args)
 	if err != nil {
-		log.Printf("Failed: %s", err.Error())
+		fmt.Printf("Failed: %s\n", err.Error())
 		os.Exit(1)
 	}
 }
@@ -86,7 +85,7 @@ func runInspectE(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("yaml encode: %w", err)
 	}
 
-	log.Infoln(buf.String())
+	fmt.Printf(buf.String() + "\n")
 
 	//reflectTraversal(inspected, 0, -1)
 	return nil

@@ -6,7 +6,6 @@ import (
 	"io"
 
 	"github.com/xackery/encdec"
-	"github.com/xackery/quail/tag"
 )
 
 // WldFragSprite3DDef is Sprite3DDef in libeq, Camera in openzone, 3DSPRITEDEF in wld, Camera in lantern
@@ -130,11 +129,9 @@ func (e *WldFragSprite3DDef) Read(r io.ReadSeeker, isNewWorld bool) error {
 	if e.Flags&0x02 == 0x02 {
 		e.BoundingRadius = dec.Float32()
 	}
-	tag.AddRand(tag.LastPos(), dec.Pos(), "header")
 	for i := 0; i < int(vertexCount); i++ {
 		e.Vertices = append(e.Vertices, [3]float32{dec.Float32(), dec.Float32(), dec.Float32()})
 	}
-	tag.AddRandf(tag.LastPos(), dec.Pos(), "verts=%d", vertexCount)
 	for i := 0; i < int(bspNodeCount); i++ {
 		node := WldFragThreeDSpriteBspNode{}
 		vertexIndexCount := dec.Uint32()
@@ -177,7 +174,6 @@ func (e *WldFragSprite3DDef) Read(r io.ReadSeeker, isNewWorld bool) error {
 			}
 		}
 		e.BspNodes = append(e.BspNodes, node)
-		tag.AddRandf(tag.LastPos(), dec.Pos(), "%d bspNode", i)
 	}
 	err := dec.Error()
 	if err != nil {

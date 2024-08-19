@@ -9,7 +9,6 @@ import (
 
 	"github.com/go-test/deep"
 	"github.com/xackery/quail/common"
-	"github.com/xackery/quail/log"
 	"github.com/xackery/quail/pfs"
 	"github.com/xackery/quail/raw"
 	"github.com/xackery/quail/wld"
@@ -31,6 +30,10 @@ func TestWceReadWrite(t *testing.T) {
 			if os.Getenv("TEST_ARG") != "" {
 				tt.baseName = os.Getenv("TEST_ARG")
 			}
+
+			totalStart := time.Now()
+
+			start := time.Now()
 
 			baseName := tt.baseName
 			// copy original
@@ -62,7 +65,8 @@ func TestWceReadWrite(t *testing.T) {
 			if err != nil {
 				t.Fatalf("failed to write wld %s: %s", baseName, err.Error())
 			}
-			fmt.Println("wrote", fmt.Sprintf("%s/%s.src.wld", dirTest, baseName))
+			fmt.Println("Wrote", fmt.Sprintf("%s/%s.src.wld in %0.2f seconds", dirTest, baseName, time.Since(start).Seconds()))
+			start = time.Now()
 
 			rawWldSrc := &raw.Wld{}
 			err = rawWldSrc.Read(bytes.NewReader(data))
@@ -76,7 +80,7 @@ func TestWceReadWrite(t *testing.T) {
 				t.Fatalf("failed to convert %s: %s", baseName, err.Error())
 			}
 
-			fmt.Println("read", fmt.Sprintf("%s/%s.src.wld", dirTest, baseName))
+			fmt.Println("Read", fmt.Sprintf("%s/%s.src.wld", dirTest, baseName))
 
 			wldSrc.FileName = baseName + ".wld"
 
@@ -85,9 +89,9 @@ func TestWceReadWrite(t *testing.T) {
 				t.Fatalf("failed to write %s: %s", baseName, err.Error())
 			}
 
-			fmt.Println("wrote", fmt.Sprintf("%s/%s/_root.wce", dirTest, baseName))
+			fmt.Println("Wrote", fmt.Sprintf("%s/%s/_root.wce in %0.2f seconds", dirTest, baseName, time.Since(start).Seconds()))
 
-			start := time.Now()
+			start = time.Now()
 			wldDst := &wld.Wld{
 				FileName: baseName + ".wld",
 			}
@@ -96,8 +100,8 @@ func TestWceReadWrite(t *testing.T) {
 				t.Fatalf("failed to read %s: %s", baseName, err.Error())
 			}
 
-			fmt.Println("read", fmt.Sprintf("%s/%s/_root.wce", dirTest, baseName))
-			fmt.Printf("read wce in %0.2f seconds\n", time.Since(start).Seconds())
+			fmt.Println("Read", fmt.Sprintf("%s/%s/_root.wce in %0.2f seconds", dirTest, baseName, time.Since(start).Seconds()))
+			start = time.Now()
 
 			// write back out
 
@@ -113,7 +117,7 @@ func TestWceReadWrite(t *testing.T) {
 				t.Fatalf("failed to write wld %s: %s", baseName, err.Error())
 			}
 
-			fmt.Println("wrote", fmt.Sprintf("%s/%s.dst.wld", dirTest, baseName))
+			fmt.Println("Wrote", fmt.Sprintf("%s/%s.dst.wld in %0.2f seconds", dirTest, baseName, time.Since(start).Seconds()))
 
 			rawWldDst := &raw.Wld{}
 
@@ -166,7 +170,7 @@ func TestWceReadWrite(t *testing.T) {
 					t.Fatalf("%s byteCompare frag %d %s: %s", raw.FragName(srcFrag.FragCode()), i, tt.baseName, err)
 				}
 			}
-			log.Debugf("Processed %d fragments for %s", len(rawWldSrc.Fragments), tt.baseName)
+			fmt.Printf("Processed %d fragments for %s in %0.2f seconds\n", len(rawWldSrc.Fragments), tt.baseName, time.Since(totalStart).Seconds())
 		})
 	}
 }

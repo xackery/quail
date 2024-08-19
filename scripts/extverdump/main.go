@@ -6,7 +6,6 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/xackery/quail/log"
 	"github.com/xackery/quail/quail"
 
 	_ "net/http/pprof"
@@ -27,8 +26,6 @@ func run() error {
 	}
 	path := os.Args[1]
 	fmt.Println("path:", path)
-
-	log.SetLogLevel(1)
 
 	go func() {
 		fmt.Println(http.ListenAndServe("localhost:6060", nil))

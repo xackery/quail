@@ -9,7 +9,6 @@ import (
 	"github.com/xackery/encdec"
 	"github.com/xackery/quail/model"
 	"github.com/xackery/quail/raw/rawfrag"
-	"github.com/xackery/quail/tag"
 )
 
 // Write writes wld.Fragments to a .wld writer. Use quail.WldMarshal to convert a Wld to wld.Fragments
@@ -20,14 +19,12 @@ func (wld *Wld) Write(w io.Writer) error {
 	}
 
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
-	tag.NewWithCoder(enc)
 	enc.Bytes([]byte{0x02, 0x3D, 0x50, 0x54}) // header
 	if !wld.IsNewWorld {
 		enc.Uint32(0x00015500)
 	} else {
 		enc.Uint32(0x1000C800)
 	}
-	tag.Mark("red", "header")
 
 	if len(wld.Fragments) == 0 {
 		return fmt.Errorf("no fragments found")
@@ -39,7 +36,6 @@ func (wld *Wld) Write(w io.Writer) error {
 	}
 
 	enc.Uint32(uint32(len(wld.Fragments) - 1))
-	tag.Mark("blue", "fragcount")
 
 	maxFragSize := 0
 	totalRegionCount := 0
@@ -79,10 +75,8 @@ func (wld *Wld) Write(w io.Writer) error {
 	}
 
 	enc.Uint32(uint32(totalRegionCount)) //aka bspRegionCount
-	tag.Mark("green", "totalRegionCount")
 
 	enc.Uint32(uint32(maxFragSize))
-	tag.Mark("lime", "max_object_bytes")
 
 	nameData := NameData()
 
@@ -92,18 +86,14 @@ func (wld *Wld) Write(w io.Writer) error {
 	}
 
 	enc.Uint32(uint32(len(nameData))) //hashSize
-	tag.Mark("green", "hashsize")
 
 	if len(names) < 1 {
 		return fmt.Errorf("no names found")
 	}
 	enc.Uint32(uint32(len(names) - 1)) // there's a 0x00 string at start but it's not counted
-	tag.Mark("green", "string count")
 
 	enc.Bytes(nameData)
-	tag.Mark("red", "namehash")
 	enc.Bytes(totalFragBuf.Bytes())
-	tag.Mark("blue", "fragments")
 	err = enc.Error()
 	if err != nil {
 		return fmt.Errorf("write: %w", err)

@@ -10,9 +10,7 @@ import (
 
 	"github.com/xackery/encdec"
 	"github.com/xackery/quail/common"
-	"github.com/xackery/quail/log"
 	"github.com/xackery/quail/pfs"
-	"github.com/xackery/quail/tag"
 )
 
 func TestFragment(t *testing.T) {
@@ -158,11 +156,13 @@ func TestFragment(t *testing.T) {
 
 				if tt.isDump {
 					os.WriteFile(fmt.Sprintf("%s/%s.src.hex", dirTest, tt.file), srcData, 0644)
-					tag.Write(fmt.Sprintf("%s/%s.src.hex.tags", dirTest, tt.file))
 				}
 
 				buf := common.NewByteSeekerTest()
-				buf.Write(srcData[:4])
+				_, err = buf.Write(srcData[:4])
+				if err != nil {
+					t.Fatalf("frag %d 0x%x (%s) write: %s", i, reader.FragCode(), FragName(int(reader.FragCode())), err.Error())
+				}
 
 				err = reader.Write(buf, false)
 				if err != nil {
@@ -173,7 +173,6 @@ func TestFragment(t *testing.T) {
 
 				if tt.isDump {
 					os.WriteFile(fmt.Sprintf("%s/%s.dst.hex", dirTest, tt.file), dstData, 0644)
-					tag.Write(fmt.Sprintf("%s/%s.dst.hex.tags", dirTest, tt.file))
 				}
 
 				err := common.ByteCompareTest(srcData, dstData)
@@ -182,10 +181,10 @@ func TestFragment(t *testing.T) {
 				}
 			}
 			if tt.fragIndex != 0 {
-				log.Debugf("Processed 1 fragment @ %d", tt.fragIndex)
+				fmt.Printf("Processed 1 fragment @ %d\n", tt.fragIndex)
 				return
 			}
-			log.Debugf("Processed %d fragments", len(fragments))
+			fmt.Printf("Processed %d fragments\n", len(fragments))
 		})
 	}
 }

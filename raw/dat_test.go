@@ -8,7 +8,6 @@ import (
 
 	"github.com/xackery/quail/common"
 	"github.com/xackery/quail/pfs"
-	"github.com/xackery/quail/tag"
 )
 
 func TestDatRead(t *testing.T) {
@@ -45,7 +44,6 @@ func TestDatRead(t *testing.T) {
 			}
 			err = dat.Read(bytes.NewReader(data))
 			os.WriteFile(fmt.Sprintf("%s/%s", dirTest, tt.name), data, 0644)
-			tag.Write(fmt.Sprintf("%s/%s.tags", dirTest, tt.name))
 			if err != nil {
 				t.Fatalf("failed to read %s: %s", tt.name, err.Error())
 			}
@@ -316,7 +314,6 @@ func TestDatWrite(t *testing.T) {
 			err = dat.Read(bytes.NewReader(data))
 			if tt.isDump {
 				os.WriteFile(fmt.Sprintf("%s/%s.src.dat", dirTest, tt.name), data, 0644)
-				tag.Write(fmt.Sprintf("%s/%s.src.dat.tags", dirTest, tt.name))
 			}
 			if err != nil {
 				t.Fatalf("failed to read %s: %s", tt.name, err.Error())
@@ -327,7 +324,6 @@ func TestDatWrite(t *testing.T) {
 			err = dat.Write(buf)
 			if tt.isDump {
 				os.WriteFile(fmt.Sprintf("%s/%s.dst.dat", dirTest, tt.name), buf.Bytes(), 0644)
-				tag.Write(fmt.Sprintf("%s/%s.dst.dat.tags", dirTest, tt.name))
 			}
 			if err != nil {
 				t.Fatalf("failed to encode %s: %s", tt.name, err.Error())

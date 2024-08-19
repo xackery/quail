@@ -7,7 +7,6 @@ import (
 
 	"github.com/xackery/encdec"
 	"github.com/xackery/quail/model"
-	"github.com/xackery/quail/tag"
 )
 
 type Ani struct {
@@ -42,7 +41,6 @@ func (ani *Ani) Read(r io.ReadSeeker) error {
 	if header != "EQGA" {
 		return fmt.Errorf("invalid header %s, wanted EQGA", header)
 	}
-	tag.New()
 
 	ani.Version = dec.Uint32()
 	nameLength := int(dec.Uint32())
@@ -55,10 +53,8 @@ func (ani *Ani) Read(r io.ReadSeeker) error {
 			ani.IsStrict = true
 		}
 	}
-	tag.Add(0, dec.Pos(), "red", "header")
 
 	nameData := dec.Bytes(int(nameLength))
-	tag.Add(tag.LastPos(), dec.Pos(), "green", "names")
 
 	names := make(map[int32]string)
 	chunk := []byte{}

@@ -3,6 +3,7 @@ package wld
 import (
 	"fmt"
 	"io"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -284,7 +285,46 @@ func (wld *Wld) WriteRaw(w io.Writer) error {
 
 		//sort.Strings(baseTags)
 
+		blits := []string{}
+		for _, blit := range wld.BlitSpriteDefinitions {
+			isUnique := true
+			for _, bstr := range blits {
+				if bstr == blit.Tag {
+					isUnique = false
+					break
+				}
+			}
+			if !isUnique {
+				continue
+			}
+			blits = append(blits, blit.Tag)
+		}
+		sort.Strings(blits)
+
+		for _, blit := range blits {
+			for _, blitSprite := range wld.BlitSpriteDefinitions {
+				if blit != blitSprite.Tag {
+					continue
+				}
+				_, err = blitSprite.ToRaw(wld, dst)
+				if err != nil {
+					return fmt.Errorf("blitsprite %s: %w", blitSprite.Tag, err)
+				}
+			}
+		}
+
 		for _, baseTag := range baseTags {
+
+			for _, hiSprite := range wld.HierarchicalSpriteDefs {
+				hiBaseTag := baseTagTrim(hiSprite.Tag)
+				if baseTag != hiBaseTag {
+					continue
+				}
+				_, err = hiSprite.ToRaw(wld, dst)
+				if err != nil {
+					return fmt.Errorf("hierarchicalsprite %s: %w", hiSprite.Tag, err)
+				}
+			}
 
 			for _, dmSprite := range wld.DMSpriteDef2s {
 				dmBaseTag := baseTagTrim(dmSprite.Tag)
@@ -305,17 +345,6 @@ func (wld *Wld) WriteRaw(w io.Writer) error {
 				_, err = dmSprite.ToRaw(wld, dst)
 				if err != nil {
 					return fmt.Errorf("dmspritedef %s: %w", dmSprite.Tag, err)
-				}
-			}
-
-			for _, hiSprite := range wld.HierarchicalSpriteDefs {
-				hiBaseTag := baseTagTrim(hiSprite.Tag)
-				if baseTag != hiBaseTag {
-					continue
-				}
-				_, err = hiSprite.ToRaw(wld, dst)
-				if err != nil {
-					return fmt.Errorf("hierarchicalsprite %s: %w", hiSprite.Tag, err)
 				}
 			}
 
@@ -452,19 +481,6 @@ func (wld *Wld) WriteRaw(w io.Writer) error {
 	return dst.Write(w)
 }
 
-var animationPrefixesMap = map[string]struct{}{
-	"C01": {}, "C02": {}, "C03": {}, "C04": {}, "C05": {}, "C06": {}, "C07": {}, "C08": {}, "C09": {}, "C10": {}, "C11": {},
-	"D01": {}, "D02": {}, "D03": {}, "D04": {}, "D05": {},
-	"L01": {}, "L02": {}, "L03": {}, "L04": {}, "L05": {}, "L06": {}, "L07": {}, "L08": {}, "L09": {},
-	"O01": {},
-	"S01": {}, "S02": {}, "S03": {}, "S04": {}, "S05": {}, "S06": {}, "S07": {}, "S08": {}, "S09": {}, "S10": {},
-	"S11": {}, "S12": {}, "S13": {}, "S14": {}, "S15": {}, "S16": {}, "S17": {}, "S18": {}, "S19": {}, "S20": {},
-	"S21": {}, "S22": {}, "S23": {}, "S24": {}, "S25": {}, "S26": {}, "S27": {}, "S28": {},
-	"P01": {}, "P02": {}, "P03": {}, "P04": {}, "P05": {}, "P06": {}, "P07": {}, "P08": {}, "P09": {},
-	"O02": {}, "O03": {},
-	"T01": {}, "T02": {}, "T03": {}, "T04": {}, "T05": {}, "T06": {}, "T07": {}, "T08": {}, "T09": {},
-}
-
 func isAnimationPrefix(name string) bool {
 	if len(name) < 3 {
 		return false
@@ -532,5 +548,11 @@ func baseTagTrim(tag string) string {
 		tag = tag[:len(tag)-3]
 	}
 
+	if len(tag) == 7 {
+		tag = strings.TrimSuffix(tag, "MESH")
+	}
+	if len(tag) == 6 {
+		tag = strings.TrimSuffix(tag, "BOD")
+	}
 	return tag
 }

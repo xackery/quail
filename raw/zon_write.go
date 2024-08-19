@@ -7,7 +7,6 @@ import (
 	"io"
 
 	"github.com/xackery/encdec"
-	"github.com/xackery/quail/tag"
 )
 
 // Encode writes a zon file
@@ -18,7 +17,6 @@ func (zon *Zon) Write(w io.Writer) error {
 	}
 	NameClear()
 
-	tag.New()
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
 
 	enc.String("EQGZ")
@@ -134,6 +132,5 @@ func (zon *Zon) Write(w io.Writer) error {
 		return fmt.Errorf("encode: %w", err)
 	}
 
-	//log.Debugf("%s encoded %d objects, %d regions, %d lights", zon.Header.Name, len(zon.Objects), len(zon.Regions), len(zon.Lights))
 	return nil
 }

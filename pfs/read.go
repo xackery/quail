@@ -53,7 +53,6 @@ func (e *Pfs) Read(r io.ReadSeeker) error {
 			return fmt.Errorf("read %d size: %w", i, err)
 		}
 		dirEntries = append(dirEntries, entry)
-		//log.Debugf(entry.crc, entry.offset, entry.size)
 	}
 
 	// reset back to start of file
@@ -162,7 +161,6 @@ func (e *Pfs) Read(r io.ReadSeeker) error {
 		}
 	}
 
-	//log.Debugf("CRC dump %+v\n%+v", dirNameByCRCs, len(fileByCRCs))
 	for crc, data := range fileByCRCs {
 		dirName, ok := dirNameByCRCs[crc]
 		if !ok {
@@ -176,7 +174,10 @@ func (e *Pfs) Read(r io.ReadSeeker) error {
 		e.files = append(e.files, NewFileEntry(dirName, data))
 	}
 
-	r.Seek(int64(4+(len(dirEntries)*12)), io.SeekCurrent)
+	_, err = r.Seek(int64(4+(len(dirEntries)*12)), io.SeekCurrent)
+	if err != nil {
+		return fmt.Errorf("seek to footer: %w", err)
+	}
 
 	steveFooter := [5]byte{}
 	err = binary.Read(r, binary.LittleEndian, &steveFooter)

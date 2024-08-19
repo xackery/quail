@@ -6,7 +6,6 @@ import (
 	"io"
 
 	"github.com/xackery/encdec"
-	"github.com/xackery/quail/tag"
 )
 
 // Lay is a raw layer struct
@@ -42,8 +41,6 @@ func (lay *Lay) Read(r io.ReadSeeker) error {
 		return fmt.Errorf("invalid header %s, wanted EQGL", header)
 	}
 
-	tag.New()
-
 	lay.Version = dec.Uint32()
 	versionOffset := 0
 	switch lay.Version {
@@ -59,9 +56,7 @@ func (lay *Lay) Read(r io.ReadSeeker) error {
 
 	nameLength := int(dec.Uint32())
 	layerCount := dec.Uint32()
-	tag.Add(0, dec.Pos(), "red", "header")
 	nameData := dec.Bytes(int(nameLength))
-	tag.Add(tag.LastPos(), dec.Pos(), "green", "names")
 
 	names := make(map[int32]string)
 	chunk := []byte{}
@@ -98,7 +93,6 @@ func (lay *Lay) Read(r io.ReadSeeker) error {
 		dec.Bytes(versionOffset)
 		//fmt.Println(hex.Dump())
 		lay.Entries = append(lay.Entries, layEntry)
-		tag.AddRand(tag.LastPos(), dec.Pos(), fmt.Sprintf("%d|%s|%s|%s", i, layEntry.Material, layEntry.Diffuse, layEntry.Normal))
 	}
 
 	if dec.Error() != nil {

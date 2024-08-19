@@ -75,7 +75,7 @@ func (e *Pfs) Add(name string, data []byte) error {
 		}
 	}
 
-	//log.Debugf("EQG adding %s (%d bytes)", name, len(data))
+	//fmt.Printf("EQG adding %s (%d bytes)\n", name, len(data))
 	e.files = append(e.files, NewFileEntry(name, data))
 	return nil
 }

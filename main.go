@@ -6,7 +6,6 @@ import (
 
 	"github.com/xackery/quail/cmd"
 	"github.com/xackery/quail/common"
-	"github.com/xackery/quail/log"
 	/* "net/http"         // part of pprof heap
 	_ "net/http/pprof" // part of pprof heap */)
 
@@ -32,7 +31,5 @@ func main() {
 		fmt.Printf("quail %s\n", Version)
 	}
 	common.Version = Version
-	log.SetLogLevel(1)
-	//log.LogToFile()
 	cmd.Execute()
 }

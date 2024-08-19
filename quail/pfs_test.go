@@ -1,13 +1,13 @@
 package quail
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"reflect"
 	"testing"
 
 	"github.com/xackery/quail/common"
-	"github.com/xackery/quail/log"
 )
 
 func TestQuail_PfsRead(t *testing.T) {
@@ -222,7 +222,7 @@ func TestQuail_PfsWriteImportExport(t *testing.T) {
 
 						cmp := e2.Models[i].ParticleRenders[j].Entries[k]
 
-						log.Debugf("%v vs %v", entry, cmp)
+						fmt.Printf("%v vs %v\n", entry, cmp)
 						if entry.Duration != cmp.Duration {
 							t.Fatalf("model particle render entry duration mismatch, %v != %v", entry.Duration, cmp.Duration)
 						}
@@ -309,7 +309,7 @@ func TestQuail_PfsWriteImportExport(t *testing.T) {
 				}
 			}
 
-			log.Debugf("seems like a clean roundtrip for %s", filepath.Base(tt.args.srcPath))
+			fmt.Printf("seems like a clean roundtrip for %s\n", filepath.Base(tt.args.srcPath))
 		})
 	}
 }

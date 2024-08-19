@@ -5,7 +5,6 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
-	"github.com/xackery/quail/log"
 )
 
 var cfgFile string
@@ -52,8 +51,7 @@ func initConfig() {
 	}
 
 	if isVerbose {
-		log.SetLogLevel(0)
-		log.Debugf("Verbose logging enabled")
+		fmt.Printf("Verbose logging enabled")
 	}
 
 }

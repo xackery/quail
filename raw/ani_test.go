@@ -9,7 +9,6 @@ import (
 
 	"github.com/xackery/quail/common"
 	"github.com/xackery/quail/pfs"
-	"github.com/xackery/quail/tag"
 )
 
 func TestAniRead(t *testing.T) {
@@ -55,7 +54,6 @@ func TestAniRead(t *testing.T) {
 				err = ani.Read(bytes.NewReader(file.Data()))
 				if err != nil {
 					os.WriteFile(fmt.Sprintf("%s/%s", dirTest, file.Name()), file.Data(), 0644)
-					tag.Write(fmt.Sprintf("%s/%s.tags", dirTest, file.Name()))
 					t.Fatalf("failed to read %s: %s", tt.name, err.Error())
 				}
 			}
@@ -97,7 +95,6 @@ func TestAniWrite(t *testing.T) {
 
 				if err != nil {
 					os.WriteFile(fmt.Sprintf("%s/%s", dirTest, file.Name()), file.Data(), 0644)
-					tag.Write(fmt.Sprintf("%s/%s.tags", dirTest, file.Name()))
 					t.Fatalf("failed to read %s: %s", tt.name, err.Error())
 				}
 

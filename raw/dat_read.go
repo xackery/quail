@@ -7,7 +7,6 @@ import (
 
 	"github.com/xackery/encdec"
 	"github.com/xackery/quail/model"
-	"github.com/xackery/quail/tag"
 )
 
 type Dat struct {
@@ -107,19 +106,13 @@ func (dat *Dat) Read(r io.ReadSeeker) error {
 		dat.QuadsPerTile = 16
 	}
 
-	tag.New()
-
 	dat.Version = 4
 
 	dat.Unk1 = dec.Uint32()
 	dat.Unk2 = dec.Uint32()
 	dat.Unk3 = dec.Uint32()
-	tag.AddRandf(tag.LastPos(), dec.Pos(), "header")
 	dat.BaseTileTexture = dec.StringZero()
-	tag.AddRandf(tag.LastPos(), dec.Pos(), "base tile texture=%s", dat.BaseTileTexture)
 	tileCount := dec.Uint32()
-
-	tag.AddRandf(tag.LastPos(), dec.Pos(), "tile count=%d", tileCount)
 
 	//zoneMinX := float32(float32(dat.MinLat*dat.QuadsPerTile) * dat.UnitsPerVert)
 	//zoneMinY := float32(float32(dat.MinLng*dat.QuadsPerTile) * dat.UnitsPerVert)
@@ -135,24 +128,20 @@ func (dat *Dat) Read(r io.ReadSeeker) error {
 		tile.Unk1 = dec.Uint32()
 		//tileStartX := float32(zoneMinX + (float32(tileLat) - 100000 - float32(dat.MinLat)*float32(dat.UnitsPerVert)*float32(dat.QuadsPerTile)))
 		//tileStartY := float32(zoneMinY + (float32(tileLng) - 100000 - float32(dat.MinLng)*float32(dat.UnitsPerVert)*float32(dat.QuadsPerTile)))
-		tag.AddRandf(tag.LastPos(), dec.Pos(), "%d tile header", i)
 
 		//isFloatsAllSame := true
 
 		for j := 0; j < vertCount; j++ {
 			tile.Floats = append(tile.Floats, dec.Float32())
 		}
-		tag.AddRandf(tag.LastPos(), dec.Pos(), "%d tile floats (len=%d)", i, len(tile.Floats))
 
 		for j := 0; j < vertCount; j++ {
 			tile.Colors = append(tile.Colors, dec.Uint32())
 		}
-		tag.AddRandf(tag.LastPos(), dec.Pos(), "%d tile colors (len=%d)", i, len(tile.Colors))
 
 		for j := 0; j < vertCount; j++ {
 			tile.Colors2 = append(tile.Colors2, dec.Uint32())
 		}
-		tag.AddRandf(tag.LastPos(), dec.Pos(), "%d tile colors2 (len=%d)", i, len(tile.Colors2))
 
 		for j := 0; j < quadCount; j++ {
 			flag := dec.Uint8()
@@ -161,7 +150,6 @@ func (dat *Dat) Read(r io.ReadSeeker) error {
 			//}
 			tile.Flags = append(tile.Flags, flag)
 		}
-		tag.AddRandf(tag.LastPos(), dec.Pos(), "%d tile flags (len=%d)", i, len(tile.Flags))
 		//isFlat := isFloatsAllSame
 
 		tile.BaseWaterLevel = dec.Float32()
@@ -174,17 +162,14 @@ func (dat *Dat) Read(r io.ReadSeeker) error {
 				tile.Unk3Quad.Y = dec.Float32()
 				tile.Unk3Quad.Z = dec.Float32()
 				tile.Unk3Quad.W = dec.Float32()
-				tag.AddRandf(tag.LastPos(), dec.Pos(), "%d tile unk3 quad", i)
 			}
 			tile.Unk3Float = dec.Float32()
 		}
 
-		tag.AddRandf(tag.LastPos(), dec.Pos(), "%d tile unk2=%d", i, tile.Unk2)
 		layerCount := dec.Uint32()
 		if layerCount > 0 {
 			tile.LayerBaseMaterial = dec.StringZero()
 		}
-		tag.AddRandf(tag.LastPos(), dec.Pos(), "%d tile layer base material", i)
 		if layerCount > 9999 {
 			return fmt.Errorf("layer count %d is too high", layerCount)
 		}

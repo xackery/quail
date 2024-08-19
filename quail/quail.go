@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/xackery/quail/common"
-	"github.com/xackery/quail/log"
 	"github.com/xackery/quail/raw"
 	"github.com/xackery/quail/wld"
 )
@@ -39,11 +38,6 @@ func (e *Quail) Close() error {
 	e.Zone = nil
 	e.materialCache = make(map[string]*common.Material)
 	return nil
-}
-
-// SetLogLevel sets the log level
-func SetLogLevel(level int) {
-	log.SetLogLevel(level)
 }
 
 // Open is a smart opener for files quail might support without being within an archive
@@ -121,7 +115,10 @@ func Open(name string, r io.ReadSeeker) (interface{}, error) {
 		if err != nil {
 			return nil, fmt.Errorf("read header: %w", err)
 		}
-		r.Seek(0, io.SeekStart)
+		_, err = r.Seek(0, io.SeekStart)
+		if err != nil {
+			return nil, fmt.Errorf("seek start: %w", err)
+		}
 		if string(header) != "\x02\x3D\x50\x54" {
 			wldAscii := &raw.WldAscii{}
 			err = wldAscii.Read(r)

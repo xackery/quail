@@ -8,7 +8,6 @@ import (
 
 	"github.com/go-test/deep"
 	"github.com/xackery/quail/common"
-	"github.com/xackery/quail/log"
 	"github.com/xackery/quail/pfs"
 	"github.com/xackery/quail/raw"
 )
@@ -115,7 +114,7 @@ func TestRawBinReadWrite(t *testing.T) {
 					t.Fatalf("%s byteCompare frag %d %s: %s", raw.FragName(srcFrag.FragCode()), i, tt.baseName, err)
 				}
 			}
-			log.Debugf("Processed %d fragments for %s", len(rawWldSrc.Fragments), tt.baseName)
+			fmt.Printf("Processed %d fragments for %s\n", len(rawWldSrc.Fragments), tt.baseName)
 		})
 	}
 }

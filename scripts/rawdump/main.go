@@ -7,7 +7,6 @@ import (
 	"os/exec"
 	"path/filepath"
 
-	"github.com/xackery/quail/log"
 	"github.com/xackery/quail/pfs"
 )
 
@@ -27,8 +26,6 @@ func run() error {
 	}
 	path := os.Args[1]
 	fmt.Println("path:", path)
-
-	log.SetLogLevel(1)
 
 	w, err := os.Create("rawdump.txt")
 	if err != nil {
@@ -83,7 +80,10 @@ func run() error {
 			err = cmd.Run()
 			if err != nil {
 				os.Remove(outPath + ".bin")
-				w.WriteString(fmt.Sprintf("%s %s: %s %s\n", filepath.Base(path), file.Name(), err, buf.String()))
+				_, err = w.WriteString(fmt.Sprintf("%s %s: %s %s\n", filepath.Base(path), file.Name(), err, buf.String()))
+				if err != nil {
+					return fmt.Errorf("write: %w", err)
+				}
 				continue
 			}
 			err = os.Remove(outPath + ".bin")

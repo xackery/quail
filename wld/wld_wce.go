@@ -228,28 +228,28 @@ func (wld *Wld) writeAsciiData(path string, baseTags []string) error {
 			return fmt.Errorf("point light %s: %w", pLight.Tag, err)
 		}
 	}
+	/*
+		for _, matDef := range wld.MaterialDefs {
+			tag := matDef.Tag
+			if wld.WorldDef.Zone == 1 {
+				tag = "R"
+			}
 
-	for _, matDef := range wld.MaterialDefs {
-		tag := matDef.Tag
-		if wld.WorldDef.Zone == 1 {
-			tag = "R"
+			if strings.Count(tag, "_") > 1 {
+				tag = strings.Split(tag, "_")[0]
+			}
+
+			err = token.SetWriter(tag)
+			if err != nil {
+				return fmt.Errorf("set materialdef %s writer: %w", matDef.Tag, err)
+			}
+
+			err = matDef.Write(token)
+			if err != nil {
+				return fmt.Errorf("materialdef %s: %w", matDef.Tag, err)
+			}
 		}
-
-		if strings.Count(tag, "_") > 1 {
-			tag = strings.Split(tag, "_")[0]
-		}
-
-		err = token.SetWriter(tag)
-		if err != nil {
-			return fmt.Errorf("set materialdef %s writer: %w", matDef.Tag, err)
-		}
-
-		err = matDef.Write(token)
-		if err != nil {
-			return fmt.Errorf("materialdef %s: %w", matDef.Tag, err)
-		}
-	}
-
+	*/
 	for _, lightDef := range wld.LightDefs {
 		err = token.SetWriter("zone")
 		if err != nil {
@@ -364,7 +364,10 @@ func (wld *Wld) writeAsciiData(path string, baseTags []string) error {
 		rootW.WriteString(fmt.Sprintf("INCLUDE \"%s/_ROOT.WCE\"\n", strings.ToUpper(baseTag)))
 
 		if token.IsWriterUsed(baseTag) {
-			modelW.WriteString(fmt.Sprintf("INCLUDE \"%s.MOD\"\n", strings.ToUpper(baseTag)))
+			_, err = modelW.WriteString(fmt.Sprintf("INCLUDE \"%s.MOD\"\n", strings.ToUpper(baseTag)))
+			if err != nil {
+				return err
+			}
 		} else {
 			removePath := fmt.Sprintf("%s/%s/%s.mod", path, strings.ToLower(baseTag), strings.ToLower(baseTag))
 
@@ -375,7 +378,10 @@ func (wld *Wld) writeAsciiData(path string, baseTags []string) error {
 		}
 
 		if token.IsWriterUsed(baseTag + "_ani") {
-			modelW.WriteString(fmt.Sprintf("INCLUDE \"%s.ANI\"\n", strings.ToUpper(baseTag)))
+			_, err = modelW.WriteString(fmt.Sprintf("INCLUDE \"%s.ANI\"\n", strings.ToUpper(baseTag)))
+			if err != nil {
+				return fmt.Errorf("write %s: %w", fmt.Sprintf("%s/%s/%s.ani", path, strings.ToLower(baseTag), strings.ToLower(baseTag)), err)
+			}
 		} else {
 			removePath := fmt.Sprintf("%s/%s/%s.ani", path, strings.ToLower(baseTag), strings.ToLower(baseTag))
 

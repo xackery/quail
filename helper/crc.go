@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"io"
 	"strings"
-
-	"github.com/xackery/quail/log"
 )
 
 var (
@@ -70,7 +68,7 @@ func init() {
 func FilenameCRC32(name string) uint32 {
 	if !isWarnedLowercase && strings.ToLower(name) != name {
 		isWarnedLowercase = true
-		log.Infof("FilenameCRC32: %s is not lowercase, forcing it but EQ may fail to load this", name)
+		fmt.Printf("FilenameCRC32: %s is not lowercase, forcing it but EQ may fail to load this\n", name)
 	}
 
 	name = strings.ToLower(name)

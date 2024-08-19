@@ -7,7 +7,6 @@ import (
 
 	"github.com/xackery/encdec"
 	"github.com/xackery/quail/model"
-	"github.com/xackery/quail/tag"
 )
 
 // Zon is a zone
@@ -88,8 +87,6 @@ type Light struct {
 func (zon *Zon) Read(r io.ReadSeeker) error {
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 
-	tag.New()
-
 	// Read header
 	header := dec.StringFixed(4)
 	if header != "EQGZ" && header != "EQTZ" {
@@ -108,7 +105,6 @@ func (zon *Zon) Read(r io.ReadSeeker) error {
 	regionCount := dec.Uint32()
 	lightCount := dec.Uint32()
 
-	tag.Add(0, dec.Pos(), "red", "header")
 	nameData := dec.Bytes(int(nameLength))
 
 	names := make(map[int32]string)
@@ -124,7 +120,6 @@ func (zon *Zon) Read(r io.ReadSeeker) error {
 		}
 		chunk = append(chunk, b)
 	}
-	tag.Add(tag.LastPos(), dec.Pos(), "green", fmt.Sprintf("names (%d total)", len(names)))
 
 	NameSet(names)
 	//os.WriteFile("src.txt", []byte(fmt.Sprintf("%+v", names)), 0644)
@@ -133,7 +128,6 @@ func (zon *Zon) Read(r io.ReadSeeker) error {
 		name := Name(dec.Int32())
 		zon.Models = append(zon.Models, name)
 	}
-	tag.AddRand(tag.LastPos(), dec.Pos(), fmt.Sprintf("modelNames (%d total)", modelCount))
 
 	for i := 0; i < int(objectCount); i++ {
 		object := Object{}
@@ -159,7 +153,6 @@ func (zon *Zon) Read(r io.ReadSeeker) error {
 		object.Rotation.Z = dec.Float32()
 
 		object.Scale = dec.Float32()
-		tag.AddRand(tag.LastPos(), dec.Pos(), fmt.Sprintf("%d|%s", i, object.InstanceName))
 		if zon.Version >= 2 {
 			litCount := dec.Uint32()
 			for j := 0; j < int(litCount); j++ {
@@ -170,7 +163,6 @@ func (zon *Zon) Read(r io.ReadSeeker) error {
 				lit.A = dec.Uint8()
 				object.Lits = append(object.Lits, &lit)
 			}
-			tag.AddRand(tag.LastPos(), dec.Pos(), fmt.Sprintf("%d|%s|lit_data", i, object.InstanceName))
 		}
 		zon.Objects = append(zon.Objects, object)
 	}
@@ -196,7 +188,6 @@ func (zon *Zon) Read(r io.ReadSeeker) error {
 		//region.Unk2 = dec.Uint32()
 
 		zon.Regions = append(zon.Regions, region)
-		tag.AddRand(tag.LastPos(), dec.Pos(), fmt.Sprintf("%d|%s", i, region.Name))
 	}
 
 	for i := 0; i < int(lightCount); i++ {
@@ -215,14 +206,12 @@ func (zon *Zon) Read(r io.ReadSeeker) error {
 		light.Radius = dec.Float32()
 
 		zon.Lights = append(zon.Lights, light)
-		tag.AddRand(tag.LastPos(), dec.Pos(), fmt.Sprintf("%d|%s", i, light.Name))
 	}
 
 	if dec.Error() != nil {
 		return fmt.Errorf("read: %w", dec.Error())
 	}
 
-	//log.Debugf("%s (zon) readd %d model refs, %d object refs, %d regions, %d lights", zon.Header.Name, len(zon.Models), len(zon.Objects), len(zon.Regions), len(zon.Lights))
 	return nil
 }
 

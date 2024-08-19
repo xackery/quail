@@ -6,7 +6,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/xackery/quail/log"
 	"github.com/xackery/quail/pfs"
 )
 
@@ -25,8 +24,6 @@ func run() error {
 	}
 	path := os.Args[1]
 	fmt.Println("path:", path)
-
-	log.SetLogLevel(1)
 
 	return filepath.WalkDir(path, func(path string, d os.DirEntry, err error) error {
 		if err != nil {

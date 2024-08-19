@@ -6,12 +6,10 @@ import (
 	"io"
 
 	"github.com/xackery/encdec"
-	"github.com/xackery/quail/tag"
 )
 
 // Write writes a prt file
 func (prt *Prt) Write(w io.Writer) error {
-	tag.New()
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
 	enc.String("PTCL")
 	enc.Uint32(uint32(len(prt.Entries)))
@@ -40,6 +38,5 @@ func (prt *Prt) Write(w io.Writer) error {
 		return fmt.Errorf("encode: %w", err)
 	}
 
-	//log.Debugf("%s prt encoded %d entries", prt.Header.Name, len(prt.Entries))
 	return nil
 }

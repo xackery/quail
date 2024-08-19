@@ -6,7 +6,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/xackery/quail/log"
 	"github.com/xackery/quail/pfs"
 )
 
@@ -26,8 +25,6 @@ func run() error {
 	}
 	path := os.Args[1]
 	fmt.Println("path:", path)
-
-	log.SetLogLevel(1)
 
 	w, err := os.Create("leaks.txt")
 	if err != nil {
@@ -66,7 +63,10 @@ func run() error {
 				continue
 			}
 
-			w.WriteString(fmt.Sprintf("%s %s\n", file.Name(), filepath.Base(path)))
+			_, err = w.WriteString(fmt.Sprintf("%s %s\n", file.Name(), filepath.Base(path)))
+			if err != nil {
+				return fmt.Errorf("write %s: %w", file.Name(), err)
+			}
 		}
 		return nil
 	})

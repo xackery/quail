@@ -10,7 +10,6 @@ import (
 	"github.com/xackery/quail/helper"
 	"github.com/xackery/quail/model"
 	"github.com/xackery/quail/raw/rawfrag"
-	"github.com/xackery/quail/tag"
 )
 
 type Wld struct {
@@ -33,14 +32,12 @@ func (wld *Wld) Read(r io.ReadSeeker) error {
 		wld.Fragments = []model.FragmentReadWriter{&rawfrag.WldFragDefault{}}
 	}
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
-	tag.NewWithCoder(dec)
 	header := dec.Bytes(4)
 	validHeader := []byte{0x02, 0x3D, 0x50, 0x54}
 	if !bytes.Equal(header, validHeader) {
 		return fmt.Errorf("header wanted 0x%x, got 0x%x", validHeader, header)
 	}
 	wld.Version = dec.Uint32()
-	tag.Mark("red", "header")
 
 	wld.IsNewWorld = false
 	switch wld.Version {
@@ -53,18 +50,13 @@ func (wld *Wld) Read(r io.ReadSeeker) error {
 	}
 
 	fragmentCount := dec.Uint32()
-	tag.Mark("blue", "fragcount")
 
 	bspRegionCount := dec.Uint32() //bspRegionCount
-	tag.Mark("green", "totalRegionCount")
-	maxFragSize := dec.Uint32() // max fragment size
+	maxFragSize := dec.Uint32()    // max fragment size
 	hashSize := dec.Uint32()
-	tag.Mark("green", "hashsize")
 	stringCount := dec.Uint32() // string count
-	tag.Mark("lime", "string count")
 	hashRaw := dec.Bytes(int(hashSize))
 	nameData := helper.ReadStringHash(hashRaw)
-	tag.Mark("red", "namehash")
 
 	names = []*nameEntry{}
 	chunk := []rune{}
@@ -153,14 +145,12 @@ func (wld *Wld) Read(r io.ReadSeeker) error {
 // rawFrags is user by tests to compare for writer
 func (wld *Wld) rawFrags(r io.ReadSeeker) ([][]byte, error) {
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
-	tag.NewWithCoder(dec)
 	header := dec.Bytes(4)
 	validHeader := []byte{0x02, 0x3D, 0x50, 0x54}
 	if !bytes.Equal(header, validHeader) {
 		return nil, fmt.Errorf("header wanted 0x%x, got 0x%x", validHeader, header)
 	}
 	wld.Version = dec.Uint32()
-	tag.Mark("red", "header")
 
 	wld.IsNewWorld = true
 	switch wld.Version {

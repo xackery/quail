@@ -378,7 +378,7 @@ func (model *Model) MaterialBuild(names map[string]int32) ([]byte, error) {
 
 	dataBuf := bytes.NewBuffer(nil)
 	enc := encdec.NewEncoder(dataBuf, binary.LittleEndian)
-	nameOffset := int32(-1)
+	var nameOffset int32
 	for materialID, o := range model.Materials {
 		enc.Uint32(uint32(materialID))
 
@@ -389,9 +389,6 @@ func (model *Model) MaterialBuild(names map[string]int32) ([]byte, error) {
 				break
 			}
 		}
-		//if nameOffset == -1 {
-		//log.Debugf("material %s not found ignoring", o.Name)
-		//}
 
 		enc.Uint32(uint32(nameOffset))
 
@@ -424,8 +421,6 @@ func (model *Model) MaterialBuild(names map[string]int32) ([]byte, error) {
 
 			enc.Uint32(uint32(nameOffset))
 			enc.Uint32(p.Category)
-
-			nameOffset = -1
 
 			err = materialPropertyWrite(dataBuf, p.Value, names)
 			if err != nil {

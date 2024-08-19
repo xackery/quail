@@ -6,9 +6,7 @@ import (
 	"io"
 
 	"github.com/xackery/encdec"
-	"github.com/xackery/quail/log"
 	"github.com/xackery/quail/model"
-	"github.com/xackery/quail/tag"
 )
 
 type Mod struct {
@@ -30,7 +28,6 @@ func (mod *Mod) Read(r io.ReadSeeker) error {
 
 	header := dec.StringFixed(4)
 
-	tag.New()
 	mod.Version = dec.Uint32()
 	if header != "EQGM" {
 		return fmt.Errorf("invalid header %s on version %d, wanted EQGM", header, mod.Version)
@@ -41,9 +38,7 @@ func (mod *Mod) Read(r io.ReadSeeker) error {
 	verticesCount := dec.Uint32()
 	triangleCount := dec.Uint32()
 	bonesCount := dec.Uint32()
-	tag.Add(0, dec.Pos(), "red", "header")
 	nameData := dec.Bytes(int(nameLength))
-	tag.Add(tag.LastPos(), dec.Pos(), "green", "names")
 
 	names := make(map[int32]string)
 	chunk := []byte{}
@@ -59,8 +54,6 @@ func (mod *Mod) Read(r io.ReadSeeker) error {
 	}
 
 	NameSet(names)
-
-	//log.Debugf("names: %+v", names)
 
 	for i := 0; i < int(materialCount); i++ {
 		material := &Material{}
@@ -92,7 +85,6 @@ func (mod *Mod) Read(r io.ReadSeeker) error {
 			material.Properties = append(material.Properties, property)
 		}
 	}
-	tag.Add(tag.LastPos(), dec.Pos(), "blue", "materials")
 
 	for i := 0; i < int(verticesCount); i++ {
 		v := &Vertex{}
@@ -120,7 +112,6 @@ func (mod *Mod) Read(r io.ReadSeeker) error {
 
 		mod.Vertices = append(mod.Vertices, v)
 	}
-	tag.Add(tag.LastPos(), dec.Pos(), "yellow", "vertices")
 
 	for i := 0; i < int(triangleCount); i++ {
 		t := Triangle{}
@@ -139,7 +130,7 @@ func (mod *Mod) Read(r io.ReadSeeker) error {
 		}
 		if material == nil {
 			if materialID != -1 {
-				log.Debugf("material %d not found", materialID)
+				fmt.Printf("Material mod %d not found", materialID)
 				//return fmt.Errorf("material %d not found", materialID)
 			}
 			t.MaterialName = ""
@@ -150,7 +141,6 @@ func (mod *Mod) Read(r io.ReadSeeker) error {
 		t.Flag = dec.Uint32()
 		mod.Triangles = append(mod.Triangles, t)
 	}
-	tag.Add(tag.LastPos(), dec.Pos(), "purple", "triangles")
 
 	for i := 0; i < int(bonesCount); i++ {
 		bone := &Bone{}
@@ -171,7 +161,6 @@ func (mod *Mod) Read(r io.ReadSeeker) error {
 
 		mod.Bones = append(mod.Bones, bone)
 	}
-	tag.Add(tag.LastPos(), dec.Pos(), "orange", "bones")
 
 	if dec.Error() != nil {
 		return fmt.Errorf("read: %w", dec.Error())

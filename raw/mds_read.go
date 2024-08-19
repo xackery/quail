@@ -6,9 +6,7 @@ import (
 	"io"
 
 	"github.com/xackery/encdec"
-	"github.com/xackery/quail/log"
 	"github.com/xackery/quail/model"
-	"github.com/xackery/quail/tag"
 )
 
 type Mds struct {
@@ -48,7 +46,6 @@ func (mds *Mds) Read(r io.ReadSeeker) error {
 		return fmt.Errorf("invalid header %s, wanted EQGS", header)
 	}
 
-	tag.New()
 	mds.Version = dec.Uint32()
 
 	nameLength := int(dec.Uint32())
@@ -76,8 +73,6 @@ func (mds *Mds) Read(r io.ReadSeeker) error {
 	NameSet(names)
 
 	//model.Header.Name = lastElement
-
-	//log.Debugf("names: %+v", names)
 
 	for i := 0; i < int(materialCount); i++ {
 		material := &Material{}
@@ -109,7 +104,6 @@ func (mds *Mds) Read(r io.ReadSeeker) error {
 			material.Properties = append(material.Properties, property)
 		}
 	}
-	tag.Add(tag.LastPos(), dec.Pos(), "blue", "materials")
 
 	for i := 0; i < int(boneCount); i++ {
 		bone := &Bone{}
@@ -181,7 +175,7 @@ func (mds *Mds) Read(r io.ReadSeeker) error {
 		}
 		if material == nil {
 			if materialID != -1 {
-				log.Debugf("material %d not found", materialID)
+				fmt.Printf("Material %d not found", materialID)
 				//return fmt.Errorf("material %d not found", materialID)
 			}
 			t.MaterialName = ""

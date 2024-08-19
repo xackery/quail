@@ -7,7 +7,6 @@ import (
 
 	"github.com/xackery/encdec"
 	"github.com/xackery/quail/model"
-	"github.com/xackery/quail/tag"
 )
 
 type Ter struct {
@@ -33,16 +32,13 @@ func (ter *Ter) Read(r io.ReadSeeker) error {
 		return fmt.Errorf("invalid header %s, wanted EQGT", header)
 	}
 
-	tag.New()
 	ter.Version = dec.Uint32()
 
 	nameLength := int(dec.Uint32())
 	materialCount := dec.Uint32()
 	verticesCount := dec.Uint32()
 	triangleCount := dec.Uint32()
-	tag.Add(0, dec.Pos(), "red", "header")
 	nameData := dec.Bytes(int(nameLength))
-	tag.Add(tag.LastPos(), dec.Pos(), "green", "names")
 
 	names := make(map[int32]string)
 	chunk := []byte{}
@@ -58,8 +54,6 @@ func (ter *Ter) Read(r io.ReadSeeker) error {
 	}
 
 	NameSet(names)
-
-	//log.Debugf("names: %+v", names)
 
 	nameCounter := 0
 	for i := 0; i < int(materialCount); i++ {
@@ -95,7 +89,6 @@ func (ter *Ter) Read(r io.ReadSeeker) error {
 			material.Properties = append(material.Properties, property)
 		}
 	}
-	tag.Add(tag.LastPos(), dec.Pos(), "blue", "materials")
 
 	for i := 0; i < int(verticesCount); i++ {
 		v := Vertex{}
@@ -122,7 +115,6 @@ func (ter *Ter) Read(r io.ReadSeeker) error {
 
 		ter.Vertices = append(ter.Vertices, v)
 	}
-	tag.Add(tag.LastPos(), dec.Pos(), "yellow", "vertices")
 
 	for i := 0; i < int(triangleCount); i++ {
 		t := Triangle{}
@@ -152,7 +144,6 @@ func (ter *Ter) Read(r io.ReadSeeker) error {
 		t.Flag = dec.Uint32()
 		ter.Triangles = append(ter.Triangles, t)
 	}
-	tag.Add(tag.LastPos(), dec.Pos(), "purple", "triangles")
 
 	if dec.Error() != nil {
 		return fmt.Errorf("read: %w", dec.Error())

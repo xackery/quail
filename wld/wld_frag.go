@@ -4755,41 +4755,7 @@ func (e *HierarchicalSpriteDef) ToRaw(wld *Wld, rawWld *raw.Wld) (int16, error) 
 	}
 
 	for _, dag := range e.Dags {
-
-		trackFrag := wld.ByTagWithIndex(dag.Track, dag.TrackIndex)
-		if trackFrag == nil {
-			return -1, fmt.Errorf("track not found: %s index %d", dag.Track, dag.TrackIndex)
-		}
-
-		track, ok := trackFrag.(*TrackInstance)
-		if !ok {
-			return -1, fmt.Errorf("invalid track type: %T", trackFrag)
-		}
-
-		_, err := track.ToRaw(wld, rawWld)
-		if err != nil {
-			return -1, fmt.Errorf("track to raw: %w", err)
-		}
-
-	}
-
-	for _, dag := range e.Dags {
 		wfDag := rawfrag.WldFragDag{}
-
-		trackFrag := wld.ByTagWithIndex(dag.Track, dag.TrackIndex)
-		if trackFrag == nil {
-			return -1, fmt.Errorf("track not found: %s index %d", dag.Track, dag.TrackIndex)
-		}
-
-		track, ok := trackFrag.(*TrackInstance)
-		if !ok {
-			return -1, fmt.Errorf("invalid track type: %T", trackFrag)
-		}
-
-		trackRef, err := track.ToRaw(wld, rawWld)
-		if err != nil {
-			return -1, fmt.Errorf("track to raw: %w", err)
-		}
 
 		if dag.SpriteTag != "" {
 			spriteDefFrag := wld.ByTag(dag.SpriteTag)
@@ -4887,13 +4853,8 @@ func (e *HierarchicalSpriteDef) ToRaw(wld *Wld, rawWld *raw.Wld) (int16, error) 
 			}
 		}
 
-		wfDag.NameRef = raw.NameAdd(dag.Tag)
-
-		wfDag.TrackRef = uint32(trackRef)
-		wfDag.SubDags = dag.SubDags
 		wfHierarchicalSpriteDef.Dags = append(wfHierarchicalSpriteDef.Dags, wfDag)
 	}
-	wfHierarchicalSpriteDef.NameRef = raw.NameAdd(e.Tag)
 
 	for _, skin := range e.AttachedSkins {
 		wfHierarchicalSpriteDef.LinkSkinUpdatesToDagIndexes = append(wfHierarchicalSpriteDef.LinkSkinUpdatesToDagIndexes, skin.LinkSkinUpdatesToDagIndex)
@@ -4942,6 +4903,33 @@ func (e *HierarchicalSpriteDef) ToRaw(wld *Wld, rawWld *raw.Wld) (int16, error) 
 
 		wfHierarchicalSpriteDef.DMSprites = append(wfHierarchicalSpriteDef.DMSprites, uint32(spriteRef))
 	}
+
+	for i, dag := range e.Dags {
+		wfDag := wfHierarchicalSpriteDef.Dags[i]
+
+		trackFrag := wld.ByTagWithIndex(dag.Track, dag.TrackIndex)
+		if trackFrag == nil {
+			return -1, fmt.Errorf("track not found: %s index %d", dag.Track, dag.TrackIndex)
+		}
+
+		track, ok := trackFrag.(*TrackInstance)
+		if !ok {
+			return -1, fmt.Errorf("invalid track type: %T", trackFrag)
+		}
+
+		trackRef, err := track.ToRaw(wld, rawWld)
+		if err != nil {
+			return -1, fmt.Errorf("track to raw: %w", err)
+		}
+
+		wfDag.NameRef = raw.NameAdd(dag.Tag)
+
+		wfDag.TrackRef = uint32(trackRef)
+		wfDag.SubDags = dag.SubDags
+
+		wfHierarchicalSpriteDef.Dags = append(wfHierarchicalSpriteDef.Dags, wfDag)
+	}
+	wfHierarchicalSpriteDef.NameRef = raw.NameAdd(e.Tag)
 
 	rawWld.Fragments = append(rawWld.Fragments, wfHierarchicalSpriteDef)
 	e.fragID = int16(len(rawWld.Fragments))
@@ -6460,6 +6448,17 @@ func (e *BlitSpriteDefinition) Write(token *AsciiWriteToken) error {
 		return err
 	}
 
+	if e.SpriteTag != "" {
+		spriteDef := token.wld.ByTag(e.SpriteTag)
+		if spriteDef == nil {
+			return fmt.Errorf("sprite def not found: %s", e.SpriteTag)
+		}
+		err = spriteDef.Write(token)
+		if err != nil {
+			return fmt.Errorf("sprite def write: %w", err)
+		}
+	}
+
 	fmt.Fprintf(w, "%s\n", e.Definition())
 	fmt.Fprintf(w, "\tTAG \"%s\"\n", e.Tag)
 	fmt.Fprintf(w, "\tSPRITE \"%s\"\n", e.SpriteTag)
@@ -6513,24 +6512,63 @@ func (e *BlitSpriteDefinition) ToRaw(wld *Wld, rawWld *raw.Wld) (int16, error) {
 	if e.fragID != 0 {
 		return e.fragID, nil
 	}
+
 	wfBlitSprite := &rawfrag.WldFragBlitSpriteDef{
 		Unknown: e.Unknown,
 	}
 
-	spriteDef := wld.ByTag(e.SpriteTag)
-	if spriteDef != nil {
-		spriteRef, err := spriteDef.ToRaw(wld, rawWld)
-		if err != nil {
-			return 0, fmt.Errorf("sprite def to raw: %w", err)
+	if e.SpriteTag != "" {
+		spriteDef := wld.ByTag(e.SpriteTag)
+		if spriteDef == nil {
+			return 0, fmt.Errorf("sprite def not found: %s", e.SpriteTag)
 		}
-		wfBlitSprite.SpriteInstanceRef = uint32(spriteRef)
+		switch sprite := spriteDef.(type) {
+		case *SimpleSpriteDef:
+			spriteDefRef, err := sprite.ToRaw(wld, rawWld)
+			if err != nil {
+				return 0, fmt.Errorf("sprite def to raw: %w", err)
+			}
+
+			wfSprite := &rawfrag.WldFragSimpleSprite{
+				//NameRef:   raw.NameAdd(m.SimpleSpriteTag),
+				SpriteRef: uint32(spriteDefRef),
+			}
+
+			//if e.SpriteHexFiftyFlag > 0 {
+			//	wfSprite.Flags |= 0x50
+			//}
+			rawWld.Fragments = append(rawWld.Fragments, wfSprite)
+
+			spriteRef := int16(len(rawWld.Fragments))
+
+			wfBlitSprite.SpriteInstanceRef = uint32(spriteRef)
+		default:
+			return 0, fmt.Errorf("sprite def not supported: %s", e.SpriteTag)
+		}
 	}
 
 	wfBlitSprite.NameRef = raw.NameAdd(e.Tag)
 
 	rawWld.Fragments = append(rawWld.Fragments, wfBlitSprite)
 	e.fragID = int16(len(rawWld.Fragments))
-	return int16(len(rawWld.Fragments)), nil
+
+	var err error
+	cloudDefRef := int16(0)
+	for _, cloudDef := range wld.ParticleCloudDefs {
+		if cloudDef.ParticleTag != e.Tag {
+			continue
+		}
+		cloudDefRef, err = cloudDef.ToRaw(wld, rawWld)
+		if err != nil {
+			return 0, fmt.Errorf("particle cloud def to raw: %w", err)
+		}
+		break
+	}
+	if cloudDefRef == 0 {
+		return 0, fmt.Errorf("particle cloud def not found for blit sprite def %s", e.Tag)
+	}
+
+	return e.fragID, nil
 }
 
 func (e *BlitSpriteDefinition) FromRaw(wld *Wld, rawWld *raw.Wld, frag *rawfrag.WldFragBlitSpriteDef) error {
@@ -6544,12 +6582,19 @@ func (e *BlitSpriteDefinition) FromRaw(wld *Wld, rawWld *raw.Wld, frag *rawfrag.
 	}
 	sprite := rawWld.Fragments[frag.SpriteInstanceRef]
 
-	spriteDef, ok := sprite.(*rawfrag.WldFragSimpleSprite)
+	simpleSprite, ok := sprite.(*rawfrag.WldFragSimpleSprite)
 	if !ok {
-		return fmt.Errorf("blit sprite def ref %d not found", frag.SpriteInstanceRef)
+		return fmt.Errorf("blit sprite ref %d not found", frag.SpriteInstanceRef)
 	}
 
-	e.SpriteTag = raw.Name(spriteDef.NameRef)
+	sSpriteDefRaw := rawWld.Fragments[simpleSprite.SpriteRef]
+
+	sSprite, ok := sSpriteDefRaw.(*rawfrag.WldFragSimpleSpriteDef)
+	if !ok {
+		return fmt.Errorf("blit sprite def ref %d not found", simpleSprite.SpriteRef)
+	}
+
+	e.SpriteTag = raw.Name(sSprite.NameRef)
 	e.Unknown = frag.Unknown
 	return nil
 }
