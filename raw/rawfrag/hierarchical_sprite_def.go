@@ -10,12 +10,12 @@ import (
 
 // WldFragHierarchicalSpriteDef is HierarchicalSpriteDef in libeq, SkeletonTrackSet in openzone, HIERARCHICALSPRITE in wld, SkeletonHierarchy in lantern
 type WldFragHierarchicalSpriteDef struct {
-	NameRef                     int32        `yaml:"name_ref"`
-	Flags                       uint32       `yaml:"flags"`
-	CollisionVolumeRef          uint32       `yaml:"collision_volume_ref"`
-	CenterOffset                [3]float32   `yaml:"center_offset"`
-	BoundingRadius              float32      `yaml:"bounding_radius"`
-	Dags                        []WldFragDag `yaml:"bones"`
+	NameRef                     int32         `yaml:"name_ref"`
+	Flags                       uint32        `yaml:"flags"`
+	CollisionVolumeRef          uint32        `yaml:"collision_volume_ref"`
+	CenterOffset                [3]float32    `yaml:"center_offset"`
+	BoundingRadius              float32       `yaml:"bounding_radius"`
+	Dags                        []*WldFragDag `yaml:"bones"`
 	DMSprites                   []uint32
 	LinkSkinUpdatesToDagIndexes []uint32 `yaml:"skin_links"`
 }
@@ -92,7 +92,7 @@ func (e *WldFragHierarchicalSpriteDef) Read(r io.ReadSeeker, isNewWorld bool) er
 	}
 
 	for i := 0; i < int(numDags); i++ {
-		dag := WldFragDag{}
+		dag := &WldFragDag{}
 		dag.NameRef = dec.Int32()
 		dag.Flags = dec.Uint32()
 		dag.TrackRef = dec.Uint32()

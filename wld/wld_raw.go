@@ -62,6 +62,27 @@ func readRawFrag(wld *Wld, rawWld *raw.Wld, fragment model.FragmentReadWriter) e
 		if err != nil {
 			return fmt.Errorf("blitspritedef: %w", err)
 		}
+		isUnique := true
+		for _, blit := range wld.BlitSpriteDefinitions {
+			if blit.Tag != def.Tag {
+				continue
+			}
+			isUnique = false
+
+			// compare properties
+			if blit.SpriteTag != def.SpriteTag {
+				return fmt.Errorf("blitspritedef %s: sprite tag mismatch %s != %s", def.Tag, blit.SpriteTag, def.SpriteTag)
+			}
+			if blit.Unknown != def.Unknown {
+				return fmt.Errorf("blitspritedef %s: unknown mismatch %d != %d", def.Tag, blit.Unknown, def.Unknown)
+			}
+
+			break
+		}
+		if !isUnique {
+			return nil
+		}
+
 		wld.BlitSpriteDefinitions = append(wld.BlitSpriteDefinitions, def)
 	case rawfrag.FragCodeBlitSprite:
 

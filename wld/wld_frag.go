@@ -4519,10 +4519,15 @@ func (e *HierarchicalSpriteDef) Write(token *AsciiWriteToken) error {
 				return fmt.Errorf("sprite %s not found", dag.SpriteTag)
 			}
 
+			if token.IsTagWritten(dag.SpriteTag) {
+				continue
+			}
+
 			err = spriteDef.Write(token)
 			if err != nil {
 				return fmt.Errorf("sprite %s: %w", dag.SpriteTag, err)
 			}
+			token.SetIsWritten(dag.SpriteTag)
 		}
 	}
 
@@ -4793,8 +4798,10 @@ func (e *HierarchicalSpriteDef) ToRaw(wld *Wld, rawWld *raw.Wld) (int16, error) 
 		wfHierarchicalSpriteDef.Flags |= 0x20000
 	}
 
+	dmSpriteInstances := []*rawfrag.WldFragDMSprite{}
+
 	for _, dag := range e.Dags {
-		wfDag := rawfrag.WldFragDag{}
+		wfDag := &rawfrag.WldFragDag{}
 
 		if dag.SpriteTag != "" {
 			spriteDefFrag := wld.ByTag(dag.SpriteTag)
@@ -4902,10 +4909,14 @@ func (e *HierarchicalSpriteDef) ToRaw(wld *Wld, rawWld *raw.Wld) (int16, error) 
 			continue
 		}
 
-		spriteRef := int16(0)
 		spriteDefFrag := wld.ByTag(skin.DMSpriteTag)
 		if spriteDefFrag == nil {
 			return -1, fmt.Errorf("skin sprite def not found: %s", skin.DMSpriteTag)
+		}
+
+		err := spriteVariationToRaw(wld, rawWld, spriteDefFrag)
+		if err != nil {
+			return -1, fmt.Errorf("sprite variation toraw: %w", err)
 		}
 		switch spriteDef := spriteDefFrag.(type) {
 		case *DMSpriteDef2:
@@ -4914,33 +4925,33 @@ func (e *HierarchicalSpriteDef) ToRaw(wld *Wld, rawWld *raw.Wld) (int16, error) 
 				return -1, fmt.Errorf("dmspritedef2 to raw: %w", err)
 			}
 
-			wfSprite := &rawfrag.WldFragDMSprite{
+			wfDMSprite := &rawfrag.WldFragDMSprite{
 				//NameRef:     raw.NameAdd(skin.DMSpriteTag),
 				DMSpriteRef: int32(spriteDefRef),
 				Params:      0,
 			}
 
-			rawWld.Fragments = append(rawWld.Fragments, wfSprite)
-			spriteRef = int16(len(rawWld.Fragments))
+			dmSpriteInstances = append(dmSpriteInstances, wfDMSprite)
+
 		case *DMSpriteDef:
 			spriteDefRef, err := spriteDef.ToRaw(wld, rawWld)
 			if err != nil {
 				return -1, fmt.Errorf("dmspritedef to raw: %w", err)
 			}
 
-			wfSprite := &rawfrag.WldFragDMSprite{
+			wfDMSprite := &rawfrag.WldFragDMSprite{
 				//NameRef:     raw.NameAdd(skin.DMSpriteTag),
 				DMSpriteRef: int32(spriteDefRef),
 				Params:      0,
 			}
 
-			rawWld.Fragments = append(rawWld.Fragments, wfSprite)
-			spriteRef = int16(len(rawWld.Fragments))
+			dmSpriteInstances = append(dmSpriteInstances, wfDMSprite)
+
 		default:
 			return -1, fmt.Errorf("unsupported toraw attachedskin sprite instance type: %T", spriteDefFrag)
 		}
 
-		wfHierarchicalSpriteDef.DMSprites = append(wfHierarchicalSpriteDef.DMSprites, uint32(spriteRef))
+		//wfHierarchicalSpriteDef.DMSprites = append(wfHierarchicalSpriteDef.DMSprites, uint32(spriteRef))
 	}
 
 	for i, dag := range e.Dags {
@@ -4961,14 +4972,23 @@ func (e *HierarchicalSpriteDef) ToRaw(wld *Wld, rawWld *raw.Wld) (int16, error) 
 			return -1, fmt.Errorf("track to raw: %w", err)
 		}
 
-		wfDag.NameRef = raw.NameAdd(dag.Tag)
+		//wfDag.NameRef = raw.NameAdd(dag.Tag)
 
 		wfDag.TrackRef = uint32(trackRef)
 		wfDag.SubDags = dag.SubDags
 
-		wfHierarchicalSpriteDef.Dags = append(wfHierarchicalSpriteDef.Dags, wfDag)
+	}
+
+	for i, dag := range e.Dags {
+		wfDag := wfHierarchicalSpriteDef.Dags[i]
+		wfDag.NameRef = raw.NameAdd(dag.Tag)
 	}
 	wfHierarchicalSpriteDef.NameRef = raw.NameAdd(e.Tag)
+
+	for _, wfDMSprite := range dmSpriteInstances {
+		rawWld.Fragments = append(rawWld.Fragments, wfDMSprite)
+		wfHierarchicalSpriteDef.DMSprites = append(wfHierarchicalSpriteDef.DMSprites, uint32(len(rawWld.Fragments)))
+	}
 
 	rawWld.Fragments = append(rawWld.Fragments, wfHierarchicalSpriteDef)
 	e.fragID = int16(len(rawWld.Fragments))
@@ -6551,6 +6571,7 @@ func (e *BlitSpriteDefinition) ToRaw(wld *Wld, rawWld *raw.Wld) (int16, error) {
 	if e.fragID != 0 {
 		return e.fragID, nil
 	}
+	fmt.Printf("blit sprite def %s\n", e.Tag)
 
 	wfBlitSprite := &rawfrag.WldFragBlitSpriteDef{
 		Unknown: e.Unknown,
@@ -6590,6 +6611,7 @@ func (e *BlitSpriteDefinition) ToRaw(wld *Wld, rawWld *raw.Wld) (int16, error) {
 
 	rawWld.Fragments = append(rawWld.Fragments, wfBlitSprite)
 	e.fragID = int16(len(rawWld.Fragments))
+	fmt.Printf("blit sprite def %s fragID %d\n", e.Tag, e.fragID)
 
 	var err error
 	cloudDefRef := int16(0)
@@ -7526,5 +7548,47 @@ func (e *Sprite2DDef) FromRaw(wld *Wld, rawWld *raw.Wld, frag *rawfrag.WldFragSp
 	if frag.RenderFlags&0x40 == 0x40 {
 		e.TwoSided = 1
 	}
+	return nil
+}
+
+func spriteVariationToRaw(wld *Wld, rawWld *raw.Wld, e WldDefinitioner) error {
+	tag := ""
+	switch spriteDef := e.(type) {
+	case *DMSpriteDef2:
+		tag = spriteDef.Tag
+	case *DMSpriteDef:
+		tag = spriteDef.Tag
+	default:
+		return fmt.Errorf("unknown type %T", e)
+	}
+	tag = strings.TrimSuffix(tag, "_DMSPRITEDEF")
+	if len(tag) < 5 {
+		return nil
+		//return fmt.Errorf("tag too short %s", tag)
+	}
+	index, err := strconv.Atoi(tag[len(tag)-2:])
+	if err != nil {
+		return nil
+		//return fmt.Errorf("tag index: %w", err)
+	}
+
+	tag = tag[:len(tag)-2]
+
+	// check for variations
+	for i := 0; i < 10; i++ {
+		if i <= index {
+			continue
+		}
+		variationTag := fmt.Sprintf("%s%02d_DMSPRITEDEF", tag, i)
+		def := wld.ByTag(variationTag)
+		if def == nil {
+			return nil
+		}
+		_, err = def.ToRaw(wld, rawWld)
+		if err != nil {
+			return fmt.Errorf("%s to raw: %w", variationTag, err)
+		}
+	}
+
 	return nil
 }
