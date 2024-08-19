@@ -258,10 +258,10 @@ func (e *DMSpriteDef2) Write(token *AsciiWriteToken) error {
 		fmt.Fprintf(w, "\tENDDMFACE2 //%d\n\n", i)
 	}
 	fmt.Fprintf(w, "\n")
-	fmt.Fprintf(w, "\t// meshops are not supported\n")
-	fmt.Fprintf(w, "\t// NUMMESHOPS %d\n", len(e.MeshOps))
+
+	fmt.Fprintf(w, "\tNUMMESHOPS %d\n", len(e.MeshOps))
 	for _, meshOp := range e.MeshOps {
-		fmt.Fprintf(w, "\t// TODO: MESHOP %d %d %0.8e %d %d\n", meshOp.Index1, meshOp.Index2, meshOp.Offset, meshOp.Param1, meshOp.TypeField)
+		fmt.Fprintf(w, "\tMESHOP %d %d %0.8f %d %d\n", meshOp.Index1, meshOp.Index2, meshOp.Offset, meshOp.Param1, meshOp.TypeField)
 	}
 	fmt.Fprintf(w, "\n")
 	fmt.Fprintf(w, "\tFACEMATERIALGROUPS %d", len(e.FaceMaterialGroups))
@@ -485,6 +485,45 @@ func (e *DMSpriteDef2) Read(token *AsciiReadToken) error {
 		}
 
 		e.Faces = append(e.Faces, face)
+	}
+
+	records, err = token.ReadProperty("NUMMESHOPS", 1)
+	if err != nil {
+		return err
+	}
+	numMeshOps := int(0)
+	err = parse(&numMeshOps, records[1])
+	if err != nil {
+		return fmt.Errorf("num mesh ops: %w", err)
+	}
+
+	for i := 0; i < numMeshOps; i++ {
+		meshOp := &MeshOp{}
+		records, err = token.ReadProperty("MESHOP", 5)
+		if err != nil {
+			return err
+		}
+		err = parse(&meshOp.Index1, records[1])
+		if err != nil {
+			return fmt.Errorf("mesh op %d index1: %w", i, err)
+		}
+		err = parse(&meshOp.Index2, records[2])
+		if err != nil {
+			return fmt.Errorf("mesh op %d index2: %w", i, err)
+		}
+		err = parse(&meshOp.Offset, records[3])
+		if err != nil {
+			return fmt.Errorf("mesh op %d offset: %w", i, err)
+		}
+		err = parse(&meshOp.Param1, records[4])
+		if err != nil {
+			return fmt.Errorf("mesh op %d param1: %w", i, err)
+		}
+		err = parse(&meshOp.TypeField, records[5])
+		if err != nil {
+			return fmt.Errorf("mesh op %d typefield: %w", i, err)
+		}
+		e.MeshOps = append(e.MeshOps, meshOp)
 	}
 
 	records, err = token.ReadProperty("FACEMATERIALGROUPS", -1)

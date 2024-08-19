@@ -136,17 +136,21 @@ func TestWceReadWrite(t *testing.T) {
 				t.Fatalf("wld diff: %s", diff)
 			} */
 
-			diff := deep.Equal(rawWldSrc, rawWldDst)
-			if diff != nil {
-				t.Fatalf("rawWld diff: %s", diff)
-			}
-
 			for i := 0; i < len(rawWldSrc.Fragments); i++ {
 				srcFrag := rawWldSrc.Fragments[i]
 				dstFrag := rawWldDst.Fragments[i]
 				if srcFrag.FragCode() != dstFrag.FragCode() {
 					t.Fatalf("fragment %d fragcode mismatch: src: %s, dst: %s", i, raw.FragName(srcFrag.FragCode()), raw.FragName(dstFrag.FragCode()))
 				}
+				diff := deep.Equal(srcFrag, dstFrag)
+				if diff != nil {
+					t.Fatalf("frag diff %d (%s): %s", i, raw.FragName(srcFrag.FragCode()), diff)
+				}
+			}
+
+			diff := deep.Equal(rawWldSrc, rawWldDst)
+			if diff != nil {
+				t.Fatalf("rawWld diff: %s", diff)
 			}
 
 			for i := 0; i < len(rawWldSrc.Fragments); i++ {

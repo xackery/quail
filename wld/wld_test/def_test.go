@@ -10,7 +10,7 @@ var tests = []struct {
 	baseName string
 	wldName  string
 }{
-	//{baseName: "frontiermtns_chr"},
+	{baseName: "frontiermtns_chr"},
 	//{baseName: "crushbone"},
 	//{baseName: "twilight"},
 	//{baseName: "global6_chr"},
@@ -24,7 +24,7 @@ var tests = []struct {
 	//{baseName: "crushbone", wldName: "objects.wld"}, // OK
 	//{baseName: "crushbone", wldName: "lights.wld"},
 	//{baseName: "qeynos_chr"}, // Needs work
-	{baseName: "crushbone_chr"},
+	//{baseName: "crushbone_chr"},
 	//{baseName: "freporte_chr"},
 	//{baseName: "chequip"},
 	//{baseName: "gequip"}, // TODO: fix numeric prefixed tags

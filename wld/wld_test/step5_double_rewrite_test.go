@@ -188,7 +188,7 @@ func TestWceDoubleReadWrite(t *testing.T) {
 				t.Fatalf("failed to write %s: %s", baseName, err.Error())
 			}
 
-			fmt.Println("wrote", fmt.Sprintf("%s/%s.dst/_root.wce", dirTest, baseName))
+			fmt.Println("Wrote", fmt.Sprintf("%s/%s.dst/_root.wce", dirTest, baseName))
 
 			start = time.Now()
 			wldDst2 := &wld.Wld{
