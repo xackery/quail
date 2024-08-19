@@ -6661,6 +6661,11 @@ type ParticleCloudDef struct {
 	SpawnRate             uint32
 	SpawnScale            float32
 	Color                 [4]uint8
+	HexOneHundredFlag     int
+	HexFourHundredFlag    int
+	HexEightThousandFlag  int
+	HexTenThousandFlag    int
+	HexTwentyThousandFlag int
 }
 
 func (e *ParticleCloudDef) Definition() string {
@@ -6696,6 +6701,11 @@ func (e *ParticleCloudDef) Write(token *AsciiWriteToken) error {
 	fmt.Fprintf(w, "\t\tSCALE %0.8e\n", e.SpawnScale)
 	fmt.Fprintf(w, "\tENDSPAWN\n")
 	fmt.Fprintf(w, "\tCOLOR %d %d %d %d\n", e.Color[0], e.Color[1], e.Color[2], e.Color[3])
+	fmt.Fprintf(w, "\tHEXONEHUNDREDFLAG %d\n", e.HexOneHundredFlag)
+	fmt.Fprintf(w, "\tHEXFOURHUNDREDFLAG %d\n", e.HexFourHundredFlag)
+	fmt.Fprintf(w, "\tHEXEIGHTTHOUSANDFLAG %d\n", e.HexEightThousandFlag)
+	fmt.Fprintf(w, "\tHEXTENTHOUSANDFLAG %d\n", e.HexTenThousandFlag)
+	fmt.Fprintf(w, "\tHEXTWENTYTHOUSANDFLAG %d\n", e.HexTwentyThousandFlag)
 	fmt.Fprintf(w, "ENDPARTICLECLOUDDEF\n\n")
 	return nil
 }
@@ -6892,6 +6902,51 @@ func (e *ParticleCloudDef) Read(token *AsciiReadToken) error {
 		return fmt.Errorf("color: %w", err)
 	}
 
+	records, err = token.ReadProperty("HEXONEHUNDREDFLAG", 1)
+	if err != nil {
+		return err
+	}
+	err = parse(&e.HexOneHundredFlag, records[1])
+	if err != nil {
+		return fmt.Errorf("hex one hundred flag: %w", err)
+	}
+
+	records, err = token.ReadProperty("HEXFOURHUNDREDFLAG", 1)
+	if err != nil {
+		return err
+	}
+	err = parse(&e.HexFourHundredFlag, records[1])
+	if err != nil {
+		return fmt.Errorf("hex four hundred flag: %w", err)
+	}
+
+	records, err = token.ReadProperty("HEXEIGHTTHOUSANDFLAG", 1)
+	if err != nil {
+		return err
+	}
+	err = parse(&e.HexEightThousandFlag, records[1])
+	if err != nil {
+		return fmt.Errorf("hex eight thousand flag: %w", err)
+	}
+
+	records, err = token.ReadProperty("HEXTENTHOUSANDFLAG", 1)
+	if err != nil {
+		return err
+	}
+	err = parse(&e.HexTenThousandFlag, records[1])
+	if err != nil {
+		return fmt.Errorf("hex ten thousand flag: %w", err)
+	}
+
+	records, err = token.ReadProperty("HEXTWENTYTHOUSANDFLAG", 1)
+	if err != nil {
+		return err
+	}
+	err = parse(&e.HexTwentyThousandFlag, records[1])
+	if err != nil {
+		return fmt.Errorf("hex twenty thousand flag: %w", err)
+	}
+
 	_, err = token.ReadProperty("ENDPARTICLECLOUDDEF", 0)
 	if err != nil {
 		return err
@@ -6928,6 +6983,26 @@ func (e *ParticleCloudDef) ToRaw(wld *Wld, rawWld *raw.Wld) (int16, error) {
 	}
 	if e.FollowItem != 0 {
 		wfParticleCloud.Flags |= 0x02
+	}
+
+	if e.HexOneHundredFlag != 0 {
+		wfParticleCloud.Flags |= 0x100
+	}
+
+	if e.HexFourHundredFlag != 0 {
+		wfParticleCloud.Flags |= 0x400
+	}
+
+	if e.HexEightThousandFlag != 0 {
+		wfParticleCloud.Flags |= 0x8000
+	}
+
+	if e.HexTenThousandFlag != 0 {
+		wfParticleCloud.Flags |= 0x10000
+	}
+
+	if e.HexTwentyThousandFlag != 0 {
+		wfParticleCloud.Flags |= 0x20000
 	}
 
 	switch e.Movement {
@@ -6978,7 +7053,7 @@ func (e *ParticleCloudDef) FromRaw(wld *Wld, rawWld *raw.Wld, frag *rawfrag.WldF
 	}
 
 	e.ParticleTag = raw.Name(blitSpriteDef.NameRef)
-	e.SettingOne = frag.SettingTwo
+	e.SettingOne = frag.SettingOne
 	e.SettingTwo = frag.SettingTwo
 	switch frag.ParticleMovement {
 	case 1:
@@ -6992,11 +7067,26 @@ func (e *ParticleCloudDef) FromRaw(wld *Wld, rawWld *raw.Wld, frag *rawfrag.WldF
 	default:
 		return fmt.Errorf("unknown movement type %d", frag.ParticleMovement)
 	}
-	if frag.Flags&0x01 == 0x01 {
+	if frag.Flags&0x01 != 0 {
 		e.HighOpacity = 1
 	}
-	if frag.Flags&0x02 == 0x02 {
+	if frag.Flags&0x02 != 0 {
 		e.FollowItem = 1
+	}
+	if frag.Flags&0x100 != 0 {
+		e.HexOneHundredFlag = 1
+	}
+	if frag.Flags&0x400 != 0 {
+		e.HexFourHundredFlag = 1
+	}
+	if frag.Flags&0x8000 != 0 {
+		e.HexEightThousandFlag = 1
+	}
+	if frag.Flags&0x10000 != 0 {
+		e.HexTenThousandFlag = 1
+	}
+	if frag.Flags&0x20000 != 0 {
+		e.HexTwentyThousandFlag = 1
 	}
 	e.SimultaneousParticles = frag.SimultaneousParticles
 	e.UnkSix = frag.Unk6
