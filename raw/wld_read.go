@@ -14,12 +14,13 @@ import (
 )
 
 type Wld struct {
-	MetaFileName string                     `yaml:"file_name"`
-	Version      uint32                     `yaml:"version"`
-	IsNewWorld   bool                       `yaml:"is_old_world"`
-	Fragments    []model.FragmentReadWriter `yaml:"fragments,omitempty"`
-	Unk2         uint32                     `yaml:"unk2"`
-	Unk3         uint32                     `yaml:"unk3"`
+	MetaFileName string
+	Version      uint32
+	IsNewWorld   bool
+	IsZone       bool
+	Fragments    []model.FragmentReadWriter
+	Unk2         uint32
+	Unk3         uint32
 }
 
 func (wld *Wld) Identity() string {

@@ -11,7 +11,6 @@ var AsciiVersion = "v0.0.1"
 
 // Wld is a struct representing a Wld file
 type Wld struct {
-	isZone                 bool           // true when the file is a zone file
 	lastReadModelTag       string         // last model tag read
 	tagIndexes             map[string]int // used when parsing to keep track of indexes
 	FileName               string
@@ -45,6 +44,7 @@ type Wld struct {
 type WldDefinitioner interface {
 	Definition() string
 	ToRaw(srcWld *Wld, dst *raw.Wld) (int16, error)
+	Write(token *AsciiWriteToken) error
 }
 
 // ByTag returns a instance by tag

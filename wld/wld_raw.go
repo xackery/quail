@@ -3,6 +3,7 @@ package wld
 import (
 	"fmt"
 	"io"
+	"strconv"
 	"strings"
 
 	"github.com/xackery/quail/model"
@@ -16,6 +17,10 @@ func (wld *Wld) ReadRaw(src *raw.Wld) error {
 	if src.IsNewWorld {
 		wld.WorldDef.NewWorld = 1
 	}
+	if src.IsZone {
+		wld.WorldDef.Zone = 1
+	}
+
 	for i := 1; i < len(src.Fragments); i++ {
 		fragment := src.Fragments[i]
 		err := readRawFrag(wld, src, fragment)
@@ -88,21 +93,27 @@ func readRawFrag(wld *Wld, rawWld *raw.Wld, fragment model.FragmentReadWriter) e
 		}
 		wld.lastReadModelTag = baseTagTrim(def.Tag)
 
+		if strings.HasPrefix(def.Tag, "R") {
+			tag := strings.TrimSuffix(def.Tag[1:], "_DMSPRITEDEF")
+			_, err := strconv.Atoi(tag)
+			if err == nil {
+				if wld.WorldDef == nil {
+					wld.WorldDef = &WorldDef{}
+				}
+				wld.WorldDef.Zone = 1
+			}
+		}
+
 		wld.DMSpriteDef2s = append(wld.DMSpriteDef2s, def)
 	case rawfrag.FragCodeTrackDef:
-		def := &TrackDef{
-			modelTag: wld.lastReadModelTag,
-		}
+		def := &TrackDef{}
 		err := def.FromRaw(wld, rawWld, fragment.(*rawfrag.WldFragTrackDef))
 		if err != nil {
 			return fmt.Errorf("trackdef: %w", err)
 		}
 		wld.TrackDefs = append(wld.TrackDefs, def)
-
 	case rawfrag.FragCodeTrack:
-		def := &TrackInstance{
-			modelTag: wld.lastReadModelTag,
-		}
+		def := &TrackInstance{}
 		err := def.FromRaw(wld, rawWld, fragment.(*rawfrag.WldFragTrack))
 		if err != nil {
 			return fmt.Errorf("track: %w", err)
@@ -247,14 +258,13 @@ func (wld *Wld) WriteRaw(w io.Writer) error {
 	raw.NameClear()
 
 	if wld.GlobalAmbientLightDef != nil {
-		wld.isZone = true
 		_, err = wld.GlobalAmbientLightDef.ToRaw(wld, dst)
 		if err != nil {
 			return fmt.Errorf("global ambient light: %w", err)
 		}
 	}
 
-	if !wld.isZone {
+	if wld.WorldDef.Zone != 1 {
 		baseTags := []string{}
 		for _, dmSprite := range wld.DMSpriteDef2s {
 			if dmSprite.Tag == "" {
@@ -325,14 +335,14 @@ func (wld *Wld) WriteRaw(w io.Writer) error {
 			}
 
 			for _, track := range wld.TrackInstances {
-				if !isAnimationPrefix(track.Tag) {
+				if !track.Sleep.Valid {
 					continue
 				}
-				trBaseTag := wld.aniWriterTag(track.Tag)
 
-				if baseTag != trBaseTag && track.modelTag != baseTag {
+				if track.SpriteTag != baseTag {
 					continue
 				}
+
 				_, err = track.ToRaw(wld, dst)
 				if err != nil {
 					return fmt.Errorf("track %s: %w", track.Tag, err)
@@ -450,7 +460,7 @@ var animationPrefixesMap = map[string]struct{}{
 	"S01": {}, "S02": {}, "S03": {}, "S04": {}, "S05": {}, "S06": {}, "S07": {}, "S08": {}, "S09": {}, "S10": {},
 	"S11": {}, "S12": {}, "S13": {}, "S14": {}, "S15": {}, "S16": {}, "S17": {}, "S18": {}, "S19": {}, "S20": {},
 	"S21": {}, "S22": {}, "S23": {}, "S24": {}, "S25": {}, "S26": {}, "S27": {}, "S28": {},
-	"P01": {}, "P02": {}, "P03": {}, "P04": {}, "P05": {}, "P06": {}, "P07": {}, "P08": {},
+	"P01": {}, "P02": {}, "P03": {}, "P04": {}, "P05": {}, "P06": {}, "P07": {}, "P08": {}, "P09": {},
 	"O02": {}, "O03": {},
 	"T01": {}, "T02": {}, "T03": {}, "T04": {}, "T05": {}, "T06": {}, "T07": {}, "T08": {}, "T09": {},
 }
@@ -459,10 +469,37 @@ func isAnimationPrefix(name string) bool {
 	if len(name) < 3 {
 		return false
 	}
-	prefix := strings.ToUpper(name[:3])
 
-	_, exists := animationPrefixesMap[prefix]
-	return exists
+	name = strings.TrimSuffix(name, "_ani")
+
+	firstUnderscore := strings.Index(name, "_")
+	if firstUnderscore < 0 {
+		return false
+	}
+
+	name = name[:firstUnderscore]
+	if len(name) < 3 {
+		return false
+	}
+
+	index := name[len(name)-2:]
+	prefix := name[len(name)-3 : len(name)-2]
+
+	isPrefix := false
+	letterPrefixes := []string{"C", "D", "L", "O", "S", "P", "T"}
+	for _, p := range letterPrefixes {
+		if prefix == p {
+			isPrefix = true
+			break
+		}
+	}
+
+	_, err := strconv.Atoi(index)
+	if err != nil {
+		return false
+	}
+
+	return isPrefix
 }
 
 func baseTagTrim(tag string) string {

@@ -320,11 +320,9 @@ func (a *AsciiReadToken) readDefinitions() error {
 				a.wld.SimpleSpriteDefs = append(a.wld.SimpleSpriteDefs, frag)
 				definitions[i] = &SimpleSpriteDef{}
 			case *TrackDef:
-				frag.modelTag = a.wld.lastReadModelTag
 				a.wld.TrackDefs = append(a.wld.TrackDefs, frag)
 				definitions[i] = &TrackDef{}
 			case *TrackInstance:
-				frag.modelTag = a.wld.lastReadModelTag
 				a.wld.TrackInstances = append(a.wld.TrackInstances, frag)
 				definitions[i] = &TrackInstance{}
 			case *LightDef:

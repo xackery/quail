@@ -9,8 +9,12 @@ var tests = []struct {
 	baseName string
 	wldName  string
 }{
+	//{baseName: "frontiermtns_chr"},
+	//{baseName: "crushbone"},
+	//{baseName: "twilight"},
+	{baseName: "global6_chr"},
 	//{baseName: "globalelf_chr"},
-	//{baseName: "crushbone"}, // OK
+	//{baseName: "arena"}, // OK
 	//{baseName: "abysmal"},
 	//{baseName: "global_chr"}, // original human etc
 	//{baseName: "load2"}, // OK
@@ -37,7 +41,7 @@ var tests = []struct {
 
 	// {baseName: "acrylia_obj"}, //acrylia_obj failed to write acrylia_obj: hierarchicalsprite ACTORCH301_HS_DEF: collision volume not found: I_L301_SPB
 	// {baseName: "ael_chr"}, //failed to write ael_chr: actordef AEL_ACTORDEF: sprite AEL_HS_DEF to raw: collision volume not found: I_AELCLOUD01_SPB
-	{baseName: "global_chr"},
+	//{baseName: "gequip.takp", wldName: "gequip.wld"},
 }
 
 func TestStep1(t *testing.T) {

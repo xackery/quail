@@ -2,7 +2,6 @@ package wld
 
 import (
 	"fmt"
-	"io"
 	"strconv"
 	"strings"
 
@@ -14,6 +13,7 @@ import (
 // WorldDef stores data about the world itself
 type WorldDef struct {
 	NewWorld int
+	Zone     int
 }
 
 // Definition returns the definition of the WorldDef
@@ -22,9 +22,14 @@ func (e *WorldDef) Definition() string {
 }
 
 // Write writes the WorldDef to the writer
-func (e *WorldDef) Write(w io.Writer) error {
+func (e *WorldDef) Write(token *AsciiWriteToken) error {
+	w, err := token.Writer()
+	if err != nil {
+		return err
+	}
 	fmt.Fprintf(w, "%s\n", e.Definition())
 	fmt.Fprintf(w, "\tNEWWORLD %d\n", e.NewWorld)
+	fmt.Fprintf(w, "\tZONE %d\n", e.Zone)
 	fmt.Fprintf(w, "ENDWORLDDEF\n\n")
 	return nil
 }
@@ -38,6 +43,15 @@ func (e *WorldDef) Read(token *AsciiReadToken) error {
 	err = parse(&e.NewWorld, records[1])
 	if err != nil {
 		return fmt.Errorf("newworld: %w", err)
+	}
+
+	records, err = token.ReadProperty("ZONE", 1)
+	if err != nil {
+		return err
+	}
+	err = parse(&e.Zone, records[1])
+	if err != nil {
+		return fmt.Errorf("zone: %w", err)
 	}
 
 	_, err = token.ReadProperty("ENDWORLDDEF", 0)
@@ -58,7 +72,11 @@ func (e *GlobalAmbientLightDef) Definition() string {
 	return "GLOBALAMBIENTLIGHTDEF"
 }
 
-func (e *GlobalAmbientLightDef) Write(w io.Writer) error {
+func (e *GlobalAmbientLightDef) Write(token *AsciiWriteToken) error {
+	w, err := token.Writer()
+	if err != nil {
+		return err
+	}
 	fmt.Fprintf(w, "%s\n", e.Definition())
 	fmt.Fprintf(w, "\tCOLOR %d %d %d %d\n", e.Color[0], e.Color[1], e.Color[2], e.Color[3])
 	fmt.Fprintf(w, "ENDGLOBALAMBIENTLIGHTDEF\n\n")
@@ -153,7 +171,49 @@ func (e *DMSpriteDef2) Definition() string {
 	return "DMSPRITEDEF2"
 }
 
-func (e *DMSpriteDef2) Write(w io.Writer) error {
+func (e *DMSpriteDef2) Write(token *AsciiWriteToken) error {
+	w, err := token.Writer()
+	if err != nil {
+		return err
+	}
+
+	if token.IsTagWritten(e.Tag) {
+		return nil
+	}
+	token.SetIsWritten(e.Tag)
+
+	if e.MaterialPaletteTag != "" {
+		palette := token.wld.ByTag(e.MaterialPaletteTag)
+		if palette == nil {
+			return fmt.Errorf("material palette %s not found", e.MaterialPaletteTag)
+		}
+		err = palette.Write(token)
+		if err != nil {
+			return fmt.Errorf("material palette %s: %w", e.MaterialPaletteTag, err)
+		}
+	}
+
+	if e.PolyhedronTag != "" && e.PolyhedronTag != "NEGATIVE_TWO" {
+		poly := token.wld.ByTag(e.PolyhedronTag)
+		if poly == nil {
+			return fmt.Errorf("polyhedron %s not found", e.PolyhedronTag)
+		}
+		switch polyDef := poly.(type) {
+		case *PolyhedronDefinition:
+			err = polyDef.Write(token)
+			if err != nil {
+				return fmt.Errorf("polyhedron %s: %w", polyDef.Tag, err)
+			}
+		case *Sprite3DDef:
+			err = polyDef.Write(token)
+			if err != nil {
+				return fmt.Errorf("sprite 3d %s: %w", polyDef.Tag, err)
+			}
+		default:
+			return fmt.Errorf("polyhedron %s unknown type %T", e.PolyhedronTag, poly)
+		}
+	}
+
 	fmt.Fprintf(w, "%s\n", e.Definition())
 	fmt.Fprintf(w, "\tTAG \"%s\"\n", e.Tag)
 	fmt.Fprintf(w, "\tCENTEROFFSET %0.8e %0.8e %0.8e\n", e.CenterOffset[0], e.CenterOffset[1], e.CenterOffset[2])
@@ -605,7 +665,7 @@ func (e *DMSpriteDef2) ToRaw(wld *Wld, rawWld *raw.Wld) (int16, error) {
 	}
 
 	if e.PolyhedronTag != "" { //&& (!strings.HasPrefix(e.Tag, "R") || !wld.isZone)
-		if strings.HasPrefix(e.Tag, "R") && wld.isZone {
+		if strings.HasPrefix(e.Tag, "R") && wld.WorldDef.Zone == 1 {
 			if e.PolyhedronTag == "NEGATIVE_TWO" {
 				dmSpriteDef.Fragment4Ref = -2
 			}
@@ -917,7 +977,23 @@ func (e *DMSpriteDef) Definition() string {
 	return "DMSPRITEDEFINITION"
 }
 
-func (e *DMSpriteDef) Write(w io.Writer) error {
+func (e *DMSpriteDef) Write(token *AsciiWriteToken) error {
+	w, err := token.Writer()
+	if err != nil {
+		return err
+	}
+
+	if e.MaterialPaletteTag != "" {
+		materialPalette := token.wld.ByTag(e.MaterialPaletteTag)
+		if materialPalette == nil {
+			return fmt.Errorf("material palette %s not found", e.MaterialPaletteTag)
+		}
+		err = materialPalette.Write(token)
+		if err != nil {
+			return fmt.Errorf("material palette %s write: %w", e.MaterialPaletteTag, err)
+		}
+	}
+
 	fmt.Fprintf(w, "%s\n", e.Definition())
 	fmt.Fprintf(w, "\tTAG \"%s\"\n", e.Tag)
 	fmt.Fprintf(w, "\tFRAGMENT1 %d\n", e.Fragment1)
@@ -1359,7 +1435,27 @@ func (e *MaterialPalette) Definition() string {
 	return "MATERIALPALETTE"
 }
 
-func (e *MaterialPalette) Write(w io.Writer) error {
+func (e *MaterialPalette) Write(token *AsciiWriteToken) error {
+	w, err := token.Writer()
+	if err != nil {
+		return err
+	}
+	if token.IsTagWritten(e.Tag) {
+		return nil
+	}
+
+	for _, materialTag := range e.Materials {
+		materialDef := token.wld.ByTag(materialTag)
+		if materialDef == nil {
+			return fmt.Errorf("material %s not found", materialTag)
+		}
+
+		err = materialDef.Write(token)
+		if err != nil {
+			return fmt.Errorf("write materialdef %s: %w", materialTag, err)
+		}
+	}
+
 	fmt.Fprintf(w, "%s\n", e.Definition())
 	fmt.Fprintf(w, "\tTAG \"%s\"\n", e.Tag)
 	fmt.Fprintf(w, "\tNUMMATERIALS %d\n", len(e.Materials))
@@ -1471,7 +1567,27 @@ func (e *MaterialDef) Definition() string {
 	return "MATERIALDEFINITION"
 }
 
-func (e *MaterialDef) Write(w io.Writer) error {
+func (e *MaterialDef) Write(token *AsciiWriteToken) error {
+	w, err := token.Writer()
+	if err != nil {
+		return err
+	}
+
+	if token.IsTagWritten(e.Tag) {
+		return nil
+	}
+
+	if e.SimpleSpriteTag != "" {
+		simpleSprite := token.wld.ByTag(e.SimpleSpriteTag)
+		if simpleSprite == nil {
+			return fmt.Errorf("simple sprite %s not found", e.SimpleSpriteTag)
+		}
+		err = simpleSprite.Write(token)
+		if err != nil {
+			return fmt.Errorf("simple sprite %s: %w", e.SimpleSpriteTag, err)
+		}
+	}
+
 	fmt.Fprintf(w, "%s\n", e.Definition())
 	fmt.Fprintf(w, "\tTAG \"%s\"\n", e.Tag)
 	fmt.Fprintf(w, "\tRENDERMETHOD \"%s\"\n", e.RenderMethod)
@@ -1484,6 +1600,8 @@ func (e *MaterialDef) Write(w io.Writer) error {
 	fmt.Fprintf(w, "\tENDSIMPLESPRITEINST\n")
 	fmt.Fprintf(w, "\tPAIRS? %s %s\n", wcVal(e.Pair1), wcVal(e.Pair2))
 	fmt.Fprintf(w, "ENDMATERIALDEFINITION\n\n")
+
+	token.SetIsWritten(e.Tag)
 	return nil
 }
 
@@ -1689,7 +1807,16 @@ func (e *SimpleSpriteDef) Definition() string {
 	return "SIMPLESPRITEDEF"
 }
 
-func (e *SimpleSpriteDef) Write(w io.Writer) error {
+func (e *SimpleSpriteDef) Write(token *AsciiWriteToken) error {
+	w, err := token.Writer()
+	if err != nil {
+		return err
+	}
+	if token.IsTagWritten(e.Tag) {
+		return nil
+	}
+
+	token.SetIsWritten(e.Tag)
 	fmt.Fprintf(w, "%s\n", e.Definition())
 	fmt.Fprintf(w, "\tSIMPLESPRITETAG \"%s\"\n", e.Tag)
 	fmt.Fprintf(w, "\tSKIPFRAMES? %s\n", wcVal(e.SkipFrames))
@@ -1778,9 +1905,24 @@ func (e *SimpleSpriteDef) Read(token *AsciiReadToken) error {
 }
 
 func (e *SimpleSpriteDef) ToRaw(wld *Wld, rawWld *raw.Wld) (int16, error) {
-	//if e.fragID != 0 {
-	//	return e.fragID, nil
-	//}
+
+	if strings.HasSuffix(e.Tag, "_SPRITE") && len(e.Tag) > 11 {
+		variableTag := strings.TrimSuffix(e.Tag, "_SPRITE")
+
+		index := variableTag[len(variableTag)-2:]
+		_, err := strconv.Atoi(index)
+		if err == nil {
+			index = variableTag[len(variableTag)-4 : len(variableTag)-2]
+			_, err = strconv.Atoi(index)
+			if err == nil {
+				if e.fragID != 0 {
+					fmt.Println("found dedupe at ", e.Tag)
+					return e.fragID, nil
+				}
+			}
+		}
+	}
+
 	flags := uint32(0)
 	wfSimpleSpriteDef := &rawfrag.WldFragSimpleSpriteDef{
 		Sleep: e.Sleep.Uint32,
@@ -1892,7 +2034,52 @@ func (e *ActorDef) Definition() string {
 	return "ACTORDEF"
 }
 
-func (e *ActorDef) Write(w io.Writer) error {
+func (e *ActorDef) Write(token *AsciiWriteToken) error {
+	w, err := token.Writer()
+	if err != nil {
+		return err
+	}
+
+	if token.IsTagWritten(e.Tag) {
+		return nil
+	}
+
+	token.SetIsWritten(e.Tag)
+
+	for _, action := range e.Actions {
+		for lodIndex, lod := range action.LevelOfDetails {
+			if lod.SpriteTag == "" {
+				continue
+			}
+
+			spriteFrag := token.wld.ByTag(lod.SpriteTag)
+			if spriteFrag == nil {
+				return fmt.Errorf("lod %d sprite %s not found", lodIndex, lod.SpriteTag)
+			}
+
+			switch sprite := spriteFrag.(type) {
+			case *SimpleSpriteDef:
+				err = sprite.Write(token)
+				if err != nil {
+					return fmt.Errorf("lod %d spritedef %s: %w", lodIndex, sprite.Tag, err)
+				}
+			case *Sprite3DDef:
+				err = sprite.Write(token)
+				if err != nil {
+					return fmt.Errorf("lod %d 3dspritedef %s: %w", lodIndex, sprite.Tag, err)
+				}
+			case *HierarchicalSpriteDef:
+				err = sprite.Write(token)
+				if err != nil {
+					return fmt.Errorf("lod %d hsprite %s: %w", lodIndex, sprite.Tag, err)
+				}
+
+			default:
+				return fmt.Errorf("lod %d unknown sprite type %T", lodIndex, sprite)
+			}
+		}
+	}
+
 	fmt.Fprintf(w, "%s\n", e.Definition())
 	fmt.Fprintf(w, "\tACTORTAG \"%s\"\n", e.Tag)
 	fmt.Fprintf(w, "\tCALLBACK \"%s\"\n", e.Callback)
@@ -2332,7 +2519,38 @@ func (e *ActorInst) Definition() string {
 	return "ACTORINST"
 }
 
-func (e *ActorInst) Write(w io.Writer) error {
+func (e *ActorInst) Write(token *AsciiWriteToken) error {
+	w, err := token.Writer()
+	if err != nil {
+		return err
+	}
+
+	if e.DMRGBTrackTag.Valid {
+		dTrack := token.wld.ByTag(e.DMRGBTrackTag.String)
+		if dTrack == nil {
+			return fmt.Errorf("dmrgbtrack %s not found", e.DMRGBTrackTag.String)
+		}
+		err = dTrack.Write(token)
+		if err != nil {
+			return fmt.Errorf("dmrgbtrack %s: %w", e.DMRGBTrackTag.String, err)
+		}
+	}
+
+	if e.DefinitionTag == "!UNK" {
+		return fmt.Errorf("actordef %s is !UNK and not found", e.DefinitionTag)
+	}
+
+	if e.DefinitionTag != "" {
+		actorDef := token.wld.ByTag(e.DefinitionTag)
+		if actorDef == nil {
+			return fmt.Errorf("actordef %s not found", e.DefinitionTag)
+		}
+		err = actorDef.Write(token)
+		if err != nil {
+			return fmt.Errorf("actordef %s: %w", e.DefinitionTag, err)
+		}
+	}
+
 	fmt.Fprintf(w, "%s\n", e.Definition())
 	fmt.Fprintf(w, "\tTAG \"%s\"\n", e.Tag)
 	fmt.Fprintf(w, "\tDEFINITION \"%s\"\n", e.DefinitionTag)
@@ -2699,7 +2917,11 @@ func (e *LightDef) Definition() string {
 	return "LIGHTDEFINITION"
 }
 
-func (e *LightDef) Write(w io.Writer) error {
+func (e *LightDef) Write(token *AsciiWriteToken) error {
+	w, err := token.Writer()
+	if err != nil {
+		return err
+	}
 	fmt.Fprintf(w, "%s\n", e.Definition())
 	fmt.Fprintf(w, "\tTAG \"%s\"\n", e.Tag)
 	fmt.Fprintf(w, "\tCURRENTFRAME? %s\n", wcVal(e.CurrentFrame))
@@ -2892,7 +3114,11 @@ func (e *PointLight) Definition() string {
 	return "POINTLIGHT"
 }
 
-func (e *PointLight) Write(w io.Writer) error {
+func (e *PointLight) Write(token *AsciiWriteToken) error {
+	w, err := token.Writer()
+	if err != nil {
+		return err
+	}
 	fmt.Fprintf(w, "%s\n", e.Definition())
 	fmt.Fprintf(w, "\tTAG \"%s\"\n", e.Tag)
 	fmt.Fprintf(w, "\tLIGHT \"%s\"\n", e.LightTag)
@@ -3077,7 +3303,15 @@ func (e *Sprite3DDef) Definition() string {
 	return "3DSPRITEDEF"
 }
 
-func (e *Sprite3DDef) Write(w io.Writer) error {
+func (e *Sprite3DDef) Write(token *AsciiWriteToken) error {
+	w, err := token.Writer()
+	if err != nil {
+		return err
+	}
+	if token.IsTagWritten(e.Tag) {
+		return nil
+	}
+	token.SetIsWritten(e.Tag)
 	fmt.Fprintf(w, "%s\n", e.Definition())
 	fmt.Fprintf(w, "\tTAG \"%s\"\n", e.Tag)
 	fmt.Fprintf(w, "\tCENTEROFFSET? %s\n", wcVal(e.CenterOffset))
@@ -3545,7 +3779,11 @@ func (e *PolyhedronDefinition) Definition() string {
 	return "POLYHEDRONDEFINITION"
 }
 
-func (e *PolyhedronDefinition) Write(w io.Writer) error {
+func (e *PolyhedronDefinition) Write(token *AsciiWriteToken) error {
+	w, err := token.Writer()
+	if err != nil {
+		return err
+	}
 	fmt.Fprintf(w, "%s\n", e.Definition())
 	fmt.Fprintf(w, "\tTAG \"%s\"\n", e.Tag)
 	fmt.Fprintf(w, "\tBOUNDINGRADIUS %0.8e\n", e.BoundingRadius)
@@ -3706,9 +3944,9 @@ func (e *PolyhedronDefinition) FromRaw(wld *Wld, rawWld *raw.Wld, frag *rawfrag.
 
 type TrackInstance struct {
 	fragID             int16
-	modelTag           string
 	Tag                string
 	TagIndex           int
+	SpriteTag          string
 	DefinitionTag      string
 	DefinitionTagIndex int
 	Interpolate        int
@@ -3720,10 +3958,30 @@ func (e *TrackInstance) Definition() string {
 	return "TRACKINSTANCE"
 }
 
-func (e *TrackInstance) Write(w io.Writer) error {
+func (e *TrackInstance) Write(token *AsciiWriteToken) error {
+	w, err := token.Writer()
+	if err != nil {
+		return err
+	}
+	if token.IsTagWritten(e.Tag) {
+		return nil
+	}
+	token.SetIsWritten(e.Tag)
+	if e.DefinitionTag != "" {
+		trackDef := token.wld.ByTagWithIndex(e.DefinitionTag, e.DefinitionTagIndex)
+		if trackDef == nil {
+			return fmt.Errorf("track %s%d refers to trackdef %s%d but it does not exist", e.Tag, e.TagIndex, e.DefinitionTag, e.DefinitionTagIndex)
+		}
+		err = trackDef.Write(token)
+		if err != nil {
+			return fmt.Errorf("trackdef %s%d write: %w", e.DefinitionTag, e.DefinitionTagIndex, err)
+		}
+	}
+
 	fmt.Fprintf(w, "%s\n", e.Definition())
 	fmt.Fprintf(w, "\tTAG \"%s\"\n", e.Tag)
 	fmt.Fprintf(w, "\tTAGINDEX %d\n", e.TagIndex)
+	fmt.Fprintf(w, "\tSPRITE \"%s_DMSPRITEDEF\"\n", e.SpriteTag)
 	fmt.Fprintf(w, "\tDEFINITION \"%s\"\n", e.DefinitionTag)
 	fmt.Fprintf(w, "\tDEFINITIONINDEX %d\n", e.DefinitionTagIndex)
 	fmt.Fprintf(w, "\tINTERPOLATE %d\n", e.Interpolate)
@@ -3748,6 +4006,12 @@ func (e *TrackInstance) Read(token *AsciiReadToken) error {
 	if err != nil {
 		return fmt.Errorf("tag index: %w", err)
 	}
+
+	records, err = token.ReadProperty("SPRITE", 1)
+	if err != nil {
+		return err
+	}
+	e.SpriteTag = strings.TrimSuffix(records[1], "_DMSPRITEDEF")
 
 	records, err = token.ReadProperty("DEFINITION", 1)
 	if err != nil {
@@ -3859,6 +4123,7 @@ func (e *TrackInstance) FromRaw(wld *Wld, rawWld *raw.Wld, frag *rawfrag.WldFrag
 
 	e.Tag = raw.Name(frag.NameRef)
 	e.TagIndex = wld.NextTagIndex(e.Tag)
+	e.SpriteTag = wld.lastReadModelTag
 	e.DefinitionTag = raw.Name(trackDef.NameRef)
 	e.DefinitionTagIndex = wld.tagIndexes[e.DefinitionTag]
 
@@ -3878,9 +4143,9 @@ func (e *TrackInstance) FromRaw(wld *Wld, rawWld *raw.Wld, frag *rawfrag.WldFrag
 
 type TrackDef struct {
 	fragID          int16
-	modelTag        string
 	Tag             string
 	TagIndex        int
+	SpriteTag       string
 	FrameTransforms []*TrackFrameTransform
 }
 
@@ -3896,10 +4161,22 @@ func (e *TrackDef) Definition() string {
 	return "TRACKDEFINITION"
 }
 
-func (e *TrackDef) Write(w io.Writer) error {
+func (e *TrackDef) Write(token *AsciiWriteToken) error {
+	w, err := token.Writer()
+	if err != nil {
+		return err
+	}
+
+	if token.IsTagWritten(e.Tag) {
+		return nil
+	}
+
+	token.SetIsWritten(e.Tag)
+
 	fmt.Fprintf(w, "%s\n", e.Definition())
 	fmt.Fprintf(w, "\tTAG \"%s\"\n", e.Tag)
 	fmt.Fprintf(w, "\tTAGINDEX %d\n", e.TagIndex)
+	fmt.Fprintf(w, "\tSPRITE \"%s_DMSPRITEDEF\"\n", e.SpriteTag)
 	fmt.Fprintf(w, "\tNUMFRAMES %d\n", len(e.FrameTransforms))
 	for _, frame := range e.FrameTransforms {
 		fmt.Fprintf(w, "\tFRAMETRANSFORM\n")
@@ -3930,6 +4207,12 @@ func (e *TrackDef) Read(token *AsciiReadToken) error {
 	if err != nil {
 		return fmt.Errorf("tag index: %w", err)
 	}
+
+	records, err = token.ReadProperty("SPRITE", 1)
+	if err != nil {
+		return err
+	}
+	e.SpriteTag = strings.TrimSuffix(records[1], "_DMSPRITEDEF")
 
 	records, err = token.ReadProperty("NUMFRAMES", 1)
 	if err != nil {
@@ -4084,6 +4367,7 @@ func (e *TrackDef) FromRaw(wld *Wld, rawWld *raw.Wld, frag *rawfrag.WldFragTrack
 
 	e.Tag = raw.Name(frag.NameRef)
 	e.TagIndex = wld.NextTagIndex(e.Tag)
+	e.SpriteTag = wld.lastReadModelTag
 
 	for _, fragFrame := range frag.FrameTransforms {
 		frame := &TrackFrameTransform{
@@ -4161,7 +4445,48 @@ func (e *HierarchicalSpriteDef) Definition() string {
 	return "HIERARCHICALSPRITEDEF"
 }
 
-func (e *HierarchicalSpriteDef) Write(w io.Writer) error {
+func (e *HierarchicalSpriteDef) Write(token *AsciiWriteToken) error {
+	w, err := token.Writer()
+	if err != nil {
+		return err
+	}
+
+	if token.IsTagWritten(e.Tag) {
+		return nil
+	}
+
+	token.SetIsWritten(e.Tag)
+
+	/* for _, skin := range e.AttachedSkins {
+
+	} */
+
+	for _, dag := range e.Dags {
+		if dag.Track != "" {
+
+			trackDef := token.wld.ByTagWithIndex(dag.Track, dag.TrackIndex)
+			if trackDef == nil {
+				return fmt.Errorf("track %s_%d not found", dag.Track, dag.TrackIndex)
+			}
+
+			err = trackDef.Write(token)
+			if err != nil {
+				return fmt.Errorf("track %s_%d: %w", dag.Track, dag.TrackIndex, err)
+			}
+		}
+		if dag.SpriteTag != "" {
+			spriteDef := token.wld.ByTag(dag.SpriteTag)
+			if spriteDef == nil {
+				return fmt.Errorf("sprite %s not found", dag.SpriteTag)
+			}
+
+			err = spriteDef.Write(token)
+			if err != nil {
+				return fmt.Errorf("sprite %s: %w", dag.SpriteTag, err)
+			}
+		}
+	}
+
 	fmt.Fprintf(w, "%s\n", e.Definition())
 	fmt.Fprintf(w, "\tTAG \"%s\"\n", e.Tag)
 	fmt.Fprintf(w, "\tNUMDAGS %d\n", len(e.Dags))
@@ -4802,7 +5127,11 @@ func (e *WorldTree) Definition() string {
 	return "WORLDTREE"
 }
 
-func (e *WorldTree) Write(w io.Writer) error {
+func (e *WorldTree) Write(token *AsciiWriteToken) error {
+	w, err := token.Writer()
+	if err != nil {
+		return err
+	}
 	fmt.Fprintf(w, "%s\n", e.Definition())
 	fmt.Fprintf(w, "\tTAG \"%s\"\n", e.Tag)
 	fmt.Fprintf(w, "\tNUMWORLDNODES %d\n", len(e.WorldNodes))
@@ -5009,7 +5338,22 @@ func (e *Region) Definition() string {
 	return "REGION"
 }
 
-func (e *Region) Write(w io.Writer) error {
+func (e *Region) Write(token *AsciiWriteToken) error {
+	w, err := token.Writer()
+	if err != nil {
+		return err
+	}
+	if e.SpriteTag != "" {
+		sprite := token.wld.ByTag(e.SpriteTag)
+		if sprite == nil {
+			return fmt.Errorf("sprite not found: %s", e.SpriteTag)
+		}
+		err = sprite.Write(token)
+		if err != nil {
+			return fmt.Errorf("sprite write: %w", err)
+		}
+	}
+
 	fmt.Fprintf(w, "%s\n", e.Definition())
 	fmt.Fprintf(w, "\tREGIONTAG \"%s\"\n", e.Tag)
 	fmt.Fprintf(w, "\tREVERBVOLUME %0.8e\n", e.ReverbVolume)
@@ -5711,7 +6055,11 @@ func (e *AmbientLight) Definition() string {
 	return "AMBIENTLIGHT"
 }
 
-func (e *AmbientLight) Write(w io.Writer) error {
+func (e *AmbientLight) Write(token *AsciiWriteToken) error {
+	w, err := token.Writer()
+	if err != nil {
+		return err
+	}
 	fmt.Fprintf(w, "%s\n", e.Definition())
 	fmt.Fprintf(w, "\tTAG \"%s\"\n", e.Tag)
 	fmt.Fprintf(w, "\tLIGHT \"%s\"\n", e.LightTag)
@@ -5855,7 +6203,11 @@ func (e *Zone) Definition() string {
 	return "ZONE"
 }
 
-func (e *Zone) Write(w io.Writer) error {
+func (e *Zone) Write(token *AsciiWriteToken) error {
+	w, err := token.Writer()
+	if err != nil {
+		return err
+	}
 	fmt.Fprintf(w, "%s\n", e.Definition())
 	fmt.Fprintf(w, "\tTAG \"%s\"\n", e.Tag)
 	fmt.Fprintf(w, "\tREGIONLIST %d", len(e.Regions))
@@ -5954,7 +6306,11 @@ func (e *RGBTrackDef) Definition() string {
 	return "RGBDEFORMATIONTRACKDEF"
 }
 
-func (e *RGBTrackDef) Write(w io.Writer) error {
+func (e *RGBTrackDef) Write(token *AsciiWriteToken) error {
+	w, err := token.Writer()
+	if err != nil {
+		return err
+	}
 	fmt.Fprintf(w, "%s\n", e.Definition())
 	fmt.Fprintf(w, "\tTAG \"%s\"\n", e.Tag)
 	fmt.Fprintf(w, "\tDATA1 %d\n", e.Data1)
@@ -6098,12 +6454,28 @@ func (e *BlitSpriteDefinition) Definition() string {
 	return "BLITSPRITEDEFINITION"
 }
 
-func (e *BlitSpriteDefinition) Write(w io.Writer) error {
+func (e *BlitSpriteDefinition) Write(token *AsciiWriteToken) error {
+	w, err := token.Writer()
+	if err != nil {
+		return err
+	}
+
 	fmt.Fprintf(w, "%s\n", e.Definition())
 	fmt.Fprintf(w, "\tTAG \"%s\"\n", e.Tag)
 	fmt.Fprintf(w, "\tSPRITE \"%s\"\n", e.SpriteTag)
 	fmt.Fprintf(w, "\tUNKNOWN %d\n", e.Unknown)
 	fmt.Fprintf(w, "ENDBLITSPRITEDEFINITION\n\n")
+
+	for _, cloud := range token.wld.ParticleCloudDefs {
+		if cloud.ParticleTag != e.Tag {
+			continue
+		}
+		err = cloud.Write(token)
+		if err != nil {
+			return err
+		}
+		break
+	}
 	return nil
 }
 
@@ -6211,13 +6583,17 @@ func (e *ParticleCloudDef) Definition() string {
 	return "PARTICLECLOUDDEF"
 }
 
-func (e *ParticleCloudDef) Write(w io.Writer) error {
+func (e *ParticleCloudDef) Write(token *AsciiWriteToken) error {
+	w, err := token.Writer()
+	if err != nil {
+		return err
+	}
 	fmt.Fprintf(w, "%s\n", e.Definition())
 	fmt.Fprintf(w, "\tTAG \"%s\"\n", e.Tag)
 	fmt.Fprintf(w, "\tPARTICLETAG \"%s\"\n", e.ParticleTag)
 	fmt.Fprintf(w, "\tSETTINGONE %d\n", e.SettingOne)
 	fmt.Fprintf(w, "\tSETTINGTWO %d\n", e.SettingTwo)
-	fmt.Fprintf(w, "\tMOVEMENT \"%s\" // SPHERE, PLANE, STREAM, NONE\n", e.Movement)
+	fmt.Fprintf(w, "\tMOVEMENT \"%s\"\n", e.Movement) // SPHERE, PLANE, STREAM, NONE\n", e.Movement)
 	fmt.Fprintf(w, "\tHIGHOPACITY %d\n", e.HighOpacity)
 	fmt.Fprintf(w, "\tFOLLOWITEM %d\n", e.FollowItem)
 	fmt.Fprintf(w, "\tSIMULTANEOUSPARTICLES %d\n", e.SimultaneousParticles)
@@ -6231,7 +6607,7 @@ func (e *ParticleCloudDef) Write(w io.Writer) error {
 	fmt.Fprintf(w, "\t\tANGLE %0.8e\n", e.SpawnAngle)
 	fmt.Fprintf(w, "\t\tLIFESPAN %d\n", e.SpawnLifespan)
 	fmt.Fprintf(w, "\t\tVELOCITY %0.8e\n", e.SpawnVelocity)
-	fmt.Fprintf(w, "\t\tNORMALXYZ %s\n", wcVal(e.SpawnNormal))
+	fmt.Fprintf(w, "\t\tNORMALXYZ %0.8e %0.8e %0.8e\n", e.SpawnNormal[0], e.SpawnNormal[1], e.SpawnNormal[2])
 	fmt.Fprintf(w, "\t\tRATE %d\n", e.SpawnRate)
 	fmt.Fprintf(w, "\t\tSCALE %0.8e\n", e.SpawnScale)
 	fmt.Fprintf(w, "\tENDSPAWN\n")
@@ -6582,7 +6958,11 @@ func (e *Sprite2DDef) Definition() string {
 	return "SPRITE2DDEF"
 }
 
-func (e *Sprite2DDef) Write(w io.Writer) error {
+func (e *Sprite2DDef) Write(token *AsciiWriteToken) error {
+	w, err := token.Writer()
+	if err != nil {
+		return err
+	}
 	fmt.Fprintf(w, "%s\n", e.Definition())
 	fmt.Fprintf(w, "\tTAG \"%s\"\n", e.Tag)
 	fmt.Fprintf(w, "\tSCALE %0.8e %0.8e\n", e.Scale[0], e.Scale[1])
