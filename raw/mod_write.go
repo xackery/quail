@@ -16,26 +16,26 @@ func (mod *Mod) Write(w io.Writer) error {
 	enc.String("EQGM")
 	enc.Uint32(mod.Version)
 
-	NameClear()
+	mod.NameClear()
 
 	for _, material := range mod.Materials {
-		NameAdd(material.Name)
-		NameAdd(material.ShaderName)
+		mod.NameAdd(material.Name)
+		mod.NameAdd(material.ShaderName)
 		for _, prop := range material.Properties {
-			NameAdd(prop.Name)
+			mod.NameAdd(prop.Name)
 			switch prop.Category {
 			case 2:
-				NameAdd(prop.Value)
+				mod.NameAdd(prop.Value)
 			default:
 			}
 		}
 	}
 
 	for _, bone := range mod.Bones {
-		NameAdd(bone.Name)
+		mod.NameAdd(bone.Name)
 	}
 
-	nameData := NameData()
+	nameData := mod.NameData()
 	enc.Uint32(uint32(len(nameData))) // nameLength
 	enc.Uint32(uint32(len(mod.Materials)))
 	enc.Uint32(uint32(len(mod.Vertices)))
@@ -45,11 +45,11 @@ func (mod *Mod) Write(w io.Writer) error {
 
 	for _, material := range mod.Materials {
 		enc.Int32(material.ID)
-		enc.Uint32(uint32(NameIndex(material.Name)))
-		enc.Uint32(uint32(NameIndex(material.ShaderName)))
+		enc.Uint32(uint32(mod.NameIndex(material.Name)))
+		enc.Uint32(uint32(mod.NameIndex(material.ShaderName)))
 		enc.Uint32(uint32(len(material.Properties)))
 		for _, prop := range material.Properties {
-			enc.Uint32(uint32(NameIndex(prop.Name)))
+			enc.Uint32(uint32(mod.NameIndex(prop.Name)))
 			enc.Uint32(uint32(prop.Category))
 			switch prop.Category {
 			case 0:
@@ -59,7 +59,7 @@ func (mod *Mod) Write(w io.Writer) error {
 				}
 				enc.Float32(float32(fval))
 			case 2:
-				enc.Int32(NameIndex(prop.Value))
+				enc.Int32(mod.NameIndex(prop.Value))
 			default:
 				val, err := strconv.Atoi(prop.Value)
 				if err != nil {
@@ -107,7 +107,7 @@ func (mod *Mod) Write(w io.Writer) error {
 	}
 
 	for _, bone := range mod.Bones {
-		enc.Int32(NameIndex(bone.Name))
+		enc.Int32(mod.NameIndex(bone.Name))
 		enc.Int32(bone.Next)
 		enc.Uint32(bone.ChildrenCount)
 		enc.Int32(bone.ChildIndex)

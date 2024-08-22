@@ -6,6 +6,7 @@ import (
 	"io"
 
 	"github.com/xackery/encdec"
+	"github.com/xackery/quail/helper"
 	"github.com/xackery/quail/model"
 )
 
@@ -20,6 +21,8 @@ type Mds struct {
 	Triangles       []Triangle           `yaml:"triangles"`
 	Subs            []*MdsSub            `yaml:"subs"`
 	BoneAssignments []*MdsBoneAssignment `yaml:"bone_assignments"`
+	names           []*nameEntry
+	nameBuf         []byte
 }
 
 func (mds *Mds) Identity() string {
@@ -70,15 +73,15 @@ func (mds *Mds) Read(r io.ReadSeeker) error {
 		chunk = append(chunk, b)
 	}
 
-	NameSet(names)
+	mds.NameSet(names)
 
 	//model.Header.Name = lastElement
 
 	for i := 0; i < int(materialCount); i++ {
 		material := &Material{}
 		material.ID = dec.Int32()
-		material.Name = Name(dec.Int32())
-		material.ShaderName = Name(dec.Int32())
+		material.Name = mds.Name(dec.Int32())
+		material.ShaderName = mds.Name(dec.Int32())
 
 		mds.Materials = append(mds.Materials, material)
 		propertyCount := dec.Uint32()
@@ -87,7 +90,7 @@ func (mds *Mds) Read(r io.ReadSeeker) error {
 				Name: material.Name,
 			}
 
-			property.Name = Name(dec.Int32())
+			property.Name = mds.Name(dec.Int32())
 
 			property.Category = dec.Uint32()
 			if property.Category == 0 {
@@ -95,7 +98,7 @@ func (mds *Mds) Read(r io.ReadSeeker) error {
 			} else {
 				val := dec.Int32()
 				if property.Category == 2 {
-					property.Value = Name(val)
+					property.Value = mds.Name(val)
 				} else {
 					property.Value = fmt.Sprintf("%d", val)
 				}
@@ -107,7 +110,7 @@ func (mds *Mds) Read(r io.ReadSeeker) error {
 
 	for i := 0; i < int(boneCount); i++ {
 		bone := &Bone{}
-		bone.Name = Name(dec.Int32())
+		bone.Name = mds.Name(dec.Int32())
 		bone.Next = dec.Int32()
 		bone.ChildrenCount = dec.Uint32()
 		bone.ChildIndex = dec.Int32()
@@ -210,4 +213,103 @@ func (mds *Mds) SetFileName(name string) {
 // FileName returns the name of the file
 func (mds *Mds) FileName() string {
 	return mds.MetaFileName
+}
+
+// Name is used during reading, returns the Name of an id
+func (mds *Mds) Name(id int32) string {
+	if id < 0 {
+		id = -id
+	}
+	if mds.names == nil {
+		return fmt.Sprintf("!UNK(%d)", id)
+	}
+	//fmt.Println("name: [", names[id], "]")
+
+	for _, v := range mds.names {
+		if int32(v.offset) == id {
+			return v.name
+		}
+	}
+	return fmt.Sprintf("!UNK(%d)", id)
+}
+
+// NameSet is used during reading, sets the names within a buffer
+func (mds *Mds) NameSet(newNames map[int32]string) {
+	if newNames == nil {
+		mds.names = []*nameEntry{}
+		return
+	}
+	for k, v := range newNames {
+		mds.names = append(mds.names, &nameEntry{offset: int(k), name: v})
+	}
+	mds.nameBuf = []byte{0x00}
+
+	for _, v := range mds.names {
+		mds.nameBuf = append(mds.nameBuf, []byte(v.name)...)
+		mds.nameBuf = append(mds.nameBuf, 0)
+	}
+}
+
+// NameAdd is used when writing, appending new names
+func (mds *Mds) NameAdd(name string) int32 {
+
+	if mds.names == nil {
+		mds.names = []*nameEntry{
+			{offset: 0, name: ""},
+		}
+		mds.nameBuf = []byte{0x00}
+	}
+	if name == "" {
+		return 0
+	}
+
+	/* if name[len(mds.name)-1:] != "\x00" {
+		name += "\x00"
+	}
+	*/
+	if id := mds.NameOffset(name); id != -1 {
+		return -id
+	}
+	mds.names = append(mds.names, &nameEntry{offset: len(mds.nameBuf), name: name})
+	lastRef := int32(len(mds.nameBuf))
+	mds.nameBuf = append(mds.nameBuf, []byte(name)...)
+	mds.nameBuf = append(mds.nameBuf, 0)
+	return int32(-lastRef)
+}
+
+func (mds *Mds) NameOffset(name string) int32 {
+	if mds.names == nil {
+		return -1
+	}
+	for _, v := range mds.names {
+		if v.name == name {
+			return int32(v.offset)
+		}
+	}
+	return -1
+}
+
+// NameIndex is used when reading, returns the index of a name, or -1 if not found
+func (mds *Mds) NameIndex(name string) int32 {
+	if mds.names == nil {
+		return -1
+	}
+	for k, v := range mds.names {
+		if v.name == name {
+			return int32(k)
+		}
+	}
+	return -1
+}
+
+// NameData is used during writing, dumps the name cache
+func (mds *Mds) NameData() []byte {
+
+	return helper.WriteStringHash(string(mds.nameBuf))
+}
+
+// NameClear purges names and namebuf, called when encode starts
+func (mds *Mds) NameClear() {
+	mds.names = nil
+	mds.nameBuf = nil
 }

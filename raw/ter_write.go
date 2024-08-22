@@ -16,22 +16,22 @@ func (ter *Ter) Write(w io.Writer) error {
 	enc.String("EQGT")
 	enc.Uint32(ter.Version)
 
-	NameClear()
+	ter.NameClear()
 
 	for _, material := range ter.Materials {
-		NameAdd(material.Name)
-		NameAdd(material.ShaderName)
+		ter.NameAdd(material.Name)
+		ter.NameAdd(material.ShaderName)
 		for _, prop := range material.Properties {
-			NameAdd(prop.Name)
+			ter.NameAdd(prop.Name)
 			switch prop.Category {
 			case 2:
-				NameAdd(prop.Value)
+				ter.NameAdd(prop.Value)
 			default:
 			}
 		}
 	}
 
-	nameData := NameData()
+	nameData := ter.NameData()
 	enc.Uint32(uint32(len(nameData))) // nameLength
 	enc.Uint32(uint32(len(ter.Materials)))
 	enc.Uint32(uint32(len(ter.Vertices)))
@@ -40,11 +40,11 @@ func (ter *Ter) Write(w io.Writer) error {
 
 	for _, material := range ter.Materials {
 		enc.Int32(material.ID)
-		enc.Uint32(uint32(NameIndex(material.Name)))
-		enc.Uint32(uint32(NameIndex(material.ShaderName)))
+		enc.Uint32(uint32(ter.NameIndex(material.Name)))
+		enc.Uint32(uint32(ter.NameIndex(material.ShaderName)))
 		enc.Uint32(uint32(len(material.Properties)))
 		for _, prop := range material.Properties {
-			enc.Uint32(uint32(NameIndex(prop.Name)))
+			enc.Uint32(uint32(ter.NameIndex(prop.Name)))
 			enc.Uint32(uint32(prop.Category))
 			switch prop.Category {
 			case 0:
@@ -54,7 +54,7 @@ func (ter *Ter) Write(w io.Writer) error {
 				}
 				enc.Float32(float32(fval))
 			case 2:
-				enc.Int32(NameIndex(prop.Value))
+				enc.Int32(ter.NameIndex(prop.Value))
 			default:
 				return err
 			}

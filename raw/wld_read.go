@@ -20,6 +20,8 @@ type Wld struct {
 	Fragments    []model.FragmentReadWriter
 	Unk2         uint32
 	Unk3         uint32
+	names        []*nameEntry
+	nameBuf      []byte
 }
 
 func (wld *Wld) Identity() string {
@@ -58,15 +60,15 @@ func (wld *Wld) Read(r io.ReadSeeker) error {
 	hashRaw := dec.Bytes(int(hashSize))
 	nameData := helper.ReadStringHash(hashRaw)
 
-	names = []*nameEntry{}
+	wld.names = []*nameEntry{}
 	chunk := []rune{}
 	lastOffset := 0
 	//nameBuf = []byte{}
 	for i, b := range nameData {
 		if b == 0 {
-			names = append(names, &nameEntry{name: string(chunk), offset: lastOffset})
-			//nameBuf = append(nameBuf, []byte(string(chunk))...)
-			//nameBuf = append(nameBuf, 0)
+			wld.names = append(wld.names, &nameEntry{name: string(chunk), offset: lastOffset})
+			//nameBuf = append(wld.nameBuf, []byte(string(chunk))...)
+			//nameBuf = append(wld.nameBuf, 0)
 			chunk = []rune{}
 			lastOffset = i + 1
 			continue
@@ -77,12 +79,12 @@ func (wld *Wld) Read(r io.ReadSeeker) error {
 		chunk = append(chunk, b)
 	}
 
-	if len(names) != int(stringCount)+1 {
-		fmt.Printf("name count mismatch, wanted %d, got %d (ignoring, openzone?)\n", stringCount, len(names))
-		//return fmt.Errorf("name count mismatch, wanted %d, got %d", stringCount, len(names))
+	if len(wld.names) != int(stringCount)+1 {
+		fmt.Printf("name count mismatch, wanted %d, got %d (ignoring, openzone?)\n", stringCount, len(wld.names))
+		//return fmt.Errorf("name count mismatch, wanted %d, got %d", stringCount, len(wld.names))
 	}
 
-	nameBuf = hashRaw
+	wld.nameBuf = hashRaw
 
 	fragments, err := readFragments(fragmentCount, r)
 	if err != nil {
@@ -171,12 +173,12 @@ func (wld *Wld) rawFrags(r io.ReadSeeker) ([][]byte, error) {
 	hashRaw := dec.Bytes(int(hashSize))
 	nameData := helper.ReadStringHash(hashRaw)
 
-	names = []*nameEntry{}
+	wld.names = []*nameEntry{}
 	chunk := []rune{}
 	lastOffset := 0
 	for i, b := range nameData {
 		if b == 0 {
-			names = append(names, &nameEntry{name: string(chunk), offset: lastOffset})
+			wld.names = append(wld.names, &nameEntry{name: string(chunk), offset: lastOffset})
 			chunk = []rune{}
 			lastOffset = i + 1
 			continue
@@ -187,7 +189,7 @@ func (wld *Wld) rawFrags(r io.ReadSeeker) ([][]byte, error) {
 		chunk = append(chunk, b)
 	}
 
-	nameBuf = hashRaw
+	wld.nameBuf = hashRaw
 
 	fragments, err := readFragments(fragmentCount, r)
 	if err != nil {
@@ -244,4 +246,192 @@ func (wld *Wld) SetFileName(name string) {
 // FileName returns the name of the file
 func (wld *Wld) FileName() string {
 	return wld.MetaFileName
+}
+
+// Name is used during reading, returns the Name of an id
+func (wld *Wld) Name(id int32) string {
+	if id < 0 {
+		id = -id
+	}
+	if wld.names == nil {
+		return fmt.Sprintf("!UNK(%d)", id)
+	}
+	//fmt.Println("name: [", names[id], "]")
+
+	for _, v := range wld.names {
+		if int32(v.offset) == id {
+			return v.name
+		}
+	}
+	return fmt.Sprintf("!UNK(%d)", id)
+}
+
+// NameSet is used during reading, sets the names within a buffer
+func (wld *Wld) NameSet(newNames map[int32]string) {
+	if newNames == nil {
+		wld.names = []*nameEntry{}
+		return
+	}
+	for k, v := range newNames {
+		wld.names = append(wld.names, &nameEntry{offset: int(k), name: v})
+	}
+	wld.nameBuf = []byte{0x00}
+
+	for _, v := range wld.names {
+		wld.nameBuf = append(wld.nameBuf, []byte(v.name)...)
+		wld.nameBuf = append(wld.nameBuf, 0)
+	}
+}
+
+// NameAdd is used when writing, appending new names
+func (wld *Wld) NameAdd(name string) int32 {
+
+	if wld.names == nil {
+		wld.names = []*nameEntry{
+			{offset: 0, name: ""},
+		}
+		wld.nameBuf = []byte{0x00}
+	}
+	if name == "" {
+		return 0
+	}
+
+	/* if name[len(wld.name)-1:] != "\x00" {
+		name += "\x00"
+	}
+	*/
+	if id := wld.NameOffset(name); id != -1 {
+		return -id
+	}
+	wld.names = append(wld.names, &nameEntry{offset: len(wld.nameBuf), name: name})
+	lastRef := int32(len(wld.nameBuf))
+	wld.nameBuf = append(wld.nameBuf, []byte(name)...)
+	wld.nameBuf = append(wld.nameBuf, 0)
+	return int32(-lastRef)
+}
+
+func (wld *Wld) NameOffset(name string) int32 {
+	if wld.names == nil {
+		return -1
+	}
+	for _, v := range wld.names {
+		if v.name == name {
+			return int32(v.offset)
+		}
+	}
+	return -1
+}
+
+// NameIndex is used when reading, returns the index of a name, or -1 if not found
+func (wld *Wld) NameIndex(name string) int32 {
+	if wld.names == nil {
+		return -1
+	}
+	for k, v := range wld.names {
+		if v.name == name {
+			return int32(k)
+		}
+	}
+	return -1
+}
+
+// NameData is used during writing, dumps the name cache
+func (wld *Wld) NameData() []byte {
+
+	return helper.WriteStringHash(string(wld.nameBuf))
+}
+
+// NameClear purges names and namebuf, called when encode starts
+func (wld *Wld) NameClear() {
+	wld.names = nil
+	wld.nameBuf = nil
+}
+
+func (wld *Wld) TagByFrag(srcFrag interface{}) string {
+	switch frag := srcFrag.(type) {
+	case *rawfrag.WldFragActorDef:
+		return wld.Name(frag.NameRef)
+	case *rawfrag.WldFragActor:
+		return wld.Name(frag.NameRef)
+	case *rawfrag.WldFragBlitSpriteDef:
+		return wld.Name(frag.NameRef)
+	case *rawfrag.WldFragBlitSprite:
+		return wld.Name(frag.NameRef)
+	case *rawfrag.WldFragBMInfo:
+		return wld.Name(frag.NameRef)
+	case *rawfrag.WldFragCompositeSpriteDef:
+		return wld.Name(frag.NameRef)
+	case *rawfrag.WldFragCompositeSprite:
+		return wld.Name(frag.NameRef)
+	case *rawfrag.WldFragDmRGBTrack:
+		return wld.Name(frag.NameRef)
+	case *rawfrag.WldFragDmRGBTrackDef:
+		return wld.Name(frag.NameRef)
+	case *rawfrag.WldFragDmSpriteDef2:
+		return wld.Name(frag.NameRef)
+	case *rawfrag.WldFragDMSpriteDef:
+		return wld.Name(frag.NameRef)
+	case *rawfrag.WldFragDmTrackDef2:
+		return wld.Name(frag.NameRef)
+	case *rawfrag.WldFragLight:
+		return wld.Name(frag.NameRef)
+	case *rawfrag.WldFragHierarchicalSpriteDef:
+		return wld.Name(frag.NameRef)
+	case *rawfrag.WldFragLightDef:
+		return wld.Name(frag.NameRef)
+	case *rawfrag.WldFragMaterialDef:
+		return wld.Name(frag.NameRef)
+	case *rawfrag.WldFragMaterialPalette:
+		return wld.Name(frag.NameRef)
+	case *rawfrag.WldFragParticleCloudDef:
+		return wld.Name(frag.NameRef)
+	case *rawfrag.WldFragParticleSpriteDef:
+		return wld.Name(frag.NameRef)
+	case *rawfrag.WldFragParticleSprite:
+		return wld.Name(frag.NameRef)
+	case *rawfrag.WldFragPointLight:
+		return wld.Name(frag.NameRef)
+	case *rawfrag.WldFragPolyhedron:
+		return wld.Name(frag.NameRef)
+	case *rawfrag.WldFragPolyhedronDef:
+		return wld.Name(frag.NameRef)
+	case *rawfrag.WldFragRegion:
+		return wld.Name(frag.NameRef)
+	case *rawfrag.WldFragSimpleSpriteDef:
+		return wld.Name(frag.NameRef)
+	case *rawfrag.WldFragSimpleSprite:
+		return wld.Name(frag.NameRef)
+	case *rawfrag.WldFragSoundDef:
+		return wld.Name(frag.NameRef)
+	case *rawfrag.WldFragSound:
+		return wld.Name(frag.NameRef)
+	case *rawfrag.WldFragSphereListDef:
+		return wld.Name(frag.NameRef)
+	case *rawfrag.WldFragSphereList:
+		return wld.Name(frag.NameRef)
+	case *rawfrag.WldFragSphere:
+		return wld.Name(frag.NameRef)
+	case *rawfrag.WldFragSprite2D:
+		return wld.Name(frag.NameRef)
+	case *rawfrag.WldFragSprite2DDef:
+		return wld.Name(frag.NameRef)
+	case *rawfrag.WldFragSprite3D:
+		return wld.Name(frag.NameRef)
+	case *rawfrag.WldFragSprite3DDef:
+		return wld.Name(frag.NameRef)
+	case *rawfrag.WldFragSprite4DDef:
+		return wld.Name(frag.NameRef)
+	case *rawfrag.WldFragSprite4D:
+		return wld.Name(frag.NameRef)
+	case *rawfrag.WldFragTrack:
+		return wld.Name(frag.NameRef)
+	case *rawfrag.WldFragTrackDef:
+		return wld.Name(frag.NameRef)
+	case *rawfrag.WldFragWorldTree:
+		return wld.Name(frag.NameRef)
+	case *rawfrag.WldFragZone:
+		return wld.Name(frag.NameRef)
+	}
+
+	return ""
 }

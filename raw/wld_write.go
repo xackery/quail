@@ -78,7 +78,7 @@ func (wld *Wld) Write(w io.Writer) error {
 
 	enc.Uint32(uint32(maxFragSize))
 
-	nameData := NameData()
+	nameData := wld.NameData()
 
 	// pad namedata with 0's so it's divisible by 4
 	for len(nameData)%4 != 0 {
@@ -87,10 +87,10 @@ func (wld *Wld) Write(w io.Writer) error {
 
 	enc.Uint32(uint32(len(nameData))) //hashSize
 
-	if len(names) < 1 {
+	if len(wld.names) < 1 {
 		return fmt.Errorf("no names found")
 	}
-	enc.Uint32(uint32(len(names) - 1)) // there's a 0x00 string at start but it's not counted
+	enc.Uint32(uint32(len(wld.names) - 1)) // there's a 0x00 string at start but it's not counted
 
 	enc.Bytes(nameData)
 	enc.Bytes(totalFragBuf.Bytes())

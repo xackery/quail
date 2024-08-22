@@ -27,33 +27,33 @@ func (lay *Lay) Write(w io.Writer) error {
 		return fmt.Errorf("unknown lay version: %d", lay.Version)
 	}
 
-	NameClear()
-	for _, lay := range lay.Entries {
-		NameAdd(lay.Material)
-		NameAdd(lay.Diffuse)
-		NameAdd(lay.Normal)
+	lay.NameClear()
+	for _, layEntry := range lay.Entries {
+		lay.NameAdd(layEntry.Material)
+		lay.NameAdd(layEntry.Diffuse)
+		lay.NameAdd(layEntry.Normal)
 	}
 
-	enc.Uint32(uint32(len(NameData())))  // nameLength
-	enc.Uint32(uint32(len(lay.Entries))) //layerCount
-	enc.Bytes(NameData())                // nameData
+	enc.Uint32(uint32(len(lay.NameData()))) // nameLength
+	enc.Uint32(uint32(len(lay.Entries)))    //layerCount
+	enc.Bytes(lay.NameData())               // nameData
 
 	for _, layEntry := range lay.Entries {
 		offset := uint32(0xffffffff)
 		if layEntry.Material != "" {
-			offset = uint32(NameIndex(layEntry.Material))
+			offset = uint32(lay.NameIndex(layEntry.Material))
 		}
 		enc.Uint32(offset)
 
 		offset = uint32(0xffffffff)
 		if layEntry.Diffuse != "" {
-			offset = uint32(NameIndex(layEntry.Diffuse))
+			offset = uint32(lay.NameIndex(layEntry.Diffuse))
 		}
 		enc.Uint32(offset)
 
 		offset = uint32(0xffffffff)
 		if layEntry.Normal != "" {
-			offset = uint32(NameIndex(layEntry.Normal))
+			offset = uint32(lay.NameIndex(layEntry.Normal))
 		}
 		enc.Uint32(offset)
 

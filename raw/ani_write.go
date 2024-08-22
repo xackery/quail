@@ -9,14 +9,14 @@ import (
 )
 
 func (ani *Ani) Write(w io.Writer) error {
-	NameClear()
+	ani.NameClear()
 	for _, bone := range ani.Bones {
-		NameAdd(bone.Name)
+		ani.NameAdd(bone.Name)
 	}
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
 	enc.StringFixed("EQGA", 4)
 	enc.Uint32(ani.Version)
-	nameData := NameData()
+	nameData := ani.NameData()
 	enc.Uint32(uint32(len(nameData)))
 	enc.Uint32(uint32(len(ani.Bones)))
 
@@ -31,7 +31,7 @@ func (ani *Ani) Write(w io.Writer) error {
 
 	for _, bone := range ani.Bones {
 		enc.Uint32(uint32(len(bone.Frames)))
-		enc.Int32(NameIndex(bone.Name))
+		enc.Int32(ani.NameIndex(bone.Name))
 		for _, frame := range bone.Frames {
 			enc.Uint32(frame.Milliseconds)
 			enc.Float32(frame.Translation.X)

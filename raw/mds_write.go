@@ -16,26 +16,26 @@ func (mds *Mds) Write(w io.Writer) error {
 	enc.String("EQGS")
 	enc.Uint32(mds.Version)
 
-	NameClear()
+	mds.NameClear()
 
 	for _, material := range mds.Materials {
-		NameAdd(material.Name)
-		NameAdd(material.ShaderName)
+		mds.NameAdd(material.Name)
+		mds.NameAdd(material.ShaderName)
 		for _, prop := range material.Properties {
-			NameAdd(prop.Name)
+			mds.NameAdd(prop.Name)
 			switch prop.Category {
 			case 2:
-				NameAdd(prop.Value)
+				mds.NameAdd(prop.Value)
 			default:
 			}
 		}
 	}
 
 	for _, bone := range mds.Bones {
-		NameAdd(bone.Name)
+		mds.NameAdd(bone.Name)
 	}
 
-	nameData := NameData()
+	nameData := mds.NameData()
 	enc.Uint32(uint32(len(nameData))) // nameLength
 	enc.Uint32(uint32(len(mds.Materials)))
 	enc.Uint32(uint32(len(mds.Bones)))
@@ -44,11 +44,11 @@ func (mds *Mds) Write(w io.Writer) error {
 
 	for _, material := range mds.Materials {
 		enc.Int32(material.ID)
-		enc.Uint32(uint32(NameIndex(material.Name)))
-		enc.Uint32(uint32(NameIndex(material.ShaderName)))
+		enc.Uint32(uint32(mds.NameIndex(material.Name)))
+		enc.Uint32(uint32(mds.NameIndex(material.ShaderName)))
 		enc.Uint32(uint32(len(material.Properties)))
 		for _, prop := range material.Properties {
-			enc.Uint32(uint32(NameIndex(prop.Name)))
+			enc.Uint32(uint32(mds.NameIndex(prop.Name)))
 			enc.Uint32(uint32(prop.Category))
 			switch prop.Category {
 			case 0:
@@ -58,7 +58,7 @@ func (mds *Mds) Write(w io.Writer) error {
 				}
 				enc.Float32(float32(fval))
 			case 2:
-				enc.Int32(NameIndex(prop.Value))
+				enc.Int32(mds.NameIndex(prop.Value))
 			default:
 				return err
 			}
@@ -66,7 +66,7 @@ func (mds *Mds) Write(w io.Writer) error {
 	}
 
 	for _, bone := range mds.Bones {
-		enc.Int32(NameIndex(bone.Name))
+		enc.Int32(mds.NameIndex(bone.Name))
 		enc.Int32(bone.Next)
 		enc.Uint32(bone.ChildrenCount)
 		enc.Int32(bone.ChildIndex)

@@ -6,6 +6,7 @@ import (
 	"io"
 
 	"github.com/xackery/encdec"
+	"github.com/xackery/quail/helper"
 	"github.com/xackery/quail/model"
 )
 
@@ -15,6 +16,8 @@ type Ter struct {
 	Materials    []*Material `yaml:"materials"`
 	Vertices     []Vertex    `yaml:"vertices"`
 	Triangles    []Triangle  `yaml:"triangles"`
+	names        []*nameEntry
+	nameBuf      []byte
 }
 
 // Identity returns the type of the struct
@@ -53,7 +56,7 @@ func (ter *Ter) Read(r io.ReadSeeker) error {
 		chunk = append(chunk, b)
 	}
 
-	NameSet(names)
+	ter.NameSet(names)
 
 	nameCounter := 0
 	for i := 0; i < int(materialCount); i++ {
@@ -61,8 +64,8 @@ func (ter *Ter) Read(r io.ReadSeeker) error {
 		material.ID = dec.Int32()
 		nameCounter++
 
-		material.Name = Name(dec.Int32())
-		material.ShaderName = Name(dec.Int32())
+		material.Name = ter.Name(dec.Int32())
+		material.ShaderName = ter.Name(dec.Int32())
 
 		ter.Materials = append(ter.Materials, material)
 
@@ -72,7 +75,7 @@ func (ter *Ter) Read(r io.ReadSeeker) error {
 				Name: material.Name,
 			}
 
-			property.Name = Name(dec.Int32())
+			property.Name = ter.Name(dec.Int32())
 
 			property.Category = dec.Uint32()
 			if property.Category == 0 {
@@ -80,7 +83,7 @@ func (ter *Ter) Read(r io.ReadSeeker) error {
 			} else {
 				val := dec.Int32()
 				if property.Category == 2 {
-					property.Value = Name(val)
+					property.Value = ter.Name(val)
 				} else {
 					property.Value = fmt.Sprintf("%d", val)
 				}
@@ -160,4 +163,103 @@ func (ter *Ter) SetFileName(name string) {
 // FileName returns the name of the file
 func (ter *Ter) FileName() string {
 	return ter.MetaFileName
+}
+
+// Name is used during reading, returns the Name of an id
+func (ter *Ter) Name(id int32) string {
+	if id < 0 {
+		id = -id
+	}
+	if ter.names == nil {
+		return fmt.Sprintf("!UNK(%d)", id)
+	}
+	//fmt.Println("name: [", names[id], "]")
+
+	for _, v := range ter.names {
+		if int32(v.offset) == id {
+			return v.name
+		}
+	}
+	return fmt.Sprintf("!UNK(%d)", id)
+}
+
+// NameSet is used during reading, sets the names within a buffer
+func (ter *Ter) NameSet(newNames map[int32]string) {
+	if newNames == nil {
+		ter.names = []*nameEntry{}
+		return
+	}
+	for k, v := range newNames {
+		ter.names = append(ter.names, &nameEntry{offset: int(k), name: v})
+	}
+	ter.nameBuf = []byte{0x00}
+
+	for _, v := range ter.names {
+		ter.nameBuf = append(ter.nameBuf, []byte(v.name)...)
+		ter.nameBuf = append(ter.nameBuf, 0)
+	}
+}
+
+// NameAdd is used when writing, appending new names
+func (ter *Ter) NameAdd(name string) int32 {
+
+	if ter.names == nil {
+		ter.names = []*nameEntry{
+			{offset: 0, name: ""},
+		}
+		ter.nameBuf = []byte{0x00}
+	}
+	if name == "" {
+		return 0
+	}
+
+	/* if name[len(ter.name)-1:] != "\x00" {
+		name += "\x00"
+	}
+	*/
+	if id := ter.NameOffset(name); id != -1 {
+		return -id
+	}
+	ter.names = append(ter.names, &nameEntry{offset: len(ter.nameBuf), name: name})
+	lastRef := int32(len(ter.nameBuf))
+	ter.nameBuf = append(ter.nameBuf, []byte(name)...)
+	ter.nameBuf = append(ter.nameBuf, 0)
+	return int32(-lastRef)
+}
+
+func (ter *Ter) NameOffset(name string) int32 {
+	if ter.names == nil {
+		return -1
+	}
+	for _, v := range ter.names {
+		if v.name == name {
+			return int32(v.offset)
+		}
+	}
+	return -1
+}
+
+// NameIndex is used when reading, returns the index of a name, or -1 if not found
+func (ter *Ter) NameIndex(name string) int32 {
+	if ter.names == nil {
+		return -1
+	}
+	for k, v := range ter.names {
+		if v.name == name {
+			return int32(k)
+		}
+	}
+	return -1
+}
+
+// NameData is used during writing, dumps the name cache
+func (ter *Ter) NameData() []byte {
+
+	return helper.WriteStringHash(string(ter.nameBuf))
+}
+
+// NameClear purges names and namebuf, called when encode starts
+func (ter *Ter) NameClear() {
+	ter.names = nil
+	ter.nameBuf = nil
 }

@@ -6,6 +6,7 @@ import (
 	"io"
 
 	"github.com/xackery/encdec"
+	"github.com/xackery/quail/helper"
 	"github.com/xackery/quail/model"
 )
 
@@ -19,6 +20,8 @@ type Zon struct {
 	Lights       []Light  `yaml:"lights"`
 	V4Info       V4Info   `yaml:"v4info"`
 	V4Dat        V4Dat    `yaml:"v4dat"`
+	names        []*nameEntry
+	nameBuf      []byte
 }
 
 func (zon *Zon) Identity() string {
@@ -121,11 +124,11 @@ func (zon *Zon) Read(r io.ReadSeeker) error {
 		chunk = append(chunk, b)
 	}
 
-	NameSet(names)
+	zon.NameSet(names)
 	//os.WriteFile("src.txt", []byte(fmt.Sprintf("%+v", names)), 0644)
 
 	for i := 0; i < int(modelCount); i++ {
-		name := Name(dec.Int32())
+		name := zon.Name(dec.Int32())
 		zon.Models = append(zon.Models, name)
 	}
 
@@ -142,7 +145,7 @@ func (zon *Zon) Read(r io.ReadSeeker) error {
 
 		object.ModelName = zon.Models[nameIndex]
 
-		object.InstanceName = Name(dec.Int32())
+		object.InstanceName = zon.Name(dec.Int32())
 
 		object.Position.Y = dec.Float32() // y before x
 		object.Position.X = dec.Float32()
@@ -170,7 +173,7 @@ func (zon *Zon) Read(r io.ReadSeeker) error {
 	for i := 0; i < int(regionCount); i++ {
 		region := Region{}
 
-		region.Name = Name(dec.Int32())
+		region.Name = zon.Name(dec.Int32())
 
 		region.Center.X = dec.Float32()
 		region.Center.Y = dec.Float32()
@@ -193,7 +196,7 @@ func (zon *Zon) Read(r io.ReadSeeker) error {
 	for i := 0; i < int(lightCount); i++ {
 		light := Light{}
 
-		light.Name = Name(dec.Int32())
+		light.Name = zon.Name(dec.Int32())
 
 		light.Position.X = dec.Float32()
 		light.Position.Y = dec.Float32()
@@ -223,4 +226,103 @@ func (zon *Zon) SetFileName(name string) {
 // FileName returns the name of the file
 func (zon *Zon) FileName() string {
 	return zon.MetaFileName
+}
+
+// Name is used during reading, returns the Name of an id
+func (zon *Zon) Name(id int32) string {
+	if id < 0 {
+		id = -id
+	}
+	if zon.names == nil {
+		return fmt.Sprintf("!UNK(%d)", id)
+	}
+	//fmt.Println("name: [", names[id], "]")
+
+	for _, v := range zon.names {
+		if int32(v.offset) == id {
+			return v.name
+		}
+	}
+	return fmt.Sprintf("!UNK(%d)", id)
+}
+
+// NameSet is used during reading, sets the names within a buffer
+func (zon *Zon) NameSet(newNames map[int32]string) {
+	if newNames == nil {
+		zon.names = []*nameEntry{}
+		return
+	}
+	for k, v := range newNames {
+		zon.names = append(zon.names, &nameEntry{offset: int(k), name: v})
+	}
+	zon.nameBuf = []byte{0x00}
+
+	for _, v := range zon.names {
+		zon.nameBuf = append(zon.nameBuf, []byte(v.name)...)
+		zon.nameBuf = append(zon.nameBuf, 0)
+	}
+}
+
+// NameAdd is used when writing, appending new names
+func (zon *Zon) NameAdd(name string) int32 {
+
+	if zon.names == nil {
+		zon.names = []*nameEntry{
+			{offset: 0, name: ""},
+		}
+		zon.nameBuf = []byte{0x00}
+	}
+	if name == "" {
+		return 0
+	}
+
+	/* if name[len(zon.name)-1:] != "\x00" {
+		name += "\x00"
+	}
+	*/
+	if id := zon.NameOffset(name); id != -1 {
+		return -id
+	}
+	zon.names = append(zon.names, &nameEntry{offset: len(zon.nameBuf), name: name})
+	lastRef := int32(len(zon.nameBuf))
+	zon.nameBuf = append(zon.nameBuf, []byte(name)...)
+	zon.nameBuf = append(zon.nameBuf, 0)
+	return int32(-lastRef)
+}
+
+func (zon *Zon) NameOffset(name string) int32 {
+	if zon.names == nil {
+		return -1
+	}
+	for _, v := range zon.names {
+		if v.name == name {
+			return int32(v.offset)
+		}
+	}
+	return -1
+}
+
+// NameIndex is used when reading, returns the index of a name, or -1 if not found
+func (zon *Zon) NameIndex(name string) int32 {
+	if zon.names == nil {
+		return -1
+	}
+	for k, v := range zon.names {
+		if v.name == name {
+			return int32(k)
+		}
+	}
+	return -1
+}
+
+// NameData is used during writing, dumps the name cache
+func (zon *Zon) NameData() []byte {
+
+	return helper.WriteStringHash(string(zon.nameBuf))
+}
+
+// NameClear purges names and namebuf, called when encode starts
+func (zon *Zon) NameClear() {
+	zon.names = nil
+	zon.nameBuf = nil
 }

@@ -15,7 +15,7 @@ func (zon *Zon) Write(w io.Writer) error {
 	if zon.Version >= 4 {
 		return zon.WriteV4(w)
 	}
-	NameClear()
+	zon.NameClear()
 
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
 
@@ -28,19 +28,19 @@ func (zon *Zon) Write(w io.Writer) error {
 	subEnc := encdec.NewEncoder(buf, binary.LittleEndian)
 
 	for _, modelName := range zon.Models {
-		NameAdd(modelName)
+		zon.NameAdd(modelName)
 	}
 
 	for _, object := range zon.Objects {
-		NameAdd(object.InstanceName)
+		zon.NameAdd(object.InstanceName)
 	}
 
 	for _, region := range zon.Regions {
-		NameAdd(region.Name)
+		zon.NameAdd(region.Name)
 	}
 
 	for _, modelName := range zon.Models {
-		subEnc.Int32(NameIndex(modelName))
+		subEnc.Int32(zon.NameIndex(modelName))
 	}
 
 	for _, object := range zon.Objects {
@@ -56,7 +56,7 @@ func (zon *Zon) Write(w io.Writer) error {
 		if !isFound {
 			return fmt.Errorf("object %s ref to model %s not found", object.InstanceName, object.ModelName)
 		}
-		subEnc.Int32(NameIndex(object.InstanceName))
+		subEnc.Int32(zon.NameIndex(object.InstanceName))
 
 		subEnc.Float32(object.Position.Y) //  y before x
 		subEnc.Float32(object.Position.X)
@@ -79,7 +79,7 @@ func (zon *Zon) Write(w io.Writer) error {
 	}
 
 	for _, region := range zon.Regions {
-		subEnc.Int32(NameIndex(region.Name))
+		subEnc.Int32(zon.NameIndex(region.Name))
 
 		subEnc.Float32(region.Center.X)
 		subEnc.Float32(region.Center.Y)
@@ -98,7 +98,7 @@ func (zon *Zon) Write(w io.Writer) error {
 	}
 
 	for _, light := range zon.Lights {
-		subEnc.Int32(NameIndex(light.Name))
+		subEnc.Int32(zon.NameIndex(light.Name))
 
 		subEnc.Float32(light.Position.X)
 		subEnc.Float32(light.Position.Y)
@@ -112,7 +112,7 @@ func (zon *Zon) Write(w io.Writer) error {
 
 	}
 
-	nameData := NameData()
+	nameData := zon.NameData()
 	enc.Uint32(uint32(len(nameData)))
 	enc.Uint32(uint32(len(zon.Models)))
 	enc.Uint32(uint32(len(zon.Objects)))
