@@ -5084,24 +5084,24 @@ func (e *HierarchicalSpriteDef) FromRaw(wld *Wld, rawWld *raw.Wld, frag *rawfrag
 		e.HexTwentyThousandFlag = 1
 	}
 
-	for _, dag := range frag.Dags {
+	for i, dag := range frag.Dags {
 		if len(rawWld.Fragments) < int(dag.TrackRef) {
-			return fmt.Errorf("track ref %d not found", dag.TrackRef)
+			return fmt.Errorf("dag %d track ref %d not found", i, dag.TrackRef)
 		}
 		srcTrack, ok := rawWld.Fragments[dag.TrackRef].(*rawfrag.WldFragTrack)
 		if !ok {
-			return fmt.Errorf("track ref %d not found", dag.TrackRef)
+			return fmt.Errorf("dag %d track ref %d not found", i, dag.TrackRef)
 		}
 
 		spriteTag := ""
 		if dag.MeshOrSpriteOrParticleRef > 0 {
 			if len(rawWld.Fragments) < int(dag.MeshOrSpriteOrParticleRef) {
-				return fmt.Errorf("mesh or sprite or particle ref %d not found", dag.MeshOrSpriteOrParticleRef)
+				return fmt.Errorf("dag %d mesh or sprite or particle ref %d not found", i, dag.MeshOrSpriteOrParticleRef)
 			}
 
 			spriteFrag := rawWld.Fragments[dag.MeshOrSpriteOrParticleRef]
 			if spriteFrag == nil {
-				return fmt.Errorf("mesh or sprite or particle ref %d not found", dag.MeshOrSpriteOrParticleRef)
+				return fmt.Errorf("dag %d mesh or sprite or particle ref %d not found", i, dag.MeshOrSpriteOrParticleRef)
 			}
 
 			spriteRef := int16(0)
@@ -5110,37 +5110,39 @@ func (e *HierarchicalSpriteDef) FromRaw(wld *Wld, rawWld *raw.Wld, frag *rawfrag
 			case *rawfrag.WldFragDMSprite:
 				spriteRef = int16(sprite.DMSpriteRef)
 			case *rawfrag.WldFragParticleCloudDef:
-				spriteRef = int16(sprite.BlitSpriteDefRef)
+				spriteTag = rawWld.Name(sprite.NameRef)
+				//				spriteRef = int16(sprite.BlitSpriteRef)
 			default:
-				return fmt.Errorf("unhandled sprite instance or particle reference fragment type %d (%s)", spriteFrag.FragCode(), raw.FragName(spriteFrag.FragCode()))
+				return fmt.Errorf("dag %d unhandled sprite instance or particle reference fragment type %d (%s)", i, spriteFrag.FragCode(), raw.FragName(spriteFrag.FragCode()))
 			}
+			if spriteTag == "" {
+				if spriteRef < 0 {
+					spriteRef = -spriteRef
+				}
 
-			if spriteRef < 0 {
-				spriteRef = -spriteRef
-			}
+				if len(rawWld.Fragments) < int(spriteRef) {
+					return fmt.Errorf("dag %d sprite instance/particle ref %d out of range", i, spriteRef)
+				}
 
-			if len(rawWld.Fragments) < int(spriteRef) {
-				return fmt.Errorf("sprite instance/particle ref %d out of range", spriteRef)
-			}
-
-			spriteDef := rawWld.Fragments[spriteRef]
-			switch simpleSprite := spriteDef.(type) {
-			case *rawfrag.WldFragSimpleSpriteDef:
-				spriteTag = rawWld.Name(simpleSprite.NameRef)
-			case *rawfrag.WldFragDMSpriteDef:
-				spriteTag = rawWld.Name(simpleSprite.NameRef)
-			case *rawfrag.WldFragHierarchicalSpriteDef:
-				spriteTag = rawWld.Name(simpleSprite.NameRef)
-			case *rawfrag.WldFragSprite2D:
-				spriteTag = rawWld.Name(simpleSprite.NameRef)
-			case *rawfrag.WldFragDmSpriteDef2:
-				spriteTag = rawWld.Name(simpleSprite.NameRef)
-			case *rawfrag.WldFragBlitSpriteDef:
-				spriteTag = rawWld.Name(simpleSprite.NameRef)
-			case *rawfrag.WldFragBMInfo:
-				spriteTag = rawWld.Name(simpleSprite.NameRef)
-			default:
-				return fmt.Errorf("unhandled mesh or sprite or particle reference fragment type %d (%s)", spriteDef.FragCode(), raw.FragName(spriteDef.FragCode()))
+				spriteDef := rawWld.Fragments[spriteRef]
+				switch simpleSprite := spriteDef.(type) {
+				case *rawfrag.WldFragSimpleSpriteDef:
+					spriteTag = rawWld.Name(simpleSprite.NameRef)
+				case *rawfrag.WldFragDMSpriteDef:
+					spriteTag = rawWld.Name(simpleSprite.NameRef)
+				case *rawfrag.WldFragHierarchicalSpriteDef:
+					spriteTag = rawWld.Name(simpleSprite.NameRef)
+				case *rawfrag.WldFragSprite2D:
+					spriteTag = rawWld.Name(simpleSprite.NameRef)
+				case *rawfrag.WldFragDmSpriteDef2:
+					spriteTag = rawWld.Name(simpleSprite.NameRef)
+				case *rawfrag.WldFragBlitSpriteDef:
+					spriteTag = rawWld.Name(simpleSprite.NameRef)
+				case *rawfrag.WldFragBMInfo:
+					spriteTag = rawWld.Name(simpleSprite.NameRef)
+				default:
+					return fmt.Errorf("dag %d unhandled mesh or sprite or particle reference fragment type %d (%s)", i, spriteDef.FragCode(), raw.FragName(spriteDef.FragCode()))
+				}
 			}
 		}
 		/* if spriteTag != "" && e.PolyhedronTag == "" {
@@ -7010,7 +7012,7 @@ func (e *ParticleCloudDef) ToRaw(wld *Wld, rawWld *raw.Wld) (int16, error) {
 
 	rawWld.Fragments = append(rawWld.Fragments, wfBSprite)
 
-	wfParticleCloud.BlitSpriteDefRef = uint32(len(rawWld.Fragments))
+	wfParticleCloud.BlitSpriteRef = uint32(len(rawWld.Fragments))
 
 	wfParticleCloud.NameRef = rawWld.NameAdd(e.Tag)
 
@@ -7025,12 +7027,12 @@ func (e *ParticleCloudDef) FromRaw(wld *Wld, rawWld *raw.Wld, frag *rawfrag.WldF
 	}
 
 	e.Tag = rawWld.Name(frag.NameRef)
-	if len(rawWld.Fragments) < int(frag.BlitSpriteDefRef) {
-		return fmt.Errorf("blit sprite def ref %d out of bounds", frag.BlitSpriteDefRef)
+	if len(rawWld.Fragments) < int(frag.BlitSpriteRef) {
+		return fmt.Errorf("blit sprite def ref %d out of bounds", frag.BlitSpriteRef)
 	}
-	bSprite, ok := rawWld.Fragments[frag.BlitSpriteDefRef].(*rawfrag.WldFragBlitSpriteDef)
+	bSprite, ok := rawWld.Fragments[frag.BlitSpriteRef].(*rawfrag.WldFragBlitSpriteDef)
 	if !ok {
-		return fmt.Errorf("blit sprite def ref %d not found", frag.BlitSpriteDefRef)
+		return fmt.Errorf("blit sprite def ref %d not found", frag.BlitSpriteRef)
 	}
 
 	e.BlitSpriteDefTag = rawWld.Name(bSprite.NameRef)

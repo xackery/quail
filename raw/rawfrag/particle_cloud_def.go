@@ -29,7 +29,7 @@ type WldFragParticleCloudDef struct {
 	SpawnRate             uint32
 	SpawnScale            float32
 	Color                 [4]uint8
-	BlitSpriteDefRef      uint32
+	BlitSpriteRef         uint32
 }
 
 func (e *WldFragParticleCloudDef) FragCode() int {
@@ -65,7 +65,7 @@ func (e *WldFragParticleCloudDef) Write(w io.Writer, isNewWorld bool) error {
 	enc.Uint8(e.Color[2])
 	enc.Uint8(e.Color[3])
 
-	enc.Uint32(e.BlitSpriteDefRef)
+	enc.Uint32(e.BlitSpriteRef)
 	err := enc.Error()
 	if err != nil {
 		return fmt.Errorf("write: %w", err)
@@ -95,7 +95,7 @@ func (e *WldFragParticleCloudDef) Read(r io.ReadSeeker, isNewWorld bool) error {
 	e.SpawnRate = dec.Uint32()
 	e.SpawnScale = dec.Float32()
 	e.Color = [4]uint8{dec.Uint8(), dec.Uint8(), dec.Uint8(), dec.Uint8()}
-	e.BlitSpriteDefRef = dec.Uint32()
+	e.BlitSpriteRef = dec.Uint32()
 	err := dec.Error()
 	if err != nil {
 		return fmt.Errorf("read: %w", err)

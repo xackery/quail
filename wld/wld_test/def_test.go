@@ -13,9 +13,9 @@ var tests = []struct {
 	//{baseName: "frontiermtns_chr"},
 	//{baseName: "crushbone"},
 	//{baseName: "twilight"},
-	//{baseName: "global6_chr"},
+	{baseName: "global4_chr"},
 	//{baseName: "global5_chr"},
-	{baseName: "globalelf_chr"},
+	//{baseName: "globalelf_chr"},
 	//{baseName: "arena"}, // OK
 	//{baseName: "abysmal"},
 	//{baseName: "global_chr"}, // original human etc
