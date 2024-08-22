@@ -11,11 +11,11 @@ var tests = []struct {
 	wldName  string
 }{
 	//{baseName: "frontiermtns_chr"},
-	{baseName: "crushbone"},
+	//{baseName: "crushbone"},
 	//{baseName: "twilight"},
 	//{baseName: "global6_chr"},
 	//{baseName: "global5_chr"},
-	//{baseName: "globalelf_chr"},
+	{baseName: "globalelf_chr"},
 	//{baseName: "arena"}, // OK
 	//{baseName: "abysmal"},
 	//{baseName: "global_chr"}, // original human etc

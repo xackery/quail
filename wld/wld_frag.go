@@ -7590,10 +7590,10 @@ func materialVariationToRaw(wld *Wld, rawWld *raw.Wld, e WldDefinitioner) error 
 	default:
 		return fmt.Errorf("unknown type %T", e)
 	}
-	prefixes := []string{"CH", "FT", "HE", "HN", "LG", "MN", "TL"}
+	prefixes := []string{"CH", "FA", "FT", "HE", "HN", "LG", "UA", "MN", "TL"}
 	for _, prefix := range prefixes {
-		for preIndex := 1; preIndex < 15; preIndex++ {
-			for subIndex := 0; subIndex < 15; subIndex++ {
+		for preIndex := 0; preIndex < 99; preIndex++ {
+			for subIndex := 0; subIndex < 99; subIndex++ {
 				for _, matDef := range wld.MaterialDefs {
 					if matDef.Variation != 1 {
 						continue
