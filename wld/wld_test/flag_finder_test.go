@@ -71,8 +71,8 @@ func TestFragFlags(t *testing.T) {
 				continue
 			}
 
-			raw.NameClear()
 			rawWld := &raw.Wld{}
+			rawWld.NameClear()
 			err = rawWld.Read(bytes.NewReader(file.Data()))
 			if err != nil {
 				t.Fatalf("Failed to read wld: %s", err.Error())
@@ -86,7 +86,7 @@ func TestFragFlags(t *testing.T) {
 					continue
 				}
 
-				tagName := raw.Name(int32(frag.NameRef))
+				tagName := rawWld.Name(int32(frag.NameRef))
 
 				for _, face := range frag.Faces {
 					flags := uint32(face.Flags)

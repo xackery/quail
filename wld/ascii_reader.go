@@ -169,7 +169,6 @@ func (a *AsciiReadToken) readDefinitions() error {
 		&ActorDef{},
 		&ActorInst{},
 		&AmbientLight{},
-		&BlitSpriteDefinition{},
 		&DMSpriteDef{},
 		&DMSpriteDef2{},
 		&GlobalAmbientLightDef{},
@@ -240,7 +239,6 @@ func (a *AsciiReadToken) readDefinitions() error {
 				a.wld.GlobalAmbientLightDef = frag
 				definitions[i] = &GlobalAmbientLightDef{}
 			case *DMSpriteDef2:
-				a.wld.lastReadModelTag = frag.Tag
 				a.wld.DMSpriteDef2s = append(a.wld.DMSpriteDef2s, frag)
 				definitions[i] = &DMSpriteDef2{}
 			case *HierarchicalSpriteDef:
@@ -294,9 +292,6 @@ func (a *AsciiReadToken) readDefinitions() error {
 			case *ParticleCloudDef:
 				a.wld.ParticleCloudDefs = append(a.wld.ParticleCloudDefs, frag)
 				definitions[i] = &ParticleCloudDef{}
-			case *BlitSpriteDefinition:
-				a.wld.BlitSpriteDefinitions = append(a.wld.BlitSpriteDefinitions, frag)
-				definitions[i] = &BlitSpriteDefinition{}
 			case *Sprite2DDef:
 				a.wld.Sprite2DDefs = append(a.wld.Sprite2DDefs, frag)
 				definitions[i] = &Sprite2DDef{}

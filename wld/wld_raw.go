@@ -22,8 +22,27 @@ func (wld *Wld) ReadRaw(src *raw.Wld) error {
 		wld.WorldDef.Zone = 1
 	}
 
+	modelChunks := make(map[int]string)
+	lastModelIndex := 0
 	for i := 1; i < len(src.Fragments); i++ {
 		fragment := src.Fragments[i]
+		actorDef, ok := fragment.(*rawfrag.WldFragActorDef)
+		if !ok {
+			continue
+		}
+		modelChunks[lastModelIndex] = strings.TrimSuffix(src.Name(actorDef.NameRef), "_ACTORDEF")
+		lastModelIndex = i
+	}
+
+	if modelChunks[0] != "" {
+		wld.lastReadModelTag = modelChunks[0]
+	}
+	for i := 1; i < len(src.Fragments); i++ {
+		fragment := src.Fragments[i]
+		if modelChunks[i] != "" {
+			wld.lastReadModelTag = modelChunks[i]
+		}
+
 		err := readRawFrag(wld, src, fragment)
 		if err != nil {
 			return fmt.Errorf("fragment %d (%s): %w", i, raw.FragName(fragment.FragCode()), err)
@@ -57,33 +76,6 @@ func readRawFrag(wld *Wld, rawWld *raw.Wld, fragment model.FragmentReadWriter) e
 	case rawfrag.FragCodeSimpleSprite:
 		//return fmt.Errorf("simplesprite fragment found, but not expected")
 	case rawfrag.FragCodeBlitSpriteDef:
-		def := &BlitSpriteDefinition{}
-		err := def.FromRaw(wld, rawWld, fragment.(*rawfrag.WldFragBlitSpriteDef))
-		if err != nil {
-			return fmt.Errorf("blitspritedef: %w", err)
-		}
-		isUnique := true
-		for _, blit := range wld.BlitSpriteDefinitions {
-			if blit.Tag != def.Tag {
-				continue
-			}
-			isUnique = false
-
-			// compare properties
-			if blit.SpriteTag != def.SpriteTag {
-				return fmt.Errorf("blitspritedef %s: sprite tag mismatch %s != %s", def.Tag, blit.SpriteTag, def.SpriteTag)
-			}
-			if blit.Unknown != def.Unknown {
-				return fmt.Errorf("blitspritedef %s: unknown mismatch %d != %d", def.Tag, blit.Unknown, def.Unknown)
-			}
-
-			break
-		}
-		if !isUnique {
-			return nil
-		}
-
-		wld.BlitSpriteDefinitions = append(wld.BlitSpriteDefinitions, def)
 	case rawfrag.FragCodeBlitSprite:
 
 	case rawfrag.FragCodeParticleCloudDef:
@@ -107,13 +99,13 @@ func readRawFrag(wld *Wld, rawWld *raw.Wld, fragment model.FragmentReadWriter) e
 			return fmt.Errorf("materialpalette: %w", err)
 		}
 		wld.MaterialPalettes = append(wld.MaterialPalettes, def)
+		wld.isVariationMaterial = true
 	case rawfrag.FragCodeDmSpriteDef2:
 		def := &DMSpriteDef2{}
 		err := def.FromRaw(wld, rawWld, fragment.(*rawfrag.WldFragDmSpriteDef2))
 		if err != nil {
 			return fmt.Errorf("dmspritedef2: %w", err)
 		}
-		wld.lastReadModelTag = baseTagTrim(def.Tag)
 
 		if strings.HasPrefix(def.Tag, "R") {
 			tag := strings.TrimSuffix(def.Tag[1:], "_DMSPRITEDEF")
@@ -157,6 +149,7 @@ func readRawFrag(wld *Wld, rawWld *raw.Wld, fragment model.FragmentReadWriter) e
 		}
 
 		wld.ActorDefs = append(wld.ActorDefs, def)
+		wld.isVariationMaterial = false
 	case rawfrag.FragCodeActor:
 		def := &ActorInst{}
 		err := def.FromRaw(wld, rawWld, fragment.(*rawfrag.WldFragActor))
@@ -277,7 +270,7 @@ func (wld *Wld) WriteRaw(w io.Writer) error {
 	if dst.Fragments == nil {
 		dst.Fragments = []model.FragmentReadWriter{}
 	}
-	raw.NameClear()
+	dst.NameClear()
 
 	if wld.GlobalAmbientLightDef != nil {
 		_, err = wld.GlobalAmbientLightDef.ToRaw(wld, dst)
@@ -306,11 +299,11 @@ func (wld *Wld) WriteRaw(w io.Writer) error {
 
 		//sort.Strings(baseTags)
 
-		blits := []string{}
-		for _, blit := range wld.BlitSpriteDefinitions {
+		clouds := []string{}
+		for _, cloud := range wld.ParticleCloudDefs {
 			isUnique := true
-			for _, bstr := range blits {
-				if bstr == blit.Tag {
+			for _, bstr := range clouds {
+				if bstr == cloud.Tag {
 					isUnique = false
 					break
 				}
@@ -318,23 +311,33 @@ func (wld *Wld) WriteRaw(w io.Writer) error {
 			if !isUnique {
 				continue
 			}
-			blits = append(blits, blit.Tag)
+			clouds = append(clouds, cloud.Tag)
 		}
-		sort.Strings(blits)
+		sort.Strings(clouds)
 
-		for _, blit := range blits {
-			for _, blitSprite := range wld.BlitSpriteDefinitions {
-				if blit != blitSprite.Tag {
+		for _, cloud := range clouds {
+			for _, cloudDef := range wld.ParticleCloudDefs {
+				if cloud != cloudDef.Tag {
 					continue
 				}
-				_, err = blitSprite.ToRaw(wld, dst)
+				_, err = cloudDef.ToRaw(wld, dst)
 				if err != nil {
-					return fmt.Errorf("blitsprite %s: %w", blitSprite.Tag, err)
+					return fmt.Errorf("cloud %s: %w", cloudDef.Tag, err)
 				}
 			}
 		}
 
 		for _, baseTag := range baseTags {
+
+			for _, actorDef := range wld.ActorDefs {
+				if baseTag != baseTagTrim(actorDef.Tag) {
+					continue
+				}
+				_, err = actorDef.ToRaw(wld, dst)
+				if err != nil {
+					return fmt.Errorf("actordef %s: %w", actorDef.Tag, err)
+				}
+			}
 
 			for _, hiSprite := range wld.HierarchicalSpriteDefs {
 				hiBaseTag := baseTagTrim(hiSprite.Tag)
@@ -369,21 +372,6 @@ func (wld *Wld) WriteRaw(w io.Writer) error {
 				}
 			}
 
-			for _, matDef := range wld.MaterialDefs {
-				shortTag := baseTag
-				if len(baseTag) > 3 {
-					shortTag = baseTag[:3]
-				}
-				if !strings.HasPrefix(matDef.Tag, shortTag) {
-					continue
-				}
-
-				_, err = matDef.ToRaw(wld, dst)
-				if err != nil {
-					return fmt.Errorf("materialdef %s: %w", matDef.Tag, err)
-				}
-			}
-
 			for _, track := range wld.TrackInstances {
 				if !track.Sleep.Valid {
 					continue
@@ -399,15 +387,6 @@ func (wld *Wld) WriteRaw(w io.Writer) error {
 				}
 			}
 
-			for _, actorDef := range wld.ActorDefs {
-				if baseTag != baseTagTrim(actorDef.Tag) {
-					continue
-				}
-				_, err = actorDef.ToRaw(wld, dst)
-				if err != nil {
-					return fmt.Errorf("actordef %s: %w", actorDef.Tag, err)
-				}
-			}
 		}
 	} else {
 		for _, dmSprite := range wld.DMSpriteDef2s {

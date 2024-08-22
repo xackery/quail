@@ -11,6 +11,7 @@ var AsciiVersion = "v0.0.1"
 
 // Wld is a struct representing a Wld file
 type Wld struct {
+	isVariationMaterial    bool           // set true while writing or reading variations
 	lastReadModelTag       string         // last model tag read
 	tagIndexes             map[string]int // used when parsing to keep track of indexes
 	FileName               string
@@ -36,7 +37,6 @@ type Wld struct {
 	AmbientLights          []*AmbientLight
 	Zones                  []*Zone
 	RGBTrackDefs           []*RGBTrackDef
-	BlitSpriteDefinitions  []*BlitSpriteDefinition
 	ParticleCloudDefs      []*ParticleCloudDef
 	Sprite2DDefs           []*Sprite2DDef
 }
@@ -58,16 +58,18 @@ func (wld *Wld) ByTag(tag string) WldDefinitioner {
 				return sprite
 			}
 		}
-		for _, sprite := range wld.BlitSpriteDefinitions {
-			if sprite.Tag == tag {
-				return sprite
-			}
-		}
 	}
 	if strings.HasSuffix(tag, "_PCD") {
 		for _, cloud := range wld.ParticleCloudDefs {
 			if cloud.Tag == tag {
 				return cloud
+			}
+		}
+	}
+	if strings.HasSuffix(tag, "_SPB") {
+		for _, sprite := range wld.ParticleCloudDefs {
+			if sprite.BlitSpriteDefTag == tag {
+				return sprite
 			}
 		}
 	}
@@ -82,13 +84,6 @@ func (wld *Wld) ByTag(tag string) WldDefinitioner {
 		for _, palette := range wld.MaterialPalettes {
 			if palette.Tag == tag {
 				return palette
-			}
-		}
-	}
-	if strings.HasSuffix(tag, "_SPB") {
-		for _, sprite := range wld.BlitSpriteDefinitions {
-			if sprite.Tag == tag {
-				return sprite
 			}
 		}
 	}
@@ -140,14 +135,6 @@ func (wld *Wld) ByTag(tag string) WldDefinitioner {
 		for _, track := range wld.RGBTrackDefs {
 			if track.Tag == tag {
 				return track
-			}
-		}
-	}
-
-	if strings.HasSuffix(tag, "_SPB") {
-		for _, sprite := range wld.BlitSpriteDefinitions {
-			if sprite.Tag == tag {
-				return sprite
 			}
 		}
 	}
@@ -216,6 +203,26 @@ func (wld *Wld) ByTagWithIndex(tag string, index int) WldDefinitioner {
 		}
 	}
 
+	if strings.HasSuffix(tag, "_MDF") {
+		for _, material := range wld.MaterialDefs {
+			if material.Tag == tag && material.Variation == index {
+				return material
+			}
+		}
+	}
+
+	if strings.HasSuffix(tag, "_SPRITE") {
+		for _, sprite := range wld.SimpleSpriteDefs {
+			if sprite.Tag != tag {
+				continue
+			}
+			if sprite.Variation != index {
+				continue
+			}
+			return sprite
+		}
+	}
+
 	return nil
 }
 
@@ -258,7 +265,6 @@ func (wld *Wld) reset() {
 	wld.AmbientLights = []*AmbientLight{}
 	wld.Zones = []*Zone{}
 	wld.RGBTrackDefs = []*RGBTrackDef{}
-	wld.BlitSpriteDefinitions = []*BlitSpriteDefinition{}
 	wld.ParticleCloudDefs = []*ParticleCloudDef{}
 	wld.Sprite2DDefs = []*Sprite2DDef{}
 }

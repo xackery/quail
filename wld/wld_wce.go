@@ -71,18 +71,35 @@ func (wld *Wld) writeAsciiData(path string, baseTags []string) error {
 	if wld.WorldDef == nil {
 		return fmt.Errorf("worlddef not found")
 	}
+	/*
+		for _, track := range wld.TrackInstances {
+			if len(track.Tag) < 3 {
+				return fmt.Errorf("trackdef %s tag too short", track.Tag)
+			}
+			baseTag := track.SpriteTag
+			if len(baseTag) < 1 {
+				return fmt.Errorf("track sprite tag %s too short (%s)", track.Tag, baseTag)
+			}
+			isFound := false
+			for _, tag := range baseTags {
+				if tag == baseTag || tag == track.SpriteTag {
+					isFound = true
+					break
+				}
+			}
+			if !isFound {
+				baseTags = append(baseTags, baseTag)
+			}
+		} */
 
-	for _, track := range wld.TrackInstances {
-		if len(track.Tag) < 3 {
-			return fmt.Errorf("trackdef %s tag too short", track.Tag)
+	for _, actorDef := range wld.ActorDefs {
+		if len(actorDef.Tag) < 3 {
+			return fmt.Errorf("actorDef %s tag too short", actorDef.Tag)
 		}
-		baseTag := track.SpriteTag
-		if len(baseTag) < 1 {
-			return fmt.Errorf("trackd %s tag too short (%s)", track.Tag, baseTag)
-		}
+		baseTag := baseTagTrim(actorDef.Tag)
 		isFound := false
 		for _, tag := range baseTags {
-			if tag == baseTag || tag == track.SpriteTag {
+			if tag == baseTag {
 				isFound = true
 				break
 			}
@@ -228,28 +245,28 @@ func (wld *Wld) writeAsciiData(path string, baseTags []string) error {
 			return fmt.Errorf("point light %s: %w", pLight.Tag, err)
 		}
 	}
-	/*
-		for _, matDef := range wld.MaterialDefs {
-			tag := matDef.Tag
-			if wld.WorldDef.Zone == 1 {
-				tag = "R"
-			}
 
-			if strings.Count(tag, "_") > 1 {
-				tag = strings.Split(tag, "_")[0]
-			}
-
-			err = token.SetWriter(tag)
-			if err != nil {
-				return fmt.Errorf("set materialdef %s writer: %w", matDef.Tag, err)
-			}
-
-			err = matDef.Write(token)
-			if err != nil {
-				return fmt.Errorf("materialdef %s: %w", matDef.Tag, err)
-			}
+	for _, matDef := range wld.MaterialDefs {
+		tag := matDef.Tag
+		if wld.WorldDef.Zone == 1 {
+			tag = "R"
 		}
-	*/
+
+		if strings.Count(tag, "_") > 1 {
+			tag = strings.Split(tag, "_")[0]
+		}
+
+		err = token.SetWriter(tag)
+		if err != nil {
+			return fmt.Errorf("set materialdef %s writer: %w", matDef.Tag, err)
+		}
+
+		err = matDef.Write(token)
+		if err != nil {
+			return fmt.Errorf("materialdef %s: %w", matDef.Tag, err)
+		}
+	}
+
 	for _, lightDef := range wld.LightDefs {
 		err = token.SetWriter("zone")
 		if err != nil {

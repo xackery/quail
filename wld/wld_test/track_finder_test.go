@@ -65,7 +65,6 @@ func TestFragTrack(t *testing.T) {
 				continue
 			}
 
-			raw.NameClear()
 			rawWld := &raw.Wld{}
 			err = rawWld.Read(bytes.NewReader(file.Data()))
 			if err != nil {
@@ -78,13 +77,13 @@ func TestFragTrack(t *testing.T) {
 				tagName := ""
 				frag, ok := fragRaw.(*rawfrag.WldFragTrack)
 				if ok {
-					tagName = raw.Name(int32(frag.NameRef))
+					tagName = rawWld.Name(int32(frag.NameRef))
 				} else {
 					frag2, ok := fragRaw.(*rawfrag.WldFragTrackDef)
 					if !ok {
 						continue
 					}
-					tagName = raw.Name(int32(frag2.NameRef))
+					tagName = rawWld.Name(int32(frag2.NameRef))
 				}
 
 				fmt.Fprintf(w, "Track found in %s/%s/%s fragID %d\n", s3dName, wldName, tagName, i)

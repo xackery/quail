@@ -101,14 +101,14 @@ func (e *Quail) wldWrite(wld *raw.Wld) error {
 					baseName := strings.TrimSuffix(srcProp.Value, ext)
 
 					dstTextureList := &rawfrag.WldFragBMInfo{ // aka BmInfo
-						NameRef:      raw.NameAdd(baseName),
+						NameRef:      wld.NameAdd(baseName),
 						TextureNames: []string{srcProp.Value},
 					}
 					wld.Fragments[fragIndex] = dstTextureList
 					fragIndex++
 
 					texture := &rawfrag.WldFragSimpleSpriteDef{ // aka SimpleSpriteDef
-						NameRef:      raw.NameAdd(srcProp.Value),
+						NameRef:      wld.NameAdd(srcProp.Value),
 						Flags:        0x00000000,
 						CurrentFrame: 0,
 						Sleep:        0,
@@ -119,7 +119,7 @@ func (e *Quail) wldWrite(wld *raw.Wld) error {
 					fragIndex++
 
 					textureRefInst := &rawfrag.WldFragSimpleSprite{ // aka SimpleSprite
-						NameRef:   raw.NameAdd(srcProp.Value),
+						NameRef:   wld.NameAdd(srcProp.Value),
 						SpriteRef: uint32(fragIndex - 1),
 						Flags:     0x00000000,
 					}
@@ -132,7 +132,7 @@ func (e *Quail) wldWrite(wld *raw.Wld) error {
 				}
 
 				dstMat.SimpleSpriteRef = uint32(textureRef)
-				dstMat.NameRef = raw.NameAdd(srcMat.Name)
+				dstMat.NameRef = wld.NameAdd(srcMat.Name)
 				dstMat.Flags = 2
 				dstMat.RenderMethod = 0x00000001
 				// //0x00FFFFFF
@@ -145,7 +145,7 @@ func (e *Quail) wldWrite(wld *raw.Wld) error {
 				materialList.MaterialRefs = append(materialList.MaterialRefs, uint32(fragIndex-1))
 			}
 
-			materialList.NameRef = raw.NameAdd(srcMat.Name)
+			materialList.NameRef = wld.NameAdd(srcMat.Name)
 			materialList.Flags = 0x00014003
 			if mod.FileType == "ter" {
 				materialList.Flags = 0x00018003
@@ -154,7 +154,7 @@ func (e *Quail) wldWrite(wld *raw.Wld) error {
 			fragIndex++
 			mesh.MaterialPaletteRef = uint32(fragIndex - 1)
 		}
-		mesh.NameRef = raw.NameAdd(mod.Header.Name)
+		mesh.NameRef = wld.NameAdd(mod.Header.Name)
 		mesh.Flags = 0x00014003
 
 		mesh.DMTrackRef = 0 // for anims later

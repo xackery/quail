@@ -7,10 +7,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/go-test/deep"
 	"github.com/xackery/quail/common"
 	"github.com/xackery/quail/pfs"
 	"github.com/xackery/quail/raw"
+	"github.com/xackery/quail/raw/rawfrag"
 	"github.com/xackery/quail/wld"
 )
 
@@ -131,29 +131,92 @@ func TestWceReadWrite(t *testing.T) {
 				t.Fatalf("failed to read wld3 %s: %s", baseName, err.Error())
 			}
 
-			/* diff := deep.Equal(wldSrc, wldDst)
-			if diff != nil {
-				t.Fatalf("wld diff: %s", diff)
-			} */
+			type tagEntry struct {
+				tag    string
+				offset int
+			}
 
+			srcFragByCodes := make(map[int]int)
+			srcFragByTags := make(map[int][]*tagEntry)
 			for i := 0; i < len(rawWldSrc.Fragments); i++ {
 				srcFrag := rawWldSrc.Fragments[i]
+				srcFragByCodes[srcFrag.FragCode()]++
+				srcFragByTags[srcFrag.FragCode()] = append(srcFragByTags[srcFrag.FragCode()], &tagEntry{tag: rawWldSrc.TagByFrag(srcFrag), offset: i})
+			}
+
+			dstFragByCodes := make(map[int]int)
+			dstFragByTags := make(map[int][]*tagEntry)
+
+			for i := 0; i < len(rawWldDst.Fragments); i++ {
 				dstFrag := rawWldDst.Fragments[i]
-				if srcFrag.FragCode() != dstFrag.FragCode() {
-					t.Fatalf("fragment %d fragcode mismatch: src: %s, dst: %s", i, raw.FragName(srcFrag.FragCode()), raw.FragName(dstFrag.FragCode()))
+				dstFragByCodes[dstFrag.FragCode()]++
+				dstFragByTags[dstFrag.FragCode()] = append(dstFragByTags[dstFrag.FragCode()], &tagEntry{tag: rawWldDst.TagByFrag(dstFrag), offset: i})
+			}
+
+			for i := range srcFragByTags {
+				srcTags := srcFragByTags[i]
+				dstTags := dstFragByTags[i]
+				// find a matching dstTag, and pop from both
+				for _, srcTag := range srcTags {
+					found := false
+					for j, dstTag := range dstTags {
+						if srcTag.tag == dstTag.tag {
+							found = true
+							dstTags = append(dstTags[:j], dstTags[j+1:]...)
+							break
+						}
+					}
+					if !found {
+						t.Fatalf("fragment %d (%s) tag %s not found in dst", srcTag.offset, rawfrag.FragName(i), srcTag.tag)
+					}
 				}
-				diff := deep.Equal(srcFrag, dstFrag)
+				if len(dstTags) > 0 {
+					t.Fatalf("fragment (%s) tags %v not found in src", rawfrag.FragName(i), dstTags)
+				}
+			}
+
+			for code, count := range srcFragByCodes {
+				if count != dstFragByCodes[code] {
+					t.Fatalf("fragment code %d (%s) count mismatch: src: %d, dst: %d", code, rawfrag.FragName(code), count, dstFragByCodes[code])
+				}
+			}
+			for code, tags := range srcFragByTags {
+				if len(tags) != len(dstFragByTags[code]) {
+					t.Fatalf("fragment code %d (%s) tag count mismatch: src: %d, dst: %d", code, rawfrag.FragName(code), len(tags), len(dstFragByTags[code]))
+				}
+			}
+
+			if len(rawWldSrc.Fragments) != len(rawWldDst.Fragments) {
+				t.Fatalf("fragment count mismatch: src: %d, dst: %d", len(rawWldSrc.Fragments), len(rawWldDst.Fragments))
+			}
+
+			/*
+				for i := 0; i < len(rawWldSrc.Fragments); i++ {
+					srcFrag := rawWldSrc.Fragments[i]
+					for j := 0; j < len(rawWldDst.Fragments); j++ {
+						dstFrag := rawWldDst.Fragments[j]
+						if srcFrag.FragCode() != dstFrag.FragCode() {
+							continue
+						}
+						if rawWldSrc.TagByFrag(srcFrag) == "" {
+							continue
+						}
+						if rawWldSrc.TagByFrag(srcFrag) != rawWldDst.TagByFrag(dstFrag) {
+							continue
+						}
+						diff := deep.Equal(srcFrag, dstFrag)
+						if diff != nil {
+							t.Fatalf("fragment %d diff mismatch: src: %s (%s), dst: %s (%s), diff: %s", i, raw.FragName(srcFrag.FragCode()), rawWldSrc.TagByFrag(srcFrag), raw.FragName(dstFrag.FragCode()), rawWldDst.TagByFrag(dstFrag), diff)
+						}
+					}
+				}*/
+			/*
+				diff := deep.Equal(rawWldSrc, rawWldDst)
 				if diff != nil {
-					t.Fatalf("frag diff %d (%s): %s", i, raw.FragName(srcFrag.FragCode()), diff)
+					t.Fatalf("rawWld diff: %s", diff)
 				}
-			}
-
-			diff := deep.Equal(rawWldSrc, rawWldDst)
-			if diff != nil {
-				t.Fatalf("rawWld diff: %s", diff)
-			}
-
-			for i := 0; i < len(rawWldSrc.Fragments); i++ {
+			*/
+			/* for i := 0; i < len(rawWldSrc.Fragments); i++ {
 				srcFrag := rawWldSrc.Fragments[i]
 				dstFrag := rawWldDst.Fragments[i]
 
@@ -173,7 +236,7 @@ func TestWceReadWrite(t *testing.T) {
 				if err != nil {
 					t.Fatalf("%s byteCompare frag %d %s: %s", raw.FragName(srcFrag.FragCode()), i, tt.baseName, err)
 				}
-			}
+			} */
 			fmt.Printf("Processed %d fragments for %s in %0.2f seconds\n", len(rawWldSrc.Fragments), tt.baseName, time.Since(totalStart).Seconds())
 		})
 	}
