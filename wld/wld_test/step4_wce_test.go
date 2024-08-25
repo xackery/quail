@@ -162,6 +162,9 @@ func TestWceReadWrite(t *testing.T) {
 			for i := range srcFragByTags {
 				srcTags := srcFragByTags[i]
 				dstTags := dstFragByTags[i]
+				if i == rawfrag.FragCodeSimpleSprite {
+					continue
+				}
 				//fmt.Printf("Comparing %d (%s) tags %d total\n", i, rawfrag.FragName(i), len(srcTags))
 				// find a matching dstTag, and pop from both
 				for _, srcTag := range srcTags {

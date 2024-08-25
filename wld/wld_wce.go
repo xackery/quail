@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/xackery/quail/common"
@@ -14,6 +15,9 @@ import (
 func (wld *Wld) ReadAscii(path string) error {
 
 	wld.reset()
+	wld.maxMaterialHeads = make(map[string]int)
+	wld.maxMaterialTextures = make(map[string]int)
+
 	asciiReader, err := LoadAsciiFile(path, wld)
 	if err != nil {
 		return fmt.Errorf("%w", err)
@@ -109,7 +113,7 @@ func (wld *Wld) writeAsciiData(path string, baseTags []string) error {
 		}
 	}
 
-	err := token.AddWriter("zone", fmt.Sprintf("%s/zone.mod", path))
+	err := token.AddWriter("world", fmt.Sprintf("%s/world.mod", path))
 	if err != nil {
 		return fmt.Errorf("add writer: %w", err)
 	}
@@ -129,7 +133,7 @@ func (wld *Wld) writeAsciiData(path string, baseTags []string) error {
 	}
 
 	if wld.WorldDef != nil {
-		err = token.SetWriter("zone")
+		err = token.SetWriter("world")
 		if err != nil {
 			return fmt.Errorf("set worlddef writer zone: %w", err)
 		}
@@ -140,13 +144,38 @@ func (wld *Wld) writeAsciiData(path string, baseTags []string) error {
 	}
 
 	if wld.GlobalAmbientLightDef != nil {
-		err = token.SetWriter("zone")
+		err = token.SetWriter("world")
 		if err != nil {
 			return fmt.Errorf("set global ambient light writer zone: %w", err)
 		}
 		err = wld.GlobalAmbientLightDef.Write(token)
 		if err != nil {
 			return fmt.Errorf("global ambient light: %w", err)
+		}
+	}
+
+	clks := make(map[string]bool)
+	err = token.SetWriter("world")
+	if err != nil {
+		return fmt.Errorf("set material palette writer zone: %w", err)
+	}
+	for _, matDef := range wld.MaterialDefs {
+		if !strings.HasPrefix(matDef.Tag, "CLK") {
+			continue
+		}
+
+		_, err := strconv.Atoi(matDef.Tag[3:6])
+		if err != nil {
+			continue
+		}
+		if clks[matDef.Tag] {
+			continue
+		}
+		clks[matDef.Tag] = true
+
+		err = matDef.Write(token)
+		if err != nil {
+			return fmt.Errorf("materialdef %s: %w", matDef.Tag, err)
 		}
 	}
 
@@ -162,75 +191,89 @@ func (wld *Wld) writeAsciiData(path string, baseTags []string) error {
 		}
 	}
 
-	for _, dmSpriteDef := range wld.DMSpriteDef2s {
-		err = token.SetWriter(dmSpriteDef.Tag)
+	for _, actorDef := range wld.ActorDefs {
+		token.TagClearIsWritten()
+		err = token.SetWriter(actorDef.Tag)
 		if err != nil {
-			return fmt.Errorf("set dmspritedef2 %s writer: %w", dmSpriteDef.Tag, err)
+			return fmt.Errorf("set actordef %s writer: %w", actorDef.Tag, err)
 		}
-		err = dmSpriteDef.Write(token)
+		err = actorDef.Write(token)
 		if err != nil {
-			return fmt.Errorf("dmspritedef2 %s: %w", dmSpriteDef.Tag, err)
+			return fmt.Errorf("actordef %s: %w", actorDef.Tag, err)
 		}
 	}
 
-	for _, hSprite := range wld.HierarchicalSpriteDefs {
-		err = token.SetWriter(hSprite.Tag)
-		if err != nil {
-			return fmt.Errorf("set hspritedef %s writer: %w", hSprite.Tag, err)
+	if wld.WorldDef.Zone == 1 {
+		for _, dmSpriteDef := range wld.DMSpriteDef2s {
+			err = token.SetWriter(dmSpriteDef.Tag)
+			if err != nil {
+				return fmt.Errorf("set dmspritedef2 %s writer: %w", dmSpriteDef.Tag, err)
+			}
+			err = dmSpriteDef.Write(token)
+			if err != nil {
+				return fmt.Errorf("dmspritedef2 %s: %w", dmSpriteDef.Tag, err)
+			}
 		}
 
-		err = hSprite.Write(token)
-		if err != nil {
-			return fmt.Errorf("hspritedef %s: %w", hSprite.Tag, err)
-		}
-	}
+		for _, hSprite := range wld.HierarchicalSpriteDefs {
+			err = token.SetWriter(hSprite.Tag)
+			if err != nil {
+				return fmt.Errorf("set hspritedef %s writer: %w", hSprite.Tag, err)
+			}
 
-	for _, dSprite := range wld.DMSpriteDefs {
-		err = token.SetWriter(dSprite.Tag)
-		if err != nil {
-			return fmt.Errorf("set dmspritedef %s writer: %w", dSprite.Tag, err)
-		}
-
-		err = dSprite.Write(token)
-		if err != nil {
-			return fmt.Errorf("dmspritedef %s: %w", dSprite.Tag, err)
-		}
-	}
-
-	// global tracks
-	for _, track := range wld.TrackInstances {
-		if len(track.Tag) < 3 {
-			return fmt.Errorf("track %s tag too short", track.Tag)
-		}
-		if len(track.SpriteTag) < 3 {
-			return fmt.Errorf("track %s model too short", track.Tag)
-		}
-		tag := track.SpriteTag
-		if (track.Sleep.Valid && track.Sleep.Uint32 > 0) ||
-			isAnimationPrefix(track.Tag) {
-			tag += "_ani"
+			err = hSprite.Write(token)
+			if err != nil {
+				return fmt.Errorf("hspritedef %s: %w", hSprite.Tag, err)
+			}
 		}
 
-		err = token.SetWriter(tag)
-		if err != nil {
-			return fmt.Errorf("set track baseTag (%s) %s writer: %w", tag, track.Tag, err)
+		for _, dSprite := range wld.DMSpriteDefs {
+			err = token.SetWriter(dSprite.Tag)
+			if err != nil {
+				return fmt.Errorf("set dmspritedef %s writer: %w", dSprite.Tag, err)
+			}
+
+			err = dSprite.Write(token)
+			if err != nil {
+				return fmt.Errorf("dmspritedef %s: %w", dSprite.Tag, err)
+			}
 		}
 
-		err = track.Write(token)
-		if err != nil {
-			return fmt.Errorf("track %s_%d: %w", track.Tag, track.TagIndex, err)
-		}
-	}
+		// global tracks
+		for _, track := range wld.TrackInstances {
+			if len(track.Tag) < 3 {
+				return fmt.Errorf("track %s tag too short", track.Tag)
+			}
+			if len(track.SpriteTag) < 3 {
+				return fmt.Errorf("track %s model too short", track.Tag)
+			}
+			tag := track.SpriteTag
+			if (track.Sleep.Valid && track.Sleep.Uint32 > 0) ||
+				isAnimationPrefix(track.Tag) {
+				tag += "_ani"
+			}
 
-	for _, polyDef := range wld.PolyhedronDefs {
-		err = token.SetWriter(polyDef.Tag)
-		if err != nil {
-			return fmt.Errorf("set polyhedron %s writer: %w", polyDef.Tag, err)
+			err = token.SetWriter(tag)
+			if err != nil {
+				return fmt.Errorf("set track baseTag (%s) %s writer: %w", tag, track.Tag, err)
+			}
+
+			err = track.Write(token)
+			if err != nil {
+				return fmt.Errorf("track %s_%d: %w", track.Tag, track.TagIndex, err)
+			}
 		}
 
-		err = polyDef.Write(token)
-		if err != nil {
-			return fmt.Errorf("polyhedron %s: %w", polyDef.Tag, err)
+		for _, polyDef := range wld.PolyhedronDefs {
+			err = token.SetWriter(polyDef.Tag)
+			if err != nil {
+				return fmt.Errorf("set polyhedron %s writer: %w", polyDef.Tag, err)
+			}
+
+			err = polyDef.Write(token)
+			if err != nil {
+				return fmt.Errorf("polyhedron %s: %w", polyDef.Tag, err)
+			}
 		}
 	}
 
@@ -246,29 +289,29 @@ func (wld *Wld) writeAsciiData(path string, baseTags []string) error {
 		}
 	}
 
-	for _, matDef := range wld.MaterialDefs {
-		tag := matDef.Tag
-		if wld.WorldDef.Zone == 1 {
-			tag = "R"
-		}
+	// for _, matDef := range wld.MaterialDefs {
+	// 	tag := matDef.Tag
+	// 	if wld.WorldDef.Zone == 1 {
+	// 		tag = "R"
+	// 	}
 
-		if strings.Count(tag, "_") > 1 {
-			tag = strings.Split(tag, "_")[0]
-		}
+	// 	if strings.Count(tag, "_") > 1 {
+	// 		tag = strings.Split(tag, "_")[0]
+	// 	}
 
-		err = token.SetWriter(tag)
-		if err != nil {
-			return fmt.Errorf("set materialdef %s writer: %w", matDef.Tag, err)
-		}
+	// 	err = token.SetWriter(tag)
+	// 	if err != nil {
+	// 		return fmt.Errorf("set materialdef %s writer: %w", matDef.Tag, err)
+	// 	}
 
-		err = matDef.Write(token)
-		if err != nil {
-			return fmt.Errorf("materialdef %s: %w", matDef.Tag, err)
-		}
-	}
+	// 	err = matDef.Write(token)
+	// 	if err != nil {
+	// 		return fmt.Errorf("materialdef %s: %w", matDef.Tag, err)
+	// 	}
+	// }
 
 	for _, lightDef := range wld.LightDefs {
-		err = token.SetWriter("zone")
+		err = token.SetWriter("world")
 		if err != nil {
 			return fmt.Errorf("set lightdef %s writer: %w", lightDef.Tag, err)
 		}
@@ -280,7 +323,7 @@ func (wld *Wld) writeAsciiData(path string, baseTags []string) error {
 	}
 
 	for _, tree := range wld.WorldTrees {
-		err = token.SetWriter("zone")
+		err = token.SetWriter("world")
 		if err != nil {
 			return fmt.Errorf("set world tree %s writer: %w", tree.Tag, err)
 		}
@@ -292,7 +335,7 @@ func (wld *Wld) writeAsciiData(path string, baseTags []string) error {
 	}
 
 	for _, aLight := range wld.AmbientLights {
-		err = token.SetWriter("zone")
+		err = token.SetWriter("world")
 		if err != nil {
 			return fmt.Errorf("set ambient light %s writer: %w", aLight.Tag, err)
 		}
@@ -304,7 +347,7 @@ func (wld *Wld) writeAsciiData(path string, baseTags []string) error {
 	}
 
 	for _, actor := range wld.ActorInsts {
-		err = token.SetWriter("zone")
+		err = token.SetWriter("world")
 		if err != nil {
 			return fmt.Errorf("set actor %s writer: %w", actor.Tag, err)
 		}
@@ -315,24 +358,24 @@ func (wld *Wld) writeAsciiData(path string, baseTags []string) error {
 		}
 	}
 
-	for _, actorDef := range wld.ActorDefs {
-		tag := actorDef.Tag
-		if wld.WorldDef.Zone == 1 {
-			tag = "R"
-		}
-		err = token.SetWriter(tag)
-		if err != nil {
-			return fmt.Errorf("set actor def %s writer: %w", actorDef.Tag, err)
-		}
+	// for _, actorDef := range wld.ActorDefs {
+	// 	tag := actorDef.Tag
+	// 	if wld.WorldDef.Zone == 1 {
+	// 		tag = "R"
+	// 	}
+	// 	err = token.SetWriter(tag)
+	// 	if err != nil {
+	// 		return fmt.Errorf("set actor def %s writer: %w", actorDef.Tag, err)
+	// 	}
 
-		err = actorDef.Write(token)
-		if err != nil {
-			return fmt.Errorf("actor def %s: %w", actorDef.Tag, err)
-		}
-	}
+	// 	err = actorDef.Write(token)
+	// 	if err != nil {
+	// 		return fmt.Errorf("actor def %s: %w", actorDef.Tag, err)
+	// 	}
+	// }
 
 	for _, zone := range wld.Zones {
-		err = token.SetWriter("zone")
+		err = token.SetWriter("world")
 		if err != nil {
 			return fmt.Errorf("set zone %s writer: %w", zone.Tag, err)
 		}
@@ -353,12 +396,12 @@ func (wld *Wld) writeAsciiData(path string, baseTags []string) error {
 
 	defer rootW.Close()
 
-	if token.IsWriterUsed("zone") {
-		rootW.WriteString("INCLUDE \"ZONE.MOD\"\n")
+	if token.IsWriterUsed("world") {
+		rootW.WriteString("INCLUDE \"WORLD.MOD\"\n")
 	} else {
-		err = os.Remove(fmt.Sprintf("%s/zone.mod", path))
+		err = os.Remove(fmt.Sprintf("%s/world.mod", path))
 		if err != nil {
-			return fmt.Errorf("remove %s: %w", fmt.Sprintf("%s/zone.mod", path), err)
+			return fmt.Errorf("remove %s: %w", fmt.Sprintf("%s/world.mod", path), err)
 		}
 	}
 

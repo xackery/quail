@@ -2,6 +2,7 @@ package wld
 
 import (
 	"fmt"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -177,10 +178,10 @@ func (e *DMSpriteDef2) Write(token *AsciiWriteToken) error {
 		return err
 	}
 
-	if token.IsTagWritten(e.Tag) {
+	if token.TagIsWritten(e.Tag) {
 		return nil
 	}
-	token.SetIsWritten(e.Tag)
+	token.TagSetIsWritten(e.Tag)
 
 	if e.MaterialPaletteTag != "" {
 		palette := token.wld.ByTag(e.MaterialPaletteTag)
@@ -1354,17 +1355,31 @@ func (e *DMSpriteDef) Read(token *AsciiReadToken) error {
 }
 
 func (e *DMSpriteDef) ToRaw(wld *Wld, rawWld *raw.Wld) (int16, error) {
+	var err error
 	if e.fragID != 0 {
 		return e.fragID, nil
 	}
-	wfDMSpriteDef := &rawfrag.WldFragDMSpriteDef{}
+
+	materialPaletteRef := int16(0)
+	if e.MaterialPaletteTag != "" {
+		palette := wld.ByTag(e.MaterialPaletteTag)
+		if palette == nil {
+			return -1, fmt.Errorf("material palette %s not found", e.MaterialPaletteTag)
+		}
+
+		materialPaletteRef, err = palette.ToRaw(wld, rawWld)
+		if err != nil {
+			return -1, fmt.Errorf("material palette %s to raw: %w", e.MaterialPaletteTag, err)
+		}
+	}
+
+	wfDMSpriteDef := &rawfrag.WldFragDMSpriteDef{
+		MaterialPaletteRef: uint32(materialPaletteRef),
+		CenterOffset:       e.Center,
+	}
 	wfDMSpriteDef.NameRef = rawWld.NameAdd(e.Tag)
 	wfDMSpriteDef.Fragment1 = e.Fragment1
-	if e.MaterialPaletteTag != "" {
-		wfDMSpriteDef.MaterialPaletteRef = uint32(rawWld.NameAdd(e.MaterialPaletteTag))
-	}
 	wfDMSpriteDef.Fragment3 = e.Fragment3
-	wfDMSpriteDef.Center = e.Center
 	wfDMSpriteDef.Params1 = e.Params1
 	wfDMSpriteDef.Vertices = e.Vertices
 	wfDMSpriteDef.TexCoords = e.TexCoords
@@ -1422,7 +1437,7 @@ func (e *DMSpriteDef) FromRaw(wld *Wld, rawWld *raw.Wld, frag *rawfrag.WldFragDM
 		e.MaterialPaletteTag = rawWld.Name(materialPalette.NameRef)
 	}
 	e.Fragment3 = frag.Fragment3
-	e.Center = frag.Center
+	e.Center = frag.CenterOffset
 	e.Params1 = frag.Params1
 	e.Vertices = frag.Vertices
 	e.TexCoords = frag.TexCoords
@@ -1479,7 +1494,7 @@ func (e *MaterialPalette) Write(token *AsciiWriteToken) error {
 	if err != nil {
 		return err
 	}
-	if token.IsTagWritten(e.Tag) {
+	if token.TagIsWritten(e.Tag) {
 		return nil
 	}
 
@@ -1591,6 +1606,7 @@ func (e *MaterialPalette) FromRaw(wld *Wld, rawWld *raw.Wld, frag *rawfrag.WldFr
 // MaterialDef is an entry MATERIALDEFINITION
 type MaterialDef struct {
 	fragID             int16
+	model              string
 	Tag                string
 	Variation          int
 	SpriteHexFiftyFlag int
@@ -1614,11 +1630,11 @@ func (e *MaterialDef) Write(token *AsciiWriteToken) error {
 		return err
 	}
 
-	if token.IsTagWritten(fmt.Sprintf("%s_%d", e.Tag, e.Variation)) {
+	if token.TagIsWritten(fmt.Sprintf("%s_%d", e.Tag, e.Variation)) {
 		return nil
 	}
 
-	token.SetIsWritten(fmt.Sprintf("%s_%d", e.Tag, e.Variation))
+	token.TagSetIsWritten(fmt.Sprintf("%s_%d", e.Tag, e.Variation))
 
 	if e.SimpleSpriteTag != "" {
 		simpleSprite := token.wld.ByTagWithIndex(e.SimpleSpriteTag, e.Variation)
@@ -1646,11 +1662,14 @@ func (e *MaterialDef) Write(token *AsciiWriteToken) error {
 	fmt.Fprintf(w, "\tHEXONEFLAG %d\n", e.HexOneFlag)
 	fmt.Fprintf(w, "ENDMATERIALDEFINITION\n\n")
 
-	token.SetIsWritten(e.Tag)
+	token.TagSetIsWritten(e.Tag)
 	return nil
 }
 
 func (e *MaterialDef) Read(token *AsciiReadToken) error {
+
+	e.model = token.wld.lastReadModelTag
+
 	records, err := token.ReadProperty("TAG", 1)
 	if err != nil {
 		return err
@@ -1753,6 +1772,7 @@ func (e *MaterialDef) Read(token *AsciiReadToken) error {
 		return err
 	}
 
+	token.wld.variationMaterialDefs[token.wld.lastReadModelTag] = append(token.wld.variationMaterialDefs[token.wld.lastReadModelTag], e)
 	return nil
 }
 
@@ -1819,6 +1839,8 @@ func (e *MaterialDef) FromRaw(wld *Wld, rawWld *raw.Wld, frag *rawfrag.WldFragMa
 		return fmt.Errorf("frag is not materialdef (wrong fragcode?)")
 	}
 
+	e.model = wld.lastReadModelTag
+
 	if frag.SimpleSpriteRef > 0 {
 		if len(rawWld.Fragments) < int(frag.SimpleSpriteRef) {
 			return fmt.Errorf("simplesprite ref %d out of bounds", frag.SimpleSpriteRef)
@@ -1857,6 +1879,8 @@ func (e *MaterialDef) FromRaw(wld *Wld, rawWld *raw.Wld, frag *rawfrag.WldFragMa
 		e.Pair2.Valid = true
 		e.Pair2.Float32 = frag.Pair2
 	}
+
+	wld.variationMaterialDefs[wld.lastReadModelTag] = append(wld.variationMaterialDefs[wld.lastReadModelTag], e)
 	return nil
 }
 
@@ -1887,13 +1911,13 @@ func (e *SimpleSpriteDef) Write(token *AsciiWriteToken) error {
 		return err
 	}
 
-	if token.IsTagWritten(fmt.Sprintf("%s_%d", e.Tag, e.Variation)) {
+	if token.TagIsWritten(fmt.Sprintf("%s_%d", e.Tag, e.Variation)) {
 		return nil
 	}
 
-	token.SetIsWritten(fmt.Sprintf("%s_%d", e.Tag, e.Variation))
+	token.TagSetIsWritten(fmt.Sprintf("%s_%d", e.Tag, e.Variation))
 
-	token.SetIsWritten(e.Tag)
+	token.TagSetIsWritten(e.Tag)
 	fmt.Fprintf(w, "%s\n", e.Definition())
 	fmt.Fprintf(w, "\tSIMPLESPRITETAG \"%s\"\n", e.Tag)
 	fmt.Fprintf(w, "\tVARIATION %d\n", e.Variation)
@@ -2132,11 +2156,11 @@ func (e *ActorDef) Write(token *AsciiWriteToken) error {
 		return err
 	}
 
-	if token.IsTagWritten(e.Tag) {
+	if token.TagIsWritten(e.Tag) {
 		return nil
 	}
 
-	token.SetIsWritten(e.Tag)
+	token.TagSetIsWritten(e.Tag)
 
 	for _, action := range e.Actions {
 		for lodIndex, lod := range action.LevelOfDetails {
@@ -2164,6 +2188,27 @@ func (e *ActorDef) Write(token *AsciiWriteToken) error {
 				err = sprite.Write(token)
 				if err != nil {
 					return fmt.Errorf("lod %d hsprite %s: %w", lodIndex, sprite.Tag, err)
+				}
+
+				variations := token.wld.variationMaterialDefs[token.wld.lastReadModelTag]
+				sort.Slice(variations, func(i, j int) bool {
+					return variations[i].Tag < variations[j].Tag
+				})
+
+				for _, variation := range variations {
+					err = variation.Write(token)
+					if err != nil {
+						return fmt.Errorf("lod %d hsprite %s variation %s: %w", lodIndex, sprite.Tag, variation.Tag, err)
+					}
+				}
+
+				if err != nil {
+					return fmt.Errorf("lod %d hsprite %s material: %w", lodIndex, sprite.Tag, err)
+				}
+			case *DMSpriteDef2:
+				err = sprite.Write(token)
+				if err != nil {
+					return fmt.Errorf("lod %d dmspritedef %s: %w", lodIndex, sprite.Tag, err)
 				}
 
 			default:
@@ -2284,6 +2329,10 @@ func (e *ActorDef) Read(token *AsciiReadToken) error {
 			if err != nil {
 				return err
 			}
+			err = parse(&lod.SpriteTagIndex, records[1])
+			if err != nil {
+				return fmt.Errorf("sprite index: %w", err)
+			}
 
 			records, err = token.ReadProperty("MINDISTANCE", 1)
 			if err != nil {
@@ -2365,7 +2414,7 @@ func (e *ActorDef) ToRaw(wld *Wld, rawWld *raw.Wld) (int16, error) {
 			Unk1: action.Unk1,
 		}
 
-		for _, lod := range action.LevelOfDetails {
+		for lodIndex, lod := range action.LevelOfDetails {
 			if lod.SpriteTag == "" {
 				continue
 			}
@@ -2416,9 +2465,16 @@ func (e *ActorDef) ToRaw(wld *Wld, rawWld *raw.Wld) (int16, error) {
 					return -1, fmt.Errorf("hierchcicalspritedef %s to raw: %w", lod.SpriteTag, err)
 				}
 
-				err = materialVariationToRaw(wld, rawWld, spriteDef)
-				if err != nil {
-					return -1, fmt.Errorf("materialvariation to raw: %w", err)
+				variations := wld.variationMaterialDefs[wld.lastReadModelTag]
+				sort.Slice(variations, func(i, j int) bool {
+					return variations[i].Tag < variations[j].Tag
+				})
+
+				for _, variation := range variations {
+					_, err = variation.ToRaw(wld, rawWld)
+					if err != nil {
+						return -1, fmt.Errorf("lod %d hsprite %s variation %s: %w", lodIndex, spriteDef.Tag, variation.Tag, err)
+					}
 				}
 
 				sprite := &rawfrag.WldFragHierarchicalSprite{
@@ -3388,10 +3444,10 @@ func (e *Sprite3DDef) Write(token *AsciiWriteToken) error {
 	if err != nil {
 		return err
 	}
-	if token.IsTagWritten(e.Tag) {
+	if token.TagIsWritten(e.Tag) {
 		return nil
 	}
-	token.SetIsWritten(e.Tag)
+	token.TagSetIsWritten(e.Tag)
 	fmt.Fprintf(w, "%s\n", e.Definition())
 	fmt.Fprintf(w, "\tTAG \"%s\"\n", e.Tag)
 	fmt.Fprintf(w, "\tCENTEROFFSET? %s\n", wcVal(e.CenterOffset))
@@ -4043,11 +4099,11 @@ func (e *TrackInstance) Write(token *AsciiWriteToken) error {
 	if err != nil {
 		return err
 	}
-	if token.IsTagWritten(fmt.Sprintf("%s_%d", e.Tag, e.TagIndex)) {
+	if token.TagIsWritten(fmt.Sprintf("%s_%d", e.Tag, e.TagIndex)) {
 		return nil
 	}
 
-	token.SetIsWritten(fmt.Sprintf("%s_%d", e.Tag, e.TagIndex))
+	token.TagSetIsWritten(fmt.Sprintf("%s_%d", e.Tag, e.TagIndex))
 	if e.DefinitionTag != "" {
 		trackDef := token.wld.ByTagWithIndex(e.DefinitionTag, e.DefinitionTagIndex)
 		if trackDef == nil {
@@ -4248,11 +4304,11 @@ func (e *TrackDef) Write(token *AsciiWriteToken) error {
 		return err
 	}
 
-	if token.IsTagWritten(fmt.Sprintf("%s_%d", e.Tag, e.TagIndex)) {
+	if token.TagIsWritten(fmt.Sprintf("%s_%d", e.Tag, e.TagIndex)) {
 		return nil
 	}
 
-	token.SetIsWritten(fmt.Sprintf("%s_%d", e.Tag, e.TagIndex))
+	token.TagSetIsWritten(fmt.Sprintf("%s_%d", e.Tag, e.TagIndex))
 
 	fmt.Fprintf(w, "%s\n", e.Definition())
 	fmt.Fprintf(w, "\tTAG \"%s\"\n", e.Tag)
@@ -4532,11 +4588,11 @@ func (e *HierarchicalSpriteDef) Write(token *AsciiWriteToken) error {
 		return err
 	}
 
-	if token.IsTagWritten(e.Tag) {
+	if token.TagIsWritten(e.Tag) {
 		return nil
 	}
 
-	token.SetIsWritten(e.Tag)
+	token.TagSetIsWritten(e.Tag)
 
 	/* for _, skin := range e.AttachedSkins {
 
@@ -4561,7 +4617,7 @@ func (e *HierarchicalSpriteDef) Write(token *AsciiWriteToken) error {
 				return fmt.Errorf("sprite %s not found", dag.SpriteTag)
 			}
 
-			if token.IsTagWritten(dag.SpriteTag) {
+			if token.TagIsWritten(dag.SpriteTag) {
 				continue
 			}
 
@@ -4569,7 +4625,19 @@ func (e *HierarchicalSpriteDef) Write(token *AsciiWriteToken) error {
 			if err != nil {
 				return fmt.Errorf("sprite %s: %w", dag.SpriteTag, err)
 			}
-			token.SetIsWritten(dag.SpriteTag)
+			token.TagSetIsWritten(dag.SpriteTag)
+		}
+	}
+
+	for _, skin := range e.AttachedSkins {
+		if skin.DMSpriteTag == "" {
+			continue
+		}
+
+		dmSprite := token.wld.ByTag(skin.DMSpriteTag)
+		err = dmSprite.Write(token)
+		if err != nil {
+			return fmt.Errorf("dmsprite %s: %w", skin.DMSpriteTag, err)
 		}
 	}
 
@@ -7579,6 +7647,7 @@ func spriteVariationToRaw(wld *Wld, rawWld *raw.Wld, e WldDefinitioner) error {
 	return nil
 }
 
+/*
 func materialVariationToRaw(wld *Wld, rawWld *raw.Wld, e WldDefinitioner) error {
 	tag := ""
 	wld.isVariationMaterial = true
@@ -7592,14 +7661,20 @@ func materialVariationToRaw(wld *Wld, rawWld *raw.Wld, e WldDefinitioner) error 
 	default:
 		return fmt.Errorf("unknown type %T", e)
 	}
+	maxHead := wld.maxMaterialHeads[tag]
+	maxTexture := wld.maxMaterialTextures[tag]
 	prefixes := []string{"CH", "FA", "FT", "HE", "HN", "LG", "UA", "MN", "TL"}
 	for _, prefix := range prefixes {
-		for preIndex := 0; preIndex < 99; preIndex++ {
-			for subIndex := 0; subIndex < 99; subIndex++ {
+		for preIndex := 0; preIndex <= maxHead; preIndex++ {
+			for subIndex := 0; subIndex <= maxTexture; subIndex++ {
 				for _, matDef := range wld.MaterialDefs {
-					if matDef.Variation != 1 {
-						continue
-					}
+					// if matDef.Variation != 1 {
+					// 	continue
+					// }
+					//if matDef.model != wld.lastReadModelTag {
+					//	continue
+					//}
+
 					if !strings.HasPrefix(matDef.Tag, tag+prefix) {
 						continue
 					}
@@ -7620,3 +7695,63 @@ func materialVariationToRaw(wld *Wld, rawWld *raw.Wld, e WldDefinitioner) error 
 	wld.isVariationMaterial = false
 	return nil
 }
+
+func materialVariationWrite(tag string, token *AsciiWriteToken) error {
+	wld := token.wld
+	wld.isVariationMaterial = true
+	maxHead := wld.maxMaterialHeads[tag]
+	maxTexture := wld.maxMaterialTextures[tag]
+	prefixes := []string{"CH", "FA", "FT", "HE", "HN", "LG", "UA", "MN", "TL"}
+	for _, prefix := range prefixes {
+		for preIndex := 0; preIndex <= maxHead; preIndex++ {
+			for subIndex := 0; subIndex <= maxTexture; subIndex++ {
+				for _, matDef := range wld.MaterialDefs {
+					//if matDef.model != wld.lastReadModelTag {
+					//	continue
+					//}
+
+					if !strings.HasPrefix(matDef.Tag, tag+prefix) {
+						continue
+					}
+					if !strings.HasSuffix(matDef.Tag, fmt.Sprintf("%02d%02d_MDF", preIndex, subIndex)) {
+						continue
+					}
+
+					err := matDef.Write(token)
+					if err != nil {
+						return fmt.Errorf("%s write: %w", matDef.Tag, err)
+					}
+
+				}
+			}
+		}
+	}
+
+	wld.isVariationMaterial = false
+	return nil
+}
+
+func materialMaxCheck(tag string, wld *Wld) {
+	if len(tag) < 7 {
+		return
+	}
+	baseTag := tag[0:3]
+	//3:5 is the category
+	val, err := strconv.Atoi(tag[5:7])
+	if err != nil {
+		return
+	}
+	if val > wld.maxMaterialHeads[baseTag] {
+		wld.maxMaterialHeads[baseTag] = val
+	}
+
+	val, err = strconv.Atoi(tag[7:9])
+	if err != nil {
+		return
+	}
+	if val > wld.maxMaterialTextures[baseTag] {
+		wld.maxMaterialTextures[baseTag] = val
+	}
+
+}
+*/

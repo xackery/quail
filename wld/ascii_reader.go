@@ -327,6 +327,9 @@ func (a *AsciiReadToken) readInclude(args []string) error {
 	}
 
 	path := a.basePath + "/" + args[1]
+	if strings.HasSuffix(args[1], "/_ROOT.WCE") {
+		a.wld.lastReadModelTag = strings.TrimSuffix(args[1], "/_ROOT.WCE")
+	}
 	ir, err := LoadAsciiFile(path, a.wld)
 	if err != nil {
 		return fmt.Errorf("new ascii reader: %w", err)

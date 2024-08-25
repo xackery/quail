@@ -15,7 +15,7 @@ type WldFragDMSpriteDef struct {
 	Fragment1            int16
 	MaterialPaletteRef   uint32
 	Fragment3            uint32
-	Center               [3]float32
+	CenterOffset         [3]float32
 	Params1              [3]float32
 	Vertices             [][3]float32
 	TexCoords            [][2]float32
@@ -63,9 +63,9 @@ func (e *WldFragDMSpriteDef) Write(w io.Writer, isNewWorld bool) error {
 	enc.Uint32(uint32(len(e.SkinAssignmentGroups)))
 	enc.Uint32(e.MaterialPaletteRef)
 	enc.Uint32(e.Fragment3)
-	enc.Float32(e.Center[0])
-	enc.Float32(e.Center[1])
-	enc.Float32(e.Center[2])
+	enc.Float32(e.CenterOffset[0])
+	enc.Float32(e.CenterOffset[1])
+	enc.Float32(e.CenterOffset[2])
 	enc.Float32(e.Params1[0])
 	enc.Float32(e.Params1[1])
 	enc.Float32(e.Params1[2])
@@ -174,9 +174,9 @@ func (e *WldFragDMSpriteDef) Read(r io.ReadSeeker, isNewWorld bool) error {
 	skinAssignmentGroupCount := dec.Uint32()
 	e.MaterialPaletteRef = dec.Uint32()
 	e.Fragment3 = dec.Uint32()
-	e.Center[0] = dec.Float32()
-	e.Center[1] = dec.Float32()
-	e.Center[2] = dec.Float32()
+	e.CenterOffset[0] = dec.Float32()
+	e.CenterOffset[1] = dec.Float32()
+	e.CenterOffset[2] = dec.Float32()
 	e.Params1[0] = dec.Float32()
 	e.Params1[1] = dec.Float32()
 	e.Params1[2] = dec.Float32()

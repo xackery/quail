@@ -13,9 +13,18 @@ var tests = []struct {
 	//{baseName: "frontiermtns_chr"},
 	//{baseName: "crushbone"},
 	//{baseName: "twilight"},
-	{baseName: "global4_chr"},
-	//{baseName: "global5_chr"},
-	//{baseName: "globalelf_chr"},
+	//{baseName: "gukbottom"},
+	{baseName: "qeynos"},
+	//{baseName: "global_chr"}, // boat_actordef unknown sprite type
+	//{baseName: "global2_chr"}, // PASS
+	//{baseName: "global3_chr"}, // track O02DWF_TRACK model too short
+	//{baseName: "global4_chr"}, // BAMHE0003_SPRITE not found
+	//{baseName: "global5_chr"}, // PASS
+	//{baseName: "global6_chr"}, // PASS
+	//{baseName: "global7_chr"}, // KEFTASK11 not found
+	//{baseName: "globalelf_chr"}, // PASS
+	//{baseName: "globaldaf_chr"}, // PASS
+	//{baseName: "globaldam_chr"}, // PASS
 	//{baseName: "arena"}, // OK
 	//{baseName: "abysmal"},
 	//{baseName: "global_chr"}, // original human etc
@@ -89,6 +98,16 @@ func TestPastGoodTests(t *testing.T) {
 		{baseName: "crushbone"},
 		{baseName: "arena"},
 		{baseName: "neriakc"},
+		//{baseName: "global_chr"},
+		{baseName: "global2_chr"},
+		//{baseName: "global3_chr"}, // track O02DWF_TRACK model too short
+		//{baseName: "global4_chr"}, // BAMHE0003_SPRITE not found
+		{baseName: "global5_chr"}, //  PASS
+		{baseName: "global6_chr"}, // PASS
+		//{baseName: "global7_chr"}, // KEFTASK11 not found
+		{baseName: "globalelf_chr"}, // PASS
+		{baseName: "globaldaf_chr"}, // PASS
+		{baseName: "globaldam_chr"}, // PASS
 	}
 
 	TestStep4(t)

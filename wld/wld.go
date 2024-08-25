@@ -11,8 +11,10 @@ var AsciiVersion = "v0.0.1"
 
 // Wld is a struct representing a Wld file
 type Wld struct {
-	isVariationMaterial    bool           // set true while writing or reading variations
-	lastReadModelTag       string         // last model tag read
+	isVariationMaterial    bool   // set true while writing or reading variations
+	lastReadModelTag       string // last model tag read
+	maxMaterialHeads       map[string]int
+	maxMaterialTextures    map[string]int
 	tagIndexes             map[string]int // used when parsing to keep track of indexes
 	FileName               string
 	WorldDef               *WorldDef
@@ -20,6 +22,7 @@ type Wld struct {
 	Version                uint32
 	SimpleSpriteDefs       []*SimpleSpriteDef
 	MaterialDefs           []*MaterialDef
+	variationMaterialDefs  map[string][]*MaterialDef
 	MaterialPalettes       []*MaterialPalette
 	DMSpriteDefs           []*DMSpriteDef
 	DMSpriteDef2s          []*DMSpriteDef2
@@ -248,6 +251,7 @@ func (wld *Wld) reset() {
 	wld.tagIndexes = make(map[string]int)
 	wld.SimpleSpriteDefs = []*SimpleSpriteDef{}
 	wld.MaterialDefs = []*MaterialDef{}
+	wld.variationMaterialDefs = make(map[string][]*MaterialDef)
 	wld.MaterialPalettes = []*MaterialPalette{}
 	wld.DMSpriteDefs = []*DMSpriteDef{}
 	wld.DMSpriteDef2s = []*DMSpriteDef2{}

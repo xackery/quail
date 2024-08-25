@@ -14,6 +14,8 @@ import (
 
 func (wld *Wld) ReadRaw(src *raw.Wld) error {
 	wld.reset()
+	wld.maxMaterialHeads = make(map[string]int)
+	wld.maxMaterialTextures = make(map[string]int)
 	wld.WorldDef = &WorldDef{}
 	if src.IsNewWorld {
 		wld.WorldDef.NewWorld = 1
@@ -281,19 +283,19 @@ func (wld *Wld) WriteRaw(w io.Writer) error {
 
 	if wld.WorldDef.Zone != 1 {
 		baseTags := []string{}
-		for _, dmSprite := range wld.DMSpriteDef2s {
-			if dmSprite.Tag == "" {
+		for _, actorDef := range wld.ActorDefs {
+			if actorDef.Tag == "" {
 				return fmt.Errorf("dmspritedef tag is empty")
 			}
 			isUnique := true
 			for _, baseTag := range baseTags {
-				if baseTag == baseTagTrim(dmSprite.Tag) {
+				if baseTag == baseTagTrim(actorDef.Tag) {
 					isUnique = false
 					break
 				}
 			}
 			if isUnique {
-				baseTags = append(baseTags, baseTagTrim(dmSprite.Tag))
+				baseTags = append(baseTags, baseTagTrim(actorDef.Tag))
 			}
 		}
 
@@ -324,6 +326,27 @@ func (wld *Wld) WriteRaw(w io.Writer) error {
 				if err != nil {
 					return fmt.Errorf("cloud %s: %w", cloudDef.Tag, err)
 				}
+			}
+		}
+
+		clks := make(map[string]bool)
+		for _, matDef := range wld.MaterialDefs {
+			if !strings.HasPrefix(matDef.Tag, "CLK") {
+				continue
+			}
+
+			_, err = strconv.Atoi(matDef.Tag[3:6])
+			if err != nil {
+				continue
+			}
+			if clks[matDef.Tag] {
+				continue
+			}
+			clks[matDef.Tag] = true
+
+			_, err = matDef.ToRaw(wld, dst)
+			if err != nil {
+				return fmt.Errorf("materialdef %s: %w", matDef.Tag, err)
 			}
 		}
 

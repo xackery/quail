@@ -26,13 +26,17 @@ func NewAsciiWriteToken(path string, wld *Wld) *AsciiWriteToken {
 	}
 }
 
-// IsTagWritten returns true if the tag was already written
-func (a *AsciiWriteToken) IsTagWritten(tag string) bool {
+// TagIsWritten returns true if the tag was already written
+func (a *AsciiWriteToken) TagIsWritten(tag string) bool {
 	return a.writtenDefs[tag]
 }
 
-func (a *AsciiWriteToken) SetIsWritten(tag string) {
+func (a *AsciiWriteToken) TagSetIsWritten(tag string) {
 	a.writtenDefs[tag] = true
+}
+
+func (a *AsciiWriteToken) TagClearIsWritten() {
+	a.writtenDefs = make(map[string]bool)
 }
 
 func (a *AsciiWriteToken) Writer() (*os.File, error) {
@@ -67,7 +71,10 @@ func (a *AsciiWriteToken) WriterByTag(tag string) (*os.File, error) {
 
 		w, ok = a.writers[baseTag]
 		if !ok {
-			return nil, fmt.Errorf("writer for basetag %s (%s) does not exist", baseTag, tag)
+			w, ok = a.writers[a.wld.lastReadModelTag]
+			if !ok {
+				return nil, fmt.Errorf("writer for basetag %s (%s) does not exist (last read modeltag: %s)", baseTag, tag, a.wld.lastReadModelTag)
+			}
 		}
 	}
 	a.writersUsed[baseTag] = true
