@@ -7681,111 +7681,184 @@ func spriteVariationToRaw(wld *Wld, rawWld *raw.Wld, e WldDefinitioner) error {
 	return nil
 }
 
-/*
-func materialVariationToRaw(wld *Wld, rawWld *raw.Wld, e WldDefinitioner) error {
-	tag := ""
-	wld.isVariationMaterial = true
-	switch spriteDef := e.(type) {
-	case *DMSpriteDef2:
-		tag = strings.TrimSuffix(spriteDef.Tag, "_DMSPRITEDEF")
-	case *DMSpriteDef:
-		tag = strings.TrimSuffix(spriteDef.Tag, "_DMSPRITEDEF")
-	case *HierarchicalSpriteDef:
-		tag = strings.TrimSuffix(spriteDef.Tag, "_HS_DEF")
-	default:
-		return fmt.Errorf("unknown type %T", e)
+type DMTrackDef2 struct {
+	fragID int16
+	Tag    string
+	Param1 uint16
+	Param2 uint16
+	Scale  uint16
+	Frames [][][3]int16
+	Size6  uint16
+}
+
+func (e *DMTrackDef2) Definition() string {
+	return "DMTRACKDEF2"
+}
+
+func (e *DMTrackDef2) Write(token *AsciiWriteToken) error {
+	w, err := token.Writer()
+	if err != nil {
+		return err
 	}
-	maxHead := wld.maxMaterialHeads[tag]
-	maxTexture := wld.maxMaterialTextures[tag]
-	prefixes := []string{"CH", "FA", "FT", "HE", "HN", "LG", "UA", "MN", "TL"}
-	for _, prefix := range prefixes {
-		for preIndex := 0; preIndex <= maxHead; preIndex++ {
-			for subIndex := 0; subIndex <= maxTexture; subIndex++ {
-				for _, matDef := range wld.MaterialDefs {
-					// if matDef.Variation != 1 {
-					// 	continue
-					// }
-					//if matDef.model != wld.lastReadModelTag {
-					//	continue
-					//}
 
-					if !strings.HasPrefix(matDef.Tag, tag+prefix) {
-						continue
-					}
-					if !strings.HasSuffix(matDef.Tag, fmt.Sprintf("%02d%02d_MDF", preIndex, subIndex)) {
-						continue
-					}
+	if token.TagIsWritten(e.Tag) {
+		return nil
+	}
 
-					_, err := matDef.ToRaw(wld, rawWld)
-					if err != nil {
-						return fmt.Errorf("%s to raw: %w", matDef.Tag, err)
-					}
+	token.TagSetIsWritten(e.Tag)
 
-				}
-			}
+	fmt.Fprintf(w, "%s\n", e.Definition())
+	fmt.Fprintf(w, "\tTAG \"%s\"\n", e.Tag)
+	fmt.Fprintf(w, "\tPARAM1 %d\n", e.Param1)
+	fmt.Fprintf(w, "\tPARAM2 %d\n", e.Param2)
+	fmt.Fprintf(w, "\tSCALE %d\n", e.Scale)
+	fmt.Fprintf(w, "\tSIZE6 %d\n", e.Size6)
+
+	fmt.Fprintf(w, "\tNUMFRAMES %d\n", len(e.Frames))
+	for _, vertFrames := range e.Frames {
+		fmt.Fprintf(w, "\tNUMVERTICES %d\n", len(vertFrames))
+		for _, frame := range vertFrames {
+			fmt.Fprintf(w, "\t\tXYZ %d %d %d\n", frame[0], frame[1], frame[2])
 		}
+		fmt.Fprintf(w, "\tENDFRAMETRANSFORM\n")
 	}
+	fmt.Fprintf(w, "ENDDMTRACKDEF2\n\n")
 
-	wld.isVariationMaterial = false
 	return nil
 }
 
-func materialVariationWrite(tag string, token *AsciiWriteToken) error {
-	wld := token.wld
-	wld.isVariationMaterial = true
-	maxHead := wld.maxMaterialHeads[tag]
-	maxTexture := wld.maxMaterialTextures[tag]
-	prefixes := []string{"CH", "FA", "FT", "HE", "HN", "LG", "UA", "MN", "TL"}
-	for _, prefix := range prefixes {
-		for preIndex := 0; preIndex <= maxHead; preIndex++ {
-			for subIndex := 0; subIndex <= maxTexture; subIndex++ {
-				for _, matDef := range wld.MaterialDefs {
-					//if matDef.model != wld.lastReadModelTag {
-					//	continue
-					//}
+func (e *DMTrackDef2) Read(token *AsciiReadToken) error {
+	records, err := token.ReadProperty("TAG", 1)
+	if err != nil {
+		return err
+	}
+	e.Tag = records[1]
 
-					if !strings.HasPrefix(matDef.Tag, tag+prefix) {
-						continue
-					}
-					if !strings.HasSuffix(matDef.Tag, fmt.Sprintf("%02d%02d_MDF", preIndex, subIndex)) {
-						continue
-					}
+	records, err = token.ReadProperty("PARAM1", 1)
+	if err != nil {
+		return err
+	}
+	err = parse(&e.Param1, records[1])
+	if err != nil {
+		return fmt.Errorf("param1: %w", err)
+	}
 
-					err := matDef.Write(token)
-					if err != nil {
-						return fmt.Errorf("%s write: %w", matDef.Tag, err)
-					}
+	records, err = token.ReadProperty("PARAM2", 1)
+	if err != nil {
+		return err
+	}
+	err = parse(&e.Param2, records[1])
+	if err != nil {
+		return fmt.Errorf("param2: %w", err)
+	}
 
-				}
+	records, err = token.ReadProperty("SCALE", 1)
+	if err != nil {
+		return err
+	}
+	err = parse(&e.Scale, records[1])
+	if err != nil {
+		return fmt.Errorf("scale: %w", err)
+	}
+
+	records, err = token.ReadProperty("SIZE6", 1)
+	if err != nil {
+		return err
+	}
+	err = parse(&e.Size6, records[1])
+	if err != nil {
+		return fmt.Errorf("size6: %w", err)
+	}
+
+	records, err = token.ReadProperty("NUMFRAMES", 1)
+	if err != nil {
+		return err
+	}
+	numFrames := int(0)
+	err = parse(&numFrames, records[1])
+	if err != nil {
+		return fmt.Errorf("num frames: %w", err)
+	}
+
+	for i := 0; i < numFrames; i++ {
+		_, err = token.ReadProperty("FRAMETRANSFORM", 0)
+		if err != nil {
+			return err
+		}
+
+		records, err = token.ReadProperty("NUMVERTICES", 1)
+		if err != nil {
+			return err
+		}
+		numVertices := int(0)
+		err = parse(&numVertices, records[1])
+		if err != nil {
+			return fmt.Errorf("frame %d num vertices: %w", i, err)
+		}
+
+		var vertFrames [][3]int16
+		for j := 0; j < numVertices; j++ {
+			records, err = token.ReadProperty("XYZ", 3)
+			if err != nil {
+				return err
 			}
+			frame := [3]int16{}
+			err = parse(&frame, records[1:]...)
+			if err != nil {
+				return fmt.Errorf("frame %d vertex %d: %w", i, j, err)
+			}
+			vertFrames = append(vertFrames, frame)
+		}
+		e.Frames = append(e.Frames, vertFrames)
+		_, err = token.ReadProperty("ENDFRAMETRANSFORM", 0)
+		if err != nil {
+			return err
 		}
 	}
 
-	wld.isVariationMaterial = false
+	_, err = token.ReadProperty("ENDDMTRACKDEF2", 0)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
-func materialMaxCheck(tag string, wld *Wld) {
-	if len(tag) < 7 {
-		return
-	}
-	baseTag := tag[0:3]
-	//3:5 is the category
-	val, err := strconv.Atoi(tag[5:7])
-	if err != nil {
-		return
-	}
-	if val > wld.maxMaterialHeads[baseTag] {
-		wld.maxMaterialHeads[baseTag] = val
+func (e *DMTrackDef2) ToRaw(wld *Wld, rawWld *raw.Wld) (int16, error) {
+	//if e.fragID != 0 {
+	//	return e.fragID, nil
+	//}
+
+	wfTrack2 := &rawfrag.WldFragDmTrackDef2{
+		Param1: e.Param1,
+		Param2: e.Param2,
+		Scale:  e.Scale,
+		Size6:  e.Size6,
 	}
 
-	val, err = strconv.Atoi(tag[7:9])
-	if err != nil {
-		return
-	}
-	if val > wld.maxMaterialTextures[baseTag] {
-		wld.maxMaterialTextures[baseTag] = val
-	}
+	wfTrack2.Frames = e.Frames
 
+	wfTrack2.NameRef = rawWld.NameAdd(e.Tag)
+	// flags?
+	rawWld.Fragments = append(rawWld.Fragments, wfTrack2)
+	e.fragID = int16(len(rawWld.Fragments))
+	return int16(len(rawWld.Fragments)), nil
 }
-*/
+
+func (e *DMTrackDef2) FromRaw(wld *Wld, rawWld *raw.Wld, frag *rawfrag.WldFragDmTrackDef2) error {
+	if frag == nil {
+		return fmt.Errorf("frag is not trackdef (wrong fragcode?)")
+	}
+
+	e.Tag = rawWld.Name(frag.NameRef)
+	e.Param1 = frag.Param1
+	e.Param2 = frag.Param2
+	e.Scale = frag.Scale
+	e.Size6 = frag.Size6
+	e.Frames = frag.Frames
+	if frag.Flags != 0 {
+		return fmt.Errorf("unknown flags %d", frag.Flags)
+	}
+
+	return nil
+}

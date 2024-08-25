@@ -8,6 +8,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/go-test/deep"
 	"github.com/xackery/encdec"
 	"github.com/xackery/quail/common"
 	"github.com/xackery/quail/pfs"
@@ -94,7 +95,8 @@ func TestFragment(t *testing.T) {
 		// 0x35 First
 		// 0x36 Mesh
 		{path: "globalelm_chr.s3d", file: "globalelm_chr.wld", fragIndex: 110},
-		// 0x37 MeshAnimated
+		// 0x37 "DmTrackDef2",
+		{path: "qeynos_obj.s3d", file: "qeynos_obj.wld", fragIndex: 1001},
 		//{path: "global_chr.s3d", file: "global_chr.wld", fragIndex: 557}, // tex coord count misaligned
 		//{path: "gequip.s3d", file: "gequip.wld", fragIndex: 0}, // Mesh
 		//{path: "gfaydark.s3d", file: "gfaydark.wld", fragIndex: 0}, // Mesh
@@ -167,6 +169,21 @@ func TestFragment(t *testing.T) {
 				err = reader.Write(buf, false)
 				if err != nil {
 					t.Fatalf("frag %d 0x%x (%s) write: %s", i, reader.FragCode(), FragName(int(reader.FragCode())), err.Error())
+				}
+
+				reader2 := NewFrag(buf)
+				if reader2 == nil {
+					t.Fatalf("frag %d read: unsupported fragment", i)
+				}
+
+				err = reader2.Read(buf, false)
+				if err != nil {
+					t.Fatalf("frag %d 0x%x (%s) read: %s", i, reader.FragCode(), FragName(int(reader.FragCode())), err.Error())
+				}
+
+				diff := deep.Equal(reader, reader2)
+				if diff != nil {
+					t.Fatalf("frag %d 0x%x (%s) diff mismatch: %s", i, reader.FragCode(), FragName(int(reader.FragCode())), diff)
 				}
 
 				dstData := buf.Bytes()

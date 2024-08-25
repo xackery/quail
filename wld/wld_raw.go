@@ -128,6 +128,14 @@ func readRawFrag(wld *Wld, rawWld *raw.Wld, fragment model.FragmentReadWriter) e
 			return fmt.Errorf("trackdef: %w", err)
 		}
 		wld.TrackDefs = append(wld.TrackDefs, def)
+
+	case rawfrag.FragCodeDmTrackDef2:
+		def := &DMTrackDef2{}
+		err := def.FromRaw(wld, rawWld, fragment.(*rawfrag.WldFragDmTrackDef2))
+		if err != nil {
+			return fmt.Errorf("dmtrackdef2: %w", err)
+		}
+		wld.DMTrackDef2s = append(wld.DMTrackDef2s, def)
 	case rawfrag.FragCodeTrack:
 		def := &TrackInstance{}
 		err := def.FromRaw(wld, rawWld, fragment.(*rawfrag.WldFragTrack))
@@ -254,6 +262,7 @@ func readRawFrag(wld *Wld, rawWld *raw.Wld, fragment model.FragmentReadWriter) e
 		}
 		wld.Sprite2DDefs = append(wld.Sprite2DDefs, def)
 	case rawfrag.FragCodeSprite2D:
+	case rawfrag.FragCodeDMTrack:
 	default:
 		return fmt.Errorf("unhandled fragment type %d (%s)", fragment.FragCode(), raw.FragName(fragment.FragCode()))
 	}

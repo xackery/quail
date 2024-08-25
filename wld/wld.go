@@ -20,28 +20,29 @@ type Wld struct {
 	WorldDef               *WorldDef
 	GlobalAmbientLightDef  *GlobalAmbientLightDef
 	Version                uint32
-	SimpleSpriteDefs       []*SimpleSpriteDef
-	MaterialDefs           []*MaterialDef
-	variationMaterialDefs  map[string][]*MaterialDef
-	MaterialPalettes       []*MaterialPalette
-	DMSpriteDefs           []*DMSpriteDef
-	DMSpriteDef2s          []*DMSpriteDef2
 	ActorDefs              []*ActorDef
 	ActorInsts             []*ActorInst
-	LightDefs              []*LightDef
-	PointLights            []*PointLight
-	Sprite3DDefs           []*Sprite3DDef
-	TrackInstances         []*TrackInstance
-	TrackDefs              []*TrackDef
-	HierarchicalSpriteDefs []*HierarchicalSpriteDef
-	PolyhedronDefs         []*PolyhedronDefinition
-	WorldTrees             []*WorldTree
-	Regions                []*Region
 	AmbientLights          []*AmbientLight
-	Zones                  []*Zone
-	RGBTrackDefs           []*RGBTrackDef
+	DMSpriteDef2s          []*DMSpriteDef2
+	DMSpriteDefs           []*DMSpriteDef
+	DMTrackDef2s           []*DMTrackDef2
+	HierarchicalSpriteDefs []*HierarchicalSpriteDef
+	LightDefs              []*LightDef
+	MaterialDefs           []*MaterialDef
+	MaterialPalettes       []*MaterialPalette
 	ParticleCloudDefs      []*ParticleCloudDef
+	PointLights            []*PointLight
+	PolyhedronDefs         []*PolyhedronDefinition
+	Regions                []*Region
+	RGBTrackDefs           []*RGBTrackDef
+	SimpleSpriteDefs       []*SimpleSpriteDef
 	Sprite2DDefs           []*Sprite2DDef
+	Sprite3DDefs           []*Sprite3DDef
+	TrackDefs              []*TrackDef
+	TrackInstances         []*TrackInstance
+	variationMaterialDefs  map[string][]*MaterialDef
+	WorldTrees             []*WorldTree
+	Zones                  []*Zone
 }
 
 type WldDefinitioner interface {

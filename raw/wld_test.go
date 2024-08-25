@@ -62,6 +62,7 @@ func TestWldFragOffsetDump(t *testing.T) {
 	tests := []struct {
 		name string
 	}{
+		{"qeynos_obj"},
 		//{"gequip4"},
 		//{"global_chr"}, // TODO:  anarelion asked mesh of EYE_DMSPRITEDEF check if the eye is just massive 22 units in size, where the other units in that file are just 1-2 units in size
 	}
@@ -114,11 +115,12 @@ func TestWldRewrite(t *testing.T) {
 		name string
 		wld  string
 	}{
+		{name: "qeynos_obj"},
 		//{name: "gequip4"},
 		//{name:"global_chr"}, // TODO:  anarelion asked mesh of EYE_DMSPRITEDEF check if the eye is just massive 22 units in size, where the other units in that file are just 1-2 units in size
 		//{name: "load2", wld: "objects.wld"},
 		//{name: "load2", wld: "lights.wld"},
-		{name: "load2"},
+		//{name: "load2"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

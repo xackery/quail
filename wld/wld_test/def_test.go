@@ -14,10 +14,9 @@ var tests = []struct {
 	//{baseName: "crushbone"},
 	//{baseName: "twilight"},
 	//{baseName: "gukbottom"},
-	//{baseName: "crushbone", wldName: "objects.wld"},
-	{baseName: "crushbone", wldName: "lights.wld"},
 	//{baseName: "qeynos"},
 	//{baseName: "qeynos_chr"},
+	{baseName: "qeynos_obj"},
 	//{baseName: "global_chr"}, // boat_actordef unknown sprite type
 	//{baseName: "global2_chr"}, // PASS
 	//{baseName: "global3_chr"}, // track O02DWF_TRACK model too short
@@ -99,6 +98,8 @@ func TestPastGoodTests(t *testing.T) {
 		wldName  string
 	}{
 		{baseName: "crushbone"},
+		{baseName: "crushbone", wldName: "objects.wld"},
+		{baseName: "crushbone", wldName: "lights.wld"},
 		{baseName: "arena"},
 		{baseName: "neriakc"},
 		//{baseName: "global_chr"},
