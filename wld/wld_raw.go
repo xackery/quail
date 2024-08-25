@@ -427,12 +427,11 @@ func (wld *Wld) WriteRaw(w io.Writer) error {
 
 	}
 
-	for _, lightDef := range wld.LightDefs {
-		_, err = lightDef.ToRaw(wld, dst)
+	for _, light := range wld.PointLights {
+		_, err = light.ToRaw(wld, dst)
 		if err != nil {
-			return fmt.Errorf("light %s: %w", lightDef.Tag, err)
+			return fmt.Errorf("pointlight %s: %w", light.Tag, err)
 		}
-
 	}
 
 	for _, sprite := range wld.Sprite3DDefs {

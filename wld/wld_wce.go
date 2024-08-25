@@ -256,14 +256,14 @@ func (wld *Wld) writeAsciiData(path string, baseTags []string) error {
 	}
 
 	for _, pLight := range wld.PointLights {
-		err = token.SetWriter(pLight.Tag)
+		err = token.SetWriter("world")
 		if err != nil {
 			return fmt.Errorf("set point light %s writer: %w", pLight.Tag, err)
 		}
 
 		err = pLight.Write(token)
 		if err != nil {
-			return fmt.Errorf("point light %s: %w", pLight.Tag, err)
+			return fmt.Errorf("point light (%s): %w", pLight.Tag, err)
 		}
 	}
 

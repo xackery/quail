@@ -3236,7 +3236,7 @@ func (e *LightDef) FromRaw(wld *Wld, rawWld *raw.Wld, frag *rawfrag.WldFragLight
 type PointLight struct {
 	fragID          int16
 	Tag             string
-	LightTag        string
+	LightDefTag     string
 	Static          int
 	StaticInfluence int
 	HasRegions      int
@@ -3255,9 +3255,19 @@ func (e *PointLight) Write(token *AsciiWriteToken) error {
 	if err != nil {
 		return err
 	}
+	if e.LightDefTag != "" {
+		lightDef := token.wld.ByTag(e.LightDefTag)
+		if lightDef == nil {
+			return fmt.Errorf("lightdef %s not found", e.LightDefTag)
+		}
+		err = lightDef.Write(token)
+		if err != nil {
+			return fmt.Errorf("lightdef %s: %w", e.LightDefTag, err)
+		}
+	}
 	fmt.Fprintf(w, "%s\n", e.Definition())
 	fmt.Fprintf(w, "\tTAG \"%s\"\n", e.Tag)
-	fmt.Fprintf(w, "\tLIGHT \"%s\"\n", e.LightTag)
+	fmt.Fprintf(w, "\tLIGHT \"%s\"\n", e.LightDefTag)
 	fmt.Fprintf(w, "\tSTATIC %d\n", e.Static)
 	fmt.Fprintf(w, "\tSTATICINFLUENCE %d\n", e.StaticInfluence)
 	fmt.Fprintf(w, "\tHASREGIONS %d\n", e.HasRegions)
@@ -3278,7 +3288,7 @@ func (e *PointLight) Read(token *AsciiReadToken) error {
 	if err != nil {
 		return err
 	}
-	e.LightTag = records[1]
+	e.LightDefTag = records[1]
 
 	records, err = token.ReadProperty("STATIC", 1)
 	if err != nil {
@@ -3338,9 +3348,33 @@ func (e *PointLight) ToRaw(wld *Wld, rawWld *raw.Wld) (int16, error) {
 		return e.fragID, nil
 	}
 
+	if e.LightDefTag == "" {
+		return -1, fmt.Errorf("lightdef tag not set")
+	}
+
+	lightDef := wld.ByTag(e.LightDefTag)
+	if lightDef == nil {
+		return -1, fmt.Errorf("lightdef %s not found", e.LightDefTag)
+	}
+
+	lightDefRef, err := lightDef.ToRaw(wld, rawWld)
+	if err != nil {
+		return -1, fmt.Errorf("lightdef %s to raw: %w", e.LightDefTag, err)
+	}
+
+	wfLightInstance := &rawfrag.WldFragLight{
+		NameRef:     0,
+		LightDefRef: int32(lightDefRef),
+		Flags:       0,
+	}
+
+	rawWld.Fragments = append(rawWld.Fragments, wfLightInstance)
+
+	lightInstRef := int32(len(rawWld.Fragments))
+
 	light := &rawfrag.WldFragPointLight{
 		NameRef:  rawWld.NameAdd(e.Tag),
-		LightRef: rawWld.NameAdd(e.LightTag),
+		LightRef: int32(lightInstRef),
 		Location: e.Location,
 		Radius:   e.Radius,
 	}
@@ -3387,7 +3421,7 @@ func (e *PointLight) FromRaw(wld *Wld, rawWld *raw.Wld, frag *rawfrag.WldFragPoi
 			return fmt.Errorf("lightdef ref %d not found", light.LightDefRef)
 		}
 
-		e.LightTag = rawWld.Name(lightDef.NameRef)
+		e.LightDefTag = rawWld.Name(lightDef.NameRef)
 	}
 	e.Location = frag.Location
 	e.Radius = frag.Radius

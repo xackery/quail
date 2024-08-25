@@ -14,7 +14,8 @@ var tests = []struct {
 	//{baseName: "crushbone"},
 	//{baseName: "twilight"},
 	//{baseName: "gukbottom"},
-	{baseName: "crushbone", wldName: "objects.wld"},
+	//{baseName: "crushbone", wldName: "objects.wld"},
+	{baseName: "crushbone", wldName: "lights.wld"},
 	//{baseName: "qeynos"},
 	//{baseName: "qeynos_chr"},
 	//{baseName: "global_chr"}, // boat_actordef unknown sprite type

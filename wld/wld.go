@@ -109,6 +109,13 @@ func (wld *Wld) ByTag(tag string) WldDefinitioner {
 			}
 		}
 	}
+	if strings.HasSuffix(tag, "_LDEF") {
+		for _, light := range wld.LightDefs {
+			if light.Tag == tag {
+				return light
+			}
+		}
+	}
 
 	if strings.HasSuffix(tag, "_TRACKDEF") {
 		for _, track := range wld.TrackDefs {
