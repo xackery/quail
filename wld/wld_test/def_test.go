@@ -14,7 +14,9 @@ var tests = []struct {
 	//{baseName: "crushbone"},
 	//{baseName: "twilight"},
 	//{baseName: "gukbottom"},
-	{baseName: "qeynos"},
+	{baseName: "crushbone", wldName: "objects.wld"},
+	//{baseName: "qeynos"},
+	//{baseName: "qeynos_chr"},
 	//{baseName: "global_chr"}, // boat_actordef unknown sprite type
 	//{baseName: "global2_chr"}, // PASS
 	//{baseName: "global3_chr"}, // track O02DWF_TRACK model too short

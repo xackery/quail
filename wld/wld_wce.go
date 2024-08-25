@@ -204,28 +204,6 @@ func (wld *Wld) writeAsciiData(path string, baseTags []string) error {
 	}
 
 	if wld.WorldDef.Zone == 1 {
-		for _, dmSpriteDef := range wld.DMSpriteDef2s {
-			err = token.SetWriter(dmSpriteDef.Tag)
-			if err != nil {
-				return fmt.Errorf("set dmspritedef2 %s writer: %w", dmSpriteDef.Tag, err)
-			}
-			err = dmSpriteDef.Write(token)
-			if err != nil {
-				return fmt.Errorf("dmspritedef2 %s: %w", dmSpriteDef.Tag, err)
-			}
-		}
-
-		for _, hSprite := range wld.HierarchicalSpriteDefs {
-			err = token.SetWriter(hSprite.Tag)
-			if err != nil {
-				return fmt.Errorf("set hspritedef %s writer: %w", hSprite.Tag, err)
-			}
-
-			err = hSprite.Write(token)
-			if err != nil {
-				return fmt.Errorf("hspritedef %s: %w", hSprite.Tag, err)
-			}
-		}
 
 		for _, dSprite := range wld.DMSpriteDefs {
 			err = token.SetWriter(dSprite.Tag)

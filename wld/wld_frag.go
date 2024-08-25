@@ -2677,14 +2677,14 @@ func (e *ActorInst) Write(token *AsciiWriteToken) error {
 	}
 
 	if e.DefinitionTag != "" {
-		actorDef := token.wld.ByTag(e.DefinitionTag)
+		/* 	actorDef := token.wld.ByTag(e.DefinitionTag)
 		if actorDef == nil {
 			return fmt.Errorf("actordef %s not found", e.DefinitionTag)
 		}
 		err = actorDef.Write(token)
 		if err != nil {
 			return fmt.Errorf("actordef %s: %w", e.DefinitionTag, err)
-		}
+		} */
 	}
 
 	fmt.Fprintf(w, "%s\n", e.Definition())
