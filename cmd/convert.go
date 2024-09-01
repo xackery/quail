@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/spf13/cobra"
 	"github.com/xackery/quail/quail"
@@ -38,6 +39,10 @@ func runConvertE(cmd *cobra.Command, args []string) error {
 		fmt.Println("Usage: quail convert <src> <dst>")
 		os.Exit(1)
 	}
+	start := time.Now()
+	defer func() {
+		fmt.Printf("Finished in %0.2f seconds\n", time.Since(start).Seconds())
+	}()
 	srcPath := args[0]
 	dstPath := args[1]
 	fi, err := os.Stat(srcPath)

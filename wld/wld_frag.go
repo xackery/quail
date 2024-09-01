@@ -7666,6 +7666,7 @@ func (e *Sprite2DDef) FromRaw(wld *Wld, rawWld *raw.Wld, frag *rawfrag.WldFragSp
 }
 
 func spriteVariationToRaw(wld *Wld, rawWld *raw.Wld, e WldDefinitioner) error {
+	var err error
 	tag := ""
 	switch spriteDef := e.(type) {
 	case *DMSpriteDef2:
@@ -7676,17 +7677,17 @@ func spriteVariationToRaw(wld *Wld, rawWld *raw.Wld, e WldDefinitioner) error {
 		return fmt.Errorf("unknown type %T", e)
 	}
 	tag = strings.TrimSuffix(tag, "_DMSPRITEDEF")
-	if len(tag) < 5 {
-		return nil
-		//return fmt.Errorf("tag too short %s", tag)
+	var index int
+	if len(tag) >= 5 {
+		index, err = strconv.Atoi(tag[len(tag)-2:])
+		if err != nil {
+			return nil
+			//return fmt.Errorf("tag index: %w", err)
+		}
+		tag = tag[:len(tag)-2]
+	} else {
+		index = 0
 	}
-	index, err := strconv.Atoi(tag[len(tag)-2:])
-	if err != nil {
-		return nil
-		//return fmt.Errorf("tag index: %w", err)
-	}
-
-	tag = tag[:len(tag)-2]
 
 	// check for variations
 	for i := 0; i < 10; i++ {

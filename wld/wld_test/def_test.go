@@ -12,8 +12,8 @@ var tests = []struct {
 }{
 	//{baseName: "globalelf_chr"}, // BROKE
 	//{baseName: "global6_chr"}, // FIX ME
-	//{baseName: "global_chr"},
-	{baseName: "twilight", wldName: "objects.wld"},
+	{baseName: "global_chr"},
+	//{baseName: "twilight", wldName: "objects.wld"},
 	//{baseName: "twilight", wldName: "lights.wld"},
 	//{baseName: "frontiermtns_chr"},
 	//{baseName: "crushbone"},

@@ -26,7 +26,16 @@ func (wld *Wld) ReadAscii(path string) error {
 	if err != nil {
 		return fmt.Errorf("%s:%d: %w", path, asciiReader.lineNumber, err)
 	}
-	fmt.Println(asciiReader.TotalLineCountRead(), "total lines parsed for", filepath.Base(path))
+	dir, err := os.Getwd()
+	if err != nil {
+		return fmt.Errorf("getwd: %w", err)
+	}
+
+	relPath, err := filepath.Rel(dir, path)
+	if err != nil {
+		relPath = path
+	}
+	fmt.Println(asciiReader.TotalLineCountRead(), "total lines parsed for", relPath)
 	return nil
 }
 
