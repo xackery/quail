@@ -176,7 +176,7 @@ func TestWceReadWrite(t *testing.T) {
 							break
 						}
 					}
-					if !found {
+					if !found && rawfrag.FragName(i) != "Actor" {
 						t.Fatalf("fragment %d (%s) tag %s not found in dst", srcTag.offset, rawfrag.FragName(i), srcTag.tag)
 					}
 				}

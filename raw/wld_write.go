@@ -88,7 +88,7 @@ func (wld *Wld) Write(w io.Writer) error {
 	enc.Uint32(uint32(len(nameData))) //hashSize
 
 	if len(wld.names) < 1 {
-		return fmt.Errorf("no names found")
+		wld.NameAdd("\x00")
 	}
 	enc.Uint32(uint32(len(wld.names) - 1)) // there's a 0x00 string at start but it's not counted
 
