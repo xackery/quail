@@ -514,8 +514,14 @@ func (wld *Wld) WriteRaw(w io.Writer) error {
 
 func isAnimationPrefix(name string) bool {
 	m := regexAni.FindStringSubmatch(name)
-	return len(m) > 1
-
+	if len(m) > 1 {
+		return true
+	}
+	m = regexAni2.FindStringSubmatch(name)
+	if len(m) > 1 {
+		return true
+	}
+	return false
 	/*
 		 	if len(name) < 3 {
 				return false

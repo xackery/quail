@@ -12,7 +12,7 @@ var tests = []struct {
 }{
 	//{baseName: "globalelf_chr"}, // BROKE
 	//{baseName: "global6_chr"}, // FIX ME
-	{baseName: "global_chr"},
+	//{baseName: "global_chr"},
 	//{baseName: "twilight", wldName: "objects.wld"},
 	//{baseName: "twilight", wldName: "lights.wld"},
 	//{baseName: "frontiermtns_chr"},
@@ -21,13 +21,13 @@ var tests = []struct {
 	//{baseName: "qeynos"},
 	//{baseName: "qeynos_chr"},
 	//{baseName: "qeynos_obj"},
-	//{baseName: "global_chr"}, // boat_actordef unknown sprite type
+	{baseName: "global_chr"}, // boat_actordef unknown sprite type
 	//{baseName: "global2_chr"}, // PASS
 	//{baseName: "global3_chr"}, // track O02DWF_TRACK model too short
-	//{baseName: "global4_chr"}, // BAMHE0003_SPRITE not found
+	//{baseName: "global4_chr"}, // PASS
 	//{baseName: "global5_chr"}, // PASS
 	//{baseName: "global6_chr"}, // PASS
-	//{baseName: "global7_chr"}, // KEFTASK11 not found
+	//{baseName: "global7_chr"}, // PASS
 	//{baseName: "globalelf_chr"}, // PASS
 	//{baseName: "globaldaf_chr"}, // PASS
 	//{baseName: "globaldam_chr"}, // PASS

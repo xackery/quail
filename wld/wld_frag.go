@@ -13,7 +13,8 @@ import (
 )
 
 var (
-	regexAni = regexp.MustCompile(`[A-Z][0-9][0-9]([A-Z]{3}).*`)
+	regexAni  = regexp.MustCompile(`[A-Z][0-9][0-9]([A-Z]{3}).*`)
+	regexAni2 = regexp.MustCompile(`.*_([A-Z]{3})_TRACK.*`)
 )
 
 // WorldDef stores data about the world itself
@@ -4317,6 +4318,10 @@ func (e *TrackInstance) FromRaw(wld *Wld, rawWld *raw.Wld, frag *rawfrag.WldFrag
 	if len(m) > 1 {
 		e.SpriteTag = m[1]
 	}
+	m = regexAni2.FindStringSubmatch(e.Tag)
+	if len(m) > 1 {
+		e.SpriteTag = m[1]
+	}
 	e.DefinitionTag = rawWld.Name(trackDef.NameRef)
 	e.DefinitionTagIndex = wld.tagIndexes[e.DefinitionTag]
 
@@ -4562,6 +4567,10 @@ func (e *TrackDef) FromRaw(wld *Wld, rawWld *raw.Wld, frag *rawfrag.WldFragTrack
 	e.TagIndex = wld.NextTagIndex(e.Tag)
 	e.SpriteTag = wld.lastReadModelTag
 	m := regexAni.FindStringSubmatch(e.Tag)
+	if len(m) > 1 {
+		e.SpriteTag = m[1]
+	}
+	m = regexAni2.FindStringSubmatch(e.Tag)
 	if len(m) > 1 {
 		e.SpriteTag = m[1]
 	}

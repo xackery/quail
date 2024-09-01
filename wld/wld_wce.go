@@ -84,26 +84,31 @@ func (wld *Wld) writeAsciiData(path string, baseTags []string) error {
 	if wld.WorldDef == nil {
 		return fmt.Errorf("worlddef not found")
 	}
-	/*
-		for _, track := range wld.TrackInstances {
-			if len(track.Tag) < 3 {
-				return fmt.Errorf("trackdef %s tag too short", track.Tag)
+
+	for _, track := range wld.TrackInstances {
+		baseTag := ""
+		m := regexAni.FindStringSubmatch(track.Tag)
+		if len(m) > 1 {
+			baseTag = m[1]
+		}
+		m = regexAni2.FindStringSubmatch(track.Tag)
+		if len(m) > 1 {
+			baseTag = m[1]
+		}
+		if len(baseTag) == 0 {
+			continue
+		}
+		isFound := false
+		for _, tag := range baseTags {
+			if tag == baseTag {
+				isFound = true
+				break
 			}
-			baseTag := track.SpriteTag
-			if len(baseTag) < 1 {
-				return fmt.Errorf("track sprite tag %s too short (%s)", track.Tag, baseTag)
-			}
-			isFound := false
-			for _, tag := range baseTags {
-				if tag == baseTag || tag == track.SpriteTag {
-					isFound = true
-					break
-				}
-			}
-			if !isFound {
-				baseTags = append(baseTags, baseTag)
-			}
-		} */
+		}
+		if !isFound {
+			baseTags = append(baseTags, baseTag)
+		}
+	}
 
 	for _, actorDef := range wld.ActorDefs {
 		if len(actorDef.Tag) < 3 {
