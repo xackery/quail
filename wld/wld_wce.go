@@ -193,6 +193,9 @@ func (wld *Wld) writeAsciiData(path string, baseTags []string) error {
 
 	for _, actorDef := range wld.ActorDefs {
 		token.TagClearIsWritten()
+		baseTag := baseTagTrim(actorDef.Tag)
+		wld.lastReadModelTag = baseTag
+
 		err = token.SetWriter(actorDef.Tag)
 		if err != nil {
 			return fmt.Errorf("set actordef %s writer: %w", actorDef.Tag, err)
@@ -216,31 +219,38 @@ func (wld *Wld) writeAsciiData(path string, baseTags []string) error {
 				return fmt.Errorf("dmspritedef %s: %w", dSprite.Tag, err)
 			}
 		}
+	}
 
-		// global tracks
-		for _, track := range wld.TrackInstances {
-			if len(track.Tag) < 3 {
-				return fmt.Errorf("track %s tag too short", track.Tag)
-			}
-			if len(track.SpriteTag) < 3 {
-				return fmt.Errorf("track %s model too short", track.Tag)
-			}
-			tag := track.SpriteTag
-			if (track.Sleep.Valid && track.Sleep.Uint32 > 0) ||
-				isAnimationPrefix(track.Tag) {
-				tag += "_ani"
-			}
-
-			err = token.SetWriter(tag)
-			if err != nil {
-				return fmt.Errorf("set track baseTag (%s) %s writer: %w", tag, track.Tag, err)
-			}
-
-			err = track.Write(token)
-			if err != nil {
-				return fmt.Errorf("track %s_%d: %w", track.Tag, track.TagIndex, err)
-			}
+	// global tracks
+	for _, track := range wld.TrackInstances {
+		if len(track.Tag) < 3 {
+			return fmt.Errorf("track %s tag too short", track.Tag)
 		}
+		if len(track.SpriteTag) < 3 {
+			return fmt.Errorf("track %s model too short", track.Tag)
+		}
+
+		tag := track.SpriteTag
+		if (track.Sleep.Valid && track.Sleep.Uint32 > 0) ||
+			isAnimationPrefix(track.Tag) {
+			tag += "_ani"
+		}
+
+		if token.TagIsWritten(fmt.Sprintf("%s_%d", track.Tag, track.TagIndex)) {
+			continue
+		}
+
+		err = token.SetWriter(tag)
+		if err != nil {
+			return fmt.Errorf("set track baseTag (%s) %s writer: %w", tag, track.Tag, err)
+		}
+
+		err = track.Write(token)
+		if err != nil {
+			return fmt.Errorf("track %s_%d: %w", track.Tag, track.TagIndex, err)
+		}
+	}
+	if wld.WorldDef.Zone == 1 {
 
 		for _, polyDef := range wld.PolyhedronDefs {
 			err = token.SetWriter(polyDef.Tag)

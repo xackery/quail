@@ -2,6 +2,7 @@ package wld
 
 import (
 	"fmt"
+	"regexp"
 	"sort"
 	"strconv"
 	"strings"
@@ -9,6 +10,10 @@ import (
 	"github.com/xackery/quail/model"
 	"github.com/xackery/quail/raw"
 	"github.com/xackery/quail/raw/rawfrag"
+)
+
+var (
+	regexAni = regexp.MustCompile(`[A-Z][0-9][0-9]([A-Z]{3}).*`)
 )
 
 // WorldDef stores data about the world itself
@@ -2217,6 +2222,17 @@ func (e *ActorDef) Write(token *AsciiWriteToken) error {
 		}
 	}
 
+	baseTag := strings.TrimSuffix(e.Tag, "_ACTORDEF")
+	for _, sprite := range token.wld.DMSpriteDef2s {
+		if !strings.HasPrefix(sprite.Tag, baseTag) {
+			continue
+		}
+		err = sprite.Write(token)
+		if err != nil {
+			return fmt.Errorf("dmspritedef %s: %w", sprite.Tag, err)
+		}
+	}
+
 	fmt.Fprintf(w, "%s\n", e.Definition())
 	fmt.Fprintf(w, "\tACTORTAG \"%s\"\n", e.Tag)
 	fmt.Fprintf(w, "\tCALLBACK \"%s\"\n", e.Callback)
@@ -2408,6 +2424,8 @@ func (e *ActorDef) ToRaw(wld *Wld, rawWld *raw.Wld) (int16, error) {
 	if e.HasEightyFlag > 0 {
 		actorDef.Flags |= 0x80
 	}
+
+	wld.lastReadModelTag = strings.TrimSuffix(e.Tag, "_ACTORDEF")
 
 	for _, action := range e.Actions {
 		actorAction := rawfrag.WldFragModelAction{
@@ -4295,6 +4313,10 @@ func (e *TrackInstance) FromRaw(wld *Wld, rawWld *raw.Wld, frag *rawfrag.WldFrag
 	e.Tag = rawWld.Name(frag.NameRef)
 	e.TagIndex = wld.NextTagIndex(e.Tag)
 	e.SpriteTag = wld.lastReadModelTag
+	m := regexAni.FindStringSubmatch(e.Tag)
+	if len(m) > 1 {
+		e.SpriteTag = m[1]
+	}
 	e.DefinitionTag = rawWld.Name(trackDef.NameRef)
 	e.DefinitionTagIndex = wld.tagIndexes[e.DefinitionTag]
 
@@ -4539,6 +4561,10 @@ func (e *TrackDef) FromRaw(wld *Wld, rawWld *raw.Wld, frag *rawfrag.WldFragTrack
 	e.Tag = rawWld.Name(frag.NameRef)
 	e.TagIndex = wld.NextTagIndex(e.Tag)
 	e.SpriteTag = wld.lastReadModelTag
+	m := regexAni.FindStringSubmatch(e.Tag)
+	if len(m) > 1 {
+		e.SpriteTag = m[1]
+	}
 
 	for _, fragFrame := range frag.FrameTransforms {
 		frame := &TrackFrameTransform{

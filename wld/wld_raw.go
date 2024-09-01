@@ -513,40 +513,45 @@ func (wld *Wld) WriteRaw(w io.Writer) error {
 }
 
 func isAnimationPrefix(name string) bool {
-	if len(name) < 3 {
-		return false
-	}
+	m := regexAni.FindStringSubmatch(name)
+	return len(m) > 1
 
-	name = strings.TrimSuffix(name, "_ani")
+	/*
+		 	if len(name) < 3 {
+				return false
+			}
 
-	firstUnderscore := strings.Index(name, "_")
-	if firstUnderscore < 0 {
-		return false
-	}
+			name = strings.TrimSuffix(name, "_ani")
 
-	name = name[:firstUnderscore]
-	if len(name) < 3 {
-		return false
-	}
+			firstUnderscore := strings.Index(name, "_")
+			if firstUnderscore < 0 {
+				return false
+			}
 
-	index := name[len(name)-2:]
-	prefix := name[len(name)-3 : len(name)-2]
+			name = name[:firstUnderscore]
+			if len(name) < 3 {
+				return false
+			}
 
-	isPrefix := false
-	letterPrefixes := []string{"C", "D", "L", "O", "S", "P", "T"}
-	for _, p := range letterPrefixes {
-		if prefix == p {
-			isPrefix = true
-			break
-		}
-	}
+			index := name[len(name)-2:]
+			prefix := name[len(name)-3 : len(name)-2]
 
-	_, err := strconv.Atoi(index)
-	if err != nil {
-		return false
-	}
+			isPrefix := false
+			letterPrefixes := []string{"C", "D", "L", "O", "S", "P", "T"}
+			for _, p := range letterPrefixes {
+				if prefix == p {
+					isPrefix = true
+					break
+				}
+			}
 
-	return isPrefix
+			_, err := strconv.Atoi(index)
+			if err != nil {
+				return false
+			}
+
+			return isPrefix
+	*/
 }
 
 func baseTagTrim(tag string) string {
