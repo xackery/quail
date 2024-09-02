@@ -240,7 +240,7 @@ func (e *Quail) S3DExport(fileVersion uint32, pfsVersion int, path string) error
 	if err != nil {
 		return fmt.Errorf("encode %s: %w", path, err)
 	}
-	fmt.Printf("Wrote %s with %d entries", path, pfs.Len())
+	fmt.Printf("Wrote %s with %d entries\n", path, pfs.Len())
 
 	return nil
 }

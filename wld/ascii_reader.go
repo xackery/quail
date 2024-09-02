@@ -76,6 +76,11 @@ func (a *AsciiReadToken) ReadLine() (string, error) {
 	for {
 		_, err := a.buf.Read(p)
 		if err != nil {
+			if err == io.EOF {
+				a.lineNumber++
+				return line, err
+			}
+
 			return "", err
 		}
 		if p[0] != '\n' {
@@ -98,7 +103,12 @@ func (a *AsciiReadToken) ReadLine() (string, error) {
 func (a *AsciiReadToken) ReadSegmentedLine() ([]string, error) {
 	line, err := a.ReadLine()
 	if err != nil {
-		return nil, err
+		if err != io.EOF {
+			return nil, err
+		}
+		if len(line) == 0 {
+			return nil, err
+		}
 	}
 	matches := regexLine.FindAllStringSubmatch(line, -1)
 	args := []string{}
