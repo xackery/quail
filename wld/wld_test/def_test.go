@@ -10,6 +10,10 @@ var tests = []struct {
 	baseName string
 	wldName  string
 }{
+	{baseName: "akanon"},
+	//{baseName: "akanon", wldName: "objects.wld"},
+	//{baseName: "akanon", wldName: "lights.wld"},
+	//{baseName: "gequip"},
 	//{baseName: "globalelf_chr"}, // BROKE
 	//{baseName: "global6_chr"}, // FIX ME
 	//{baseName: "global_chr"},
@@ -21,7 +25,7 @@ var tests = []struct {
 	//{baseName: "qeynos"},
 	//{baseName: "qeynos_chr"},
 	//{baseName: "qeynos_obj"},
-	{baseName: "global_chr"}, // boat_actordef unknown sprite type
+	//{baseName: "global_chr"},  // boat_actordef unknown sprite type
 	//{baseName: "global2_chr"}, // PASS
 	//{baseName: "global3_chr"}, // track O02DWF_TRACK model too short
 	//{baseName: "global4_chr"}, // PASS
@@ -56,7 +60,7 @@ var tests = []struct {
 	//{baseName: "qeynos", wldName: "lights.wld"},
 	//{baseName: "globalogm_chr"},
 
-	// {baseName: "acrylia_obj"}, //acrylia_obj failed to write acrylia_obj: hierarchicalsprite ACTORCH301_HS_DEF: collision volume not found: I_L301_SPB
+	//{baseName: "acrylia_obj"}, //acrylia_obj failed to write acrylia_obj: hierarchicalsprite ACTORCH301_HS_DEF: collision volume not found: I_L301_SPB
 	// {baseName: "ael_chr"}, //failed to write ael_chr: actordef AEL_ACTORDEF: sprite AEL_HS_DEF to raw: collision volume not found: I_AELCLOUD01_SPB
 	//{baseName: "gequip.takp", wldName: "gequip.wld"},
 }

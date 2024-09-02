@@ -33,7 +33,7 @@ func (e *WldFragTrackDef) Write(w io.Writer, isNewWorld bool) error {
 	enc.Uint32(uint32(len(e.FrameTransforms)))
 
 	for _, ft := range e.FrameTransforms {
-		if e.Flags&0x04 != 0 {
+		if e.Flags&0x08 != 0 {
 			enc.Int16(ft.RotateDenominator)
 			enc.Int16(ft.Rotation[0])
 			enc.Int16(ft.Rotation[1])
@@ -70,7 +70,7 @@ func (e *WldFragTrackDef) Read(r io.ReadSeeker, isNewWorld bool) error {
 
 	for i := 0; i < int(frameCount); i++ {
 		ft := WldFragTrackBoneTransform{}
-		if e.Flags&0x04 != 0 {
+		if e.Flags&0x08 != 0 {
 			ft.RotateDenominator = dec.Int16()
 			ft.Rotation[0] = dec.Int16()
 			ft.Rotation[1] = dec.Int16()
