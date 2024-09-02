@@ -4519,7 +4519,7 @@ func (e *TrackDef) ToRaw(wld *Wld, rawWld *raw.Wld) (int16, error) {
 		if frame.RotScale.Valid {
 			wfFrame.RotateDenominator = frame.RotScale.Int16
 
-			wfTrack.Flags |= 0x08
+			wfTrack.Flags |= 0x04
 
 			wfFrame.Rotation = [4]int16{
 				int16(frame.Rotation.Float32Slice3[0] * scale),
@@ -4592,7 +4592,7 @@ func (e *TrackDef) FromRaw(wld *Wld, rawWld *raw.Wld, frag *rawfrag.WldFragTrack
 			float32(fragFrame.Shift[2]) / scale,
 		}
 
-		if frag.Flags&0x08 != 0 {
+		if frag.Flags&0x04 != 0 {
 			frame.RotScale.Valid = true
 			frame.RotScale.Int16 = fragFrame.RotateDenominator
 			scale = float32(1)
