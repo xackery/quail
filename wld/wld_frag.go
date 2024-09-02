@@ -7698,6 +7698,11 @@ func spriteVariationToRaw(wld *Wld, rawWld *raw.Wld, e WldDefinitioner) error {
 		index = 0
 	}
 
+	tagLong := strings.TrimSuffix(tag, "_DMSPRITEDEF")
+	if tagLong == tag {
+		tagLong = ""
+	}
+
 	// check for variations
 	for i := 0; i < 10; i++ {
 		if i <= index {
@@ -7711,6 +7716,18 @@ func spriteVariationToRaw(wld *Wld, rawWld *raw.Wld, e WldDefinitioner) error {
 		_, err = def.ToRaw(wld, rawWld)
 		if err != nil {
 			return fmt.Errorf("%s to raw: %w", variationTag, err)
+		}
+
+		if tagLong != "" {
+			variationTag = fmt.Sprintf("%s%02d_DMSPRITEDEF", tagLong, i)
+			def := wld.ByTag(variationTag)
+			if def == nil {
+				return nil
+			}
+			_, err = def.ToRaw(wld, rawWld)
+			if err != nil {
+				return fmt.Errorf("%s to raw: %w", variationTag, err)
+			}
 		}
 	}
 

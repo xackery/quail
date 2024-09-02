@@ -10,10 +10,10 @@ var tests = []struct {
 	baseName string
 	wldName  string
 }{
-	{baseName: "akanon"},
+	//{baseName: "akanon"},
 	//{baseName: "akanon", wldName: "objects.wld"},
 	//{baseName: "akanon", wldName: "lights.wld"},
-	//{baseName: "gequip"},
+	{baseName: "qeynos_chr"},
 	//{baseName: "globalelf_chr"}, // BROKE
 	//{baseName: "global6_chr"}, // FIX ME
 	//{baseName: "global_chr"},
