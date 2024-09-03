@@ -127,19 +127,19 @@ func (wce *Wce) writeAsciiData(path string, baseTags []string) error {
 		}
 	}
 
-	err := token.AddWriter("world", fmt.Sprintf("%s/world.mod", path))
+	err := token.AddWriter("world", fmt.Sprintf("%s/world.wce", path))
 	if err != nil {
 		return fmt.Errorf("add writer: %w", err)
 	}
 
 	for _, baseTag := range baseTags {
-		writePath := fmt.Sprintf("%s/%s/%s.mod", path, strings.ToLower(baseTag), strings.ToLower(baseTag))
+		writePath := fmt.Sprintf("%s/%s/%s.wce", path, strings.ToLower(baseTag), strings.ToLower(baseTag))
 		err = token.AddWriter(baseTag, writePath)
 		if err != nil {
 			return fmt.Errorf("add writer %s: %w", baseTag, err)
 		}
 
-		writePath = fmt.Sprintf("%s/%s/%s.ani", path, strings.ToLower(baseTag), strings.ToLower(baseTag))
+		writePath = fmt.Sprintf("%s/%s/%s_ani.wce", path, strings.ToLower(baseTag), strings.ToLower(baseTag))
 		err = token.AddWriter(baseTag+"_ani", writePath)
 		if err != nil {
 			return fmt.Errorf("add writer %s_ani: %w", baseTag, err)
@@ -399,11 +399,11 @@ func (wce *Wce) writeAsciiData(path string, baseTags []string) error {
 	defer rootW.Close()
 
 	if token.IsWriterUsed("world") {
-		rootW.WriteString("INCLUDE \"WORLD.MOD\"\n")
+		rootW.WriteString("INCLUDE \"WORLD.WCE\"\n")
 	} else {
-		err = os.Remove(fmt.Sprintf("%s/world.mod", path))
+		err = os.Remove(fmt.Sprintf("%s/world.wce", path))
 		if err != nil {
-			return fmt.Errorf("remove %s: %w", fmt.Sprintf("%s/world.mod", path), err)
+			return fmt.Errorf("remove %s: %w", fmt.Sprintf("%s/world.wce", path), err)
 		}
 	}
 
@@ -426,12 +426,12 @@ func (wce *Wce) writeAsciiData(path string, baseTags []string) error {
 		rootW.WriteString(fmt.Sprintf("INCLUDE \"%s/_ROOT.WCE\"\n", strings.ToUpper(baseTag)))
 
 		if token.IsWriterUsed(baseTag) {
-			_, err = modelW.WriteString(fmt.Sprintf("INCLUDE \"%s.MOD\"\n", strings.ToUpper(baseTag)))
+			_, err = modelW.WriteString(fmt.Sprintf("INCLUDE \"%s.WCE\"\n", strings.ToUpper(baseTag)))
 			if err != nil {
 				return err
 			}
 		} else {
-			removePath := fmt.Sprintf("%s/%s/%s.mod", path, strings.ToLower(baseTag), strings.ToLower(baseTag))
+			removePath := fmt.Sprintf("%s/%s/%s.wce", path, strings.ToLower(baseTag), strings.ToLower(baseTag))
 
 			err = os.Remove(removePath)
 			if err != nil {
@@ -440,12 +440,12 @@ func (wce *Wce) writeAsciiData(path string, baseTags []string) error {
 		}
 
 		if token.IsWriterUsed(baseTag + "_ani") {
-			_, err = modelW.WriteString(fmt.Sprintf("INCLUDE \"%s.ANI\"\n", strings.ToUpper(baseTag)))
+			_, err = modelW.WriteString(fmt.Sprintf("INCLUDE \"%s_ANI.WCE\"\n", strings.ToUpper(baseTag)))
 			if err != nil {
-				return fmt.Errorf("write %s: %w", fmt.Sprintf("%s/%s/%s.ani", path, strings.ToLower(baseTag), strings.ToLower(baseTag)), err)
+				return fmt.Errorf("write %s: %w", fmt.Sprintf("%s/%s/%s_ani.wce", path, strings.ToLower(baseTag), strings.ToLower(baseTag)), err)
 			}
 		} else {
-			removePath := fmt.Sprintf("%s/%s/%s.ani", path, strings.ToLower(baseTag), strings.ToLower(baseTag))
+			removePath := fmt.Sprintf("%s/%s/%s_ani.wce", path, strings.ToLower(baseTag), strings.ToLower(baseTag))
 
 			err = os.Remove(removePath)
 			if err != nil {
