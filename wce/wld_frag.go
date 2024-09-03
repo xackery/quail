@@ -37,7 +37,7 @@ func (e *WorldDef) Write(token *AsciiWriteToken) error {
 	fmt.Fprintf(w, "%s\n", e.Definition())
 	fmt.Fprintf(w, "\tNEWWORLD %d\n", e.NewWorld)
 	fmt.Fprintf(w, "\tZONE %d\n", e.Zone)
-	fmt.Fprintf(w, "ENDWORLDDEF\n\n")
+	fmt.Fprintf(w, "\n")
 	return nil
 }
 
@@ -61,11 +61,6 @@ func (e *WorldDef) Read(token *AsciiReadToken) error {
 		return fmt.Errorf("zone: %w", err)
 	}
 
-	_, err = token.ReadProperty("ENDWORLDDEF", 0)
-	if err != nil {
-		return err
-	}
-
 	return nil
 }
 
@@ -86,7 +81,7 @@ func (e *GlobalAmbientLightDef) Write(token *AsciiWriteToken) error {
 	}
 	fmt.Fprintf(w, "%s\n", e.Definition())
 	fmt.Fprintf(w, "\tCOLOR %d %d %d %d\n", e.Color[0], e.Color[1], e.Color[2], e.Color[3])
-	fmt.Fprintf(w, "ENDGLOBALAMBIENTLIGHTDEF\n\n")
+	fmt.Fprintf(w, "\n")
 	return nil
 }
 
@@ -98,11 +93,6 @@ func (e *GlobalAmbientLightDef) Read(token *AsciiReadToken) error {
 	err = parse(&e.Color, records[1:]...)
 	if err != nil {
 		return fmt.Errorf("color: %w", err)
-	}
-
-	_, err = token.ReadProperty("ENDGLOBALAMBIENTLIGHTDEF", 0)
-	if err != nil {
-		return err
 	}
 
 	return nil
@@ -255,14 +245,12 @@ func (e *DMSpriteDef2) Write(token *AsciiWriteToken) error {
 	fmt.Fprintf(w, "\n")
 	fmt.Fprintf(w, "\tPOLYHEDRON\n")
 	fmt.Fprintf(w, "\t\tDEFINITION \"%s\"\n", e.PolyhedronTag)
-	fmt.Fprintf(w, "\tENDPOLYHEDRON\n\n")
 	fmt.Fprintf(w, "\tNUMFACE2S %d\n", len(e.Faces))
 	fmt.Fprintf(w, "\n")
 	for i, face := range e.Faces {
 		fmt.Fprintf(w, "\tDMFACE2 //%d\n", i)
 		fmt.Fprintf(w, "\t\tPASSABLE %d\n", face.Passable)
 		fmt.Fprintf(w, "\t\tTRIANGLE %d %d %d\n", face.Triangle[0], face.Triangle[1], face.Triangle[2])
-		fmt.Fprintf(w, "\tENDDMFACE2 //%d\n\n", i)
 	}
 	fmt.Fprintf(w, "\n")
 
@@ -294,7 +282,7 @@ func (e *DMSpriteDef2) Write(token *AsciiWriteToken) error {
 	fmt.Fprintf(w, "\tHEXTENTHOUSANDFLAG %d\n", e.HexTenThousandFlag)
 	fmt.Fprintf(w, "\tHEXTWENTYTHOUSANDFLAG %d\n", e.HexTwentyThousandFlag)
 
-	fmt.Fprintf(w, "ENDDMSPRITEDEF2\n\n")
+	fmt.Fprintf(w, "\n")
 	return nil
 }
 
@@ -446,10 +434,6 @@ func (e *DMSpriteDef2) Read(token *AsciiReadToken) error {
 		return err
 	}
 	e.PolyhedronTag = records[1]
-	_, err = token.ReadProperty("ENDPOLYHEDRON", 0)
-	if err != nil {
-		return err
-	}
 
 	records, err = token.ReadProperty("NUMFACE2S", 1)
 	if err != nil {
@@ -484,11 +468,6 @@ func (e *DMSpriteDef2) Read(token *AsciiReadToken) error {
 		err = parse(&face.Triangle, records[1:]...)
 		if err != nil {
 			return fmt.Errorf("face %d triangle: %w", i, err)
-		}
-
-		_, err = token.ReadProperty("ENDDMFACE2", 0)
-		if err != nil {
-			return err
 		}
 
 		e.Faces = append(e.Faces, face)
@@ -667,11 +646,6 @@ func (e *DMSpriteDef2) Read(token *AsciiReadToken) error {
 	err = parse(&e.HexTwentyThousandFlag, records[1])
 	if err != nil {
 		return fmt.Errorf("hextwentythousandflag: %w", err)
-	}
-
-	_, err = token.ReadProperty("ENDDMSPRITEDEF2", 0)
-	if err != nil {
-		return err
 	}
 
 	return nil
@@ -1090,7 +1064,7 @@ func (e *DMSpriteDef) Write(token *AsciiWriteToken) error {
 	fmt.Fprintf(w, "\n")
 	fmt.Fprintf(w, "\tPARAMS2? %s\n", wcVal(e.Params2))
 	fmt.Fprintf(w, "\tPARAMS3? %s\n", wcVal(e.Params3))
-	fmt.Fprintf(w, "ENDDMSPRITEDEFINITION\n\n")
+	fmt.Fprintf(w, "\n")
 	return nil
 }
 
@@ -1352,11 +1326,6 @@ func (e *DMSpriteDef) Read(token *AsciiReadToken) error {
 		return fmt.Errorf("params3: %w", err)
 	}
 
-	_, err = token.ReadProperty("ENDDMSPRITEDEFINITION", 0)
-	if err != nil {
-		return err
-	}
-
 	return nil
 }
 
@@ -1522,7 +1491,7 @@ func (e *MaterialPalette) Write(token *AsciiWriteToken) error {
 	for _, mat := range e.Materials {
 		fmt.Fprintf(w, "\tMATERIAL \"%s\"\n", mat)
 	}
-	fmt.Fprintf(w, "ENDMATERIALPALETTE\n\n")
+	fmt.Fprintf(w, "\n")
 	return nil
 }
 
@@ -1549,11 +1518,6 @@ func (e *MaterialPalette) Read(token *AsciiReadToken) error {
 			return fmt.Errorf("MATERIAL: %w", err)
 		}
 		e.Materials = append(e.Materials, records[1])
-	}
-
-	_, err = token.ReadProperty("ENDMATERIALPALETTE", 0)
-	if err != nil {
-		return fmt.Errorf("ENDMATERIALPALETTE: %w", err)
 	}
 
 	return nil
@@ -1663,10 +1627,9 @@ func (e *MaterialDef) Write(token *AsciiWriteToken) error {
 	fmt.Fprintf(w, "\tSIMPLESPRITEINST\n")
 	fmt.Fprintf(w, "\t\tTAG \"%s\"\n", e.SimpleSpriteTag)
 	fmt.Fprintf(w, "\t\tHEXFIFTYFLAG %d\n", e.SpriteHexFiftyFlag)
-	fmt.Fprintf(w, "\tENDSIMPLESPRITEINST\n")
 	fmt.Fprintf(w, "\tPAIRS? %s %s\n", wcVal(e.Pair1), wcVal(e.Pair2))
 	fmt.Fprintf(w, "\tHEXONEFLAG %d\n", e.HexOneFlag)
-	fmt.Fprintf(w, "ENDMATERIALDEFINITION\n\n")
+	fmt.Fprintf(w, "\n")
 
 	token.TagSetIsWritten(e.Tag)
 	return nil
@@ -1744,11 +1707,6 @@ func (e *MaterialDef) Read(token *AsciiReadToken) error {
 		return fmt.Errorf("hex fifty flag: %w", err)
 	}
 
-	_, err = token.ReadProperty("ENDSIMPLESPRITEINST", 0)
-	if err != nil {
-		return err
-	}
-
 	records, err = token.ReadProperty("PAIRS?", 2)
 	if err != nil {
 		return err
@@ -1771,11 +1729,6 @@ func (e *MaterialDef) Read(token *AsciiReadToken) error {
 	err = parse(&e.HexOneFlag, records[1])
 	if err != nil {
 		return fmt.Errorf("hex one flag: %w", err)
-	}
-
-	_, err = token.ReadProperty("ENDMATERIALDEFINITION", 0)
-	if err != nil {
-		return err
 	}
 
 	token.wce.variationMaterialDefs[token.wce.lastReadModelTag] = append(token.wce.variationMaterialDefs[token.wce.lastReadModelTag], e)
@@ -1935,7 +1888,7 @@ func (e *SimpleSpriteDef) Write(token *AsciiWriteToken) error {
 	for _, frame := range e.SimpleSpriteFrames {
 		fmt.Fprintf(w, "\tFRAME \"%s\" \"%s\"\n", frame.TextureFile, frame.TextureTag)
 	}
-	fmt.Fprintf(w, "ENDSIMPLESPRITEDEF\n\n")
+	fmt.Fprintf(w, "\n")
 	return nil
 }
 
@@ -2014,10 +1967,6 @@ func (e *SimpleSpriteDef) Read(token *AsciiReadToken) error {
 		})
 	}
 
-	_, err = token.ReadProperty("ENDSIMPLESPRITEDEF", 0)
-	if err != nil {
-		return fmt.Errorf("ENDSIMPLESPRITEDEF: %w", err)
-	}
 	return nil
 }
 
@@ -2251,13 +2200,11 @@ func (e *ActorDef) Write(token *AsciiWriteToken) error {
 			fmt.Fprintf(w, "\t\t\tSPRITE \"%s\"\n", lod.SpriteTag)
 			fmt.Fprintf(w, "\t\t\tSPRITEINDEX %d\n", lod.SpriteTagIndex)
 			fmt.Fprintf(w, "\t\t\tMINDISTANCE %0.8e\n", lod.MinDistance)
-			fmt.Fprintf(w, "\t\tENDLEVELOFDETAIL\n")
 		}
-		fmt.Fprintf(w, "\tENDACTION\n")
 	}
 	fmt.Fprintf(w, "\t// UNK2 %d\n", e.Unk2)
 	fmt.Fprintf(w, "\tHASEIGHTYFLAG %d\n", e.HasEightyFlag)
-	fmt.Fprintf(w, "ENDACTORDEF\n\n")
+	fmt.Fprintf(w, "\n")
 	return nil
 }
 
@@ -2361,17 +2308,7 @@ func (e *ActorDef) Read(token *AsciiReadToken) error {
 				return fmt.Errorf("min distance: %w", err)
 			}
 
-			_, err = token.ReadProperty("ENDLEVELOFDETAIL", 0)
-			if err != nil {
-				return err
-			}
-
 			action.LevelOfDetails = append(action.LevelOfDetails, lod)
-		}
-
-		_, err = token.ReadProperty("ENDACTION", 0)
-		if err != nil {
-			return err
 		}
 
 		e.Actions = append(e.Actions, action)
@@ -2386,11 +2323,6 @@ func (e *ActorDef) Read(token *AsciiReadToken) error {
 	err = parse(&e.HasEightyFlag, records[1])
 	if err != nil {
 		return fmt.Errorf("has eighty flag: %w", err)
-	}
-
-	_, err = token.ReadProperty("ENDACTORDEF", 0)
-	if err != nil {
-		return err
 	}
 
 	return nil
@@ -2721,7 +2653,7 @@ func (e *ActorInst) Write(token *AsciiWriteToken) error {
 	fmt.Fprintf(w, "\tSPHERERADIUS %0.8e\n", e.SphereRadius)
 	fmt.Fprintf(w, "\tHEXTWOHUNDREDFLAG %d\n", e.HexTwoHundredFlag)
 	fmt.Fprintf(w, "\tUSERDATA \"%s\"\n", e.UserData)
-	fmt.Fprintf(w, "ENDACTORINST\n\n")
+	fmt.Fprintf(w, "\n")
 	return nil
 }
 
@@ -2840,10 +2772,6 @@ func (e *ActorInst) Read(token *AsciiReadToken) error {
 	}
 	e.UserData = records[1]
 
-	_, err = token.ReadProperty("ENDACTORINST", 0)
-	if err != nil {
-		return err
-	}
 	return nil
 }
 
@@ -3090,7 +3018,7 @@ func (e *LightDef) Write(token *AsciiWriteToken) error {
 	for _, color := range e.Colors {
 		fmt.Fprintf(w, "\tCOLOR %0.8f %0.8f %0.8f\n", color[0], color[1], color[2])
 	}
-	fmt.Fprintf(w, "ENDLIGHTDEFINITION\n\n")
+	fmt.Fprintf(w, "\n")
 	return nil
 }
 
@@ -3174,10 +3102,6 @@ func (e *LightDef) Read(token *AsciiReadToken) error {
 		e.Colors = append(e.Colors, color)
 	}
 
-	_, err = token.ReadProperty("ENDLIGHTDEFINITION", 0)
-	if err != nil {
-		return err
-	}
 	return nil
 }
 
@@ -3292,7 +3216,7 @@ func (e *PointLight) Write(token *AsciiWriteToken) error {
 	fmt.Fprintf(w, "\tHASREGIONS %d\n", e.HasRegions)
 	fmt.Fprintf(w, "\tXYZ %0.8f %0.8f %0.8f\n", e.Location[0], e.Location[1], e.Location[2])
 	fmt.Fprintf(w, "\tRADIUSOFINFLUENCE %0.8e\n", e.Radius)
-	fmt.Fprintf(w, "ENDPOINTLIGHT\n\n")
+	fmt.Fprintf(w, "\n")
 	return nil
 }
 
@@ -3352,11 +3276,6 @@ func (e *PointLight) Read(token *AsciiReadToken) error {
 	err = parse(&e.Radius, records[1])
 	if err != nil {
 		return fmt.Errorf("radius of influence: %w", err)
-	}
-
-	_, err = token.ReadProperty("ENDPOINTLIGHT", 0)
-	if err != nil {
-		return err
 	}
 
 	return nil
@@ -3532,12 +3451,10 @@ func (e *Sprite3DDef) Write(token *AsciiWriteToken) error {
 			fmt.Fprintf(w, "\t\t\tUV %s\n", wcVal(uv))
 		}
 		fmt.Fprintf(w, "\t\t\tTWOSIDED %d\n", node.TwoSided)
-		fmt.Fprintf(w, "\t\tENDRENDERINFO\n")
 		fmt.Fprintf(w, "\t\tFRONTTREE %d\n", node.FrontTree)
 		fmt.Fprintf(w, "\t\tBACKTREE %d\n", node.BackTree)
-		fmt.Fprintf(w, "\tENDBSPNODE // %d\n", i)
 	}
-	fmt.Fprintf(w, "END3DSPRITEDEF\n\n")
+	fmt.Fprintf(w, "\n")
 	return nil
 }
 
@@ -3740,11 +3657,6 @@ func (s *Sprite3DDef) Read(token *AsciiReadToken) error {
 			return fmt.Errorf("two sided: %w", err)
 		}
 
-		_, err = token.ReadProperty("ENDRENDERINFO", 0)
-		if err != nil {
-			return err
-		}
-
 		records, err = token.ReadProperty("FRONTTREE", 1)
 		if err != nil {
 			return err
@@ -3765,17 +3677,7 @@ func (s *Sprite3DDef) Read(token *AsciiReadToken) error {
 			return fmt.Errorf("back tree: %w", err)
 		}
 
-		_, err = token.ReadProperty("ENDBSPNODE", 0)
-		if err != nil {
-			return err
-		}
-
 		s.BSPNodes = append(s.BSPNodes, node)
-	}
-
-	_, err = token.ReadProperty("END3DSPRITEDEF", 0)
-	if err != nil {
-		return err
 	}
 
 	return nil
@@ -3990,7 +3892,7 @@ func (e *PolyhedronDefinition) Write(token *AsciiWriteToken) error {
 		fmt.Fprintf(w, "\n")
 	}
 	fmt.Fprintf(w, "\tHEXONEFLAG %d\n", e.HexOneFlag)
-	fmt.Fprintf(w, "ENDPOLYHEDRONDEFINITION\n\n")
+	fmt.Fprintf(w, "\n")
 	return nil
 }
 
@@ -4088,11 +3990,6 @@ func (e *PolyhedronDefinition) Read(token *AsciiReadToken) error {
 		return fmt.Errorf("hex one flag: %w", err)
 	}
 
-	_, err = token.ReadProperty("ENDPOLYHEDRONDEFINITION", 0)
-	if err != nil {
-		return err
-	}
-
 	return nil
 }
 
@@ -4177,7 +4074,7 @@ func (e *TrackInstance) Write(token *AsciiWriteToken) error {
 	fmt.Fprintf(w, "\tINTERPOLATE %d\n", e.Interpolate)
 	fmt.Fprintf(w, "\tREVERSE %d\n", e.Reverse)
 	fmt.Fprintf(w, "\tSLEEP? %s\n", wcVal(e.Sleep))
-	fmt.Fprintf(w, "ENDTRACKINSTANCE\n\n")
+	fmt.Fprintf(w, "\n")
 	return nil
 }
 
@@ -4243,11 +4140,6 @@ func (e *TrackInstance) Read(token *AsciiReadToken) error {
 	err = parse(&e.Sleep, records[1])
 	if err != nil {
 		return fmt.Errorf("sleep: %w", err)
-	}
-
-	_, err = token.ReadProperty("ENDTRACKINSTANCE", 0)
-	if err != nil {
-		return err
 	}
 
 	return nil
@@ -4383,9 +4275,8 @@ func (e *TrackDef) Write(token *AsciiWriteToken) error {
 		fmt.Fprintf(w, "\t\tROTSCALE? %s\n", wcVal(frame.RotScale))
 		fmt.Fprintf(w, "\t\tROTABC? %s\n", wcVal(frame.Rotation))
 		fmt.Fprintf(w, "\t\tLEGACYROTATIONABCD? %s\n", wcVal(frame.LegacyRotation))
-		fmt.Fprintf(w, "\tENDFRAMETRANSFORM\n")
 	}
-	fmt.Fprintf(w, "ENDTRACKDEFINITION\n\n")
+	fmt.Fprintf(w, "\n")
 
 	return nil
 }
@@ -4474,17 +4365,7 @@ func (e *TrackDef) Read(token *AsciiReadToken) error {
 			return fmt.Errorf("legacy rotation: %w", err)
 		}
 
-		_, err = token.ReadProperty("ENDFRAMETRANSFORM", 0)
-		if err != nil {
-			return err
-		}
-
 		e.FrameTransforms = append(e.FrameTransforms, frame)
-	}
-
-	_, err = token.ReadProperty("ENDTRACKDEFINITION", 0)
-	if err != nil {
-		return err
 	}
 
 	return nil
@@ -4724,7 +4605,6 @@ func (e *HierarchicalSpriteDef) Write(token *AsciiWriteToken) error {
 			fmt.Fprintf(w, " %d", subDag)
 		}
 		fmt.Fprintf(w, "\n")
-		fmt.Fprintf(w, "\tENDDAG // %d\n", i)
 	}
 	fmt.Fprintf(w, "\n")
 	fmt.Fprintf(w, "\tNUMATTACHEDSKINS %d\n", len(e.AttachedSkins))
@@ -4733,20 +4613,18 @@ func (e *HierarchicalSpriteDef) Write(token *AsciiWriteToken) error {
 		fmt.Fprintf(w, "\tATTACHEDSKIN\n")
 		fmt.Fprintf(w, "\t\tDMSPRITE \"%s\"\n", skin.DMSpriteTag)
 		fmt.Fprintf(w, "\t\tLINKSKINUPDATESTODAGINDEX %d\n", skin.LinkSkinUpdatesToDagIndex)
-		fmt.Fprintf(w, "\tENDATTACHEDSKIN\n")
 	}
 	fmt.Fprintf(w, "\n")
 
 	fmt.Fprintf(w, "\tPOLYHEDRON\n")
 	fmt.Fprintf(w, "\t\tDEFINITION \"%s\" // refer to polyhedron tag, or SPECIAL_COLLISION = 4294967293\n", e.PolyhedronTag)
-	fmt.Fprintf(w, "\tENDPOLYHEDRON\n")
 
 	fmt.Fprintf(w, "\tCENTEROFFSET? %s\n", wcVal(e.CenterOffset))
 	fmt.Fprintf(w, "\tBOUNDINGRADIUS? %s\n", wcVal(e.BoundingRadius))
 	fmt.Fprintf(w, "\tHEXTWOHUNDREDFLAG %d\n", e.HexTwoHundredFlag)
 	fmt.Fprintf(w, "\tHEXTWENTYTHOUSANDFLAG %d\n", e.HexTwentyThousandFlag)
 
-	fmt.Fprintf(w, "ENDHIERARCHICALSPRITEDEF\n\n")
+	fmt.Fprintf(w, "\n")
 	return nil
 }
 
@@ -4822,11 +4700,6 @@ func (e *HierarchicalSpriteDef) Read(token *AsciiReadToken) error {
 			dag.SubDags = append(dag.SubDags, val)
 		}
 
-		_, err = token.ReadProperty("ENDDAG", 0)
-		if err != nil {
-			return err
-		}
-
 		e.Dags = append(e.Dags, dag)
 	}
 
@@ -4861,10 +4734,6 @@ func (e *HierarchicalSpriteDef) Read(token *AsciiReadToken) error {
 			return fmt.Errorf("link skin updates to dag index: %w", err)
 		}
 
-		_, err = token.ReadProperty("ENDATTACHEDSKIN", 0)
-		if err != nil {
-			return err
-		}
 		e.AttachedSkins = append(e.AttachedSkins, skin)
 	}
 
@@ -4878,11 +4747,6 @@ func (e *HierarchicalSpriteDef) Read(token *AsciiReadToken) error {
 		return err
 	}
 	e.PolyhedronTag = records[1]
-
-	_, err = token.ReadProperty("ENDPOLYHEDRON", 0)
-	if err != nil {
-		return err
-	}
 
 	records, err = token.ReadProperty("CENTEROFFSET?", 3)
 	if err != nil {
@@ -4918,11 +4782,6 @@ func (e *HierarchicalSpriteDef) Read(token *AsciiReadToken) error {
 	err = parse(&e.HexTwentyThousandFlag, records[1])
 	if err != nil {
 		return fmt.Errorf("hex twenty thousand flag: %w", err)
-	}
-
-	_, err = token.ReadProperty("ENDHIERARCHICALSPRITEDEF", 0)
-	if err != nil {
-		return err
 	}
 
 	return nil
@@ -5368,9 +5227,8 @@ func (e *WorldTree) Write(token *AsciiWriteToken) error {
 		fmt.Fprintf(w, "\t\tWORLDREGIONTAG \"%s\"\n", node.WorldRegionTag)
 		fmt.Fprintf(w, "\t\tFRONTTREE %d\n", node.FrontTree)
 		fmt.Fprintf(w, "\t\tBACKTREE %d\n", node.BackTree)
-		fmt.Fprintf(w, "\tENDWORLDNODE // %d\n", i)
 	}
-	fmt.Fprintf(w, "ENDWORLDTREE\n\n")
+	fmt.Fprintf(w, "\n")
 	return nil
 }
 
@@ -5432,18 +5290,8 @@ func (e *WorldTree) Read(token *AsciiReadToken) error {
 			return fmt.Errorf("back tree: %w", err)
 		}
 
-		_, err = token.ReadProperty("ENDWORLDNODE", 0)
-		if err != nil {
-			return err
-		}
-
 		e.WorldNodes = append(e.WorldNodes, node)
 
-	}
-
-	_, err = token.ReadProperty("ENDWORLDTREE", 0)
-	if err != nil {
-		return err
 	}
 
 	return nil
@@ -5605,7 +5453,6 @@ func (e *Region) Write(token *AsciiWriteToken) error {
 		for _, vert := range wall.Vertices {
 			fmt.Fprintf(w, "\t\tXYZ %0.8e %0.8e %0.8e\n", vert[0], vert[1], vert[2])
 		}
-		fmt.Fprintf(w, "\tENDWALL // %d\n", i)
 	}
 	fmt.Fprintf(w, "\tNUMOBSTACLES %d\n", len(e.Obstacles))
 	for i, obs := range e.Obstacles {
@@ -5615,7 +5462,6 @@ func (e *Region) Write(token *AsciiWriteToken) error {
 		for _, vert := range obs.Vertices {
 			fmt.Fprintf(w, "\t\tXYZ %0.8e %0.8e %0.8e\n", vert[0], vert[1], vert[2])
 		}
-		fmt.Fprintf(w, "\tENDOBSTACLE // %d\n", i)
 	}
 	fmt.Fprintf(w, "\tNUMCUTTINGOBSTACLES %d\n", len(e.CuttingObstacles))
 	for i, obs := range e.CuttingObstacles {
@@ -5625,7 +5471,6 @@ func (e *Region) Write(token *AsciiWriteToken) error {
 		for _, vert := range obs.Vertices {
 			fmt.Fprintf(w, "\t\tXYZ %0.8e %0.8e %0.8e\n", vert[0], vert[1], vert[2])
 		}
-		fmt.Fprintf(w, "\tENDCUTTINGOBSTACLE // %d\n", i)
 	}
 	fmt.Fprintf(w, "\tVISTREE\n")
 	fmt.Fprintf(w, "\t\tNUMVISNODE %d\n", len(e.VisTree.VisNodes))
@@ -5635,7 +5480,6 @@ func (e *Region) Write(token *AsciiWriteToken) error {
 		fmt.Fprintf(w, "\t\t\tVISLISTINDEX %d\n", node.VisListIndex)
 		fmt.Fprintf(w, "\t\t\tFRONTTREE %d\n", node.FrontTree)
 		fmt.Fprintf(w, "\t\t\tBACKTREE %d\n", node.BackTree)
-		fmt.Fprintf(w, "\t\tENDVISNODE // %d\n", i)
 	}
 	fmt.Fprintf(w, "\t\tNUMVISIBLELIST %d\n", len(e.VisTree.VisLists))
 	for i, list := range e.VisTree.VisLists {
@@ -5645,13 +5489,11 @@ func (e *Region) Write(token *AsciiWriteToken) error {
 			fmt.Fprintf(w, " %d", val)
 		}
 		fmt.Fprintf(w, "\n")
-		fmt.Fprintf(w, "\t\tENDVISLIST // %d\n", i)
 	}
-	fmt.Fprintf(w, "\tENDVISTREE\n")
 	fmt.Fprintf(w, "\tSPHERE %0.8e %0.8e %0.8e %0.8e\n", e.Sphere[0], e.Sphere[1], e.Sphere[2], e.Sphere[3])
 	fmt.Fprintf(w, "\tUSERDATA \"%s\"\n", e.UserData)
 	fmt.Fprintf(w, "\tSPRITE \"%s\"\n", e.SpriteTag)
-	fmt.Fprintf(w, "ENDREGION\n\n")
+	fmt.Fprintf(w, "\n")
 	return nil
 }
 
@@ -5814,11 +5656,6 @@ func (e *Region) Read(token *AsciiReadToken) error {
 			wall.Vertices = append(wall.Vertices, vert)
 		}
 
-		_, err = token.ReadProperty("ENDWALL", 0)
-		if err != nil {
-			return err
-		}
-
 		e.Walls = append(e.Walls, wall)
 	}
 
@@ -5869,11 +5706,6 @@ func (e *Region) Read(token *AsciiReadToken) error {
 			}
 
 			obs.Vertices = append(obs.Vertices, vert)
-		}
-
-		_, err = token.ReadProperty("ENDOBSTACLE", 0)
-		if err != nil {
-			return err
 		}
 
 		e.Obstacles = append(e.Obstacles, obs)
@@ -5928,11 +5760,6 @@ func (e *Region) Read(token *AsciiReadToken) error {
 			}
 
 			obs.Vertices = append(obs.Vertices, vert)
-		}
-
-		_, err = token.ReadProperty("ENDCUTTINGOBSTACLE", 0)
-		if err != nil {
-			return err
 		}
 
 		e.CuttingObstacles = append(e.CuttingObstacles, obs)
@@ -6001,11 +5828,6 @@ func (e *Region) Read(token *AsciiReadToken) error {
 			return fmt.Errorf("back tree: %w", err)
 		}
 
-		_, err = token.ReadProperty("ENDVISNODE", 0)
-		if err != nil {
-			return err
-		}
-
 		e.VisTree.VisNodes = append(e.VisTree.VisNodes, node)
 
 	}
@@ -6049,17 +5871,7 @@ func (e *Region) Read(token *AsciiReadToken) error {
 			list.Ranges = append(list.Ranges, val)
 		}
 
-		_, err = token.ReadProperty("ENDVISLIST", 0)
-		if err != nil {
-			return err
-		}
-
 		e.VisTree.VisLists = append(e.VisTree.VisLists, list)
-	}
-
-	_, err = token.ReadProperty("ENDVISTREE", 0)
-	if err != nil {
-		return err
 	}
 
 	records, err = token.ReadProperty("SPHERE", 4)
@@ -6084,11 +5896,6 @@ func (e *Region) Read(token *AsciiReadToken) error {
 		return err
 	}
 	e.SpriteTag = records[1]
-
-	_, err = token.ReadProperty("ENDREGION", 0)
-	if err != nil {
-		return err
-	}
 
 	return nil
 }
@@ -6296,7 +6103,7 @@ func (e *AmbientLight) Write(token *AsciiWriteToken) error {
 		fmt.Fprintf(w, " %d", region)
 	}
 	fmt.Fprintf(w, "\n")
-	fmt.Fprintf(w, "ENDAMBIENTLIGHT\n\n")
+	fmt.Fprintf(w, "\n")
 	return nil
 }
 
@@ -6334,11 +6141,6 @@ func (e *AmbientLight) Read(token *AsciiReadToken) error {
 		}
 
 		e.Regions = append(e.Regions, val)
-	}
-
-	_, err = token.ReadProperty("ENDAMBIENTLIGHT", 0)
-	if err != nil {
-		return err
 	}
 
 	return nil
@@ -6443,7 +6245,7 @@ func (e *Zone) Write(token *AsciiWriteToken) error {
 	}
 	fmt.Fprintf(w, "\n")
 	fmt.Fprintf(w, "\tUSERDATA \"%s\"\n", e.UserData)
-	fmt.Fprintf(w, "ENDZONE\n\n")
+	fmt.Fprintf(w, "\n")
 	return nil
 }
 
@@ -6482,11 +6284,6 @@ func (e *Zone) Read(token *AsciiReadToken) error {
 	}
 
 	e.UserData = records[1]
-
-	_, err = token.ReadProperty("ENDZONE", 0)
-	if err != nil {
-		return err
-	}
 
 	return nil
 }
@@ -6549,8 +6346,7 @@ func (e *RGBTrackDef) Write(token *AsciiWriteToken) error {
 	for _, rgba := range e.RGBAs {
 		fmt.Fprintf(w, "\t\tRGBA %d %d %d %d\n", rgba[0], rgba[1], rgba[2], rgba[3])
 	}
-	fmt.Fprintf(w, "\tENDRGBDEFORMATIONFRAME\n")
-	fmt.Fprintf(w, "ENDRGBDEFORMATIONTRACKDEF\n\n")
+	fmt.Fprintf(w, "\n")
 	return nil
 }
 
@@ -6626,16 +6422,6 @@ func (e *RGBTrackDef) Read(token *AsciiReadToken) error {
 			return fmt.Errorf("rgba: %w", err)
 		}
 		e.RGBAs = append(e.RGBAs, rgba)
-	}
-
-	_, err = token.ReadProperty("ENDRGBDEFORMATIONFRAME", 0)
-	if err != nil {
-		return err
-	}
-
-	_, err = token.ReadProperty("ENDRGBDEFORMATIONTRACKDEF", 0)
-	if err != nil {
-		return err
 	}
 
 	return nil
@@ -6731,7 +6517,6 @@ func (e *ParticleCloudDef) Write(token *AsciiWriteToken) error {
 	fmt.Fprintf(w, "\t\tBLITTAG \"%s\"\n", e.BlitSpriteDefTag)
 	fmt.Fprintf(w, "\t\tSPRITE \"%s\"\n", e.BlitSpriteDefSprite)
 	fmt.Fprintf(w, "\t\tUNKNOWN %d\n", e.BlitSpriteDefUnknown)
-	fmt.Fprintf(w, "\tENDBLITSPRITEDEF\n")
 	fmt.Fprintf(w, "\tSETTINGONE %d\n", e.SettingOne)
 	fmt.Fprintf(w, "\tSETTINGTWO %d\n", e.SettingTwo)
 	fmt.Fprintf(w, "\tMOVEMENT \"%s\" // SPHERE, PLANE, STREAM, NONE\n", e.Movement)
@@ -6751,7 +6536,6 @@ func (e *ParticleCloudDef) Write(token *AsciiWriteToken) error {
 	fmt.Fprintf(w, "\t\tNORMALXYZ %0.8e %0.8e %0.8e\n", e.SpawnNormal[0], e.SpawnNormal[1], e.SpawnNormal[2])
 	fmt.Fprintf(w, "\t\tRATE %d\n", e.SpawnRate)
 	fmt.Fprintf(w, "\t\tSCALE %0.8e\n", e.SpawnScale)
-	fmt.Fprintf(w, "\tENDSPAWN\n")
 	fmt.Fprintf(w, "\tCOLOR %d %d %d %d\n", e.Color[0], e.Color[1], e.Color[2], e.Color[3])
 	fmt.Fprintf(w, "\tHEXEIGHTYFLAG %d\n", e.HexEightyFlag)
 	fmt.Fprintf(w, "\tHEXONEHUNDREDFLAG %d\n", e.HexOneHundredFlag)
@@ -6760,7 +6544,7 @@ func (e *ParticleCloudDef) Write(token *AsciiWriteToken) error {
 	fmt.Fprintf(w, "\tHEXEIGHTTHOUSANDFLAG %d\n", e.HexEightThousandFlag)
 	fmt.Fprintf(w, "\tHEXTENTHOUSANDFLAG %d\n", e.HexTenThousandFlag)
 	fmt.Fprintf(w, "\tHEXTWENTYTHOUSANDFLAG %d\n", e.HexTwentyThousandFlag)
-	fmt.Fprintf(w, "ENDPARTICLECLOUDDEF\n\n")
+	fmt.Fprintf(w, "\n")
 	return nil
 }
 
@@ -6795,11 +6579,6 @@ func (e *ParticleCloudDef) Read(token *AsciiReadToken) error {
 	err = parse(&e.BlitSpriteDefUnknown, records[1])
 	if err != nil {
 		return fmt.Errorf("blit sprite def unknown: %w", err)
-	}
-
-	_, err = token.ReadProperty("ENDBLITSPRITEDEF", 0)
-	if err != nil {
-		return err
 	}
 
 	records, err = token.ReadProperty("SETTINGONE", 1)
@@ -6967,11 +6746,6 @@ func (e *ParticleCloudDef) Read(token *AsciiReadToken) error {
 		return fmt.Errorf("spawn scale: %w", err)
 	}
 
-	_, err = token.ReadProperty("ENDSPAWN", 0)
-	if err != nil {
-		return err
-	}
-
 	records, err = token.ReadProperty("COLOR", 4)
 	if err != nil {
 		return err
@@ -7042,11 +6816,6 @@ func (e *ParticleCloudDef) Read(token *AsciiReadToken) error {
 	err = parse(&e.HexTwentyThousandFlag, records[1])
 	if err != nil {
 		return fmt.Errorf("hex twenty thousand flag: %w", err)
-	}
-
-	_, err = token.ReadProperty("ENDPARTICLECLOUDDEF", 0)
-	if err != nil {
-		return err
 	}
 
 	return nil
@@ -7311,8 +7080,7 @@ func (e *Sprite2DDef) Write(token *AsciiWriteToken) error {
 		fmt.Fprintf(w, "\t\t\tUV %s\n", wcVal(uv))
 	}
 	fmt.Fprintf(w, "\t\t\tTWOSIDED %d\n", e.TwoSided)
-	fmt.Fprintf(w, "\t\tENDRENDERINFO\n")
-	fmt.Fprintf(w, "ENDSPRITE2DDEF\n\n")
+	fmt.Fprintf(w, "\n")
 	return nil
 }
 
@@ -7509,16 +7277,6 @@ func (e *Sprite2DDef) Read(token *AsciiReadToken) error {
 	err = parse(&e.TwoSided, records[1])
 	if err != nil {
 		return fmt.Errorf("two sided: %w", err)
-	}
-
-	_, err = token.ReadProperty("ENDRENDERINFO", 0)
-	if err != nil {
-		return err
-	}
-
-	_, err = token.ReadProperty("ENDSPRITE2DDEF", 0)
-	if err != nil {
-		return err
 	}
 
 	return nil
@@ -7773,9 +7531,8 @@ func (e *DMTrackDef2) Write(token *AsciiWriteToken) error {
 		for _, frame := range vertFrames {
 			fmt.Fprintf(w, "\t\tXYZ %d %d %d\n", frame[0], frame[1], frame[2])
 		}
-		fmt.Fprintf(w, "\tENDFRAMETRANSFORM\n")
 	}
-	fmt.Fprintf(w, "ENDDMTRACKDEF2\n\n")
+	fmt.Fprintf(w, "\n")
 
 	return nil
 }
@@ -7863,15 +7620,6 @@ func (e *DMTrackDef2) Read(token *AsciiReadToken) error {
 			vertFrames = append(vertFrames, frame)
 		}
 		e.Frames = append(e.Frames, vertFrames)
-		_, err = token.ReadProperty("ENDFRAMETRANSFORM", 0)
-		if err != nil {
-			return err
-		}
-	}
-
-	_, err = token.ReadProperty("ENDDMTRACKDEF2", 0)
-	if err != nil {
-		return err
 	}
 
 	return nil
