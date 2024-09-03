@@ -1,4 +1,4 @@
-package wld_test
+package wce_test
 
 import (
 	"bytes"

@@ -1,4 +1,4 @@
-package wld
+package wce
 
 import (
 	"bytes"
@@ -16,12 +16,12 @@ type AsciiReadToken struct {
 	basePath       string
 	lineNumber     int
 	buf            *bytes.Buffer
-	wld            *Wld
+	wce            *Wce
 	totalLineCount int // will be higher than lineNumber due to includes
 }
 
 // LoadAsciiFile returns a new AsciiReader that reads from r.
-func LoadAsciiFile(path string, wld *Wld) (*AsciiReadToken, error) {
+func LoadAsciiFile(path string, wce *Wce) (*AsciiReadToken, error) {
 	buf, err := caseInsensitiveOpen(path)
 	if err != nil {
 		return nil, err
@@ -29,7 +29,7 @@ func LoadAsciiFile(path string, wld *Wld) (*AsciiReadToken, error) {
 	a := &AsciiReadToken{
 		lineNumber: 0,
 		buf:        buf,
-		wld:        wld,
+		wce:        wce,
 	}
 	a.basePath = filepath.Dir(strings.ToLower(path))
 
@@ -243,79 +243,79 @@ func (a *AsciiReadToken) readDefinitions() error {
 			}
 			switch frag := (definitions[i]).(type) {
 			case *GlobalAmbientLightDef:
-				if a.wld.GlobalAmbientLightDef != nil {
+				if a.wce.GlobalAmbientLightDef != nil {
 					return fmt.Errorf("duplicate global ambient light definition")
 				}
-				a.wld.GlobalAmbientLightDef = frag
+				a.wce.GlobalAmbientLightDef = frag
 				definitions[i] = &GlobalAmbientLightDef{}
 			case *DMSpriteDef2:
-				a.wld.DMSpriteDef2s = append(a.wld.DMSpriteDef2s, frag)
+				a.wce.DMSpriteDef2s = append(a.wce.DMSpriteDef2s, frag)
 				definitions[i] = &DMSpriteDef2{}
 			case *HierarchicalSpriteDef:
-				a.wld.HierarchicalSpriteDefs = append(a.wld.HierarchicalSpriteDefs, frag)
+				a.wce.HierarchicalSpriteDefs = append(a.wce.HierarchicalSpriteDefs, frag)
 				definitions[i] = &HierarchicalSpriteDef{}
 			case *MaterialDef:
-				a.wld.MaterialDefs = append(a.wld.MaterialDefs, frag)
+				a.wce.MaterialDefs = append(a.wce.MaterialDefs, frag)
 				definitions[i] = &MaterialDef{}
 			case *MaterialPalette:
-				a.wld.MaterialPalettes = append(a.wld.MaterialPalettes, frag)
+				a.wce.MaterialPalettes = append(a.wce.MaterialPalettes, frag)
 				definitions[i] = &MaterialPalette{}
 			case *PolyhedronDefinition:
-				a.wld.PolyhedronDefs = append(a.wld.PolyhedronDefs, frag)
+				a.wce.PolyhedronDefs = append(a.wce.PolyhedronDefs, frag)
 				definitions[i] = &PolyhedronDefinition{}
 			case *SimpleSpriteDef:
-				a.wld.SimpleSpriteDefs = append(a.wld.SimpleSpriteDefs, frag)
+				a.wce.SimpleSpriteDefs = append(a.wce.SimpleSpriteDefs, frag)
 				definitions[i] = &SimpleSpriteDef{}
 			case *TrackDef:
-				a.wld.TrackDefs = append(a.wld.TrackDefs, frag)
+				a.wce.TrackDefs = append(a.wce.TrackDefs, frag)
 				definitions[i] = &TrackDef{}
 			case *TrackInstance:
-				a.wld.TrackInstances = append(a.wld.TrackInstances, frag)
+				a.wce.TrackInstances = append(a.wce.TrackInstances, frag)
 				definitions[i] = &TrackInstance{}
 			case *LightDef:
-				a.wld.LightDefs = append(a.wld.LightDefs, frag)
+				a.wce.LightDefs = append(a.wce.LightDefs, frag)
 				definitions[i] = &LightDef{}
 			case *Sprite3DDef:
-				a.wld.Sprite3DDefs = append(a.wld.Sprite3DDefs, frag)
+				a.wce.Sprite3DDefs = append(a.wce.Sprite3DDefs, frag)
 				definitions[i] = &Sprite3DDef{}
 			case *WorldTree:
-				a.wld.WorldTrees = append(a.wld.WorldTrees, frag)
+				a.wce.WorldTrees = append(a.wce.WorldTrees, frag)
 				definitions[i] = &WorldTree{}
 			case *Region:
-				a.wld.Regions = append(a.wld.Regions, frag)
+				a.wce.Regions = append(a.wce.Regions, frag)
 				definitions[i] = &Region{}
 			case *AmbientLight:
-				a.wld.AmbientLights = append(a.wld.AmbientLights, frag)
+				a.wce.AmbientLights = append(a.wce.AmbientLights, frag)
 				definitions[i] = &AmbientLight{}
 			case *ActorDef:
-				a.wld.ActorDefs = append(a.wld.ActorDefs, frag)
+				a.wce.ActorDefs = append(a.wce.ActorDefs, frag)
 				definitions[i] = &ActorDef{}
 			case *ActorInst:
-				a.wld.ActorInsts = append(a.wld.ActorInsts, frag)
+				a.wce.ActorInsts = append(a.wce.ActorInsts, frag)
 				definitions[i] = &ActorInst{}
 			case *Zone:
-				a.wld.Zones = append(a.wld.Zones, frag)
+				a.wce.Zones = append(a.wce.Zones, frag)
 				definitions[i] = &Zone{}
 			case *RGBTrackDef:
-				a.wld.RGBTrackDefs = append(a.wld.RGBTrackDefs, frag)
+				a.wce.RGBTrackDefs = append(a.wce.RGBTrackDefs, frag)
 				definitions[i] = &RGBTrackDef{}
 			case *ParticleCloudDef:
-				a.wld.ParticleCloudDefs = append(a.wld.ParticleCloudDefs, frag)
+				a.wce.ParticleCloudDefs = append(a.wce.ParticleCloudDefs, frag)
 				definitions[i] = &ParticleCloudDef{}
 			case *Sprite2DDef:
-				a.wld.Sprite2DDefs = append(a.wld.Sprite2DDefs, frag)
+				a.wce.Sprite2DDefs = append(a.wce.Sprite2DDefs, frag)
 				definitions[i] = &Sprite2DDef{}
 			case *PointLight:
-				a.wld.PointLights = append(a.wld.PointLights, frag)
+				a.wce.PointLights = append(a.wce.PointLights, frag)
 				definitions[i] = &PointLight{}
 			case *DMSpriteDef:
-				a.wld.DMSpriteDefs = append(a.wld.DMSpriteDefs, frag)
+				a.wce.DMSpriteDefs = append(a.wce.DMSpriteDefs, frag)
 				definitions[i] = &DMSpriteDef{}
 			case *WorldDef:
-				if a.wld.WorldDef != nil {
+				if a.wce.WorldDef != nil {
 					return fmt.Errorf("duplicate world definition")
 				}
-				a.wld.WorldDef = frag
+				a.wce.WorldDef = frag
 				definitions[i] = &WorldDef{}
 			default:
 				return fmt.Errorf("unknown definition type for rebuild: %T", definitions[i])
@@ -338,9 +338,9 @@ func (a *AsciiReadToken) readInclude(args []string) error {
 
 	path := a.basePath + "/" + args[1]
 	if strings.HasSuffix(args[1], "/_ROOT.WCE") {
-		a.wld.lastReadModelTag = strings.TrimSuffix(args[1], "/_ROOT.WCE")
+		a.wce.lastReadModelTag = strings.TrimSuffix(args[1], "/_ROOT.WCE")
 	}
-	ir, err := LoadAsciiFile(path, a.wld)
+	ir, err := LoadAsciiFile(path, a.wce)
 	if err != nil {
 		return fmt.Errorf("new ascii reader: %w", err)
 	}

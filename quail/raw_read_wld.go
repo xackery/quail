@@ -6,12 +6,12 @@ import (
 
 	"github.com/xackery/quail/common"
 	"github.com/xackery/quail/raw"
-	"github.com/xackery/quail/wld"
+	"github.com/xackery/quail/wce"
 )
 
 func (q *Quail) wldRead(srcWld *raw.Wld, filename string) error {
 
-	wld := &wld.Wld{
+	wld := &wce.Wce{
 		FileName: filename,
 	}
 	err := wld.ReadRaw(srcWld)

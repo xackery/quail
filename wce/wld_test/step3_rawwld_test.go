@@ -1,4 +1,4 @@
-package wld_test
+package wce_test
 
 import (
 	"bytes"
@@ -10,9 +10,10 @@ import (
 	"github.com/xackery/quail/common"
 	"github.com/xackery/quail/pfs"
 	"github.com/xackery/quail/raw"
+	"github.com/xackery/quail/wce"
 )
 
-func TestRawBinReadWrite(t *testing.T) {
+func TestRawWldReadWrite(t *testing.T) {
 	if os.Getenv("SINGLE_TEST") != "1" {
 		t.Skip("skipping test; SINGLE_TEST not set")
 	}
@@ -66,15 +67,30 @@ func TestRawBinReadWrite(t *testing.T) {
 				t.Fatalf("failed to read %s: %s", baseName, err.Error())
 			}
 
+			wldSrc := &wce.Wce{}
+			err = wldSrc.ReadRaw(rawWldSrc)
+			if err != nil {
+				t.Fatalf("failed to convert %s: %s", baseName, err.Error())
+			}
+
+			fmt.Println("read", fmt.Sprintf("%s/%s.src.wld", dirTest, baseName))
+
+			wldSrc.FileName = baseName + ".wld"
+
 			buf := &bytes.Buffer{}
-			err = rawWldSrc.Write(buf)
+			err = wldSrc.WriteRaw(buf)
 			if err != nil {
 				t.Fatalf("failed to write %s: %s", baseName, err.Error())
 			}
 
-			rawWldDst := &raw.Wld{
-				MetaFileName: rawWldSrc.MetaFileName,
+			err = os.WriteFile(fmt.Sprintf("%s/%s.dst.wld", dirTest, baseName), buf.Bytes(), 0644)
+			if err != nil {
+				t.Fatalf("failed to write wld %s: %s", baseName, err.Error())
 			}
+
+			fmt.Println("wrote", fmt.Sprintf("%s/%s.dst.wld", dirTest, baseName))
+
+			rawWldDst := &raw.Wld{}
 			err = rawWldDst.Read(bytes.NewReader(buf.Bytes()))
 			if err != nil {
 				t.Fatalf("failed to read %s: %s", baseName, err.Error())
@@ -82,7 +98,7 @@ func TestRawBinReadWrite(t *testing.T) {
 
 			diff := deep.Equal(rawWldSrc, rawWldDst)
 			if diff != nil {
-				t.Fatalf("wld diff: %s", diff)
+				t.Fatalf("wld diff %s: %s", tt.baseName, diff)
 			}
 
 			for i := 0; i < len(rawWldSrc.Fragments); i++ {
@@ -98,13 +114,13 @@ func TestRawBinReadWrite(t *testing.T) {
 				dstFrag := rawWldDst.Fragments[i]
 
 				srcFragBuf := bytes.NewBuffer(nil)
-				err = srcFrag.Write(srcFragBuf, rawWldSrc.IsNewWorld)
+				err = srcFrag.Write(srcFragBuf, rawWldDst.IsNewWorld)
 				if err != nil {
 					t.Fatalf("failed to write src frag %d: %s", i, err.Error())
 				}
 
 				dstFragBuf := bytes.NewBuffer(nil)
-				err = dstFrag.Write(dstFragBuf, rawWldSrc.IsNewWorld)
+				err = dstFrag.Write(dstFragBuf, rawWldDst.IsNewWorld)
 				if err != nil {
 					t.Fatalf("failed to write dst frag %d: %s", i, err.Error())
 				}
@@ -114,7 +130,9 @@ func TestRawBinReadWrite(t *testing.T) {
 					t.Fatalf("%s byteCompare frag %d %s: %s", raw.FragName(srcFrag.FragCode()), i, tt.baseName, err)
 				}
 			}
+
 			fmt.Printf("Processed %d fragments for %s\n", len(rawWldSrc.Fragments), tt.baseName)
+
 		})
 	}
 }

@@ -1,5 +1,5 @@
 // virtual is Virtual World file format, it is used to make binary world more human readable and editable
-package wld
+package wce
 
 import (
 	"strings"
@@ -9,8 +9,8 @@ import (
 
 var AsciiVersion = "v0.0.1"
 
-// Wld is a struct representing a Wld file
-type Wld struct {
+// Wce is a struct representing a Wce file
+type Wce struct {
 	isVariationMaterial    bool   // set true while writing or reading variations
 	lastReadModelTag       string // last model tag read
 	maxMaterialHeads       map[string]int
@@ -47,71 +47,71 @@ type Wld struct {
 
 type WldDefinitioner interface {
 	Definition() string
-	ToRaw(srcWld *Wld, dst *raw.Wld) (int16, error)
+	ToRaw(src *Wce, dst *raw.Wld) (int16, error)
 	Write(token *AsciiWriteToken) error
 }
 
 // ByTag returns a instance by tag
-func (wld *Wld) ByTag(tag string) WldDefinitioner {
+func (wce *Wce) ByTag(tag string) WldDefinitioner {
 	if tag == "" {
 		return nil
 	}
 	if strings.HasSuffix(tag, "_SPRITE") {
-		for _, sprite := range wld.SimpleSpriteDefs {
+		for _, sprite := range wce.SimpleSpriteDefs {
 			if sprite.Tag == tag {
 				return sprite
 			}
 		}
 	}
 	if strings.HasSuffix(tag, "_PCD") {
-		for _, cloud := range wld.ParticleCloudDefs {
+		for _, cloud := range wce.ParticleCloudDefs {
 			if cloud.Tag == tag {
 				return cloud
 			}
 		}
 	}
 	if strings.HasSuffix(tag, "_SPB") {
-		for _, sprite := range wld.ParticleCloudDefs {
+		for _, sprite := range wce.ParticleCloudDefs {
 			if sprite.BlitSpriteDefTag == tag {
 				return sprite
 			}
 		}
 	}
 	if strings.HasSuffix(tag, "_MDF") {
-		for _, material := range wld.MaterialDefs {
+		for _, material := range wce.MaterialDefs {
 			if material.Tag == tag {
 				return material
 			}
 		}
 	}
 	if strings.HasSuffix(tag, "_MP") {
-		for _, palette := range wld.MaterialPalettes {
+		for _, palette := range wce.MaterialPalettes {
 			if palette.Tag == tag {
 				return palette
 			}
 		}
 	}
 	if strings.HasSuffix(tag, "_DMSPRITEDEF") {
-		for _, sprite := range wld.DMSpriteDef2s {
+		for _, sprite := range wce.DMSpriteDef2s {
 			if sprite.Tag == tag {
 				return sprite
 			}
 		}
-		for _, sprite := range wld.DMSpriteDefs {
+		for _, sprite := range wce.DMSpriteDefs {
 			if sprite.Tag == tag {
 				return sprite
 			}
 		}
 	}
 	if strings.HasSuffix(tag, "_LIGHTDEF") {
-		for _, light := range wld.LightDefs {
+		for _, light := range wce.LightDefs {
 			if light.Tag == tag {
 				return light
 			}
 		}
 	}
 	if strings.HasSuffix(tag, "_LDEF") {
-		for _, light := range wld.LightDefs {
+		for _, light := range wce.LightDefs {
 			if light.Tag == tag {
 				return light
 			}
@@ -119,7 +119,7 @@ func (wld *Wld) ByTag(tag string) WldDefinitioner {
 	}
 
 	if strings.HasSuffix(tag, "_TRACKDEF") {
-		for _, track := range wld.TrackDefs {
+		for _, track := range wce.TrackDefs {
 			if track.Tag == tag {
 				return track
 			}
@@ -127,7 +127,7 @@ func (wld *Wld) ByTag(tag string) WldDefinitioner {
 	}
 
 	if strings.HasSuffix(tag, "_HS_DEF") {
-		for _, sprite := range wld.HierarchicalSpriteDefs {
+		for _, sprite := range wce.HierarchicalSpriteDefs {
 			if sprite.Tag == tag {
 				return sprite
 			}
@@ -135,7 +135,7 @@ func (wld *Wld) ByTag(tag string) WldDefinitioner {
 	}
 
 	if strings.HasSuffix(tag, "_POLYHDEF") {
-		for _, polyhedron := range wld.PolyhedronDefs {
+		for _, polyhedron := range wce.PolyhedronDefs {
 			if polyhedron.Tag == tag {
 				return polyhedron
 			}
@@ -143,43 +143,43 @@ func (wld *Wld) ByTag(tag string) WldDefinitioner {
 	}
 
 	if strings.HasSuffix(tag, "_DMT") {
-		for _, track := range wld.RGBTrackDefs {
+		for _, track := range wce.RGBTrackDefs {
 			if track.Tag == tag {
 				return track
 			}
 		}
 	}
 
-	for _, sprite := range wld.Sprite3DDefs {
+	for _, sprite := range wce.Sprite3DDefs {
 		if sprite.Tag == tag {
 			return sprite
 		}
 	}
-	for _, region := range wld.Regions {
+	for _, region := range wce.Regions {
 		if region.Tag == tag {
 			return region
 		}
 	}
 
-	for _, actor := range wld.ActorDefs {
+	for _, actor := range wce.ActorDefs {
 		if actor.Tag == tag {
 			return actor
 		}
 	}
 
-	for _, track := range wld.TrackInstances {
+	for _, track := range wce.TrackInstances {
 		if track.Tag == tag {
 			return track
 		}
 	}
 
-	for _, sprite := range wld.Sprite2DDefs {
+	for _, sprite := range wce.Sprite2DDefs {
 		if sprite.Tag == tag {
 			return sprite
 		}
 	}
 
-	for _, sprite := range wld.SimpleSpriteDefs {
+	for _, sprite := range wce.SimpleSpriteDefs {
 		if sprite.Tag == tag {
 			return sprite
 		}
@@ -193,13 +193,13 @@ func (wld *Wld) ByTag(tag string) WldDefinitioner {
 }
 
 // ByTagWithIndex returns a instance by tag with index included
-func (wld *Wld) ByTagWithIndex(tag string, index int) WldDefinitioner {
+func (wce *Wce) ByTagWithIndex(tag string, index int) WldDefinitioner {
 	if tag == "" {
 		return nil
 	}
 
 	if strings.HasSuffix(tag, "_TRACK") {
-		for _, track := range wld.TrackInstances {
+		for _, track := range wce.TrackInstances {
 			if track.Tag == tag && track.TagIndex == index {
 				return track
 			}
@@ -207,7 +207,7 @@ func (wld *Wld) ByTagWithIndex(tag string, index int) WldDefinitioner {
 	}
 
 	if strings.HasSuffix(tag, "_TRACKDEF") {
-		for _, track := range wld.TrackDefs {
+		for _, track := range wce.TrackDefs {
 			if track.Tag == tag && track.TagIndex == index {
 				return track
 			}
@@ -215,7 +215,7 @@ func (wld *Wld) ByTagWithIndex(tag string, index int) WldDefinitioner {
 	}
 
 	if strings.HasSuffix(tag, "_MDF") {
-		for _, material := range wld.MaterialDefs {
+		for _, material := range wce.MaterialDefs {
 			if material.Tag == tag && material.Variation == index {
 				return material
 			}
@@ -223,7 +223,7 @@ func (wld *Wld) ByTagWithIndex(tag string, index int) WldDefinitioner {
 	}
 
 	if strings.HasSuffix(tag, "_SPRITE") {
-		for _, sprite := range wld.SimpleSpriteDefs {
+		for _, sprite := range wce.SimpleSpriteDefs {
 			if sprite.Tag != tag {
 				continue
 			}
@@ -238,45 +238,45 @@ func (wld *Wld) ByTagWithIndex(tag string, index int) WldDefinitioner {
 }
 
 // NextTagIndex returns the next available index for a tag
-func (wld *Wld) NextTagIndex(tag string) int {
+func (wce *Wce) NextTagIndex(tag string) int {
 	if tag == "" {
 		return 0
 	}
 
-	_, ok := wld.tagIndexes[tag]
+	_, ok := wce.tagIndexes[tag]
 	if !ok {
-		wld.tagIndexes[tag] = 0
+		wce.tagIndexes[tag] = 0
 		return 0
 	}
 
-	wld.tagIndexes[tag]++
-	return wld.tagIndexes[tag]
+	wce.tagIndexes[tag]++
+	return wce.tagIndexes[tag]
 }
 
-func (wld *Wld) reset() {
-	wld.GlobalAmbientLightDef = nil
-	wld.lastReadModelTag = ""
-	wld.tagIndexes = make(map[string]int)
-	wld.SimpleSpriteDefs = []*SimpleSpriteDef{}
-	wld.MaterialDefs = []*MaterialDef{}
-	wld.variationMaterialDefs = make(map[string][]*MaterialDef)
-	wld.MaterialPalettes = []*MaterialPalette{}
-	wld.DMSpriteDefs = []*DMSpriteDef{}
-	wld.DMSpriteDef2s = []*DMSpriteDef2{}
-	wld.ActorDefs = []*ActorDef{}
-	wld.ActorInsts = []*ActorInst{}
-	wld.LightDefs = []*LightDef{}
-	wld.PointLights = []*PointLight{}
-	wld.Sprite3DDefs = []*Sprite3DDef{}
-	wld.TrackInstances = []*TrackInstance{}
-	wld.TrackDefs = []*TrackDef{}
-	wld.HierarchicalSpriteDefs = []*HierarchicalSpriteDef{}
-	wld.PolyhedronDefs = []*PolyhedronDefinition{}
-	wld.WorldTrees = []*WorldTree{}
-	wld.Regions = []*Region{}
-	wld.AmbientLights = []*AmbientLight{}
-	wld.Zones = []*Zone{}
-	wld.RGBTrackDefs = []*RGBTrackDef{}
-	wld.ParticleCloudDefs = []*ParticleCloudDef{}
-	wld.Sprite2DDefs = []*Sprite2DDef{}
+func (wce *Wce) reset() {
+	wce.GlobalAmbientLightDef = nil
+	wce.lastReadModelTag = ""
+	wce.tagIndexes = make(map[string]int)
+	wce.SimpleSpriteDefs = []*SimpleSpriteDef{}
+	wce.MaterialDefs = []*MaterialDef{}
+	wce.variationMaterialDefs = make(map[string][]*MaterialDef)
+	wce.MaterialPalettes = []*MaterialPalette{}
+	wce.DMSpriteDefs = []*DMSpriteDef{}
+	wce.DMSpriteDef2s = []*DMSpriteDef2{}
+	wce.ActorDefs = []*ActorDef{}
+	wce.ActorInsts = []*ActorInst{}
+	wce.LightDefs = []*LightDef{}
+	wce.PointLights = []*PointLight{}
+	wce.Sprite3DDefs = []*Sprite3DDef{}
+	wce.TrackInstances = []*TrackInstance{}
+	wce.TrackDefs = []*TrackDef{}
+	wce.HierarchicalSpriteDefs = []*HierarchicalSpriteDef{}
+	wce.PolyhedronDefs = []*PolyhedronDefinition{}
+	wce.WorldTrees = []*WorldTree{}
+	wce.Regions = []*Region{}
+	wce.AmbientLights = []*AmbientLight{}
+	wce.Zones = []*Zone{}
+	wce.RGBTrackDefs = []*RGBTrackDef{}
+	wce.ParticleCloudDefs = []*ParticleCloudDef{}
+	wce.Sprite2DDefs = []*Sprite2DDef{}
 }

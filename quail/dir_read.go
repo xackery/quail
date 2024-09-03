@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/xackery/quail/wld"
+	"github.com/xackery/quail/wce"
 )
 
 // DirRead loads a .quail directory
@@ -30,7 +30,7 @@ func (q *Quail) DirRead(path string) error {
 
 	baseName := filepath.Base(path)
 	baseName = strings.TrimSuffix(baseName, ".quail")
-	q.Wld = &wld.Wld{
+	q.Wld = &wce.Wce{
 		FileName: baseName + ".wld",
 	}
 	err = q.Wld.ReadAscii(path + "/_root.wce")
@@ -40,7 +40,7 @@ func (q *Quail) DirRead(path string) error {
 
 	fi, err = os.Stat(path + "/_objects/_root.wce")
 	if err == nil && !fi.IsDir() {
-		q.WldObject = &wld.Wld{
+		q.WldObject = &wce.Wce{
 			FileName: baseName + "objects.wld",
 		}
 		err = q.WldObject.ReadAscii(path + "/_objects/_root.wce")
@@ -51,7 +51,7 @@ func (q *Quail) DirRead(path string) error {
 
 	fi, err = os.Stat(path + "/_lights/_root.wce")
 	if err == nil && !fi.IsDir() {
-		q.WldLights = &wld.Wld{
+		q.WldLights = &wce.Wce{
 			FileName: baseName + "lights.wld",
 		}
 		err = q.WldLights.ReadAscii(path + "/_lights/_root.wce")

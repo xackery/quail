@@ -1,4 +1,4 @@
-package wld
+package wce
 
 import (
 	"fmt"
@@ -9,17 +9,17 @@ import (
 
 type AsciiWriteToken struct {
 	basePath    string
-	wld         *Wld
+	wce         *Wce
 	lastWriter  *os.File
 	writtenDefs map[string]bool
 	writers     map[string]*os.File
 	writersUsed map[string]bool
 }
 
-func NewAsciiWriteToken(path string, wld *Wld) *AsciiWriteToken {
+func NewAsciiWriteToken(path string, wce *Wce) *AsciiWriteToken {
 	return &AsciiWriteToken{
 		basePath:    path,
-		wld:         wld,
+		wce:         wce,
 		writtenDefs: make(map[string]bool),
 		writers:     make(map[string]*os.File),
 		writersUsed: make(map[string]bool),
@@ -71,9 +71,9 @@ func (a *AsciiWriteToken) WriterByTag(tag string) (*os.File, error) {
 
 		w, ok = a.writers[baseTag]
 		if !ok {
-			w, ok = a.writers[a.wld.lastReadModelTag]
+			w, ok = a.writers[a.wce.lastReadModelTag]
 			if !ok {
-				return nil, fmt.Errorf("writer for basetag %s (%s) does not exist (last read modeltag: %s)", baseTag, tag, a.wld.lastReadModelTag)
+				return nil, fmt.Errorf("writer for basetag %s (%s) does not exist (last read modeltag: %s)", baseTag, tag, a.wce.lastReadModelTag)
 			}
 		}
 	}
@@ -108,7 +108,7 @@ func (a *AsciiWriteToken) AddWriter(tag string, path string) error {
 		return err
 	}
 
-	a.wld.writeAsciiHeader(w)
+	a.wce.writeAsciiHeader(w)
 	a.writers[tag] = w
 	return nil
 }

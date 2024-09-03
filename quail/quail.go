@@ -8,7 +8,7 @@ import (
 
 	"github.com/xackery/quail/common"
 	"github.com/xackery/quail/raw"
-	"github.com/xackery/quail/wld"
+	"github.com/xackery/quail/wce"
 )
 
 type Quail struct {
@@ -19,9 +19,9 @@ type Quail struct {
 	materialCache          map[string]*common.Material
 	IsExtensionVersionDump bool
 	Textures               map[string][]byte // Textures are raw texture files
-	Wld                    *wld.Wld
-	WldObject              *wld.Wld
-	WldLights              *wld.Wld
+	Wld                    *wce.Wce
+	WldObject              *wce.Wce
+	WldLights              *wce.Wce
 }
 
 // New returns a new Quail instance

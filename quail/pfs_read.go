@@ -9,7 +9,7 @@ import (
 
 	"github.com/xackery/quail/pfs"
 	"github.com/xackery/quail/raw"
-	"github.com/xackery/quail/wld"
+	"github.com/xackery/quail/wce"
 )
 
 // PfsRead imports the quail target file
@@ -27,7 +27,7 @@ func (q *Quail) PfsRead(path string) error {
 			return fmt.Errorf("wld read: %w", err)
 		}
 
-		q.Wld = &wld.Wld{
+		q.Wld = &wce.Wce{
 			FileName: filepath.Base(path) + ".wld",
 		}
 

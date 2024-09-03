@@ -11,12 +11,12 @@ import (
 )
 
 type Mod struct {
-	MetaFileName string      `yaml:"file_name"`
-	Version      uint32      `yaml:"version"`
-	Materials    []*Material `yaml:"materials"`
-	Bones        []*Bone     `yaml:"bones"`
-	Vertices     []*Vertex   `yaml:"vertices"`
-	Triangles    []Triangle  `yaml:"triangles"`
+	MetaFileName string
+	Version      uint32
+	Materials    []*Material
+	Bones        []*Bone
+	Vertices     []*Vertex
+	Triangles    []Triangle
 	names        []*nameEntry
 	nameBuf      []byte
 }

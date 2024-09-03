@@ -1,4 +1,4 @@
-package wld
+package wce
 
 import (
 	"fmt"
@@ -12,13 +12,13 @@ import (
 )
 
 // ReadAscii reads the ascii file at path
-func (wld *Wld) ReadAscii(path string) error {
+func (wce *Wce) ReadAscii(path string) error {
 
-	wld.reset()
-	wld.maxMaterialHeads = make(map[string]int)
-	wld.maxMaterialTextures = make(map[string]int)
+	wce.reset()
+	wce.maxMaterialHeads = make(map[string]int)
+	wce.maxMaterialTextures = make(map[string]int)
 
-	asciiReader, err := LoadAsciiFile(path, wld)
+	asciiReader, err := LoadAsciiFile(path, wce)
 	if err != nil {
 		return fmt.Errorf("%w", err)
 	}
@@ -39,7 +39,7 @@ func (wld *Wld) ReadAscii(path string) error {
 	return nil
 }
 
-func (wld *Wld) WriteAscii(path string) error {
+func (wce *Wce) WriteAscii(path string) error {
 	var err error
 
 	err = os.MkdirAll(path, os.ModePerm)
@@ -48,7 +48,7 @@ func (wld *Wld) WriteAscii(path string) error {
 	}
 
 	baseTags := []string{}
-	for _, actorDef := range wld.ActorDefs {
+	for _, actorDef := range wce.ActorDefs {
 		if len(actorDef.Tag) < 3 {
 			return fmt.Errorf("actorDef %s tag too short", actorDef.Tag)
 		}
@@ -64,11 +64,11 @@ func (wld *Wld) WriteAscii(path string) error {
 			baseTags = append(baseTags, baseTag)
 		}
 	}
-	if wld.WorldDef != nil && wld.WorldDef.Zone == 1 {
+	if wce.WorldDef != nil && wce.WorldDef.Zone == 1 {
 		baseTags = append(baseTags, "R")
 	}
 
-	err = wld.writeAsciiData(path, baseTags)
+	err = wce.writeAsciiData(path, baseTags)
 	if err != nil {
 		return err
 	}
@@ -76,16 +76,16 @@ func (wld *Wld) WriteAscii(path string) error {
 	return nil
 }
 
-func (wld *Wld) writeAsciiData(path string, baseTags []string) error {
+func (wce *Wce) writeAsciiData(path string, baseTags []string) error {
 
-	token := NewAsciiWriteToken(path, wld)
+	token := NewAsciiWriteToken(path, wce)
 	defer token.Close()
 
-	if wld.WorldDef == nil {
+	if wce.WorldDef == nil {
 		return fmt.Errorf("worlddef not found")
 	}
 
-	for _, track := range wld.TrackInstances {
+	for _, track := range wce.TrackInstances {
 		baseTag := ""
 		m := regexAni.FindStringSubmatch(track.Tag)
 		if len(m) > 1 {
@@ -110,7 +110,7 @@ func (wld *Wld) writeAsciiData(path string, baseTags []string) error {
 		}
 	}
 
-	for _, actorDef := range wld.ActorDefs {
+	for _, actorDef := range wce.ActorDefs {
 		if len(actorDef.Tag) < 3 {
 			return fmt.Errorf("actorDef %s tag too short", actorDef.Tag)
 		}
@@ -146,23 +146,23 @@ func (wld *Wld) writeAsciiData(path string, baseTags []string) error {
 		}
 	}
 
-	if wld.WorldDef != nil {
+	if wce.WorldDef != nil {
 		err = token.SetWriter("world")
 		if err != nil {
 			return fmt.Errorf("set worlddef writer zone: %w", err)
 		}
-		err = wld.WorldDef.Write(token)
+		err = wce.WorldDef.Write(token)
 		if err != nil {
 			return fmt.Errorf("world def: %w", err)
 		}
 	}
 
-	if wld.GlobalAmbientLightDef != nil {
+	if wce.GlobalAmbientLightDef != nil {
 		err = token.SetWriter("world")
 		if err != nil {
 			return fmt.Errorf("set global ambient light writer zone: %w", err)
 		}
-		err = wld.GlobalAmbientLightDef.Write(token)
+		err = wce.GlobalAmbientLightDef.Write(token)
 		if err != nil {
 			return fmt.Errorf("global ambient light: %w", err)
 		}
@@ -173,7 +173,7 @@ func (wld *Wld) writeAsciiData(path string, baseTags []string) error {
 	if err != nil {
 		return fmt.Errorf("set material palette writer zone: %w", err)
 	}
-	for _, matDef := range wld.MaterialDefs {
+	for _, matDef := range wce.MaterialDefs {
 		if !strings.HasPrefix(matDef.Tag, "CLK") {
 			continue
 		}
@@ -193,7 +193,7 @@ func (wld *Wld) writeAsciiData(path string, baseTags []string) error {
 		}
 	}
 
-	for _, region := range wld.Regions {
+	for _, region := range wce.Regions {
 		err = token.SetWriter("R")
 		if err != nil {
 			return fmt.Errorf("set region %s writer: %w", region.Tag, err)
@@ -205,10 +205,10 @@ func (wld *Wld) writeAsciiData(path string, baseTags []string) error {
 		}
 	}
 
-	for _, actorDef := range wld.ActorDefs {
+	for _, actorDef := range wce.ActorDefs {
 		token.TagClearIsWritten()
 		baseTag := baseTagTrim(actorDef.Tag)
-		wld.lastReadModelTag = baseTag
+		wce.lastReadModelTag = baseTag
 
 		err = token.SetWriter(actorDef.Tag)
 		if err != nil {
@@ -220,9 +220,9 @@ func (wld *Wld) writeAsciiData(path string, baseTags []string) error {
 		}
 	}
 
-	if wld.WorldDef.Zone == 1 {
+	if wce.WorldDef.Zone == 1 {
 
-		for _, dSprite := range wld.DMSpriteDefs {
+		for _, dSprite := range wce.DMSpriteDefs {
 			err = token.SetWriter(dSprite.Tag)
 			if err != nil {
 				return fmt.Errorf("set dmspritedef %s writer: %w", dSprite.Tag, err)
@@ -236,7 +236,7 @@ func (wld *Wld) writeAsciiData(path string, baseTags []string) error {
 	}
 
 	// global tracks
-	for _, track := range wld.TrackInstances {
+	for _, track := range wce.TrackInstances {
 		if len(track.Tag) < 3 {
 			return fmt.Errorf("track %s tag too short", track.Tag)
 		}
@@ -264,9 +264,9 @@ func (wld *Wld) writeAsciiData(path string, baseTags []string) error {
 			return fmt.Errorf("track %s_%d: %w", track.Tag, track.TagIndex, err)
 		}
 	}
-	if wld.WorldDef.Zone == 1 {
+	if wce.WorldDef.Zone == 1 {
 
-		for _, polyDef := range wld.PolyhedronDefs {
+		for _, polyDef := range wce.PolyhedronDefs {
 			err = token.SetWriter(polyDef.Tag)
 			if err != nil {
 				return fmt.Errorf("set polyhedron %s writer: %w", polyDef.Tag, err)
@@ -279,7 +279,7 @@ func (wld *Wld) writeAsciiData(path string, baseTags []string) error {
 		}
 	}
 
-	for _, pLight := range wld.PointLights {
+	for _, pLight := range wce.PointLights {
 		err = token.SetWriter("world")
 		if err != nil {
 			return fmt.Errorf("set point light %s writer: %w", pLight.Tag, err)
@@ -291,9 +291,9 @@ func (wld *Wld) writeAsciiData(path string, baseTags []string) error {
 		}
 	}
 
-	// for _, matDef := range wld.MaterialDefs {
+	// for _, matDef := range wce.MaterialDefs {
 	// 	tag := matDef.Tag
-	// 	if wld.WorldDef.Zone == 1 {
+	// 	if wce.WorldDef.Zone == 1 {
 	// 		tag = "R"
 	// 	}
 
@@ -312,7 +312,7 @@ func (wld *Wld) writeAsciiData(path string, baseTags []string) error {
 	// 	}
 	// }
 
-	for _, lightDef := range wld.LightDefs {
+	for _, lightDef := range wce.LightDefs {
 		err = token.SetWriter("world")
 		if err != nil {
 			return fmt.Errorf("set lightdef %s writer: %w", lightDef.Tag, err)
@@ -324,7 +324,7 @@ func (wld *Wld) writeAsciiData(path string, baseTags []string) error {
 		}
 	}
 
-	for _, tree := range wld.WorldTrees {
+	for _, tree := range wce.WorldTrees {
 		err = token.SetWriter("world")
 		if err != nil {
 			return fmt.Errorf("set world tree %s writer: %w", tree.Tag, err)
@@ -336,7 +336,7 @@ func (wld *Wld) writeAsciiData(path string, baseTags []string) error {
 		}
 	}
 
-	for _, aLight := range wld.AmbientLights {
+	for _, aLight := range wce.AmbientLights {
 		err = token.SetWriter("world")
 		if err != nil {
 			return fmt.Errorf("set ambient light %s writer: %w", aLight.Tag, err)
@@ -348,7 +348,7 @@ func (wld *Wld) writeAsciiData(path string, baseTags []string) error {
 		}
 	}
 
-	for _, actor := range wld.ActorInsts {
+	for _, actor := range wce.ActorInsts {
 		err = token.SetWriter("world")
 		if err != nil {
 			return fmt.Errorf("set actor %s writer: %w", actor.Tag, err)
@@ -360,9 +360,9 @@ func (wld *Wld) writeAsciiData(path string, baseTags []string) error {
 		}
 	}
 
-	// for _, actorDef := range wld.ActorDefs {
+	// for _, actorDef := range wce.ActorDefs {
 	// 	tag := actorDef.Tag
-	// 	if wld.WorldDef.Zone == 1 {
+	// 	if wce.WorldDef.Zone == 1 {
 	// 		tag = "R"
 	// 	}
 	// 	err = token.SetWriter(tag)
@@ -376,7 +376,7 @@ func (wld *Wld) writeAsciiData(path string, baseTags []string) error {
 	// 	}
 	// }
 
-	for _, zone := range wld.Zones {
+	for _, zone := range wce.Zones {
 		err = token.SetWriter("world")
 		if err != nil {
 			return fmt.Errorf("set zone %s writer: %w", zone.Tag, err)
@@ -394,7 +394,7 @@ func (wld *Wld) writeAsciiData(path string, baseTags []string) error {
 	if err != nil {
 		return err
 	}
-	wld.writeAsciiHeader(rootW)
+	wce.writeAsciiHeader(rootW)
 
 	defer rootW.Close()
 
@@ -419,7 +419,7 @@ func (wld *Wld) writeAsciiData(path string, baseTags []string) error {
 		if err != nil {
 			return err
 		}
-		wld.writeAsciiHeader(modelW)
+		wce.writeAsciiHeader(modelW)
 
 		defer modelW.Close()
 
@@ -457,8 +457,8 @@ func (wld *Wld) writeAsciiData(path string, baseTags []string) error {
 	return nil
 }
 
-func (wld *Wld) writeAsciiHeader(w io.Writer) {
+func (wce *Wce) writeAsciiHeader(w io.Writer) {
 	fmt.Fprintf(w, "// wcemu %s\n", AsciiVersion)
 	fmt.Fprintf(w, "// This file was created by quail v%s\n", common.Version)
-	fmt.Fprintf(w, "// Original file: %s\n\n", wld.FileName)
+	fmt.Fprintf(w, "// Original file: %s\n\n", wce.FileName)
 }

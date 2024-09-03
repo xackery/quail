@@ -1,4 +1,4 @@
-package wld
+package wce
 
 import (
 	"fmt"
@@ -12,16 +12,16 @@ import (
 	"github.com/xackery/quail/raw/rawfrag"
 )
 
-func (wld *Wld) ReadRaw(src *raw.Wld) error {
-	wld.reset()
-	wld.maxMaterialHeads = make(map[string]int)
-	wld.maxMaterialTextures = make(map[string]int)
-	wld.WorldDef = &WorldDef{}
+func (wce *Wce) ReadRaw(src *raw.Wld) error {
+	wce.reset()
+	wce.maxMaterialHeads = make(map[string]int)
+	wce.maxMaterialTextures = make(map[string]int)
+	wce.WorldDef = &WorldDef{}
 	if src.IsNewWorld {
-		wld.WorldDef.NewWorld = 1
+		wce.WorldDef.NewWorld = 1
 	}
 	if src.IsZone {
-		wld.WorldDef.Zone = 1
+		wce.WorldDef.Zone = 1
 	}
 
 	modelChunks := make(map[int]string)
@@ -37,15 +37,15 @@ func (wld *Wld) ReadRaw(src *raw.Wld) error {
 	}
 
 	if modelChunks[0] != "" {
-		wld.lastReadModelTag = modelChunks[0]
+		wce.lastReadModelTag = modelChunks[0]
 	}
 	for i := 1; i < len(src.Fragments); i++ {
 		fragment := src.Fragments[i]
 		if modelChunks[i] != "" {
-			wld.lastReadModelTag = modelChunks[i]
+			wce.lastReadModelTag = modelChunks[i]
 		}
 
-		err := readRawFrag(wld, src, fragment)
+		err := readRawFrag(wce, src, fragment)
 		if err != nil {
 			return fmt.Errorf("fragment %d (%s): %w", i, raw.FragName(fragment.FragCode()), err)
 		}
@@ -54,27 +54,27 @@ func (wld *Wld) ReadRaw(src *raw.Wld) error {
 	return nil
 }
 
-func readRawFrag(wld *Wld, rawWld *raw.Wld, fragment model.FragmentReadWriter) error {
+func readRawFrag(e *Wce, rawWld *raw.Wld, fragment model.FragmentReadWriter) error {
 
 	switch fragment.FragCode() {
 	case rawfrag.FragCodeGlobalAmbientLightDef:
 
 		def := &GlobalAmbientLightDef{}
-		err := def.FromRaw(wld, rawWld, fragment.(*rawfrag.WldFragGlobalAmbientLightDef))
+		err := def.FromRaw(e, rawWld, fragment.(*rawfrag.WldFragGlobalAmbientLightDef))
 		if err != nil {
 			return fmt.Errorf("globalambientlightdef: %w", err)
 		}
-		wld.GlobalAmbientLightDef = def
+		e.GlobalAmbientLightDef = def
 	case rawfrag.FragCodeBMInfo:
 		return nil
 	case rawfrag.FragCodeSimpleSpriteDef:
 		def := &SimpleSpriteDef{}
-		err := def.FromRaw(wld, rawWld, fragment.(*rawfrag.WldFragSimpleSpriteDef))
+		err := def.FromRaw(e, rawWld, fragment.(*rawfrag.WldFragSimpleSpriteDef))
 		if err != nil {
 			return fmt.Errorf("simplespritedef: %w", err)
 		}
 
-		wld.SimpleSpriteDefs = append(wld.SimpleSpriteDefs, def)
+		e.SimpleSpriteDefs = append(e.SimpleSpriteDefs, def)
 	case rawfrag.FragCodeSimpleSprite:
 		//return fmt.Errorf("simplesprite fragment found, but not expected")
 	case rawfrag.FragCodeBlitSpriteDef:
@@ -82,29 +82,29 @@ func readRawFrag(wld *Wld, rawWld *raw.Wld, fragment model.FragmentReadWriter) e
 
 	case rawfrag.FragCodeParticleCloudDef:
 		def := &ParticleCloudDef{}
-		err := def.FromRaw(wld, rawWld, fragment.(*rawfrag.WldFragParticleCloudDef))
+		err := def.FromRaw(e, rawWld, fragment.(*rawfrag.WldFragParticleCloudDef))
 		if err != nil {
 			return fmt.Errorf("particleclouddef: %w", err)
 		}
-		wld.ParticleCloudDefs = append(wld.ParticleCloudDefs, def)
+		e.ParticleCloudDefs = append(e.ParticleCloudDefs, def)
 	case rawfrag.FragCodeMaterialDef:
 		def := &MaterialDef{}
-		err := def.FromRaw(wld, rawWld, fragment.(*rawfrag.WldFragMaterialDef))
+		err := def.FromRaw(e, rawWld, fragment.(*rawfrag.WldFragMaterialDef))
 		if err != nil {
 			return fmt.Errorf("materialdef: %w", err)
 		}
-		wld.MaterialDefs = append(wld.MaterialDefs, def)
+		e.MaterialDefs = append(e.MaterialDefs, def)
 	case rawfrag.FragCodeMaterialPalette:
 		def := &MaterialPalette{}
-		err := def.FromRaw(wld, rawWld, fragment.(*rawfrag.WldFragMaterialPalette))
+		err := def.FromRaw(e, rawWld, fragment.(*rawfrag.WldFragMaterialPalette))
 		if err != nil {
 			return fmt.Errorf("materialpalette: %w", err)
 		}
-		wld.MaterialPalettes = append(wld.MaterialPalettes, def)
-		wld.isVariationMaterial = true
+		e.MaterialPalettes = append(e.MaterialPalettes, def)
+		e.isVariationMaterial = true
 	case rawfrag.FragCodeDmSpriteDef2:
 		def := &DMSpriteDef2{}
-		err := def.FromRaw(wld, rawWld, fragment.(*rawfrag.WldFragDmSpriteDef2))
+		err := def.FromRaw(e, rawWld, fragment.(*rawfrag.WldFragDmSpriteDef2))
 		if err != nil {
 			return fmt.Errorf("dmspritedef2: %w", err)
 		}
@@ -113,133 +113,133 @@ func readRawFrag(wld *Wld, rawWld *raw.Wld, fragment model.FragmentReadWriter) e
 			tag := strings.TrimSuffix(def.Tag[1:], "_DMSPRITEDEF")
 			_, err := strconv.Atoi(tag)
 			if err == nil {
-				if wld.WorldDef == nil {
-					wld.WorldDef = &WorldDef{}
+				if e.WorldDef == nil {
+					e.WorldDef = &WorldDef{}
 				}
-				wld.WorldDef.Zone = 1
+				e.WorldDef.Zone = 1
 			}
 		}
 
-		wld.DMSpriteDef2s = append(wld.DMSpriteDef2s, def)
+		e.DMSpriteDef2s = append(e.DMSpriteDef2s, def)
 	case rawfrag.FragCodeTrackDef:
 		def := &TrackDef{}
-		err := def.FromRaw(wld, rawWld, fragment.(*rawfrag.WldFragTrackDef))
+		err := def.FromRaw(e, rawWld, fragment.(*rawfrag.WldFragTrackDef))
 		if err != nil {
 			return fmt.Errorf("trackdef: %w", err)
 		}
-		wld.TrackDefs = append(wld.TrackDefs, def)
+		e.TrackDefs = append(e.TrackDefs, def)
 
 	case rawfrag.FragCodeDmTrackDef2:
 		def := &DMTrackDef2{}
-		err := def.FromRaw(wld, rawWld, fragment.(*rawfrag.WldFragDmTrackDef2))
+		err := def.FromRaw(e, rawWld, fragment.(*rawfrag.WldFragDmTrackDef2))
 		if err != nil {
 			return fmt.Errorf("dmtrackdef2: %w", err)
 		}
-		wld.DMTrackDef2s = append(wld.DMTrackDef2s, def)
+		e.DMTrackDef2s = append(e.DMTrackDef2s, def)
 	case rawfrag.FragCodeTrack:
 		def := &TrackInstance{}
-		err := def.FromRaw(wld, rawWld, fragment.(*rawfrag.WldFragTrack))
+		err := def.FromRaw(e, rawWld, fragment.(*rawfrag.WldFragTrack))
 		if err != nil {
 			return fmt.Errorf("track: %w", err)
 		}
-		wld.TrackInstances = append(wld.TrackInstances, def)
+		e.TrackInstances = append(e.TrackInstances, def)
 	case rawfrag.FragCodeDMSpriteDef:
 		def := &DMSpriteDef{}
-		err := def.FromRaw(wld, rawWld, fragment.(*rawfrag.WldFragDMSpriteDef))
+		err := def.FromRaw(e, rawWld, fragment.(*rawfrag.WldFragDMSpriteDef))
 		if err != nil {
 			return fmt.Errorf("dmspritedef: %w", err)
 		}
-		wld.DMSpriteDefs = append(wld.DMSpriteDefs, def)
+		e.DMSpriteDefs = append(e.DMSpriteDefs, def)
 	case rawfrag.FragCodeDMSprite:
 	case rawfrag.FragCodeActorDef:
 		def := &ActorDef{}
-		err := def.FromRaw(wld, rawWld, fragment.(*rawfrag.WldFragActorDef))
+		err := def.FromRaw(e, rawWld, fragment.(*rawfrag.WldFragActorDef))
 		if err != nil {
 			return fmt.Errorf("actordef: %w", err)
 		}
 
-		wld.ActorDefs = append(wld.ActorDefs, def)
-		wld.isVariationMaterial = false
+		e.ActorDefs = append(e.ActorDefs, def)
+		e.isVariationMaterial = false
 	case rawfrag.FragCodeActor:
 		def := &ActorInst{}
-		err := def.FromRaw(wld, rawWld, fragment.(*rawfrag.WldFragActor))
+		err := def.FromRaw(e, rawWld, fragment.(*rawfrag.WldFragActor))
 		if err != nil {
 			return fmt.Errorf("actor: %w", err)
 		}
 
-		wld.ActorInsts = append(wld.ActorInsts, def)
+		e.ActorInsts = append(e.ActorInsts, def)
 	case rawfrag.FragCodeHierarchicalSpriteDef:
 		def := &HierarchicalSpriteDef{}
-		err := def.FromRaw(wld, rawWld, fragment.(*rawfrag.WldFragHierarchicalSpriteDef))
+		err := def.FromRaw(e, rawWld, fragment.(*rawfrag.WldFragHierarchicalSpriteDef))
 		if err != nil {
 			return fmt.Errorf("hierarchicalspritedef: %w", err)
 		}
-		wld.HierarchicalSpriteDefs = append(wld.HierarchicalSpriteDefs, def)
+		e.HierarchicalSpriteDefs = append(e.HierarchicalSpriteDefs, def)
 	case rawfrag.FragCodeHierarchicalSprite:
 		return nil
 	case rawfrag.FragCodeLightDef:
 		def := &LightDef{}
-		err := def.FromRaw(wld, rawWld, fragment.(*rawfrag.WldFragLightDef))
+		err := def.FromRaw(e, rawWld, fragment.(*rawfrag.WldFragLightDef))
 		if err != nil {
 			return fmt.Errorf("lightdef: %w", err)
 		}
-		wld.LightDefs = append(wld.LightDefs, def)
+		e.LightDefs = append(e.LightDefs, def)
 	case rawfrag.FragCodeLight:
 		return nil // light instances are ignored, since they're derived from other definitions
 	case rawfrag.FragCodeSprite3DDef:
 		def := &Sprite3DDef{}
-		err := def.FromRaw(wld, rawWld, fragment.(*rawfrag.WldFragSprite3DDef))
+		err := def.FromRaw(e, rawWld, fragment.(*rawfrag.WldFragSprite3DDef))
 		if err != nil {
 			return fmt.Errorf("sprite3ddef: %w", err)
 		}
-		wld.Sprite3DDefs = append(wld.Sprite3DDefs, def)
+		e.Sprite3DDefs = append(e.Sprite3DDefs, def)
 	case rawfrag.FragCodeSprite3D:
 		// sprite instances are ignored, since they're derived from other definitions
 		return nil
 	case rawfrag.FragCodeZone:
 		def := &Zone{}
-		err := def.FromRaw(wld, rawWld, fragment.(*rawfrag.WldFragZone))
+		err := def.FromRaw(e, rawWld, fragment.(*rawfrag.WldFragZone))
 		if err != nil {
 			return fmt.Errorf("zone: %w", err)
 		}
-		wld.Zones = append(wld.Zones, def)
+		e.Zones = append(e.Zones, def)
 
 	case rawfrag.FragCodeWorldTree:
 		def := &WorldTree{}
-		err := def.FromRaw(wld, rawWld, fragment.(*rawfrag.WldFragWorldTree))
+		err := def.FromRaw(e, rawWld, fragment.(*rawfrag.WldFragWorldTree))
 		if err != nil {
 			return fmt.Errorf("worldtree: %w", err)
 		}
-		wld.WorldTrees = append(wld.WorldTrees, def)
+		e.WorldTrees = append(e.WorldTrees, def)
 
 	case rawfrag.FragCodeRegion:
 		def := &Region{}
-		err := def.FromRaw(wld, rawWld, fragment.(*rawfrag.WldFragRegion))
+		err := def.FromRaw(e, rawWld, fragment.(*rawfrag.WldFragRegion))
 		if err != nil {
 			return fmt.Errorf("region: %w", err)
 		}
-		wld.Regions = append(wld.Regions, def)
+		e.Regions = append(e.Regions, def)
 	case rawfrag.FragCodeAmbientLight:
 		def := &AmbientLight{}
-		err := def.FromRaw(wld, rawWld, fragment.(*rawfrag.WldFragAmbientLight))
+		err := def.FromRaw(e, rawWld, fragment.(*rawfrag.WldFragAmbientLight))
 		if err != nil {
 			return fmt.Errorf("ambientlight: %w", err)
 		}
-		wld.AmbientLights = append(wld.AmbientLights, def)
+		e.AmbientLights = append(e.AmbientLights, def)
 	case rawfrag.FragCodePointLight:
 		def := &PointLight{}
-		err := def.FromRaw(wld, rawWld, fragment.(*rawfrag.WldFragPointLight))
+		err := def.FromRaw(e, rawWld, fragment.(*rawfrag.WldFragPointLight))
 		if err != nil {
 			return fmt.Errorf("pointlight: %w", err)
 		}
-		wld.PointLights = append(wld.PointLights, def)
+		e.PointLights = append(e.PointLights, def)
 	case rawfrag.FragCodePolyhedronDef:
 		def := &PolyhedronDefinition{}
-		err := def.FromRaw(wld, rawWld, fragment.(*rawfrag.WldFragPolyhedronDef))
+		err := def.FromRaw(e, rawWld, fragment.(*rawfrag.WldFragPolyhedronDef))
 		if err != nil {
 			return fmt.Errorf("polyhedrondefinition: %w", err)
 		}
-		wld.PolyhedronDefs = append(wld.PolyhedronDefs, def)
+		e.PolyhedronDefs = append(e.PolyhedronDefs, def)
 	case rawfrag.FragCodePolyhedron:
 		// polyhedron instances are ignored, since they're derived from other definitions
 		return nil
@@ -248,19 +248,19 @@ func readRawFrag(wld *Wld, rawWld *raw.Wld, fragment model.FragmentReadWriter) e
 		return nil
 	case rawfrag.FragCodeDmRGBTrackDef:
 		def := &RGBTrackDef{}
-		err := def.FromRaw(wld, rawWld, fragment.(*rawfrag.WldFragDmRGBTrackDef))
+		err := def.FromRaw(e, rawWld, fragment.(*rawfrag.WldFragDmRGBTrackDef))
 		if err != nil {
 			return fmt.Errorf("dmrgbtrackdef: %w", err)
 		}
-		wld.RGBTrackDefs = append(wld.RGBTrackDefs, def)
+		e.RGBTrackDefs = append(e.RGBTrackDefs, def)
 	case rawfrag.FragCodeDmRGBTrack:
 	case rawfrag.FragCodeSprite2DDef:
 		def := &Sprite2DDef{}
-		err := def.FromRaw(wld, rawWld, fragment.(*rawfrag.WldFragSprite2DDef))
+		err := def.FromRaw(e, rawWld, fragment.(*rawfrag.WldFragSprite2DDef))
 		if err != nil {
 			return fmt.Errorf("sprite2ddef: %w", err)
 		}
-		wld.Sprite2DDefs = append(wld.Sprite2DDefs, def)
+		e.Sprite2DDefs = append(e.Sprite2DDefs, def)
 	case rawfrag.FragCodeSprite2D:
 	case rawfrag.FragCodeDMTrack:
 	default:
@@ -270,12 +270,12 @@ func readRawFrag(wld *Wld, rawWld *raw.Wld, fragment model.FragmentReadWriter) e
 	return nil
 }
 
-func (wld *Wld) WriteRaw(w io.Writer) error {
+func (wce *Wce) WriteRaw(w io.Writer) error {
 	var err error
 	dst := &raw.Wld{
 		IsNewWorld: false,
 	}
-	if wld.WorldDef != nil && wld.WorldDef.NewWorld == 1 {
+	if wce.WorldDef != nil && wce.WorldDef.NewWorld == 1 {
 		dst.IsNewWorld = true
 	}
 	if dst.Fragments == nil {
@@ -283,16 +283,16 @@ func (wld *Wld) WriteRaw(w io.Writer) error {
 	}
 	dst.NameClear()
 
-	if wld.GlobalAmbientLightDef != nil {
-		_, err = wld.GlobalAmbientLightDef.ToRaw(wld, dst)
+	if wce.GlobalAmbientLightDef != nil {
+		_, err = wce.GlobalAmbientLightDef.ToRaw(wce, dst)
 		if err != nil {
 			return fmt.Errorf("global ambient light: %w", err)
 		}
 	}
 
-	if wld.WorldDef.Zone != 1 {
+	if wce.WorldDef.Zone != 1 {
 		baseTags := []string{}
-		for _, actorDef := range wld.ActorDefs {
+		for _, actorDef := range wce.ActorDefs {
 			if actorDef.Tag == "" {
 				return fmt.Errorf("dmspritedef tag is empty")
 			}
@@ -311,7 +311,7 @@ func (wld *Wld) WriteRaw(w io.Writer) error {
 		//sort.Strings(baseTags)
 
 		clouds := []string{}
-		for _, cloud := range wld.ParticleCloudDefs {
+		for _, cloud := range wce.ParticleCloudDefs {
 			isUnique := true
 			for _, bstr := range clouds {
 				if bstr == cloud.Tag {
@@ -327,11 +327,11 @@ func (wld *Wld) WriteRaw(w io.Writer) error {
 		sort.Strings(clouds)
 
 		for _, cloud := range clouds {
-			for _, cloudDef := range wld.ParticleCloudDefs {
+			for _, cloudDef := range wce.ParticleCloudDefs {
 				if cloud != cloudDef.Tag {
 					continue
 				}
-				_, err = cloudDef.ToRaw(wld, dst)
+				_, err = cloudDef.ToRaw(wce, dst)
 				if err != nil {
 					return fmt.Errorf("cloud %s: %w", cloudDef.Tag, err)
 				}
@@ -339,7 +339,7 @@ func (wld *Wld) WriteRaw(w io.Writer) error {
 		}
 
 		clks := make(map[string]bool)
-		for _, matDef := range wld.MaterialDefs {
+		for _, matDef := range wce.MaterialDefs {
 			if !strings.HasPrefix(matDef.Tag, "CLK") {
 				continue
 			}
@@ -353,7 +353,7 @@ func (wld *Wld) WriteRaw(w io.Writer) error {
 			}
 			clks[matDef.Tag] = true
 
-			_, err = matDef.ToRaw(wld, dst)
+			_, err = matDef.ToRaw(wce, dst)
 			if err != nil {
 				return fmt.Errorf("materialdef %s: %w", matDef.Tag, err)
 			}
@@ -361,50 +361,50 @@ func (wld *Wld) WriteRaw(w io.Writer) error {
 
 		for _, baseTag := range baseTags {
 
-			for _, actorDef := range wld.ActorDefs {
+			for _, actorDef := range wce.ActorDefs {
 				if baseTag != baseTagTrim(actorDef.Tag) {
 					continue
 				}
-				_, err = actorDef.ToRaw(wld, dst)
+				_, err = actorDef.ToRaw(wce, dst)
 				if err != nil {
 					return fmt.Errorf("actordef %s: %w", actorDef.Tag, err)
 				}
 			}
 
-			for _, hiSprite := range wld.HierarchicalSpriteDefs {
+			for _, hiSprite := range wce.HierarchicalSpriteDefs {
 				hiBaseTag := baseTagTrim(hiSprite.Tag)
 				if baseTag != hiBaseTag {
 					continue
 				}
-				_, err = hiSprite.ToRaw(wld, dst)
+				_, err = hiSprite.ToRaw(wce, dst)
 				if err != nil {
 					return fmt.Errorf("hierarchicalsprite %s: %w", hiSprite.Tag, err)
 				}
 			}
 
-			for _, dmSprite := range wld.DMSpriteDef2s {
+			for _, dmSprite := range wce.DMSpriteDef2s {
 				dmBaseTag := baseTagTrim(dmSprite.Tag)
 				if baseTag != dmBaseTag {
 					continue
 				}
-				_, err = dmSprite.ToRaw(wld, dst)
+				_, err = dmSprite.ToRaw(wce, dst)
 				if err != nil {
 					return fmt.Errorf("dmspritedef2 %s: %w", dmSprite.Tag, err)
 				}
 			}
 
-			for _, dmSprite := range wld.DMSpriteDefs {
+			for _, dmSprite := range wce.DMSpriteDefs {
 				dmBaseTag := baseTagTrim(dmSprite.Tag)
 				if baseTag != dmBaseTag {
 					continue
 				}
-				_, err = dmSprite.ToRaw(wld, dst)
+				_, err = dmSprite.ToRaw(wce, dst)
 				if err != nil {
 					return fmt.Errorf("dmspritedef %s: %w", dmSprite.Tag, err)
 				}
 			}
 
-			for _, track := range wld.TrackInstances {
+			for _, track := range wce.TrackInstances {
 				if !track.Sleep.Valid {
 					continue
 				}
@@ -413,7 +413,7 @@ func (wld *Wld) WriteRaw(w io.Writer) error {
 					continue
 				}
 
-				_, err = track.ToRaw(wld, dst)
+				_, err = track.ToRaw(wce, dst)
 				if err != nil {
 					return fmt.Errorf("track %s: %w", track.Tag, err)
 				}
@@ -421,14 +421,14 @@ func (wld *Wld) WriteRaw(w io.Writer) error {
 
 		}
 	} else {
-		for _, dmSprite := range wld.DMSpriteDef2s {
-			_, err = dmSprite.ToRaw(wld, dst)
+		for _, dmSprite := range wce.DMSpriteDef2s {
+			_, err = dmSprite.ToRaw(wce, dst)
 			if err != nil {
 				return fmt.Errorf("dmspritedef2 %s: %w", dmSprite.Tag, err)
 			}
 		}
-		for _, hiSprite := range wld.HierarchicalSpriteDefs {
-			_, err = hiSprite.ToRaw(wld, dst)
+		for _, hiSprite := range wce.HierarchicalSpriteDefs {
+			_, err = hiSprite.ToRaw(wce, dst)
 			if err != nil {
 				return fmt.Errorf("hierarchicalsprite %s: %w", hiSprite.Tag, err)
 			}
@@ -436,73 +436,73 @@ func (wld *Wld) WriteRaw(w io.Writer) error {
 
 	}
 
-	for _, light := range wld.PointLights {
-		_, err = light.ToRaw(wld, dst)
+	for _, light := range wce.PointLights {
+		_, err = light.ToRaw(wce, dst)
 		if err != nil {
 			return fmt.Errorf("pointlight %s: %w", light.Tag, err)
 		}
 	}
 
-	for _, sprite := range wld.Sprite3DDefs {
-		_, err = sprite.ToRaw(wld, dst)
+	for _, sprite := range wce.Sprite3DDefs {
+		_, err = sprite.ToRaw(wce, dst)
 		if err != nil {
 			return fmt.Errorf("sprite %s: %w", sprite.Tag, err)
 		}
 	}
 
-	for _, tree := range wld.WorldTrees {
-		_, err = tree.ToRaw(wld, dst)
+	for _, tree := range wce.WorldTrees {
+		_, err = tree.ToRaw(wce, dst)
 		if err != nil {
 			return fmt.Errorf("worldtree: %w", err)
 		}
 	}
 
-	for _, region := range wld.Regions {
-		_, err = region.ToRaw(wld, dst)
+	for _, region := range wce.Regions {
+		_, err = region.ToRaw(wce, dst)
 		if err != nil {
 			return fmt.Errorf("region %s: %w", region.Tag, err)
 		}
 	}
 
-	for _, alight := range wld.AmbientLights {
-		_, err = alight.ToRaw(wld, dst)
+	for _, alight := range wce.AmbientLights {
+		_, err = alight.ToRaw(wce, dst)
 		if err != nil {
 			return fmt.Errorf("ambientlight %s: %w", alight.Tag, err)
 		}
 	}
 
-	for _, actor := range wld.ActorInsts {
-		_, err = actor.ToRaw(wld, dst)
+	for _, actor := range wce.ActorInsts {
+		_, err = actor.ToRaw(wce, dst)
 		if err != nil {
 			return fmt.Errorf("actor %s: %w", actor.Tag, err)
 		}
 	}
 
-	for _, track := range wld.TrackInstances {
+	for _, track := range wce.TrackInstances {
 		if track.fragID > 0 {
 			continue
 		}
 
-		_, err = track.ToRaw(wld, dst)
+		_, err = track.ToRaw(wce, dst)
 		if err != nil {
 			return fmt.Errorf("track %s: %w", track.Tag, err)
 		}
 
 	}
 
-	for _, actorDef := range wld.ActorDefs {
+	for _, actorDef := range wce.ActorDefs {
 		if actorDef.fragID > 0 {
 			continue
 		}
 
-		_, err = actorDef.ToRaw(wld, dst)
+		_, err = actorDef.ToRaw(wce, dst)
 		if err != nil {
 			return fmt.Errorf("actordef %s: %w", actorDef.Tag, err)
 		}
 	}
 
-	for _, zone := range wld.Zones {
-		_, err = zone.ToRaw(wld, dst)
+	for _, zone := range wce.Zones {
+		_, err = zone.ToRaw(wce, dst)
 		if err != nil {
 			return fmt.Errorf("zone %s: %w", zone.Tag, err)
 		}

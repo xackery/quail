@@ -1,4 +1,4 @@
-package wld_test
+package wce_test
 
 import (
 	"bytes"
@@ -11,19 +11,10 @@ import (
 	"github.com/xackery/quail/pfs"
 	"github.com/xackery/quail/raw"
 	"github.com/xackery/quail/raw/rawfrag"
-	"github.com/xackery/quail/wld"
+	"github.com/xackery/quail/wce"
 )
 
-type tagEntry struct {
-	tag    string
-	offset int
-}
-
-func (e *tagEntry) String() string {
-	return fmt.Sprintf("%s (%d)", e.tag, e.offset)
-}
-
-func TestWceReadWrite(t *testing.T) {
+func TestWceDoubleReadWrite(t *testing.T) {
 	if os.Getenv("SINGLE_TEST") != "1" {
 		t.Skip("skipping test; SINGLE_TEST not set")
 	}
@@ -32,7 +23,6 @@ func TestWceReadWrite(t *testing.T) {
 		t.Skip("EQ_PATH not set")
 	}
 	dirTest := common.DirTest()
-	os.Chdir("../../")
 
 	for _, tt := range tests {
 		t.Run(tt.baseName, func(t *testing.T) {
@@ -84,7 +74,7 @@ func TestWceReadWrite(t *testing.T) {
 				t.Fatalf("failed to read %s: %s", baseName, err.Error())
 			}
 
-			wldSrc := &wld.Wld{}
+			wldSrc := &wce.Wce{}
 			err = wldSrc.ReadRaw(rawWldSrc)
 			if err != nil {
 				t.Fatalf("failed to convert %s: %s", baseName, err.Error())
@@ -102,7 +92,7 @@ func TestWceReadWrite(t *testing.T) {
 			fmt.Println("Wrote", fmt.Sprintf("%s/%s/_root.wce in %0.2f seconds", dirTest, baseName, time.Since(start).Seconds()))
 
 			start = time.Now()
-			wldDst := &wld.Wld{
+			wldDst := &wce.Wce{
 				FileName: baseName + ".wld",
 			}
 			err = wldDst.ReadAscii(fmt.Sprintf("%s/%s/_root.wce", dirTest, baseName))
@@ -131,15 +121,67 @@ func TestWceReadWrite(t *testing.T) {
 
 			rawWldDst := &raw.Wld{}
 
-			/* diff := deep.Equal(wldSrc, wldDst)
-			if diff != nil {
-				t.Fatalf("wld diff: %s", diff)
-			} */
-
 			err = rawWldDst.Read(bytes.NewReader(dstBuf.Bytes()))
 			if err != nil {
 				t.Fatalf("failed to read wld3 %s: %s", baseName, err.Error())
 			}
+
+			// now let's write wce a second time
+
+			start = time.Now()
+
+			wldDst2 := &wce.Wce{
+				FileName: baseName + ".wld",
+			}
+
+			err = wldDst2.ReadRaw(rawWldDst)
+			if err != nil {
+				t.Fatalf("failed to convert %s: %s", baseName, err.Error())
+			}
+
+			err = wldDst2.WriteAscii(dirTest + "/" + baseName + ".2")
+			if err != nil {
+				t.Fatalf("failed to write %s: %s", baseName, err.Error())
+			}
+
+			fmt.Println("Wrote", fmt.Sprintf("%s/%s/_root.wce in %0.2f seconds", dirTest, baseName, time.Since(start).Seconds()))
+
+			start = time.Now()
+
+			wldDst3 := &wce.Wce{
+				FileName: baseName + ".wld",
+			}
+
+			err = wldDst3.ReadAscii(fmt.Sprintf("%s/%s/_root.wce", dirTest, baseName+".2"))
+			if err != nil {
+				t.Fatalf("failed to read %s: %s", baseName, err.Error())
+			}
+
+			fmt.Println("Read", fmt.Sprintf("%s/%s/_root.wce in %0.2f seconds", dirTest, baseName, time.Since(start).Seconds()))
+			start = time.Now()
+
+			dstBuf2 := bytes.NewBuffer(nil)
+
+			err = wldDst3.WriteRaw(dstBuf2)
+			if err != nil {
+				t.Fatalf("failed to write %s: %s", baseName, err.Error())
+			}
+
+			err = os.WriteFile(fmt.Sprintf("%s/%s.dst2.wld", dirTest, baseName), dstBuf2.Bytes(), 0644)
+			if err != nil {
+				t.Fatalf("failed to write wld %s: %s", baseName, err.Error())
+			}
+
+			fmt.Println("Wrote", fmt.Sprintf("%s/%s.dst2.wld in %0.2f seconds", dirTest, baseName, time.Since(start).Seconds()))
+
+			rawWldDst2 := &raw.Wld{}
+
+			err = rawWldDst2.Read(bytes.NewReader(dstBuf2.Bytes()))
+			if err != nil {
+				t.Fatalf("failed to read wld3 %s: %s", baseName, err.Error())
+			}
+
+			rawWldDst = rawWldDst2
 
 			fmt.Printf("Processed (src: %d, dst: %d) fragments for %s in %0.2f seconds\n", len(rawWldSrc.Fragments), len(rawWldDst.Fragments), tt.baseName, time.Since(totalStart).Seconds())
 
@@ -163,9 +205,6 @@ func TestWceReadWrite(t *testing.T) {
 			for i := range srcFragByTags {
 				srcTags := srcFragByTags[i]
 				dstTags := dstFragByTags[i]
-				if i == rawfrag.FragCodeSimpleSprite {
-					continue
-				}
 				//fmt.Printf("Comparing %d (%s) tags %d total\n", i, rawfrag.FragName(i), len(srcTags))
 				// find a matching dstTag, and pop from both
 				for _, srcTag := range srcTags {
@@ -177,18 +216,7 @@ func TestWceReadWrite(t *testing.T) {
 							break
 						}
 					}
-
 					if !found {
-						// objects don't have actor instances
-						if rawfrag.FragName(i) == "Actor" {
-							continue
-						}
-
-						// qeynos_chr double writes this and we don't care to match it
-						if srcTag.tag == "FISHE03_DMSPRITEDEF" {
-							continue
-						}
-
 						t.Fatalf("fragment %d (%s) tag %s not found in dst", srcTag.offset, rawfrag.FragName(i), srcTag.tag)
 					}
 				}
@@ -198,17 +226,9 @@ func TestWceReadWrite(t *testing.T) {
 			}
 
 			for code, count := range srcFragByCodes {
-				if count == dstFragByCodes[code] {
-					continue
+				if count > dstFragByCodes[code] {
+					t.Fatalf("fragment code %d (%s) count mismatch: src: %d, dst: %d", code, rawfrag.FragName(code), count, dstFragByCodes[code])
 				}
-
-				// since we skip FISHE03_DMSPRITEDEF double write
-				if code == rawfrag.FragCodeDmSpriteDef2 && tt.baseName == "qeynos_chr" {
-					continue
-				}
-
-				t.Fatalf("fragment code %d (%s) count mismatch: src: %d, dst: %d", code, rawfrag.FragName(code), count, dstFragByCodes[code])
-
 			}
 			for code, tags := range srcFragByTags {
 				if len(tags) > len(dstFragByTags[code]) {
@@ -217,9 +237,6 @@ func TestWceReadWrite(t *testing.T) {
 			}
 
 			if len(rawWldSrc.Fragments) > len(rawWldDst.Fragments) {
-				if tt.baseName == "qeynos_chr" {
-					return
-				}
 				t.Fatalf("fragment count mismatch: src: %d, dst: %d", len(rawWldSrc.Fragments), len(rawWldDst.Fragments))
 			}
 

@@ -1,4 +1,4 @@
-package wld_test
+package wce_test
 
 import (
 	"fmt"
@@ -13,7 +13,12 @@ var tests = []struct {
 	//{baseName: "akanon"},
 	//{baseName: "akanon", wldName: "objects.wld"},
 	//{baseName: "akanon", wldName: "lights.wld"},
-	{baseName: "qeynos_chr"},
+	//{baseName: "qeynos_chr"},
+	//{baseName: "freporte_chr"},
+	//{baseName: "freporte_chr-pre-partial-fix", wldName: "freporte_chr.wld"},
+	//{baseName: "overthere_chr"},
+	//{baseName: "gfaydark", wldName: "objects.wld"},
+	{baseName: "gfaydark_obj"},
 	//{baseName: "globalelf_chr"}, // BROKE
 	//{baseName: "global6_chr"}, // FIX ME
 	//{baseName: "global_chr"},
