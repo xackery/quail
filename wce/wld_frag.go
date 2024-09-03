@@ -211,8 +211,7 @@ func (e *DMSpriteDef2) Write(token *AsciiWriteToken) error {
 		}
 	}
 
-	fmt.Fprintf(w, "%s\n", e.Definition())
-	fmt.Fprintf(w, "\tTAG \"%s\"\n", e.Tag)
+	fmt.Fprintf(w, "%s \"%s\"\n", e.Definition(), e.Tag)
 	fmt.Fprintf(w, "\tCENTEROFFSET %0.8e %0.8e %0.8e\n", e.CenterOffset[0], e.CenterOffset[1], e.CenterOffset[2])
 	fmt.Fprintf(w, "\n")
 	fmt.Fprintf(w, "\tNUMVERTICES %d\n", len(e.Vertices))
@@ -287,13 +286,8 @@ func (e *DMSpriteDef2) Write(token *AsciiWriteToken) error {
 }
 
 func (e *DMSpriteDef2) Read(token *AsciiReadToken) error {
-	records, err := token.ReadProperty("TAG", 1)
-	if err != nil {
-		return err
-	}
-	e.Tag = records[1]
 
-	records, err = token.ReadProperty("CENTEROFFSET", 3)
+	records, err := token.ReadProperty("CENTEROFFSET", 3)
 	if err != nil {
 		return err
 	}
@@ -1014,8 +1008,7 @@ func (e *DMSpriteDef) Write(token *AsciiWriteToken) error {
 		}
 	}
 
-	fmt.Fprintf(w, "%s\n", e.Definition())
-	fmt.Fprintf(w, "\tTAG \"%s\"\n", e.Tag)
+	fmt.Fprintf(w, "%s \"%s\"\n", e.Definition(), e.Tag)
 	fmt.Fprintf(w, "\tFRAGMENT1 %d\n", e.Fragment1)
 	fmt.Fprintf(w, "\tMATERIALPALETTE \"%s\"\n", e.MaterialPaletteTag)
 	fmt.Fprintf(w, "\tFRAGMENT3 %d\n", e.Fragment3)
@@ -1069,13 +1062,8 @@ func (e *DMSpriteDef) Write(token *AsciiWriteToken) error {
 }
 
 func (e *DMSpriteDef) Read(token *AsciiReadToken) error {
-	records, err := token.ReadProperty("TAG", 1)
-	if err != nil {
-		return err
-	}
-	e.Tag = records[1]
 
-	records, err = token.ReadProperty("FRAGMENT1", 1)
+	records, err := token.ReadProperty("FRAGMENT1", 1)
 	if err != nil {
 		return err
 	}
@@ -1485,8 +1473,7 @@ func (e *MaterialPalette) Write(token *AsciiWriteToken) error {
 		}
 	}
 
-	fmt.Fprintf(w, "%s\n", e.Definition())
-	fmt.Fprintf(w, "\tTAG \"%s\"\n", e.Tag)
+	fmt.Fprintf(w, "%s \"%s\"\n", e.Definition(), e.Tag)
 	fmt.Fprintf(w, "\tNUMMATERIALS %d\n", len(e.Materials))
 	for _, mat := range e.Materials {
 		fmt.Fprintf(w, "\tMATERIAL \"%s\"\n", mat)
@@ -1496,13 +1483,7 @@ func (e *MaterialPalette) Write(token *AsciiWriteToken) error {
 }
 
 func (e *MaterialPalette) Read(token *AsciiReadToken) error {
-	records, err := token.ReadProperty("TAG", 1)
-	if err != nil {
-		return fmt.Errorf("TAG: %w", err)
-	}
-	e.Tag = records[1]
-
-	records, err = token.ReadProperty("NUMMATERIALS", 1)
+	records, err := token.ReadProperty("NUMMATERIALS", 1)
 	if err != nil {
 		return fmt.Errorf("NUMMATERIALS: %w", err)
 	}
@@ -1617,8 +1598,7 @@ func (e *MaterialDef) Write(token *AsciiWriteToken) error {
 		}
 	}
 
-	fmt.Fprintf(w, "%s\n", e.Definition())
-	fmt.Fprintf(w, "\tTAG \"%s\"\n", e.Tag)
+	fmt.Fprintf(w, "%s \"%s\"\n", e.Definition(), e.Tag)
 	fmt.Fprintf(w, "\tVARIATION %d\n", e.Variation)
 	fmt.Fprintf(w, "\tRENDERMETHOD \"%s\"\n", e.RenderMethod)
 	fmt.Fprintf(w, "\tRGBPEN %d %d %d %d\n", e.RGBPen[0], e.RGBPen[1], e.RGBPen[2], e.RGBPen[3])
@@ -1639,13 +1619,7 @@ func (e *MaterialDef) Read(token *AsciiReadToken) error {
 
 	e.model = token.wce.lastReadModelTag
 
-	records, err := token.ReadProperty("TAG", 1)
-	if err != nil {
-		return err
-	}
-	e.Tag = records[1]
-
-	records, err = token.ReadProperty("VARIATION", 1)
+	records, err := token.ReadProperty("VARIATION", 1)
 	if err != nil {
 		return err
 	}
@@ -2638,8 +2612,7 @@ func (e *ActorInst) Write(token *AsciiWriteToken) error {
 		} */
 	}
 
-	fmt.Fprintf(w, "%s\n", e.Definition())
-	fmt.Fprintf(w, "\tTAG \"%s\"\n", e.Tag)
+	fmt.Fprintf(w, "%s\n \"%s\"", e.Definition(), e.Tag)
 	fmt.Fprintf(w, "\tDEFINITION \"%s\"\n", e.DefinitionTag)
 	fmt.Fprintf(w, "\tCURRENTACTION? %s\n", wcVal(e.CurrentAction))
 	fmt.Fprintf(w, "\tLOCATION? %s\n", wcVal(e.Location))
@@ -2658,13 +2631,7 @@ func (e *ActorInst) Write(token *AsciiWriteToken) error {
 }
 
 func (e *ActorInst) Read(token *AsciiReadToken) error {
-	records, err := token.ReadProperty("TAG", 1)
-	if err != nil {
-		return err
-	}
-	e.Tag = records[1]
-
-	records, err = token.ReadProperty("DEFINITION", 1)
+	records, err := token.ReadProperty("DEFINITION", 1)
 	if err != nil {
 		return err
 	}
@@ -3005,8 +2972,7 @@ func (e *LightDef) Write(token *AsciiWriteToken) error {
 	if err != nil {
 		return err
 	}
-	fmt.Fprintf(w, "%s\n", e.Definition())
-	fmt.Fprintf(w, "\tTAG \"%s\"\n", e.Tag)
+	fmt.Fprintf(w, "%s  \"%s\"\n", e.Definition(), e.Tag)
 	fmt.Fprintf(w, "\tCURRENTFRAME? %s\n", wcVal(e.CurrentFrame))
 	fmt.Fprintf(w, "\tNUMFRAMES %d\n", len(e.LightLevels))
 	for _, level := range e.LightLevels {
@@ -3023,13 +2989,7 @@ func (e *LightDef) Write(token *AsciiWriteToken) error {
 }
 
 func (e *LightDef) Read(token *AsciiReadToken) error {
-	records, err := token.ReadProperty("TAG", 1)
-	if err != nil {
-		return err
-	}
-	e.Tag = records[1]
-
-	records, err = token.ReadProperty("CURRENTFRAME?", 1)
+	records, err := token.ReadProperty("CURRENTFRAME?", 1)
 	if err != nil {
 		return err
 	}
@@ -3208,8 +3168,7 @@ func (e *PointLight) Write(token *AsciiWriteToken) error {
 			return fmt.Errorf("lightdef %s: %w", e.LightDefTag, err)
 		}
 	}
-	fmt.Fprintf(w, "%s\n", e.Definition())
-	fmt.Fprintf(w, "\tTAG \"%s\"\n", e.Tag)
+	fmt.Fprintf(w, "%s \"%s\"\n", e.Definition(), e.Tag)
 	fmt.Fprintf(w, "\tLIGHT \"%s\"\n", e.LightDefTag)
 	fmt.Fprintf(w, "\tSTATIC %d\n", e.Static)
 	fmt.Fprintf(w, "\tSTATICINFLUENCE %d\n", e.StaticInfluence)
@@ -3221,13 +3180,7 @@ func (e *PointLight) Write(token *AsciiWriteToken) error {
 }
 
 func (e *PointLight) Read(token *AsciiReadToken) error {
-	records, err := token.ReadProperty("TAG", 1)
-	if err != nil {
-		return err
-	}
-	e.Tag = records[1]
-
-	records, err = token.ReadProperty("LIGHT", 1)
+	records, err := token.ReadProperty("LIGHT", 1)
 	if err != nil {
 		return err
 	}
@@ -3420,8 +3373,7 @@ func (e *Sprite3DDef) Write(token *AsciiWriteToken) error {
 		return nil
 	}
 	token.TagSetIsWritten(e.Tag)
-	fmt.Fprintf(w, "%s\n", e.Definition())
-	fmt.Fprintf(w, "\tTAG \"%s\"\n", e.Tag)
+	fmt.Fprintf(w, "%s \"%s\"\n", e.Definition(), e.Tag)
 	fmt.Fprintf(w, "\tCENTEROFFSET? %s\n", wcVal(e.CenterOffset))
 	fmt.Fprintf(w, "\tBOUNDINGRADIUS? %s\n", wcVal(e.BoundingRadius))
 	fmt.Fprintf(w, "\tSPHERELIST \"%s\"\n", e.SphereListTag)
@@ -3459,13 +3411,7 @@ func (e *Sprite3DDef) Write(token *AsciiWriteToken) error {
 }
 
 func (s *Sprite3DDef) Read(token *AsciiReadToken) error {
-	records, err := token.ReadProperty("TAG", 1)
-	if err != nil {
-		return err
-	}
-	s.Tag = records[1]
-
-	records, err = token.ReadProperty("CENTEROFFSET?", 3)
+	records, err := token.ReadProperty("CENTEROFFSET?", 3)
 	if err != nil {
 		return err
 	}
@@ -3875,8 +3821,7 @@ func (e *PolyhedronDefinition) Write(token *AsciiWriteToken) error {
 	if err != nil {
 		return err
 	}
-	fmt.Fprintf(w, "%s\n", e.Definition())
-	fmt.Fprintf(w, "\tTAG \"%s\"\n", e.Tag)
+	fmt.Fprintf(w, "%s \"%s\"\n", e.Definition(), e.Tag)
 	fmt.Fprintf(w, "\tBOUNDINGRADIUS %0.8e\n", e.BoundingRadius)
 	fmt.Fprintf(w, "\tSCALEFACTOR %0.8e\n", e.ScaleFactor)
 	fmt.Fprintf(w, "\tNUMVERTICES %d\n", len(e.Vertices))
@@ -3897,13 +3842,7 @@ func (e *PolyhedronDefinition) Write(token *AsciiWriteToken) error {
 }
 
 func (e *PolyhedronDefinition) Read(token *AsciiReadToken) error {
-	records, err := token.ReadProperty("TAG", 1)
-	if err != nil {
-		return err
-	}
-	e.Tag = records[1]
-
-	records, err = token.ReadProperty("BOUNDINGRADIUS", 1)
+	records, err := token.ReadProperty("BOUNDINGRADIUS", 1)
 	if err != nil {
 		return err
 	}
@@ -4065,8 +4004,7 @@ func (e *TrackInstance) Write(token *AsciiWriteToken) error {
 		}
 	}
 
-	fmt.Fprintf(w, "%s\n", e.Definition())
-	fmt.Fprintf(w, "\tTAG \"%s\"\n", e.Tag)
+	fmt.Fprintf(w, "%s \"%s\"\n", e.Definition(), e.Tag)
 	fmt.Fprintf(w, "\tTAGINDEX %d\n", e.TagIndex)
 	fmt.Fprintf(w, "\tSPRITE \"%s_DMSPRITEDEF\"\n", e.SpriteTag)
 	fmt.Fprintf(w, "\tDEFINITION \"%s\"\n", e.DefinitionTag)
@@ -4079,13 +4017,7 @@ func (e *TrackInstance) Write(token *AsciiWriteToken) error {
 }
 
 func (e *TrackInstance) Read(token *AsciiReadToken) error {
-	records, err := token.ReadProperty("TAG", 1)
-	if err != nil {
-		return err
-	}
-	e.Tag = records[1]
-
-	records, err = token.ReadProperty("TAGINDEX", 1)
+	records, err := token.ReadProperty("TAGINDEX", 1)
 	if err != nil {
 		return err
 	}
@@ -4263,8 +4195,7 @@ func (e *TrackDef) Write(token *AsciiWriteToken) error {
 
 	token.TagSetIsWritten(fmt.Sprintf("%s_%d", e.Tag, e.TagIndex))
 
-	fmt.Fprintf(w, "%s\n", e.Definition())
-	fmt.Fprintf(w, "\tTAG \"%s\"\n", e.Tag)
+	fmt.Fprintf(w, "%s \"%s\"\n", e.Definition(), e.Tag)
 	fmt.Fprintf(w, "\tTAGINDEX %d\n", e.TagIndex)
 	fmt.Fprintf(w, "\tSPRITE \"%s_DMSPRITEDEF\"\n", e.SpriteTag)
 	fmt.Fprintf(w, "\tNUMFRAMES %d\n", len(e.FrameTransforms))
@@ -4282,13 +4213,7 @@ func (e *TrackDef) Write(token *AsciiWriteToken) error {
 }
 
 func (e *TrackDef) Read(token *AsciiReadToken) error {
-	records, err := token.ReadProperty("TAG", 1)
-	if err != nil {
-		return err
-	}
-	e.Tag = records[1]
-
-	records, err = token.ReadProperty("TAGINDEX", 1)
+	records, err := token.ReadProperty("TAGINDEX", 1)
 	if err != nil {
 		return err
 	}
@@ -4591,8 +4516,7 @@ func (e *HierarchicalSpriteDef) Write(token *AsciiWriteToken) error {
 		}
 	}
 
-	fmt.Fprintf(w, "%s\n", e.Definition())
-	fmt.Fprintf(w, "\tTAG \"%s\"\n", e.Tag)
+	fmt.Fprintf(w, "%s \"%s\"\n", e.Definition(), e.Tag)
 	fmt.Fprintf(w, "\tNUMDAGS %d\n", len(e.Dags))
 	for i, dag := range e.Dags {
 		fmt.Fprintf(w, "\tDAG // %d\n", i)
@@ -4629,13 +4553,7 @@ func (e *HierarchicalSpriteDef) Write(token *AsciiWriteToken) error {
 }
 
 func (e *HierarchicalSpriteDef) Read(token *AsciiReadToken) error {
-	records, err := token.ReadProperty("TAG", 1)
-	if err != nil {
-		return err
-	}
-	e.Tag = records[1]
-
-	records, err = token.ReadProperty("NUMDAGS", 1)
+	records, err := token.ReadProperty("NUMDAGS", 1)
 	if err != nil {
 		return err
 	}
@@ -5218,8 +5136,7 @@ func (e *WorldTree) Write(token *AsciiWriteToken) error {
 	if err != nil {
 		return err
 	}
-	fmt.Fprintf(w, "%s\n", e.Definition())
-	fmt.Fprintf(w, "\tTAG \"%s\"\n", e.Tag)
+	fmt.Fprintf(w, "%s \"%s\"\n", e.Definition(), e.Tag)
 	fmt.Fprintf(w, "\tNUMWORLDNODES %d\n", len(e.WorldNodes))
 	for i, node := range e.WorldNodes {
 		fmt.Fprintf(w, "\tWORLDNODE // %d\n", i)
@@ -5233,13 +5150,7 @@ func (e *WorldTree) Write(token *AsciiWriteToken) error {
 }
 
 func (e *WorldTree) Read(token *AsciiReadToken) error {
-	records, err := token.ReadProperty("TAG", 1)
-	if err != nil {
-		return err
-	}
-	e.Tag = records[1]
-
-	records, err = token.ReadProperty("NUMWORLDNODES", 1)
+	records, err := token.ReadProperty("NUMWORLDNODES", 1)
 	if err != nil {
 		return err
 	}
@@ -6094,8 +6005,7 @@ func (e *AmbientLight) Write(token *AsciiWriteToken) error {
 	if err != nil {
 		return err
 	}
-	fmt.Fprintf(w, "%s\n", e.Definition())
-	fmt.Fprintf(w, "\tTAG \"%s\"\n", e.Tag)
+	fmt.Fprintf(w, "%s \"%s\"\n", e.Definition(), e.Tag)
 	fmt.Fprintf(w, "\tLIGHT \"%s\"\n", e.LightTag)
 	fmt.Fprintf(w, "\t// LIGHTFLAGS %d\n", e.LightFlags)
 	fmt.Fprintf(w, "\tREGIONLIST %d", len(e.Regions))
@@ -6108,14 +6018,8 @@ func (e *AmbientLight) Write(token *AsciiWriteToken) error {
 }
 
 func (e *AmbientLight) Read(token *AsciiReadToken) error {
-	records, err := token.ReadProperty("TAG", 1)
-	if err != nil {
-		return err
-	}
 
-	e.Tag = records[1]
-
-	records, err = token.ReadProperty("LIGHT", 1)
+	records, err := token.ReadProperty("LIGHT", 1)
 	if err != nil {
 		return err
 	}
@@ -6237,8 +6141,7 @@ func (e *Zone) Write(token *AsciiWriteToken) error {
 	if err != nil {
 		return err
 	}
-	fmt.Fprintf(w, "%s\n", e.Definition())
-	fmt.Fprintf(w, "\tTAG \"%s\"\n", e.Tag)
+	fmt.Fprintf(w, "%s \"%s\"\n", e.Definition(), e.Tag)
 	fmt.Fprintf(w, "\tREGIONLIST %d", len(e.Regions))
 	for _, region := range e.Regions {
 		fmt.Fprintf(w, " %d", region)
@@ -6250,14 +6153,7 @@ func (e *Zone) Write(token *AsciiWriteToken) error {
 }
 
 func (e *Zone) Read(token *AsciiReadToken) error {
-	records, err := token.ReadProperty("TAG", 1)
-	if err != nil {
-		return err
-	}
-
-	e.Tag = records[1]
-
-	records, err = token.ReadProperty("REGIONLIST", -1)
+	records, err := token.ReadProperty("REGIONLIST", -1)
 	if err != nil {
 		return err
 	}
@@ -6335,8 +6231,7 @@ func (e *RGBTrackDef) Write(token *AsciiWriteToken) error {
 	if err != nil {
 		return err
 	}
-	fmt.Fprintf(w, "%s\n", e.Definition())
-	fmt.Fprintf(w, "\tTAG \"%s\"\n", e.Tag)
+	fmt.Fprintf(w, "%s \"%s\"\n", e.Definition(), e.Tag)
 	fmt.Fprintf(w, "\tDATA1 %d\n", e.Data1)
 	fmt.Fprintf(w, "\tDATA2 %d\n", e.Data2)
 	fmt.Fprintf(w, "\tSLEEP %d\n", e.Sleep)
@@ -6351,13 +6246,7 @@ func (e *RGBTrackDef) Write(token *AsciiWriteToken) error {
 }
 
 func (e *RGBTrackDef) Read(token *AsciiReadToken) error {
-	records, err := token.ReadProperty("TAG", 1)
-	if err != nil {
-		return err
-	}
-	e.Tag = records[1]
-
-	records, err = token.ReadProperty("DATA1", 1)
+	records, err := token.ReadProperty("DATA1", 1)
 	if err != nil {
 		return err
 	}
@@ -6511,8 +6400,7 @@ func (e *ParticleCloudDef) Write(token *AsciiWriteToken) error {
 		}
 	}
 
-	fmt.Fprintf(w, "%s\n", e.Definition())
-	fmt.Fprintf(w, "\tTAG \"%s\"\n", e.Tag)
+	fmt.Fprintf(w, "%s \"%s\"\n", e.Definition(), e.Tag)
 	fmt.Fprintf(w, "\tBLITSPRITEDEF\n")
 	fmt.Fprintf(w, "\t\tBLITTAG \"%s\"\n", e.BlitSpriteDefTag)
 	fmt.Fprintf(w, "\t\tSPRITE \"%s\"\n", e.BlitSpriteDefSprite)
@@ -6549,18 +6437,12 @@ func (e *ParticleCloudDef) Write(token *AsciiWriteToken) error {
 }
 
 func (e *ParticleCloudDef) Read(token *AsciiReadToken) error {
-	records, err := token.ReadProperty("TAG", 1)
-	if err != nil {
-		return err
-	}
-	e.Tag = records[1]
-
-	_, err = token.ReadProperty("BLITSPRITEDEF", 0)
+	_, err := token.ReadProperty("BLITSPRITEDEF", 0)
 	if err != nil {
 		return err
 	}
 
-	records, err = token.ReadProperty("BLITTAG", 1)
+	records, err := token.ReadProperty("BLITTAG", 1)
 	if err != nil {
 		return err
 	}
@@ -7051,8 +6933,7 @@ func (e *Sprite2DDef) Write(token *AsciiWriteToken) error {
 	if err != nil {
 		return err
 	}
-	fmt.Fprintf(w, "%s\n", e.Definition())
-	fmt.Fprintf(w, "\tTAG \"%s\"\n", e.Tag)
+	fmt.Fprintf(w, "%s \"%s\"\n", e.Definition(), e.Tag)
 	fmt.Fprintf(w, "\tSCALE %0.8e %0.8e\n", e.Scale[0], e.Scale[1])
 	fmt.Fprintf(w, "\tSPHERELISTTAG \"%s\"\n", e.SphereListTag)
 	fmt.Fprintf(w, "\tDEPTHSCALE %0.8e\n", e.DepthScale)
@@ -7085,13 +6966,7 @@ func (e *Sprite2DDef) Write(token *AsciiWriteToken) error {
 }
 
 func (e *Sprite2DDef) Read(token *AsciiReadToken) error {
-	records, err := token.ReadProperty("TAG", 1)
-	if err != nil {
-		return err
-	}
-	e.Tag = records[1]
-
-	records, err = token.ReadProperty("SCALE", 2)
+	records, err := token.ReadProperty("SCALE", 2)
 	if err != nil {
 		return err
 	}
@@ -7518,8 +7393,7 @@ func (e *DMTrackDef2) Write(token *AsciiWriteToken) error {
 
 	token.TagSetIsWritten(e.Tag)
 
-	fmt.Fprintf(w, "%s\n", e.Definition())
-	fmt.Fprintf(w, "\tTAG \"%s\"\n", e.Tag)
+	fmt.Fprintf(w, "%s \"%s\"\n", e.Definition(), e.Tag)
 	fmt.Fprintf(w, "\tPARAM1 %d\n", e.Param1)
 	fmt.Fprintf(w, "\tPARAM2 %d\n", e.Param2)
 	fmt.Fprintf(w, "\tSCALE %d\n", e.Scale)
@@ -7538,13 +7412,7 @@ func (e *DMTrackDef2) Write(token *AsciiWriteToken) error {
 }
 
 func (e *DMTrackDef2) Read(token *AsciiReadToken) error {
-	records, err := token.ReadProperty("TAG", 1)
-	if err != nil {
-		return err
-	}
-	e.Tag = records[1]
-
-	records, err = token.ReadProperty("PARAM1", 1)
+	records, err := token.ReadProperty("PARAM1", 1)
 	if err != nil {
 		return err
 	}

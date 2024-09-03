@@ -236,6 +236,7 @@ func (a *AsciiReadToken) readDefinitions() error {
 			if defName != definition {
 				continue
 			}
+
 			definition = ""
 			err = defRead(a)
 			if err != nil {
@@ -249,66 +250,150 @@ func (a *AsciiReadToken) readDefinitions() error {
 				a.wce.GlobalAmbientLightDef = frag
 				definitions[i] = &GlobalAmbientLightDef{}
 			case *DMSpriteDef2:
+				if len(args) == 1 {
+					return fmt.Errorf("definition %s has no arguments", defName)
+				}
+				frag.Tag = args[1]
 				a.wce.DMSpriteDef2s = append(a.wce.DMSpriteDef2s, frag)
 				definitions[i] = &DMSpriteDef2{}
 			case *HierarchicalSpriteDef:
+				if len(args) == 1 {
+					return fmt.Errorf("definition %s has no arguments", defName)
+				}
+				frag.Tag = args[1]
 				a.wce.HierarchicalSpriteDefs = append(a.wce.HierarchicalSpriteDefs, frag)
 				definitions[i] = &HierarchicalSpriteDef{}
 			case *MaterialDef:
+				if len(args) == 1 {
+					return fmt.Errorf("definition %s has no arguments", defName)
+				}
+				frag.Tag = args[1]
 				a.wce.MaterialDefs = append(a.wce.MaterialDefs, frag)
 				definitions[i] = &MaterialDef{}
 			case *MaterialPalette:
+				if len(args) == 1 {
+					return fmt.Errorf("definition %s has no arguments", defName)
+				}
+				frag.Tag = args[1]
 				a.wce.MaterialPalettes = append(a.wce.MaterialPalettes, frag)
 				definitions[i] = &MaterialPalette{}
 			case *PolyhedronDefinition:
+				if len(args) == 1 {
+					return fmt.Errorf("definition %s has no arguments", defName)
+				}
+				frag.Tag = args[1]
 				a.wce.PolyhedronDefs = append(a.wce.PolyhedronDefs, frag)
 				definitions[i] = &PolyhedronDefinition{}
 			case *SimpleSpriteDef:
+				if len(args) == 1 {
+					return fmt.Errorf("definition %s has no arguments", defName)
+				}
+				frag.Tag = args[1]
 				a.wce.SimpleSpriteDefs = append(a.wce.SimpleSpriteDefs, frag)
 				definitions[i] = &SimpleSpriteDef{}
 			case *TrackDef:
+				if len(args) == 1 {
+					return fmt.Errorf("definition %s has no arguments", defName)
+				}
+				frag.Tag = args[1]
 				a.wce.TrackDefs = append(a.wce.TrackDefs, frag)
 				definitions[i] = &TrackDef{}
 			case *TrackInstance:
+				if len(args) == 1 {
+					return fmt.Errorf("definition %s has no arguments", defName)
+				}
+				frag.Tag = args[1]
 				a.wce.TrackInstances = append(a.wce.TrackInstances, frag)
 				definitions[i] = &TrackInstance{}
 			case *LightDef:
+				if len(args) == 1 {
+					return fmt.Errorf("definition %s has no arguments", defName)
+				}
+				frag.Tag = args[1]
 				a.wce.LightDefs = append(a.wce.LightDefs, frag)
 				definitions[i] = &LightDef{}
 			case *Sprite3DDef:
+				if len(args) == 1 {
+					return fmt.Errorf("definition %s has no arguments", defName)
+				}
+				frag.Tag = args[1]
 				a.wce.Sprite3DDefs = append(a.wce.Sprite3DDefs, frag)
 				definitions[i] = &Sprite3DDef{}
 			case *WorldTree:
+				if len(args) == 1 {
+					return fmt.Errorf("definition %s has no arguments", defName)
+				}
+				frag.Tag = args[1]
 				a.wce.WorldTrees = append(a.wce.WorldTrees, frag)
 				definitions[i] = &WorldTree{}
 			case *Region:
+				if len(args) == 1 {
+					return fmt.Errorf("definition %s has no arguments", defName)
+				}
+				frag.Tag = args[1]
 				a.wce.Regions = append(a.wce.Regions, frag)
 				definitions[i] = &Region{}
 			case *AmbientLight:
+				if len(args) == 1 {
+					return fmt.Errorf("definition %s has no arguments", defName)
+				}
+				frag.Tag = args[1]
 				a.wce.AmbientLights = append(a.wce.AmbientLights, frag)
 				definitions[i] = &AmbientLight{}
 			case *ActorDef:
+				if len(args) == 1 {
+					return fmt.Errorf("definition %s has no arguments", defName)
+				}
+				frag.Tag = args[1]
 				a.wce.ActorDefs = append(a.wce.ActorDefs, frag)
 				definitions[i] = &ActorDef{}
 			case *ActorInst:
+				if len(args) == 1 {
+					return fmt.Errorf("definition %s has no arguments", defName)
+				}
+				frag.Tag = args[1]
 				a.wce.ActorInsts = append(a.wce.ActorInsts, frag)
 				definitions[i] = &ActorInst{}
 			case *Zone:
+				if len(args) == 1 {
+					return fmt.Errorf("definition %s has no arguments", defName)
+				}
+				frag.Tag = args[1]
 				a.wce.Zones = append(a.wce.Zones, frag)
 				definitions[i] = &Zone{}
 			case *RGBTrackDef:
+				if len(args) == 1 {
+					return fmt.Errorf("definition %s has no arguments", defName)
+				}
+				frag.Tag = args[1]
 				a.wce.RGBTrackDefs = append(a.wce.RGBTrackDefs, frag)
 				definitions[i] = &RGBTrackDef{}
 			case *ParticleCloudDef:
+				if len(args) == 1 {
+					return fmt.Errorf("definition %s has no arguments", defName)
+				}
+				frag.Tag = args[1]
 				a.wce.ParticleCloudDefs = append(a.wce.ParticleCloudDefs, frag)
 				definitions[i] = &ParticleCloudDef{}
 			case *Sprite2DDef:
+				if len(args) == 1 {
+					return fmt.Errorf("definition %s has no arguments", defName)
+				}
+				frag.Tag = args[1]
 				a.wce.Sprite2DDefs = append(a.wce.Sprite2DDefs, frag)
 				definitions[i] = &Sprite2DDef{}
 			case *PointLight:
+				if len(args) == 1 {
+					return fmt.Errorf("definition %s has no arguments", defName)
+				}
+				frag.Tag = args[1]
 				a.wce.PointLights = append(a.wce.PointLights, frag)
 				definitions[i] = &PointLight{}
 			case *DMSpriteDef:
+				if len(args) == 1 {
+					return fmt.Errorf("definition %s has no arguments", defName)
+				}
+				frag.Tag = args[1]
 				a.wce.DMSpriteDefs = append(a.wce.DMSpriteDefs, frag)
 				definitions[i] = &DMSpriteDef{}
 			case *WorldDef:
