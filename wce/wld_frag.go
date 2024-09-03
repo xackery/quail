@@ -1851,8 +1851,7 @@ func (e *SimpleSpriteDef) Write(token *AsciiWriteToken) error {
 	token.TagSetIsWritten(fmt.Sprintf("%s_%d", e.Tag, e.Variation))
 
 	token.TagSetIsWritten(e.Tag)
-	fmt.Fprintf(w, "%s\n", e.Definition())
-	fmt.Fprintf(w, "\tSIMPLESPRITETAG \"%s\"\n", e.Tag)
+	fmt.Fprintf(w, "%s \"%s\"\n", e.Definition(), e.Tag)
 	fmt.Fprintf(w, "\tVARIATION %d\n", e.Variation)
 	fmt.Fprintf(w, "\tSKIPFRAMES? %s\n", wcVal(e.SkipFrames))
 	fmt.Fprintf(w, "\tANIMATED? %s\n", wcVal(e.Animated))
@@ -1867,13 +1866,7 @@ func (e *SimpleSpriteDef) Write(token *AsciiWriteToken) error {
 }
 
 func (e *SimpleSpriteDef) Read(token *AsciiReadToken) error {
-	records, err := token.ReadProperty("SIMPLESPRITETAG", 0)
-	if err != nil {
-		return fmt.Errorf("SIMPLESPRITETAG: %w", err)
-	}
-	e.Tag = records[1]
-
-	records, err = token.ReadProperty("VARIATION", 1)
+	records, err := token.ReadProperty("VARIATION", 1)
 	if err != nil {
 		return fmt.Errorf("VARIATION: %w", err)
 	}
@@ -2157,8 +2150,7 @@ func (e *ActorDef) Write(token *AsciiWriteToken) error {
 		}
 	}
 
-	fmt.Fprintf(w, "%s\n", e.Definition())
-	fmt.Fprintf(w, "\tACTORTAG \"%s\"\n", e.Tag)
+	fmt.Fprintf(w, "%s \"%s\"\n", e.Definition(), e.Tag)
 	fmt.Fprintf(w, "\tCALLBACK \"%s\"\n", e.Callback)
 	fmt.Fprintf(w, "\t// BOUNDSREF %d\n", e.BoundsRef)
 	fmt.Fprintf(w, "\tCURRENTACTION? %s\n", wcVal(e.CurrentAction))
@@ -2183,13 +2175,8 @@ func (e *ActorDef) Write(token *AsciiWriteToken) error {
 }
 
 func (e *ActorDef) Read(token *AsciiReadToken) error {
-	records, err := token.ReadProperty("ACTORTAG", 1)
-	if err != nil {
-		return err
-	}
-	e.Tag = records[1]
 
-	records, err = token.ReadProperty("CALLBACK", 1)
+	records, err := token.ReadProperty("CALLBACK", 1)
 	if err != nil {
 		return err
 	}
@@ -4173,9 +4160,9 @@ type TrackDef struct {
 
 type TrackFrameTransform struct {
 	XYZScale       int16
-	XYZ            [3]float32
+	XYZ            [3]int16
 	RotScale       NullInt16
-	Rotation       NullFloat32Slice3
+	Rotation       NullInt16Slice3
 	LegacyRotation NullFloat32Slice4
 }
 
@@ -4202,7 +4189,7 @@ func (e *TrackDef) Write(token *AsciiWriteToken) error {
 	for _, frame := range e.FrameTransforms {
 		fmt.Fprintf(w, "\tFRAMETRANSFORM\n")
 		fmt.Fprintf(w, "\t\tXYZSCALE %d\n", frame.XYZScale)
-		fmt.Fprintf(w, "\t\tXYZ %0.8e %0.8e %0.8e\n", frame.XYZ[0], frame.XYZ[1], frame.XYZ[2])
+		fmt.Fprintf(w, "\t\tXYZ %d %d %d\n", frame.XYZ[0], frame.XYZ[1], frame.XYZ[2])
 		fmt.Fprintf(w, "\t\tROTSCALE? %s\n", wcVal(frame.RotScale))
 		fmt.Fprintf(w, "\t\tROTABC? %s\n", wcVal(frame.Rotation))
 		fmt.Fprintf(w, "\t\tLEGACYROTATIONABCD? %s\n", wcVal(frame.LegacyRotation))
@@ -4308,7 +4295,7 @@ func (e *TrackDef) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
 			ShiftDenominator: frame.XYZScale,
 		}
 
-		scale := float32(1.0)
+		//scale := float32(1.0)
 		/* if frame.XYZScale > 0 {
 			scale = float32(1 / float32(int(1)<<int(frame.XYZScale)))
 		}
@@ -4316,11 +4303,7 @@ func (e *TrackDef) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
 			scale = float32(math.Pow(2, float64(-frame.XYZScale)))
 		} */
 
-		wfFrame.Shift = [3]int16{
-			int16(frame.XYZ[0] * scale),
-			int16(frame.XYZ[1] * scale),
-			int16(frame.XYZ[2] * scale),
-		}
+		wfFrame.Shift = frame.XYZ
 
 		if frame.RotScale.Valid {
 			wfFrame.RotateDenominator = frame.RotScale.Int16
@@ -4328,9 +4311,9 @@ func (e *TrackDef) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
 			wfTrack.Flags |= 0x08
 
 			wfFrame.Rotation = [4]int16{
-				int16(frame.Rotation.Float32Slice3[0] * scale),
-				int16(frame.Rotation.Float32Slice3[1] * scale),
-				int16(frame.Rotation.Float32Slice3[2] * scale),
+				frame.Rotation.Int16Slice3[0],
+				frame.Rotation.Int16Slice3[1],
+				frame.Rotation.Int16Slice3[2],
 				0,
 			}
 		}
@@ -4339,7 +4322,7 @@ func (e *TrackDef) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
 			if !frame.LegacyRotation.Valid {
 				return -1, fmt.Errorf("rotscale was set, but legacyrotationabcd is null")
 			}
-			scale = 1
+			//scale = 1
 			/* if frame.RotScale.Int16 > 0 {
 				scale = float32(1 / float32(int(1)<<int(frame.RotScale.Int16)))
 			}
@@ -4348,10 +4331,10 @@ func (e *TrackDef) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
 			} */
 
 			wfFrame.Rotation = [4]int16{
-				int16(frame.LegacyRotation.Float32Slice4[0] * scale),
-				int16(frame.LegacyRotation.Float32Slice4[1] * scale),
-				int16(frame.LegacyRotation.Float32Slice4[2] * scale),
-				int16(frame.LegacyRotation.Float32Slice4[3] * scale),
+				int16(frame.LegacyRotation.Float32Slice4[0]),
+				int16(frame.LegacyRotation.Float32Slice4[1]),
+				int16(frame.LegacyRotation.Float32Slice4[2]),
+				int16(frame.LegacyRotation.Float32Slice4[3]),
 			}
 		}
 
@@ -4392,11 +4375,7 @@ func (e *TrackDef) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragTrack
 		if fragFrame.ShiftDenominator < 0 {
 			scale = float32(math.Pow(2, float64(-fragFrame.ShiftDenominator)))
 		} */
-		frame.XYZ = [3]float32{
-			float32(fragFrame.Shift[0]) / scale,
-			float32(fragFrame.Shift[1]) / scale,
-			float32(fragFrame.Shift[2]) / scale,
-		}
+		frame.XYZ = fragFrame.Shift
 
 		if frag.Flags&0x08 != 0 {
 			frame.RotScale.Valid = true
@@ -4406,10 +4385,10 @@ func (e *TrackDef) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragTrack
 			//	scale = 1.0 / float32(int(1<<fragFrame.RotateDenominator))
 			//}
 			frame.Rotation.Valid = true
-			frame.Rotation.Float32Slice3 = [3]float32{
-				float32(fragFrame.Rotation[0]) / scale,
-				float32(fragFrame.Rotation[1]) / scale,
-				float32(fragFrame.Rotation[2]) / scale,
+			frame.Rotation.Int16Slice3 = [3]int16{
+				fragFrame.Rotation[0],
+				fragFrame.Rotation[1],
+				fragFrame.Rotation[2],
 			}
 		} else {
 			frame.RotScale.Valid = false

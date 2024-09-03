@@ -49,6 +49,11 @@ type NullFloat32Slice6 struct {
 	Valid         bool
 }
 
+type NullInt16Slice3 struct {
+	Int16Slice3 [3]int16
+	Valid       bool
+}
+
 func wcVal(inVal interface{}) string {
 	switch val := inVal.(type) {
 	case int:
@@ -131,6 +136,11 @@ func wcVal(inVal interface{}) string {
 			return "NULL NULL NULL NULL NULL NULL"
 		}
 		return fmt.Sprintf("%0.8e %0.8e %0.8e %0.8e %0.8e %0.8e", val.Float32Slice6[0], val.Float32Slice6[1], val.Float32Slice6[2], val.Float32Slice6[3], val.Float32Slice6[4], val.Float32Slice6[5])
+	case NullInt16Slice3:
+		if !val.Valid {
+			return "NULL NULL NULL NULL"
+		}
+		return fmt.Sprintf("%d %d %d", val.Int16Slice3[0], val.Int16Slice3[1], val.Int16Slice3[2])
 	default:
 		return fmt.Sprintf("INVALID_%v", inVal)
 	}
@@ -398,6 +408,36 @@ func parse(inVal interface{}, src ...string) error {
 		val.Valid = true
 
 		return nil
+	case NullInt16Slice3:
+		if src[0] == "NULL" {
+			val.Valid = false
+			return nil
+		}
+		if len(src) < 3 {
+			return fmt.Errorf("need 3 arguments: %v", src)
+		}
+
+		for i := 0; i < 3; i++ {
+			v, err := strconv.ParseInt(src[i], 10, 16)
+			if err != nil {
+				return err
+			}
+			val.Int16Slice3[i] = int16(v)
+		}
+		val.Valid = true
+		return nil
+	case *[3]int16:
+		if len(src) < 3 {
+			return fmt.Errorf("need 3 arguments: %v", src)
+		}
+		for i := 0; i < 3; i++ {
+			v, err := strconv.ParseInt(src[i], 10, 16)
+			if err != nil {
+				return err
+			}
+			val[i] = int16(v)
+		}
+		return nil
 
 	case *[4]uint8:
 		if len(src) < 4 {
@@ -475,6 +515,25 @@ func parse(inVal interface{}, src ...string) error {
 			val[i] = uint16(v)
 		}
 		return nil
+	case *NullInt16Slice3:
+		if src[0] == "NULL" {
+			val.Valid = false
+			return nil
+		}
+		if len(src) < 3 {
+			return fmt.Errorf("need 3 arguments: %v", src)
+		}
+
+		for i := 0; i < 3; i++ {
+			v, err := strconv.ParseInt(src[i], 10, 16)
+			if err != nil {
+				return err
+			}
+			val.Int16Slice3[i] = int16(v)
+		}
+		val.Valid = true
+		return nil
+
 	default:
 		return fmt.Errorf("unknown type: %T", inVal)
 	}
