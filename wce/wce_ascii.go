@@ -88,7 +88,8 @@ func (wce *Wce) writeAsciiData(path string, baseTags []string) error {
 	for _, track := range wce.TrackInstances {
 		baseTag, _, _, _ := wce.trackTagAndSequence(track.Tag)
 		if baseTag == "" {
-			return fmt.Errorf("track %s tag too short (baseTag empty)", track.Tag)
+			// return fmt.Errorf("track %s tag too short (baseTag empty)", track.Tag)
+			baseTag = track.model
 		}
 
 		track.model = baseTag
@@ -107,7 +108,9 @@ func (wce *Wce) writeAsciiData(path string, baseTags []string) error {
 	for _, trackDef := range wce.TrackDefs {
 		baseTag, _, _, _ := wce.trackTagAndSequence(trackDef.Tag)
 		if baseTag == "" {
-			return fmt.Errorf("trackDef %s tag too short (baseTag empty)", trackDef.Tag)
+			//return fmt.Errorf("trackDef %s tag too short (baseTag empty)", trackDef.Tag)
+			baseTag = trackDef.model
+
 		}
 
 		trackDef.model = baseTag
