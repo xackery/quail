@@ -10,11 +10,13 @@ var tests = []struct {
 	baseName string
 	wldName  string
 }{
+	{baseName: "twilight"},
+
 	//{baseName: "akanon"},
 	//{baseName: "akanon", wldName: "objects.wld"},
 	//{baseName: "akanon", wldName: "lights.wld"},
 	//{baseName: "qeynos_chr"},
-	{baseName: "freporte_chr"},
+	//{baseName: "freporte_chr"},
 	//{baseName: "freporte_chr-pre-partial-fix", wldName: "freporte_chr.wld"},
 	//{baseName: "overthere_chr"},
 	//{baseName: "gfaydark", wldName: "objects.wld"},

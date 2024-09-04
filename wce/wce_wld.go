@@ -2610,7 +2610,7 @@ func (e *ActorInst) Write(token *AsciiWriteToken) error {
 		} */
 	}
 
-	fmt.Fprintf(w, "%s\n \"%s\"", e.Definition(), e.Tag)
+	fmt.Fprintf(w, "%s \"%s\"\n", e.Definition(), e.Tag)
 	fmt.Fprintf(w, "\tDEFINITION \"%s\"\n", e.DefinitionTag)
 	fmt.Fprintf(w, "\tCURRENTACTION? %s\n", wcVal(e.CurrentAction))
 	fmt.Fprintf(w, "\tLOCATION? %s\n", wcVal(e.Location))
@@ -5330,8 +5330,7 @@ func (e *Region) Write(token *AsciiWriteToken) error {
 		}
 	}
 
-	fmt.Fprintf(w, "%s\n", e.Definition())
-	fmt.Fprintf(w, "\tREGIONTAG \"%s\"\n", e.Tag)
+	fmt.Fprintf(w, "%s \"%s\"\n", e.Definition(), e.Tag)
 	fmt.Fprintf(w, "\tREVERBVOLUME %0.8e\n", e.ReverbVolume)
 	fmt.Fprintf(w, "\tREVERBOFFSET %d\n", e.ReverbOffset)
 	fmt.Fprintf(w, "\tREGIONFOG %d\n", e.RegionFog)
@@ -5400,13 +5399,7 @@ func (e *Region) Write(token *AsciiWriteToken) error {
 
 func (e *Region) Read(token *AsciiReadToken) error {
 	e.VisTree = &VisTree{}
-	records, err := token.ReadProperty("REGIONTAG", 1)
-	if err != nil {
-		return err
-	}
-	e.Tag = records[1]
-
-	records, err = token.ReadProperty("REVERBVOLUME", 1)
+	records, err := token.ReadProperty("REVERBVOLUME", 1)
 	if err != nil {
 		return err
 	}
