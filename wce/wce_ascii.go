@@ -85,19 +85,68 @@ func (wce *Wce) writeAsciiData(path string, baseTags []string) error {
 		return fmt.Errorf("worlddef not found")
 	}
 
+	knownModels := make(map[string]bool)
+
+	for _, actorDef := range wce.ActorDefs {
+		knownModels[strings.TrimSuffix(actorDef.Tag, "_ACTORDEF")] = true
+	}
+
 	for _, track := range wce.TrackInstances {
 		baseTag := ""
 		m := regexAni.FindStringSubmatch(track.Tag)
-		if len(m) > 1 {
-			baseTag = m[1]
+		if len(m) > 2 {
+			baseTag = m[2]
 		}
-		m = regexAni2.FindStringSubmatch(track.Tag)
-		if len(m) > 1 {
-			baseTag = m[1]
+		if _, ok := knownModels[baseTag]; !ok {
+			m = regexAni2.FindStringSubmatch(track.Tag)
+			if len(m) > 2 {
+				baseTag = m[2]
+			}
+			if _, ok := knownModels[baseTag]; !ok {
+				m = regexAni3.FindStringSubmatch(track.Tag)
+				if len(m) > 1 {
+					baseTag = m[1]
+				}
+			}
 		}
 		if len(baseTag) == 0 {
 			continue
 		}
+		track.model = baseTag
+		isFound := false
+		for _, tag := range baseTags {
+			if tag == baseTag {
+				isFound = true
+				break
+			}
+		}
+		if !isFound {
+			baseTags = append(baseTags, baseTag)
+		}
+	}
+
+	for _, trackDef := range wce.TrackDefs {
+		baseTag := ""
+		m := regexAni.FindStringSubmatch(trackDef.Tag)
+		if len(m) > 2 {
+			baseTag = m[2]
+		}
+		if _, ok := knownModels[baseTag]; !ok {
+			m = regexAni2.FindStringSubmatch(trackDef.Tag)
+			if len(m) > 2 {
+				baseTag = m[2]
+			}
+			if _, ok := knownModels[baseTag]; !ok {
+				m = regexAni3.FindStringSubmatch(trackDef.Tag)
+				if len(m) > 1 {
+					baseTag = m[1]
+				}
+			}
+		}
+		if len(baseTag) == 0 {
+			continue
+		}
+		trackDef.model = baseTag
 		isFound := false
 		for _, tag := range baseTags {
 			if tag == baseTag {
@@ -295,7 +344,7 @@ func (wce *Wce) writeAsciiData(path string, baseTags []string) error {
 			return fmt.Errorf("track %s model too short", track.Tag)
 		}
 
-		tag := track.SpriteTag
+		tag := track.model
 		if (track.Sleep.Valid && track.Sleep.Uint32 > 0) ||
 			isAnimationPrefix(track.Tag) {
 			tag += "_ani"

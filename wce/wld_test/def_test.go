@@ -10,7 +10,7 @@ var tests = []struct {
 	baseName string
 	wldName  string
 }{
-	{baseName: "twilight"},
+	{baseName: "globalelf_chr"},
 
 	//{baseName: "akanon"},
 	//{baseName: "akanon", wldName: "objects.wld"},

@@ -13,8 +13,9 @@ import (
 )
 
 var (
-	regexAni  = regexp.MustCompile(`[A-Z][0-9][0-9]([A-Z]{3}).*`)
-	regexAni2 = regexp.MustCompile(`.*_([A-Z]{3})_TRACK.*`)
+	regexAni  = regexp.MustCompile(`([A-Z][0-9]{2})([A-Z]{3}).*`)
+	regexAni2 = regexp.MustCompile(`([A-Z][0-9]{2}[A-Z])([A-Z]{3}).*`)
+	regexAni3 = regexp.MustCompile(`.*_([A-Z]{3})_TRACK.*`)
 )
 
 // WorldDef stores data about the world itself
@@ -3967,6 +3968,7 @@ func (e *PolyhedronDefinition) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.
 
 type TrackInstance struct {
 	fragID             int16
+	model              string
 	Tag                string
 	TagIndex           int
 	SpriteTag          string
@@ -4163,6 +4165,7 @@ func (e *TrackInstance) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFrag
 
 type TrackDef struct {
 	fragID          int16
+	model           string
 	Tag             string
 	TagIndex        int
 	SpriteTag       string
