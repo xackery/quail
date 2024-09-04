@@ -19,8 +19,9 @@ var (
 
 // WorldDef stores data about the world itself
 type WorldDef struct {
-	NewWorld int
-	Zone     int
+	NewWorld   int
+	Zone       int
+	EqgVersion NullInt8
 }
 
 // Definition returns the definition of the WorldDef
@@ -37,6 +38,7 @@ func (e *WorldDef) Write(token *AsciiWriteToken) error {
 	fmt.Fprintf(w, "%s\n", e.Definition())
 	fmt.Fprintf(w, "\tNEWWORLD %d\n", e.NewWorld)
 	fmt.Fprintf(w, "\tZONE %d\n", e.Zone)
+	fmt.Fprintf(w, "\tEQGVERSION? %s\n", wcVal(e.EqgVersion))
 	fmt.Fprintf(w, "\n")
 	return nil
 }
@@ -59,6 +61,15 @@ func (e *WorldDef) Read(token *AsciiReadToken) error {
 	err = parse(&e.Zone, records[1])
 	if err != nil {
 		return fmt.Errorf("zone: %w", err)
+	}
+
+	records, err = token.ReadProperty("EQGVERSION?", 1)
+	if err != nil {
+		return err
+	}
+	err = parse(&e.EqgVersion, records[1])
+	if err != nil {
+		return fmt.Errorf("eqgversion: %w", err)
 	}
 
 	return nil

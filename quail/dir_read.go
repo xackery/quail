@@ -30,9 +30,7 @@ func (q *Quail) DirRead(path string) error {
 
 	baseName := filepath.Base(path)
 	baseName = strings.TrimSuffix(baseName, ".quail")
-	q.Wld = &wce.Wce{
-		FileName: baseName + ".wld",
-	}
+	q.Wld = wce.New(baseName + ".wld")
 	err = q.Wld.ReadAscii(path + "/_root.wce")
 	if err != nil {
 		return err
@@ -40,9 +38,7 @@ func (q *Quail) DirRead(path string) error {
 
 	fi, err = os.Stat(path + "/_objects/_root.wce")
 	if err == nil && !fi.IsDir() {
-		q.WldObject = &wce.Wce{
-			FileName: baseName + "objects.wld",
-		}
+		q.WldObject = wce.New(baseName + "objects.wld")
 		err = q.WldObject.ReadAscii(path + "/_objects/_root.wce")
 		if err != nil {
 			return err
@@ -51,9 +47,7 @@ func (q *Quail) DirRead(path string) error {
 
 	fi, err = os.Stat(path + "/_lights/_root.wce")
 	if err == nil && !fi.IsDir() {
-		q.WldLights = &wce.Wce{
-			FileName: baseName + "lights.wld",
-		}
+		q.WldLights = wce.New(baseName + "lights.wld")
 		err = q.WldLights.ReadAscii(path + "/_lights/_root.wce")
 		if err != nil {
 			return err

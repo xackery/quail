@@ -7,7 +7,6 @@ import (
 
 	"github.com/xackery/encdec"
 	"github.com/xackery/quail/helper"
-	"github.com/xackery/quail/model"
 )
 
 type Mod struct {
@@ -91,26 +90,26 @@ func (mod *Mod) Read(r io.ReadSeeker) error {
 
 	for i := 0; i < int(verticesCount); i++ {
 		v := &Vertex{}
-		v.Position.X = dec.Float32()
-		v.Position.Y = dec.Float32()
-		v.Position.Z = dec.Float32()
-		v.Normal.X = dec.Float32()
-		v.Normal.Y = dec.Float32()
-		v.Normal.Z = dec.Float32()
+		v.Position[0] = dec.Float32()
+		v.Position[1] = dec.Float32()
+		v.Position[2] = dec.Float32()
+		v.Normal[0] = dec.Float32()
+		v.Normal[1] = dec.Float32()
+		v.Normal[2] = dec.Float32()
 		if mod.Version <= 2 {
-			v.Tint = model.RGBA{R: 128, G: 128, B: 128, A: 255}
+			v.Tint = [4]uint8{128, 128, 128, 255}
 		} else {
-			v.Tint = model.RGBA{R: dec.Uint8(), G: dec.Uint8(), B: dec.Uint8(), A: dec.Uint8()}
+			v.Tint = [4]uint8{dec.Uint8(), dec.Uint8(), dec.Uint8(), dec.Uint8()}
 		}
-		v.Uv.X = dec.Float32()
-		v.Uv.Y = dec.Float32()
+		v.Uv[0] = dec.Float32()
+		v.Uv[1] = dec.Float32()
 
 		if mod.Version <= 2 {
-			v.Uv2.X = 0
-			v.Uv2.Y = 0
+			v.Uv2[0] = 0
+			v.Uv2[1] = 0
 		} else {
-			v.Uv2.X = dec.Float32()
-			v.Uv2.Y = dec.Float32()
+			v.Uv2[0] = dec.Float32()
+			v.Uv2[1] = dec.Float32()
 		}
 
 		mod.Vertices = append(mod.Vertices, v)
@@ -118,9 +117,9 @@ func (mod *Mod) Read(r io.ReadSeeker) error {
 
 	for i := 0; i < int(triangleCount); i++ {
 		t := Triangle{}
-		t.Index.X = dec.Uint32()
-		t.Index.Y = dec.Uint32()
-		t.Index.Z = dec.Uint32()
+		t.Index[0] = dec.Uint32()
+		t.Index[1] = dec.Uint32()
+		t.Index[2] = dec.Uint32()
 
 		materialID := dec.Int32()
 
@@ -151,15 +150,15 @@ func (mod *Mod) Read(r io.ReadSeeker) error {
 		bone.Next = dec.Int32()
 		bone.ChildrenCount = dec.Uint32()
 		bone.ChildIndex = dec.Int32()
-		bone.Pivot.X = dec.Float32()
-		bone.Pivot.Y = dec.Float32()
-		bone.Pivot.Z = dec.Float32()
-		bone.Rotation.X = dec.Float32()
-		bone.Rotation.Y = dec.Float32()
-		bone.Rotation.Z = dec.Float32()
-		bone.Scale.X = dec.Float32()
-		bone.Scale.Y = dec.Float32()
-		bone.Scale.Z = dec.Float32()
+		bone.Pivot[0] = dec.Float32()
+		bone.Pivot[1] = dec.Float32()
+		bone.Pivot[2] = dec.Float32()
+		bone.Rotation[0] = dec.Float32()
+		bone.Rotation[1] = dec.Float32()
+		bone.Rotation[2] = dec.Float32()
+		bone.Scale[0] = dec.Float32()
+		bone.Scale[1] = dec.Float32()
+		bone.Scale[2] = dec.Float32()
 		bone.Scale2 = dec.Float32()
 
 		mod.Bones = append(mod.Bones, bone)

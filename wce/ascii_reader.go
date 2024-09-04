@@ -199,6 +199,7 @@ func (a *AsciiReadToken) readDefinitions() error {
 		&WorldTree{},
 		&Zone{},
 		&WorldDef{},
+		&MdsDef{},
 	}
 
 	definition := ""
@@ -397,11 +398,16 @@ func (a *AsciiReadToken) readDefinitions() error {
 				a.wce.DMSpriteDefs = append(a.wce.DMSpriteDefs, frag)
 				definitions[i] = &DMSpriteDef{}
 			case *WorldDef:
-				if a.wce.WorldDef != nil {
-					return fmt.Errorf("duplicate world definition")
-				}
+
 				a.wce.WorldDef = frag
 				definitions[i] = &WorldDef{}
+			case *MdsDef:
+				if len(args) == 1 {
+					return fmt.Errorf("definition %s has no arguments", defName)
+				}
+				frag.Tag = args[1]
+				a.wce.MdsDefs = append(a.wce.MdsDefs, frag)
+				definitions[i] = &MdsDef{}
 			default:
 				return fmt.Errorf("unknown definition type for rebuild: %T", definitions[i])
 			}

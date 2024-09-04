@@ -74,8 +74,8 @@ func TestWceDoubleReadWrite(t *testing.T) {
 				t.Fatalf("failed to read %s: %s", baseName, err.Error())
 			}
 
-			wldSrc := &wce.Wce{}
-			err = wldSrc.ReadRaw(rawWldSrc)
+			wldSrc := wce.New(baseName + ".wld")
+			err = wldSrc.ReadWldRaw(rawWldSrc)
 			if err != nil {
 				t.Fatalf("failed to convert %s: %s", baseName, err.Error())
 			}
@@ -92,9 +92,7 @@ func TestWceDoubleReadWrite(t *testing.T) {
 			fmt.Println("Wrote", fmt.Sprintf("%s/%s/_root.wce in %0.2f seconds", dirTest, baseName, time.Since(start).Seconds()))
 
 			start = time.Now()
-			wldDst := &wce.Wce{
-				FileName: baseName + ".wld",
-			}
+			wldDst := wce.New(baseName + ".wld")
 			err = wldDst.ReadAscii(fmt.Sprintf("%s/%s/_root.wce", dirTest, baseName))
 			if err != nil {
 				t.Fatalf("failed to read %s: %s", baseName, err.Error())
@@ -107,7 +105,7 @@ func TestWceDoubleReadWrite(t *testing.T) {
 
 			dstBuf := bytes.NewBuffer(nil)
 
-			err = wldDst.WriteRaw(dstBuf)
+			err = wldDst.WriteWldRaw(dstBuf)
 			if err != nil {
 				t.Fatalf("failed to write %s: %s", baseName, err.Error())
 			}
@@ -130,11 +128,9 @@ func TestWceDoubleReadWrite(t *testing.T) {
 
 			start = time.Now()
 
-			wldDst2 := &wce.Wce{
-				FileName: baseName + ".wld",
-			}
+			wldDst2 := wce.New(baseName + ".wld")
 
-			err = wldDst2.ReadRaw(rawWldDst)
+			err = wldDst2.ReadWldRaw(rawWldDst)
 			if err != nil {
 				t.Fatalf("failed to convert %s: %s", baseName, err.Error())
 			}
@@ -148,10 +144,7 @@ func TestWceDoubleReadWrite(t *testing.T) {
 
 			start = time.Now()
 
-			wldDst3 := &wce.Wce{
-				FileName: baseName + ".wld",
-			}
-
+			wldDst3 := wce.New(baseName + ".wld")
 			err = wldDst3.ReadAscii(fmt.Sprintf("%s/%s/_root.wce", dirTest, baseName+".2"))
 			if err != nil {
 				t.Fatalf("failed to read %s: %s", baseName, err.Error())
@@ -162,7 +155,7 @@ func TestWceDoubleReadWrite(t *testing.T) {
 
 			dstBuf2 := bytes.NewBuffer(nil)
 
-			err = wldDst3.WriteRaw(dstBuf2)
+			err = wldDst3.WriteWldRaw(dstBuf2)
 			if err != nil {
 				t.Fatalf("failed to write %s: %s", baseName, err.Error())
 			}

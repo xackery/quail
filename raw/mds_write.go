@@ -70,15 +70,15 @@ func (mds *Mds) Write(w io.Writer) error {
 		enc.Int32(bone.Next)
 		enc.Uint32(bone.ChildrenCount)
 		enc.Int32(bone.ChildIndex)
-		enc.Float32(bone.Pivot.X)
-		enc.Float32(bone.Pivot.Y)
-		enc.Float32(bone.Pivot.Z)
-		enc.Float32(bone.Rotation.X)
-		enc.Float32(bone.Rotation.Y)
-		enc.Float32(bone.Rotation.Z)
-		enc.Float32(bone.Scale.X)
-		enc.Float32(bone.Scale.Y)
-		enc.Float32(bone.Scale.Z)
+		enc.Float32(bone.Pivot[0])
+		enc.Float32(bone.Pivot[1])
+		enc.Float32(bone.Pivot[2])
+		enc.Float32(bone.Rotation[0])
+		enc.Float32(bone.Rotation[1])
+		enc.Float32(bone.Rotation[2])
+		enc.Float32(bone.Scale[0])
+		enc.Float32(bone.Scale[1])
+		enc.Float32(bone.Scale[2])
 		enc.Float32(bone.Scale2)
 	}
 
@@ -90,30 +90,30 @@ func (mds *Mds) Write(w io.Writer) error {
 	enc.Uint32(uint32(len(mds.BoneAssignments)))
 
 	for _, vert := range mds.Vertices {
-		enc.Float32(vert.Position.X)
-		enc.Float32(vert.Position.Y)
-		enc.Float32(vert.Position.Z)
-		enc.Float32(vert.Normal.X)
-		enc.Float32(vert.Normal.Y)
-		enc.Float32(vert.Normal.Z)
+		enc.Float32(vert.Position[0])
+		enc.Float32(vert.Position[1])
+		enc.Float32(vert.Position[2])
+		enc.Float32(vert.Normal[0])
+		enc.Float32(vert.Normal[1])
+		enc.Float32(vert.Normal[2])
 		if mds.Version > 2 {
-			enc.Uint8(vert.Tint.R)
-			enc.Uint8(vert.Tint.G)
-			enc.Uint8(vert.Tint.B)
-			enc.Uint8(vert.Tint.A)
+			enc.Uint8(vert.Tint[0])
+			enc.Uint8(vert.Tint[1])
+			enc.Uint8(vert.Tint[2])
+			enc.Uint8(vert.Tint[3])
 		}
-		enc.Float32(vert.Uv.X)
-		enc.Float32(vert.Uv.Y)
+		enc.Float32(vert.Uv[0])
+		enc.Float32(vert.Uv[1])
 		if mds.Version > 2 {
-			enc.Float32(vert.Uv2.X)
-			enc.Float32(vert.Uv2.Y)
+			enc.Float32(vert.Uv2[0])
+			enc.Float32(vert.Uv2[1])
 		}
 	}
 
 	for _, tri := range mds.Triangles {
-		enc.Uint32(tri.Index.X)
-		enc.Uint32(tri.Index.Y)
-		enc.Uint32(tri.Index.Z)
+		enc.Uint32(tri.Index[0])
+		enc.Uint32(tri.Index[1])
+		enc.Uint32(tri.Index[2])
 		matID := int32(0)
 		for _, mat := range mds.Materials {
 			if mat.Name == tri.MaterialName {

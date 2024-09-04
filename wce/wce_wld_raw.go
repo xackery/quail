@@ -12,7 +12,7 @@ import (
 	"github.com/xackery/quail/raw/rawfrag"
 )
 
-func (wce *Wce) ReadRaw(src *raw.Wld) error {
+func (wce *Wce) ReadWldRaw(src *raw.Wld) error {
 	wce.reset()
 	wce.maxMaterialHeads = make(map[string]int)
 	wce.maxMaterialTextures = make(map[string]int)
@@ -270,7 +270,7 @@ func readRawFrag(e *Wce, rawWld *raw.Wld, fragment model.FragmentReadWriter) err
 	return nil
 }
 
-func (wce *Wce) WriteRaw(w io.Writer) error {
+func (wce *Wce) WriteWldRaw(w io.Writer) error {
 	var err error
 	dst := &raw.Wld{
 		IsNewWorld: false,

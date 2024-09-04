@@ -127,6 +127,57 @@ func (wce *Wce) writeAsciiData(path string, baseTags []string) error {
 		}
 	}
 
+	for _, mdsDef := range wce.MdsDefs {
+		if len(mdsDef.Tag) < 3 {
+			return fmt.Errorf("mdsDef %s tag too short", mdsDef.Tag)
+		}
+		baseTag := baseTagTrim(mdsDef.Tag)
+		isFound := false
+		for _, tag := range baseTags {
+			if tag == baseTag {
+				isFound = true
+				break
+			}
+		}
+		if !isFound {
+			baseTags = append(baseTags, baseTag)
+		}
+	}
+
+	for _, modDef := range wce.ModDefs {
+		if len(modDef.Tag) < 3 {
+			return fmt.Errorf("modDef %s tag too short", modDef.Tag)
+		}
+		baseTag := modDef.Tag
+		isFound := false
+		for _, tag := range baseTags {
+			if tag == baseTag {
+				isFound = true
+				break
+			}
+		}
+		if !isFound {
+			baseTags = append(baseTags, baseTag)
+		}
+	}
+
+	for _, terDef := range wce.TerDefs {
+		if len(terDef.Tag) < 3 {
+			return fmt.Errorf("terDef %s tag too short", terDef.Tag)
+		}
+		baseTag := terDef.Tag
+		isFound := false
+		for _, tag := range baseTags {
+			if tag == baseTag {
+				isFound = true
+				break
+			}
+		}
+		if !isFound {
+			baseTags = append(baseTags, baseTag)
+		}
+	}
+
 	err := token.AddWriter("world", fmt.Sprintf("%s/world.wce", path))
 	if err != nil {
 		return fmt.Errorf("add writer: %w", err)
@@ -385,6 +436,32 @@ func (wce *Wce) writeAsciiData(path string, baseTags []string) error {
 		err = zone.Write(token)
 		if err != nil {
 			return fmt.Errorf("zone %s: %w", zone.Tag, err)
+		}
+	}
+
+	// EQG
+
+	for _, mdsDef := range wce.MdsDefs {
+		err = token.SetWriter(mdsDef.Tag)
+		if err != nil {
+			return fmt.Errorf("set mdsdef %s writer: %w", mdsDef.Tag, err)
+		}
+
+		err = mdsDef.Write(token)
+		if err != nil {
+			return fmt.Errorf("mdsdef %s: %w", mdsDef.Tag, err)
+		}
+	}
+
+	for _, modDef := range wce.ModDefs {
+		err = token.SetWriter(modDef.Tag)
+		if err != nil {
+			return fmt.Errorf("set moddef %s writer: %w", modDef.Tag, err)
+		}
+
+		err = modDef.Write(token)
+		if err != nil {
+			return fmt.Errorf("moddef %s: %w", modDef.Tag, err)
 		}
 	}
 

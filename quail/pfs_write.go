@@ -176,7 +176,7 @@ func (e *Quail) S3DExport(fileVersion uint32, pfsVersion int, path string) error
 	if e.Wld != nil {
 		buf := &bytes.Buffer{}
 
-		err := e.Wld.WriteRaw(buf)
+		err := e.Wld.WriteWldRaw(buf)
 		if err != nil {
 			return fmt.Errorf("write wld: %w", err)
 		}
@@ -191,7 +191,7 @@ func (e *Quail) S3DExport(fileVersion uint32, pfsVersion int, path string) error
 	if e.WldObject != nil {
 		buf := &bytes.Buffer{}
 
-		err := e.WldObject.WriteRaw(buf)
+		err := e.WldObject.WriteWldRaw(buf)
 		if err != nil {
 			return fmt.Errorf("write wld: %w", err)
 		}
@@ -206,7 +206,7 @@ func (e *Quail) S3DExport(fileVersion uint32, pfsVersion int, path string) error
 	if e.WldLights != nil {
 		buf := &bytes.Buffer{}
 
-		err := e.WldLights.WriteRaw(buf)
+		err := e.WldLights.WriteWldRaw(buf)
 		if err != nil {
 			return fmt.Errorf("write wld: %w", err)
 		}

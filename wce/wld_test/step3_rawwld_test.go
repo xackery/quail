@@ -67,8 +67,8 @@ func TestRawWldReadWrite(t *testing.T) {
 				t.Fatalf("failed to read %s: %s", baseName, err.Error())
 			}
 
-			wldSrc := &wce.Wce{}
-			err = wldSrc.ReadRaw(rawWldSrc)
+			wldSrc := wce.New(baseName + ".wld")
+			err = wldSrc.ReadWldRaw(rawWldSrc)
 			if err != nil {
 				t.Fatalf("failed to convert %s: %s", baseName, err.Error())
 			}
@@ -78,7 +78,7 @@ func TestRawWldReadWrite(t *testing.T) {
 			wldSrc.FileName = baseName + ".wld"
 
 			buf := &bytes.Buffer{}
-			err = wldSrc.WriteRaw(buf)
+			err = wldSrc.WriteWldRaw(buf)
 			if err != nil {
 				t.Fatalf("failed to write %s: %s", baseName, err.Error())
 			}

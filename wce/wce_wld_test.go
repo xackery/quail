@@ -47,7 +47,7 @@ func TestBWldRead(t *testing.T) {
 			}
 
 			vwld := &Wce{}
-			err = vwld.ReadRaw(wld)
+			err = vwld.ReadWldRaw(wld)
 			if err != nil {
 				t.Fatalf("failed to convert %s: %s", tt.name, err.Error())
 			}
@@ -140,13 +140,13 @@ func TestBWldReadWriteRead(t *testing.T) {
 			}
 
 			vwld := &Wce{}
-			err = vwld.ReadRaw(wld)
+			err = vwld.ReadWldRaw(wld)
 			if err != nil {
 				t.Fatalf("failed to convert %s: %s", baseName, err.Error())
 			}
 
 			buf := bytes.NewBuffer(nil)
-			err = vwld.WriteRaw(buf)
+			err = vwld.WriteWldRaw(buf)
 			if err != nil {
 				t.Fatalf("failed to write %s: %s", baseName, err.Error())
 			}
@@ -269,7 +269,7 @@ func TestWCEWldReadWriteRead(t *testing.T) {
 				} */
 
 			vwld := &Wce{}
-			err = vwld.ReadRaw(wld)
+			err = vwld.ReadWldRaw(wld)
 			if err != nil {
 				t.Fatalf("failed to convert %s: %s", baseName, err.Error())
 			}
@@ -299,7 +299,7 @@ func TestWCEWldReadWriteRead(t *testing.T) {
 
 			buf2 := bytes.NewBuffer(nil)
 
-			err = vwld2.WriteRaw(buf2)
+			err = vwld2.WriteWldRaw(buf2)
 			if err != nil {
 				t.Fatalf("failed to write %s: %s", baseName, err.Error())
 			}
@@ -382,7 +382,7 @@ func TestWCEWldFragMatch(t *testing.T) {
 			}
 
 			wldSrc := &Wce{}
-			err = wldSrc.ReadRaw(rawWldSrc)
+			err = wldSrc.ReadWldRaw(rawWldSrc)
 			if err != nil {
 				t.Fatalf("failed to convert %s: %s", baseName, err.Error())
 			}
@@ -414,7 +414,7 @@ func TestWCEWldFragMatch(t *testing.T) {
 
 			dstBuf := bytes.NewBuffer(nil)
 
-			err = wldDst.WriteRaw(dstBuf)
+			err = wldDst.WriteWldRaw(dstBuf)
 			if err != nil {
 				t.Fatalf("failed to write %s: %s", baseName, err.Error())
 			}

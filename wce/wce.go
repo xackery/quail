@@ -43,12 +43,25 @@ type Wce struct {
 	variationMaterialDefs  map[string][]*MaterialDef
 	WorldTrees             []*WorldTree
 	Zones                  []*Zone
+	MdsDefs                []*MdsDef
+	ModDefs                []*ModDef
+	TerDefs                []*TerDef
 }
 
 type WldDefinitioner interface {
 	Definition() string
 	ToRaw(src *Wce, dst *raw.Wld) (int16, error)
 	Write(token *AsciiWriteToken) error
+}
+
+func New(filename string) *Wce {
+	return &Wce{
+		FileName:              filename,
+		maxMaterialHeads:      make(map[string]int),
+		maxMaterialTextures:   make(map[string]int),
+		variationMaterialDefs: make(map[string][]*MaterialDef),
+		WorldDef:              &WorldDef{},
+	}
 }
 
 // ByTag returns a instance by tag
@@ -279,4 +292,7 @@ func (wce *Wce) reset() {
 	wce.RGBTrackDefs = []*RGBTrackDef{}
 	wce.ParticleCloudDefs = []*ParticleCloudDef{}
 	wce.Sprite2DDefs = []*Sprite2DDef{}
+	wce.MdsDefs = []*MdsDef{}
+	wce.ModDefs = []*ModDef{}
+	wce.TerDefs = []*TerDef{}
 }

@@ -1,53 +1,51 @@
 package raw
 
-import "github.com/xackery/quail/model"
-
 // Bone is a bone
 type Bone struct {
-	Name          string        `yaml:"name"`
-	Next          int32         `yaml:"next"`
-	ChildrenCount uint32        `yaml:"children_count"`
-	ChildIndex    int32         `yaml:"child_index"`
-	Pivot         model.Vector3 `yaml:"pivot"`
-	Rotation      model.Quad4   `yaml:"rotation"`
-	Scale         model.Vector3 `yaml:"scale"`
-	Scale2        float32       `yaml:"scale2"`
+	Name          string
+	Next          int32
+	ChildrenCount uint32
+	ChildIndex    int32
+	Pivot         [3]float32
+	Rotation      [4]float32
+	Scale         [3]float32
+	Scale2        float32
 }
 
 // Triangle is a triangle
 type Triangle struct {
-	Index        model.UIndex3 `yaml:"index"`
-	MaterialName string        `yaml:"material_name"`
-	Flag         uint32        `yaml:"flag"`
+	Index        [3]uint32
+	MaterialName string
+	Flag         uint32
 }
 
 type Material struct {
-	ID         int32               `yaml:"id"`
-	Name       string              `yaml:"name"`
-	ShaderName string              `yaml:"shader_name"`
-	Flag       uint32              `yaml:"flag"`
-	Properties []*MaterialProperty `yaml:"properties"`
-	Animation  MaterialAnimation   `yaml:"animation"`
+	ID         int32
+	Name       string
+	ShaderName string
+	Flag       uint32
+	Properties []*MaterialProperty
+	Animation  MaterialAnimation
 }
 
 // MaterialProperty is a material property
 type MaterialProperty struct {
-	Name     string `yaml:"name"`
-	Category uint32 `yaml:"category"`
-	Value    string `yaml:"value"`
-	Data     []byte `yaml:"data,omitempty"`
+	Name     string
+	Category uint32
+	Value    string
+	Data     []byte
 }
 
 type MaterialAnimation struct {
-	Sleep    uint32   `yaml:"sleep"`
-	Textures []string `yaml:"textures,omitempty"`
+	Sleep    uint32
+	Textures []string
 }
 
 // Vertex is a vertex
 type Vertex struct {
-	Position model.Vector3 `yaml:"position"`
-	Normal   model.Vector3 `yaml:"normal"`
-	Tint     model.RGBA    `yaml:"tint"`
-	Uv       model.Vector2 `yaml:"uv"`
-	Uv2      model.Vector2 `yaml:"uv2"`
+	Position [3]float32
+	Normal   [3]float32
+	Tint     [4]uint8
+	Uv       [2]float32
+	Uv2      [2]float32
 }

@@ -11,10 +11,8 @@ import (
 
 func (q *Quail) wldRead(srcWld *raw.Wld, filename string) error {
 
-	wld := &wce.Wce{
-		FileName: filename,
-	}
-	err := wld.ReadRaw(srcWld)
+	wld := wce.New(filename)
+	err := wld.ReadWldRaw(srcWld)
 	if err != nil {
 		return fmt.Errorf("read wld: %w", err)
 	}

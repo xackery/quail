@@ -58,8 +58,12 @@ func (a *AsciiWriteToken) WriterByTag(tag string) (*os.File, error) {
 		tag = strings.TrimSuffix(tag, "_ani")
 	}
 
-	rootTag := baseTagTrim(tag)
-	baseTag := rootTag
+	rootTag := tag
+	baseTag := tag
+	if !a.wce.WorldDef.EqgVersion.Valid {
+		rootTag = baseTagTrim(tag)
+		baseTag = rootTag
+	}
 	baseTag = baseTag + suffix
 	w, ok := a.writers[baseTag]
 	if !ok {

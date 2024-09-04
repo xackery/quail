@@ -62,25 +62,25 @@ func (ter *Ter) Write(w io.Writer) error {
 	}
 
 	for _, vertex := range ter.Vertices {
-		enc.Float32(vertex.Position.X)
-		enc.Float32(vertex.Position.Y)
-		enc.Float32(vertex.Position.Z)
-		enc.Float32(vertex.Normal.X)
-		enc.Float32(vertex.Normal.Y)
-		enc.Float32(vertex.Normal.Z)
-		enc.Float32(vertex.Uv.X)
-		enc.Float32(vertex.Uv.Y)
+		enc.Float32(vertex.Position[0])
+		enc.Float32(vertex.Position[1])
+		enc.Float32(vertex.Position[2])
+		enc.Float32(vertex.Normal[0])
+		enc.Float32(vertex.Normal[1])
+		enc.Float32(vertex.Normal[2])
+		enc.Float32(vertex.Uv[0])
+		enc.Float32(vertex.Uv[1])
 		if ter.Version > 2 {
-			enc.Float32(vertex.Uv2.X)
-			enc.Float32(vertex.Uv2.Y)
+			enc.Float32(vertex.Uv2[0])
+			enc.Float32(vertex.Uv2[1])
 		}
 
 	}
 
 	for _, tri := range ter.Triangles {
-		enc.Uint32(tri.Index.X)
-		enc.Uint32(tri.Index.Y)
-		enc.Uint32(tri.Index.Z)
+		enc.Uint32(tri.Index[0])
+		enc.Uint32(tri.Index[1])
+		enc.Uint32(tri.Index[2])
 		matID := int32(0)
 		for _, mat := range ter.Materials {
 			if mat.Name == tri.MaterialName {

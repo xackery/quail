@@ -22,6 +22,8 @@ func TestMdsRead(t *testing.T) {
 		//{eqg: "aam.eqg", file: "aam.mds"}, // PASS
 		// .mds|1|ae3.mds|ae3.eqg
 		//{eqg: "ae3.eqg", file: "ae3.mds"}, // PASS
+		//{eqg: "djf.eqg", file: "djf.mds"}, // PASS
+		{eqg: "mrd.eqg", file: "mrd.mds"}, // PASS
 		// .mds|1|bcn.mds|harbingers.eqg
 		//{eqg: "harbingers.eqg", file: "bcn.mds"}, // PASS
 		// .mds|1|stnd_gnome_wave.mds|it12095.eqg

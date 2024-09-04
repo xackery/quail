@@ -152,9 +152,9 @@ func (q *Quail) modConvertMesh(in *raw.Mod) (*common.Model, error) {
 	for _, triangle := range in.Triangles {
 		model.Triangles = append(model.Triangles, common.Triangle{
 			Index: common.UIndex3{
-				X: uint32(triangle.Index.X),
-				Y: uint32(triangle.Index.Y),
-				Z: uint32(triangle.Index.Z),
+				X: uint32(triangle.Index[0]),
+				Y: uint32(triangle.Index[1]),
+				Z: uint32(triangle.Index[2]),
 			},
 			MaterialName: triangle.MaterialName,
 			Flag:         uint32(triangle.Flag),
@@ -163,19 +163,19 @@ func (q *Quail) modConvertMesh(in *raw.Mod) (*common.Model, error) {
 	for _, vertex := range in.Vertices {
 		model.Vertices = append(model.Vertices, common.Vertex{
 			Position: common.Vector3{
-				X: vertex.Position.X,
-				Y: vertex.Position.Y,
-				Z: vertex.Position.Z,
+				X: vertex.Position[0],
+				Y: vertex.Position[1],
+				Z: vertex.Position[2],
 			},
 			Uv: common.Vector2{
-				X: vertex.Uv.X,
-				Y: vertex.Uv.Y,
+				X: vertex.Uv[0],
+				Y: vertex.Uv[1],
 			},
 			Tint: common.RGBA{
-				R: vertex.Tint.R,
-				G: vertex.Tint.G,
-				B: vertex.Tint.B,
-				A: vertex.Tint.A,
+				R: vertex.Tint[0],
+				G: vertex.Tint[1],
+				B: vertex.Tint[2],
+				A: vertex.Tint[3],
 			},
 		})
 	}
@@ -206,9 +206,9 @@ func (q *Quail) mdsConvertMesh(in *raw.Mds) (*common.Model, error) {
 	for _, triangle := range in.Triangles {
 		model.Triangles = append(model.Triangles, common.Triangle{
 			Index: common.UIndex3{
-				X: uint32(triangle.Index.X),
-				Y: uint32(triangle.Index.Y),
-				Z: uint32(triangle.Index.Z),
+				X: uint32(triangle.Index[0]),
+				Y: uint32(triangle.Index[1]),
+				Z: uint32(triangle.Index[2]),
 			},
 			MaterialName: triangle.MaterialName,
 			Flag:         uint32(triangle.Flag),
@@ -217,19 +217,19 @@ func (q *Quail) mdsConvertMesh(in *raw.Mds) (*common.Model, error) {
 	for _, vertex := range in.Vertices {
 		model.Vertices = append(model.Vertices, common.Vertex{
 			Position: common.Vector3{
-				X: vertex.Position.X,
-				Y: vertex.Position.Y,
-				Z: vertex.Position.Z,
+				X: vertex.Position[0],
+				Y: vertex.Position[1],
+				Z: vertex.Position[2],
 			},
 			Uv: common.Vector2{
-				X: vertex.Uv.X,
-				Y: vertex.Uv.Y,
+				X: vertex.Uv[0],
+				Y: vertex.Uv[1],
 			},
 			Tint: common.RGBA{
-				R: vertex.Tint.R,
-				G: vertex.Tint.G,
-				B: vertex.Tint.B,
-				A: vertex.Tint.A,
+				R: vertex.Tint[0],
+				G: vertex.Tint[1],
+				B: vertex.Tint[2],
+				A: vertex.Tint[3],
 			},
 		})
 	}
