@@ -2164,14 +2164,14 @@ func (e *ActorDef) Write(token *AsciiWriteToken) error {
 
 	fmt.Fprintf(w, "%s \"%s\"\n", e.Definition(), e.Tag)
 	fmt.Fprintf(w, "\tCALLBACK \"%s\"\n", e.Callback)
-	fmt.Fprintf(w, "\t// BOUNDSREF %d\n", e.BoundsRef)
+	fmt.Fprintf(w, "\tBOUNDSREF %d\n", e.BoundsRef)
 	fmt.Fprintf(w, "\tCURRENTACTION? %s\n", wcVal(e.CurrentAction))
 	fmt.Fprintf(w, "\tLOCATION? %s\n", wcVal(e.Location))
 	fmt.Fprintf(w, "\tACTIVEGEOMETRY? %s\n", wcVal(e.ActiveGeometry))
 	fmt.Fprintf(w, "\tNUMACTIONS %d\n", len(e.Actions))
 	for _, action := range e.Actions {
 		fmt.Fprintf(w, "\tACTION\n")
-		fmt.Fprintf(w, "\t\t// UNK1 %d\n", action.Unk1)
+		fmt.Fprintf(w, "\t\tUNK1 %d\n", action.Unk1)
 		fmt.Fprintf(w, "\t\tNUMLEVELSOFDETAIL %d\n", len(action.LevelOfDetails))
 		for _, lod := range action.LevelOfDetails {
 			fmt.Fprintf(w, "\t\tLEVELOFDETAIL\n")
@@ -2180,7 +2180,7 @@ func (e *ActorDef) Write(token *AsciiWriteToken) error {
 			fmt.Fprintf(w, "\t\t\tMINDISTANCE %0.8e\n", lod.MinDistance)
 		}
 	}
-	fmt.Fprintf(w, "\t// UNK2 %d\n", e.Unk2)
+	fmt.Fprintf(w, "\tUNK2 %d\n", e.Unk2)
 	fmt.Fprintf(w, "\tHASEIGHTYFLAG %d\n", e.HasEightyFlag)
 	fmt.Fprintf(w, "\n")
 	return nil
@@ -2193,6 +2193,16 @@ func (e *ActorDef) Read(token *AsciiReadToken) error {
 		return err
 	}
 	e.Callback = records[1]
+
+	records, err = token.ReadProperty("BOUNDSREF", 1)
+	if err != nil {
+		return err
+	}
+
+	err = parse(&e.BoundsRef, records[1])
+	if err != nil {
+		return fmt.Errorf("bounds ref: %w", err)
+	}
 
 	records, err = token.ReadProperty("CURRENTACTION?", 1)
 	if err != nil {
@@ -2236,6 +2246,15 @@ func (e *ActorDef) Read(token *AsciiReadToken) error {
 		_, err = token.ReadProperty("ACTION", 0)
 		if err != nil {
 			return err
+		}
+
+		records, err = token.ReadProperty("UNK1", 1)
+		if err != nil {
+			return err
+		}
+		err = parse(&action.Unk1, records[1])
+		if err != nil {
+			return fmt.Errorf("unk1: %w", err)
 		}
 
 		records, err = token.ReadProperty("NUMLEVELSOFDETAIL", 1)
@@ -2286,6 +2305,16 @@ func (e *ActorDef) Read(token *AsciiReadToken) error {
 
 		e.Actions = append(e.Actions, action)
 
+	}
+
+	records, err = token.ReadProperty("UNK2", 1)
+	if err != nil {
+		return err
+	}
+
+	err = parse(&e.Unk2, records[1])
+	if err != nil {
+		return fmt.Errorf("unk2: %w", err)
 	}
 
 	records, err = token.ReadProperty("HASEIGHTYFLAG", 1)
