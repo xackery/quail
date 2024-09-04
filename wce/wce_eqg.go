@@ -73,8 +73,8 @@ func (e *MdsDef) Write(token *AsciiWriteToken) error {
 	}
 
 	fmt.Fprintf(w, "\tNUMFACES %d\n", len(e.Faces))
-	for _, face := range e.Faces {
-		fmt.Fprintf(w, "\t\tFACE\n")
+	for i, face := range e.Faces {
+		fmt.Fprintf(w, "\t\tFACE // %d\n", i)
 		fmt.Fprintf(w, "\t\t\tTRIANGLE %d %d %d\n", face.Index[0], face.Index[1], face.Index[2])
 		fmt.Fprintf(w, "\t\t\tMATERIAL \"%s\"\n", face.MaterialName)
 		fmt.Fprintf(w, "\t\t\tHEXONEFLAG %d\n", face.HexOneFlag)
@@ -146,7 +146,49 @@ func (e *MdsDef) Read(token *AsciiReadToken) error {
 
 		e.Tints = append(e.Tints, tint)
 	}
+	records, err = token.ReadProperty("NUMFACES", 1)
+	if err != nil {
+		return err
+	}
+	numFaces := 0
+	err = parse(&numFaces, records[1])
+	if err != nil {
+		return fmt.Errorf("num faces: %w", err)
+	}
 
+	e.Faces = make([]*EQFace, numFaces)
+	for i := 0; i < numFaces; i++ {
+		_, err = token.ReadProperty("FACE", 0)
+		if err != nil {
+			return err
+		}
+		face := &EQFace{}
+		records, err = token.ReadProperty("TRIANGLE", 3)
+		if err != nil {
+			return err
+		}
+		err = parse(&face.Index, records[1:]...)
+		if err != nil {
+			return fmt.Errorf("triangle %d: %w", i, err)
+		}
+
+		records, err = token.ReadProperty("MATERIAL", 1)
+		if err != nil {
+			return err
+		}
+		face.MaterialName = records[1]
+
+		records, err = token.ReadProperty("HEXONEFLAG", 1)
+		if err != nil {
+			return err
+		}
+		err = parse(&face.HexOneFlag, records[1])
+		if err != nil {
+			return fmt.Errorf("hexoneflag %d: %w", i, err)
+		}
+
+		e.Faces = append(e.Faces, face)
+	}
 	return nil
 }
 
@@ -247,9 +289,9 @@ func (e *ModDef) Write(token *AsciiWriteToken) error {
 	fmt.Fprintf(w, "\tNUMFACES %d\n", len(e.Faces))
 	for i, face := range e.Faces {
 		fmt.Fprintf(w, "\t\tFACE // %d\n", i)
-		fmt.Fprintf(w, "\t\tTRIANGLE %d %d %d\n", face.Index[0], face.Index[1], face.Index[2])
-		fmt.Fprintf(w, "\t\tMATERIAL \"%s\"\n", face.MaterialName)
-		fmt.Fprintf(w, "\t\tHEXONEFLAG %d\n", face.HexOneFlag)
+		fmt.Fprintf(w, "\t\t\tTRIANGLE %d %d %d\n", face.Index[0], face.Index[1], face.Index[2])
+		fmt.Fprintf(w, "\t\t\tMATERIAL \"%s\"\n", face.MaterialName)
+		fmt.Fprintf(w, "\t\t\tHEXONEFLAG %d\n", face.HexOneFlag)
 	}
 
 	fmt.Fprintf(w, "\n")
@@ -319,7 +361,49 @@ func (e *ModDef) Read(token *AsciiReadToken) error {
 
 		e.UVs = append(e.UVs, uv)
 	}
+	records, err = token.ReadProperty("NUMFACES", 1)
+	if err != nil {
+		return err
+	}
+	numFaces := 0
+	err = parse(&numFaces, records[1])
+	if err != nil {
+		return fmt.Errorf("num faces: %w", err)
+	}
 
+	e.Faces = make([]*EQFace, numFaces)
+	for i := 0; i < numFaces; i++ {
+		_, err = token.ReadProperty("FACE", 0)
+		if err != nil {
+			return err
+		}
+		face := &EQFace{}
+		records, err = token.ReadProperty("TRIANGLE", 3)
+		if err != nil {
+			return err
+		}
+		err = parse(&face.Index, records[1:]...)
+		if err != nil {
+			return fmt.Errorf("triangle %d: %w", i, err)
+		}
+
+		records, err = token.ReadProperty("MATERIAL", 1)
+		if err != nil {
+			return err
+		}
+		face.MaterialName = records[1]
+
+		records, err = token.ReadProperty("HEXONEFLAG", 1)
+		if err != nil {
+			return err
+		}
+		err = parse(&face.HexOneFlag, records[1])
+		if err != nil {
+			return fmt.Errorf("hexoneflag %d: %w", i, err)
+		}
+
+		e.Faces = append(e.Faces, face)
+	}
 	return nil
 }
 
@@ -424,9 +508,9 @@ func (e *TerDef) Write(token *AsciiWriteToken) error {
 	fmt.Fprintf(w, "\tNUMFACES %d\n", len(e.Faces))
 	for i, face := range e.Faces {
 		fmt.Fprintf(w, "\t\tFACE // %d\n", i)
-		fmt.Fprintf(w, "\t\tTRIANGLE %d %d %d\n", face.Index[0], face.Index[1], face.Index[2])
-		fmt.Fprintf(w, "\t\tMATERIAL \"%s\"\n", face.MaterialName)
-		fmt.Fprintf(w, "\t\tHEXONEFLAG %d\n", face.HexOneFlag)
+		fmt.Fprintf(w, "\t\t\tTRIANGLE %d %d %d\n", face.Index[0], face.Index[1], face.Index[2])
+		fmt.Fprintf(w, "\t\t\tMATERIAL \"%s\"\n", face.MaterialName)
+		fmt.Fprintf(w, "\t\t\tHEXONEFLAG %d\n", face.HexOneFlag)
 	}
 
 	fmt.Fprintf(w, "\n")
@@ -509,7 +593,7 @@ func (e *TerDef) Read(token *AsciiReadToken) error {
 
 	e.Faces = make([]*EQFace, numFaces)
 	for i := 0; i < numFaces; i++ {
-		records, err = token.ReadProperty("FACE", 0)
+		_, err = token.ReadProperty("FACE", 0)
 		if err != nil {
 			return err
 		}
