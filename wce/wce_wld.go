@@ -2,7 +2,6 @@ package wce
 
 import (
 	"fmt"
-	"regexp"
 	"sort"
 	"strconv"
 	"strings"
@@ -10,12 +9,6 @@ import (
 	"github.com/xackery/quail/model"
 	"github.com/xackery/quail/raw"
 	"github.com/xackery/quail/raw/rawfrag"
-)
-
-var (
-	regexAni  = regexp.MustCompile(`([A-Z][0-9]{2})([A-Z]{3}).*`)
-	regexAni2 = regexp.MustCompile(`([A-Z][0-9]{2}[A-Z])([A-Z]{3}).*`)
-	regexAni3 = regexp.MustCompile(`.*_([A-Z]{3})_TRACK.*`)
 )
 
 // WorldDef stores data about the world itself
@@ -4166,15 +4159,13 @@ func (e *TrackInstance) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFrag
 
 	e.Tag = rawWld.Name(frag.NameRef)
 	e.TagIndex = wce.NextTagIndex(e.Tag)
-	e.SpriteTag = wce.lastReadModelTag
-	m := regexAni.FindStringSubmatch(e.Tag)
-	if len(m) > 1 {
-		e.SpriteTag = m[1]
+	var seqNum int
+	e.SpriteTag, _, _, seqNum = wce.trackTagAndSequence(e.Tag)
+	if seqNum < 0 {
+		e.SpriteTag = wce.lastReadModelTag
 	}
-	m = regexAni2.FindStringSubmatch(e.Tag)
-	if len(m) > 1 {
-		e.SpriteTag = m[1]
-	}
+	e.model = wce.lastReadModelTag
+
 	e.DefinitionTag = rawWld.Name(trackDef.NameRef)
 	e.DefinitionTagIndex = wce.tagIndexes[e.DefinitionTag]
 
@@ -4397,15 +4388,12 @@ func (e *TrackDef) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragTrack
 
 	e.Tag = rawWld.Name(frag.NameRef)
 	e.TagIndex = wce.NextTagIndex(e.Tag)
-	e.SpriteTag = wce.lastReadModelTag
-	m := regexAni.FindStringSubmatch(e.Tag)
-	if len(m) > 1 {
-		e.SpriteTag = m[1]
+	var seqNum int
+	e.SpriteTag, _, _, seqNum = wce.trackTagAndSequence(e.Tag)
+	if seqNum < 0 {
+		e.SpriteTag = wce.lastReadModelTag
 	}
-	m = regexAni2.FindStringSubmatch(e.Tag)
-	if len(m) > 1 {
-		e.SpriteTag = m[1]
-	}
+	e.model = wce.lastReadModelTag
 
 	for _, fragFrame := range frag.FrameTransforms {
 		frame := &TrackFrameTransform{

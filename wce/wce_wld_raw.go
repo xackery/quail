@@ -3,6 +3,7 @@ package wce
 import (
 	"fmt"
 	"io"
+	"regexp"
 	"sort"
 	"strconv"
 	"strings"
@@ -33,6 +34,7 @@ func (wce *Wce) ReadWldRaw(src *raw.Wld) error {
 			continue
 		}
 		modelChunks[lastModelIndex] = strings.TrimSuffix(src.Name(actorDef.NameRef), "_ACTORDEF")
+		wce.modelTags = append(wce.modelTags, modelChunks[lastModelIndex])
 		lastModelIndex = i
 	}
 
@@ -512,52 +514,91 @@ func (wce *Wce) WriteWldRaw(w io.Writer) error {
 	return dst.Write(w)
 }
 
-func isAnimationPrefix(name string) bool {
-	m := regexAni.FindStringSubmatch(name)
+var (
+	regexAniNormal    = regexp.MustCompile(`^([A-Z])([0-9]{2})([A-Z]{3}).*`)
+	regexAniAlt       = regexp.MustCompile(`^([A-Z])([0-9]{2})([A-Z])([A-Z]{3}).*`)
+	regexAniAltSuffix = regexp.MustCompile(`^([A-Z])([0-9]{2}).*_([A-Z]{3})$`)
+	regexTrackNormal  = regexp.MustCompile(`^([A-Z]{3}).*`)
+)
+
+// returns model name (ELF, etc), sequence tag (C, P, etc), subsequence, sequence number
+// if sequence number is -1, it's a bone
+func (wce *Wce) trackTagAndSequence(tag string) (string, string, string, int) {
+	tag = strings.TrimSuffix(tag, "_TRACK")
+	tag = strings.TrimSuffix(tag, "_TRACKDEF")
+	m := regexTrackNormal.FindStringSubmatch(tag)
 	if len(m) > 1 {
-		return true
+		isFound := false
+		for _, modelTag := range wce.modelTags {
+			if modelTag != m[1] {
+				continue
+			}
+			isFound = true
+			break
+		}
+		if isFound {
+			return m[1], "", "", -1
+		}
 	}
-	m = regexAni2.FindStringSubmatch(name)
+	m = regexAniNormal.FindStringSubmatch(tag)
+	if len(m) > 3 {
+		isFound := false
+		for _, modelTag := range wce.modelTags {
+			if modelTag != m[3] {
+				continue
+			}
+			isFound = true
+			break
+		}
+		if isFound {
+			seq, err := strconv.Atoi(m[2])
+			if err == nil {
+				return m[3], m[1], "", seq
+			}
+		}
+	}
+
+	m = regexAniAlt.FindStringSubmatch(tag)
+	if len(m) > 4 {
+		isFound := false
+		for _, modelTag := range wce.modelTags {
+			if modelTag != m[4] {
+				continue
+			}
+			isFound = true
+			break
+		}
+		if isFound {
+			seq, err := strconv.Atoi(m[2])
+			if err == nil {
+				return m[4], m[1], m[3], seq
+			}
+		}
+	}
+	m = regexAniAltSuffix.FindStringSubmatch(tag)
 	if len(m) > 1 {
-		return true
+		isFound := false
+		for _, modelTag := range wce.modelTags {
+			if modelTag != m[3] {
+				continue
+			}
+			isFound = true
+			break
+		}
+		if isFound {
+			seq, err := strconv.Atoi(m[2])
+			if err == nil {
+				return m[3], m[1], "", -seq
+			}
+		}
 	}
-	return false
-	/*
-		 	if len(name) < 3 {
-				return false
-			}
 
-			name = strings.TrimSuffix(name, "_ani")
+	return "", "", "", -1
+}
 
-			firstUnderscore := strings.Index(name, "_")
-			if firstUnderscore < 0 {
-				return false
-			}
-
-			name = name[:firstUnderscore]
-			if len(name) < 3 {
-				return false
-			}
-
-			index := name[len(name)-2:]
-			prefix := name[len(name)-3 : len(name)-2]
-
-			isPrefix := false
-			letterPrefixes := []string{"C", "D", "L", "O", "S", "P", "T"}
-			for _, p := range letterPrefixes {
-				if prefix == p {
-					isPrefix = true
-					break
-				}
-			}
-
-			_, err := strconv.Atoi(index)
-			if err != nil {
-				return false
-			}
-
-			return isPrefix
-	*/
+func (wce *Wce) isTrackAni(tag string) bool {
+	_, _, _, seqNum := wce.trackTagAndSequence(tag)
+	return seqNum >= 0
 }
 
 func baseTagTrim(tag string) string {

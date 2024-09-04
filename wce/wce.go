@@ -13,6 +13,7 @@ var AsciiVersion = "v0.0.1"
 type Wce struct {
 	isVariationMaterial    bool   // set true while writing or reading variations
 	lastReadModelTag       string // last model tag read
+	modelTags              []string
 	maxMaterialHeads       map[string]int
 	maxMaterialTextures    map[string]int
 	tagIndexes             map[string]int // used when parsing to keep track of indexes
@@ -270,6 +271,7 @@ func (wce *Wce) NextTagIndex(tag string) int {
 func (wce *Wce) reset() {
 	wce.GlobalAmbientLightDef = nil
 	wce.lastReadModelTag = ""
+	wce.modelTags = []string{}
 	wce.tagIndexes = make(map[string]int)
 	wce.SimpleSpriteDefs = []*SimpleSpriteDef{}
 	wce.MaterialDefs = []*MaterialDef{}
