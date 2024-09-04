@@ -258,9 +258,9 @@ func (e *DMSpriteDef2) Write(token *AsciiWriteToken) error {
 	fmt.Fprintf(w, "\tNUMFACE2S %d\n", len(e.Faces))
 	fmt.Fprintf(w, "\n")
 	for i, face := range e.Faces {
-		fmt.Fprintf(w, "\tDMFACE2 //%d\n", i)
-		fmt.Fprintf(w, "\t\tPASSABLE %d\n", face.Passable)
-		fmt.Fprintf(w, "\t\tTRIANGLE %d %d %d\n", face.Triangle[0], face.Triangle[1], face.Triangle[2])
+		fmt.Fprintf(w, "\t\tDMFACE2 //%d\n", i)
+		fmt.Fprintf(w, "\t\t\tPASSABLE %d\n", face.Passable)
+		fmt.Fprintf(w, "\t\t\tTRIANGLE %d %d %d\n", face.Triangle[0], face.Triangle[1], face.Triangle[2])
 	}
 	fmt.Fprintf(w, "\n")
 

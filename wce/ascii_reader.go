@@ -200,6 +200,7 @@ func (a *AsciiReadToken) readDefinitions() error {
 		&Zone{},
 		&WorldDef{},
 		&MdsDef{},
+		&EQMaterialDef{},
 	}
 
 	definition := ""
@@ -408,6 +409,13 @@ func (a *AsciiReadToken) readDefinitions() error {
 				frag.Tag = args[1]
 				a.wce.MdsDefs = append(a.wce.MdsDefs, frag)
 				definitions[i] = &MdsDef{}
+			case *EQMaterialDef:
+				if len(args) == 1 {
+					return fmt.Errorf("definition %s has no arguments", defName)
+				}
+				frag.Tag = args[1]
+				a.wce.EQMaterialDefs = append(a.wce.EQMaterialDefs, frag)
+				definitions[i] = &EQMaterialDef{}
 			default:
 				return fmt.Errorf("unknown definition type for rebuild: %T", definitions[i])
 			}

@@ -46,6 +46,7 @@ type Wce struct {
 	MdsDefs                []*MdsDef
 	ModDefs                []*ModDef
 	TerDefs                []*TerDef
+	EQMaterialDefs         []*EQMaterialDef
 }
 
 type WldDefinitioner interface {
@@ -295,4 +296,5 @@ func (wce *Wce) reset() {
 	wce.MdsDefs = []*MdsDef{}
 	wce.ModDefs = []*ModDef{}
 	wce.TerDefs = []*TerDef{}
+	wce.EQMaterialDefs = []*EQMaterialDef{}
 }
