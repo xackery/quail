@@ -4184,20 +4184,26 @@ func (e *TrackInstance) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFrag
 }
 
 type TrackDef struct {
-	fragID          int16
-	model           string
-	Tag             string
-	TagIndex        int
-	SpriteTag       string
-	FrameTransforms []*TrackFrameTransform
+	fragID       int16
+	model        string
+	Tag          string
+	TagIndex     int
+	SpriteTag    string
+	Frames       []*Frame
+	LegacyFrames []*LegacyFrame
 }
 
-type TrackFrameTransform struct {
-	XYZScale       int16
-	XYZ            [3]int16
-	RotScale       NullInt16
-	Rotation       NullInt16Slice3
-	LegacyRotation NullFloat32Slice4
+type Frame struct {
+	XYZScale int16
+	XYZ      [3]int16
+	RotScale int16
+	Rotation [3]int16
+}
+
+type LegacyFrame struct {
+	XYZScale int16
+	XYZ      [3]int16
+	Rotation [4]float32
 }
 
 func (e *TrackDef) Definition() string {
@@ -4219,14 +4225,15 @@ func (e *TrackDef) Write(token *AsciiWriteToken) error {
 	fmt.Fprintf(w, "%s \"%s\"\n", e.Definition(), e.Tag)
 	fmt.Fprintf(w, "\tTAGINDEX %d\n", e.TagIndex)
 	fmt.Fprintf(w, "\tSPRITE \"%s_DMSPRITEDEF\"\n", e.SpriteTag)
-	fmt.Fprintf(w, "\tNUMFRAMES %d\n", len(e.FrameTransforms))
-	for _, frame := range e.FrameTransforms {
-		fmt.Fprintf(w, "\tFRAMETRANSFORM\n")
-		fmt.Fprintf(w, "\t\tXYZSCALE %d\n", frame.XYZScale)
-		fmt.Fprintf(w, "\t\tXYZ %d %d %d\n", frame.XYZ[0], frame.XYZ[1], frame.XYZ[2])
-		fmt.Fprintf(w, "\t\tROTSCALE? %s\n", wcVal(frame.RotScale))
-		fmt.Fprintf(w, "\t\tROTABC? %s\n", wcVal(frame.Rotation))
-		fmt.Fprintf(w, "\t\tLEGACYROTATIONABCD? %s\n", wcVal(frame.LegacyRotation))
+	fmt.Fprintf(w, "\tNUMFRAMES %d\n", len(e.Frames))
+	for _, frame := range e.Frames {
+		fmt.Fprintf(w, "\t\tFRAME %d %d %d %d ", frame.XYZScale, frame.XYZ[0], frame.XYZ[1], frame.XYZ[2])
+		fmt.Fprintf(w, "%d %d %d %d\n", frame.RotScale, frame.Rotation[0], frame.Rotation[1], frame.Rotation[2])
+	}
+	fmt.Fprintf(w, "\tNUMLEGACYFRAMES %d\n", len(e.LegacyFrames))
+	for _, frame := range e.LegacyFrames {
+		fmt.Fprintf(w, "\t\tLEGACYFRAME %d %d %d %d ", frame.XYZScale, frame.XYZ[0], frame.XYZ[1], frame.XYZ[2])
+		fmt.Fprintf(w, "%0.8f %0.8f %0.8f %0.8f\n", frame.Rotation[0], frame.Rotation[1], frame.Rotation[2], frame.Rotation[3])
 	}
 	fmt.Fprintf(w, "\n")
 
@@ -4260,58 +4267,75 @@ func (e *TrackDef) Read(token *AsciiReadToken) error {
 	}
 
 	for i := 0; i < numFrames; i++ {
-		frame := &TrackFrameTransform{}
-		_, err = token.ReadProperty("FRAMETRANSFORM", 0)
+		frame := &Frame{}
+		records, err = token.ReadProperty("FRAME", -1)
 		if err != nil {
 			return err
+		}
+		if len(records) != 9 {
+			return fmt.Errorf("frame: expected 9, got %d", len(records))
 		}
 
-		records, err = token.ReadProperty("XYZSCALE", 1)
-		if err != nil {
-			return err
-		}
 		err = parse(&frame.XYZScale, records[1])
 		if err != nil {
 			return fmt.Errorf("xyz scale: %w", err)
 		}
 
-		records, err = token.ReadProperty("XYZ", 3)
-		if err != nil {
-			return err
-		}
-		err = parse(&frame.XYZ, records[1:]...)
+		err = parse(&frame.XYZ, records[2:5]...)
 		if err != nil {
 			return fmt.Errorf("xyz: %w", err)
 		}
 
-		records, err = token.ReadProperty("ROTSCALE?", 1)
-		if err != nil {
-			return err
-		}
-		err = parse(&frame.RotScale, records[1])
+		err = parse(&frame.RotScale, records[5])
 		if err != nil {
 			return fmt.Errorf("rot scale: %w", err)
 		}
 
-		records, err = token.ReadProperty("ROTABC?", 3)
-		if err != nil {
-			return err
-		}
-		err = parse(&frame.Rotation, records[1:]...)
+		err = parse(&frame.Rotation, records[6:9]...)
 		if err != nil {
 			return fmt.Errorf("rotabc: %w", err)
 		}
 
-		records, err = token.ReadProperty("LEGACYROTATIONABCD?", 4)
+		e.Frames = append(e.Frames, frame)
+	}
+
+	records, err = token.ReadProperty("NUMLEGACYFRAMES", 1)
+	if err != nil {
+		return err
+	}
+	numFrames = int(0)
+	err = parse(&numFrames, records[1])
+	if err != nil {
+		return fmt.Errorf("num legacy frames: %w", err)
+	}
+
+	for i := 0; i < numFrames; i++ {
+		frame := &LegacyFrame{}
+		records, err = token.ReadProperty("LEGACYFRAME", -1)
 		if err != nil {
 			return err
 		}
-		err = parse(&frame.LegacyRotation, records[1:]...)
-		if err != nil {
-			return fmt.Errorf("legacy rotation: %w", err)
+
+		if len(records) != 9 {
+			return fmt.Errorf("legacy frame: expected 9, got %d", len(records))
 		}
 
-		e.FrameTransforms = append(e.FrameTransforms, frame)
+		err = parse(&frame.XYZScale, records[1])
+		if err != nil {
+			return fmt.Errorf("xyz scale: %w", err)
+		}
+
+		err = parse(&frame.XYZ, records[2:5]...)
+		if err != nil {
+			return fmt.Errorf("xyz: %w", err)
+		}
+
+		err = parse(&frame.Rotation, records[5:9]...)
+		if err != nil {
+			return fmt.Errorf("rotabc: %w", err)
+		}
+
+		e.LegacyFrames = append(e.LegacyFrames, frame)
 	}
 
 	return nil
@@ -4324,52 +4348,39 @@ func (e *TrackDef) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
 
 	wfTrack := &rawfrag.WldFragTrackDef{}
 
-	for _, frame := range e.FrameTransforms {
+	for _, frame := range e.Frames {
 		wfFrame := rawfrag.WldFragTrackBoneTransform{
 			ShiftDenominator: frame.XYZScale,
 		}
 
-		//scale := float32(1.0)
-		/* if frame.XYZScale > 0 {
-			scale = float32(1 / float32(int(1)<<int(frame.XYZScale)))
+		wfFrame.Shift = frame.XYZ
+
+		wfFrame.RotateDenominator = frame.RotScale
+
+		wfTrack.Flags |= 0x08
+
+		wfFrame.Rotation = [4]int16{
+			frame.Rotation[0],
+			frame.Rotation[1],
+			frame.Rotation[2],
+			0,
 		}
-		if frame.XYZScale < 0 {
-			scale = float32(math.Pow(2, float64(-frame.XYZScale)))
-		} */
+
+		wfTrack.FrameTransforms = append(wfTrack.FrameTransforms, wfFrame)
+	}
+
+	for _, frame := range e.LegacyFrames {
+		wfFrame := rawfrag.WldFragTrackBoneTransform{
+			ShiftDenominator: frame.XYZScale,
+		}
 
 		wfFrame.Shift = frame.XYZ
 
-		if frame.RotScale.Valid {
-			wfFrame.RotateDenominator = frame.RotScale.Int16
-
-			wfTrack.Flags |= 0x08
-
-			wfFrame.Rotation = [4]int16{
-				frame.Rotation.Int16Slice3[0],
-				frame.Rotation.Int16Slice3[1],
-				frame.Rotation.Int16Slice3[2],
-				0,
-			}
-		}
-
-		if !frame.RotScale.Valid {
-			if !frame.LegacyRotation.Valid {
-				return -1, fmt.Errorf("rotscale was set, but legacyrotationabcd is null")
-			}
-			//scale = 1
-			/* if frame.RotScale.Int16 > 0 {
-				scale = float32(1 / float32(int(1)<<int(frame.RotScale.Int16)))
-			}
-			if !frame.Rotation.Valid {
-				return -1, fmt.Errorf("rotscale was set but not rotationabc")
-			} */
-
-			wfFrame.Rotation = [4]int16{
-				int16(frame.LegacyRotation.Float32Slice4[0]),
-				int16(frame.LegacyRotation.Float32Slice4[1]),
-				int16(frame.LegacyRotation.Float32Slice4[2]),
-				int16(frame.LegacyRotation.Float32Slice4[3]),
-			}
+		wfFrame.Rotation = [4]int16{
+			int16(frame.Rotation[0]),
+			int16(frame.Rotation[1]),
+			int16(frame.Rotation[2]),
+			int16(frame.Rotation[3]),
 		}
 
 		wfTrack.FrameTransforms = append(wfTrack.FrameTransforms, wfFrame)
@@ -4396,43 +4407,44 @@ func (e *TrackDef) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragTrack
 	e.model = wce.lastReadModelTag
 
 	for _, fragFrame := range frag.FrameTransforms {
-		frame := &TrackFrameTransform{
-			XYZScale: fragFrame.ShiftDenominator,
-		}
-		scale := float32(1.0)
+		//scale := float32(1.0)
 		/* if fragFrame.ShiftDenominator > 0 {
 			scale = 1.0 / float32(int(1<<fragFrame.ShiftDenominator))
 		}
 		if fragFrame.ShiftDenominator < 0 {
 			scale = float32(math.Pow(2, float64(-fragFrame.ShiftDenominator)))
 		} */
-		frame.XYZ = fragFrame.Shift
+		//frame.XYZ = fragFrame.Shift
 
 		if frag.Flags&0x08 != 0 {
-			frame.RotScale.Valid = true
-			frame.RotScale.Int16 = fragFrame.RotateDenominator
-			scale = float32(1)
+			frame := &Frame{
+				XYZScale: fragFrame.ShiftDenominator,
+				XYZ:      fragFrame.Shift,
+			}
+
+			frame.RotScale = fragFrame.RotateDenominator
 			//if fragFrame.RotateDenominator > 0 {
 			//	scale = 1.0 / float32(int(1<<fragFrame.RotateDenominator))
 			//}
-			frame.Rotation.Valid = true
-			frame.Rotation.Int16Slice3 = [3]int16{
+			frame.Rotation = [3]int16{
 				fragFrame.Rotation[0],
 				fragFrame.Rotation[1],
 				fragFrame.Rotation[2],
 			}
+			e.Frames = append(e.Frames, frame)
 		} else {
-			frame.RotScale.Valid = false
-			frame.LegacyRotation.Valid = true
-			frame.LegacyRotation.Float32Slice4 = [4]float32{
-				float32(fragFrame.Rotation[0]) / scale,
-				float32(fragFrame.Rotation[1]) / scale,
-				float32(fragFrame.Rotation[2]) / scale,
-				float32(fragFrame.Rotation[3]) / scale,
+			frame := &LegacyFrame{
+				XYZScale: fragFrame.ShiftDenominator,
+				XYZ:      fragFrame.Shift,
 			}
+			frame.Rotation = [4]float32{
+				float32(fragFrame.Rotation[0]),
+				float32(fragFrame.Rotation[1]),
+				float32(fragFrame.Rotation[2]),
+				float32(fragFrame.Rotation[3]),
+			}
+			e.LegacyFrames = append(e.LegacyFrames, frame)
 		}
-
-		e.FrameTransforms = append(e.FrameTransforms, frame)
 	}
 
 	return nil
