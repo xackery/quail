@@ -308,7 +308,7 @@ func (wce *Wce) writeAsciiData(path string, baseTags []string) error {
 			return fmt.Errorf("track %s tag too short", track.Tag)
 		}
 		if len(track.SpriteTag) < 3 {
-			return fmt.Errorf("track %s model too short", track.Tag)
+			return fmt.Errorf("track %s model too short (%s)", track.Tag, track.SpriteTag)
 		}
 
 		tag := track.model

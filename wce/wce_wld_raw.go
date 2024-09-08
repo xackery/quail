@@ -292,6 +292,8 @@ func (wce *Wce) WriteWldRaw(w io.Writer) error {
 		}
 	}
 
+	wce.modelTags = []string{}
+
 	if wce.WorldDef.Zone != 1 {
 		baseTags := []string{}
 		for _, actorDef := range wce.ActorDefs {
@@ -308,6 +310,7 @@ func (wce *Wce) WriteWldRaw(w io.Writer) error {
 			if isUnique {
 				baseTags = append(baseTags, baseTagTrim(actorDef.Tag))
 			}
+			wce.modelTags = append(wce.modelTags, baseTagTrim(actorDef.Tag))
 		}
 
 		//sort.Strings(baseTags)
@@ -407,7 +410,8 @@ func (wce *Wce) WriteWldRaw(w io.Writer) error {
 			}
 
 			for _, track := range wce.TrackInstances {
-				if !track.Sleep.Valid {
+
+				if wce.isTrackAni(track.Tag) {
 					continue
 				}
 
