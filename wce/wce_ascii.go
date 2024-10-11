@@ -505,7 +505,8 @@ func (wce *Wce) writeAsciiData(path string, baseTags []string) error {
 		if baseTag != "PLAYER" &&
 			!token.IsWriterUsed(baseTag) &&
 			!token.IsWriterUsed(baseTag+"_ani") {
-			return fmt.Errorf("tag %s was never used for model or ani", baseTag)
+			fmt.Println("Tag", baseTag, "was never used for model or ani (can be ignored)")
+			//			return fmt.Errorf("tag %s was never used for model or ani", baseTag)
 		}
 
 		modelW, err := os.Create(fmt.Sprintf("%s/%s/_root.wce", path, strings.ToLower(baseTag)))

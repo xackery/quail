@@ -221,22 +221,22 @@ func (e *DMSpriteDef2) Write(token *AsciiWriteToken) error {
 	fmt.Fprintf(w, "\n")
 	fmt.Fprintf(w, "\tNUMVERTICES %d\n", len(e.Vertices))
 	for _, vert := range e.Vertices {
-		fmt.Fprintf(w, "\tXYZ %0.8e %0.8e %0.8e\n", vert[0], vert[1], vert[2])
+		fmt.Fprintf(w, "\t\tXYZ %0.8e %0.8e %0.8e\n", vert[0], vert[1], vert[2])
 	}
 	fmt.Fprintf(w, "\n")
 	fmt.Fprintf(w, "\tNUMUVS %d\n", len(e.UVs))
 	for _, uv := range e.UVs {
-		fmt.Fprintf(w, "\tUV %0.8e %0.8e\n", uv[0], uv[1])
+		fmt.Fprintf(w, "\t\tUV %0.8e %0.8e\n", uv[0], uv[1])
 	}
 	fmt.Fprintf(w, "\n")
 	fmt.Fprintf(w, "\tNUMVERTEXNORMALS %d\n", len(e.VertexNormals))
 	for _, vn := range e.VertexNormals {
-		fmt.Fprintf(w, "\tXYZ %0.8e %0.8e %0.8e\n", vn[0], vn[1], vn[2])
+		fmt.Fprintf(w, "\t\tXYZ %0.8e %0.8e %0.8e\n", vn[0], vn[1], vn[2])
 	}
 	fmt.Fprintf(w, "\n")
 	fmt.Fprintf(w, "\tNUMVERTEXCOLORS %d\n", len(e.VertexColors))
 	for _, color := range e.VertexColors {
-		fmt.Fprintf(w, "\tRGBA %d %d %d %d\n", color[0], color[1], color[2], color[3])
+		fmt.Fprintf(w, "\t\tRGBA %d %d %d %d\n", color[0], color[1], color[2], color[3])
 	}
 	fmt.Fprintf(w, "\n")
 	fmt.Fprintf(w, "\n")
@@ -281,8 +281,8 @@ func (e *DMSpriteDef2) Write(token *AsciiWriteToken) error {
 	fmt.Fprintf(w, "\tFPSCALE %d\n", e.FPScale)
 	fmt.Fprintf(w, "\tHEXONEFLAG %d\n", e.HexOneFlag)
 	fmt.Fprintf(w, "\tHEXTWOFLAG %d\n", e.HexTwoFlag)
-	fmt.Fprintf(w, "\tHEXFOURTOUSANDFLAG %d\n", e.HexFourThousandFlag)
-	fmt.Fprintf(w, "\tHEXEIGHTTOUSANDFLAG %d\n", e.HexEightThousandFlag)
+	fmt.Fprintf(w, "\tHEXFOURTHOUSANDFLAG %d\n", e.HexFourThousandFlag)
+	fmt.Fprintf(w, "\tHEXEIGHTTHOUSANDFLAG %d\n", e.HexEightThousandFlag)
 	fmt.Fprintf(w, "\tHEXTENTHOUSANDFLAG %d\n", e.HexTenThousandFlag)
 	fmt.Fprintf(w, "\tHEXTWENTYTHOUSANDFLAG %d\n", e.HexTwentyThousandFlag)
 
@@ -611,7 +611,7 @@ func (e *DMSpriteDef2) Read(token *AsciiReadToken) error {
 		return fmt.Errorf("hextwoflag: %w", err)
 	}
 
-	records, err = token.ReadProperty("HEXFOURTOUSANDFLAG", 1)
+	records, err = token.ReadProperty("HEXFOURTHOUSANDFLAG", 1)
 	if err != nil {
 		return err
 	}
@@ -620,7 +620,7 @@ func (e *DMSpriteDef2) Read(token *AsciiReadToken) error {
 		return fmt.Errorf("hexfourthousandflag: %w", err)
 	}
 
-	records, err = token.ReadProperty("HEXEIGHTTOUSANDFLAG", 1)
+	records, err = token.ReadProperty("HEXEIGHTTHOUSANDFLAG", 1)
 	if err != nil {
 		return err
 	}
@@ -1864,7 +1864,7 @@ func (e *SimpleSpriteDef) Write(token *AsciiWriteToken) error {
 	fmt.Fprintf(w, "\tCURRENTFRAME? %s\n", wcVal(e.CurrentFrame))
 	fmt.Fprintf(w, "\tNUMFRAMES %d\n", len(e.SimpleSpriteFrames))
 	for _, frame := range e.SimpleSpriteFrames {
-		fmt.Fprintf(w, "\tFRAME \"%s\" \"%s\"\n", frame.TextureFile, frame.TextureTag)
+		fmt.Fprintf(w, "\t\tFRAME \"%s\" \"%s\"\n", frame.TextureFile, frame.TextureTag)
 	}
 	fmt.Fprintf(w, "\n")
 	return nil
@@ -2163,14 +2163,14 @@ func (e *ActorDef) Write(token *AsciiWriteToken) error {
 	fmt.Fprintf(w, "\tACTIVEGEOMETRY? %s\n", wcVal(e.ActiveGeometry))
 	fmt.Fprintf(w, "\tNUMACTIONS %d\n", len(e.Actions))
 	for _, action := range e.Actions {
-		fmt.Fprintf(w, "\tACTION\n")
-		fmt.Fprintf(w, "\t\tUNK1 %d\n", action.Unk1)
-		fmt.Fprintf(w, "\t\tNUMLEVELSOFDETAIL %d\n", len(action.LevelOfDetails))
+		fmt.Fprintf(w, "\t\tACTION\n")
+		fmt.Fprintf(w, "\t\t\tUNK1 %d\n", action.Unk1)
+		fmt.Fprintf(w, "\t\t\tNUMLEVELSOFDETAIL %d\n", len(action.LevelOfDetails))
 		for _, lod := range action.LevelOfDetails {
-			fmt.Fprintf(w, "\t\tLEVELOFDETAIL\n")
-			fmt.Fprintf(w, "\t\t\tSPRITE \"%s\"\n", lod.SpriteTag)
-			fmt.Fprintf(w, "\t\t\tSPRITEINDEX %d\n", lod.SpriteTagIndex)
-			fmt.Fprintf(w, "\t\t\tMINDISTANCE %0.8e\n", lod.MinDistance)
+			fmt.Fprintf(w, "\t\t\t\tLEVELOFDETAIL\n")
+			fmt.Fprintf(w, "\t\t\t\t\tSPRITE \"%s\"\n", lod.SpriteTag)
+			fmt.Fprintf(w, "\t\t\t\t\tSPRITEINDEX %d\n", lod.SpriteTagIndex)
+			fmt.Fprintf(w, "\t\t\t\t\tMINDISTANCE %0.8e\n", lod.MinDistance)
 		}
 	}
 	fmt.Fprintf(w, "\tUNK2 %d\n", e.Unk2)
@@ -2997,13 +2997,13 @@ func (e *LightDef) Write(token *AsciiWriteToken) error {
 	fmt.Fprintf(w, "\tCURRENTFRAME? %s\n", wcVal(e.CurrentFrame))
 	fmt.Fprintf(w, "\tNUMFRAMES %d\n", len(e.LightLevels))
 	for _, level := range e.LightLevels {
-		fmt.Fprintf(w, "\tLIGHTLEVELS %0.8f\n", level)
+		fmt.Fprintf(w, "\t\tLIGHTLEVELS %0.8f\n", level)
 	}
 	fmt.Fprintf(w, "\tSLEEP? %s\n", wcVal(e.Sleep))
 	fmt.Fprintf(w, "\tSKIPFRAMES %d\n", e.SkipFrames)
 	fmt.Fprintf(w, "\tNUMCOLORS %d\n", len(e.Colors))
 	for _, color := range e.Colors {
-		fmt.Fprintf(w, "\tCOLOR %0.8f %0.8f %0.8f\n", color[0], color[1], color[2])
+		fmt.Fprintf(w, "\t\tCOLOR %0.8f %0.8f %0.8f\n", color[0], color[1], color[2])
 	}
 	fmt.Fprintf(w, "\n")
 	return nil
@@ -3400,12 +3400,12 @@ func (e *Sprite3DDef) Write(token *AsciiWriteToken) error {
 	fmt.Fprintf(w, "\tSPHERELIST \"%s\"\n", e.SphereListTag)
 	fmt.Fprintf(w, "\tNUMVERTICES %d\n", len(e.Vertices))
 	for _, vert := range e.Vertices {
-		fmt.Fprintf(w, "\tXYZ %0.8e %0.8e %0.8e\n", vert[0], vert[1], vert[2])
+		fmt.Fprintf(w, "\t\tXYZ %0.8e %0.8e %0.8e\n", vert[0], vert[1], vert[2])
 	}
 	fmt.Fprintf(w, "\tNUMBSPNODES %d\n", len(e.BSPNodes))
 	for i, node := range e.BSPNodes {
-		fmt.Fprintf(w, "\tBSPNODE //%d\n", i)
-		fmt.Fprintf(w, "\t\tVERTEXLIST %d", len(node.Vertices))
+		fmt.Fprintf(w, "\t\tBSPNODE //%d\n", i)
+		fmt.Fprintf(w, "\t\t\tVERTEXLIST %d", len(node.Vertices))
 		for _, vert := range node.Vertices {
 			fmt.Fprintf(w, " %d", vert)
 		}
@@ -3847,11 +3847,11 @@ func (e *PolyhedronDefinition) Write(token *AsciiWriteToken) error {
 	fmt.Fprintf(w, "\tSCALEFACTOR %0.8e\n", e.ScaleFactor)
 	fmt.Fprintf(w, "\tNUMVERTICES %d\n", len(e.Vertices))
 	for _, vert := range e.Vertices {
-		fmt.Fprintf(w, "\tXYZ %0.8e %0.8e %0.8e\n", vert[0], vert[1], vert[2])
+		fmt.Fprintf(w, "\t\tXYZ %0.8e %0.8e %0.8e\n", vert[0], vert[1], vert[2])
 	}
 	fmt.Fprintf(w, "\tNUMFACES %d\n", len(e.Faces))
 	for _, faces := range e.Faces {
-		fmt.Fprintf(w, "\tVERTEXLIST %d", len(faces))
+		fmt.Fprintf(w, "\t\tVERTEXLIST %d", len(faces))
 		for _, face := range faces {
 			fmt.Fprintf(w, " %d", face)
 		}
@@ -4541,12 +4541,12 @@ func (e *HierarchicalSpriteDef) Write(token *AsciiWriteToken) error {
 	fmt.Fprintf(w, "%s \"%s\"\n", e.Definition(), e.Tag)
 	fmt.Fprintf(w, "\tNUMDAGS %d\n", len(e.Dags))
 	for i, dag := range e.Dags {
-		fmt.Fprintf(w, "\tDAG // %d\n", i)
-		fmt.Fprintf(w, "\t\tTAG \"%s\"\n", dag.Tag)
-		fmt.Fprintf(w, "\t\tSPRITE \"%s\"\n", dag.SpriteTag)
-		fmt.Fprintf(w, "\t\tTRACK \"%s\"\n", dag.Track)
-		fmt.Fprintf(w, "\t\tTRACKINDEX %d\n", dag.TrackIndex)
-		fmt.Fprintf(w, "\t\tSUBDAGLIST %d", len(dag.SubDags))
+		fmt.Fprintf(w, "\t\tDAG // %d\n", i)
+		fmt.Fprintf(w, "\t\t\tTAG \"%s\"\n", dag.Tag)
+		fmt.Fprintf(w, "\t\t\tSPRITE \"%s\"\n", dag.SpriteTag)
+		fmt.Fprintf(w, "\t\t\tTRACK \"%s\"\n", dag.Track)
+		fmt.Fprintf(w, "\t\t\tTRACKINDEX %d\n", dag.TrackIndex)
+		fmt.Fprintf(w, "\t\t\tSUBDAGLIST %d", len(dag.SubDags))
 		for _, subDag := range dag.SubDags {
 			fmt.Fprintf(w, " %d", subDag)
 		}
@@ -4556,9 +4556,9 @@ func (e *HierarchicalSpriteDef) Write(token *AsciiWriteToken) error {
 	fmt.Fprintf(w, "\tNUMATTACHEDSKINS %d\n", len(e.AttachedSkins))
 
 	for _, skin := range e.AttachedSkins {
-		fmt.Fprintf(w, "\tATTACHEDSKIN\n")
-		fmt.Fprintf(w, "\t\tDMSPRITE \"%s\"\n", skin.DMSpriteTag)
-		fmt.Fprintf(w, "\t\tLINKSKINUPDATESTODAGINDEX %d\n", skin.LinkSkinUpdatesToDagIndex)
+		fmt.Fprintf(w, "\t\tATTACHEDSKIN\n")
+		fmt.Fprintf(w, "\t\t\tDMSPRITE \"%s\"\n", skin.DMSpriteTag)
+		fmt.Fprintf(w, "\t\t\tLINKSKINUPDATESTODAGINDEX %d\n", skin.LinkSkinUpdatesToDagIndex)
 	}
 	fmt.Fprintf(w, "\n")
 
@@ -4741,7 +4741,8 @@ func (e *HierarchicalSpriteDef) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) 
 		e.PolyhedronTag != "SPECIAL_COLLISION" {
 		collusionDef := wce.ByTag(e.PolyhedronTag)
 		if collusionDef == nil {
-			return -1, fmt.Errorf("collision volume not found: %s", e.PolyhedronTag)
+			fmt.Printf("collision volume not found: %s\n", e.PolyhedronTag)
+			//			return -1, fmt.Errorf("collision volume not found: %s", e.PolyhedronTag)
 		}
 		collisionTag := ""
 		switch sprite := collusionDef.(type) {
@@ -4751,6 +4752,7 @@ func (e *HierarchicalSpriteDef) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) 
 			collisionTag = sprite.Tag
 		case *DMSpriteDef:
 			collisionTag = sprite.Tag
+		case nil:
 		default:
 			return -1, fmt.Errorf("unsupported collision volume type: %T", collusionDef)
 		}
@@ -5161,11 +5163,11 @@ func (e *WorldTree) Write(token *AsciiWriteToken) error {
 	fmt.Fprintf(w, "%s \"%s\"\n", e.Definition(), e.Tag)
 	fmt.Fprintf(w, "\tNUMWORLDNODES %d\n", len(e.WorldNodes))
 	for i, node := range e.WorldNodes {
-		fmt.Fprintf(w, "\tWORLDNODE // %d\n", i)
-		fmt.Fprintf(w, "\t\tNORMALABCD %0.8e %0.8e %0.8e %0.8e\n", node.Normals[0], node.Normals[1], node.Normals[2], node.Normals[3])
-		fmt.Fprintf(w, "\t\tWORLDREGIONTAG \"%s\"\n", node.WorldRegionTag)
-		fmt.Fprintf(w, "\t\tFRONTTREE %d\n", node.FrontTree)
-		fmt.Fprintf(w, "\t\tBACKTREE %d\n", node.BackTree)
+		fmt.Fprintf(w, "\t\tWORLDNODE // %d\n", i)
+		fmt.Fprintf(w, "\t\t\tNORMALABCD %0.8e %0.8e %0.8e %0.8e\n", node.Normals[0], node.Normals[1], node.Normals[2], node.Normals[3])
+		fmt.Fprintf(w, "\t\t\tWORLDREGIONTAG \"%s\"\n", node.WorldRegionTag)
+		fmt.Fprintf(w, "\t\t\tFRONTTREE %d\n", node.FrontTree)
+		fmt.Fprintf(w, "\t\t\tBACKTREE %d\n", node.BackTree)
 	}
 	fmt.Fprintf(w, "\n")
 	return nil
@@ -5371,52 +5373,52 @@ func (e *Region) Write(token *AsciiWriteToken) error {
 	fmt.Fprintf(w, "\tVISLISTBYTES %d\n", e.VisListBytes)
 	fmt.Fprintf(w, "\tNUMREGIONVERTEX %d\n", len(e.RegionVertices))
 	for _, vert := range e.RegionVertices {
-		fmt.Fprintf(w, "\tXYZ %0.8e %0.8e %0.8e\n", vert[0], vert[1], vert[2])
+		fmt.Fprintf(w, "\t\tXYZ %0.8e %0.8e %0.8e\n", vert[0], vert[1], vert[2])
 	}
 	fmt.Fprintf(w, "\tNUMRENDERVERTICES %d\n", len(e.RenderVertices))
 	for _, vert := range e.RenderVertices {
-		fmt.Fprintf(w, "\tXYZ %0.8e %0.8e %0.8e\n", vert[0], vert[1], vert[2])
+		fmt.Fprintf(w, "\t\tXYZ %0.8e %0.8e %0.8e\n", vert[0], vert[1], vert[2])
 	}
 	fmt.Fprintf(w, "\tNUMWALLS %d\n", len(e.Walls))
 	for i, wall := range e.Walls {
-		fmt.Fprintf(w, "\tWALL // %d\n", i)
-		fmt.Fprintf(w, "\t\tNORMALABCD %0.8e %0.8e %0.8e %0.8e\n", wall.Normal[0], wall.Normal[1], wall.Normal[2], wall.Normal[3])
-		fmt.Fprintf(w, "\t\tNUMVERTICES %d\n", len(wall.Vertices))
+		fmt.Fprintf(w, "\t\tWALL // %d\n", i)
+		fmt.Fprintf(w, "\t\t\tNORMALABCD %0.8e %0.8e %0.8e %0.8e\n", wall.Normal[0], wall.Normal[1], wall.Normal[2], wall.Normal[3])
+		fmt.Fprintf(w, "\t\t\tNUMVERTICES %d\n", len(wall.Vertices))
 		for _, vert := range wall.Vertices {
-			fmt.Fprintf(w, "\t\tXYZ %0.8e %0.8e %0.8e\n", vert[0], vert[1], vert[2])
+			fmt.Fprintf(w, "\t\t\t\tXYZ %0.8e %0.8e %0.8e\n", vert[0], vert[1], vert[2])
 		}
 	}
 	fmt.Fprintf(w, "\tNUMOBSTACLES %d\n", len(e.Obstacles))
 	for i, obs := range e.Obstacles {
-		fmt.Fprintf(w, "\tOBSTACLE // %d\n", i)
-		fmt.Fprintf(w, "\t\tNORMALABCD %0.8e %0.8e %0.8e %0.8e\n", obs.Normal[0], obs.Normal[1], obs.Normal[2], obs.Normal[3])
-		fmt.Fprintf(w, "\t\tNUMVERTICES %d\n", len(obs.Vertices))
+		fmt.Fprintf(w, "\t\tOBSTACLE // %d\n", i)
+		fmt.Fprintf(w, "\t\t\tNORMALABCD %0.8e %0.8e %0.8e %0.8e\n", obs.Normal[0], obs.Normal[1], obs.Normal[2], obs.Normal[3])
+		fmt.Fprintf(w, "\t\t\tNUMVERTICES %d\n", len(obs.Vertices))
 		for _, vert := range obs.Vertices {
-			fmt.Fprintf(w, "\t\tXYZ %0.8e %0.8e %0.8e\n", vert[0], vert[1], vert[2])
+			fmt.Fprintf(w, "\t\t\t\tXYZ %0.8e %0.8e %0.8e\n", vert[0], vert[1], vert[2])
 		}
 	}
 	fmt.Fprintf(w, "\tNUMCUTTINGOBSTACLES %d\n", len(e.CuttingObstacles))
 	for i, obs := range e.CuttingObstacles {
-		fmt.Fprintf(w, "\tCUTTINGOBSTACLE // %d\n", i)
-		fmt.Fprintf(w, "\t\tNORMALABCD %0.8e %0.8e %0.8e %0.8e\n", obs.Normal[0], obs.Normal[1], obs.Normal[2], obs.Normal[3])
-		fmt.Fprintf(w, "\t\tNUMVERTICES %d\n", len(obs.Vertices))
+		fmt.Fprintf(w, "\t\tCUTTINGOBSTACLE // %d\n", i)
+		fmt.Fprintf(w, "\t\t\tNORMALABCD %0.8e %0.8e %0.8e %0.8e\n", obs.Normal[0], obs.Normal[1], obs.Normal[2], obs.Normal[3])
+		fmt.Fprintf(w, "\t\t\tNUMVERTICES %d\n", len(obs.Vertices))
 		for _, vert := range obs.Vertices {
-			fmt.Fprintf(w, "\t\tXYZ %0.8e %0.8e %0.8e\n", vert[0], vert[1], vert[2])
+			fmt.Fprintf(w, "\t\t\t\tXYZ %0.8e %0.8e %0.8e\n", vert[0], vert[1], vert[2])
 		}
 	}
 	fmt.Fprintf(w, "\tVISTREE\n")
 	fmt.Fprintf(w, "\t\tNUMVISNODE %d\n", len(e.VisTree.VisNodes))
 	for i, node := range e.VisTree.VisNodes {
-		fmt.Fprintf(w, "\t\tVISNODE // %d\n", i)
-		fmt.Fprintf(w, "\t\t\tNORMALABCD %0.8e %0.8e %0.8e %0.8e\n", node.Normal[0], node.Normal[1], node.Normal[2], node.Normal[3])
-		fmt.Fprintf(w, "\t\t\tVISLISTINDEX %d\n", node.VisListIndex)
-		fmt.Fprintf(w, "\t\t\tFRONTTREE %d\n", node.FrontTree)
-		fmt.Fprintf(w, "\t\t\tBACKTREE %d\n", node.BackTree)
+		fmt.Fprintf(w, "\t\t\tVISNODE // %d\n", i)
+		fmt.Fprintf(w, "\t\t\t\tNORMALABCD %0.8e %0.8e %0.8e %0.8e\n", node.Normal[0], node.Normal[1], node.Normal[2], node.Normal[3])
+		fmt.Fprintf(w, "\t\t\t\tVISLISTINDEX %d\n", node.VisListIndex)
+		fmt.Fprintf(w, "\t\t\t\tFRONTTREE %d\n", node.FrontTree)
+		fmt.Fprintf(w, "\t\t\t\tBACKTREE %d\n", node.BackTree)
 	}
 	fmt.Fprintf(w, "\t\tNUMVISIBLELIST %d\n", len(e.VisTree.VisLists))
 	for i, list := range e.VisTree.VisLists {
-		fmt.Fprintf(w, "\t\tVISLIST // %d\n", i)
-		fmt.Fprintf(w, "\t\t\tRANGE %d", len(list.Ranges))
+		fmt.Fprintf(w, "\t\t\tVISLIST // %d\n", i)
+		fmt.Fprintf(w, "\t\t\t\tRANGE %d", len(list.Ranges))
 		for _, val := range list.Ranges {
 			fmt.Fprintf(w, " %d", val)
 		}
@@ -7416,7 +7418,7 @@ func (e *DMTrackDef2) Write(token *AsciiWriteToken) error {
 
 	fmt.Fprintf(w, "\tNUMFRAMES %d\n", len(e.Frames))
 	for _, vertFrames := range e.Frames {
-		fmt.Fprintf(w, "\tNUMVERTICES %d\n", len(vertFrames))
+		fmt.Fprintf(w, "\t\tNUMVERTICES %d\n", len(vertFrames))
 		for _, frame := range vertFrames {
 			fmt.Fprintf(w, "\t\tXYZ %d %d %d\n", frame[0], frame[1], frame[2])
 		}
