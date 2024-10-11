@@ -196,7 +196,12 @@ func (wce *Wce) writeAsciiData(path string, baseTags []string) error {
 
 	err := token.AddWriter("world", fmt.Sprintf("%s/world.wce", path))
 	if err != nil {
-		return fmt.Errorf("add writer: %w", err)
+		return fmt.Errorf("add world writer: %w", err)
+	}
+
+	err = token.AddWriter("region", fmt.Sprintf("%s/region.wce", path))
+	if err != nil {
+		return fmt.Errorf("add region writer: %w", err)
 	}
 
 	for _, baseTag := range baseTags {
@@ -263,7 +268,7 @@ func (wce *Wce) writeAsciiData(path string, baseTags []string) error {
 	for _, region := range wce.Regions {
 		err = token.SetWriter("R")
 		if err != nil {
-			return fmt.Errorf("set region %s writer: %w", region.Tag, err)
+			return fmt.Errorf("set R %s writer: %w", region.Tag, err)
 		}
 
 		err = region.Write(token)
@@ -497,6 +502,15 @@ func (wce *Wce) writeAsciiData(path string, baseTags []string) error {
 		err = os.Remove(fmt.Sprintf("%s/world.wce", path))
 		if err != nil {
 			return fmt.Errorf("remove %s: %w", fmt.Sprintf("%s/world.wce", path), err)
+		}
+	}
+
+	if token.IsWriterUsed("region") {
+		rootW.WriteString("INCLUDE \"REGION.WCE\"\n")
+	} else {
+		err = os.Remove(fmt.Sprintf("%s/region.wce", path))
+		if err != nil {
+			return fmt.Errorf("remove %s: %w", fmt.Sprintf("%s/region.wce", path), err)
 		}
 	}
 

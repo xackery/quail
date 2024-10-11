@@ -5349,10 +5349,8 @@ func (e *Region) Definition() string {
 }
 
 func (e *Region) Write(token *AsciiWriteToken) error {
-	w, err := token.Writer()
-	if err != nil {
-		return err
-	}
+	var err error
+
 	if e.SpriteTag != "" {
 		sprite := token.wce.ByTag(e.SpriteTag)
 		if sprite == nil {
@@ -5362,6 +5360,14 @@ func (e *Region) Write(token *AsciiWriteToken) error {
 		if err != nil {
 			return fmt.Errorf("sprite write: %w", err)
 		}
+	}
+	err = token.SetWriter("region")
+	if err != nil {
+		return fmt.Errorf("set writer region: %w", err)
+	}
+	w, err := token.Writer()
+	if err != nil {
+		return fmt.Errorf("get writer region: %w", err)
 	}
 
 	fmt.Fprintf(w, "%s \"%s\"\n", e.Definition(), e.Tag)
