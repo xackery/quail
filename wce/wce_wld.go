@@ -1465,6 +1465,7 @@ func (e *MaterialPalette) Write(token *AsciiWriteToken) error {
 	if token.TagIsWritten(e.Tag) {
 		return nil
 	}
+	token.TagSetIsWritten(e.Tag)
 
 	for _, materialTag := range e.Materials {
 		materialDef := token.wce.ByTag(materialTag)
