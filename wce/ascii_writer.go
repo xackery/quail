@@ -36,7 +36,11 @@ func (a *AsciiWriteToken) TagSetIsWritten(tag string) {
 }
 
 func (a *AsciiWriteToken) TagClearIsWritten() {
-	a.writtenDefs = make(map[string]bool)
+	for k := range a.writtenDefs {
+		if strings.Contains(k, "_MDF_") {
+			delete(a.writtenDefs, k)
+		}
+	}
 }
 
 func (a *AsciiWriteToken) Writer() (*os.File, error) {
