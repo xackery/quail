@@ -5043,11 +5043,11 @@ func (e *HierarchicalSpriteDef) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag
 				return fmt.Errorf("dag %d mesh or sprite or particle ref %d not found", i, dag.MeshOrSpriteOrParticleRef)
 			}
 
-			spriteRef := int16(0)
+			spriteRef := int32(0)
 
 			switch sprite := spriteFrag.(type) {
 			case *rawfrag.WldFragDMSprite:
-				spriteRef = int16(sprite.DMSpriteRef)
+				spriteRef = sprite.DMSpriteRef
 			case *rawfrag.WldFragParticleCloudDef:
 				spriteTag = rawWld.Name(sprite.NameRef)
 				//				spriteRef = int16(sprite.BlitSpriteRef)
