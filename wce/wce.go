@@ -13,6 +13,7 @@ var AsciiVersion = "v0.0.1"
 type Wce struct {
 	isVariationMaterial    bool   // set true while writing or reading variations
 	lastReadModelTag       string // last model tag read
+	isObj                  bool   // true when a _obj suffix is found in path
 	modelTags              []string
 	maxMaterialHeads       map[string]int
 	maxMaterialTextures    map[string]int
@@ -57,8 +58,11 @@ type WldDefinitioner interface {
 }
 
 func New(filename string) *Wce {
+
+	isObj := strings.Contains(filename, "_obj")
 	return &Wce{
 		FileName:              filename,
+		isObj:                 isObj,
 		maxMaterialHeads:      make(map[string]int),
 		maxMaterialTextures:   make(map[string]int),
 		variationMaterialDefs: make(map[string][]*MaterialDef),
@@ -115,6 +119,13 @@ func (wce *Wce) ByTag(tag string) WldDefinitioner {
 		for _, sprite := range wce.DMSpriteDefs {
 			if sprite.Tag == tag {
 				return sprite
+			}
+		}
+	}
+	if strings.HasSuffix(tag, "_DMTRACKDEF") {
+		for _, track := range wce.DMTrackDef2s {
+			if track.Tag == tag {
+				return track
 			}
 		}
 	}

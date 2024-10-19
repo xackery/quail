@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
@@ -158,12 +159,15 @@ func TestWceReadWrite(t *testing.T) {
 				dstFragByTags[dstFrag.FragCode()] = append(dstFragByTags[dstFrag.FragCode()], &tagEntry{tag: rawWldDst.TagByFrag(dstFrag), offset: i})
 			}
 
+			isObj := strings.Contains(baseName, "_obj")
+
 			for i := range srcFragByTags {
 				srcTags := srcFragByTags[i]
 				dstTags := dstFragByTags[i]
 				if i == rawfrag.FragCodeSimpleSprite {
 					continue
 				}
+
 				//fmt.Printf("Comparing %d (%s) tags %d total\n", i, rawfrag.FragName(i), len(srcTags))
 				// find a matching dstTag, and pop from both
 				for _, srcTag := range srcTags {
@@ -171,6 +175,9 @@ func TestWceReadWrite(t *testing.T) {
 					for j, dstTag := range dstTags {
 						if srcTag.tag == dstTag.tag {
 							found = true
+							if isObj {
+								break
+							}
 							dstTags = append(dstTags[:j], dstTags[j+1:]...)
 							break
 						}

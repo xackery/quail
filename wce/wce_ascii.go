@@ -52,7 +52,7 @@ func (wce *Wce) WriteAscii(path string) error {
 		if len(actorDef.Tag) < 3 {
 			return fmt.Errorf("actorDef %s tag too short", actorDef.Tag)
 		}
-		baseTag := baseTagTrim(actorDef.Tag)
+		baseTag := baseTagTrim(wce.isObj, actorDef.Tag)
 		isFound := false
 		for _, tag := range baseTags {
 			if tag == baseTag {
@@ -126,11 +126,32 @@ func (wce *Wce) writeAsciiData(path string, baseTags []string) error {
 		}
 	}
 
+	for _, trackDef := range wce.DMTrackDef2s {
+		baseTag, _, _, _ := wce.trackTagAndSequence(trackDef.Tag)
+		if baseTag == "" {
+			//return fmt.Errorf("trackDef %s tag too short (baseTag empty)", trackDef.Tag)
+			baseTag = trackDef.model
+
+		}
+
+		trackDef.model = baseTag
+		isFound := false
+		for _, tag := range baseTags {
+			if tag == baseTag {
+				isFound = true
+				break
+			}
+		}
+		if !isFound {
+			baseTags = append(baseTags, baseTag)
+		}
+	}
+
 	for _, actorDef := range wce.ActorDefs {
 		if len(actorDef.Tag) < 3 {
 			return fmt.Errorf("actorDef %s tag too short", actorDef.Tag)
 		}
-		baseTag := baseTagTrim(actorDef.Tag)
+		baseTag := baseTagTrim(wce.isObj, actorDef.Tag)
 		isFound := false
 		for _, tag := range baseTags {
 			if tag == baseTag {
@@ -147,7 +168,7 @@ func (wce *Wce) writeAsciiData(path string, baseTags []string) error {
 		if len(mdsDef.Tag) < 3 {
 			return fmt.Errorf("mdsDef %s tag too short", mdsDef.Tag)
 		}
-		baseTag := baseTagTrim(mdsDef.Tag)
+		baseTag := baseTagTrim(wce.isObj, mdsDef.Tag)
 		isFound := false
 		for _, tag := range baseTags {
 			if tag == baseTag {
@@ -279,7 +300,7 @@ func (wce *Wce) writeAsciiData(path string, baseTags []string) error {
 
 	for _, actorDef := range wce.ActorDefs {
 		token.TagClearIsWritten()
-		baseTag := baseTagTrim(actorDef.Tag)
+		baseTag := baseTagTrim(wce.isObj, actorDef.Tag)
 		wce.lastReadModelTag = baseTag
 
 		err = token.SetWriter(actorDef.Tag)
@@ -336,6 +357,7 @@ func (wce *Wce) writeAsciiData(path string, baseTags []string) error {
 			return fmt.Errorf("track %s_%d: %w", track.Tag, track.TagIndex, err)
 		}
 	}
+
 	if wce.WorldDef.Zone == 1 {
 
 		for _, polyDef := range wce.PolyhedronDefs {
@@ -518,7 +540,8 @@ func (wce *Wce) writeAsciiData(path string, baseTags []string) error {
 
 		if baseTag != "PLAYER" &&
 			!token.IsWriterUsed(baseTag) &&
-			!token.IsWriterUsed(baseTag+"_ani") {
+			!token.IsWriterUsed(baseTag+"_ani") &&
+			!strings.Contains(path, "_obj") {
 			fmt.Println("Tag", baseTag, "was never used for model or ani (can be ignored)")
 			//			return fmt.Errorf("tag %s was never used for model or ani", baseTag)
 		}

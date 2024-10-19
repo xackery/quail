@@ -25,7 +25,7 @@ func TestBWldRead(t *testing.T) {
 	tests := []struct {
 		name string
 	}{
-		//{"crushbone"},
+		{"crushbone"},
 		//{"gequip6"},
 	}
 	for _, tt := range tests {
@@ -46,7 +46,7 @@ func TestBWldRead(t *testing.T) {
 				t.Fatalf("failed to read %s: %s", tt.name, err.Error())
 			}
 
-			vwld := &Wce{}
+			vwld := New(tt.name)
 			err = vwld.ReadWldRaw(wld)
 			if err != nil {
 				t.Fatalf("failed to convert %s: %s", tt.name, err.Error())
@@ -139,7 +139,7 @@ func TestBWldReadWriteRead(t *testing.T) {
 				}
 			}
 
-			vwld := &Wce{}
+			vwld := New(baseName)
 			err = vwld.ReadWldRaw(wld)
 			if err != nil {
 				t.Fatalf("failed to convert %s: %s", baseName, err.Error())
@@ -268,7 +268,7 @@ func TestWCEWldReadWriteRead(t *testing.T) {
 					}
 				} */
 
-			vwld := &Wce{}
+			vwld := New(baseName)
 			err = vwld.ReadWldRaw(wld)
 			if err != nil {
 				t.Fatalf("failed to convert %s: %s", baseName, err.Error())
@@ -287,7 +287,7 @@ func TestWCEWldReadWriteRead(t *testing.T) {
 
 			// read back in
 
-			vwld2 := &Wce{}
+			vwld2 := New(baseName)
 			err = vwld2.ReadAscii(fmt.Sprintf("%s/%s/_root.wce", dirTest, baseName))
 			if err != nil {
 				t.Fatalf("failed to read %s: %s", baseName, err.Error())
@@ -332,7 +332,7 @@ func TestWCEWldFragMatch(t *testing.T) {
 		//{baseName: "load2"},
 		//{baseName: "load2", wldName: "objects.wld"},
 		//{baseName: "beetle_chr"},
-		//{baseName: "qeynos_chr"},
+		{baseName: "qeynos_chr"},
 		//{baseName: "overthere_chr"},
 		//{baseName: "globalogm_chr"},
 
@@ -381,7 +381,7 @@ func TestWCEWldFragMatch(t *testing.T) {
 				t.Fatalf("failed to read %s: %s", baseName, err.Error())
 			}
 
-			wldSrc := &Wce{}
+			wldSrc := New(baseName)
 			err = wldSrc.ReadWldRaw(rawWldSrc)
 			if err != nil {
 				t.Fatalf("failed to convert %s: %s", baseName, err.Error())
@@ -400,9 +400,7 @@ func TestWCEWldFragMatch(t *testing.T) {
 
 			// read back in
 
-			wldDst := &Wce{
-				FileName: baseName + ".wld",
-			}
+			wldDst := New(baseName + ".wld")
 			err = wldDst.ReadAscii(fmt.Sprintf("%s/%s/_root.wce", dirTest, baseName))
 			if err != nil {
 				t.Fatalf("failed to read %s: %s", baseName, err.Error())
@@ -502,7 +500,7 @@ func TestAsciiRead(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.asciiName, func(t *testing.T) {
 
-			wld := &Wce{}
+			wld := New(tt.asciiName)
 			err := wld.ReadAscii(fmt.Sprintf("testdata/%s", tt.asciiName))
 			if err != nil {
 				t.Fatalf("Failed readascii: %s", err.Error())
@@ -537,9 +535,8 @@ func TestAsciiReadWriteRead(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.asciiName, func(t *testing.T) {
 
-			wld := &Wce{
-				FileName: filepath.Base(tt.asciiName),
-			}
+			wld := New(filepath.Base(tt.asciiName))
+
 			err := wld.ReadAscii(fmt.Sprintf("testdata/%s", tt.asciiName))
 			if err != nil {
 				t.Fatalf("Failed readascii: %s", err.Error())
@@ -555,7 +552,7 @@ func TestAsciiReadWriteRead(t *testing.T) {
 				wld.FileName = wld.FileName[:len(wld.FileName)-len(ext)] + ".spk"
 			}
 
-			wld2 := &Wce{}
+			wld2 := New(filepath.Base(wld.FileName))
 			err = wld2.ReadAscii("testdata/temp/" + wld.FileName)
 			if err != nil {
 				t.Fatalf("Failed re-readascii: %s", err.Error())

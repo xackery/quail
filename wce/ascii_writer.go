@@ -65,7 +65,7 @@ func (a *AsciiWriteToken) WriterByTag(tag string) (*os.File, error) {
 	rootTag := tag
 	baseTag := tag
 	if !a.wce.WorldDef.EqgVersion.Valid {
-		rootTag = baseTagTrim(tag)
+		rootTag = baseTagTrim(a.wce.isObj, tag)
 		baseTag = rootTag
 	}
 	baseTag = baseTag + suffix
@@ -86,6 +86,14 @@ func (a *AsciiWriteToken) WriterByTag(tag string) (*os.File, error) {
 		}
 	}
 	a.writersUsed[baseTag] = true
+	return w, nil
+}
+
+func (a *AsciiWriteToken) UseTempWriter(tag string) (*os.File, error) {
+	w, err := a.WriterByTag(tag)
+	if err != nil {
+		return nil, err
+	}
 	return w, nil
 }
 

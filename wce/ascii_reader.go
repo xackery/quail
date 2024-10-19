@@ -181,11 +181,14 @@ func (a *AsciiReadToken) readDefinitions() error {
 		&AmbientLight{},
 		&DMSpriteDef{},
 		&DMSpriteDef2{},
+		&DMTrackDef2{},
+		&EQMaterialDef{},
 		&GlobalAmbientLightDef{},
 		&HierarchicalSpriteDef{},
 		&LightDef{},
 		&MaterialDef{},
 		&MaterialPalette{},
+		&MdsDef{},
 		&ParticleCloudDef{},
 		&PointLight{},
 		&PolyhedronDefinition{},
@@ -196,11 +199,9 @@ func (a *AsciiReadToken) readDefinitions() error {
 		&Sprite3DDef{},
 		&TrackDef{},
 		&TrackInstance{},
+		&WorldDef{},
 		&WorldTree{},
 		&Zone{},
-		&WorldDef{},
-		&MdsDef{},
-		&EQMaterialDef{},
 	}
 
 	definition := ""
@@ -307,6 +308,14 @@ func (a *AsciiReadToken) readDefinitions() error {
 				frag.Tag = args[1]
 				a.wce.TrackInstances = append(a.wce.TrackInstances, frag)
 				definitions[i] = &TrackInstance{}
+			case *DMTrackDef2:
+				if len(args) == 1 {
+					return fmt.Errorf("definition %s has no arguments", defName)
+				}
+				frag.Tag = args[1]
+				a.wce.DMTrackDef2s = append(a.wce.DMTrackDef2s, frag)
+				definitions[i] = &DMTrackDef2{}
+
 			case *LightDef:
 				if len(args) == 1 {
 					return fmt.Errorf("definition %s has no arguments", defName)

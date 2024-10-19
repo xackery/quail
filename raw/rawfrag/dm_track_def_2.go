@@ -12,7 +12,7 @@ import (
 type WldFragDmTrackDef2 struct {
 	NameRef int32
 	Flags   uint32
-	Param1  uint16
+	Sleep   uint16
 	Param2  uint16
 	Scale   uint16
 	Frames  [][][3]int16
@@ -32,7 +32,7 @@ func (e *WldFragDmTrackDef2) Write(w io.Writer, isNewWorld bool) error {
 	}
 	enc.Uint16(uint16(len(e.Frames[0])))
 	enc.Uint16(uint16(len(e.Frames)))
-	enc.Uint16(e.Param1)
+	enc.Uint16(e.Sleep)
 	enc.Uint16(e.Param2)
 	enc.Uint16(e.Scale)
 	for _, frame := range e.Frames {
@@ -56,7 +56,7 @@ func (e *WldFragDmTrackDef2) Read(r io.ReadSeeker, isNewWorld bool) error {
 	e.Flags = dec.Uint32()
 	vertexCount := dec.Uint16()
 	frameCount := dec.Uint16()
-	e.Param1 = dec.Uint16()
+	e.Sleep = dec.Uint16()
 	e.Param2 = dec.Uint16()
 	e.Scale = dec.Uint16()
 	e.Frames = make([][][3]int16, frameCount)

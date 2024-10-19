@@ -10,10 +10,10 @@ import (
 
 // WldFragTrack is a bone in a skeleton. It is Track in libeq, Mob Skeleton Piece Track Reference in openzone, TRACKINSTANCE in wld, TrackDefFragment in lantern
 type WldFragTrack struct {
-	NameRef  int32  `yaml:"name_ref"`
-	TrackRef int32  `yaml:"track_ref"`
-	Flags    uint32 `yaml:"flags"`
-	Sleep    uint32 `yaml:"sleep"` // if 0x01 is set, this is the number of milliseconds to sleep before starting the animation
+	NameRef  int32
+	TrackRef int32
+	Flags    uint32
+	Sleep    uint32 // if 0x01 is set, this is the number of milliseconds to sleep before starting the animation
 }
 
 func (e *WldFragTrack) FragCode() int {

@@ -123,6 +123,13 @@ func readRawFrag(e *Wce, rawWld *raw.Wld, fragment model.FragmentReadWriter) err
 		}
 
 		e.DMSpriteDef2s = append(e.DMSpriteDef2s, def)
+	case rawfrag.FragCodeTrack:
+		def := &TrackInstance{}
+		err := def.FromRaw(e, rawWld, fragment.(*rawfrag.WldFragTrack))
+		if err != nil {
+			return fmt.Errorf("track: %w", err)
+		}
+		e.TrackInstances = append(e.TrackInstances, def)
 	case rawfrag.FragCodeTrackDef:
 		def := &TrackDef{}
 		err := def.FromRaw(e, rawWld, fragment.(*rawfrag.WldFragTrackDef))
@@ -131,6 +138,11 @@ func readRawFrag(e *Wce, rawWld *raw.Wld, fragment model.FragmentReadWriter) err
 		}
 		e.TrackDefs = append(e.TrackDefs, def)
 
+	case rawfrag.FragCodeDMTrack:
+		frag := fragment.(*rawfrag.WldFragDMTrack)
+		if frag.Flags != 0 {
+			return fmt.Errorf("dmtrack: unexpected flags %d, report this to xack", frag.Flags)
+		}
 	case rawfrag.FragCodeDmTrackDef2:
 		def := &DMTrackDef2{}
 		err := def.FromRaw(e, rawWld, fragment.(*rawfrag.WldFragDmTrackDef2))
@@ -138,13 +150,7 @@ func readRawFrag(e *Wce, rawWld *raw.Wld, fragment model.FragmentReadWriter) err
 			return fmt.Errorf("dmtrackdef2: %w", err)
 		}
 		e.DMTrackDef2s = append(e.DMTrackDef2s, def)
-	case rawfrag.FragCodeTrack:
-		def := &TrackInstance{}
-		err := def.FromRaw(e, rawWld, fragment.(*rawfrag.WldFragTrack))
-		if err != nil {
-			return fmt.Errorf("track: %w", err)
-		}
-		e.TrackInstances = append(e.TrackInstances, def)
+
 	case rawfrag.FragCodeDMSpriteDef:
 		def := &DMSpriteDef{}
 		err := def.FromRaw(e, rawWld, fragment.(*rawfrag.WldFragDMSpriteDef))
@@ -264,7 +270,6 @@ func readRawFrag(e *Wce, rawWld *raw.Wld, fragment model.FragmentReadWriter) err
 		}
 		e.Sprite2DDefs = append(e.Sprite2DDefs, def)
 	case rawfrag.FragCodeSprite2D:
-	case rawfrag.FragCodeDMTrack:
 	default:
 		return fmt.Errorf("unhandled fragment type %d (%s)", fragment.FragCode(), raw.FragName(fragment.FragCode()))
 	}
@@ -302,15 +307,15 @@ func (wce *Wce) WriteWldRaw(w io.Writer) error {
 			}
 			isUnique := true
 			for _, baseTag := range baseTags {
-				if baseTag == baseTagTrim(actorDef.Tag) {
+				if baseTag == baseTagTrim(wce.isObj, actorDef.Tag) {
 					isUnique = false
 					break
 				}
 			}
 			if isUnique {
-				baseTags = append(baseTags, baseTagTrim(actorDef.Tag))
+				baseTags = append(baseTags, baseTagTrim(wce.isObj, actorDef.Tag))
 			}
-			wce.modelTags = append(wce.modelTags, baseTagTrim(actorDef.Tag))
+			wce.modelTags = append(wce.modelTags, baseTagTrim(wce.isObj, actorDef.Tag))
 		}
 
 		//sort.Strings(baseTags)
@@ -367,7 +372,7 @@ func (wce *Wce) WriteWldRaw(w io.Writer) error {
 		for _, baseTag := range baseTags {
 
 			for _, actorDef := range wce.ActorDefs {
-				if baseTag != baseTagTrim(actorDef.Tag) {
+				if baseTag != baseTagTrim(wce.isObj, actorDef.Tag) {
 					continue
 				}
 				_, err = actorDef.ToRaw(wce, dst)
@@ -377,7 +382,7 @@ func (wce *Wce) WriteWldRaw(w io.Writer) error {
 			}
 
 			for _, hiSprite := range wce.HierarchicalSpriteDefs {
-				hiBaseTag := baseTagTrim(hiSprite.Tag)
+				hiBaseTag := baseTagTrim(wce.isObj, hiSprite.Tag)
 				if baseTag != hiBaseTag {
 					continue
 				}
@@ -388,7 +393,7 @@ func (wce *Wce) WriteWldRaw(w io.Writer) error {
 			}
 
 			for _, dmSprite := range wce.DMSpriteDef2s {
-				dmBaseTag := baseTagTrim(dmSprite.Tag)
+				dmBaseTag := baseTagTrim(wce.isObj, dmSprite.Tag)
 				if baseTag != dmBaseTag {
 					continue
 				}
@@ -399,7 +404,7 @@ func (wce *Wce) WriteWldRaw(w io.Writer) error {
 			}
 
 			for _, dmSprite := range wce.DMSpriteDefs {
-				dmBaseTag := baseTagTrim(dmSprite.Tag)
+				dmBaseTag := baseTagTrim(wce.isObj, dmSprite.Tag)
 				if baseTag != dmBaseTag {
 					continue
 				}
@@ -605,7 +610,7 @@ func (wce *Wce) isTrackAni(tag string) bool {
 	return seqNum >= 0
 }
 
-func baseTagTrim(tag string) string {
+func baseTagTrim(isObj bool, tag string) string {
 	tag = strings.ReplaceAll(tag, " ", "")
 	if len(tag) < 2 {
 		return tag
@@ -615,11 +620,14 @@ func baseTagTrim(tag string) string {
 	if index > 0 {
 		tag = tag[:index]
 	}
-	// find suffix first number
-	for i := 0; i < len(tag); i++ {
-		if tag[i] >= '0' && tag[i] <= '9' {
-			tag = tag[:i]
-			break
+
+	if !isObj {
+		// find suffix first number
+		for i := 0; i < len(tag); i++ {
+			if tag[i] >= '0' && tag[i] <= '9' {
+				tag = tag[:i]
+				break
+			}
 		}
 	}
 

@@ -195,6 +195,22 @@ func (e *DMSpriteDef2) Write(token *AsciiWriteToken) error {
 		}
 	}
 
+	if e.DmTrackTag != "" {
+		dmTrack := token.wce.ByTag(e.DmTrackTag)
+		if dmTrack == nil {
+			return fmt.Errorf("dmtrack %s not found", e.DmTrackTag)
+		}
+		switch dmTrackDef := dmTrack.(type) {
+		case *DMTrackDef2:
+			err = dmTrackDef.Write(token)
+			if err != nil {
+				return fmt.Errorf("dmtrack %s: %w", dmTrackDef.Tag, err)
+			}
+		default:
+			return fmt.Errorf("dmtrack %s unknown type %T", e.DmTrackTag, dmTrack)
+		}
+	}
+
 	if e.PolyhedronTag != "" && e.PolyhedronTag != "NEGATIVE_TWO" {
 		poly := token.wce.ByTag(e.PolyhedronTag)
 		if poly == nil {
@@ -246,11 +262,11 @@ func (e *DMSpriteDef2) Write(token *AsciiWriteToken) error {
 	}
 	fmt.Fprintf(w, "\n")
 	fmt.Fprintf(w, "\tMATERIALPALETTE \"%s\"\n", e.MaterialPaletteTag)
+	fmt.Fprintf(w, "\tDMTRACKINST \"%s\"\n", e.DmTrackTag)
 	fmt.Fprintf(w, "\n")
 	fmt.Fprintf(w, "\tPOLYHEDRON\n")
 	fmt.Fprintf(w, "\t\tDEFINITION \"%s\"\n", e.PolyhedronTag)
 	fmt.Fprintf(w, "\tNUMFACE2S %d\n", len(e.Faces))
-	fmt.Fprintf(w, "\n")
 	for i, face := range e.Faces {
 		fmt.Fprintf(w, "\t\tDMFACE2 //%d\n", i)
 		fmt.Fprintf(w, "\t\t\tPASSABLE %d\n", face.Passable)
@@ -423,6 +439,12 @@ func (e *DMSpriteDef2) Read(token *AsciiReadToken) error {
 		return err
 	}
 	e.MaterialPaletteTag = records[1]
+
+	records, err = token.ReadProperty("DMTRACKINST", 1)
+	if err != nil {
+		return err
+	}
+	e.DmTrackTag = records[1]
 
 	_, err = token.ReadProperty("POLYHEDRON", 0)
 	if err != nil {
@@ -683,6 +705,24 @@ func (e *DMSpriteDef2) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
 		VertexMaterialGroups: e.VertexMaterialGroups,
 	}
 
+	if e.DmTrackTag != "" {
+		dmTrackDef := wce.ByTag(e.DmTrackTag)
+		if dmTrackDef == nil {
+			return -1, fmt.Errorf("dmtrackdef %s not found", e.DmTrackTag)
+		}
+
+		switch dmTrack := dmTrackDef.(type) {
+		case *DMTrackDef2:
+			dmTrackRef, err := dmTrack.ToRaw(wce, rawWld)
+			if err != nil {
+				return -1, fmt.Errorf("dmtrackdef %s to raw: %w", e.DmTrackTag, err)
+			}
+			dmSpriteDef.DMTrackRef = int32(dmTrackRef)
+		default:
+			return -1, fmt.Errorf("dmtrackdef %s unknown type %T", e.DmTrackTag, dmTrackDef)
+		}
+	}
+
 	if e.PolyhedronTag != "" { //&& (!strings.HasPrefix(e.Tag, "R") || !wld.isZone)
 		if strings.HasPrefix(e.Tag, "R") && wce.WorldDef.Zone == 1 {
 			if e.PolyhedronTag == "NEGATIVE_TWO" {
@@ -842,7 +882,23 @@ func (e *DMSpriteDef2) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragD
 		e.MaterialPaletteTag = rawWld.Name(materialPalette.NameRef)
 	}
 
-	e.DmTrackTag = rawWld.Name(frag.DMTrackRef)
+	if frag.DMTrackRef != 0 {
+		if len(rawWld.Fragments) < int(frag.DMTrackRef) {
+			return fmt.Errorf("dmtrack ref %d out of bounds", frag.DMTrackRef)
+		}
+		dmTrack, ok := rawWld.Fragments[frag.DMTrackRef].(*rawfrag.WldFragDMTrack)
+		if !ok {
+			return fmt.Errorf("dmtrack ref %d not valid", frag.DMTrackRef)
+		}
+		if len(rawWld.Fragments) < int(dmTrack.TrackRef) {
+			return fmt.Errorf("dmtrack name ref %d out of bounds", dmTrack.TrackRef)
+		}
+		dmTrackDef, ok := rawWld.Fragments[dmTrack.TrackRef].(*rawfrag.WldFragDmTrackDef2)
+		if !ok {
+			return fmt.Errorf("dmtrackdef2 name ref %d not valid", dmTrack.TrackRef)
+		}
+		e.DmTrackTag = rawWld.Name(dmTrackDef.NameRef)
+	}
 
 	if frag.Fragment4Ref != 0 {
 		if frag.Fragment4Ref == -2 {
@@ -4011,6 +4067,12 @@ func (e *TrackInstance) Write(token *AsciiWriteToken) error {
 	if err != nil {
 		return err
 	}
+	if e.Sleep.Valid && e.Sleep.Uint32 > 0 {
+		w, err = token.UseTempWriter(e.model + "_ani")
+		if err != nil {
+			return err
+		}
+	}
 	if token.TagIsWritten(fmt.Sprintf("%s_%d", e.Tag, e.TagIndex)) {
 		return nil
 	}
@@ -4150,7 +4212,7 @@ func (e *TrackInstance) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFrag
 	}
 
 	if len(rawWld.Fragments) < int(frag.TrackRef) {
-		return fmt.Errorf("trackdef ref %d not found", frag.TrackRef)
+		return fmt.Errorf("trackdef ref %d out of bounds", frag.TrackRef)
 	}
 
 	trackDef, ok := rawWld.Fragments[frag.TrackRef].(*rawfrag.WldFragTrackDef)
@@ -4215,6 +4277,24 @@ func (e *TrackDef) Write(token *AsciiWriteToken) error {
 	w, err := token.Writer()
 	if err != nil {
 		return err
+	}
+
+	if strings.HasSuffix(e.Tag, "_TRACKDEF") {
+		trackInstVal := token.wce.ByTagWithIndex(strings.ReplaceAll(e.Tag, "_TRACKDEF", "_TRACK"), e.TagIndex)
+		if trackInstVal == nil {
+			return fmt.Errorf("trackdef %s%d does not have a track instance", e.Tag, e.TagIndex)
+		}
+		trackInst, ok := trackInstVal.(*TrackInstance)
+		if !ok {
+			return fmt.Errorf("trackdef %s%d does not have a track instance", e.Tag, e.TagIndex)
+		}
+
+		if trackInst.Sleep.Valid && trackInst.Sleep.Uint32 > 0 {
+			w, err = token.UseTempWriter(e.model + "_ani")
+			if err != nil {
+				return err
+			}
+		}
 	}
 
 	if token.TagIsWritten(fmt.Sprintf("%s_%d", e.Tag, e.TagIndex)) {
@@ -4539,6 +4619,18 @@ func (e *HierarchicalSpriteDef) Write(token *AsciiWriteToken) error {
 		}
 	}
 
+	if e.PolyhedronTag != "" {
+		polyhedronDef := token.wce.ByTag(e.PolyhedronTag)
+		if polyhedronDef == nil {
+			return fmt.Errorf("polyhedron %s not found", e.PolyhedronTag)
+		}
+
+		err = polyhedronDef.Write(token)
+		if err != nil {
+			return fmt.Errorf("polyhedron %s: %w", e.PolyhedronTag, err)
+		}
+	}
+
 	fmt.Fprintf(w, "%s \"%s\"\n", e.Definition(), e.Tag)
 	fmt.Fprintf(w, "\tNUMDAGS %d\n", len(e.Dags))
 	for i, dag := range e.Dags {
@@ -4749,16 +4841,30 @@ func (e *HierarchicalSpriteDef) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) 
 		switch sprite := collusionDef.(type) {
 		case *PolyhedronDefinition:
 			collisionTag = sprite.Tag
+			polyDefID, err := collusionDef.ToRaw(wce, rawWld)
+			if err != nil {
+				return -1, fmt.Errorf("collision volume to raw: %w", err)
+			}
+
+			wfPoly := &rawfrag.WldFragPolyhedron{
+				FragmentRef: int32(polyDefID),
+			}
+
+			rawWld.Fragments = append(rawWld.Fragments, wfPoly)
+
+			wfHierarchicalSpriteDef.CollisionVolumeRef = uint32(len(rawWld.Fragments))
+
 		case *DMSpriteDef2: // chequip has this on EYE_HS_DEF
 			collisionTag = sprite.Tag
+			wfHierarchicalSpriteDef.CollisionVolumeRef = uint32(rawWld.NameAdd(collisionTag))
 		case *DMSpriteDef:
 			collisionTag = sprite.Tag
+			wfHierarchicalSpriteDef.CollisionVolumeRef = uint32(rawWld.NameAdd(collisionTag))
 		case nil:
 		default:
 			return -1, fmt.Errorf("unsupported collision volume type: %T", collusionDef)
 		}
 
-		wfHierarchicalSpriteDef.CollisionVolumeRef = uint32(rawWld.NameAdd(collisionTag))
 	}
 
 	if e.CenterOffset.Valid {
@@ -7392,13 +7498,14 @@ func spriteVariationToRaw(wce *Wce, rawWld *raw.Wld, e WldDefinitioner) error {
 }
 
 type DMTrackDef2 struct {
-	fragID int16
-	Tag    string
-	Param1 uint16
-	Param2 uint16
-	Scale  uint16
-	Frames [][][3]int16
-	Size6  uint16
+	fragID  int16
+	model   string
+	Tag     string
+	Sleep   uint16
+	Param2  uint16
+	FPScale uint16
+	Frames  [][][3]float32
+	Size6   uint16
 }
 
 func (e *DMTrackDef2) Definition() string {
@@ -7406,7 +7513,8 @@ func (e *DMTrackDef2) Definition() string {
 }
 
 func (e *DMTrackDef2) Write(token *AsciiWriteToken) error {
-	w, err := token.Writer()
+
+	w, err := token.UseTempWriter(e.model + "_ani")
 	if err != nil {
 		return err
 	}
@@ -7417,17 +7525,21 @@ func (e *DMTrackDef2) Write(token *AsciiWriteToken) error {
 
 	token.TagSetIsWritten(e.Tag)
 
+	if e.Sleep == 0 {
+		return fmt.Errorf("sleep is 0 for dmtrackdef2 %s on %s, this isn't handled report to Xackery", e.Tag, e.model)
+	}
+
 	fmt.Fprintf(w, "%s \"%s\"\n", e.Definition(), e.Tag)
-	fmt.Fprintf(w, "\tPARAM1 %d\n", e.Param1)
+	fmt.Fprintf(w, "\tSLEEP %d\n", e.Sleep)
 	fmt.Fprintf(w, "\tPARAM2 %d\n", e.Param2)
-	fmt.Fprintf(w, "\tSCALE %d\n", e.Scale)
+	fmt.Fprintf(w, "\tFPSCALE %d\n", e.FPScale)
 	fmt.Fprintf(w, "\tSIZE6 %d\n", e.Size6)
 
 	fmt.Fprintf(w, "\tNUMFRAMES %d\n", len(e.Frames))
 	for _, vertFrames := range e.Frames {
 		fmt.Fprintf(w, "\t\tNUMVERTICES %d\n", len(vertFrames))
 		for _, frame := range vertFrames {
-			fmt.Fprintf(w, "\t\tXYZ %d %d %d\n", frame[0], frame[1], frame[2])
+			fmt.Fprintf(w, "\t\t\tXYZ %0.8e %0.8e %0.8e\n", frame[0], frame[1], frame[2])
 		}
 	}
 	fmt.Fprintf(w, "\n")
@@ -7436,13 +7548,13 @@ func (e *DMTrackDef2) Write(token *AsciiWriteToken) error {
 }
 
 func (e *DMTrackDef2) Read(token *AsciiReadToken) error {
-	records, err := token.ReadProperty("PARAM1", 1)
+	records, err := token.ReadProperty("SLEEP", 1)
 	if err != nil {
 		return err
 	}
-	err = parse(&e.Param1, records[1])
+	err = parse(&e.Sleep, records[1])
 	if err != nil {
-		return fmt.Errorf("param1: %w", err)
+		return fmt.Errorf("sleep: %w", err)
 	}
 
 	records, err = token.ReadProperty("PARAM2", 1)
@@ -7454,13 +7566,13 @@ func (e *DMTrackDef2) Read(token *AsciiReadToken) error {
 		return fmt.Errorf("param2: %w", err)
 	}
 
-	records, err = token.ReadProperty("SCALE", 1)
+	records, err = token.ReadProperty("FPSCALE", 1)
 	if err != nil {
 		return err
 	}
-	err = parse(&e.Scale, records[1])
+	err = parse(&e.FPScale, records[1])
 	if err != nil {
-		return fmt.Errorf("scale: %w", err)
+		return fmt.Errorf("fpscale: %w", err)
 	}
 
 	records, err = token.ReadProperty("SIZE6", 1)
@@ -7482,12 +7594,8 @@ func (e *DMTrackDef2) Read(token *AsciiReadToken) error {
 		return fmt.Errorf("num frames: %w", err)
 	}
 
+	originalVerts := 0
 	for i := 0; i < numFrames; i++ {
-		_, err = token.ReadProperty("FRAMETRANSFORM", 0)
-		if err != nil {
-			return err
-		}
-
 		records, err = token.ReadProperty("NUMVERTICES", 1)
 		if err != nil {
 			return err
@@ -7498,13 +7606,19 @@ func (e *DMTrackDef2) Read(token *AsciiReadToken) error {
 			return fmt.Errorf("frame %d num vertices: %w", i, err)
 		}
 
-		var vertFrames [][3]int16
+		if i == 0 {
+			originalVerts = numVertices
+		}
+		if originalVerts != numVertices {
+			return fmt.Errorf("frame %d has different number of vertices than original frame", i)
+		}
+		var vertFrames [][3]float32
 		for j := 0; j < numVertices; j++ {
 			records, err = token.ReadProperty("XYZ", 3)
 			if err != nil {
 				return err
 			}
-			frame := [3]int16{}
+			frame := [3]float32{}
 			err = parse(&frame, records[1:]...)
 			if err != nil {
 				return fmt.Errorf("frame %d vertex %d: %w", i, j, err)
@@ -7523,19 +7637,37 @@ func (e *DMTrackDef2) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
 	//}
 
 	wfTrack2 := &rawfrag.WldFragDmTrackDef2{
-		Param1: e.Param1,
+		Sleep:  e.Sleep,
 		Param2: e.Param2,
-		Scale:  e.Scale,
+		Scale:  e.FPScale,
 		Size6:  e.Size6,
 	}
 
-	wfTrack2.Frames = e.Frames
+	scale := float32(1 / float32(int(1)<<int(e.FPScale)))
+
+	for _, frame := range e.Frames {
+		frames := make([][3]int16, 0)
+		for _, vert := range frame {
+			frames = append(frames, [3]int16{
+				int16(vert[0] / scale),
+				int16(vert[1] / scale),
+				int16(vert[2] / scale),
+			})
+		}
+		wfTrack2.Frames = append(wfTrack2.Frames, frames)
+	}
 
 	wfTrack2.NameRef = rawWld.NameAdd(e.Tag)
 	// flags?
 	rawWld.Fragments = append(rawWld.Fragments, wfTrack2)
 	e.fragID = int16(len(rawWld.Fragments))
-	return int16(len(rawWld.Fragments)), nil
+
+	wfTrack := &rawfrag.WldFragDMTrack{
+		TrackRef: int32(e.fragID),
+		Flags:    0,
+	}
+	rawWld.Fragments = append(rawWld.Fragments, wfTrack)
+	return int16(e.fragID), nil
 }
 
 func (e *DMTrackDef2) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragDmTrackDef2) error {
@@ -7544,11 +7676,26 @@ func (e *DMTrackDef2) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragDm
 	}
 
 	e.Tag = rawWld.Name(frag.NameRef)
-	e.Param1 = frag.Param1
+	e.Sleep = frag.Sleep
 	e.Param2 = frag.Param2
-	e.Scale = frag.Scale
+	e.FPScale = frag.Scale
 	e.Size6 = frag.Size6
-	e.Frames = frag.Frames
+
+	scale := 1.0 / float32(int(1<<frag.Scale))
+
+	for _, frame := range frag.Frames {
+		frames := make([][3]float32, 0)
+		for _, vert := range frame {
+			frames = append(frames, [3]float32{
+				float32(vert[0]) * scale,
+				float32(vert[1]) * scale,
+				float32(vert[2]) * scale,
+			})
+		}
+		e.Frames = append(e.Frames, frames)
+	}
+
+	e.model = wce.lastReadModelTag
 	if frag.Flags != 0 {
 		return fmt.Errorf("unknown flags %d", frag.Flags)
 	}

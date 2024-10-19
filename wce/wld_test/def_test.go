@@ -10,9 +10,14 @@ var tests = []struct {
 	baseName string
 	wldName  string
 }{
+	{baseName: "emeraldjungle_obj"},
+	//{baseName: "emeraldjungle", wldName: "objects.wld"},
+	//{baseName: "global_chr"},
 	//{baseName: "globalelf_chr"},
-	{baseName: "global5_chr"},
+	//{baseName: "lgequip"},
+	//{baseName: "global5_chr"},
 	//{baseName: "akanon"},
+	//{baseName: "permafrost"},
 	//{baseName: "akanon", wldName: "objects.wld"},
 	//{baseName: "akanon", wldName: "lights.wld"},
 	//{baseName: "qeynos_chr"},
