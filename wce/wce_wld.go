@@ -4094,7 +4094,7 @@ func (e *TrackInstance) Write(token *AsciiWriteToken) error {
 	fmt.Fprintf(w, "\tSPRITE \"%s_DMSPRITEDEF\"\n", e.SpriteTag)
 	fmt.Fprintf(w, "\tDEFINITION \"%s\"\n", e.DefinitionTag)
 	fmt.Fprintf(w, "\tDEFINITIONINDEX %d\n", e.DefinitionTagIndex)
-	fmt.Fprintf(w, "\tINTERPOLATE %d\n", e.Interpolate)
+	fmt.Fprintf(w, "\tINTERPOLATE %d // deprecated\n", e.Interpolate)
 	fmt.Fprintf(w, "\tREVERSE %d\n", e.Reverse)
 	fmt.Fprintf(w, "\tSLEEP? %s\n", wcVal(e.Sleep))
 	fmt.Fprintf(w, "\n")
