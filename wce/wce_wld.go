@@ -1630,7 +1630,7 @@ type MaterialDef struct {
 	SimpleSpriteTag    string
 	Pair1              NullUint32
 	Pair2              NullFloat32
-	HexOneFlag         int
+	DoubleSided        int
 }
 
 func (e *MaterialDef) Definition() string {
@@ -1670,7 +1670,7 @@ func (e *MaterialDef) Write(token *AsciiWriteToken) error {
 	fmt.Fprintf(w, "\t\tTAG \"%s\"\n", e.SimpleSpriteTag)
 	fmt.Fprintf(w, "\t\tHEXFIFTYFLAG %d\n", e.SpriteHexFiftyFlag)
 	fmt.Fprintf(w, "\tPAIRS? %s %s\n", wcVal(e.Pair1), wcVal(e.Pair2))
-	fmt.Fprintf(w, "\tHEXONEFLAG %d\n", e.HexOneFlag)
+	fmt.Fprintf(w, "\tDOUBLESIDED %d\n", e.DoubleSided)
 	fmt.Fprintf(w, "\n")
 
 	token.TagSetIsWritten(e.Tag)
@@ -1758,13 +1758,13 @@ func (e *MaterialDef) Read(token *AsciiReadToken) error {
 		return fmt.Errorf("pair1: %w", err)
 	}
 
-	records, err = token.ReadProperty("HEXONEFLAG", 1)
+	records, err = token.ReadProperty("DOUBLESIDED", 1)
 	if err != nil {
 		return err
 	}
-	err = parse(&e.HexOneFlag, records[1])
+	err = parse(&e.DoubleSided, records[1])
 	if err != nil {
-		return fmt.Errorf("hex one flag: %w", err)
+		return fmt.Errorf("doublesided: %w", err)
 	}
 
 	token.wce.variationMaterialDefs[token.wce.lastReadModelTag] = append(token.wce.variationMaterialDefs[token.wce.lastReadModelTag], e)
@@ -1783,7 +1783,7 @@ func (e *MaterialDef) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
 		ScaledAmbient: e.ScaledAmbient,
 	}
 
-	if e.HexOneFlag > 0 {
+	if e.DoubleSided > 0 {
 		wfMaterialDef.Flags |= 0x01
 	}
 
@@ -1866,7 +1866,7 @@ func (e *MaterialDef) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragMa
 		e.Variation = 1
 	}
 	if frag.Flags&0x01 != 0 {
-		e.HexOneFlag = 1
+		e.DoubleSided = 1
 	}
 	if frag.Flags&0x02 != 0 {
 		e.Pair1.Valid = true
@@ -4095,7 +4095,7 @@ func (e *TrackInstance) Write(token *AsciiWriteToken) error {
 	fmt.Fprintf(w, "\tDEFINITION \"%s\"\n", e.DefinitionTag)
 	fmt.Fprintf(w, "\tDEFINITIONINDEX %d\n", e.DefinitionTagIndex)
 	fmt.Fprintf(w, "\tINTERPOLATE %d // deprecated\n", e.Interpolate)
-	fmt.Fprintf(w, "\tREVERSE %d\n", e.Reverse)
+	fmt.Fprintf(w, "\tREVERSE %d // deprecated \n", e.Reverse)
 	fmt.Fprintf(w, "\tSLEEP? %s\n", wcVal(e.Sleep))
 	fmt.Fprintf(w, "\n")
 	return nil
