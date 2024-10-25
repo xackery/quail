@@ -590,6 +590,6 @@ func (wce *Wce) writeAsciiData(path string, baseTags []string) error {
 
 func (wce *Wce) writeAsciiHeader(w io.Writer) {
 	fmt.Fprintf(w, "// wcemu %s\n", AsciiVersion)
-	fmt.Fprintf(w, "// This file was created by quail v%s\n", common.Version)
+	fmt.Fprintf(w, "// This file was created by quail %s\n", common.Version)
 	fmt.Fprintf(w, "// Original file: %s\n\n", wce.FileName)
 }
