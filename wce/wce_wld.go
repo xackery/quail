@@ -211,7 +211,7 @@ func (e *DMSpriteDef2) Write(token *AsciiWriteToken) error {
 		}
 	}
 
-	if e.PolyhedronTag != "" && e.PolyhedronTag != "NEGATIVE_TWO" {
+	if e.PolyhedronTag != "" && e.PolyhedronTag != "NEGATIVE_TWO" && e.PolyhedronTag != "SPECIAL_COLLISION" {
 		poly := token.wce.ByTag(e.PolyhedronTag)
 		if poly == nil {
 			return fmt.Errorf("polyhedron %s not found", e.PolyhedronTag)
@@ -742,6 +742,7 @@ func (e *DMSpriteDef2) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
 		} else {
 			if e.PolyhedronTag == "NEGATIVE_TWO" {
 				dmSpriteDef.Fragment4Ref = -2
+			} else if e.PolyhedronTag == "SPECIAL_COLLISION" {
 			} else {
 				polyhedronFrag := wce.ByTag(e.PolyhedronTag)
 				if polyhedronFrag == nil {
@@ -4619,7 +4620,7 @@ func (e *HierarchicalSpriteDef) Write(token *AsciiWriteToken) error {
 		}
 	}
 
-	if e.PolyhedronTag != "" {
+	if e.PolyhedronTag != "" && e.PolyhedronTag != "SPECIAL_COLLISION" {
 		polyhedronDef := token.wce.ByTag(e.PolyhedronTag)
 		if polyhedronDef == nil {
 			return fmt.Errorf("polyhedron %s not found", e.PolyhedronTag)
