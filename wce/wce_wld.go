@@ -1907,10 +1907,6 @@ func (e *SimpleSpriteDef) Write(token *AsciiWriteToken) error {
 		return err
 	}
 
-	if token.TagIsWritten(fmt.Sprintf("%s_%d", e.Tag, e.Variation)) {
-		return nil
-	}
-
 	token.TagSetIsWritten(fmt.Sprintf("%s_%d", e.Tag, e.Variation))
 
 	token.TagSetIsWritten(e.Tag)
