@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -86,6 +87,14 @@ func (wce *Wce) writeAsciiData(path string, baseTags []string) error {
 	}
 
 	for _, track := range wce.TrackInstances {
+		if len(track.SpriteTag) < 3 {
+			regTrack := regexp.MustCompile(`[A-Z][0-9][0-9].*([A-Z]{3}).*_TRACK`)
+			if !regTrack.MatchString(track.Tag) {
+				return fmt.Errorf("track %s model basetag too short (%s)", track.Tag, track.SpriteTag)
+			}
+			track.SpriteTag = regTrack.FindStringSubmatch(track.Tag)[1]
+			track.model = track.SpriteTag
+		}
 		baseTag, _, _, _ := wce.trackTagAndSequence(track.Tag)
 		if baseTag == "" {
 			// return fmt.Errorf("track %s tag too short (baseTag empty)", track.Tag)
@@ -106,6 +115,15 @@ func (wce *Wce) writeAsciiData(path string, baseTags []string) error {
 	}
 
 	for _, trackDef := range wce.TrackDefs {
+		if len(trackDef.SpriteTag) < 3 {
+			regTrack := regexp.MustCompile(`[A-Z][0-9][0-9].*([A-Z]{3}).*_TRACK`)
+			if !regTrack.MatchString(trackDef.Tag) {
+				return fmt.Errorf("trackDef %s model basetag too short (%s)", trackDef.Tag, trackDef.SpriteTag)
+			}
+			trackDef.SpriteTag = regTrack.FindStringSubmatch(trackDef.Tag)[1]
+			trackDef.model = trackDef.SpriteTag
+		}
+
 		baseTag, _, _, _ := wce.trackTagAndSequence(trackDef.Tag)
 		if baseTag == "" {
 			//return fmt.Errorf("trackDef %s tag too short (baseTag empty)", trackDef.Tag)
