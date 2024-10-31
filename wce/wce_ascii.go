@@ -12,6 +12,11 @@ import (
 	"github.com/xackery/quail/common"
 )
 
+var (
+	regTrack1 = regexp.MustCompile(`[A-Z][0-9][0-9].*_([A-Z]{3})_TRACK`)
+	regTrack2 = regexp.MustCompile(`[A-Z][0-9][0-9]([A-Z]{3}).*_TRACK`)
+)
+
 // ReadAscii reads the ascii file at path
 func (wce *Wce) ReadAscii(path string) error {
 
@@ -88,11 +93,15 @@ func (wce *Wce) writeAsciiData(path string, baseTags []string) error {
 
 	for _, track := range wce.TrackInstances {
 		if len(track.SpriteTag) < 3 {
-			regTrack := regexp.MustCompile(`[A-Z][0-9][0-9].*([A-Z]{3}).*_TRACK`)
-			if !regTrack.MatchString(track.Tag) {
-				return fmt.Errorf("track %s model basetag too short (%s)", track.Tag, track.SpriteTag)
+			if !regTrack1.MatchString(track.Tag) {
+				if !regTrack2.MatchString(track.Tag) {
+					return fmt.Errorf("track %s model basetag too short (%s)", track.Tag, track.SpriteTag)
+				} else {
+					track.SpriteTag = regTrack2.FindStringSubmatch(track.Tag)[1]
+				}
+			} else {
+				track.SpriteTag = regTrack1.FindStringSubmatch(track.Tag)[1]
 			}
-			track.SpriteTag = regTrack.FindStringSubmatch(track.Tag)[1]
 			track.model = track.SpriteTag
 		}
 		baseTag, _, _, _ := wce.trackTagAndSequence(track.Tag)
@@ -116,11 +125,15 @@ func (wce *Wce) writeAsciiData(path string, baseTags []string) error {
 
 	for _, trackDef := range wce.TrackDefs {
 		if len(trackDef.SpriteTag) < 3 {
-			regTrack := regexp.MustCompile(`[A-Z][0-9][0-9].*([A-Z]{3}).*_TRACK`)
-			if !regTrack.MatchString(trackDef.Tag) {
-				return fmt.Errorf("trackDef %s model basetag too short (%s)", trackDef.Tag, trackDef.SpriteTag)
+			if !regTrack1.MatchString(trackDef.Tag) {
+				if !regTrack2.MatchString(trackDef.Tag) {
+					return fmt.Errorf("trackDef %s model basetag too short (%s)", trackDef.Tag, trackDef.SpriteTag)
+				} else {
+					trackDef.SpriteTag = regTrack2.FindStringSubmatch(trackDef.Tag)[1]
+				}
+			} else {
+				trackDef.SpriteTag = regTrack1.FindStringSubmatch(trackDef.Tag)[1]
 			}
-			trackDef.SpriteTag = regTrack.FindStringSubmatch(trackDef.Tag)[1]
 			trackDef.model = trackDef.SpriteTag
 		}
 
