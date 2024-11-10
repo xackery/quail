@@ -28,7 +28,8 @@ func (e *WldFragBMInfo) Write(w io.Writer, isNewWorld bool) error {
 	enc.Int32(int32(len(e.TextureNames)) - 1)
 	for _, textureName := range e.TextureNames {
 		encodedStr := helper.WriteStringHash(textureName + "\x00")
-		enc.StringLenPrefixUint16(string(encodedStr))
+		enc.Uint16(uint16(len(encodedStr)) - 1)
+		enc.String(string(encodedStr))
 	}
 
 	//enc.StringLenPrefixUint16(string(helper.WriteStringHash(strings.Join(e.TextureNames, "\x00"))))
