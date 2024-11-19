@@ -5445,7 +5445,7 @@ type VisNode struct {
 }
 
 type VisList struct {
-	Ranges []int8
+	Ranges []byte
 }
 
 func (e *Region) Definition() string {
