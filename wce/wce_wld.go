@@ -5906,7 +5906,7 @@ func (e *Region) Read(token *AsciiReadToken) error {
 				return fmt.Errorf("range %d: %w", j, err)
 			}
 
-			list.Ranges = append(list.Ranges, val)
+			list.Ranges = append(list.Ranges, byte(val))
 		}
 
 		e.VisTree.VisLists = append(e.VisTree.VisLists, list)
@@ -6092,7 +6092,7 @@ func (e *Region) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragRegion)
 	for _, visList := range frag.VisLists {
 		visListData := &VisList{}
 		for _, rangeVal := range visList.Ranges {
-			visListData.Ranges = append(visListData.Ranges, int8(rangeVal))
+			visListData.Ranges = append(visListData.Ranges, byte(rangeVal))
 		}
 
 		e.VisTree.VisLists = append(e.VisTree.VisLists, visListData)
