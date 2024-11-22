@@ -5967,7 +5967,7 @@ func (e *Region) Read(token *AsciiReadToken) error {
 		}
 
 		// Convert regions back to RANGES format using run-length encoding
-		currentRegion := 0
+		currentRegion := 1
 		for k := 0; k < len(regions); {
 			if regions[k] == currentRegion {
 				// Count the number of consecutive regions
