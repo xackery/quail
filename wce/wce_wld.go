@@ -5947,25 +5947,55 @@ func (e *Region) Read(token *AsciiReadToken) error {
 			return err
 		}
 
-		records, err = token.ReadProperty("RANGE", -1)
+		records, err = token.ReadProperty("REGIONS", -1)
 		if err != nil {
 			return err
 		}
 
-		numRanges := int(0)
-		err = parse(&numRanges, records[1])
+		numRegions := int(0)
+		err = parse(&numRegions, records[1])
 		if err != nil {
-			return fmt.Errorf("num ranges: %w", err)
+			return fmt.Errorf("num regions: %w", err)
 		}
 
-		for j := 0; j < numRanges; j++ {
-			val := int8(0)
-			err = parse(&val, records[j+2])
+		regions := make([]int, numRegions)
+		for j := 0; j < numRegions; j++ {
+			err = parse(&regions[j], records[j+2])
 			if err != nil {
-				return fmt.Errorf("range %d: %w", j, err)
+				return fmt.Errorf("region %d: %w", j, err)
 			}
+		}
 
-			list.Ranges = append(list.Ranges, byte(val))
+		// Convert regions back to RANGES format using run-length encoding
+		currentRegion := 0
+		for k := 0; k < len(regions); {
+			if regions[k] == currentRegion {
+				// Count the number of consecutive regions
+				includeCount := 0
+				for k < len(regions) && regions[k] == currentRegion {
+					includeCount++
+					currentRegion++
+					k++
+				}
+				if includeCount <= 0x3E {
+					list.Ranges = append(list.Ranges, byte(0xC0+includeCount))
+				} else {
+					list.Ranges = append(list.Ranges, 0xFF)
+					list.Ranges = append(list.Ranges, byte(includeCount&0xFF))
+					list.Ranges = append(list.Ranges, byte((includeCount>>8)&0xFF))
+				}
+			} else {
+				skipAmount := regions[k] - currentRegion
+				if skipAmount <= 0x3E {
+					list.Ranges = append(list.Ranges, byte(skipAmount))
+				} else {
+					list.Ranges = append(list.Ranges, 0x3F)
+					list.Ranges = append(list.Ranges, byte(skipAmount&0xFF))
+					list.Ranges = append(list.Ranges, byte((skipAmount>>8)&0xFF))
+				}
+				currentRegion = regions[k]
+			}
+			currentRegion++
 		}
 
 		e.VisTree.VisLists = append(e.VisTree.VisLists, list)
