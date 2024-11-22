@@ -5967,52 +5967,72 @@ func (e *Region) Read(token *AsciiReadToken) error {
 		}
 
 		// Convert regions back to RANGES format using run-length encoding
-		currentRegion := 1
-		for k := 0; k < len(regions); {
-			if regions[k] == currentRegion {
-				// Count the number of consecutive regions
-				includeCount := 0
-				for k < len(regions) && regions[k] == currentRegion {
-					includeCount++
-					currentRegion++
-					k++
-				}
+		groups := []struct {
+			visible bool
+			count   int
+		}{}
 
-				if includeCount <= 62 {
-					// Use a single byte for including consecutive regions
-					list.Ranges = append(list.Ranges, byte(0xC0+includeCount))
+		// Step 1: Calculate groups of visible and not-visible regions
+		currentRegion := 1
+		groupStart := 0
+		visible := regions[0] == currentRegion
+
+		for k := 0; k <= len(regions); k++ {
+			isVisible := k < len(regions) && regions[k] == currentRegion
+
+			if (isVisible != visible) || k == len(regions) {
+				groups = append(groups, struct {
+					visible bool
+					count   int
+				}{
+					visible: visible,
+					count:   currentRegion - groupStart,
+				})
+
+				visible = isVisible
+				groupStart = currentRegion
+			}
+
+			if isVisible {
+				currentRegion++
+			}
+		}
+
+		// Step 2: Write out the encoded bytes
+		for i := 0; i < len(groups); i++ {
+			group := groups[i]
+
+			if group.visible {
+				// Handle visible groups
+				if i+1 < len(groups) && group.count <= 7 && !groups[i+1].visible && groups[i+1].count <= 7 {
+					// If the current visible group is 1-7 and the next not-visible group is also 1-7
+					list.Ranges = append(list.Ranges, byte(0x80|(group.count<<3)|groups[i+1].count))
+					i++ // Skip the next group since it's combined with this one
+				} else if group.count <= 62 {
+					// If the group is visible and 1-62 in size
+					list.Ranges = append(list.Ranges, byte(0xC0+group.count))
 				} else {
-					// Use 0xFF followed by a WORD to represent the count of regions included
+					// If the group is visible and 63 or greater in size
 					list.Ranges = append(list.Ranges, 0xFF)
-					list.Ranges = append(list.Ranges, byte(includeCount&0xFF))      // Lower byte
-					list.Ranges = append(list.Ranges, byte((includeCount>>8)&0xFF)) // Upper byte
+					list.Ranges = append(list.Ranges, byte(group.count&0xFF))      // Lower byte
+					list.Ranges = append(list.Ranges, byte((group.count>>8)&0xFF)) // Upper byte
 				}
 			} else {
-				// Calculate the skip amount to the next visible region
-				skipAmount := regions[k] - currentRegion
-
-				if skipAmount <= 62 {
-					// Use a single byte for skipping regions
-					list.Ranges = append(list.Ranges, byte(skipAmount))
+				// Handle not-visible groups
+				if i+1 < len(groups) && group.count <= 7 && groups[i+1].visible && groups[i+1].count <= 7 {
+					// If the current not-visible group is 1-7 and the next visible group is also 1-7
+					list.Ranges = append(list.Ranges, byte(0x40|(group.count<<3)|groups[i+1].count))
+					i++ // Skip the next group since it's combined with this one
+				} else if group.count <= 62 {
+					// If the group is not-visible and 1-62 in size
+					list.Ranges = append(list.Ranges, byte(group.count))
 				} else {
-					// Use 0x3F followed by a WORD to represent the skip amount
+					// If the group is not-visible and 63 or greater in size
 					list.Ranges = append(list.Ranges, 0x3F)
-					list.Ranges = append(list.Ranges, byte(skipAmount&0xFF))      // Lower byte
-					list.Ranges = append(list.Ranges, byte((skipAmount>>8)&0xFF)) // Upper byte
+					list.Ranges = append(list.Ranges, byte(group.count&0xFF))      // Lower byte
+					list.Ranges = append(list.Ranges, byte((group.count>>8)&0xFF)) // Upper byte
 				}
-
-				// Update currentRegion to the region we're skipping to
-				currentRegion = regions[k]
-				k++ // Ensure progress through the list of regions
 			}
-
-			// Stop once we've reached the value of the last visible region
-			if k >= len(regions) {
-				break
-			}
-
-			// Move currentRegion to next after inclusion or skipping
-			currentRegion++
 		}
 
 		e.VisTree.VisLists = append(e.VisTree.VisLists, list)
