@@ -5527,71 +5527,95 @@ func (e *Region) Write(token *AsciiWriteToken) error {
 	}
 	fmt.Fprintf(w, "\t\tNUMVISIBLELIST %d\n", len(e.VisTree.VisLists))
 	for i, list := range e.VisTree.VisLists {
-		// Calculate visible regions from range values
-		regions := []int{}
-		currentRegion := 1 // Start from region 1
+		// Determine if the 0x80 flag is set using e.VisListBytes
+		if e.VisListBytes == 1 {
+			// Calculate visible regions from range values using RLE logic
+			regions := []int{}
+			currentRegion := 1 // Start from region 1
 
-		_ = 0
-		for i < len(list.Ranges) {
-			byteVal := list.Ranges[i]
+			for i < len(list.Ranges) {
+				byteVal := list.Ranges[i]
 
-			switch {
-			case byteVal >= 0x00 && byteVal <= 0x3E:
-				// Skip forward by this many region IDs
-				currentRegion += int(byteVal)
-			case byteVal == 0x3F:
-				// Skip forward by the amount given in the following 16-bit WORD
-				nextByte1 := list.Ranges[i+1]
-				nextByte2 := list.Ranges[i+2]
-				skipAmount := int(nextByte2)<<8 | int(nextByte1)
-				currentRegion += skipAmount
-				i += 2 // Advance by 2 more bytes
-			case byteVal >= 0x40 && byteVal <= 0x7F:
-				// Skip forward based on bits 3..5, then include the number of IDs based on bits 0..2
-				skipAmount := int((byteVal & 0b00111000) >> 3)
-				includeCount := int(byteVal & 0b00000111)
-				currentRegion += skipAmount
-				for j := 0; j < includeCount; j++ {
-					regions = append(regions, currentRegion)
-					currentRegion++
+				switch {
+				case byteVal >= 0x00 && byteVal <= 0x3E:
+					// Skip forward by this many region IDs
+					currentRegion += int(byteVal)
+				case byteVal == 0x3F:
+					// Skip forward by the amount given in the following 16-bit WORD
+					nextByte1 := list.Ranges[i+1]
+					nextByte2 := list.Ranges[i+2]
+					skipAmount := int(nextByte2)<<8 | int(nextByte1)
+					currentRegion += skipAmount
+					i += 2 // Advance by 2 more bytes
+				case byteVal >= 0x40 && byteVal <= 0x7F:
+					// Skip forward based on bits 3..5, then include the number of IDs based on bits 0..2
+					skipAmount := int((byteVal & 0b00111000) >> 3)
+					includeCount := int(byteVal & 0b00000111)
+					currentRegion += skipAmount
+					for j := 0; j < includeCount; j++ {
+						regions = append(regions, currentRegion)
+						currentRegion++
+					}
+				case byteVal >= 0x80 && byteVal <= 0xBF:
+					// Include the number of IDs based on bits 3..5, then skip forward based on bits 0..2
+					includeCount := int((byteVal & 0b00111000) >> 3)
+					skipAmount := int(byteVal & 0b00000111)
+					for j := 0; j < includeCount; j++ {
+						regions = append(regions, currentRegion)
+						currentRegion++
+					}
+					currentRegion += skipAmount
+				case byteVal >= 0xC0 && byteVal <= 0xFE:
+					// Subtracting 0xC0, this many region IDs are nearby
+					includeCount := int(byteVal - 0xC0)
+					for j := 0; j < includeCount; j++ {
+						regions = append(regions, currentRegion)
+						currentRegion++
+					}
+				case byteVal == 0xFF:
+					// Include regions by the amount given in the following 16-bit WORD
+					nextByte1 := list.Ranges[i+1]
+					nextByte2 := list.Ranges[i+2]
+					includeCount := int(nextByte2)<<8 | int(nextByte1)
+					for j := 0; j < includeCount; j++ {
+						regions = append(regions, currentRegion)
+						currentRegion++
+					}
+					i += 2 // Advance by 2 more bytes
 				}
-			case byteVal >= 0x80 && byteVal <= 0xBF:
-				// Include the number of IDs based on bits 3..5, then skip forward based on bits 0..2
-				includeCount := int((byteVal & 0b00111000) >> 3)
-				skipAmount := int(byteVal & 0b00000111)
-				for j := 0; j < includeCount; j++ {
-					regions = append(regions, currentRegion)
-					currentRegion++
-				}
-				currentRegion += skipAmount
-			case byteVal >= 0xC0 && byteVal <= 0xFE:
-				// Subtracting 0xC0, this many region IDs are nearby
-				includeCount := int(byteVal - 0xC0)
-				for j := 0; j < includeCount; j++ {
-					regions = append(regions, currentRegion)
-					currentRegion++
-				}
-			case byteVal == 0xFF:
-				// Include regions by the amount given in the following 16-bit WORD
-				nextByte1 := list.Ranges[i+1]
-				nextByte2 := list.Ranges[i+2]
-				includeCount := int(nextByte2)<<8 | int(nextByte1)
-				for j := 0; j < includeCount; j++ {
-					regions = append(regions, currentRegion)
-					currentRegion++
-				}
-				i += 2 // Advance by 2 more bytes
+
+				i++
 			}
 
-			i++
-		}
+			// Print the REGIONS data for the 0x80 flag set case
+			fmt.Fprintf(w, "\t\t\tVISLIST // %d\n", i)
+			fmt.Fprintf(w, "\t\t\t\tREGIONS %d", len(regions))
+			for _, region := range regions {
+				fmt.Fprintf(w, " %d", region)
+			}
+			fmt.Fprintf(w, "\n")
 
-		fmt.Fprintf(w, "\t\t\tVISLIST // %d\n", i)
-		fmt.Fprintf(w, "\t\t\t\tREGIONS %d", len(regions))
-		for _, region := range regions {
-			fmt.Fprintf(w, " %d", region)
+		} else {
+			// 0x80 flag is not set, handle as pairs of uint16 WORDs
+			wordCount := len(list.Ranges) / 2
+			regions := []int{}
+
+			for j := 0; j < wordCount; j++ {
+				lowByte := list.Ranges[j*2]
+				highByte := list.Ranges[j*2+1]
+				regionIndex := int(highByte)<<8 | int(lowByte)
+				regionIndex += 1 // Convert from 0-based to 1-based indexing
+				regions = append(regions, regionIndex)
+			}
+
+			// Print the REGIONS data for the non-0x80 flag case
+			fmt.Fprintf(w, "\t\t\tVISLIST // %d\n", i)
+			fmt.Fprintf(w, "\t\t\t\tREGIONS %d", len(regions))
+			for _, region := range regions {
+				fmt.Fprintf(w, " %d", region)
+			}
+			fmt.Fprintf(w, "\n")
 		}
-		fmt.Fprintf(w, "\n")
 	}
 	fmt.Fprintf(w, "\tSPHERE %0.8e %0.8e %0.8e %0.8e\n", e.Sphere[0], e.Sphere[1], e.Sphere[2], e.Sphere[3])
 	fmt.Fprintf(w, "\tUSERDATA \"%s\"\n", e.UserData)
@@ -5947,114 +5971,143 @@ func (e *Region) Read(token *AsciiReadToken) error {
 			return err
 		}
 
-		records, err = token.ReadProperty("REGIONS", -1)
-		if err != nil {
-			return err
-		}
+		// Determine if the 0x80 flag is set using e.VisListBytes
+		if e.VisListBytes == 1 {
+			// Handle the case where 0x80 is set - use RLE logic
+			records, err = token.ReadProperty("REGIONS", -1)
+			if err != nil {
+				return err
+			}
 
-		numRegions := int(0)
-		err = parse(&numRegions, records[1])
-		if err != nil {
-			return fmt.Errorf("num regions: %w", err)
-		}
+			numRegions := int(0)
+			err = parse(&numRegions, records[1])
+			if err != nil {
+				return fmt.Errorf("num regions: %w", err)
+			}
 
-		regions := []int{}
-		if numRegions > 0 {
-			regions = make([]int, numRegions)
+			regions := []int{}
+			if numRegions > 0 {
+				regions = make([]int, numRegions)
+				for j := 0; j < numRegions; j++ {
+					err = parse(&regions[j], records[j+2])
+					if err != nil {
+						return fmt.Errorf("region %d: %w", j, err)
+					}
+				}
+			}
+
+			// Step 1: Calculate groups of visible and not-visible regions
+			groups := []struct {
+				visible bool
+				count   int
+			}{}
+
+			if len(regions) > 0 {
+				currentRegion := 1
+				groupStart := 1
+				visible := regions[0] == currentRegion
+
+				for currentRegion <= regions[len(regions)-1] {
+					isVisible := false
+					for _, region := range regions {
+						if region == currentRegion {
+							isVisible = true
+							break
+						}
+					}
+
+					if isVisible != visible {
+						// Save the current group
+						groups = append(groups, struct {
+							visible bool
+							count   int
+						}{
+							visible: visible,
+							count:   currentRegion - groupStart,
+						})
+						// Update visibility and start of new group
+						visible = isVisible
+						groupStart = currentRegion
+					}
+
+					currentRegion++
+				}
+
+				// Save the final group
+				groups = append(groups, struct {
+					visible bool
+					count   int
+				}{
+					visible: visible,
+					count:   currentRegion - groupStart,
+				})
+			}
+
+			// Step 2: Write out the encoded bytes using RLE logic
+			if len(regions) == 0 {
+				// If there are no regions, still add an empty VisList with zero ranges
+				list.Ranges = []byte{}
+			} else {
+				for g := 0; g < len(groups); g++ {
+					group := groups[g]
+
+					if group.visible {
+						// Handle visible groups
+						if g+1 < len(groups) && group.count <= 7 && !groups[g+1].visible && groups[g+1].count <= 7 {
+							// If the current visible group is 1-7 and the next not-visible group is also 1-7
+							list.Ranges = append(list.Ranges, byte(0x80|(group.count<<3)|groups[g+1].count))
+							g++ // Skip the next group since it's combined with this one
+						} else if group.count <= 62 {
+							// If the group is visible and 1-62 in size
+							list.Ranges = append(list.Ranges, byte(0xC0+group.count))
+						} else {
+							// If the group is visible and 63 or greater in size
+							list.Ranges = append(list.Ranges, 0xFF)
+							list.Ranges = append(list.Ranges, byte(group.count&0xFF))      // Lower byte
+							list.Ranges = append(list.Ranges, byte((group.count>>8)&0xFF)) // Upper byte
+						}
+					} else {
+						// Handle not-visible groups
+						if g+1 < len(groups) && group.count <= 7 && groups[g+1].visible && groups[g+1].count <= 7 {
+							// If the current not-visible group is 1-7 and the next visible group is also 1-7
+							list.Ranges = append(list.Ranges, byte(0x40|(group.count<<3)|groups[g+1].count))
+							g++ // Skip the next group since it's combined with this one
+						} else if group.count <= 62 {
+							// If the group is not-visible and 1-62 in size
+							list.Ranges = append(list.Ranges, byte(group.count))
+						} else {
+							// If the group is not-visible and 63 or greater in size
+							list.Ranges = append(list.Ranges, 0x3F)
+							list.Ranges = append(list.Ranges, byte(group.count&0xFF))      // Lower byte
+							list.Ranges = append(list.Ranges, byte((group.count>>8)&0xFF)) // Upper byte
+						}
+					}
+				}
+			}
+		} else {
+			// Handle the case where 0x80 is not set - read as pairs of WORDs
+			records, err = token.ReadProperty("REGIONS", -1)
+			if err != nil {
+				return err
+			}
+
+			numRegions := int(0)
+			err = parse(&numRegions, records[1])
+			if err != nil {
+				return fmt.Errorf("num regions: %w", err)
+			}
+
+			list.Ranges = make([]byte, numRegions*2)
 			for j := 0; j < numRegions; j++ {
-				err = parse(&regions[j], records[j+2])
+				regionIndex := 0
+				err = parse(&regionIndex, records[j+2])
 				if err != nil {
 					return fmt.Errorf("region %d: %w", j, err)
 				}
-			}
-		}
-
-		// Step 1: Calculate groups of visible and not-visible regions
-		groups := []struct {
-			visible bool
-			count   int
-		}{}
-
-		if len(regions) > 0 {
-			currentRegion := 1
-			groupStart := 1
-			visible := regions[0] == currentRegion
-
-			for currentRegion <= regions[len(regions)-1] {
-				isVisible := false
-				for _, region := range regions {
-					if region == currentRegion {
-						isVisible = true
-						break
-					}
-				}
-
-				if isVisible != visible {
-					// Save the current group
-					groups = append(groups, struct {
-						visible bool
-						count   int
-					}{
-						visible: visible,
-						count:   currentRegion - groupStart,
-					})
-					// Update visibility and start of new group
-					visible = isVisible
-					groupStart = currentRegion
-				}
-
-				currentRegion++
-			}
-
-			// Save the final group
-			groups = append(groups, struct {
-				visible bool
-				count   int
-			}{
-				visible: visible,
-				count:   currentRegion - groupStart,
-			})
-		}
-
-		// Step 2: Write out the encoded bytes
-		if len(regions) == 0 {
-			// If there are no regions, still add an empty VisList with zero ranges
-			list.Ranges = []byte{}
-		} else {
-			for g := 0; g < len(groups); g++ {
-				group := groups[g]
-
-				if group.visible {
-					// Handle visible groups
-					if g+1 < len(groups) && group.count <= 7 && !groups[g+1].visible && groups[g+1].count <= 7 {
-						// If the current visible group is 1-7 and the next not-visible group is also 1-7
-						list.Ranges = append(list.Ranges, byte(0x80|(group.count<<3)|groups[g+1].count))
-						g++ // Skip the next group since it's combined with this one
-					} else if group.count <= 62 {
-						// If the group is visible and 1-62 in size
-						list.Ranges = append(list.Ranges, byte(0xC0+group.count))
-					} else {
-						// If the group is visible and 63 or greater in size
-						list.Ranges = append(list.Ranges, 0xFF)
-						list.Ranges = append(list.Ranges, byte(group.count&0xFF))      // Lower byte
-						list.Ranges = append(list.Ranges, byte((group.count>>8)&0xFF)) // Upper byte
-					}
-				} else {
-					// Handle not-visible groups
-					if g+1 < len(groups) && group.count <= 7 && groups[g+1].visible && groups[g+1].count <= 7 {
-						// If the current not-visible group is 1-7 and the next visible group is also 1-7
-						list.Ranges = append(list.Ranges, byte(0x40|(group.count<<3)|groups[g+1].count))
-						g++ // Skip the next group since it's combined with this one
-					} else if group.count <= 62 {
-						// If the group is not-visible and 1-62 in size
-						list.Ranges = append(list.Ranges, byte(group.count))
-					} else {
-						// If the group is not-visible and 63 or greater in size
-						list.Ranges = append(list.Ranges, 0x3F)
-						list.Ranges = append(list.Ranges, byte(group.count&0xFF))      // Lower byte
-						list.Ranges = append(list.Ranges, byte((group.count>>8)&0xFF)) // Upper byte
-					}
-				}
+				// Convert 1-based index to 0-based index for writing to bytes
+				regionIndex -= 1
+				list.Ranges[j*2] = byte(regionIndex & 0xFF)          // Lower byte
+				list.Ranges[j*2+1] = byte((regionIndex >> 8) & 0xFF) // Upper byte
 			}
 		}
 
