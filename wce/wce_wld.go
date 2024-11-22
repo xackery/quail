@@ -5527,10 +5527,69 @@ func (e *Region) Write(token *AsciiWriteToken) error {
 	}
 	fmt.Fprintf(w, "\t\tNUMVISIBLELIST %d\n", len(e.VisTree.VisLists))
 	for i, list := range e.VisTree.VisLists {
+		// Calculate visible regions from range values
+		regions := []int{}
+		currentRegion := 1 // Start from region 1
+
+		i := 0
+		for i < len(list.Ranges) {
+			byteVal := list.Ranges[i]
+
+			switch {
+			case byteVal >= 0x00 && byteVal <= 0x3E:
+				// Skip forward by this many region IDs
+				currentRegion += int(byteVal)
+			case byteVal == 0x3F:
+				// Skip forward by the amount given in the following 16-bit WORD
+				nextByte1 := list.Ranges[i+1]
+				nextByte2 := list.Ranges[i+2]
+				skipAmount := int(nextByte2)<<8 | int(nextByte1)
+				currentRegion += skipAmount
+				i += 2 // Advance by 2 more bytes
+			case byteVal >= 0x40 && byteVal <= 0x7F:
+				// Skip forward based on bits 3..5, then include the number of IDs based on bits 0..2
+				skipAmount := int((byteVal & 0b00111000) >> 3)
+				includeCount := int(byteVal & 0b00000111)
+				currentRegion += skipAmount
+				for j := 0; j < includeCount; j++ {
+					regions = append(regions, currentRegion)
+					currentRegion++
+				}
+			case byteVal >= 0x80 && byteVal <= 0xBF:
+				// Include the number of IDs based on bits 3..5, then skip forward based on bits 0..2
+				includeCount := int((byteVal & 0b00111000) >> 3)
+				skipAmount := int(byteVal & 0b00000111)
+				for j := 0; j < includeCount; j++ {
+					regions = append(regions, currentRegion)
+					currentRegion++
+				}
+				currentRegion += skipAmount
+			case byteVal >= 0xC0 && byteVal <= 0xFE:
+				// Subtracting 0xC0, this many region IDs are nearby
+				includeCount := int(byteVal - 0xC0)
+				for j := 0; j < includeCount; j++ {
+					regions = append(regions, currentRegion)
+					currentRegion++
+				}
+			case byteVal == 0xFF:
+				// Include regions by the amount given in the following 16-bit WORD
+				nextByte1 := list.Ranges[i+1]
+				nextByte2 := list.Ranges[i+2]
+				includeCount := int(nextByte2)<<8 | int(nextByte1)
+				for j := 0; j < includeCount; j++ {
+					regions = append(regions, currentRegion)
+					currentRegion++
+				}
+				i += 2 // Advance by 2 more bytes
+			}
+
+			i++
+		}
+
 		fmt.Fprintf(w, "\t\t\tVISLIST // %d\n", i)
-		fmt.Fprintf(w, "\t\t\t\tRANGE %d", len(list.Ranges))
-		for _, val := range list.Ranges {
-			fmt.Fprintf(w, " %d", val)
+		fmt.Fprintf(w, "\t\t\t\tREGIONS %d", len(regions))
+		for _, region := range regions {
+			fmt.Fprintf(w, " %d", region)
 		}
 		fmt.Fprintf(w, "\n")
 	}
