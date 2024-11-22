@@ -5958,6 +5958,11 @@ func (e *Region) Read(token *AsciiReadToken) error {
 			return fmt.Errorf("num regions: %w", err)
 		}
 
+		if numRegions == 0 {
+			// If there are no regions, skip further processing for this list
+			continue
+		}
+
 		regions := make([]int, numRegions)
 		for j := 0; j < numRegions; j++ {
 			err = parse(&regions[j], records[j+2])
@@ -5974,7 +5979,7 @@ func (e *Region) Read(token *AsciiReadToken) error {
 
 		currentRegion := 1
 		groupStart := 1
-		visible := regions[0] == currentRegion
+		visible := len(regions) > 0 && regions[0] == currentRegion
 
 		for currentRegion <= regions[len(regions)-1] {
 			isVisible := false
