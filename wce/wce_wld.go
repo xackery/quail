@@ -5958,11 +5958,6 @@ func (e *Region) Read(token *AsciiReadToken) error {
 			return fmt.Errorf("num regions: %w", err)
 		}
 
-		if numRegions == 0 {
-			// If there are no regions, skip further processing for this list
-			continue
-		}
-
 		regions := make([]int, numRegions)
 		for j := 0; j < numRegions; j++ {
 			err = parse(&regions[j], records[j+2])
@@ -5971,72 +5966,87 @@ func (e *Region) Read(token *AsciiReadToken) error {
 			}
 		}
 
-		// Step 1: Calculate groups of visible and not-visible regions
+		// Convert regions back to RANGES format using run-length encoding
 		groups := []struct {
-			visible bool
-			count   int
+			isVisible bool
+			count     int
 		}{}
 
 		currentRegion := 1
-		groupStart := 1
-		visible := len(regions) > 0 && regions[0] == currentRegion
+		currentVisible := false
+		count := 0
 
-		for currentRegion <= regions[len(regions)-1] {
-			isVisible := false
-			for _, region := range regions {
-				if region == currentRegion {
-					isVisible = true
-					break
+		// Calculate visible and not visible groups
+		for _, region := range regions {
+			if region == currentRegion {
+				if !currentVisible {
+					// Switch to visible group
+					if count > 0 {
+						groups = append(groups, struct {
+							isVisible bool
+							count     int
+						}{isVisible: currentVisible, count: count})
+					}
+					currentVisible = true
+					count = 0
+				}
+				count++
+			} else {
+				if currentVisible {
+					// Switch to not visible group
+					groups = append(groups, struct {
+						isVisible bool
+						count     int
+					}{isVisible: currentVisible, count: count})
+					currentVisible = false
+					count = region - currentRegion
+				} else {
+					count += region - currentRegion
 				}
 			}
-
-			if isVisible != visible || currentRegion == regions[len(regions)-1] {
-				// Save the current group
-				groups = append(groups, struct {
-					visible bool
-					count   int
-				}{
-					visible: visible,
-					count:   currentRegion - groupStart,
-				})
-				// Update visibility and start of new group
-				visible = isVisible
-				groupStart = currentRegion
-			}
-
-			currentRegion++
+			currentRegion = region + 1
+		}
+		if count > 0 {
+			groups = append(groups, struct {
+				isVisible bool
+				count     int
+			}{isVisible: currentVisible, count: count})
 		}
 
-		// Step 2: Write out the encoded bytes
-		for i := 0; i < len(groups); i++ {
-			group := groups[i]
+		// Traverse the groups and write to list.Ranges
+		for g := 0; g < len(groups); g++ {
+			group := groups[g]
 
-			if group.visible {
-				// Handle visible groups
-				if i+1 < len(groups) && group.count <= 7 && !groups[i+1].visible && groups[i+1].count <= 7 {
-					// If the current visible group is 1-7 and the next not-visible group is also 1-7
-					list.Ranges = append(list.Ranges, byte(0x80|(group.count<<3)|groups[i+1].count))
-					i++ // Skip the next group since it's combined with this one
+			if group.isVisible {
+				// If the group is visible
+				if group.count <= 7 && g+1 < len(groups) && !groups[g+1].isVisible && groups[g+1].count <= 7 {
+					// Visible group of 1-7 followed by not visible group of 1-7
+					skipCount := groups[g+1].count
+					includeCount := group.count
+					list.Ranges = append(list.Ranges, byte(0x40|(skipCount<<3)|includeCount))
+					g++ // Skip the next group since we've processed it
 				} else if group.count <= 62 {
-					// If the group is visible and 1-62 in size
+					// Visible group of 1-62
 					list.Ranges = append(list.Ranges, byte(0xC0+group.count))
 				} else {
-					// If the group is visible and 63 or greater in size
+					// Visible group of 63 or more
 					list.Ranges = append(list.Ranges, 0xFF)
 					list.Ranges = append(list.Ranges, byte(group.count&0xFF))      // Lower byte
 					list.Ranges = append(list.Ranges, byte((group.count>>8)&0xFF)) // Upper byte
 				}
 			} else {
-				// Handle not-visible groups
-				if i+1 < len(groups) && group.count <= 7 && groups[i+1].visible && groups[i+1].count <= 7 {
-					// If the current not-visible group is 1-7 and the next visible group is also 1-7
-					list.Ranges = append(list.Ranges, byte(0x40|(group.count<<3)|groups[i+1].count))
-					i++ // Skip the next group since it's combined with this one
+				// If the group is not visible
+				if group.count <= 7 && g+1 < len(groups) && groups[g+1].isVisible && groups[g+1].count <= 7 {
+					// Not visible group of 1-7 followed by visible group of 1-7
+					skipCount := group.count
+					includeCount := groups[g+1].count
+					list.Ranges = append(list.Ranges, byte(0x80|(includeCount<<3)|skipCount))
+					g++ // Skip the next group since we've processed it
 				} else if group.count <= 62 {
-					// If the group is not-visible and 1-62 in size
+					// Not visible group of 1-62
 					list.Ranges = append(list.Ranges, byte(group.count))
 				} else {
-					// If the group is not-visible and 63 or greater in size
+					// Not visible group of 63 or more
 					list.Ranges = append(list.Ranges, 0x3F)
 					list.Ranges = append(list.Ranges, byte(group.count&0xFF))      // Lower byte
 					list.Ranges = append(list.Ranges, byte((group.count>>8)&0xFF)) // Upper byte
