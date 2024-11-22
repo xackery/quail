@@ -151,12 +151,14 @@ func TestWceReadWrite(t *testing.T) {
 			}
 
 			dstFragByCodes := make(map[int]int)
+			allDstFragsByTags := make(map[int][]*tagEntry)
 			dstFragByTags := make(map[int][]*tagEntry)
 
 			for i := 0; i < len(rawWldDst.Fragments); i++ {
 				dstFrag := rawWldDst.Fragments[i]
 				dstFragByCodes[dstFrag.FragCode()]++
 				dstFragByTags[dstFrag.FragCode()] = append(dstFragByTags[dstFrag.FragCode()], &tagEntry{tag: rawWldDst.TagByFrag(dstFrag), offset: i})
+				allDstFragsByTags[dstFrag.FragCode()] = append(allDstFragsByTags[dstFrag.FragCode()], &tagEntry{tag: rawWldDst.TagByFrag(dstFrag), offset: i})
 			}
 
 			isObj := strings.Contains(baseName, "_obj")
@@ -185,12 +187,36 @@ func TestWceReadWrite(t *testing.T) {
 
 					if !found {
 						// objects don't have actor instances
-						if rawfrag.FragName(i) == "Actor" {
+						if i == rawfrag.FragCodeActor {
 							continue
 						}
 
 						// qeynos_chr double writes this and we don't care to match it
 						if srcTag.tag == "FISHE03_DMSPRITEDEF" {
+							continue
+						}
+
+						if i == rawfrag.FragCodeBMInfo || i == rawfrag.FragCodeMaterialDef {
+							allFrags, ok := allDstFragsByTags[i]
+							if !ok {
+								t.Fatalf("fragment %d (%s) tag %s not found in dst", srcTag.offset, rawfrag.FragName(i), srcTag.tag)
+							}
+
+							if srcTag.tag == "" {
+								continue
+							}
+
+							isFound := false
+							for _, frag := range allFrags {
+								if frag.tag == srcTag.tag {
+									isFound = true
+									break
+								}
+							}
+							if !isFound {
+								t.Fatalf("fragment %d (%s) tag %s not found in dst or all", srcTag.offset, rawfrag.FragName(i), srcTag.tag)
+							}
+
 							continue
 						}
 

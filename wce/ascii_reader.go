@@ -179,6 +179,7 @@ func (a *AsciiReadToken) readDefinitions() error {
 		&ActorDef{},
 		&ActorInst{},
 		&AmbientLight{},
+		&BlitSpriteDef{},
 		&DMSpriteDef{},
 		&DMSpriteDef2{},
 		&DMTrackDef2{},
@@ -252,6 +253,13 @@ func (a *AsciiReadToken) readDefinitions() error {
 				}
 				a.wce.GlobalAmbientLightDef = frag
 				definitions[i] = &GlobalAmbientLightDef{}
+			case *BlitSpriteDef:
+				if len(args) == 1 {
+					return fmt.Errorf("definition %s has no arguments", defName)
+				}
+				frag.Tag = args[1]
+				a.wce.BlitSpriteDefs = append(a.wce.BlitSpriteDefs, frag)
+				definitions[i] = &BlitSpriteDef{}
 			case *DMSpriteDef2:
 				if len(args) == 1 {
 					return fmt.Errorf("definition %s has no arguments", defName)

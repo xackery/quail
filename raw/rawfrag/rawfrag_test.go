@@ -30,12 +30,13 @@ func TestFragment(t *testing.T) {
 		// 0x01 PaletteFile
 		// 0x02 UserData
 		// OK 0x03 TextureList bminfo
-		{path: "global_chr.s3d", file: "global_chr.wld", fragIndex: 1},
+		//{path: "global_chr.s3d", file: "global_chr.wld", fragIndex: 1},
 		// OK 0x04 Texture SimpleSpriteDef
-		{path: "global_chr.s3d", file: "global_chr.wld", fragIndex: 2},
+		//{path: "global_chr.s3d", file: "global_chr.wld", fragIndex: 2},
 		// OK 0x05 TextureRef SimpleSprite
-		{path: "global_chr.s3d", file: "global_chr.wld", fragIndex: 3},
+		//{path: "global_chr.s3d", file: "global_chr.wld", fragIndex: 3},
 		// 0x06 TwoDSprite
+		{path: "gequip.s3d", file: "gequip.wld"},
 
 		// 0x07 TwoDSpriteRef
 		// 0x08 ThreeDSprite
@@ -120,7 +121,8 @@ func TestFragment(t *testing.T) {
 			isDump    bool
 		}{
 			//{path: "global_chr.s3d", file: "global_chr.wld", fragIndex: 4},
-			{path: "load2.s3d", file: "load2.wld", fragIndex: 0},
+			//{path: "load2.s3d", file: "load2.wld", fragIndex: 0},
+			{path: "gequip.s3d", file: "gequip.wld", fragIndex: 0},
 		}
 	}
 	for _, tt := range tests {

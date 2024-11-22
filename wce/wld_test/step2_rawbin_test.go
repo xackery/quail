@@ -72,6 +72,11 @@ func TestRawBinReadWrite(t *testing.T) {
 				t.Fatalf("failed to write %s: %s", baseName, err.Error())
 			}
 
+			err = os.WriteFile(fmt.Sprintf("%s/%s.dst.wld", dirTest, baseName), buf.Bytes(), 0644)
+			if err != nil {
+				t.Fatalf("failed to write %s: %s", baseName, err.Error())
+			}
+
 			rawWldDst := &raw.Wld{
 				MetaFileName: rawWldSrc.MetaFileName,
 			}
