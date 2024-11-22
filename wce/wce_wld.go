@@ -5967,7 +5967,7 @@ func (e *Region) Read(token *AsciiReadToken) error {
 		}
 
 		// Convert regions back to RANGES format using run-length encoding
-		currentRegion := 0
+		currentRegion := 1
 		for k := 0; k < len(regions); {
 			if regions[k] == currentRegion {
 				// Count the number of consecutive regions
@@ -5977,24 +5977,35 @@ func (e *Region) Read(token *AsciiReadToken) error {
 					currentRegion++
 					k++
 				}
-				if includeCount <= 0x3E {
+
+				if includeCount <= 62 {
+					// Use a single byte for including consecutive regions
 					list.Ranges = append(list.Ranges, byte(0xC0+includeCount))
 				} else {
+					// Use 0xFF followed by a WORD to represent the count of regions included
 					list.Ranges = append(list.Ranges, 0xFF)
-					list.Ranges = append(list.Ranges, byte(includeCount&0xFF))
-					list.Ranges = append(list.Ranges, byte((includeCount>>8)&0xFF))
+					list.Ranges = append(list.Ranges, byte(includeCount&0xFF))      // Lower byte
+					list.Ranges = append(list.Ranges, byte((includeCount>>8)&0xFF)) // Upper byte
 				}
 			} else {
+				// Calculate the skip amount to the next visible region
 				skipAmount := regions[k] - currentRegion
-				if skipAmount <= 0x3E {
+
+				if skipAmount <= 62 {
+					// Use a single byte for skipping regions
 					list.Ranges = append(list.Ranges, byte(skipAmount))
 				} else {
+					// Use 0x3F followed by a WORD to represent the skip amount
 					list.Ranges = append(list.Ranges, 0x3F)
-					list.Ranges = append(list.Ranges, byte(skipAmount&0xFF))
-					list.Ranges = append(list.Ranges, byte((skipAmount>>8)&0xFF))
+					list.Ranges = append(list.Ranges, byte(skipAmount&0xFF))      // Lower byte
+					list.Ranges = append(list.Ranges, byte((skipAmount>>8)&0xFF)) // Upper byte
 				}
+
+				// Update currentRegion to the region we're skipping to
 				currentRegion = regions[k]
 			}
+
+			// Move currentRegion to next after inclusion or skipping
 			currentRegion++
 		}
 
