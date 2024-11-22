@@ -6003,6 +6003,12 @@ func (e *Region) Read(token *AsciiReadToken) error {
 
 				// Update currentRegion to the region we're skipping to
 				currentRegion = regions[k]
+				k++ // Ensure progress through the list of regions
+			}
+
+			// Stop once we've reached the value of the last visible region
+			if k >= len(regions) {
+				break
 			}
 
 			// Move currentRegion to next after inclusion or skipping
