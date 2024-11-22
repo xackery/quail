@@ -5958,16 +5958,14 @@ func (e *Region) Read(token *AsciiReadToken) error {
 			return fmt.Errorf("num regions: %w", err)
 		}
 
-		if numRegions == 0 {
-			// If there are no regions, skip further processing for this list
-			continue
-		}
-
-		regions := make([]int, numRegions)
-		for j := 0; j < numRegions; j++ {
-			err = parse(&regions[j], records[j+2])
-			if err != nil {
-				return fmt.Errorf("region %d: %w", j, err)
+		regions := []int{}
+		if numRegions > 0 {
+			regions = make([]int, numRegions)
+			for j := 0; j < numRegions; j++ {
+				err = parse(&regions[j], records[j+2])
+				if err != nil {
+					return fmt.Errorf("region %d: %w", j, err)
+				}
 			}
 		}
 
@@ -5977,73 +5975,90 @@ func (e *Region) Read(token *AsciiReadToken) error {
 			count   int
 		}{}
 
-		currentRegion := 1
-		groupStart := 1
-		visible := len(regions) > 0 && regions[0] == currentRegion
+		if len(regions) > 0 {
+			currentRegion := 1
+			groupStart := 1
+			visible := regions[0] == currentRegion
 
-		for currentRegion <= regions[len(regions)-1] {
-			isVisible := false
-			for _, region := range regions {
-				if region == currentRegion {
-					isVisible = true
-					break
+			for currentRegion <= regions[len(regions)-1] {
+				isVisible := false
+				for _, region := range regions {
+					if region == currentRegion {
+						isVisible = true
+						break
+					}
 				}
+
+				if isVisible != visible {
+					// Save the current group
+					groups = append(groups, struct {
+						visible bool
+						count   int
+					}{
+						visible: visible,
+						count:   currentRegion - groupStart,
+					})
+					// Update visibility and start of new group
+					visible = isVisible
+					groupStart = currentRegion
+				}
+
+				currentRegion++
 			}
 
-			if isVisible != visible || currentRegion == regions[len(regions)-1] {
-				// Save the current group
-				groups = append(groups, struct {
-					visible bool
-					count   int
-				}{
-					visible: visible,
-					count:   currentRegion - groupStart,
-				})
-				// Update visibility and start of new group
-				visible = isVisible
-				groupStart = currentRegion
-			}
-
-			currentRegion++
+			// Save the final group
+			groups = append(groups, struct {
+				visible bool
+				count   int
+			}{
+				visible: visible,
+				count:   currentRegion - groupStart,
+			})
 		}
 
 		// Step 2: Write out the encoded bytes
-		for i := 0; i < len(groups); i++ {
-			group := groups[i]
+		if len(regions) == 0 {
+			// If there are no regions, still add an empty VisList with zero ranges
+			list.Ranges = []byte{}
+		} else {
+			for g := 0; g < len(groups); g++ {
+				group := groups[g]
 
-			if group.visible {
-				// Handle visible groups
-				if i+1 < len(groups) && group.count <= 7 && !groups[i+1].visible && groups[i+1].count <= 7 {
-					// If the current visible group is 1-7 and the next not-visible group is also 1-7
-					list.Ranges = append(list.Ranges, byte(0x80|(group.count<<3)|groups[i+1].count))
-					i++ // Skip the next group since it's combined with this one
-				} else if group.count <= 62 {
-					// If the group is visible and 1-62 in size
-					list.Ranges = append(list.Ranges, byte(0xC0+group.count))
+				if group.visible {
+					// Handle visible groups
+					if g+1 < len(groups) && group.count <= 7 && !groups[g+1].visible && groups[g+1].count <= 7 {
+						// If the current visible group is 1-7 and the next not-visible group is also 1-7
+						list.Ranges = append(list.Ranges, byte(0x80|(group.count<<3)|groups[g+1].count))
+						g++ // Skip the next group since it's combined with this one
+					} else if group.count <= 62 {
+						// If the group is visible and 1-62 in size
+						list.Ranges = append(list.Ranges, byte(0xC0+group.count))
+					} else {
+						// If the group is visible and 63 or greater in size
+						list.Ranges = append(list.Ranges, 0xFF)
+						list.Ranges = append(list.Ranges, byte(group.count&0xFF))      // Lower byte
+						list.Ranges = append(list.Ranges, byte((group.count>>8)&0xFF)) // Upper byte
+					}
 				} else {
-					// If the group is visible and 63 or greater in size
-					list.Ranges = append(list.Ranges, 0xFF)
-					list.Ranges = append(list.Ranges, byte(group.count&0xFF))      // Lower byte
-					list.Ranges = append(list.Ranges, byte((group.count>>8)&0xFF)) // Upper byte
-				}
-			} else {
-				// Handle not-visible groups
-				if i+1 < len(groups) && group.count <= 7 && groups[i+1].visible && groups[i+1].count <= 7 {
-					// If the current not-visible group is 1-7 and the next visible group is also 1-7
-					list.Ranges = append(list.Ranges, byte(0x40|(group.count<<3)|groups[i+1].count))
-					i++ // Skip the next group since it's combined with this one
-				} else if group.count <= 62 {
-					// If the group is not-visible and 1-62 in size
-					list.Ranges = append(list.Ranges, byte(group.count))
-				} else {
-					// If the group is not-visible and 63 or greater in size
-					list.Ranges = append(list.Ranges, 0x3F)
-					list.Ranges = append(list.Ranges, byte(group.count&0xFF))      // Lower byte
-					list.Ranges = append(list.Ranges, byte((group.count>>8)&0xFF)) // Upper byte
+					// Handle not-visible groups
+					if g+1 < len(groups) && group.count <= 7 && groups[g+1].visible && groups[g+1].count <= 7 {
+						// If the current not-visible group is 1-7 and the next visible group is also 1-7
+						list.Ranges = append(list.Ranges, byte(0x40|(group.count<<3)|groups[g+1].count))
+						g++ // Skip the next group since it's combined with this one
+					} else if group.count <= 62 {
+						// If the group is not-visible and 1-62 in size
+						list.Ranges = append(list.Ranges, byte(group.count))
+					} else {
+						// If the group is not-visible and 63 or greater in size
+						list.Ranges = append(list.Ranges, 0x3F)
+						list.Ranges = append(list.Ranges, byte(group.count&0xFF))      // Lower byte
+						list.Ranges = append(list.Ranges, byte((group.count>>8)&0xFF)) // Upper byte
+					}
 				}
 			}
 		}
 
+		// Always append the list, even if it has zero ranges
 		e.VisTree.VisLists = append(e.VisTree.VisLists, list)
 	}
 
