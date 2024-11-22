@@ -5966,21 +5966,27 @@ func (e *Region) Read(token *AsciiReadToken) error {
 			}
 		}
 
-		// Convert regions back to RANGES format using run-length encoding
+		// Step 1: Calculate groups of visible and not-visible regions
 		groups := []struct {
 			visible bool
 			count   int
 		}{}
 
-		// Step 1: Calculate groups of visible and not-visible regions
 		currentRegion := 1
-		groupStart := 0
+		groupStart := 1
 		visible := regions[0] == currentRegion
 
-		for k := 0; k <= len(regions); k++ {
-			isVisible := k < len(regions) && regions[k] == currentRegion
+		for currentRegion <= regions[len(regions)-1] {
+			isVisible := false
+			for _, region := range regions {
+				if region == currentRegion {
+					isVisible = true
+					break
+				}
+			}
 
-			if (isVisible != visible) || k == len(regions) {
+			if isVisible != visible || currentRegion == regions[len(regions)-1] {
+				// Save the current group
 				groups = append(groups, struct {
 					visible bool
 					count   int
@@ -5988,14 +5994,12 @@ func (e *Region) Read(token *AsciiReadToken) error {
 					visible: visible,
 					count:   currentRegion - groupStart,
 				})
-
+				// Update visibility and start of new group
 				visible = isVisible
 				groupStart = currentRegion
 			}
 
-			if isVisible {
-				currentRegion++
-			}
+			currentRegion++
 		}
 
 		// Step 2: Write out the encoded bytes
