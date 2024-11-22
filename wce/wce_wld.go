@@ -5972,7 +5972,7 @@ func (e *Region) Read(token *AsciiReadToken) error {
 			count   int
 		}{}
 
-		currentRegion := 1
+		currentRegion := 0
 		groupStart := 1
 		visible := regions[0] == currentRegion
 
