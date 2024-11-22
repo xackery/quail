@@ -5529,9 +5529,9 @@ func (e *Region) Write(token *AsciiWriteToken) error {
 	for i, list := range e.VisTree.VisLists {
 		// Determine if the 0x80 flag is set using e.VisListBytes
 		if e.VisListBytes == 1 {
-			// Calculate visible regions from range values using RLE logic
+			// Calculate visible regions from range values using RLE
 			regions := []int{}
-			currentRegion := 1 // Start from region 1
+			currentRegion := 1
 
 			for i < len(list.Ranges) {
 				byteVal := list.Ranges[i]
@@ -5546,7 +5546,7 @@ func (e *Region) Write(token *AsciiWriteToken) error {
 					nextByte2 := list.Ranges[i+2]
 					skipAmount := int(nextByte2)<<8 | int(nextByte1)
 					currentRegion += skipAmount
-					i += 2 // Advance by 2 more bytes
+					i += 2
 				case byteVal >= 0x40 && byteVal <= 0x7F:
 					// Skip forward based on bits 3..5, then include the number of IDs based on bits 0..2
 					skipAmount := int((byteVal & 0b00111000) >> 3)
@@ -5581,7 +5581,7 @@ func (e *Region) Write(token *AsciiWriteToken) error {
 						regions = append(regions, currentRegion)
 						currentRegion++
 					}
-					i += 2 // Advance by 2 more bytes
+					i += 2
 				}
 
 				i++
@@ -5973,7 +5973,7 @@ func (e *Region) Read(token *AsciiReadToken) error {
 
 		// Determine if the 0x80 flag is set using e.VisListBytes
 		if e.VisListBytes == 1 {
-			// Handle the case where 0x80 is set - use RLE logic
+			// Handle the case where 0x80 is set
 			records, err = token.ReadProperty("REGIONS", -1)
 			if err != nil {
 				return err
@@ -5996,7 +5996,7 @@ func (e *Region) Read(token *AsciiReadToken) error {
 				}
 			}
 
-			// Step 1: Calculate groups of visible and not-visible regions
+			// Calculate groups of visible and not-visible regions
 			groups := []struct {
 				visible bool
 				count   int
@@ -6043,7 +6043,7 @@ func (e *Region) Read(token *AsciiReadToken) error {
 				})
 			}
 
-			// Step 2: Write out the encoded bytes using RLE logic
+			// Write out the encoded bytes using RLE logic
 			if len(regions) == 0 {
 				// If there are no regions, still add an empty VisList with zero ranges
 				list.Ranges = []byte{}
@@ -6111,7 +6111,6 @@ func (e *Region) Read(token *AsciiReadToken) error {
 			}
 		}
 
-		// Always append the list, even if it has zero ranges
 		e.VisTree.VisLists = append(e.VisTree.VisLists, list)
 	}
 
