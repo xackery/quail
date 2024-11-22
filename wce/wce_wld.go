@@ -5531,7 +5531,7 @@ func (e *Region) Write(token *AsciiWriteToken) error {
 		regions := []int{}
 		currentRegion := 1 // Start from region 1
 
-		i := 0
+		_ = 0
 		for i < len(list.Ranges) {
 			byteVal := list.Ranges[i]
 
