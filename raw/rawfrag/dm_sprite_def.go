@@ -104,8 +104,15 @@ func (e *WldFragDMSpriteDef) Write(w io.Writer, isNewWorld bool) error {
 
 	for _, meshop := range e.Meshops {
 		enc.Uint32(meshop.TypeField)
-		enc.Uint32(meshop.VertexIndex)
-		enc.Float32(meshop.Offset)
+
+		if meshop.TypeField >= 1 && meshop.TypeField <= 3 {
+			// Write VertexIndex if TypeField is 1, 2, or 3
+			enc.Uint32(meshop.VertexIndex)
+		} else if meshop.TypeField == 4 {
+			// Write Offset if TypeField is 4
+			enc.Float32(meshop.Offset)
+		}
+
 		enc.Uint16(meshop.Param1)
 		enc.Uint16(meshop.Param2)
 	}
@@ -207,14 +214,22 @@ func (e *WldFragDMSpriteDef) Read(r io.ReadSeeker, isNewWorld bool) error {
 	}
 
 	for i := uint16(0); i < meshopCount; i++ {
-		s := WldFragDMSpriteDefMeshOp{
-			TypeField:   dec.Uint32(),
-			VertexIndex: dec.Uint32(),
-			Offset:      dec.Float32(),
-			Param1:      dec.Uint16(),
-			Param2:      dec.Uint16(),
+		meshop := WldFragDMSpriteDefMeshOp{
+			TypeField: dec.Uint32(),
 		}
-		e.Meshops = append(e.Meshops, s)
+
+		if meshop.TypeField >= 1 && meshop.TypeField <= 3 {
+			// Read VertexIndex if TypeField is 1, 2, or 3
+			meshop.VertexIndex = dec.Uint32()
+		} else if meshop.TypeField == 4 {
+			// Read Offset if TypeField is 4
+			meshop.Offset = dec.Float32()
+		}
+
+		meshop.Param1 = dec.Uint16()
+		meshop.Param2 = dec.Uint16()
+
+		e.Meshops = append(e.Meshops, meshop)
 	}
 
 	for i := uint32(0); i < skinAssignmentGroupCount; i++ {
