@@ -2438,6 +2438,18 @@ func (e *ActorDef) Write(token *AsciiWriteToken) error {
 		}
 	}
 
+	baseTag := strings.TrimSuffix(e.Tag, "_ACTORDEF")
+	for _, sprite := range token.wce.DMSpriteDef2s {
+		if !strings.HasPrefix(sprite.Tag, baseTag) {
+			continue
+		}
+		err = sprite.Write(token)
+		if err != nil {
+			return fmt.Errorf("dmspritedef %s: %w", sprite.Tag, err)
+
+		}
+	}
+
 	fmt.Fprintf(w, "%s \"%s\"\n", e.Definition(), e.Tag)
 	fmt.Fprintf(w, "\tCALLBACK \"%s\"\n", e.Callback)
 	fmt.Fprintf(w, "\tBOUNDSREF %d\n", e.BoundsRef)
@@ -6969,6 +6981,7 @@ func (e *ParticleCloudDef) Write(token *AsciiWriteToken) error {
 	}
 
 	fmt.Fprintf(w, "%s \"%s\"\n", e.Definition(), e.Tag)
+	fmt.Fprintf(w, "\tBLITTAG \"%s\"\n", e.BlitSpriteDefTag)
 	fmt.Fprintf(w, "\tSETTINGONE %d\n", e.SettingOne)
 	fmt.Fprintf(w, "\tSETTINGTWO %d\n", e.SettingTwo)
 	fmt.Fprintf(w, "\tMOVEMENT \"%s\" // SPHERE, PLANE, STREAM, NONE\n", e.Movement)
