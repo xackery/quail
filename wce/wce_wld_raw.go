@@ -80,8 +80,13 @@ func readRawFrag(e *Wce, rawWld *raw.Wld, fragment model.FragmentReadWriter) err
 	case rawfrag.FragCodeSimpleSprite:
 		//return fmt.Errorf("simplesprite fragment found, but not expected")
 	case rawfrag.FragCodeBlitSpriteDef:
+		def := &BlitSpriteDef{}
+		err := def.FromRaw(e, rawWld, fragment.(*rawfrag.WldFragBlitSpriteDef))
+		if err != nil {
+			return fmt.Errorf("blitspritedef: %w", err)
+		}
+		e.BlitSpriteDefs = append(e.BlitSpriteDefs, def)
 	case rawfrag.FragCodeBlitSprite:
-
 	case rawfrag.FragCodeParticleCloudDef:
 		def := &ParticleCloudDef{}
 		err := def.FromRaw(e, rawWld, fragment.(*rawfrag.WldFragParticleCloudDef))
@@ -438,6 +443,12 @@ func (wce *Wce) WriteWldRaw(w io.Writer) error {
 				return fmt.Errorf("dmspritedef2 %s: %w", dmSprite.Tag, err)
 			}
 		}
+		for _, dmSprite := range wce.DMSpriteDefs {
+			_, err = dmSprite.ToRaw(wce, dst)
+			if err != nil {
+				return fmt.Errorf("dmspritedef %s: %w", dmSprite.Tag, err)
+			}
+		}
 		for _, hiSprite := range wce.HierarchicalSpriteDefs {
 			_, err = hiSprite.ToRaw(wce, dst)
 			if err != nil {
@@ -620,16 +631,16 @@ func baseTagTrim(isObj bool, tag string) string {
 	if index > 0 {
 		tag = tag[:index]
 	}
-
-	if !isObj {
-		// find suffix first number
-		for i := 0; i < len(tag); i++ {
-			if tag[i] >= '0' && tag[i] <= '9' {
-				tag = tag[:i]
-				break
+	/*
+		if !isObj && !strings.HasPrefix(tag, "IT") {
+			// find suffix first number
+			for i := 0; i < len(tag); i++ {
+				if tag[i] >= '0' && tag[i] <= '9' {
+					tag = tag[:i]
+					break
+				}
 			}
-		}
-	}
+		} */
 
 	if len(tag) > 4 && strings.HasSuffix(tag, "HE") {
 		tag = tag[:len(tag)-2]

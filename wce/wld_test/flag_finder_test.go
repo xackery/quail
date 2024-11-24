@@ -81,14 +81,25 @@ func TestFragFlags(t *testing.T) {
 			for i := 0; i < len(rawWld.Fragments); i++ {
 				fragRaw := rawWld.Fragments[i]
 
-				frag, ok := fragRaw.(*rawfrag.WldFragDmSpriteDef2)
+				frag, ok := fragRaw.(*rawfrag.WldFragBlitSpriteDef)
 				if !ok {
 					continue
 				}
 
+				flags := uint32(frag.Flags)
 				tagName := rawWld.Name(int32(frag.NameRef))
+				hexFlagDump := hexFlagDump(int(flags))
+				flagsMap[int(flags)] = &flagEntry{
+					baseName:    s3dName,
+					wldName:     wldName,
+					fragID:      i,
+					tagName:     tagName,
+					hexFlagDump: hexFlagDump,
+				}
+				flagSorts = append(flagSorts, int(flags))
+				fmt.Printf("Flag %d found in %s/%s/%s fragID %d %s\n", flags, s3dName, wldName, tagName, i, hexFlagDump)
 
-				for _, face := range frag.Faces {
+				/* for _, face := range frag.Faces {
 					flags := uint32(face.Flags)
 					if flagsMap[int(flags)] != nil {
 						continue
@@ -104,7 +115,7 @@ func TestFragFlags(t *testing.T) {
 					}
 					flagSorts = append(flagSorts, int(flags))
 					fmt.Printf("Flag %d found in %s/%s/%s fragID %d %s\n", flags, s3dName, wldName, tagName, i, hexFlagDump)
-				}
+				} */
 			}
 		}
 	}

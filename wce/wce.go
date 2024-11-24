@@ -25,6 +25,7 @@ type Wce struct {
 	ActorDefs              []*ActorDef
 	ActorInsts             []*ActorInst
 	AmbientLights          []*AmbientLight
+	BlitSpriteDefs         []*BlitSpriteDef
 	DMSpriteDef2s          []*DMSpriteDef2
 	DMSpriteDefs           []*DMSpriteDef
 	DMTrackDef2s           []*DMTrackDef2
@@ -81,6 +82,11 @@ func (wce *Wce) ByTag(tag string) WldDefinitioner {
 				return sprite
 			}
 		}
+		for _, sprite := range wce.BlitSpriteDefs {
+			if sprite.Tag == tag {
+				return sprite
+			}
+		}
 	}
 	if strings.HasSuffix(tag, "_PCD") {
 		for _, cloud := range wce.ParticleCloudDefs {
@@ -90,8 +96,8 @@ func (wce *Wce) ByTag(tag string) WldDefinitioner {
 		}
 	}
 	if strings.HasSuffix(tag, "_SPB") {
-		for _, sprite := range wce.ParticleCloudDefs {
-			if sprite.BlitSpriteDefTag == tag {
+		for _, sprite := range wce.BlitSpriteDefs {
+			if sprite.Tag == tag {
 				return sprite
 			}
 		}

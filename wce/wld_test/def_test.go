@@ -10,12 +10,26 @@ var tests = []struct {
 	baseName string
 	wldName  string
 }{
-	{baseName: "emeraldjungle_obj"},
+	{baseName: "gequip"},
+	//{baseName: "global3_chr"},
+	//{baseName: "emeraldjungle"},
+	//{baseName: "emeraldjungle_obj"},
 	//{baseName: "emeraldjungle", wldName: "objects.wld"},
 	//{baseName: "global_chr"},
+	//{baseName: "txevu", wldName: "objects.wld"},
+	//{baseName: "load"}, // OK
+	//{baseName: "load2"}, // dmspritedef2: fragment4 unknown type *rawfrag.WldFragBMInfo
+	//{baseName: "globalogm_chr2"}, //track L10BOGML10B_OGM_TRACK model too short ()
+	//{baseName: "sseru_2_obj"}, // OK
+	//{baseName: "mim_chr"}, // OK
+	//{baseName: "chardok_2_obj"}, // OK
+	//{baseName: "butcher2_chr"}, // OK
+	//{baseName: "chequip"}, // OK
+	//{baseName: "txevu"},
+	//{baseName: "txevu_obj"},
 	//{baseName: "globalelf_chr"},
 	//{baseName: "lgequip"},
-	//{baseName: "global5_chr"},
+	//{baseName: "global3_chr"},
 	//{baseName: "akanon"},
 	//{baseName: "permafrost"},
 	//{baseName: "akanon", wldName: "objects.wld"},
@@ -117,19 +131,20 @@ func TestPastGoodTests(t *testing.T) {
 		baseName string
 		wldName  string
 	}{
+		{baseName: "twilight_obj"},
 		{baseName: "crushbone"},
 		{baseName: "crushbone", wldName: "objects.wld"},
 		{baseName: "crushbone", wldName: "lights.wld"},
 		{baseName: "arena"},
 		{baseName: "neriakc"},
 		{baseName: "twilight"},
-		//{baseName: "global_chr"},
+		{baseName: "global_chr"},
 		{baseName: "global2_chr"},
-		//{baseName: "global3_chr"}, // track O02DWF_TRACK model too short
-		//{baseName: "global4_chr"}, // BAMHE0003_SPRITE not found
-		{baseName: "global5_chr"}, //  PASS
-		{baseName: "global6_chr"}, // PASS
-		//{baseName: "global7_chr"}, // KEFTASK11 not found
+		{baseName: "global3_chr"},   // track O02DWF_TRACK model too short
+		{baseName: "global4_chr"},   // BAMHE0003_SPRITE not found
+		{baseName: "global5_chr"},   //  PASS
+		{baseName: "global6_chr"},   // PASS
+		{baseName: "global7_chr"},   // KEFTASK11 not found
 		{baseName: "globalelf_chr"}, // PASS
 		{baseName: "globaldaf_chr"}, // PASS
 		{baseName: "globaldam_chr"}, // PASS
