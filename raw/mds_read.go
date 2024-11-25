@@ -312,3 +312,14 @@ func (mds *Mds) NameClear() {
 	mds.names = nil
 	mds.nameBuf = nil
 }
+
+func (mds *Mds) Names() []string {
+	if mds.names == nil {
+		return nil
+	}
+	names := []string{}
+	for _, v := range mds.names {
+		names = append(names, v.name)
+	}
+	return names
+}

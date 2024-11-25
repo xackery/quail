@@ -279,3 +279,14 @@ func (mod *Mod) NameClear() {
 	mod.names = nil
 	mod.nameBuf = nil
 }
+
+func (mod *Mod) Names() []string {
+	if mod.names == nil {
+		return nil
+	}
+	names := []string{}
+	for _, v := range mod.names {
+		names = append(names, v.name)
+	}
+	return names
+}
