@@ -3,7 +3,8 @@ package helper
 import (
 	"bufio"
 	"fmt"
-	"os"
+
+	"github.com/xackery/quail/os"
 )
 
 // ReadFile loads a file and splits it into a string slice

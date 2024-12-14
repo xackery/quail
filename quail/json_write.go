@@ -2,9 +2,10 @@ package quail
 
 import (
 	"fmt"
-	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/xackery/quail/os"
 )
 
 // DirWrite exports the quail target to a directory
@@ -34,17 +35,17 @@ func (q *Quail) JsonWrite(path string) error {
 		}
 	}
 
-	for name, data := range q.Textures {
+	// for name, data := range q.Textures {
 
-		/* data, err := fixWonkyDDS(name, texture)
-		if err != nil {
-			return err
-		} */
-		err = os.WriteFile(path+"/"+name, data, 0644)
-		if err != nil {
-			return err
-		}
-	}
+	// 	/* data, err := fixWonkyDDS(name, texture)
+	// 	if err != nil {
+	// 		return err
+	// 	} */
+	// 	err = os.WriteFile(path+"/"+name, data, 0644)
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// }
 
 	return nil
 }

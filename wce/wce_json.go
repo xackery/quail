@@ -3,8 +3,9 @@ package wce
 import (
 	"encoding/json"
 	"fmt"
-	"os"
 	"path/filepath"
+
+	"github.com/xackery/quail/os"
 )
 
 // ReadJSON reads the json file at path

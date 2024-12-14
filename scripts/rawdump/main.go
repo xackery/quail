@@ -3,10 +3,10 @@ package main
 import (
 	"bytes"
 	"fmt"
-	"os"
 	"os/exec"
 	"path/filepath"
 
+	"github.com/xackery/quail/os"
 	"github.com/xackery/quail/pfs"
 )
 

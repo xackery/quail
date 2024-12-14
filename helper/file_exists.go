@@ -1,6 +1,6 @@
 package helper
 
-import "os"
+import "github.com/xackery/quail/os"
 
 // IsFile returns true if path is a file
 func IsFile(path string) bool {

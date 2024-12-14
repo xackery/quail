@@ -2,8 +2,9 @@ package quail
 
 import (
 	"fmt"
-	"os"
 	"strings"
+
+	"github.com/xackery/quail/os"
 )
 
 // DirWrite exports the quail target to a directory

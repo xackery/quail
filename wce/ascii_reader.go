@@ -4,10 +4,11 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
+
+	"github.com/xackery/quail/os"
 )
 
 var regexLine = regexp.MustCompile(`"([^"]*)"|(\S+)`)
