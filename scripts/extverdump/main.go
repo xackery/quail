@@ -3,9 +3,9 @@ package main
 import (
 	"fmt"
 	"net/http"
-	"os"
 	"path/filepath"
 
+	"github.com/xackery/quail/os"
 	"github.com/xackery/quail/quail"
 
 	_ "net/http/pprof"

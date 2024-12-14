@@ -2,11 +2,11 @@ package cmd
 
 import (
 	"fmt"
-	"os"
 	"path/filepath"
 	"time"
 
 	"github.com/spf13/cobra"
+	"github.com/xackery/quail/os"
 	"github.com/xackery/quail/quail"
 )
 

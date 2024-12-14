@@ -4,10 +4,10 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"os"
 	"sync"
 
 	"github.com/xackery/encdec"
+	"github.com/xackery/quail/os"
 )
 
 var (

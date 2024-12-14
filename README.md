@@ -142,3 +142,9 @@ Flag 558 found in timorous_lit.s3d/timorous_lit.wld/ fragID 13349 Flag 558 (0x22
 Flag 814 found in timorous_lit.s3d/timorous_lit.wld/ fragID 13192 Flag 814 (0x32e) -- 0x02 0x04 0x08 0x20 0x100 0x200
 Max flag found: 2 0x02
 ===
+
+
+# Compiling WebAssembly API
+Quail can be compiled to WebAssembly to be used in the browser. To compile to WebAssembly, first install `tinygo` and then run:
+
+`GOOS=js GOARCH=wasm tinygo build --target wasm --gc leaking -o quail.wasm main_wasm.go`
