@@ -31,5 +31,5 @@ func main() {
 		fmt.Printf("quail %s\n", Version)
 	}
 	common.Version = Version
-	cmd.Execute()z
+	cmd.Execute()
 }

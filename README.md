@@ -32,6 +32,12 @@ Available Commands:
   inspect     Inspect an EverQuest asset
 ```
 
+## Compiling WebAssembly API
+Quail can be compiled to WebAssembly to be used in the browser. To compile to WebAssembly, first install `tinygo` and then run:
+```
+GOOS=js GOARCH=wasm tinygo build --target wasm --gc leaking -o quail.wasm main_wasm.go
+```
+
 # EverQuest File Overview
 ## Pfs
 
@@ -144,7 +150,3 @@ Max flag found: 2 0x02
 ===
 
 
-# Compiling WebAssembly API
-Quail can be compiled to WebAssembly to be used in the browser. To compile to WebAssembly, first install `tinygo` and then run:
-
-`GOOS=js GOARCH=wasm tinygo build --target wasm --gc leaking -o quail.wasm main_wasm.go`
