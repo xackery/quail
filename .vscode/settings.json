@@ -5,11 +5,6 @@
     "go.testEnvVars": {
         "SINGLE_TEST": "1"
     },
-    "gopls": {
-        "build.buildFlags": [
-            "-tags=tinygo.wasm"
-        ]
-    },
     "go.testEnvFile": "${workspaceFolder}/.env",
     "workbench.editorAssociations": {
         "*.hex": "hexEditor.hexedit",

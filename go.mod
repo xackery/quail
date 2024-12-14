@@ -9,10 +9,7 @@ require (
 
 require github.com/go-test/deep v1.1.1
 
-require (
-	github.com/go-git/go-billy/v5 v5.6.0 // indirect
-	github.com/kr/pretty v0.3.1 // indirect
-)
+require github.com/kr/pretty v0.3.1 // indirect
 
 require (
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
