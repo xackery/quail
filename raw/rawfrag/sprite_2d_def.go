@@ -21,7 +21,7 @@ type WldFragSprite2DDef struct {
 	BoundingRadius              float32
 	CurrentFrameRef             int32
 	Sleep                       uint32
-	Headings                    []uint32
+	Pitches                     []Pitch
 	RenderMethod                uint32
 	RenderFlags                 uint8
 	RenderPen                   uint32
@@ -32,6 +32,18 @@ type WldFragSprite2DDef struct {
 	RenderUVInfoUAxis           [3]float32
 	RenderUVInfoVAxis           [3]float32
 	Uvs                         [][2]float32
+}
+
+type Pitch struct {
+	PitchCap     int32
+	Flag         bool
+	HeadingCount uint32
+	Headings     []Heading
+}
+
+type Heading struct {
+	HeadingCap int32
+	Frames     []int32
 }
 
 func (e *WldFragSprite2DDef) FragCode() int {
@@ -65,8 +77,23 @@ func (e *WldFragSprite2DDef) Write(w io.Writer, isNewWorld bool) error {
 	if e.Flags&0x08 == 0x08 {
 		enc.Uint32(e.Sleep)
 	}
-	for _, heading := range e.Headings {
-		enc.Uint32(heading)
+	for _, pitch := range e.Pitches {
+		enc.Int32(pitch.PitchCap)
+
+		// Combine Flag and HeadingCount into one DWORD
+		rawFlag := uint32(0)
+		if pitch.Flag {
+			rawFlag |= 0x80000000 // Set MSB if Flag is true
+		}
+		rawFlag |= uint32(pitch.HeadingCount)
+		enc.Uint32(rawFlag)
+
+		for _, heading := range pitch.Headings {
+			enc.Int32(heading.HeadingCap)
+			for _, frame := range heading.Frames {
+				enc.Int32(frame)
+			}
+		}
 	}
 	if e.Flags&0x10 == 0x10 {
 		enc.Uint32(e.RenderMethod)
@@ -137,9 +164,28 @@ func (e *WldFragSprite2DDef) Read(r io.ReadSeeker, isNewWorld bool) error {
 	if e.Flags&0x08 == 0x08 {
 		e.Sleep = dec.Uint32()
 	}
-	e.Headings = make([]uint32, e.PitchCount)
+	e.Pitches = make([]Pitch, e.PitchCount)
 	for i := uint32(0); i < e.PitchCount; i++ {
-		e.Headings[i] = dec.Uint32()
+		var pitch Pitch
+		pitch.PitchCap = dec.Int32()
+
+		// Extract the most significant bit as Flag and the rest as HeadingCount
+		rawFlag := dec.Uint32()
+		pitch.Flag = (rawFlag & 0x80000000) != 0 // MSB
+		pitch.HeadingCount = uint32(rawFlag & 0x7FFFFFFF)
+
+		// Read Headings
+		pitch.Headings = make([]Heading, pitch.HeadingCount)
+		for j := uint32(0); j < pitch.HeadingCount; j++ {
+			var heading Heading
+			heading.HeadingCap = dec.Int32()
+			heading.Frames = make([]int32, e.TextureCount)
+			for k := uint32(0); k < e.TextureCount; k++ {
+				heading.Frames[k] = dec.Int32()
+			}
+			pitch.Headings[j] = heading
+		}
+		e.Pitches[i] = pitch
 	}
 	if e.Flags&0x10 == 0x10 {
 		e.RenderMethod = dec.Uint32()
