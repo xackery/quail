@@ -1025,8 +1025,8 @@ type DMSpriteDef struct {
 	TexCoords            [][2]float32
 	Normals              [][3]float32
 	Colors               []int32
-	Faces                []DMSpriteDefFace
-	Meshops              []DMSpriteDefMeshOp
+	Faces                []*DMSpriteDefFace
+	Meshops              []*DMSpriteDefMeshOp
 	SkinAssignmentGroups [][2]uint16
 	Data8                []uint32 // 0x200 flag
 	FaceMaterialGroups   [][2]int16
@@ -1082,22 +1082,41 @@ func (e *DMSpriteDef) Write(token *AsciiWriteToken) error {
 	fmt.Fprintf(w, "\n")
 	fmt.Fprintf(w, "\tNUMVERTICES %d\n", len(e.Vertices))
 	for _, vert := range e.Vertices {
-		fmt.Fprintf(w, "\tXYZ %0.8e %0.8e %0.8e\n", vert[0], vert[1], vert[2])
+		fmt.Fprintf(w, "\t\tXYZ %0.8e %0.8e %0.8e\n", vert[0], vert[1], vert[2])
 	}
 	fmt.Fprintf(w, "\n")
 	fmt.Fprintf(w, "\tNUMTEXCOORDS %d\n", len(e.TexCoords))
 	for _, tex := range e.TexCoords {
-		fmt.Fprintf(w, "\tUV %0.8e %0.8e\n", tex[0], tex[1])
+		fmt.Fprintf(w, "\t\tUV %0.8e %0.8e\n", tex[0], tex[1])
 	}
 	fmt.Fprintf(w, "\n")
 	fmt.Fprintf(w, "\tNUMNORMALS %d\n", len(e.Normals))
 	for _, normal := range e.Normals {
-		fmt.Fprintf(w, "\tXYZ %0.8e %0.8e %0.8e\n", normal[0], normal[1], normal[2])
+		fmt.Fprintf(w, "\t\tXYZ %0.8e %0.8e %0.8e\n", normal[0], normal[1], normal[2])
 	}
 	fmt.Fprintf(w, "\n")
 	fmt.Fprintf(w, "\tNUMCOLORS %d\n", len(e.Colors))
 	for _, color := range e.Colors {
-		fmt.Fprintf(w, "\tRGBA %d %d %d %d\n", color>>24, (color>>16)&0xff, (color>>8)&0xff, color&0xff)
+		fmt.Fprintf(w, "\t\tRGBA %d %d %d %d\n", color>>24, (color>>16)&0xff, (color>>8)&0xff, color&0xff)
+	}
+	fmt.Fprintf(w, "\n")
+	fmt.Fprintf(w, "\tNUMFACES %d\n", len(e.Faces))
+	for i, face := range e.Faces {
+		fmt.Fprintf(w, "\t\tDMFACE //%d\n", i)
+		fmt.Fprintf(w, "\t\t\tFLAG %d\n", face.Flags)
+		fmt.Fprintf(w, "\t\t\tDATA %d %d %d %d\n", face.Data[0], face.Data[1], face.Data[2], face.Data[3])
+		fmt.Fprintf(w, "\t\t\tTRIANGLE %d %d %d\n", face.VertexIndexes[0], face.VertexIndexes[1], face.VertexIndexes[2])
+	}
+	fmt.Fprintf(w, "\n")
+	fmt.Fprintf(w, "\tNUMMESHOPS %d\n", len(e.Meshops))
+	for _, meshop := range e.Meshops {
+		if meshop.TypeField >= 1 && meshop.TypeField <= 3 {
+			// TypeField 1-3: Offset is NULL, VertexIndex is printed
+			fmt.Fprintf(w, "\t\tMESHOP %d %d NULL %d %d\n", meshop.TypeField, meshop.VertexIndex, meshop.Param1, meshop.Param2)
+		} else if meshop.TypeField == 4 {
+			// TypeField 4: VertexIndex is NULL, Offset is printed
+			fmt.Fprintf(w, "\t\tMESHOP %d NULL %0.8f %d %d\n", meshop.TypeField, meshop.Offset, meshop.Param1, meshop.Param2)
+		}
 	}
 	fmt.Fprintf(w, "\n")
 	fmt.Fprintf(w, "\tSKINASSIGNMENTGROUPS %d", len(e.SkinAssignmentGroups))
@@ -1266,6 +1285,105 @@ func (e *DMSpriteDef) Read(token *AsciiReadToken) error {
 			return fmt.Errorf("color %d: %w", i, err)
 		}
 		e.Colors = append(e.Colors, color)
+	}
+
+	records, err = token.ReadProperty("NUMFACES", 1)
+	if err != nil {
+		return err
+	}
+
+	numFaces := int(0)
+	err = parse(&numFaces, records[1])
+	if err != nil {
+		return fmt.Errorf("num faces: %w", err)
+	}
+
+	for i := 0; i < numFaces; i++ {
+		face := &DMSpriteDefFace{}
+		_, err = token.ReadProperty("DMFACE", 0)
+		if err != nil {
+			return err
+		}
+		records, err = token.ReadProperty("FLAG", 1)
+		if err != nil {
+			return err
+		}
+		err = parse(&face.Flags, records[1])
+		if err != nil {
+			return fmt.Errorf("face %d 0x004b flag: %w", i, err)
+		}
+
+		records, err = token.ReadProperty("DATA", 4)
+		if err != nil {
+			return err
+		}
+		err = parse(&face.Data, records[1:]...)
+		if err != nil {
+			return fmt.Errorf("face %d data: %w", i, err)
+		}
+
+		records, err = token.ReadProperty("TRIANGLE", 3)
+		if err != nil {
+			return err
+		}
+		err = parse(&face.VertexIndexes, records[1:]...)
+		if err != nil {
+			return fmt.Errorf("face %d triangle: %w", i, err)
+		}
+
+		e.Faces = append(e.Faces, face)
+	}
+
+	records, err = token.ReadProperty("NUMMESHOPS", 1)
+	if err != nil {
+		return err
+	}
+	numMeshOps := int(0)
+	err = parse(&numMeshOps, records[1])
+	if err != nil {
+		return fmt.Errorf("num mesh ops: %w", err)
+	}
+
+	for i := 0; i < numMeshOps; i++ {
+		meshOp := &DMSpriteDefMeshOp{}
+		records, err = token.ReadProperty("MESHOP", 5)
+		if err != nil {
+			return err
+		}
+		err = parse(&meshOp.TypeField, records[1])
+		if err != nil {
+			return fmt.Errorf("mesh op %d typefield: %w", i, err)
+		}
+
+		// Handle conditional NULL values for VertexIndex and Offset
+		if meshOp.TypeField >= 1 && meshOp.TypeField <= 3 {
+			// TypeField 1-3: Offset is NULL, VertexIndex is valid
+			err = parse(&meshOp.VertexIndex, records[2])
+			if err != nil {
+				return fmt.Errorf("mesh op %d vertex index: %w", i, err)
+			}
+			meshOp.Offset = 0 // Offset is NULL
+		} else if meshOp.TypeField == 4 {
+			// TypeField 4: VertexIndex is NULL, Offset is valid
+			err = parse(&meshOp.Offset, records[3])
+			if err != nil {
+				return fmt.Errorf("mesh op %d offset: %w", i, err)
+			}
+			meshOp.VertexIndex = 0 // VertexIndex is NULL
+		} else {
+			return fmt.Errorf("mesh op %d invalid typefield: %d", i, meshOp.TypeField)
+		}
+
+		err = parse(&meshOp.Param1, records[4])
+		if err != nil {
+			return fmt.Errorf("mesh op %d param1: %w", i, err)
+		}
+		err = parse(&meshOp.Param2, records[5])
+		if err != nil {
+			return fmt.Errorf("mesh op %d param2: %w", i, err)
+		}
+
+		e.Meshops = append(e.Meshops, meshOp)
 	}
 
 	records, err = token.ReadProperty("SKINASSIGNMENTGROUPS", -1)
@@ -1518,14 +1636,14 @@ func (e *DMSpriteDef) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragDM
 	e.Normals = frag.Normals
 	e.Colors = frag.Colors
 	for _, face := range frag.Faces {
-		e.Faces = append(e.Faces, DMSpriteDefFace{
+		e.Faces = append(e.Faces, &DMSpriteDefFace{
 			Flags:         face.Flags,
 			Data:          face.Data,
 			VertexIndexes: face.VertexIndexes,
 		})
 	}
 	for _, meshop := range frag.Meshops {
-		e.Meshops = append(e.Meshops, DMSpriteDefMeshOp{
+		e.Meshops = append(e.Meshops, &DMSpriteDefMeshOp{
 			TypeField:   meshop.TypeField,
 			VertexIndex: meshop.VertexIndex,
 			Offset:      meshop.Offset,
@@ -2435,6 +2553,18 @@ func (e *ActorDef) Write(token *AsciiWriteToken) error {
 			if err != nil {
 				return fmt.Errorf("lod sprite %s: %w", lod.SpriteTag, err)
 			}
+		}
+	}
+
+	baseTag := strings.TrimSuffix(e.Tag, "_ACTORDEF")
+	for _, sprite := range token.wce.DMSpriteDef2s {
+		if !strings.HasPrefix(sprite.Tag, baseTag) {
+			continue
+		}
+		err = sprite.Write(token)
+		if err != nil {
+			return fmt.Errorf("dmspritedef %s: %w", sprite.Tag, err)
+
 		}
 	}
 
@@ -6969,6 +7099,7 @@ func (e *ParticleCloudDef) Write(token *AsciiWriteToken) error {
 	}
 
 	fmt.Fprintf(w, "%s \"%s\"\n", e.Definition(), e.Tag)
+	fmt.Fprintf(w, "\tBLITTAG \"%s\"\n", e.BlitSpriteDefTag)
 	fmt.Fprintf(w, "\tSETTINGONE %d\n", e.SettingOne)
 	fmt.Fprintf(w, "\tSETTINGTWO %d\n", e.SettingTwo)
 	fmt.Fprintf(w, "\tMOVEMENT \"%s\" // SPHERE, PLANE, STREAM, NONE\n", e.Movement)

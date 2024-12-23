@@ -222,3 +222,11 @@ func (ani *Ani) NameClear() {
 	ani.names = nil
 	ani.nameBuf = nil
 }
+
+func (ani *Ani) Names() []string {
+	names := []string{}
+	for _, v := range ani.names {
+		names = append(names, v.name)
+	}
+	return names
+}

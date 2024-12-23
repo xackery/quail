@@ -64,6 +64,10 @@ build-windows-addon: ## build windows blender addon
 	@echo "build-windows-addon: ${BUILD_VERSION}"
 	@CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -trimpath -buildmode=pie -ldflags="-X main.Version=v${VERSION} -X main.ShowVersion=1 -s -w" -o bin/${NAME}-addon.exe main.go
 
+build-wasm: ## build wasm
+	@echo "build-wasm: ${BUILD_VERSION}"
+	@GOOS=js GOARCH=wasm go build -o bin/${NAME}.wasm main.go
+
 build-copy: build-darwin ## used by xackery, build darwin copy and move to blender path
 	@echo "copying to quail-addons..."
 	cp bin/quail-darwin "/Users/xackery/Library/Application Support/Blender/3.4/scripts/addons/quail-addon/quail-darwin"

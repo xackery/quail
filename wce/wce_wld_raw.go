@@ -523,6 +523,14 @@ func (wce *Wce) WriteWldRaw(w io.Writer) error {
 		}
 	}
 
+	// Write out BlitSpriteDefs
+	for _, blitSprite := range wce.BlitSpriteDefs {
+		_, err = blitSprite.ToRaw(wce, dst)
+		if err != nil {
+			return fmt.Errorf("blitsprite %s: %w", blitSprite.Tag, err)
+		}
+	}
+
 	for _, zone := range wce.Zones {
 		_, err = zone.ToRaw(wce, dst)
 		if err != nil {

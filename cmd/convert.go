@@ -56,12 +56,19 @@ func runConvertE(cmd *cobra.Command, args []string) error {
 
 	q := quail.New()
 
-	if srcExt == ".quail" {
+	switch srcExt {
+	case ".quail":
 		err = q.DirRead(srcPath)
 		if err != nil {
 			return fmt.Errorf("quail read dir: %w", err)
 		}
-	} else {
+
+	case ".json":
+		err = q.JsonRead(srcPath)
+		if err != nil {
+			return fmt.Errorf("json read: %w", err)
+		}
+	default:
 		err = q.PfsRead(srcPath)
 		if err != nil {
 			return fmt.Errorf("pfs read: %w", err)
@@ -69,17 +76,24 @@ func runConvertE(cmd *cobra.Command, args []string) error {
 	}
 
 	dstExt := filepath.Ext(dstPath)
-	if dstExt == ".quail" {
+	switch dstExt {
+	case ".quail":
 		err = q.DirWrite(dstPath)
 		if err != nil {
 			return fmt.Errorf("dir write: %w", err)
 		}
 		return nil
-	}
+	case ".json":
+		err = q.JsonWrite(dstPath)
+		if err != nil {
+			return fmt.Errorf("json write: %w", err)
+		}
+	default:
+		err = q.PfsWrite(1, 1, dstPath)
+		if err != nil {
+			return fmt.Errorf("pfs write: %w", err)
+		}
 
-	err = q.PfsWrite(1, 1, dstPath)
-	if err != nil {
-		return fmt.Errorf("pfs write: %w", err)
 	}
 
 	return nil
