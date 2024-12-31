@@ -23,8 +23,12 @@ jobs:
       - run: make build-all
       - run: npm run inject
         working-directory: wasm
-      - run: npm pack
-        working-directory: wasm
+      - name: Authenticate with npm
+        run: npm config set //registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}
+      - name: Publish package
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - uses: "marvinpinto/action-automatic-releases@latest"
         if: github.ref == 'refs/heads/main'
         with:
