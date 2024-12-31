@@ -7573,7 +7573,7 @@ type Sprite2DDef struct {
 	BoundingRadius  float32
 	CurrentFrameRef int32
 	Sleep           uint32
-	Pitches         []Pitch
+	Pitches         []*Pitch
 	RenderMethod    string
 	Pen             NullUint32
 	Brightness      NullFloat32
@@ -7588,14 +7588,13 @@ type Sprite2DDef struct {
 
 type Pitch struct {
 	PitchCap        int32
-	TopOrBottomView bool
-	HeadingCount    uint32
-	Headings        []Heading
+	TopOrBottomView uint16 // Only 0 or 1
+	Headings        []*Heading
 }
 
 type Heading struct {
 	HeadingCap     int32
-	Sprite2DFrames []Sprite2DFrame
+	Sprite2DFrames []*Sprite2DFrame
 }
 
 type Sprite2DFrame struct {
@@ -7624,7 +7623,7 @@ func (e *Sprite2DDef) Write(token *AsciiWriteToken) error {
 	for i, pitch := range e.Pitches {
 		fmt.Fprintf(w, "\t\tPITCH // %d\n", i)
 		fmt.Fprintf(w, "\t\t\tPITCHCAP %d\n", pitch.PitchCap)
-		fmt.Fprintf(w, "\t\t\tTOPORBOTTOMVIEW %d\n", map[bool]int{true: 1, false: 0}[pitch.TopOrBottomView])
+		fmt.Fprintf(w, "\t\t\tTOPORBOTTOMVIEW %d\n", pitch.TopOrBottomView)
 		fmt.Fprintf(w, "\t\t\tNUMHEADINGS %d\n", len(pitch.Headings))
 		for i, heading := range pitch.Headings {
 			fmt.Fprintf(w, "\t\t\t\tHEADING // %d\n", i)
@@ -7724,9 +7723,9 @@ func (e *Sprite2DDef) Read(token *AsciiReadToken) error {
 		return fmt.Errorf("num pitches: %w", err)
 	}
 
-	e.Pitches = make([]Pitch, numPitches)
+	e.Pitches = make([]*Pitch, numPitches)
 	for i := 0; i < numPitches; i++ {
-		pitch := Pitch{}
+		pitch := &Pitch{}
 		_, err = token.ReadProperty("PITCH", 0)
 		if err != nil {
 			return err
@@ -7745,12 +7744,10 @@ func (e *Sprite2DDef) Read(token *AsciiReadToken) error {
 		if err != nil {
 			return err
 		}
-		topOrBottom := 0
-		err = parse(&topOrBottom, records[1])
+		err = parse(&pitch.TopOrBottomView, records[1])
 		if err != nil {
 			return fmt.Errorf("top or bottom view: %w", err)
 		}
-		pitch.TopOrBottomView = (topOrBottom == 1)
 
 		records, err = token.ReadProperty("NUMHEADINGS", 1)
 		if err != nil {
@@ -7762,9 +7759,9 @@ func (e *Sprite2DDef) Read(token *AsciiReadToken) error {
 			return fmt.Errorf("num headings: %w", err)
 		}
 
-		pitch.Headings = make([]Heading, numHeadings)
+		pitch.Headings = make([]*Heading, numHeadings)
 		for j := 0; j < numHeadings; j++ {
-			heading := Heading{}
+			heading := &Heading{}
 			_, err = token.ReadProperty("HEADING", 0)
 			if err != nil {
 				return err
@@ -7789,9 +7786,9 @@ func (e *Sprite2DDef) Read(token *AsciiReadToken) error {
 				return fmt.Errorf("num frames: %w", err)
 			}
 
-			heading.Sprite2DFrames = make([]Sprite2DFrame, numFrames)
+			heading.Sprite2DFrames = make([]*Sprite2DFrame, numFrames)
 			for k := 0; k < numFrames; k++ {
-				frame := Sprite2DFrame{}
+				frame := &Sprite2DFrame{}
 				records, err = token.ReadProperty("FRAME", 2)
 				if err != nil {
 					return fmt.Errorf("FRAME: %w", err)
@@ -7928,27 +7925,26 @@ func (e *Sprite2DDef) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
 		Sleep:           e.Sleep,
 	}
 
-	wfSprite2D.Pitches = make([]rawfrag.Pitch, len(e.Pitches))
-	for i, pitch := range e.Pitches {
-		rawPitch := rawfrag.Pitch{
-			PitchCap:     pitch.PitchCap,
-			Flag:         pitch.TopOrBottomView,
-			HeadingCount: uint32(len(pitch.Headings)),
-			Headings:     make([]rawfrag.Heading, len(pitch.Headings)),
+	wfSprite2D.Pitches = make([]*rawfrag.WldFragSprite2DPitch, len(e.Pitches))
+	for _, pitch := range e.Pitches {
+		rawPitch := &rawfrag.WldFragSprite2DPitch{
+			PitchCap:        pitch.PitchCap,
+			TopOrBottomView: pitch.TopOrBottomView,
+			Headings:        make([]*rawfrag.WldFragSprite2DHeading, len(pitch.Headings)),
 		}
 
 		for j, heading := range pitch.Headings {
-			rawHeading := rawfrag.Heading{
+			rawHeading := &rawfrag.WldFragSprite2DHeading{
 				HeadingCap: heading.HeadingCap,
-				Frames:     make([]int32, len(heading.Sprite2DFrames)),
+				FrameRefs:  make([]int32, len(heading.Sprite2DFrames)),
 			}
 			for k, frame := range heading.Sprite2DFrames {
 				frameRef := rawWld.NameAdd(frame.TextureTag)
-				rawHeading.Frames[k] = frameRef
+				rawHeading.FrameRefs[k] = frameRef
 			}
 			rawPitch.Headings[j] = rawHeading
 		}
-		wfSprite2D.Pitches[i] = rawPitch
+		wfSprite2D.Pitches = append(wfSprite2D.Pitches, rawPitch)
 	}
 
 	if e.Pen.Valid {
@@ -8028,21 +8024,20 @@ func (e *Sprite2DDef) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragSp
 	e.BoundingRadius = frag.BoundingRadius
 	e.CurrentFrameRef = frag.CurrentFrameRef
 	e.Sleep = frag.Sleep
-	e.Pitches = make([]Pitch, len(frag.Pitches))
+	e.Pitches = make([]*Pitch, len(frag.Pitches))
 	for i, rawPitch := range frag.Pitches {
-		pitch := Pitch{
+		pitch := &Pitch{
 			PitchCap:        rawPitch.PitchCap,
-			TopOrBottomView: rawPitch.Flag,
-			HeadingCount:    rawPitch.HeadingCount,
-			Headings:        make([]Heading, len(rawPitch.Headings)),
+			TopOrBottomView: rawPitch.TopOrBottomView,
+			Headings:        make([]*Heading, len(rawPitch.Headings)),
 		}
 
 		for j, rawHeading := range rawPitch.Headings {
-			heading := Heading{
+			heading := &Heading{
 				HeadingCap:     rawHeading.HeadingCap,
-				Sprite2DFrames: make([]Sprite2DFrame, len(rawHeading.Frames)),
+				Sprite2DFrames: make([]*Sprite2DFrame, len(rawHeading.FrameRefs)),
 			}
-			for k, frameRef := range rawHeading.Frames {
+			for k, frameRef := range rawHeading.FrameRefs {
 				if frameRef == 0 {
 					return nil
 				}
@@ -8055,7 +8050,7 @@ func (e *Sprite2DDef) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragSp
 					return fmt.Errorf("invalid frame ref %d", frameRef)
 				}
 				for _, textureName := range bmInfo.TextureNames {
-					heading.Sprite2DFrames[k] = Sprite2DFrame{
+					heading.Sprite2DFrames[k] = &Sprite2DFrame{
 						TextureTag:  rawWld.Name(bmInfo.NameRef),
 						TextureFile: textureName,
 					}
