@@ -7573,7 +7573,7 @@ type Sprite2DDef struct {
 	BoundingRadius  float32
 	CurrentFrameRef int32
 	Sleep           uint32
-	Headings        []uint32
+	Pitches         []Pitch
 	RenderMethod    string
 	Pen             NullUint32
 	Brightness      NullFloat32
@@ -7584,6 +7584,23 @@ type Sprite2DDef struct {
 	VAxis           NullFloat32Slice3
 	Uvs             [][2]float32
 	TwoSided        int
+}
+
+type Pitch struct {
+	PitchCap        int32
+	TopOrBottomView bool
+	HeadingCount    uint32
+	Headings        []Heading
+}
+
+type Heading struct {
+	HeadingCap     int32
+	Sprite2DFrames []Sprite2DFrame
+}
+
+type Sprite2DFrame struct {
+	TextureFile string
+	TextureTag  string
 }
 
 func (e *Sprite2DDef) Definition() string {
@@ -7603,12 +7620,21 @@ func (e *Sprite2DDef) Write(token *AsciiWriteToken) error {
 	fmt.Fprintf(w, "\tBOUNDINGRADIUS %0.8e\n", e.BoundingRadius)
 	fmt.Fprintf(w, "\tCURRENTFRAMEREF %d\n", e.CurrentFrameRef)
 	fmt.Fprintf(w, "\tSLEEP %d\n", e.Sleep)
-	fmt.Fprintf(w, "\tHEADINGS %d", len(e.Headings))
-	for _, heading := range e.Headings {
-		fmt.Fprintf(w, " %d", heading)
+	fmt.Fprintf(w, "\tNUMPITCHES %d\n", len(e.Pitches))
+	for i, pitch := range e.Pitches {
+		fmt.Fprintf(w, "\t\tPITCH // %d\n", i)
+		fmt.Fprintf(w, "\t\t\tPITCHCAP %d\n", pitch.PitchCap)
+		fmt.Fprintf(w, "\t\t\tTOPORBOTTOMVIEW %d\n", map[bool]int{true: 1, false: 0}[pitch.TopOrBottomView])
+		fmt.Fprintf(w, "\t\t\tNUMHEADINGS %d\n", len(pitch.Headings))
+		for i, heading := range pitch.Headings {
+			fmt.Fprintf(w, "\t\t\t\tHEADING // %d\n", i)
+			fmt.Fprintf(w, "\t\t\t\t\tHEADINGCAP %d\n", heading.HeadingCap)
+			fmt.Fprintf(w, "\t\t\t\t\tNUMFRAMES %d\n", len(heading.Sprite2DFrames))
+			for _, frame := range heading.Sprite2DFrames {
+				fmt.Fprintf(w, "\t\t\t\t\t\tFRAME \"%s\" \"%s\"\n", frame.TextureFile, frame.TextureTag)
+			}
+		}
 	}
-	fmt.Fprintf(w, "\n")
-	fmt.Fprintf(w, "\n")
 	fmt.Fprintf(w, "\t\tRENDERMETHOD \"%s\"\n", e.RenderMethod)
 	fmt.Fprintf(w, "\t\tRENDERINFO\n")
 	fmt.Fprintf(w, "\t\t\tPEN? %s\n", wcVal(e.Pen))
@@ -7688,25 +7714,95 @@ func (e *Sprite2DDef) Read(token *AsciiReadToken) error {
 		return fmt.Errorf("sleep: %w", err)
 	}
 
-	records, err = token.ReadProperty("HEADINGS", -1)
+	records, err = token.ReadProperty("NUMPITCHES", 1)
 	if err != nil {
 		return err
 	}
-
-	numHeadings := int(0)
-	err = parse(&numHeadings, records[1])
+	numPitches := 0
+	err = parse(&numPitches, records[1])
 	if err != nil {
-		return fmt.Errorf("num headings: %w", err)
+		return fmt.Errorf("num pitches: %w", err)
 	}
 
-	for i := 0; i < numHeadings; i++ {
-		val := uint32(0)
-		err = parse(&val, records[i+2])
+	e.Pitches = make([]Pitch, numPitches)
+	for i := 0; i < numPitches; i++ {
+		pitch := Pitch{}
+		_, err = token.ReadProperty("PITCH", 0)
 		if err != nil {
-			return fmt.Errorf("heading %d: %w", i, err)
+			return err
 		}
 
-		e.Headings = append(e.Headings, val)
+		records, err = token.ReadProperty("PITCHCAP", 1)
+		if err != nil {
+			return err
+		}
+		err = parse(&pitch.PitchCap, records[1])
+		if err != nil {
+			return fmt.Errorf("pitch cap: %w", err)
+		}
+
+		records, err = token.ReadProperty("TOPORBOTTOMVIEW", 1)
+		if err != nil {
+			return err
+		}
+		topOrBottom := 0
+		err = parse(&topOrBottom, records[1])
+		if err != nil {
+			return fmt.Errorf("top or bottom view: %w", err)
+		}
+		pitch.TopOrBottomView = (topOrBottom == 1)
+
+		records, err = token.ReadProperty("NUMHEADINGS", 1)
+		if err != nil {
+			return err
+		}
+		numHeadings := 0
+		err = parse(&numHeadings, records[1])
+		if err != nil {
+			return fmt.Errorf("num headings: %w", err)
+		}
+
+		pitch.Headings = make([]Heading, numHeadings)
+		for j := 0; j < numHeadings; j++ {
+			heading := Heading{}
+			_, err = token.ReadProperty("HEADING", 0)
+			if err != nil {
+				return err
+			}
+
+			records, err = token.ReadProperty("HEADINGCAP", 1)
+			if err != nil {
+				return err
+			}
+			err = parse(&heading.HeadingCap, records[1])
+			if err != nil {
+				return fmt.Errorf("heading cap: %w", err)
+			}
+
+			records, err = token.ReadProperty("NUMFRAMES", 1)
+			if err != nil {
+				return err
+			}
+			numFrames := 0
+			err = parse(&numFrames, records[1])
+			if err != nil {
+				return fmt.Errorf("num frames: %w", err)
+			}
+
+			heading.Sprite2DFrames = make([]Sprite2DFrame, numFrames)
+			for k := 0; k < numFrames; k++ {
+				frame := Sprite2DFrame{}
+				records, err = token.ReadProperty("FRAME", 2)
+				if err != nil {
+					return fmt.Errorf("FRAME: %w", err)
+				}
+				frame.TextureFile = records[1]
+				frame.TextureTag = records[2]
+				heading.Sprite2DFrames[k] = frame
+			}
+			pitch.Headings[j] = heading
+		}
+		e.Pitches[i] = pitch
 	}
 
 	records, err = token.ReadProperty("RENDERMETHOD", 1)
@@ -7830,8 +7926,29 @@ func (e *Sprite2DDef) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
 		BoundingRadius:  e.BoundingRadius,
 		CurrentFrameRef: e.CurrentFrameRef,
 		Sleep:           e.Sleep,
-		Headings:        e.Headings,
-		RenderMethod:    model.RenderMethodInt(e.RenderMethod),
+	}
+
+	wfSprite2D.Pitches = make([]rawfrag.Pitch, len(e.Pitches))
+	for i, pitch := range e.Pitches {
+		rawPitch := rawfrag.Pitch{
+			PitchCap:     pitch.PitchCap,
+			Flag:         pitch.TopOrBottomView,
+			HeadingCount: uint32(len(pitch.Headings)),
+			Headings:     make([]rawfrag.Heading, len(pitch.Headings)),
+		}
+
+		for j, heading := range pitch.Headings {
+			rawHeading := rawfrag.Heading{
+				HeadingCap: heading.HeadingCap,
+				Frames:     make([]int32, len(heading.Sprite2DFrames)),
+			}
+			for k, frame := range heading.Sprite2DFrames {
+				frameRef := rawWld.NameAdd(frame.TextureTag)
+				rawHeading.Frames[k] = frameRef
+			}
+			rawPitch.Headings[j] = rawHeading
+		}
+		wfSprite2D.Pitches[i] = rawPitch
 	}
 
 	if e.Pen.Valid {
@@ -7911,7 +8028,43 @@ func (e *Sprite2DDef) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragSp
 	e.BoundingRadius = frag.BoundingRadius
 	e.CurrentFrameRef = frag.CurrentFrameRef
 	e.Sleep = frag.Sleep
-	e.Headings = frag.Headings
+	e.Pitches = make([]Pitch, len(frag.Pitches))
+	for i, rawPitch := range frag.Pitches {
+		pitch := Pitch{
+			PitchCap:        rawPitch.PitchCap,
+			TopOrBottomView: rawPitch.Flag,
+			HeadingCount:    rawPitch.HeadingCount,
+			Headings:        make([]Heading, len(rawPitch.Headings)),
+		}
+
+		for j, rawHeading := range rawPitch.Headings {
+			heading := Heading{
+				HeadingCap:     rawHeading.HeadingCap,
+				Sprite2DFrames: make([]Sprite2DFrame, len(rawHeading.Frames)),
+			}
+			for k, frameRef := range rawHeading.Frames {
+				if frameRef == 0 {
+					return nil
+				}
+				if len(rawWld.Fragments) <= int(frameRef) {
+					return fmt.Errorf("frame reference %d out of range", frameRef)
+				}
+				frame := rawWld.Fragments[frameRef]
+				bmInfo, ok := frame.(*rawfrag.WldFragBMInfo)
+				if !ok {
+					return fmt.Errorf("invalid frame ref %d", frameRef)
+				}
+				for _, textureName := range bmInfo.TextureNames {
+					heading.Sprite2DFrames[k] = Sprite2DFrame{
+						TextureTag:  rawWld.Name(bmInfo.NameRef),
+						TextureFile: textureName,
+					}
+				}
+			}
+			pitch.Headings[j] = heading
+		}
+		e.Pitches[i] = pitch
+	}
 
 	e.RenderMethod = model.RenderMethodStr(frag.RenderMethod)
 	if frag.RenderFlags&0x01 == 0x01 {
