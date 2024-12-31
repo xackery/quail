@@ -45,7 +45,7 @@ test-all: ## test all, including SINGLE_TEST
 	@rm -rf test/*
 	@IS_TEST_EXTENSIVE=1 SINGLE_TEST=1 go test -timeout 120s -tags ci ./...
 
-build-all: build-darwin build-windows build-linux build-windows-addon ## build all supported os's
+build-all: build-darwin build-windows build-linux build-windows-addon build-wasm ## build all supported os's
 
 
 build-darwin: ## build darwin
@@ -66,7 +66,8 @@ build-windows-addon: ## build windows blender addon
 
 build-wasm: ## build wasm
 	@echo "build-wasm: ${BUILD_VERSION}"
-	@GOOS=js GOARCH=wasm go build -o bin/${NAME}.wasm main.go
+	@GOOS=js GOARCH=wasm tinygo build --target wasm --gc leaking -opt 2 -no-debug -o wasm/quail.wasm main_wasm.go
+	@GOOS=js GOARCH=wasm tinygo build --target wasm --gc leaking -opt 2 -o wasm/quail.debug.wasm main_wasm.go
 
 build-copy: build-darwin ## used by xackery, build darwin copy and move to blender path
 	@echo "copying to quail-addons..."

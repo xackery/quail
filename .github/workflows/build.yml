@@ -7,10 +7,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20
       - run: make set-version-${{github.run_number}}
       - run: go get ./...
       - run: go test -tags ci,wayland ./...
       - run: make build-all
+      - run: npm inject
+        working-directory: wasm
+      - run: npm pack
+        working-directory: wasm
       - uses: "marvinpinto/action-automatic-releases@latest"
         if: github.ref == 'refs/heads/main'
         with:
@@ -22,3 +30,4 @@ jobs:
             bin/quail-linux
             bin/quail.exe
             bin/quail-darwin
+            wasm/quail-wasm@${env.VERSION}.tar.gz

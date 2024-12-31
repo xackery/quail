@@ -10,7 +10,6 @@ import (
 
 // DirWrite exports the quail target to a directory
 func (q *Quail) JsonWrite(path string) error {
-
 	err := os.MkdirAll(filepath.Dir(path), 0755)
 	if err != nil {
 		return err
@@ -21,31 +20,35 @@ func (q *Quail) JsonWrite(path string) error {
 		if err != nil {
 			return err
 		}
+	} else {
+		fmt.Println("No Wld for", path)
 	}
 	if q.WldObject != nil {
-		err = q.WldObject.WriteJSON(strings.TrimSuffix(path, ".json") + "_objects.json")
+		path := strings.TrimSuffix(path, ".json") + "_objects.json"
+		err = q.WldObject.WriteJSON(path)
 		if err != nil {
 			return fmt.Errorf("write object: %w", err)
 		}
+	} else {
+		fmt.Println("No WldObject for", path)
 	}
 	if q.WldLights != nil {
-		err = q.WldLights.WriteJSON(strings.TrimSuffix(path, ".json") + "_lights.json")
+		path := strings.TrimSuffix(path, ".json") + "_lights.json"
+		err = q.WldLights.WriteJSON(path)
 		if err != nil {
 			return fmt.Errorf("write lights: %w", err)
 		}
+	} else {
+		fmt.Println("No Lights for", path)
 	}
+	os.MkdirAll(strings.TrimSuffix(path, ".json"), 0755)
 
-	// for name, data := range q.Textures {
-
-	// 	/* data, err := fixWonkyDDS(name, texture)
-	// 	if err != nil {
-	// 		return err
-	// 	} */
-	// 	err = os.WriteFile(path+"/"+name, data, 0644)
-	// 	if err != nil {
-	// 		return err
-	// 	}
-	// }
+	for name, data := range q.Textures {
+		err = os.WriteFile(strings.TrimSuffix(path, ".json")+"/"+name, data, 0644)
+		if err != nil {
+			return err
+		}
+	}
 
 	return nil
 }

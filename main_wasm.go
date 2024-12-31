@@ -10,6 +10,7 @@ import (
 )
 
 var q = quail.New()
+var quailModule js.Value
 
 func getFileExtension(path string) string {
 	re := regexp.MustCompile(`\.[^./\\]+$`)
@@ -24,19 +25,6 @@ func convert(args []js.Value) error {
 	}
 	srcPath := args[0].String()
 	dstPath := args[1].String()
-
-	// We are passing in a Uint8array to copy into the fs for processing here.
-	// Probably make this an independent function for writing to the FS
-	if len(args) == 3 {
-		buffer := make([]byte, args[2].Length())
-		js.CopyBytesToGo(buffer, args[2])
-		err := os.WriteFile(srcPath, buffer, 0755)
-		if err != nil {
-			fmt.Println("Could not write file: " + err.Error())
-			return err
-		}
-		fmt.Println("Wrote srcPath" + srcPath)
-	}
 
 	srcExt := getFileExtension(srcPath)
 	var err = fmt.Errorf("")
@@ -89,22 +77,19 @@ func convert(args []js.Value) error {
 	return nil
 }
 
-func quailConvert(this js.Value, args []js.Value) interface{} {
-	err := convert(args)
-	if err != nil {
-		fmt.Println("Got error: " + err.Error())
-		return 1
-	}
-	return 0
-}
-
-func quailFs(this js.Value, args []js.Value) interface{} {
-	return os.ExportFileSystem()
-}
-
 func main() {
 	fmt.Println("Initialized Quail")
-	js.Global().Set("quailConvert", js.FuncOf(quailConvert))
-	js.Global().Set("quailFs", js.FuncOf(quailFs))
+	quailModule = (js.ValueOf(map[string]interface{}{
+		"quail": js.ValueOf(true),
+		"convert": js.FuncOf(func(this js.Value, args []js.Value) interface{} {
+			err := convert(args)
+			if err != nil {
+				fmt.Println("Got error: " + err.Error())
+				return 1
+			}
+			return 0
+		}),
+		"fs": js.ValueOf(os.ExportFileSystem()),
+	}))
 	select {}
 }

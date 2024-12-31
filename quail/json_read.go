@@ -20,17 +20,34 @@ func (q *Quail) JsonRead(path string) error {
 		return fmt.Errorf("path %s is a directory, but should be a file", path+"/_root.wce")
 	}
 
-	baseName := filepath.Base(path)
-	baseName = strings.TrimSuffix(baseName, ".json")
-	q.Wld, err = wce.ReadJSON(baseName+".wld", path)
+	baseFilePath := filepath.Base(path)
+	baseName := strings.TrimSuffix(baseFilePath, ".json")
+
+	q.Wld, err = wce.ReadJSON(baseName+".wld", baseFilePath)
 	if err != nil {
 		return fmt.Errorf("json read: %w", err)
+	}
+	lightsPath := baseName + "_lights.json"
+	lights, err := os.Stat(lightsPath)
+	if err == nil {
+		q.WldLights, err = wce.ReadJSON("lights.wld", lights.Name())
+		if err != nil {
+			return fmt.Errorf("json lights read: %w", err)
+		}
+	}
+
+	objectsPath := baseName + "_objects.json"
+	objects, err := os.Stat(objectsPath)
+	if err == nil {
+		q.WldObject, err = wce.ReadJSON("objects.wld", objects.Name())
+		if err != nil {
+			return fmt.Errorf("json objects read: %w", err)
+		}
 	}
 
 	q.Textures = make(map[string][]byte)
 
-	path = filepath.Dir(path)
-	dirs, err := os.ReadDir(path)
+	dirs, err := os.ReadDir(baseName)
 	if err != nil {
 		return err
 	}
@@ -38,21 +55,15 @@ func (q *Quail) JsonRead(path string) error {
 		if dir.IsDir() {
 			continue
 		}
-		ext := filepath.Ext(dir.Name())
-		if ext == ".wce" {
-			continue
+		ext := strings.ToLower(filepath.Ext(dir.Name()))
+		if ext == ".bmp" || ext == ".dds" || ext == ".png" {
+			textureData, err := os.ReadFile(baseName + "/" + dir.Name())
+			if err != nil {
+				fmt.Println("Text", err)
+				continue
+			}
+			q.Textures[dir.Name()] = textureData
 		}
-		if ext == ".mod" {
-			continue
-		}
-		if ext == ".json" {
-			continue
-		}
-		textureData, err := os.ReadFile(path + "/" + dir.Name())
-		if err != nil {
-			return err
-		}
-		q.Textures[dir.Name()] = textureData
 	}
 
 	return nil

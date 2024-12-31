@@ -28,29 +28,64 @@ type File struct {
 	cursor  int
 }
 
+// Singletons
+var jsFileSystem js.Value
 var fileSystem = map[string]*File{
 	"/": {Name: "/", IsDir: true, Entries: make(map[string]*File)},
 }
 
-func ExportFileSystem() js.Value {
-	jsFileSystem := js.Global().Get("Object").New()
+// lastUpdateTimes tracks the last ModTime we pushed to JS for each file.
+var lastUpdateTimes = make(map[string]time.Time)
 
-	var exportDirectory func(currentPath string, dir *File, jsDir js.Value)
-	exportDirectory = func(currentPath string, dir *File, jsDir js.Value) {
-		for name, file := range dir.Entries {
-			fullPath := currentPath + "/" + name
-			if file.IsDir {
-				subDir := js.Global().Get("Object").New()
-				jsDir.Set(name, subDir)
-				exportDirectory(fullPath, file, subDir)
-			} else {
-				jsDir.Set(name, string(file.Content))
+func ExportFileSystem() js.Value {
+	if jsFileSystem.IsUndefined() {
+		jsFileSystem = js.Global().Get("Object").New()
+		jsFileSystem.Set("write", js.FuncOf(func(this js.Value, args []js.Value) interface{} {
+			if len(args) != 2 {
+				fmt.Println("Wanted 2 arguments for write")
+				return false
 			}
+			src := args[0].String()
+			buffer := make([]byte, args[1].Length())
+			js.CopyBytesToGo(buffer, args[1])
+			err := WriteFile(src, buffer, 0755)
+			if err != nil {
+				fmt.Println("Could not write file: " + err.Error())
+				return false
+			}
+			return true
+		}))
+	}
+	return jsFileSystem
+}
+func UpdateJSFile(fullPath string) {
+	file, exists := fileSystem[fullPath]
+	if !exists {
+		removeJSFile(fullPath)
+		return
+	}
+
+	lastTime, alreadyUpdated := lastUpdateTimes[fullPath]
+	if alreadyUpdated && file.ModTime.Equal(lastTime) {
+		return
+	}
+	lastUpdateTimes[fullPath] = file.ModTime
+	dirPath := filepath.Dir(fullPath)
+	dirObj := jsFileSystem.Get(dirPath)
+	if dirObj.IsUndefined() {
+		if dirPath == "/" {
+			dirObj = jsFileSystem
+		} else {
+			dirObj = js.Global().Get("Object").New()
+			jsFileSystem.Set(dirPath, dirObj)
 		}
 	}
 
-	exportDirectory("", fileSystem["/"], jsFileSystem)
-	return jsFileSystem
+	baseName := filepath.Base(fullPath)
+	val := js.Global().Get("Uint8Array").New(len(file.Content))
+	js.CopyBytesToJS(val, file.Content)
+	dirObj.Set(baseName, val)
+
 }
 
 func (f *File) Read(b []byte) (int, error) {
@@ -89,20 +124,34 @@ func (f *File) Seek(offset int64, whence int) (int64, error) {
 
 func (f *File) Write(b []byte) (int, error) {
 	if f.IsDir {
-		return 0, errors.New("cannot write to a directory")
+		return 0, fmt.Errorf("cannot write to a directory: %s", f.Name)
 	}
-	if f.cursor+len(b) > len(f.Content) {
-		newContent := make([]byte, f.cursor+len(b))
+
+	newSize := f.cursor + len(b)
+
+	if newSize > len(f.Content) {
+		growSize := len(f.Content) * 2
+		if growSize < newSize {
+			growSize = newSize
+		}
+
+		newContent := make([]byte, growSize)
 		copy(newContent, f.Content)
+
+		f.Content = nil
+
 		f.Content = newContent
 	}
+
 	n := copy(f.Content[f.cursor:], b)
 	f.cursor += n
 	f.ModTime = time.Now()
+
 	return n, nil
 }
 
 func (f *File) Close() error {
+	UpdateJSFile(f.Name)
 	return nil
 }
 
@@ -119,12 +168,16 @@ func Stat(name string) (fs.FileInfo, error) {
 }
 
 func ReadDir(name string) ([]fs.DirEntry, error) {
+	if !strings.HasPrefix(name, "/") {
+		name = "/" + name
+	}
 	dir, exists := fileSystem[name]
 	if !exists || !dir.IsDir {
-		return nil, errors.New("read directory does not exist " + name)
+		return nil, errors.New("read directory does not exist: " + name)
 	}
 	entries := make([]fs.DirEntry, 0, len(dir.Entries))
 	for _, entry := range dir.Entries {
+		entry.Name = filepath.Base(entry.Name)
 		entries = append(entries, dirEntry{entry})
 	}
 	return entries, nil
@@ -144,22 +197,30 @@ func WriteFile(name string, buffer []byte, perm fs.FileMode) error {
 	}
 	file.Content = append(file.Content[:0], buffer...)
 	file.ModTime = time.Now()
+	UpdateJSFile(name)
 	return nil
 }
 
 func ReadFile(name string) ([]byte, error) {
+	if !strings.HasPrefix(name, "/") {
+		name = "/" + name
+	}
 	file, exists := fileSystem[name]
 	if !exists || file.IsDir {
-		return nil, errors.New("file does not exist or is a directory")
+		return nil, errors.New("file does not exist or is a directory" + name)
 	}
 	return file.Content, nil
 }
 
 func Open(name string) (*File, error) {
+	if !strings.HasPrefix(name, "/") {
+		name = "/" + name
+	}
 	file, exists := fileSystem[name]
 	if !exists {
 		return nil, errors.New("file does not exist")
 	}
+	file.cursor = 0
 	fmt.Println("Opening file: " + name)
 	return file, nil
 }
@@ -208,8 +269,28 @@ func Getwd() (string, error) {
 }
 
 func Remove(name string) error {
+	_, exists := fileSystem[name]
+	if !exists {
+		return nil
+	}
+	parentPath := filepath.Dir(name)
+	parentFile, exists := fileSystem[parentPath]
+	if exists && parentFile.IsDir {
+		delete(parentFile.Entries, filepath.Base(name))
+	}
 	delete(fileSystem, name)
+
+	// Remove from JS
+	removeJSFile(name)
 	return nil
+}
+
+func removeJSFile(fullPath string) {
+	dirPath := filepath.Dir(fullPath)
+	dirObj := jsFileSystem.Get(dirPath)
+	if !dirObj.IsUndefined() {
+		jsFileSystem.Delete(dirPath)
+	}
 }
 
 func Exit(code int) {
