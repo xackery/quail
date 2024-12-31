@@ -8,11 +8,17 @@ import (
 )
 
 type File = nativeos.File
+type DirEntry = nativeos.DirEntry
 
 var (
 	ErrNotExist = nativeos.ErrNotExist
 	ModePerm    = nativeos.ModePerm
+	Args        = nativeos.Args
 )
+
+func IsExist(err error) bool {
+	return nativeos.IsExist(err)
+}
 
 func Stat(name string) (nativeos.FileInfo, error) {
 	return nativeos.Stat(name)
