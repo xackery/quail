@@ -7723,7 +7723,7 @@ func (e *Sprite2DDef) Read(token *AsciiReadToken) error {
 		return fmt.Errorf("num pitches: %w", err)
 	}
 
-	e.Pitches = make([]*Pitch, numPitches)
+	e.Pitches = []*Pitch{}
 	for i := 0; i < numPitches; i++ {
 		pitch := &Pitch{}
 		_, err = token.ReadProperty("PITCH", 0)
@@ -7759,7 +7759,7 @@ func (e *Sprite2DDef) Read(token *AsciiReadToken) error {
 			return fmt.Errorf("num headings: %w", err)
 		}
 
-		pitch.Headings = make([]*Heading, numHeadings)
+		pitch.Headings = []*Heading{}
 		for j := 0; j < numHeadings; j++ {
 			heading := &Heading{}
 			_, err = token.ReadProperty("HEADING", 0)
@@ -7786,7 +7786,7 @@ func (e *Sprite2DDef) Read(token *AsciiReadToken) error {
 				return fmt.Errorf("num frames: %w", err)
 			}
 
-			heading.Sprite2DFrames = make([]*Sprite2DFrame, numFrames)
+			heading.Sprite2DFrames = []*Sprite2DFrame{}
 			for k := 0; k < numFrames; k++ {
 				frame := &Sprite2DFrame{}
 				records, err = token.ReadProperty("FRAME", 2)
@@ -7795,11 +7795,11 @@ func (e *Sprite2DDef) Read(token *AsciiReadToken) error {
 				}
 				frame.TextureFile = records[1]
 				frame.TextureTag = records[2]
-				heading.Sprite2DFrames[k] = frame
+				heading.Sprite2DFrames = append(heading.Sprite2DFrames, frame)
 			}
-			pitch.Headings[j] = heading
+			pitch.Headings = append(pitch.Headings, heading)
 		}
-		e.Pitches[i] = pitch
+		e.Pitches = append(e.Pitches, pitch)
 	}
 
 	records, err = token.ReadProperty("RENDERMETHOD", 1)
@@ -7925,24 +7925,22 @@ func (e *Sprite2DDef) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
 		Sleep:           e.Sleep,
 	}
 
-	wfSprite2D.Pitches = make([]*rawfrag.WldFragSprite2DPitch, len(e.Pitches))
+	wfSprite2D.Pitches = []*rawfrag.WldFragSprite2DPitch{}
 	for _, pitch := range e.Pitches {
 		rawPitch := &rawfrag.WldFragSprite2DPitch{
 			PitchCap:        pitch.PitchCap,
 			TopOrBottomView: pitch.TopOrBottomView,
-			Headings:        make([]*rawfrag.WldFragSprite2DHeading, len(pitch.Headings)),
 		}
 
-		for j, heading := range pitch.Headings {
+		for _, heading := range pitch.Headings {
 			rawHeading := &rawfrag.WldFragSprite2DHeading{
 				HeadingCap: heading.HeadingCap,
-				FrameRefs:  make([]int32, len(heading.Sprite2DFrames)),
 			}
-			for k, frame := range heading.Sprite2DFrames {
+			for _, frame := range heading.Sprite2DFrames {
 				frameRef := rawWld.NameAdd(frame.TextureTag)
-				rawHeading.FrameRefs[k] = frameRef
+				rawHeading.FrameRefs = append(rawHeading.FrameRefs, frameRef)
 			}
-			rawPitch.Headings[j] = rawHeading
+			rawPitch.Headings = append(rawPitch.Headings, rawHeading)
 		}
 		wfSprite2D.Pitches = append(wfSprite2D.Pitches, rawPitch)
 	}
@@ -8024,20 +8022,19 @@ func (e *Sprite2DDef) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragSp
 	e.BoundingRadius = frag.BoundingRadius
 	e.CurrentFrameRef = frag.CurrentFrameRef
 	e.Sleep = frag.Sleep
-	e.Pitches = make([]*Pitch, len(frag.Pitches))
-	for i, rawPitch := range frag.Pitches {
+	e.Pitches = []*Pitch{}
+	for _, rawPitch := range frag.Pitches {
 		pitch := &Pitch{
 			PitchCap:        rawPitch.PitchCap,
 			TopOrBottomView: rawPitch.TopOrBottomView,
-			Headings:        make([]*Heading, len(rawPitch.Headings)),
+			Headings:        []*Heading{},
 		}
 
-		for j, rawHeading := range rawPitch.Headings {
+		for _, rawHeading := range rawPitch.Headings {
 			heading := &Heading{
-				HeadingCap:     rawHeading.HeadingCap,
-				Sprite2DFrames: make([]*Sprite2DFrame, len(rawHeading.FrameRefs)),
+				HeadingCap: rawHeading.HeadingCap,
 			}
-			for k, frameRef := range rawHeading.FrameRefs {
+			for _, frameRef := range rawHeading.FrameRefs {
 				if frameRef == 0 {
 					return nil
 				}
@@ -8050,15 +8047,15 @@ func (e *Sprite2DDef) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragSp
 					return fmt.Errorf("invalid frame ref %d", frameRef)
 				}
 				for _, textureName := range bmInfo.TextureNames {
-					heading.Sprite2DFrames[k] = &Sprite2DFrame{
+					heading.Sprite2DFrames = append(heading.Sprite2DFrames, &Sprite2DFrame{
 						TextureTag:  rawWld.Name(bmInfo.NameRef),
 						TextureFile: textureName,
-					}
+					})
 				}
 			}
-			pitch.Headings[j] = heading
+			pitch.Headings = append(pitch.Headings, heading)
 		}
-		e.Pitches[i] = pitch
+		e.Pitches = append(e.Pitches, pitch)
 	}
 
 	e.RenderMethod = model.RenderMethodStr(frag.RenderMethod)

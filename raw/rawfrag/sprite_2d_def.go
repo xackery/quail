@@ -167,7 +167,7 @@ func (e *WldFragSprite2DDef) Read(r io.ReadSeeker, isNewWorld bool) error {
 	if e.Flags&0x08 == 0x08 {
 		e.Sleep = dec.Uint32()
 	}
-	e.Pitches = make([]*WldFragSprite2DPitch, pitchCount)
+	e.Pitches = []*WldFragSprite2DPitch{}
 	for i := uint32(0); i < pitchCount; i++ {
 		pitch := &WldFragSprite2DPitch{
 			PitchCap: dec.Int32(),
@@ -176,7 +176,7 @@ func (e *WldFragSprite2DDef) Read(r io.ReadSeeker, isNewWorld bool) error {
 		pitch.TopOrBottomView = uint16(weirdFlagCount & 0x80000000)
 		headingCount := uint32(weirdFlagCount & 0x7FFFFFFF)
 
-		pitch.Headings = make([]*WldFragSprite2DHeading, headingCount)
+		pitch.Headings = []*WldFragSprite2DHeading{}
 		for j := uint32(0); j < headingCount; j++ {
 			heading := &WldFragSprite2DHeading{
 				HeadingCap: dec.Int32(),
@@ -186,10 +186,10 @@ func (e *WldFragSprite2DDef) Read(r io.ReadSeeker, isNewWorld bool) error {
 			for k := uint32(0); k < textureCount; k++ {
 				heading.FrameRefs[k] = dec.Int32()
 			}
-			pitch.Headings[j] = heading
+			pitch.Headings = append(pitch.Headings, heading)
 		}
 
-		e.Pitches[i] = pitch
+		e.Pitches = append(e.Pitches, pitch)
 	}
 	if e.Flags&0x10 == 0x10 {
 		e.RenderMethod = dec.Uint32()
