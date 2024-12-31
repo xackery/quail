@@ -21,7 +21,7 @@ jobs:
       - run: go get ./...
       - run: go test -tags ci,wayland ./...
       - run: make build-all
-      - run: npm inject
+      - run: npm run inject
         working-directory: wasm
       - run: npm pack
         working-directory: wasm
