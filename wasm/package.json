@@ -14,7 +14,7 @@
   ],
   "scripts": {
     "start": "npx serve -p 5050 . & npx wait-on http://localhost:5050 && npx open-cli http://localhost:5050/examples/index.html",
-    "injectVersion": "node inject"
+    "inject": "node inject"
   },
   "repository": {
     "type": "git",
