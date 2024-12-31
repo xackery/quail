@@ -11,6 +11,12 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 20
+      - name: Install TinyGo
+        run: |
+          wget https://github.com/tinygo-org/tinygo/releases/download/v0.28.0/tinygo_0.28.0_amd64.deb
+          sudo dpkg -i tinygo_0.28.0_amd64.deb
+      - name: Verify TinyGo Installation
+        run: tinygo version
       - run: make set-version-${{github.run_number}}
       - run: go get ./...
       - run: go test -tags ci,wayland ./...
