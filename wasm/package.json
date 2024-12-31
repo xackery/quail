@@ -8,7 +8,6 @@
   },
   "files": [
     "quail.wasm",
-    "quail.debug.wasm",
     "index.js",
     "examples",
     "README.md"
