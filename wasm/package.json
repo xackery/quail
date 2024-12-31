@@ -1,0 +1,39 @@
+{
+  "name": "quail-wasm",
+  "version": "1.0.0",
+  "description": "Quail EverQuest conversion tools as WebAssembly",
+  "main": "index.js",
+  "directories": {
+    "example": "examples"
+  },
+  "files": [
+    "quail.wasm",
+    "quail.debug.wasm",
+    "index.js",
+    "examples",
+    "README.md"
+  ],
+  "scripts": {
+    "start": "npx serve -p 5050 . & npx wait-on http://localhost:5050 && npx open-cli http://localhost:5050/examples/index.html",
+    "injectVersion": "node inject"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xackery/quail.git"
+  },
+  "keywords": [
+    "EverQuest",
+    "quail"
+  ],
+  "author": "Xackery / temp0",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/xackery/quail/issues"
+  },
+  "homepage": "https://github.com/xackery/quail#readme",
+  "devDependencies": {
+    "open-cli": "^8.0.0",
+    "serve": "^14.2.4",
+    "wait-on": "^8.0.1"
+  }
+}

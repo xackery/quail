@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://unpkg.com/jimp@0.22.10/browser/lib/jimp.js" type="text/javascript"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f8f9fa;
+            color: #333;
+        }
+
+        h1 {
+            text-align: center;
+            color: #0056b3;
+            margin-bottom: 20px;
+        }
+
+        label {
+            font-weight: bold;
+        }
+
+        input[type="file"] {
+            margin: 10px 0;
+            padding: 5px;
+        }
+
+        #json-container,
+        #img-container {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #fff;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        #json-container {
+            overflow-y: auto;
+            max-height: 400px;
+        }
+
+        details {
+            margin-bottom: 10px;
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #f8f9fa;
+            transition: all 0.3s ease;
+        }
+
+        details summary {
+            cursor: pointer;
+            font-weight: bold;
+            color: #0056b3;
+            outline: none;
+        }
+
+        details[open] {
+            border-color: #007bff;
+            background-color: #e9f7fe;
+        }
+
+        details>div {
+            padding-left: 20px;
+        }
+
+        pre {
+            background-color: #f4f4f4;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        /* Images Styling */
+        #img-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-evenly;
+        }
+
+        #img-container>div {
+            text-align: center;
+            margin: 10px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #fff;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s;
+        }
+
+        #img-container div:hover {
+            transform: scale(1.05);
+        }
+
+        #img-container img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 5px;
+            display: block;
+            margin: 0 auto;
+        }
+
+        #img-container div label {
+            margin-top: 5px;
+            font-weight: bold;
+            display: block;
+        }
+
+        button {
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+    </style>
+
+    <title>Quail Web Example</title>
+</head>
+
+<body>
+    <h1>Quail Web Conversion</h1>
+    <label for="xmi-file">Select Zone S3D file:</label>
+    <input type="file" id="s3d-file" accept=".s3d" />
+    <script type="module">
+        import { CreateQuail } from "./index.js";
+        import "./examples/squish.js";
+        import { convertDDS2Jimp } from "./examples/image-processing.js";
+        const ShaderType = {
+            Diffuse: 0,
+            Transparent25: 1,
+            Transparent50: 2,
+            Transparent75: 3,
+            TransparentAdditive: 4,
+            TransparentAdditiveUnlit: 5,
+            TransparentMasked: 6,
+            DiffuseSkydome: 7,
+            TransparentSkydome: 8,
+            TransparentAdditiveUnlitSkydome: 9,
+            Invisible: 10,
+            Boundary: 11,
+        };
+        const fullAlphaToDoubleAlphaThreshold = 64;
+        const alphaShaderMap = {
+            [ShaderType.Transparent25]: 64,
+            [ShaderType.Transparent50]: 128,
+            [ShaderType.TransparentSkydome]: 128,
+            [ShaderType.Transparent75]: 192,
+            [ShaderType.TransparentAdditive]: 192,
+        };
+        let selectedZone = '';
+
+        async function handleFileSelect(event) {
+            const fileInput = event.target;
+            const file = fileInput.files[0];
+
+            if (!file || !file.name.endsWith(".s3d")) {
+                alert("Please select a valid .s3d file.");
+                return;
+            }
+
+            // Read the file as an array buffer
+            const arrayBuffer = await file.arrayBuffer();
+            const uint8Array = new Uint8Array(arrayBuffer);
+
+            // Initialize quail
+            const { quail } = await CreateQuail("quail.wasm");
+            window.quail = quail
+
+            // Write the file to quail filesystem
+            const baseName = file.name.replace(/\.[^/.]+$/, ""); // e.g., "qeynos2"
+            selectedZone = baseName;
+            const inputS3D = `/${baseName}.s3d`;
+            quail.fs.write(inputS3D, uint8Array);
+
+            // Convert the S3D -> JSON + extracted assets
+            const outputJSON = `/${baseName}.json`;
+            quail.convert(inputS3D, outputJSON);
+
+            // If quail populates subfolders like '/qeynos2' with files,
+            // loop through them and try to display images
+            displayImages(quail, `/${baseName}`);
+
+            // If you have JSON output in top-level paths:
+            displayJSON(quail, baseName);
+        }
+
+        async function getTexture(data, shaderType = ShaderType.Diffuse) {
+            if (new DataView(data).getUint16(0, true) === 0x4d42) {
+                // header for bitmap
+                try {
+                    const img = await Jimp.read(data);
+                    let maskColor;
+
+                    // If TransparentMasked shader type, set maskColor to the first pixel
+                    if (shaderType === ShaderType.TransparentMasked) {
+                        const firstPixelIdx = 0;
+                        maskColor = {
+                            r: img.bitmap.data[firstPixelIdx],
+                            g: img.bitmap.data[firstPixelIdx + 1],
+                            b: img.bitmap.data[firstPixelIdx + 2],
+                            a: img.bitmap.data[firstPixelIdx + 3],
+                        };
+                    }
+
+                    img.scan(0, 0, img.bitmap.width, img.bitmap.height, (x, y, idx) => {
+                        const r = img.bitmap.data[idx];
+                        const g = img.bitmap.data[idx + 1];
+                        const b = img.bitmap.data[idx + 2];
+                        let alpha = img.bitmap.data[idx + 3];
+
+                        if (shaderType === ShaderType.TransparentMasked) {
+                            // If the current pixel matches the mask color, set alpha to 0
+                            if (
+                                r === maskColor.r &&
+                                g === maskColor.g &&
+                                b === maskColor.b &&
+                                alpha === maskColor.a
+                            ) {
+                                alpha = 0;
+                            }
+                        } else if (alphaShaderMap[shaderType]) {
+                            alpha = alphaShaderMap[shaderType];
+                        } else {
+                            const maxRgb = Math.max(r, g, b);
+                            alpha =
+                                maxRgb <= fullAlphaToDoubleAlphaThreshold
+                                    ? maxRgb
+                                    : Math.min(
+                                        maxRgb + (maxRgb - fullAlphaToDoubleAlphaThreshold) * 2,
+                                        255
+                                    );
+                        }
+
+                        img.bitmap.data[idx + 3] = alpha;
+                    });
+
+                    return await img.getBufferAsync(Jimp.MIME_PNG);
+                } catch (e) {
+                    console.warn("Error processing BMP:", e, name);
+                    return null;
+                }
+            } else {
+                // otherwise DDS
+                const [decompressed, dds] = convertDDS2Jimp(new Uint8Array(data));
+                const w = dds.mipmaps[0].width;
+                const h = dds.mipmaps[0].height;
+                const bmp = new Jimp(w, h);
+
+                let maskColor;
+
+                // If TransparentMasked shader type, set maskColor to the first pixel of decompressed data
+                if (shaderType === ShaderType.TransparentMasked) {
+                    maskColor = {
+                        r: decompressed[0],
+                        g: decompressed[1],
+                        b: decompressed[2],
+                        a: decompressed[3],
+                    };
+                }
+
+                bmp.scan(0, 0, w, h, (x, y, idx) => {
+                    bmp.bitmap.data[idx] = decompressed[idx]; // r
+                    bmp.bitmap.data[idx + 1] = decompressed[idx + 1]; // g
+                    bmp.bitmap.data[idx + 2] = decompressed[idx + 2]; // b
+                    let alpha = decompressed[idx + 3]; // a
+
+                    if (shaderType === ShaderType.TransparentMasked) {
+                        // If the current pixel matches the mask color, set alpha to 0
+                        if (
+                            bmp.bitmap.data[idx] === maskColor.r &&
+                            bmp.bitmap.data[idx + 1] === maskColor.g &&
+                            bmp.bitmap.data[idx + 2] === maskColor.b &&
+                            alpha === maskColor.a
+                        ) {
+                            alpha = 0;
+                        }
+                    } else if (alphaShaderMap[shaderType]) {
+                        alpha = alphaShaderMap[shaderType];
+                    }
+
+                    bmp.bitmap.data[idx + 3] = alpha;
+                });
+
+                bmp.flip(false, true);
+
+                return await bmp.getBufferAsync(Jimp.MIME_PNG);
+            }
+        }
+
+        /**
+         * Displays images from quail.fs[folderName], if they are recognized as images (e.g. BMP/DDS).
+         */
+        async function displayImages(quail, folderName) {
+            const imgContainer = document.getElementById("img-container");
+            imgContainer.innerHTML = "";
+
+            const folderData = quail.fs[folderName];
+            if (!folderData) {
+                console.log("No extracted files found in", folderName);
+                return;
+            }
+
+            for (const [fileName, buffer] of Object.entries(folderData)) {
+                const data = await getTexture(buffer.buffer);
+
+                const blob = new Blob([data], { type: "image/png" });
+                const url = URL.createObjectURL(blob);
+
+                const wrapper = document.createElement("div");
+                wrapper.style.display = "inline-block";
+                wrapper.style.margin = "10px";
+                wrapper.style.textAlign = "center";
+
+                const label = document.createElement("div");
+                label.innerText = fileName;
+                label.style.fontWeight = "bold";
+                label.style.marginBottom = "5px";
+                wrapper.appendChild(label);
+
+                const img = document.createElement("img");
+                img.src = url;
+                img.style.maxWidth = "128px";
+                img.style.maxHeight = "128px";
+                wrapper.appendChild(img);
+
+                imgContainer.appendChild(wrapper);
+            }
+        }
+
+        /**
+         * Displays JSON output in a collapsible tree (using <details>), with lazy-loading for large JSON objects.
+         */
+        function displayJSON(quail, baseName) {
+            const possibleJSON = [
+                `${baseName}.json`,
+                `${baseName}_lights.json`,
+                `${baseName}_objects.json`,
+            ];
+
+            const jsonContainer = document.getElementById("json-container");
+            jsonContainer.innerHTML = ""; // Clear the container
+
+            // Create "Convert to S3D" button
+            const convertButton = document.createElement("button");
+            convertButton.textContent = "Convert to S3D";
+            convertButton.style.display = "block";
+            convertButton.style.marginBottom = "15px";
+
+            convertButton.addEventListener("click", async () => {
+                quail.convert(`/${selectedZone}.json`, '/new.s3d');
+                const blob = new Blob([quail.fs['new.s3d']], { type: "application/octet-stream" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = `${selectedZone}.s3d`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            });
+
+            jsonContainer.appendChild(convertButton);
+
+            for (const jsonPath of possibleJSON) {
+                if (!quail.fs[jsonPath]) {
+                    console.log("No JSON found at", jsonPath);
+                    continue;
+                }
+
+                const jsonStr = new TextDecoder().decode(quail.fs[jsonPath]);
+                let data;
+                try {
+                    data = JSON.parse(jsonStr);
+                } catch (e) {
+                    console.error("Error parsing JSON from", jsonPath, e);
+                    continue;
+                }
+
+                const rootDetails = createLazyDetails(data, jsonPath);
+                jsonContainer.appendChild(rootDetails);
+            }
+        }
+
+        /**
+         * Creates a <details> element for lazy-loading JSON objects or arrays.
+         */
+        function createLazyDetails(data, label) {
+            const details = document.createElement("details");
+            details.style.marginBottom = "10px";
+
+            const summary = document.createElement("summary");
+            summary.innerText = label;
+            details.appendChild(summary);
+
+            // Add a placeholder that will load children when expanded
+            const placeholder = document.createElement("div");
+            placeholder.textContent = "Loading...";
+            placeholder.style.paddingLeft = "20px";
+            details.appendChild(placeholder);
+
+            // Attach lazy-loading logic
+            details.addEventListener("toggle", function handleToggle() {
+                if (details.open && placeholder) {
+                    // Populate children when the details element is opened
+                    placeholder.replaceWith(createNestedContent(data));
+                    details.removeEventListener("toggle", handleToggle); // Remove listener after lazy-loading
+                }
+            });
+
+            return details;
+        }
+
+        /**
+         * Recursively creates nested content for JSON objects and arrays.
+         */
+        function createNestedContent(data) {
+            const container = document.createElement("div");
+            container.style.paddingLeft = "20px";
+
+            if (Array.isArray(data)) {
+                // Handle arrays
+                data.forEach((item, index) => {
+                    const childDetails = createLazyDetails(item, `[${index}]`);
+                    container.appendChild(childDetails);
+                });
+            } else if (typeof data === "object" && data !== null) {
+                // Handle objects
+                for (const key in data) {
+                    if (data.hasOwnProperty(key)) {
+                        const childDetails = createLazyDetails(data[key], key);
+                        container.appendChild(childDetails);
+                    }
+                }
+            } else {
+                // Handle primitive values
+                const value = document.createElement("pre");
+                value.textContent = typeof data === "string" ? `"${data}"` : data;
+                container.appendChild(value);
+            }
+
+            return container;
+        }
+
+        document
+            .getElementById("s3d-file")
+            .addEventListener("change", handleFileSelect);
+    </script>
+    <div id="json-container"></div>
+    <div id="img-container"></div>
+    <div id="convert-container"></div>
+</body>
+
+</html>
