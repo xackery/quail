@@ -41,4 +41,3 @@ jobs:
             bin/quail-linux
             bin/quail.exe
             bin/quail-darwin
-            "wasm/quail-wasm@${{env.VERSION}}.tar.gz"
