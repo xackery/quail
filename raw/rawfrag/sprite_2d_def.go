@@ -12,8 +12,6 @@ import (
 type WldFragSprite2DDef struct {
 	NameRef                     int32
 	Flags                       uint32
-	TextureCount                uint32
-	PitchCount                  uint32
 	Scale                       [2]float32
 	SphereListRef               uint32
 	DepthScale                  float32
@@ -21,7 +19,7 @@ type WldFragSprite2DDef struct {
 	BoundingRadius              float32
 	CurrentFrameRef             int32
 	Sleep                       uint32
-	Headings                    []uint32
+	Pitches                     []*WldFragSprite2DPitch
 	RenderMethod                uint32
 	RenderFlags                 uint8
 	RenderPen                   uint32
@@ -34,6 +32,17 @@ type WldFragSprite2DDef struct {
 	Uvs                         [][2]float32
 }
 
+type WldFragSprite2DPitch struct {
+	PitchCap        int32
+	TopOrBottomView uint16
+	Headings        []*WldFragSprite2DHeading
+}
+
+type WldFragSprite2DHeading struct {
+	HeadingCap int32
+	FrameRefs  []int32
+}
+
 func (e *WldFragSprite2DDef) FragCode() int {
 	return FragCodeSprite2DDef
 }
@@ -42,8 +51,20 @@ func (e *WldFragSprite2DDef) Write(w io.Writer, isNewWorld bool) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
 	enc.Int32(e.NameRef)
 	enc.Uint32(e.Flags)
-	enc.Uint32(e.TextureCount)
-	enc.Uint32(e.PitchCount)
+
+	textureCount := uint32(0)
+	if len(e.Pitches) < 1 {
+		return fmt.Errorf("no pitches found")
+	}
+	if len(e.Pitches[0].Headings) < 1 {
+		return fmt.Errorf("no headings found")
+	}
+	if len(e.Pitches[0].Headings[0].FrameRefs) < 1 {
+		return fmt.Errorf("no frame refs found")
+	}
+	textureCount = uint32(len(e.Pitches[0].Headings[0].FrameRefs))
+	enc.Uint32(textureCount)
+	enc.Uint32(uint32(len(e.Pitches)))
 
 	enc.Float32(e.Scale[0])
 	enc.Float32(e.Scale[1])
@@ -65,9 +86,18 @@ func (e *WldFragSprite2DDef) Write(w io.Writer, isNewWorld bool) error {
 	if e.Flags&0x08 == 0x08 {
 		enc.Uint32(e.Sleep)
 	}
-	for _, heading := range e.Headings {
-		enc.Uint32(heading)
+
+	for _, pitch := range e.Pitches {
+		enc.Int32(pitch.PitchCap)
+		enc.Uint32(uint32(len(pitch.Headings)))
+		for _, heading := range pitch.Headings {
+			enc.Int32(heading.HeadingCap)
+			for _, frameRef := range heading.FrameRefs {
+				enc.Int32(frameRef)
+			}
+		}
 	}
+
 	if e.Flags&0x10 == 0x10 {
 		enc.Uint32(e.RenderMethod)
 		enc.Uint8(e.RenderFlags)
@@ -115,8 +145,8 @@ func (e *WldFragSprite2DDef) Read(r io.ReadSeeker, isNewWorld bool) error {
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	e.NameRef = dec.Int32()
 	e.Flags = dec.Uint32()
-	e.TextureCount = dec.Uint32()
-	e.PitchCount = dec.Uint32()
+	textureCount := dec.Uint32()
+	pitchCount := dec.Uint32()
 	e.Scale[0] = dec.Float32()
 	e.Scale[1] = dec.Float32()
 	e.SphereListRef = dec.Uint32()
@@ -137,9 +167,29 @@ func (e *WldFragSprite2DDef) Read(r io.ReadSeeker, isNewWorld bool) error {
 	if e.Flags&0x08 == 0x08 {
 		e.Sleep = dec.Uint32()
 	}
-	e.Headings = make([]uint32, e.PitchCount)
-	for i := uint32(0); i < e.PitchCount; i++ {
-		e.Headings[i] = dec.Uint32()
+	e.Pitches = []*WldFragSprite2DPitch{}
+	for i := uint32(0); i < pitchCount; i++ {
+		pitch := &WldFragSprite2DPitch{
+			PitchCap: dec.Int32(),
+		}
+		weirdFlagCount := dec.Uint32()
+		pitch.TopOrBottomView = uint16(weirdFlagCount & 0x80000000)
+		headingCount := uint32(weirdFlagCount & 0x7FFFFFFF)
+
+		pitch.Headings = []*WldFragSprite2DHeading{}
+		for j := uint32(0); j < headingCount; j++ {
+			heading := &WldFragSprite2DHeading{
+				HeadingCap: dec.Int32(),
+			}
+
+			heading.FrameRefs = make([]int32, textureCount)
+			for k := uint32(0); k < textureCount; k++ {
+				heading.FrameRefs[k] = dec.Int32()
+			}
+			pitch.Headings = append(pitch.Headings, heading)
+		}
+
+		e.Pitches = append(e.Pitches, pitch)
 	}
 	if e.Flags&0x10 == 0x10 {
 		e.RenderMethod = dec.Uint32()
