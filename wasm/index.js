@@ -179,7 +179,16 @@ class Go {
         // may synchronously trigger a Go event handler. This makes Go code get executed in the middle of the imported
         // function. A goroutine can switch to a new stack if the current stack is too small (see morestack function).
         // This changes the SP, thus we have to update the SP used by the imported function.
+        // func ticks() float64
+        'runtime.ticks': () => {
+          return timeOrigin + performance.now();
+        },
 
+        // func sleepTicks(timeout float64)
+        'runtime.sleepTicks': (timeout) => {
+          // Do not sleep, only reactivate scheduler after the given timeout.
+          setTimeout(this._inst.exports.go_scheduler, timeout);
+        },
         // func wasmExit(code int32)
         "runtime.wasmExit": (sp) => {
           sp >>>= 0;
