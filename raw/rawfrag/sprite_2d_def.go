@@ -21,7 +21,7 @@ type WldFragSprite2DDef struct {
 	Sleep                       uint32
 	Pitches                     []*WldFragSprite2DPitch
 	RenderMethod                uint32
-	RenderFlags                 uint8
+	RenderFlags                 uint32
 	RenderPen                   uint32
 	RenderBrightness            float32
 	RenderScaledAmbient         float32
@@ -34,7 +34,7 @@ type WldFragSprite2DDef struct {
 
 type WldFragSprite2DPitch struct {
 	PitchCap        int32
-	TopOrBottomView uint16
+	TopOrBottomView uint32
 	Headings        []*WldFragSprite2DHeading
 }
 
@@ -89,7 +89,7 @@ func (e *WldFragSprite2DDef) Write(w io.Writer, isNewWorld bool) error {
 
 	for _, pitch := range e.Pitches {
 		enc.Int32(pitch.PitchCap)
-		enc.Uint32(uint32(len(pitch.Headings)))
+		enc.Uint32((uint32(pitch.TopOrBottomView) << 31) | (uint32(len(pitch.Headings)) & 0x7FFFFFFF))
 		for _, heading := range pitch.Headings {
 			enc.Int32(heading.HeadingCap)
 			for _, frameRef := range heading.FrameRefs {
@@ -100,7 +100,7 @@ func (e *WldFragSprite2DDef) Write(w io.Writer, isNewWorld bool) error {
 
 	if e.Flags&0x10 == 0x10 {
 		enc.Uint32(e.RenderMethod)
-		enc.Uint8(e.RenderFlags)
+		enc.Uint32(e.RenderFlags)
 
 		if e.RenderFlags&0x01 == 0x01 {
 			enc.Uint32(e.RenderPen)
@@ -173,7 +173,7 @@ func (e *WldFragSprite2DDef) Read(r io.ReadSeeker, isNewWorld bool) error {
 			PitchCap: dec.Int32(),
 		}
 		weirdFlagCount := dec.Uint32()
-		pitch.TopOrBottomView = uint16(weirdFlagCount & 0x80000000)
+		pitch.TopOrBottomView = uint32((weirdFlagCount >> 31) & 0x1)
 		headingCount := uint32(weirdFlagCount & 0x7FFFFFFF)
 
 		pitch.Headings = []*WldFragSprite2DHeading{}
@@ -186,6 +186,7 @@ func (e *WldFragSprite2DDef) Read(r io.ReadSeeker, isNewWorld bool) error {
 			for k := uint32(0); k < textureCount; k++ {
 				heading.FrameRefs[k] = dec.Int32()
 			}
+
 			pitch.Headings = append(pitch.Headings, heading)
 		}
 
@@ -193,7 +194,7 @@ func (e *WldFragSprite2DDef) Read(r io.ReadSeeker, isNewWorld bool) error {
 	}
 	if e.Flags&0x10 == 0x10 {
 		e.RenderMethod = dec.Uint32()
-		e.RenderFlags = dec.Uint8()
+		e.RenderFlags = dec.Uint32()
 
 		if e.RenderFlags&0x01 == 0x01 {
 			e.RenderPen = dec.Uint32()
