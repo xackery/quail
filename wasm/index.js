@@ -432,7 +432,7 @@ class Go {
     };
   }
 
-  async run(instance) {
+  run(instance) {
     if (!(instance instanceof WebAssembly.Instance)) {
       throw new Error("Go.run: WebAssembly.Instance expected");
     }
@@ -505,7 +505,7 @@ class Go {
     if (this.exited) {
       this._resolveExitPromise();
     }
-    await this._exitPromise;
+    return this._exitPromise;
   }
 
   _resume() {
