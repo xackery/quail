@@ -131,6 +131,49 @@ class Go {
         add: (a, b) => a + b,
         callExport: testCallExport,
       },
+      wasi_snapshot_preview1: {
+        // https://github.com/WebAssembly/WASI/blob/main/phases/snapshot/docs.md#fd_write
+        fd_write: function (fd, iovs_ptr, iovs_len, nwritten_ptr) {
+          let nwritten = 0;
+          if (fd == 1) {
+            for (let iovs_i = 0; iovs_i < iovs_len; iovs_i++) {
+              const iov_ptr = iovs_ptr + iovs_i * 8; // assuming wasm32
+              const ptr = mem().getUint32(iov_ptr + 0, true);
+              const len = mem().getUint32(iov_ptr + 4, true);
+              nwritten += len;
+              for (let i = 0; i < len; i++) {
+                const c = mem().getUint8(ptr + i);
+                if (c == 13) {
+                  // CR
+                  // ignore
+                } else if (c == 10) {
+                  // LF
+                  // write line
+                  const line = decoder.decode(new Uint8Array(logLine));
+                  logLine = [];
+                  console.log(line);
+                } else {
+                  logLine.push(c);
+                }
+              }
+            }
+          } else {
+            console.error('invalid file descriptor:', fd);
+          }
+          mem().setUint32(nwritten_ptr, nwritten, true);
+          return 0;
+        },
+        fd_close     : () => 0, // dummy
+        fd_fdstat_get: () => 0, // dummy
+        fd_seek      : () => 0, // dummy
+        proc_exit    : (code) => {
+
+        },
+        random_get: (bufPtr, bufLen) => {
+          crypto.getRandomValues(loadSlice(bufPtr, bufLen));
+          return 0;
+        },
+      },
       gojs: {
         // Go's SP does not change as long as no Go code is running. Some operations (e.g. calls, getters and setters)
         // may synchronously trigger a Go event handler. This makes Go code get executed in the middle of the imported
