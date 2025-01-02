@@ -1,4 +1,4 @@
-//go:build !tinygo.wasm
+//go:build !wasm && !tinygo.wasm
 
 package os
 

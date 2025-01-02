@@ -3,7 +3,52 @@ const encoder = new TextEncoder('utf-8');
 const decoder = new TextDecoder('utf-8');
 const reinterpretBuf = new DataView(new ArrayBuffer(8));
 let logLine = [];
-
+if (!globalThis.fs) {
+  let outputBuf = "";
+  globalThis.fs = {
+    constants: { O_WRONLY: -1, O_RDWR: -1, O_CREAT: -1, O_TRUNC: -1, O_APPEND: -1, O_EXCL: -1, O_DIRECTORY: -1 }, // unused
+    writeSync(fd, buf) {
+      outputBuf += decoder.decode(buf);
+      const nl = outputBuf.lastIndexOf("\n");
+      if (nl != -1) {
+        console.log(outputBuf.substring(0, nl));
+        outputBuf = outputBuf.substring(nl + 1);
+      }
+      return buf.length;
+    },
+    write(fd, buf, offset, length, position, callback) {
+      if (offset !== 0 || length !== buf.length || position !== null) {
+        callback(enosys());
+        return;
+      }
+      const n = this.writeSync(fd, buf);
+      callback(null, n);
+    },
+    chmod(path, mode, callback) { callback(enosys()); },
+    chown(path, uid, gid, callback) { callback(enosys()); },
+    close(fd, callback) { callback(enosys()); },
+    fchmod(fd, mode, callback) { callback(enosys()); },
+    fchown(fd, uid, gid, callback) { callback(enosys()); },
+    fstat(fd, callback) { callback(enosys()); },
+    fsync(fd, callback) { callback(null); },
+    ftruncate(fd, length, callback) { callback(enosys()); },
+    lchown(path, uid, gid, callback) { callback(enosys()); },
+    link(path, link, callback) { callback(enosys()); },
+    lstat(path, callback) { callback(enosys()); },
+    mkdir(path, perm, callback) { callback(enosys()); },
+    open(path, flags, mode, callback) { callback(enosys()); },
+    read(fd, buffer, offset, length, position, callback) { callback(enosys()); },
+    readdir(path, callback) { callback(enosys()); },
+    readlink(path, callback) { callback(enosys()); },
+    rename(from, to, callback) { callback(enosys()); },
+    rmdir(path, callback) { callback(enosys()); },
+    stat(path, callback) { callback(enosys()); },
+    symlink(path, link, callback) { callback(enosys()); },
+    truncate(path, length, callback) { callback(enosys()); },
+    unlink(path, callback) { callback(enosys()); },
+    utimes(path, atime, mtime, callback) { callback(enosys()); },
+  };
+}
 class Go {
   constructor() {
     this.argv = ["js"];
@@ -101,7 +146,7 @@ class Go {
     const loadSlice = (addr) => {
       const array = getInt64(addr + 0);
       const len = getInt64(addr + 8);
-      return new Uint8Array(this._inst.exports.memory.buffer, array, len);
+      return new Uint8Array(this._inst.exports.mem.buffer, array, len);
     }
 
     const loadSliceOfValues = (addr) => {
@@ -117,14 +162,14 @@ class Go {
     const loadString = (addr) => {
       const saddr = getInt64(addr + 0);
       const len = getInt64(addr + 8);
-      return decoder.decode(new DataView(this._inst.exports.memory.buffer, saddr, len));
+      return decoder.decode(new DataView(this._inst.exports.mem.buffer, saddr, len));
     }
 
     const testCallExport = (a, b) => {
       this._inst.exports.testExport0();
       return this._inst.exports.testExport(a, b);
     }
-
+    const mem = () => new DataView(this._inst.exports.mem.buffer);;
     const timeOrigin = Date.now() - performance.now();
     this.importObject = {
       _gotest: {
@@ -208,13 +253,13 @@ class Go {
           const fd = getInt64(sp + 8);
           const p = getInt64(sp + 16);
           const n = this.mem.getInt32(sp + 24, true);
-          fs.writeSync(fd, new Uint8Array(this._inst.exports.memory.buffer, p, n));
+          fs.writeSync(fd, new Uint8Array(this._inst.exports.mem.buffer, p, n));
         },
 
         // func resetMemoryDataView()
         "runtime.resetMemoryDataView": (sp) => {
           sp >>>= 0;
-          this.mem = new DataView(this._inst.exports.memory.buffer);
+          this.mem = new DataView(this._inst.exports.mem.buffer);
         },
 
         // func nanotime1() int64
@@ -437,7 +482,7 @@ class Go {
       throw new Error("Go.run: WebAssembly.Instance expected");
     }
     this._inst = instance;
-    this.mem = new DataView(this._inst.exports.memory.buffer);
+    this.mem = new DataView(this._inst.exports.mem.buffer);
     this._values = [ // JS values that Go currently has references to, indexed by reference id
       NaN,
       0,
@@ -487,7 +532,6 @@ class Go {
     });
     argvPtrs.push(0);
 
-    const argv = offset;
     argvPtrs.forEach((ptr) => {
       this.mem.setUint32(offset, ptr, true);
       this.mem.setUint32(offset + 4, 0, true);
@@ -501,7 +545,7 @@ class Go {
       throw new Error("total length of command line and environment variables exceeds limit");
     }
 
-    this._inst.exports.run(argc, argv);
+    this._inst.exports.run();
     if (this.exited) {
       this._resolveExitPromise();
     }
