@@ -33,13 +33,9 @@ Available Commands:
 ```
 
 ## Compiling WebAssembly API
-Quail can be compiled to WebAssembly to be used in the browser. To compile to WebAssembly, first install `tinygo` and then run:
+Quail can be compiled to WebAssembly to be used in the browser. To compile to WebAssembly, run:
 ```
-GOOS=js GOARCH=wasm tinygo build --target wasm --gc leaking -opt 2 -no-debug -o wasm/quail.wasm main_wasm.go
-```
-For debug symbols, run
-```
-GOOS=js GOARCH=wasm tinygo build --target wasm --gc leaking -opt 2 -o wasm/quail.wasm main_wasm.go
+GOOS=js GOARCH=wasm go build -o wasm/quail.wasm main_wasm.go
 ```
 
 # EverQuest File Overview

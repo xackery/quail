@@ -66,7 +66,7 @@ build-windows-addon: ## build windows blender addon
 
 build-wasm: ## build wasm
 	@echo "build-wasm: ${BUILD_VERSION}"
-	@GOOS=js GOARCH=wasm tinygo build --target wasm --gc leaking -opt 2 -o wasm/quail.wasm main_wasm.go
+	@GOOS=js GOARCH=wasm go build -o wasm/quail.wasm main_wasm.go
 
 build-copy: build-darwin ## used by xackery, build darwin copy and move to blender path
 	@echo "copying to quail-addons..."
