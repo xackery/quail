@@ -344,6 +344,18 @@ func (wce *Wce) writeAsciiData(path string, baseTags []string) error {
 		}
 	}
 
+	for _, particleCloudDef := range wce.ParticleCloudDefs {
+		err = token.SetWriter(particleCloudDef.Tag)
+		if err != nil {
+			return fmt.Errorf("set polyhedron %s writer: %w", particleCloudDef.Tag, err)
+		}
+
+		err = particleCloudDef.Write(token)
+		if err != nil {
+			return fmt.Errorf("polyhedron %s: %w", particleCloudDef.Tag, err)
+		}
+	}
+
 	if wce.WorldDef.Zone == 1 {
 
 		for _, dSprite := range wce.DMSpriteDefs {
