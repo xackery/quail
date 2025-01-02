@@ -5,7 +5,7 @@
 *.so
 *.dylib
 *.cpp
-
+*.wasm
 # Test binary, built with `go test -c`
 *.test
 
