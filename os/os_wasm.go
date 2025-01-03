@@ -77,6 +77,7 @@ func UpdateJSFile(fullPath string) {
 			dirObj = jsFileSystem
 		} else {
 			dirObj = js.Global().Get("Object").New()
+			dirPath = strings.TrimPrefix(dirPath, "/")
 			jsFileSystem.Set(dirPath, dirObj)
 		}
 	}
@@ -188,8 +189,12 @@ func WriteFile(name string, buffer []byte, perm fs.FileMode) error {
 	if !exists {
 		dirPath := filepath.Dir(name)
 		dir, exists := fileSystem[dirPath]
-		if !exists || !dir.IsDir {
-			return errors.New("directory does not exist " + name + " dir path " + dirPath)
+		if exists && !dir.IsDir {
+			return errors.New("directory is not a dir" + name + " dir path " + dirPath)
+		}
+		if !exists {
+			MkdirAll(dirPath, 0755)
+			dir = fileSystem[dirPath]
 		}
 		file = &File{Name: name, Perm: perm, ModTime: time.Now()}
 		dir.Entries[filepath.Base(name)] = file

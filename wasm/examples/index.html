@@ -193,6 +193,7 @@
             const inputS3D = `/${baseName}.s3d`;
             quail.fs.write(inputS3D, uint8Array);
 
+
             // Convert the S3D -> JSON + extracted assets
             const outputJSON = `/${baseName}.json`;
             quail.convert(inputS3D, outputJSON);
