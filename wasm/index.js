@@ -1152,7 +1152,6 @@ export const CreateQuail = (url) =>
   cached ??
   new Promise((res) => {
     const go = new Go();
-    window.g = go;
     if ("instantiateStreaming" in WebAssembly) {
       WebAssembly.instantiateStreaming(fetch(url), go.importObject).then(
         (obj) => {
