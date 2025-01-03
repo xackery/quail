@@ -11,10 +11,9 @@ import (
 func ReadJSON(name string, path string) (*Wce, error) {
 
 	wce := New(name)
-
 	r, err := os.Open(path)
 	if err != nil {
-		return nil, fmt.Errorf("open: %w", err)
+		return nil, fmt.Errorf("open: %w, path: %s", err, path)
 	}
 
 	dec := json.NewDecoder(r)
