@@ -13,25 +13,22 @@ var (
 	ErrNotExist = os.ErrNotExist
 	ModePerm    = os.ModePerm
 	IsExist     = os.IsExist
+	Stat        = os.Stat
+	ReadDir     = os.ReadDir
+	WriteFile   = os.WriteFile
+	ReadFile    = os.ReadFile
+	Open        = os.Open
+	MkdirAll    = os.MkdirAll
+	Create      = os.Create
+	IsNotExist  = os.IsNotExist
+	RemoveAll   = os.RemoveAll
+	Getwd       = os.Getwd
+	Remove      = os.Remove
+	Exit        = os.Exit
+	Getenv      = os.Getenv
 )
 
 type (
 	File     = os.File
 	DirEntry = os.DirEntry
-)
-
-var (
-	Stat       = os.Stat
-	ReadDir    = os.ReadDir
-	WriteFile  = os.WriteFile
-	ReadFile   = os.ReadFile
-	Open       = os.Open
-	MkdirAll   = os.MkdirAll
-	Create     = os.Create
-	IsNotExist = os.IsNotExist
-	RemoveAll  = os.RemoveAll
-	Getwd      = os.Getwd
-	Remove     = os.Remove
-	Exit       = os.Exit
-	Getenv     = os.Getenv
 )
