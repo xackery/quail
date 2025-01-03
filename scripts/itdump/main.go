@@ -2,10 +2,9 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 	"strings"
-
-	"os"
 
 	"github.com/xackery/quail/quail"
 )

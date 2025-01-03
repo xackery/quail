@@ -10,6 +10,7 @@ import (
 )
 
 func (q *Quail) wldRead(srcWld *raw.Wld, filename string) error {
+
 	wld := wce.New(filename)
 	err := wld.ReadWldRaw(srcWld)
 	if err != nil {

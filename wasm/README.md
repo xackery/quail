@@ -11,15 +11,15 @@ import { CreateQuail } from 'quail-wasm'
 
 // Depending on where you are hosting quail.wasm
 CreateQuail('/static/quail.wasm').then(q => {
-    const quail = q.quail;
+    const { quail, fs } = q;
 
     // Convert from s3d to json
-    quail.fs.write('/qeynos2.s3d', /* Uint8Array */ someBuffer );
+    fs.setEntry('/qeynos2.s3d', /* Uint8Array */ fs.makeFileEntry(undefined, someBuffer));
     quail.convert('/qeynos2.s3d', '/qeynos2.json');
 
-    const qeynos2 = JSON.parse(quail.fs['qeynos2.json']);
+    const qeynos2 = JSON.parse(new TextDecoder().decode(fs.getEntry('/qeynos2.json').data, 'utf8'));
 
     // Write from json back to s3d
-    quail.convert('/qeynos2.json', '/qeynos2.s3d');
+    quail.convert('/qeynos2.json', '/qeynos2_new.s3d');
 });
 ```

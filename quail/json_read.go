@@ -56,7 +56,7 @@ func (q *Quail) JsonRead(path string) error {
 			continue
 		}
 		ext := strings.ToLower(filepath.Ext(dir.Name()))
-		if ext == ".bmp" || ext == ".dds" || ext == ".png" {
+		if ext == ".bmp" || ext == ".dds" || ext == ".png" || ext == ".jpg" {
 			textureData, err := os.ReadFile(baseName + "/" + dir.Name())
 			if err != nil {
 				fmt.Println("Text", err)
