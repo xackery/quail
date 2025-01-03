@@ -57,7 +57,6 @@ func (wce *Wce) ReadWldRaw(src *raw.Wld) error {
 }
 
 func readRawFrag(e *Wce, rawWld *raw.Wld, fragment model.FragmentReadWriter) error {
-
 	switch fragment.FragCode() {
 	case rawfrag.FragCodeGlobalAmbientLightDef:
 
