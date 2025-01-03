@@ -3,71 +3,35 @@
 package os
 
 import (
-	"io/fs"
-	nativeos "os"
+	"os"
 )
-
-type File = nativeos.File
-type DirEntry = nativeos.DirEntry
 
 var (
-	ErrNotExist = nativeos.ErrNotExist
-	ModePerm    = nativeos.ModePerm
-	Args        = nativeos.Args
+	Args        = os.Args
+	Stdin       = os.Stdin
+	Stdout      = os.Stdout
+	ErrNotExist = os.ErrNotExist
+	ModePerm    = os.ModePerm
+	IsExist     = os.IsExist
 )
 
-func IsExist(err error) bool {
-	return nativeos.IsExist(err)
-}
+type (
+	File     = os.File
+	DirEntry = os.DirEntry
+)
 
-func Stat(name string) (nativeos.FileInfo, error) {
-	return nativeos.Stat(name)
-}
-
-func ReadDir(name string) ([]nativeos.DirEntry, error) {
-	return nativeos.ReadDir(name)
-}
-
-func WriteFile(name string, buffer []byte, perm fs.FileMode) error {
-	return nativeos.WriteFile(name, buffer, perm)
-}
-
-func ReadFile(name string) ([]byte, error) {
-	return nativeos.ReadFile(name)
-}
-
-func Open(name string) (*nativeos.File, error) {
-	return nativeos.Open(name)
-}
-
-func MkdirAll(path string, perm fs.FileMode) error {
-	return nativeos.MkdirAll(path, perm)
-}
-
-func Create(name string) (*nativeos.File, error) {
-	return nativeos.Create(name)
-}
-
-func IsNotExist(err error) bool {
-	return nativeos.IsNotExist(err)
-}
-
-func RemoveAll(path string) error {
-	return nativeos.RemoveAll(path)
-}
-
-func Getwd() (string, error) {
-	return nativeos.Getwd()
-}
-
-func Remove(name string) error {
-	return nativeos.Remove(name)
-}
-
-func Exit(code int) {
-	nativeos.Exit(code)
-}
-
-func Getenv(key string) string {
-	return nativeos.Getenv(key)
-}
+var (
+	Stat       = os.Stat
+	ReadDir    = os.ReadDir
+	WriteFile  = os.WriteFile
+	ReadFile   = os.ReadFile
+	Open       = os.Open
+	MkdirAll   = os.MkdirAll
+	Create     = os.Create
+	IsNotExist = os.IsNotExist
+	RemoveAll  = os.RemoveAll
+	Getwd      = os.Getwd
+	Remove     = os.Remove
+	Exit       = os.Exit
+	Getenv     = os.Getenv
+)
