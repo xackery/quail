@@ -3,12 +3,11 @@ package pfs
 
 import (
 	"fmt"
-
+	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/xackery/quail/helper"
-	"github.com/xackery/quail/os"
 )
 
 // Pfs represents a modern everquest pfs archive

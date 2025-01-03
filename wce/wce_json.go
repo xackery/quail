@@ -3,16 +3,14 @@ package wce
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 	"path/filepath"
-
-	"github.com/xackery/quail/os"
 )
 
 // ReadJSON reads the json file at path
 func ReadJSON(name string, path string) (*Wce, error) {
 
 	wce := New(name)
-
 	r, err := os.Open(path)
 	if err != nil {
 		return nil, fmt.Errorf("open: %w, path: %s", err, path)

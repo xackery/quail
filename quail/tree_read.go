@@ -3,10 +3,10 @@ package quail
 import (
 	"bytes"
 	"fmt"
+	"os"
 	"path/filepath"
 	"strings"
 
-	"github.com/xackery/quail/os"
 	"github.com/xackery/quail/pfs"
 	"github.com/xackery/quail/raw"
 	"github.com/xackery/quail/tree"

@@ -169,7 +169,10 @@
             [ShaderType.TransparentAdditive]: 192,
         };
         let selectedZone = '';
-
+        const { quail, fs } = await CreateQuail("quail.wasm");
+        // Initialize quail
+        window.quail = quail
+        window.fileSystem = fs;
         async function handleFileSelect(event) {
             const fileInput = event.target;
             const file = fileInput.files[0];
@@ -183,15 +186,11 @@
             const arrayBuffer = await file.arrayBuffer();
             const uint8Array = new Uint8Array(arrayBuffer);
 
-            // Initialize quail
-            const { quail } = await CreateQuail("quail.wasm");
-            window.quail = quail
-
             // Write the file to quail filesystem
             const baseName = file.name.replace(/\.[^/.]+$/, ""); // e.g., "qeynos2"
             selectedZone = baseName;
             const inputS3D = `/${baseName}.s3d`;
-            quail.fs.write(inputS3D, uint8Array);
+            fs.setEntry(inputS3D, fs.makeFileEntry(undefined, uint8Array));
 
 
             // Convert the S3D -> JSON + extracted assets
@@ -203,7 +202,7 @@
             displayImages(quail, `/${baseName}`);
 
             // If you have JSON output in top-level paths:
-            displayJSON(quail, baseName);
+            displayJSON(quail, `/${baseName}`);
         }
 
         async function getTexture(data, shaderType = ShaderType.Diffuse) {
@@ -309,21 +308,21 @@
             }
         }
 
-        /**
-         * Displays images from quail.fs[folderName], if they are recognized as images (e.g. BMP/DDS).
-         */
         async function displayImages(quail, folderName) {
             const imgContainer = document.getElementById("img-container");
             imgContainer.innerHTML = "";
 
-            const folderData = quail.fs[folderName];
+            const folderData = fs.files.get(folderName);
             if (!folderData) {
                 console.log("No extracted files found in", folderName);
                 return;
             }
 
-            for (const [fileName, buffer] of Object.entries(folderData)) {
-                const data = await getTexture(buffer.buffer);
+            for (const [fileName, entry] of fs.files.entries()) {
+                if (!fileName.startsWith(`${folderName}/`)) {
+                    continue
+                }
+                const data = await getTexture(entry.data.buffer);
 
                 const blob = new Blob([data], { type: "image/png" });
                 const url = URL.createObjectURL(blob);
@@ -370,7 +369,7 @@
 
             convertButton.addEventListener("click", async () => {
                 quail.convert(`/${selectedZone}.json`, '/new.s3d');
-                const blob = new Blob([quail.fs['new.s3d']], { type: "application/octet-stream" });
+                const blob = new Blob([fs.files.get('/new.s3d').data], { type: "application/octet-stream" });
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement("a");
                 a.href = url;
@@ -384,12 +383,12 @@
             jsonContainer.appendChild(convertButton);
 
             for (const jsonPath of possibleJSON) {
-                if (!quail.fs[jsonPath]) {
+                if (!fs.files.has(jsonPath)) {
                     console.log("No JSON found at", jsonPath);
                     continue;
                 }
 
-                const jsonStr = new TextDecoder().decode(quail.fs[jsonPath]);
+                const jsonStr = new TextDecoder().decode(fs.files.get(jsonPath).data);
                 let data;
                 try {
                     data = JSON.parse(jsonStr);

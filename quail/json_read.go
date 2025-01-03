@@ -2,10 +2,10 @@ package quail
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 	"strings"
 
-	"github.com/xackery/quail/os"
 	"github.com/xackery/quail/wce"
 )
 

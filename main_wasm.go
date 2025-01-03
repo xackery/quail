@@ -2,10 +2,10 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"regexp"
 	"syscall/js"
 
-	"github.com/xackery/quail/os"
 	"github.com/xackery/quail/quail"
 )
 
@@ -44,8 +44,6 @@ func convert(args []js.Value) error {
 		_, e := os.ReadFile(srcPath)
 		if e != nil {
 			fmt.Println("Error reading file: " + e.Error())
-		} else {
-			fmt.Println("Did open file: " + srcPath)
 		}
 		err = q.PfsRead(srcPath)
 		if err != nil {
@@ -89,7 +87,6 @@ func main() {
 			}
 			return 0
 		}),
-		"fs": js.ValueOf(os.ExportFileSystem()),
 	}))
 	select {}
 }

@@ -1,55 +1,603 @@
-
-const encoder = new TextEncoder('utf-8');
-const decoder = new TextDecoder('utf-8');
+const encoder = new TextEncoder("utf-8");
+const decoder = new TextDecoder("utf-8");
 const reinterpretBuf = new DataView(new ArrayBuffer(8));
 let logLine = [];
-if (!globalThis.fs) {
-  let outputBuf = "";
-  globalThis.fs = {
-    constants: { O_WRONLY: -1, O_RDWR: -1, O_CREAT: -1, O_TRUNC: -1, O_APPEND: -1, O_EXCL: -1, O_DIRECTORY: -1 }, // unused
-    writeSync(fd, buf) {
-      outputBuf += decoder.decode(buf);
-      const nl = outputBuf.lastIndexOf("\n");
-      if (nl != -1) {
-        console.log(outputBuf.substring(0, nl));
-        outputBuf = outputBuf.substring(nl + 1);
-      }
-      return buf.length;
-    },
-    write(fd, buf, offset, length, position, callback) {
-      if (offset !== 0 || length !== buf.length || position !== null) {
-        callback(enosys());
-        return;
-      }
-      const n = this.writeSync(fd, buf);
-      callback(null, n);
-    },
-    chmod(path, mode, callback) { callback(enosys()); },
-    chown(path, uid, gid, callback) { callback(enosys()); },
-    close(fd, callback) { callback(enosys()); },
-    fchmod(fd, mode, callback) { callback(enosys()); },
-    fchown(fd, uid, gid, callback) { callback(enosys()); },
-    fstat(fd, callback) { callback(enosys()); },
-    fsync(fd, callback) { callback(null); },
-    ftruncate(fd, length, callback) { callback(enosys()); },
-    lchown(path, uid, gid, callback) { callback(enosys()); },
-    link(path, link, callback) { callback(enosys()); },
-    lstat(path, callback) { callback(enosys()); },
-    mkdir(path, perm, callback) { callback(enosys()); },
-    open(path, flags, mode, callback) { callback(enosys()); },
-    read(fd, buffer, offset, length, position, callback) { callback(enosys()); },
-    readdir(path, callback) { callback(enosys()); },
-    readlink(path, callback) { callback(enosys()); },
-    rename(from, to, callback) { callback(enosys()); },
-    rmdir(path, callback) { callback(enosys()); },
-    stat(path, callback) { callback(enosys()); },
-    symlink(path, link, callback) { callback(enosys()); },
-    truncate(path, length, callback) { callback(enosys()); },
-    unlink(path, callback) { callback(enosys()); },
-    utimes(path, atime, mtime, callback) { callback(enosys()); },
+
+const O_RDONLY = 0;
+const O_WRONLY = 1;
+const O_RDWR = 2;
+const O_CREAT = 0x40;
+const O_TRUNC = 0x200;
+const O_APPEND = 0x400;
+
+let nextFd = 4; // 0,1,2 typically reserved (stdin/stdout/stderr)
+const openFiles = new Map(); // fd -> { path, position, flags }
+const inMemoryFS = new Map(); // path -> { type: 'file'|'dir', data|children, mode, ctime, mtime }
+
+function makeDirEntry(mode = 0o040000) {
+  return {
+    type: "dir",
+    children: new Map(), // sub-paths
+    mode,
+    ctime: new Date(),
+    mtime: new Date(),
   };
 }
+
+/**
+ * Helper to create a "file" entry in the inMemoryFS.
+ */
+function makeFileEntry(mode = 0o666, data = new Uint8Array(0)) {
+  return {
+    type: "file",
+    data, // file contents
+    mode,
+    ctime: new Date(),
+    mtime: new Date(),
+  };
+}
+
+// Root directory by default:
+inMemoryFS.set("/", makeDirEntry());
+
+/**
+ * Normalize path to avoid trailing slashes, etc.
+ */
+function normalizePath(path) {
+  if (!path) return "/";
+  // Remove trailing slash except if root
+  if (path.length > 1 && path.endsWith("/")) {
+    path = path.slice(0, -1);
+  }
+  if (!path.startsWith("/")) {
+    path = `/${path}`;
+  }
+  path = path.replaceAll("//", "/");
+  return path || "/";
+}
+
+/**
+ * Retrieve the entry from inMemoryFS by path.
+ */
+function getEntry(path) {
+  path = normalizePath(path);
+  const entry = inMemoryFS.get(path);
+  if (!entry) {
+    throw Object.assign(
+      new Error(`ENOENT: no such file or directory, open '${path}'`),
+      { code: "ENOENT" }
+    );
+  }
+  return entry;
+}
+
+/**
+ * Create (or overwrite) an entry in inMemoryFS.
+ */
+function setEntry(path, entry) {
+  path = normalizePath(path);
+  inMemoryFS.set(path, entry);
+}
+
+/**
+ * Remove an entry from inMemoryFS.
+ */
+function deleteEntry(path) {
+  path = normalizePath(path);
+  if (!inMemoryFS.delete(path)) {
+    throw Object.assign(
+      new Error(`ENOENT: no such file or directory, unlink '${path}'`),
+      { code: "ENOENT" }
+    );
+  }
+}
+
+/**
+ * Get the parent directory path (for mkdir, etc.).
+ */
+function getParentPath(path) {
+  path = normalizePath(path);
+  if (path === "/") return "/";
+  const idx = path.lastIndexOf("/");
+  return idx > 0 ? path.slice(1, idx) : "/";
+}
+
+let outputBuf = "";
 class Go {
+  fileSystem = {
+    constants: {
+      O_WRONLY: -1,
+      O_RDWR: -1,
+      O_CREAT: -1,
+      O_TRUNC: -1,
+      O_APPEND: -1,
+      O_EXCL: -1,
+      O_DIRECTORY: -1,
+    }, //
+    writeSync(fd, buf) {
+      // For simplicity, treat fd=1 as console output:
+      if (fd < 4) {
+        // Collect the output, then print on newline
+        outputBuf += new TextDecoder().decode(buf);
+        const nl = outputBuf.lastIndexOf("\n");
+        if (nl !== -1) {
+          console.log(outputBuf.substring(0, nl));
+          outputBuf = outputBuf.substring(nl + 1);
+        }
+        return buf.length;
+      }
+      // If it's any other fd, let's actually write to an open in-memory file:
+      const fileHandle = openFiles.get(fd);
+      if (!fileHandle) {
+        throw new Error(`Bad file descriptor: ${fd}`);
+      }
+      const fileEntry = getEntry(fileHandle.path);
+      if (fileEntry.type !== "file") {
+        throw new Error(
+          `ENOTFILE: cannot write to directory '${fileHandle.path}'`
+        );
+      }
+
+      let pos = fileHandle.position;
+      // If O_APPEND, move to end
+      if ((fileHandle.flags & O_APPEND) === O_APPEND) {
+        pos = fileEntry.data.length;
+      }
+
+      // Expand data if needed
+      const newLength = Math.max(fileEntry.data.length, pos + buf.length);
+      if (newLength > fileEntry.data.length) {
+        const newData = new Uint8Array(newLength);
+        newData.set(fileEntry.data, 0);
+        fileEntry.data = newData;
+      }
+      // Copy
+      fileEntry.data.set(buf, pos);
+      fileHandle.position = pos + buf.length;
+      fileEntry.mtime = new Date();
+      return buf.length;
+    },
+
+    write(fd, buf, offset, length, position, callback) {
+      if (fd < 4) {
+        const n = this.writeSync(fd, buf);
+        callback(null, n);
+        return;
+      }
+      try {
+        const fileHandle = openFiles.get(fd);
+        if (!fileHandle) {
+          throw Object.assign(new Error(`EBADF: bad file descriptor ${fd}`), {
+            code: "EBADF",
+          });
+        }
+        const fileEntry = getEntry(fileHandle.path);
+        if (fileEntry.type !== "file") {
+          throw new Error(
+            `ENOTFILE: cannot write to directory '${fileHandle.path}'`
+          );
+        }
+
+        // 1) Validate offset/length range
+        //    We want offset + length to be within buf's bounds.
+        if (offset < 0 || length < 0 || offset + length > buf.length) {
+          throw new RangeError(
+            `Offset (${offset}) + length (${length}) out of buffer bounds (${buf.length})`
+          );
+        }
+        // 2) Determine write position
+        let pos;
+        if (position !== null) {
+          // If 'position' is given, use that, and do NOT update fileHandle.position
+          pos = position;
+        } else if ((fileHandle.flags & O_APPEND) === O_APPEND) {
+          // O_APPEND means always write at the file's end
+          pos = fileEntry.data.length;
+        } else {
+          // If 'position' is null, use the file handle's current position
+          pos = fileHandle.position;
+        }
+
+        // 3) Prepare the new file size if writing beyond current end
+        const endPos = pos + length;
+        if (endPos > fileEntry.data.length) {
+          // Expand the file data array
+          const newData = new Uint8Array(endPos);
+          newData.set(fileEntry.data, 0);
+          fileEntry.data = newData;
+        }
+
+        // 4) Copy the requested slice from `buf` into the file at `pos`
+        //    e.g. buf.subarray(offset, offset + length)
+        const sliceToWrite = buf.subarray(offset, offset + length);
+        fileEntry.data.set(sliceToWrite, pos);
+
+        // 5) Update file times
+        fileEntry.mtime = new Date();
+
+        // 6) If 'position' was null, update fileHandle.position
+        if (position === null && (fileHandle.flags & O_APPEND) !== O_APPEND) {
+          fileHandle.position = endPos;
+        }
+
+        // 7) Callback with the number of bytes written
+        callback(null, length);
+      } catch (err) {
+        callback(err);
+      }
+    },
+
+    chmod(path, mode, callback) {
+      // For simplicity, we just pretend to do it.
+      // If you want, store `mode` in the entry’s metadata.
+      try {
+        const entry = getEntry(path);
+        entry.mode = mode;
+        entry.mtime = new Date();
+        callback(null);
+      } catch (err) {
+        callback(err);
+      }
+    },
+
+    chown(path, uid, gid, callback) {
+      // Not really relevant in a pure JS in-memory FS. Stub it.
+      callback(null);
+    },
+
+    close(fd, callback) {
+      try {
+        if (!openFiles.has(fd)) {
+          throw Object.assign(new Error(`EBADF: bad file descriptor ${fd}`), {
+            code: "EBADF",
+          });
+        }
+        openFiles.delete(fd);
+        callback(null);
+      } catch (err) {
+        callback(err);
+      }
+    },
+
+    fchmod(fd, mode, callback) {
+      try {
+        const fileHandle = openFiles.get(fd);
+        if (!fileHandle) throw new Error(`Bad fd ${fd}`);
+        const entry = getEntry(fileHandle.path);
+        entry.mode = mode;
+        entry.mtime = new Date();
+        callback(null);
+      } catch (err) {
+        callback(err);
+      }
+    },
+
+    fchown(fd, uid, gid, callback) {
+      // Stubs
+      callback(null);
+    },
+
+    fstat(fd, callback) {
+      // Return the stats of the file behind this fd
+      try {
+        const fileHandle = openFiles.get(fd);
+        if (!fileHandle) throw new Error(`Bad fd ${fd}`);
+        const entry = getEntry(fileHandle.path);
+
+        const stats = {
+          dev: 0,
+          ino: 0,
+          mode: entry.type === "file" ? 0o666 : 0o040000,
+          nlink: 1,
+          uid: 0,
+          gid: 0,
+          rdev: 0,
+          size: entry.type === "file" ? entry.data.length : 0,
+          blksize: 4096,
+          blocks: 1,
+          atimeMs: entry.atime ? entry.atime.getTime() : 0,
+          mtimeMs: entry.mtime ? entry.mtime.getTime() : 0,
+          ctimeMs: entry.ctime ? entry.ctime.getTime() : 0,
+          isDirectory: function () {
+            return entry.type === "dir";
+          },
+        };
+
+        // 3) callback with (err, stats)
+        callback(null, stats);
+      } catch (err) {
+        console.log("Got err", err);
+        callback(err);
+      }
+    },
+
+    fsync(fd, callback) {
+      // In-memory, no-op
+      callback(null);
+    },
+
+    ftruncate(fd, length, callback) {
+      // Basic truncate on the file behind fd
+      try {
+        const fileHandle = openFiles.get(fd);
+        if (!fileHandle) throw new Error(`Bad fd ${fd}`);
+        const entry = getEntry(fileHandle.path);
+        if (entry.type !== "file")
+          throw new Error(`ENOTFILE: can't truncate a directory`);
+        if (length < entry.data.length) {
+          entry.data = entry.data.subarray(0, length);
+        } else if (length > entry.data.length) {
+          const newData = new Uint8Array(length);
+          newData.set(entry.data, 0);
+          entry.data = newData;
+        }
+        entry.mtime = new Date();
+        // If position > length, move it back
+        if (fileHandle.position > length) {
+          fileHandle.position = length;
+        }
+        callback(null);
+      } catch (err) {
+        callback(err);
+      }
+    },
+
+    link(path, link, callback) {
+      // Hard links in a pure in-memory FS are trickier.
+      // Could point to same underlying data object, but we skip for brevity.
+      callback(new Error("ENOSYS: link not implemented"));
+    },
+
+    lstat(path, callback) {
+      // If you want to treat symlinks differently, you'd do so here.
+      // We’ll just do same as stat for this example.
+      this.stat(path, callback);
+    },
+
+    mkdir(path, perm, callback) {
+      try {
+        path = normalizePath(path);
+        if (inMemoryFS.has(path)) {
+          throw Object.assign(
+            new Error(`EEXIST: file already exists, mkdir '${path}'`),
+            { code: "EEXIST" }
+          );
+        }
+        if (path !== "/") {
+          // Ensure parent is a directory
+          const parentPath = getParentPath(path);
+          const parent = getEntry(parentPath);
+          if (parent.type !== "dir") {
+            throw new Error(
+              `ENOTDIR: cannot mkdir under a file '${parentPath}'`
+            );
+          }
+        }
+
+        setEntry(path, makeDirEntry(perm));
+        parent.mtime = new Date();
+        callback(null);
+      } catch (err) {
+        callback(err);
+      }
+    },
+
+    open(path, flags, mode, callback) {
+      try {
+        path = normalizePath(path);
+        let fileEntry;
+        if (!inMemoryFS.has(path)) {
+          // If file does not exist, see if O_CREAT:
+          if ((flags & O_CREAT) === O_CREAT) {
+            // Create a new file
+            fileEntry = makeFileEntry(mode);
+            setEntry(path, fileEntry);
+          } else {
+            throw Object.assign(
+              new Error(`ENOENT: no such file or directory, open '${path}'`),
+              { code: "ENOENT" }
+            );
+          }
+        } else {
+          fileEntry = getEntry(path);
+          if (
+            fileEntry.type === "dir" &&
+            (flags & O_WRONLY || flags & O_RDWR)
+          ) {
+            // Trying to open a directory for writing
+            throw new Error(
+              `EISDIR: illegal operation on a directory, open '${path}'`
+            );
+          }
+          // If O_TRUNC, empty the file
+          if ((flags & O_TRUNC) === O_TRUNC && fileEntry.type === "file") {
+            fileEntry.data = new Uint8Array(0);
+            fileEntry.mtime = new Date();
+          }
+        }
+
+        const fd = nextFd++;
+        openFiles.set(fd, {
+          path,
+          position: 0,
+          flags,
+        });
+
+        callback(null, fd);
+      } catch (err) {
+        callback(err);
+      }
+    },
+
+    read(fd, buffer, offset, length, position, callback) {
+      try {
+        const fileHandle = openFiles.get(fd);
+        if (!fileHandle) throw new Error(`Bad fd: ${fd}`);
+        const fileEntry = getEntry(fileHandle.path);
+        if (fileEntry.type !== "file")
+          throw new Error(`Can't read a directory`);
+
+        let pos = position !== null ? position : fileHandle.position;
+        const end = Math.min(pos + length, fileEntry.data.length);
+        const n = end - pos;
+        buffer.set(fileEntry.data.subarray(pos, pos + n), offset);
+        if (position === null) {
+          fileHandle.position += n;
+        }
+        callback(null, n, buffer);
+      } catch (err) {
+        callback(err);
+      }
+    },
+
+    readdir(path, callback) {
+      try {
+        const entry = getEntry(path);
+        if (entry.type !== "dir") {
+          throw new Error(`ENOTDIR: not a directory '${path}'`);
+        }
+        // Return immediate children
+        const children = [];
+        for (const candidate of inMemoryFS.keys()) {
+          if (candidate !== "/" && getParentPath(candidate) === path) {
+            let child = candidate.slice(path === "/" ? 1 : path.length + 1);
+            if (child.startsWith('/')) {
+              child = child.slice(1, child.length);
+            }
+            children.push(child);
+          }
+        }
+        callback(null, children);
+      } catch (err) {
+        callback(err);
+      }
+    },
+
+    readlink(path, callback) {
+      callback(new Error("ENOSYS: readlink not implemented"));
+    },
+
+    rename(from, to, callback) {
+      try {
+        const entry = getEntry(from);
+        // Make sure 'to' parent is a directory
+        const toParent = getParentPath(to);
+        const parentEntry = getEntry(toParent);
+        if (parentEntry.type !== "dir") {
+          throw new Error(`ENOTDIR: cannot rename under a file '${toParent}'`);
+        }
+        // Remove old entry, set new entry
+        deleteEntry(from);
+        setEntry(to, entry);
+        entry.mtime = new Date();
+        callback(null);
+      } catch (err) {
+        callback(err);
+      }
+    },
+
+    rmdir(path, callback) {
+      try {
+        const entry = getEntry(path);
+        if (entry.type !== "dir") {
+          throw new Error(`ENOTDIR: rmdir '${path}'`);
+        }
+        // Ensure directory is empty
+        for (const candidate of inMemoryFS.keys()) {
+          if (candidate !== path && getParentPath(candidate) === path) {
+            throw new Error(`ENOTEMPTY: directory not empty '${path}'`);
+          }
+        }
+        deleteEntry(path);
+        callback(null);
+      } catch (err) {
+        callback(err);
+      }
+    },
+
+    stat(path, callback) {
+      path = path.replaceAll("//", "/");
+      if (!path.startsWith("/")) {
+        path = `/${path}`;
+      }
+
+      try {
+        const entry = getEntry(path);
+        const stats = {
+          dev: 0,
+          ino: 0,
+          mode: entry.type === "file" ? 0o666 : 0o040000,
+          nlink: 1,
+          uid: 0,
+          gid: 0,
+          rdev: 0,
+          size: entry.type === "file" ? entry.data.length : 0,
+          blksize: 4096,
+          blocks: 1,
+          atimeMs: entry.atime ? entry.atime.getTime() : 0,
+          mtimeMs: entry.mtime ? entry.mtime.getTime() : 0,
+          ctimeMs: entry.ctime ? entry.ctime.getTime() : 0,
+          isDirectory: function () {
+            return entry.type === "dir";
+          },
+        };
+        callback(null, stats);
+      } catch (err) {
+        callback(err);
+      }
+    },
+
+    symlink(path, link, callback) {
+      callback(new Error("ENOSYS: symlink not implemented"));
+    },
+
+    truncate(path, length, callback) {
+      // Similar to ftruncate but by path
+      try {
+        const entry = getEntry(path);
+        if (entry.type !== "file")
+          throw new Error(`ENOTFILE: can't truncate a directory`);
+        if (length < entry.data.length) {
+          entry.data = entry.data.subarray(0, length);
+        } else if (length > entry.data.length) {
+          const newData = new Uint8Array(length);
+          newData.set(entry.data, 0);
+          entry.data = newData;
+        }
+        entry.mtime = new Date();
+        callback(null);
+      } catch (err) {
+        callback(err);
+      }
+    },
+
+    unlink(path, callback) {
+      try {
+        const entry = getEntry(path);
+        if (entry.type !== "file") {
+          throw new Error(
+            `EISDIR: illegal operation on a directory, unlink '${path}'`
+          );
+        }
+        // Make sure no fd is open on this file (optional)
+        deleteEntry(path);
+        callback(null);
+      } catch (err) {
+        callback(err);
+      }
+    },
+
+    utimes(path, atime, mtime, callback) {
+      try {
+        const entry = getEntry(path);
+        entry.atime = new Date(atime);
+        entry.mtime = new Date(mtime);
+        callback(null);
+      } catch (err) {
+        callback(err);
+      }
+    },
+  };
   constructor() {
     this.argv = ["js"];
     this.env = {};
@@ -68,17 +616,17 @@ class Go {
     const setInt64 = (addr, v) => {
       this.mem.setUint32(addr + 0, v, true);
       this.mem.setUint32(addr + 4, Math.floor(v / 4294967296), true);
-    }
+    };
 
     const setInt32 = (addr, v) => {
       this.mem.setUint32(addr + 0, v, true);
-    }
+    };
 
     const getInt64 = (addr) => {
       const low = this.mem.getUint32(addr + 0, true);
       const high = this.mem.getInt32(addr + 4, true);
       return low + high * 4294967296;
-    }
+    };
 
     const loadValue = (addr) => {
       const f = this.mem.getFloat64(addr, true);
@@ -91,10 +639,10 @@ class Go {
 
       const id = this.mem.getUint32(addr, true);
       return this._values[id];
-    }
+    };
 
     const storeValue = (addr, v) => {
-      const nanHead = 0x7FF80000;
+      const nanHead = 0x7ff80000;
 
       if (typeof v === "number" && v !== 0) {
         if (isNaN(v)) {
@@ -141,13 +689,13 @@ class Go {
       }
       this.mem.setUint32(addr + 4, nanHead | typeFlag, true);
       this.mem.setUint32(addr, id, true);
-    }
+    };
 
     const loadSlice = (addr) => {
       const array = getInt64(addr + 0);
       const len = getInt64(addr + 8);
       return new Uint8Array(this._inst.exports.mem.buffer, array, len);
-    }
+    };
 
     const loadSliceOfValues = (addr) => {
       const array = getInt64(addr + 0);
@@ -157,19 +705,21 @@ class Go {
         a[i] = loadValue(array + i * 8);
       }
       return a;
-    }
+    };
 
     const loadString = (addr) => {
       const saddr = getInt64(addr + 0);
       const len = getInt64(addr + 8);
-      return decoder.decode(new DataView(this._inst.exports.mem.buffer, saddr, len));
-    }
+      return decoder.decode(
+        new DataView(this._inst.exports.mem.buffer, saddr, len)
+      );
+    };
 
     const testCallExport = (a, b) => {
       this._inst.exports.testExport0();
       return this._inst.exports.testExport(a, b);
-    }
-    const mem = () => new DataView(this._inst.exports.mem.buffer);;
+    };
+    const mem = () => new DataView(this._inst.exports.mem.buffer);
     const timeOrigin = Date.now() - performance.now();
     this.importObject = {
       _gotest: {
@@ -203,17 +753,15 @@ class Go {
               }
             }
           } else {
-            console.error('invalid file descriptor:', fd);
+            console.error("invalid file descriptor:", fd);
           }
           mem().setUint32(nwritten_ptr, nwritten, true);
           return 0;
         },
-        fd_close     : () => 0, // dummy
+        fd_close: () => 0, // dummy
         fd_fdstat_get: () => 0, // dummy
-        fd_seek      : () => 0, // dummy
-        proc_exit    : (code) => {
-
-        },
+        fd_seek: () => 0, // dummy
+        proc_exit: (code) => {},
         random_get: (bufPtr, bufLen) => {
           crypto.getRandomValues(loadSlice(bufPtr, bufLen));
           return 0;
@@ -225,12 +773,12 @@ class Go {
         // function. A goroutine can switch to a new stack if the current stack is too small (see morestack function).
         // This changes the SP, thus we have to update the SP used by the imported function.
         // func ticks() float64
-        'runtime.ticks': () => {
+        "runtime.ticks": () => {
           return timeOrigin + performance.now();
         },
 
         // func sleepTicks(timeout float64)
-        'runtime.sleepTicks': (timeout) => {
+        "runtime.sleepTicks": (timeout) => {
           // Do not sleep, only reactivate scheduler after the given timeout.
           setTimeout(this._inst.exports.go_scheduler, timeout);
         },
@@ -253,7 +801,10 @@ class Go {
           const fd = getInt64(sp + 8);
           const p = getInt64(sp + 16);
           const n = this.mem.getInt32(sp + 24, true);
-          fs.writeSync(fd, new Uint8Array(this._inst.exports.mem.buffer, p, n));
+          this.fileSystem.writeSync(
+            fd,
+            new Uint8Array(this._inst.exports.mem.buffer, p, n)
+          );
         },
 
         // func resetMemoryDataView()
@@ -271,7 +822,7 @@ class Go {
         // func walltime() (sec int64, nsec int32)
         "runtime.walltime": (sp) => {
           sp >>>= 0;
-          const msec = (new Date).getTime();
+          const msec = new Date().getTime();
           setInt64(sp + 8, msec / 1000);
           this.mem.setInt32(sp + 16, (msec % 1000) * 1000000, true);
         },
@@ -281,8 +832,9 @@ class Go {
           sp >>>= 0;
           const id = this._nextCallbackTimeoutID;
           this._nextCallbackTimeoutID++;
-          this._scheduledTimeouts.set(id, setTimeout(
-            () => {
+          this._scheduledTimeouts.set(
+            id,
+            setTimeout(() => {
               this._resume();
               while (this._scheduledTimeouts.has(id)) {
                 // for some reason Go failed to register the timeout event, log and try again
@@ -290,9 +842,8 @@ class Go {
                 console.warn("scheduleTimeoutEvent: missed timeout event");
                 this._resume();
               }
-            },
-            getInt64(sp + 8),
-          ));
+            }, getInt64(sp + 8))
+          );
           this.mem.setInt32(sp + 16, id, true);
         },
 
@@ -340,7 +891,11 @@ class Go {
         // func valueSet(v ref, p string, x ref)
         "syscall/js.valueSet": (sp) => {
           sp >>>= 0;
-          Reflect.set(loadValue(sp + 8), loadString(sp + 16), loadValue(sp + 32));
+          Reflect.set(
+            loadValue(sp + 8),
+            loadString(sp + 16),
+            loadValue(sp + 32)
+          );
         },
 
         // func valueDelete(v ref, p string)
@@ -352,7 +907,10 @@ class Go {
         // func valueIndex(v ref, i int) ref
         "syscall/js.valueIndex": (sp) => {
           sp >>>= 0;
-          storeValue(sp + 24, Reflect.get(loadValue(sp + 8), getInt64(sp + 16)));
+          storeValue(
+            sp + 24,
+            Reflect.get(loadValue(sp + 8), getInt64(sp + 16))
+          );
         },
 
         // valueSetIndex(v ref, i int, x ref)
@@ -437,7 +995,10 @@ class Go {
         // func valueInstanceOf(v ref, t ref) bool
         "syscall/js.valueInstanceOf": (sp) => {
           sp >>>= 0;
-          this.mem.setUint8(sp + 24, (loadValue(sp + 8) instanceof loadValue(sp + 16)) ? 1 : 0);
+          this.mem.setUint8(
+            sp + 24,
+            loadValue(sp + 8) instanceof loadValue(sp + 16) ? 1 : 0
+          );
         },
 
         // func copyBytesToGo(dst []byte, src ref) (int, bool)
@@ -445,7 +1006,9 @@ class Go {
           sp >>>= 0;
           const dst = loadSlice(sp + 8);
           const src = loadValue(sp + 32);
-          if (!(src instanceof Uint8Array || src instanceof Uint8ClampedArray)) {
+          if (
+            !(src instanceof Uint8Array || src instanceof Uint8ClampedArray)
+          ) {
             this.mem.setUint8(sp + 48, 0);
             return;
           }
@@ -460,7 +1023,9 @@ class Go {
           sp >>>= 0;
           const dst = loadValue(sp + 8);
           const src = loadSlice(sp + 16);
-          if (!(dst instanceof Uint8Array || dst instanceof Uint8ClampedArray)) {
+          if (
+            !(dst instanceof Uint8Array || dst instanceof Uint8ClampedArray)
+          ) {
             this.mem.setUint8(sp + 48, 0);
             return;
           }
@@ -470,10 +1035,10 @@ class Go {
           this.mem.setUint8(sp + 48, 1);
         },
 
-        "debug": (value) => {
+        debug: (value) => {
           console.log(value);
         },
-      }
+      },
     };
   }
 
@@ -483,7 +1048,15 @@ class Go {
     }
     this._inst = instance;
     this.mem = new DataView(this._inst.exports.mem.buffer);
-    this._values = [ // JS values that Go currently has references to, indexed by reference id
+    globalThis.fs = this.fileSystem;
+    globalThis.process = {
+      cwd() {
+        return "";
+      },
+      chdir() {},
+    };
+    this._values = [
+      // JS values that Go currently has references to, indexed by reference id
       NaN,
       0,
       null,
@@ -493,7 +1066,8 @@ class Go {
       this,
     ];
     this._goRefCounts = new Array(this._values.length).fill(Infinity); // number of references that Go has to a JS value, indexed by reference id
-    this._ids = new Map([ // mapping from JS values to reference ids
+    this._ids = new Map([
+      // mapping from JS values to reference ids
       [0, 1],
       [null, 2],
       [true, 3],
@@ -501,7 +1075,7 @@ class Go {
       [globalThis, 5],
       [this, 6],
     ]);
-    this._idPool = [];   // unused ids that have been garbage collected
+    this._idPool = []; // unused ids that have been garbage collected
     this.exited = false; // whether the Go program has exited
 
     // Pass command line arguments and environment variables to WebAssembly by writing them to the linear memory.
@@ -517,8 +1091,6 @@ class Go {
       }
       return ptr;
     };
-
-    const argc = this.argv.length;
 
     const argvPtrs = [];
     this.argv.forEach((arg) => {
@@ -542,7 +1114,9 @@ class Go {
     // Keep in sync with cmd/link/internal/ld/data.go:wasmMinDataAddr.
     const wasmMinDataAddr = 4096 + 8192;
     if (offset >= wasmMinDataAddr) {
-      throw new Error("total length of command line and environment variables exceeds limit");
+      throw new Error(
+        "total length of command line and environment variables exceeds limit"
+      );
     }
 
     this._inst.exports.run();
@@ -574,25 +1148,50 @@ class Go {
 }
 let cached;
 
-export const CreateQuail = url => cached ?? new Promise(res => {
-  const go = new Go();
-  if ('instantiateStreaming' in WebAssembly) {
-    WebAssembly.instantiateStreaming(fetch(url), go.importObject).then((obj) => {
-      const wasm = obj.instance;
-      go.run(wasm);
-      cached = { ...wasm.exports, quail: go._values.find(v => v?.quail) };
-      res(cached);
-    });
-  } else {
-    fetch(url).then(resp =>
-      resp.arrayBuffer()
-    ).then(bytes =>
-      WebAssembly.instantiate(bytes, go.importObject).then((obj) => {
-        const wasm = obj.instance;
-        go.run(wasm);
-        cached = { ...wasm.exports, quail: go._values.find(v => v?.quail) };
-        res(cached);
-      })
-    );
-  }
-});
+export const CreateQuail = (url) =>
+  cached ??
+  new Promise((res) => {
+    const go = new Go();
+    window.g = go;
+    if ("instantiateStreaming" in WebAssembly) {
+      WebAssembly.instantiateStreaming(fetch(url), go.importObject).then(
+        (obj) => {
+          const wasm = obj.instance;
+          go.run(wasm);
+          cached = {
+            ...wasm.exports,
+            quail: go._values?.find((v) => v?.quail),
+            fs: {
+              getEntry,
+              setEntry,
+              makeFileEntry,
+              makeDirEntry,
+              files: inMemoryFS,
+            },
+          };
+          res(cached);
+        }
+      );
+    } else {
+      fetch(url)
+        .then((resp) => resp.arrayBuffer())
+        .then((bytes) =>
+          WebAssembly.instantiate(bytes, go.importObject).then((obj) => {
+            const wasm = obj.instance;
+            go.run(wasm);
+            cached = {
+              ...wasm.exports,
+              quail: go._values?.find((v) => v?.quail),
+              fs: {
+                getEntry,
+                setEntry,
+                makeFileEntry,
+                makeDirEntry,
+                files: inMemoryFS,
+              },
+            };
+            res(cached);
+          })
+        );
+    }
+  });

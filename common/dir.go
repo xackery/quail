@@ -1,10 +1,9 @@
 package common
 
 import (
+	"os"
 	"path/filepath"
 	"strings"
-
-	"github.com/xackery/quail/os"
 )
 
 func IsTestExtensive() bool {

@@ -2,10 +2,9 @@ package wce
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 	"strings"
-
-	"github.com/xackery/quail/os"
 )
 
 type AsciiWriteToken struct {

@@ -3,11 +3,11 @@ package cmd
 import (
 	"fmt"
 	"log"
+	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/spf13/cobra"
-	"github.com/xackery/quail/os"
 	"github.com/xackery/quail/pfs"
 )
 

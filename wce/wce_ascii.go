@@ -3,13 +3,13 @@ package wce
 import (
 	"fmt"
 	"io"
+	"os"
 	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
 
 	"github.com/xackery/quail/common"
-	"github.com/xackery/quail/os"
 )
 
 var (
