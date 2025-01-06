@@ -372,10 +372,10 @@ class Go {
               `ENOTDIR: cannot mkdir under a file '${parentPath}'`
             );
           }
+          parent.mtime = new Date();
         }
 
         setEntry(path, makeDirEntry(perm));
-        parent.mtime = new Date();
         callback(null);
       } catch (err) {
         callback(err);
