@@ -13,32 +13,32 @@ import (
 )
 
 func init() {
-	rootCmd.AddCommand(compressCmd)
-	compressCmd.PersistentFlags().String("path", "", "path to compress")
-	compressCmd.PersistentFlags().String("out", "", "name of compressed eqg archive output, defaults to path's basename")
-	compressCmd.Example = `quail compress --path="./_clz.eqg/"
-quail compress ./_soldungb.eqg/
-quail compress _soldungb.eqg/ common.eqg
-quail compress --path=_soldungb.eqg/ --out=foo.eqg`
+	rootCmd.AddCommand(zipCmd)
+	zipCmd.PersistentFlags().String("path", "", "path to zip")
+	zipCmd.PersistentFlags().String("out", "", "name of zipped eqg archive output, defaults to path's basename")
+	zipCmd.Example = `quail zip --path="./_clz.eqg/"
+quail zip ./_soldungb.eqg/
+quail zip _soldungb.eqg/ common.eqg
+quail zip --path=_soldungb.eqg/ --out=foo.eqg`
 }
 
-// compressCmd represents the compress command
-var compressCmd = &cobra.Command{
-	Use:   "compress",
-	Short: "Compress an eqg/s3d/pfs/pak folder named _file.ext/ to a pfs archive",
-	Long:  `Compress is used to take a provided _file.eqg or _file.s3d and compress it based on a folder structure`,
-	Run:   runCompress,
+// zipCmd represents the zip command
+var zipCmd = &cobra.Command{
+	Use:   "zip",
+	Short: "Zip an eqg/s3d/pfs/pak folder named _file.ext/ to a pfs archive",
+	Long:  `Zip is used to take a provided _file.eqg or _file.s3d and zip it based on a folder structure`,
+	Run:   runZip,
 }
 
-func runCompress(cmd *cobra.Command, args []string) {
-	err := runCompressE(cmd, args)
+func runZip(cmd *cobra.Command, args []string) {
+	err := runZipE(cmd, args)
 	if err != nil {
 		log.Printf("Failed: %s", err.Error())
 		os.Exit(1)
 	}
 }
 
-func runCompressE(cmd *cobra.Command, args []string) error {
+func runZipE(cmd *cobra.Command, args []string) error {
 	path, err := cmd.Flags().GetString("path")
 	if err != nil {
 		return fmt.Errorf("parse path: %w", err)
@@ -84,32 +84,32 @@ func runCompressE(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("out must have a valid extension (.eqg, .s3d, .pfs, .pak)")
 	}
 	out = strings.TrimPrefix(out, "_")
-	err = compress(path, out)
+	err = zip(path, out)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func compress(path string, out string) error {
+func zip(path string, out string) error {
 	if strings.HasSuffix(out, ".eqg") {
-		return compressPfs(path, out)
+		return zipPfs(path, out)
 	}
 	if strings.HasSuffix(out, ".s3d") {
-		return compressPfs(path, out)
+		return zipPfs(path, out)
 	}
 	if strings.HasSuffix(out, ".pfs") {
-		return compressPfs(path, out)
+		return zipPfs(path, out)
 	}
 	if strings.HasSuffix(out, ".pak") {
-		return compressPfs(path, out)
+		return zipPfs(path, out)
 	}
 
 	out = out + ".eqg"
-	return compressPfs(path, out)
+	return zipPfs(path, out)
 }
 
-func compressPfs(path string, out string) error {
+func zipPfs(path string, out string) error {
 	fi, err := os.Stat(path)
 	if err != nil {
 		return fmt.Errorf("path check: %w", err)

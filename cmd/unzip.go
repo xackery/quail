@@ -12,29 +12,29 @@ import (
 )
 
 func init() {
-	rootCmd.AddCommand(extractCmd)
-	extractCmd.PersistentFlags().String("path", "", "path to compressed pfs")
-	extractCmd.PersistentFlags().String("out", "", "out path to extract to")
+	rootCmd.AddCommand(unzipCmd)
+	unzipCmd.PersistentFlags().String("path", "", "path to compressed pfs")
+	unzipCmd.PersistentFlags().String("out", "", "out path to unzip to")
 
 }
 
-// extractCmd represents the extract command
-var extractCmd = &cobra.Command{
-	Use:   "extract",
-	Short: "Extract an pfs (eqg/s3d/pak/pfs) archive to a _file.ext/ folder",
-	Long:  `Extract an pfs archive`,
-	Run:   runExtract,
+// unzipCmd represents the unzip command
+var unzipCmd = &cobra.Command{
+	Use:   "unzip",
+	Short: "Unzip an pfs (eqg/s3d/pak/pfs) archive to a _file.ext/ folder",
+	Long:  `Unzip an pfs archive`,
+	Run:   runUnzip,
 }
 
-func runExtract(cmd *cobra.Command, args []string) {
-	err := runExtractE(cmd, args)
+func runUnzip(cmd *cobra.Command, args []string) {
+	err := runUnzipE(cmd, args)
 	if err != nil {
 		log.Printf("Failed: %s", err.Error())
 		os.Exit(1)
 	}
 }
 
-func runExtractE(cmd *cobra.Command, args []string) error {
+func runUnzipE(cmd *cobra.Command, args []string) error {
 	srcArchivePath, err := cmd.Flags().GetString("path")
 	if err != nil {
 		return fmt.Errorf("parse path: %w", err)
@@ -84,7 +84,7 @@ func runExtractE(cmd *cobra.Command, args []string) error {
 			dstPath = filepath.Join(dstPath, srcFile)
 		}
 
-		log.Printf("Extracting %s:%s to %s", srcArchivePath, srcFile, dstPath)
+		log.Printf("Unziping %s:%s to %s", srcArchivePath, srcFile, dstPath)
 		data, err := archive.File(srcFile)
 		if err != nil {
 			return fmt.Errorf("archive.File: %w", err)
@@ -104,7 +104,7 @@ func runExtractE(cmd *cobra.Command, args []string) error {
 		dstPath = filepath.Join(dstPath, "_"+filepath.Base(srcArchivePath))
 	}
 
-	log.Printf("Extracting %s to %s", srcArchivePath, dstPath)
+	log.Printf("Unziping %s to %s", srcArchivePath, dstPath)
 	err = os.MkdirAll(dstPath, 0755)
 	if err != nil {
 		return fmt.Errorf("mkdir: %w", err)
@@ -124,7 +124,7 @@ func runExtractE(cmd *cobra.Command, args []string) error {
 		}
 		fileCount++
 	}
-	log.Printf("Extracted %d files", fileCount)
+	log.Printf("Unzipped %d files", fileCount)
 
 	return nil
 }
