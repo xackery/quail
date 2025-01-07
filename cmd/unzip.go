@@ -21,9 +21,12 @@ func init() {
 // unzipCmd represents the unzip command
 var unzipCmd = &cobra.Command{
 	Use:   "unzip",
-	Short: "Unzip an pfs (eqg/s3d/pak/pfs) archive to a _file.ext/ folder",
-	Long:  `Unzip an pfs archive`,
-	Run:   runUnzip,
+	Short: "Unzip a pfs archive (eqg, s3d, pak, pfs)",
+	Long:  `Unzip a pfs archive to either provided out folder or to _file.ext/ folder`,
+	Example: `quail unzip clz.eqg # unzips to ./_clz.eqg/
+quail unzip foo.eqg foofolder/
+quail unzip --path=foo.eqg --out=foofolder/"`,
+	Run: runUnzip,
 }
 
 func runUnzip(cmd *cobra.Command, args []string) {

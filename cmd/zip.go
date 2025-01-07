@@ -25,9 +25,14 @@ quail zip --path=_soldungb.eqg/ --out=foo.eqg`
 // zipCmd represents the zip command
 var zipCmd = &cobra.Command{
 	Use:   "zip",
-	Short: "Zip an eqg/s3d/pfs/pak folder named _file.ext/ to a pfs archive",
-	Long:  `Zip is used to take a provided _file.eqg or _file.s3d and zip it based on a folder structure`,
-	Run:   runZip,
+	Short: "Zip a folder to a pfs archive (eqg, s3d, pfs or pak)",
+	Long: `Zip is used to take a provided folder and zip it.
+	There is a shorthand system where if you only provide a folder with no destination, it will use the folder's name to determine the output file.`,
+	Example: `quail zip _clz.eqg
+quail zip somefolder somepfs.s3d
+quail zip --path=somefolder --out=somepfs.s3d
+`,
+	Run: runZip,
 }
 
 func runZip(cmd *cobra.Command, args []string) {
