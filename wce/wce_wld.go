@@ -4418,6 +4418,7 @@ func (e *PolyhedronDefinition) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.
 
 type TrackInstance struct {
 	fragID             int16
+	animation          string
 	model              string
 	Tag                string
 	TagIndex           int
@@ -4438,7 +4439,7 @@ func (e *TrackInstance) Write(token *AsciiWriteToken) error {
 	if err != nil {
 		return err
 	}
-	if e.Sleep.Valid && e.Sleep.Uint32 > 0 {
+	if token.wce.isTrackAni(e.Tag) {
 		w, err = token.UseTempWriter(e.model + "_ani")
 		if err != nil {
 			return err
@@ -4598,7 +4599,19 @@ func (e *TrackInstance) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFrag
 	if seqNum < 0 {
 		e.SpriteTag = wce.lastReadModelTag
 	}
-	e.model = wce.lastReadModelTag
+
+	// Use original logic if isObj is true
+	if wce.isObj {
+		e.model = wce.lastReadModelTag
+		e.animation = "" // Ensure animation is blank for non-animation tracks
+	} else if wce.isTrackAni(e.Tag) {
+		// Parse animation and model codes
+		e.animation, e.model = wce.trackAnimationParse(e.Tag)
+	} else {
+		// Fallback to original logic
+		e.model = wce.lastReadModelTag
+		e.animation = "" // Ensure animation is blank for non-animation tracks
+	}
 
 	e.DefinitionTag = rawWld.Name(trackDef.NameRef)
 	e.DefinitionTagIndex = wce.tagIndexes[e.DefinitionTag]
@@ -4613,6 +4626,9 @@ func (e *TrackInstance) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFrag
 	if frag.Flags&0x04 == 0x04 {
 		e.Interpolate = 1
 	}
+
+	// Print debug information for the track
+	fmt.Printf("Track: %s, Animation: %s, Model: %s\n", e.Tag, e.animation, e.model)
 
 	return nil
 }
@@ -4660,7 +4676,7 @@ func (e *TrackDef) Write(token *AsciiWriteToken) error {
 			return fmt.Errorf("trackdef %s%d does not have a track instance", e.Tag, e.TagIndex)
 		}
 
-		if trackInst.Sleep.Valid && trackInst.Sleep.Uint32 > 0 {
+		if token.wce.isTrackAni(trackInst.Tag) {
 			w, err = token.UseTempWriter(e.model + "_ani")
 			if err != nil {
 				return err

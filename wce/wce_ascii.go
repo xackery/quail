@@ -381,8 +381,7 @@ func (wce *Wce) writeAsciiData(path string, baseTags []string) error {
 		}
 
 		tag := track.model
-		if (track.Sleep.Valid && track.Sleep.Uint32 > 0) ||
-			wce.isTrackAni(track.Tag) {
+		if wce.isTrackAni(track.Tag) {
 			tag += "_ani"
 		}
 

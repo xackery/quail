@@ -546,6 +546,7 @@ var (
 	regexAniAlt       = regexp.MustCompile(`^([A-Z])([0-9]{2})([A-Z])([A-Z]{3}).*`)
 	regexAniAltSuffix = regexp.MustCompile(`^([A-Z])([0-9]{2}).*_([A-Z]{3})$`)
 	regexTrackNormal  = regexp.MustCompile(`^([A-Z]{3}).*`)
+	regexAniPrefix    = regexp.MustCompile(`^[CDLOPST](0[1-9]|[1-9][0-9])`)
 )
 
 // returns model name (ELF, etc), sequence tag (C, P, etc), subsequence, sequence number
@@ -624,8 +625,17 @@ func (wce *Wce) trackTagAndSequence(tag string) (string, string, string, int) {
 }
 
 func (wce *Wce) isTrackAni(tag string) bool {
-	_, _, _, seqNum := wce.trackTagAndSequence(tag)
-	return seqNum >= 0
+	// If isObj is true, it's not a track animation
+	if wce.isObj {
+		return false
+	}
+
+	// Check if the tag starts with the specified regex pattern
+	if regexAniPrefix.MatchString(tag) {
+		return true
+	}
+
+	return false
 }
 
 func baseTagTrim(isObj bool, tag string) string {
@@ -668,4 +678,158 @@ func baseTagTrim(isObj bool, tag string) string {
 		tag = strings.TrimSuffix(tag, "BOD")
 	}
 	return tag
+}
+
+// Dummy strings used in tag matching
+var dummyStrings = []string{
+	"10404P0", "2HNSWORD", "BARDING", "BELT", "BODY", "BONE",
+	"BOW", "BOX", "DUMMY", "HUMEYE", "MESH", "POINT", "POLYSURF",
+	"RIDER", "SHOULDER",
+}
+
+// Root patterns for animation and model parsing
+var rootPatterns = []string{
+	`^[C,D,L,O,P,S,T](0[1-9]|[1-9][0-9])[A-Z]{3}_TRACK$`,
+	`^([C,D,L,O,P,S,T](0[1-9]|[1-9][0-9])){2}_[A-Z]{3}_TRACK$`,
+	`^[C,D,L,O,P,S,T](0[1-9]|[1-9][0-9])[A-Z]{3}[C,D,L,O,P,S,T](0[1-9]|[1-9][0-9])[A-Z]{3}_TRACK$`,
+	`^[C,D,L,O,P,S,T](0[1-9]|[1-9][0-9])[A-Z]{3}[C,D,L,O,P,S,T](0[1-9]|[1-9][0-9])_[A-Z]{3}_TRACK$`,
+	`^[C,D,L,O,P,S,T](0[1-9]|[1-9][0-9])[A,B,G][A-Z]{3}[C,D,L,O,P,S,T](0[1-9]|[1-9][0-9])[A,B,G]_[A-Z]{3}_TRACK$`,
+	`^[C,D,L,O,P,S,T](0[1-9]|[1-9][0-9])[A,B,G][C,D,L,O,P,S,T](0[1-9]|[1-9][0-9])_[A-Z]{3}_TRACK$`,
+}
+
+// Item patterns for non-character cases
+var itemPatterns = []string{
+	`^[C,D,L,O,P,S,T](0[1-9]|[1-9][0-9])IT\d+_TRACK$`,
+	`^[C,D,L,O,P,S,T](0[1-9]|[1-9][0-9])_IT\d+_TRACK$`,
+	`^([C,D,L,O,P,S,T](0[1-9]|[1-9][0-9])){2}_IT\d+_TRACK$`,
+}
+
+func (wce *Wce) trackAnimationParse(tag string) (string, string) {
+	// Check if the tag starts with currentAniCode + currentAniModelCode
+	combinedCode := wce.currentAniCode + wce.currentAniModelCode
+	if wce.currentAniCode != "" && wce.currentAniModelCode != "" && strings.HasPrefix(tag, combinedCode) {
+		return wce.currentAniCode, wce.currentAniModelCode
+	}
+
+	// Check against previousAnimations
+	for previous := range wce.previousAnimations {
+		if strings.HasPrefix(tag, previous) {
+			parts := strings.Split(previous, ":")
+			if len(parts) == 2 {
+				return parts[0], parts[1]
+			}
+		}
+	}
+
+	// Check if the tag starts with the currentAniCode and contains a dummy string
+	for _, dummy := range dummyStrings {
+		if strings.HasPrefix(tag, wce.currentAniCode) && strings.Contains(tag, dummy) {
+			return wce.currentAniCode, wce.currentAniModelCode
+		}
+	}
+
+	// Handle special cases when isChr is true
+	if wce.isChr {
+		if strings.HasPrefix(tag, wce.currentAniCode) {
+			if wce.currentAniModelCode == "SED" && len(tag) >= 6 && tag[3:6] == "FDD" {
+				return wce.currentAniCode, wce.currentAniModelCode
+			}
+			if wce.currentAniModelCode == "FMP" && len(tag) >= len(wce.currentAniCode)+2 {
+				suffixStartIndex := len(wce.currentAniCode)
+				for _, suffix := range []string{"PE", "CH", "NE", "HE", "BI", "FO", "TH", "CA", "BO"} {
+					if strings.HasPrefix(tag[suffixStartIndex:], suffix) {
+						return wce.currentAniCode, wce.currentAniModelCode
+					}
+				}
+			}
+			if wce.currentAniModelCode == "SKE" && len(tag) >= len(wce.currentAniCode)+2 {
+				suffixStartIndex := len(wce.currentAniCode)
+				for _, suffix := range []string{"BI", "BO", "CA", "CH", "FA", "FI", "FO", "HA", "HE", "L_POINT", "NE", "PE", "R_POINT", "SH", "TH", "TO", "TU"} {
+					if strings.HasPrefix(tag[suffixStartIndex:], suffix) {
+						return wce.currentAniCode, wce.currentAniModelCode
+					}
+				}
+			}
+		}
+
+		// Attempt to match root patterns
+		for _, pattern := range rootPatterns {
+			matched, _ := regexp.MatchString(pattern, tag)
+			if matched {
+				switch pattern {
+				case rootPatterns[0]: // Pattern 1
+					return handleNewAniModelCode(wce, tag[:3], tag[3:6])
+				case rootPatterns[1]: // Pattern 2
+					return handleNewAniModelCode(wce, tag[:3], tag[7:10])
+				case rootPatterns[2], rootPatterns[3]: // Pattern 3 and 4
+					return handleNewAniModelCode(wce, tag[:3], tag[3:6])
+				case rootPatterns[4]: // Pattern 5
+					return handleNewAniModelCode(wce, tag[:4], tag[4:7])
+				case rootPatterns[5]: // Pattern 6
+					return handleNewAniModelCode(wce, tag[:4], tag[8:11])
+				}
+			}
+		}
+
+		// Fallback for isChr
+		if len(tag) >= 6 {
+			newAniCode := tag[:3]
+			newModelCode := tag[3:6]
+
+			return handleNewAniModelCode(wce, newAniCode, newModelCode)
+		}
+
+		// If the tag is too short, return empty values
+		return "", ""
+	}
+
+	// Special cases for isChr == false
+	if strings.HasPrefix(tag, wce.currentAniCode) {
+		if wce.currentAniModelCode == "IT157" && len(tag) >= 6 && tag[3:6] == "SNA" {
+			fmt.Printf("[trackAnimationParse] Special case IT157/SNA match (Tag: %s)\n", tag)
+			return wce.currentAniCode, wce.currentAniModelCode
+		}
+		if wce.currentAniModelCode == "IT61" && len(tag) >= 6 && tag[3:6] == "WIP" {
+			fmt.Printf("[trackAnimationParse] Special case IT61/WIP match (Tag: %s)\n", tag)
+			return wce.currentAniCode, wce.currentAniModelCode
+		}
+	}
+
+	// Handle item patterns if isChr is false
+	for _, pattern := range itemPatterns {
+		matched, _ := regexp.MatchString(pattern, tag)
+		if matched {
+			newAniCode := tag[:3]
+			modelCodeStart := strings.Index(tag, "IT") + 2
+			modelCodeEnd := modelCodeStart
+			for modelCodeEnd < len(tag) && tag[modelCodeEnd] >= '0' && tag[modelCodeEnd] <= '9' {
+				modelCodeEnd++
+			}
+			return handleNewAniModelCode(wce, newAniCode, "IT"+tag[modelCodeStart:modelCodeEnd])
+		}
+	}
+
+	// Default fallback for isChr == false
+	if len(tag) >= 6 {
+		aniCode := tag[:3]
+		modelCode := "IT"
+		for i := 3; i < len(tag); i++ {
+			if tag[i] >= '0' && tag[i] <= '9' {
+				modelCode += string(tag[i])
+			} else {
+				break
+			}
+		}
+		return handleNewAniModelCode(wce, aniCode, modelCode)
+	}
+
+	return "", ""
+}
+
+// Helper function to handle new animation and model codes
+func handleNewAniModelCode(wce *Wce, newAniCode, newModelCode string) (string, string) {
+	wce.previousAnimations[wce.currentAniCode+wce.currentAniModelCode] = struct{}{}
+	wce.currentAniCode = newAniCode
+	wce.currentAniModelCode = newModelCode
+	return newAniCode, newModelCode
 }
