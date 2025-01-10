@@ -11,6 +11,7 @@ var tests = []struct {
 	wldName  string
 }{
 	{baseName: "gequip"},
+	//{baseName: "takj", wldName: "objects.wld"},
 	//{baseName: "global3_chr"},
 	//{baseName: "emeraldjungle"},
 	//{baseName: "emeraldjungle_obj"},

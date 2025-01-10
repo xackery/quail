@@ -163,6 +163,8 @@ func TestWceReadWrite(t *testing.T) {
 
 			isObj := strings.Contains(baseName, "_obj")
 
+			failed := []string{}
+
 			for i := range srcFragByTags {
 				srcTags := srcFragByTags[i]
 				dstTags := dstFragByTags[i]
@@ -199,7 +201,8 @@ func TestWceReadWrite(t *testing.T) {
 						if i == rawfrag.FragCodeBMInfo || i == rawfrag.FragCodeMaterialDef {
 							allFrags, ok := allDstFragsByTags[i]
 							if !ok {
-								t.Fatalf("fragment %d (%s) tag %s not found in dst", srcTag.offset, rawfrag.FragName(i), srcTag.tag)
+								failed = append(failed, fmt.Sprintf("fragment %d (%s) tag %s not found in dst", srcTag.offset, rawfrag.FragName(i), srcTag.tag))
+								continue
 							}
 
 							if srcTag.tag == "" {
@@ -214,18 +217,25 @@ func TestWceReadWrite(t *testing.T) {
 								}
 							}
 							if !isFound {
-								t.Fatalf("fragment %d (%s) tag %s not found in dst or all", srcTag.offset, rawfrag.FragName(i), srcTag.tag)
+								failed = append(failed, fmt.Sprintf("fragment %d (%s) tag %s not found in dst or all", srcTag.offset, rawfrag.FragName(i), srcTag.tag))
 							}
 
 							continue
 						}
 
-						t.Fatalf("fragment %d (%s) tag %s not found in dst", srcTag.offset, rawfrag.FragName(i), srcTag.tag)
+						failed = append(failed, fmt.Sprintf("fragment %d (%s) tag %s not found in dst", srcTag.offset, rawfrag.FragName(i), srcTag.tag))
 					}
 				}
 				//if len(dstTags) > 0 {
 				//fmt.Printf("Warning: fragment (%s) tags %v not found in src\n", rawfrag.FragName(i), dstTags)
 				//}
+			}
+
+			if len(failed) > 0 {
+				for _, fail := range failed {
+					t.Log(fail)
+				}
+				t.Fatalf("failed to match tags (%d)", len(failed))
 			}
 
 			for code, count := range srcFragByCodes {

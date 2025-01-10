@@ -80,6 +80,7 @@ func (e *GlobalAmbientLightDef) Definition() string {
 }
 
 func (e *GlobalAmbientLightDef) Write(token *AsciiWriteToken) error {
+	e.fragID = -1
 	w, err := token.Writer()
 	if err != nil {
 		return err
@@ -174,6 +175,7 @@ func (e *DMSpriteDef2) Definition() string {
 }
 
 func (e *DMSpriteDef2) Write(token *AsciiWriteToken) error {
+	e.fragID = -1
 	w, err := token.Writer()
 	if err != nil {
 		return err
@@ -1057,6 +1059,7 @@ func (e *DMSpriteDef) Definition() string {
 }
 
 func (e *DMSpriteDef) Write(token *AsciiWriteToken) error {
+	e.fragID = -1
 	w, err := token.Writer()
 	if err != nil {
 		return err
@@ -1690,6 +1693,7 @@ func (e *MaterialPalette) Definition() string {
 }
 
 func (e *MaterialPalette) Write(token *AsciiWriteToken) error {
+	e.fragID = -1
 	w, err := token.Writer()
 	if err != nil {
 		return err
@@ -1814,6 +1818,7 @@ func (e *MaterialDef) Definition() string {
 }
 
 func (e *MaterialDef) Write(token *AsciiWriteToken) error {
+	e.fragID = -1
 	w, err := token.Writer()
 	if err != nil {
 		return err
@@ -2069,6 +2074,7 @@ func (e *BlitSpriteDef) Definition() string {
 }
 
 func (e *BlitSpriteDef) Write(token *AsciiWriteToken) error {
+	e.fragID = -1
 	w, err := token.Writer()
 	if err != nil {
 		return err
@@ -2181,6 +2187,7 @@ func (e *BlitSpriteDef) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFrag
 	}
 
 	e.Tag = rawWld.Name(frag.NameRef)
+
 	if frag.SpriteInstanceRef > 0 {
 		if len(rawWld.Fragments) < int(frag.SpriteInstanceRef) {
 			return fmt.Errorf("sprite ref %d out of bounds", frag.SpriteInstanceRef)
@@ -2230,6 +2237,7 @@ func (e *SimpleSpriteDef) Definition() string {
 }
 
 func (e *SimpleSpriteDef) Write(token *AsciiWriteToken) error {
+	e.fragID = -1
 	w, err := token.Writer()
 	if err != nil {
 		return err
@@ -2459,7 +2467,12 @@ func (e *ActorDef) Definition() string {
 	return "ACTORDEF"
 }
 
+func (e *ActorDef) IsWritten() bool {
+	return e.fragID != 0
+}
+
 func (e *ActorDef) Write(token *AsciiWriteToken) error {
+	e.fragID = -1
 	w, err := token.Writer()
 	if err != nil {
 		return err
@@ -3029,7 +3042,12 @@ func (e *ActorInst) Definition() string {
 	return "ACTORINST"
 }
 
+func (e *ActorInst) IsWritten() bool {
+	return e.fragID != 0
+}
+
 func (e *ActorInst) Write(token *AsciiWriteToken) error {
+	e.fragID = -1
 	w, err := token.Writer()
 	if err != nil {
 		return err
@@ -3419,6 +3437,7 @@ func (e *LightDef) Definition() string {
 }
 
 func (e *LightDef) Write(token *AsciiWriteToken) error {
+	e.fragID = -1
 	w, err := token.Writer()
 	if err != nil {
 		return err
@@ -3605,6 +3624,7 @@ func (e *PointLight) Definition() string {
 }
 
 func (e *PointLight) Write(token *AsciiWriteToken) error {
+	e.fragID = -1
 	w, err := token.Writer()
 	if err != nil {
 		return err
@@ -3816,6 +3836,7 @@ func (e *Sprite3DDef) Definition() string {
 }
 
 func (e *Sprite3DDef) Write(token *AsciiWriteToken) error {
+	e.fragID = -1
 	w, err := token.Writer()
 	if err != nil {
 		return err
@@ -4268,6 +4289,7 @@ func (e *PolyhedronDefinition) Definition() string {
 }
 
 func (e *PolyhedronDefinition) Write(token *AsciiWriteToken) error {
+	e.fragID = -1
 	w, err := token.Writer()
 	if err != nil {
 		return err
@@ -4437,6 +4459,7 @@ func (e *TrackInstance) Definition() string {
 }
 
 func (e *TrackInstance) Write(token *AsciiWriteToken) error {
+	e.fragID = -1
 	w, err := token.Writer()
 	if err != nil {
 		return err
@@ -4660,6 +4683,7 @@ func (e *TrackDef) Definition() string {
 }
 
 func (e *TrackDef) Write(token *AsciiWriteToken) error {
+	e.fragID = -1
 	w, err := token.Writer()
 	if err != nil {
 		return err
@@ -4947,6 +4971,7 @@ func (e *HierarchicalSpriteDef) Definition() string {
 }
 
 func (e *HierarchicalSpriteDef) Write(token *AsciiWriteToken) error {
+	e.fragID = -1
 	w, err := token.Writer()
 	if err != nil {
 		return err
@@ -5649,6 +5674,7 @@ func (e *WorldTree) Definition() string {
 }
 
 func (e *WorldTree) Write(token *AsciiWriteToken) error {
+	e.fragID = -1
 	w, err := token.Writer()
 	if err != nil {
 		return err
@@ -5842,6 +5868,7 @@ func (e *Region) Definition() string {
 }
 
 func (e *Region) Write(token *AsciiWriteToken) error {
+	e.fragID = -1
 	var err error
 
 	if e.SpriteTag != "" {
@@ -6719,6 +6746,7 @@ func (e *AmbientLight) Definition() string {
 }
 
 func (e *AmbientLight) Write(token *AsciiWriteToken) error {
+	e.fragID = -1
 	w, err := token.Writer()
 	if err != nil {
 		return err
@@ -6855,6 +6883,7 @@ func (e *Zone) Definition() string {
 }
 
 func (e *Zone) Write(token *AsciiWriteToken) error {
+	e.fragID = -1
 	w, err := token.Writer()
 	if err != nil {
 		return err
@@ -6945,6 +6974,7 @@ func (e *RGBTrackDef) Definition() string {
 }
 
 func (e *RGBTrackDef) Write(token *AsciiWriteToken) error {
+	e.fragID = -1
 	w, err := token.Writer()
 	if err != nil {
 		return err
@@ -7100,6 +7130,7 @@ func (e *ParticleCloudDef) Definition() string {
 }
 
 func (e *ParticleCloudDef) Write(token *AsciiWriteToken) error {
+	e.fragID = -1
 	w, err := token.Writer()
 	if err != nil {
 		return err
@@ -7621,6 +7652,7 @@ func (e *Sprite2DDef) Definition() string {
 }
 
 func (e *Sprite2DDef) Write(token *AsciiWriteToken) error {
+	e.fragID = -1
 	w, err := token.Writer()
 	if err != nil {
 		return err
@@ -8282,6 +8314,7 @@ func (e *DMTrackDef2) Definition() string {
 }
 
 func (e *DMTrackDef2) Write(token *AsciiWriteToken) error {
+	e.fragID = -1
 
 	w, err := token.UseTempWriter(e.model + "_ani")
 	if err != nil {

@@ -537,6 +537,11 @@ func (wce *Wce) WriteWldRaw(w io.Writer) error {
 		}
 	}
 
+	err = wce.writeRemainingFragments(w, dst)
+	if err != nil {
+		return fmt.Errorf("write remaining fragments: %w", err)
+	}
+
 	dst.Fragments = append([]model.FragmentReadWriter{&rawfrag.WldFragDefault{}}, dst.Fragments...)
 	return dst.Write(w)
 }
@@ -830,4 +835,247 @@ func handleNewAniModelCode(wce *Wce, newAniCode, newModelCode string) (string, s
 	wce.currentAniCode = newAniCode
 	wce.currentAniModelCode = newModelCode
 	return newAniCode, newModelCode
+}
+
+func (wce *Wce) writeRemainingFragments(w io.Writer, dst *raw.Wld) error {
+	var err error
+
+	orphaned := 0
+
+	for _, def := range wce.ActorDefs {
+		if def.fragID > 0 {
+			continue
+		}
+		orphaned++
+		_, err = def.ToRaw(wce, dst)
+		if err != nil {
+			return fmt.Errorf("actordef %s: %w", def.Tag, err)
+		}
+	}
+	for _, def := range wce.ActorInsts {
+		if def.fragID > 0 {
+			continue
+		}
+		orphaned++
+		_, err = def.ToRaw(wce, dst)
+		if err != nil {
+			return fmt.Errorf("actor %s: %w", def.Tag, err)
+		}
+	}
+	for _, def := range wce.AmbientLights {
+		if def.fragID > 0 {
+			continue
+		}
+		orphaned++
+		_, err = def.ToRaw(wce, dst)
+		if err != nil {
+			return fmt.Errorf("ambientlight %s: %w", def.Tag, err)
+		}
+	}
+	for _, def := range wce.BlitSpriteDefs {
+		if def.fragID > 0 {
+			continue
+		}
+		orphaned++
+		_, err = def.ToRaw(wce, dst)
+		if err != nil {
+			return fmt.Errorf("blitspritedef %s: %w", def.Tag, err)
+		}
+	}
+	for _, def := range wce.DMSpriteDefs {
+		if def.fragID > 0 {
+			continue
+		}
+		orphaned++
+		_, err = def.ToRaw(wce, dst)
+		if err != nil {
+			return fmt.Errorf("dmspritedef %s: %w", def.Tag, err)
+		}
+	}
+	for _, def := range wce.DMSpriteDef2s {
+		if def.fragID > 0 {
+			continue
+		}
+		orphaned++
+		_, err = def.ToRaw(wce, dst)
+		if err != nil {
+			return fmt.Errorf("dmspritedef2 %s: %w", def.Tag, err)
+		}
+	}
+	for _, def := range wce.DMTrackDef2s {
+		if def.fragID > 0 {
+			continue
+		}
+		orphaned++
+		_, err = def.ToRaw(wce, dst)
+		if err != nil {
+			return fmt.Errorf("dmtrackdef2 %s: %w", def.Tag, err)
+		}
+	}
+	for _, def := range wce.HierarchicalSpriteDefs {
+		if def.fragID > 0 {
+			continue
+		}
+		orphaned++
+		_, err = def.ToRaw(wce, dst)
+		if err != nil {
+			return fmt.Errorf("hierarchicalspritedef %s: %w", def.Tag, err)
+		}
+	}
+	for _, def := range wce.LightDefs {
+		if def.fragID > 0 {
+			continue
+		}
+		orphaned++
+		_, err = def.ToRaw(wce, dst)
+		if err != nil {
+			return fmt.Errorf("lightdef %s: %w", def.Tag, err)
+		}
+	}
+	for _, def := range wce.MaterialDefs {
+		if def.fragID > 0 {
+			continue
+		}
+		orphaned++
+		_, err = def.ToRaw(wce, dst)
+		if err != nil {
+			return fmt.Errorf("materialdef %s: %w", def.Tag, err)
+		}
+	}
+	for _, def := range wce.MaterialPalettes {
+		if def.fragID > 0 {
+			continue
+		}
+		orphaned++
+		_, err = def.ToRaw(wce, dst)
+		if err != nil {
+			return fmt.Errorf("materialpalette %s: %w", def.Tag, err)
+		}
+	}
+	for _, def := range wce.ParticleCloudDefs {
+		if def.fragID > 0 {
+			continue
+		}
+		orphaned++
+		_, err = def.ToRaw(wce, dst)
+		if err != nil {
+			return fmt.Errorf("particleclouddef %s: %w", def.Tag, err)
+		}
+	}
+	for _, def := range wce.PointLights {
+		if def.fragID > 0 {
+			continue
+		}
+		orphaned++
+		_, err = def.ToRaw(wce, dst)
+		if err != nil {
+			return fmt.Errorf("pointlight %s: %w", def.Tag, err)
+		}
+	}
+	for _, def := range wce.PolyhedronDefs {
+		if def.fragID > 0 {
+			continue
+		}
+		orphaned++
+		_, err = def.ToRaw(wce, dst)
+		if err != nil {
+			return fmt.Errorf("polyhedrondefinition %s: %w", def.Tag, err)
+		}
+	}
+	for _, def := range wce.Regions {
+		if def.fragID > 0 {
+			continue
+		}
+		orphaned++
+		_, err = def.ToRaw(wce, dst)
+		if err != nil {
+			return fmt.Errorf("region %s: %w", def.Tag, err)
+		}
+	}
+	for _, def := range wce.RGBTrackDefs {
+		if def.fragID > 0 {
+			continue
+		}
+		orphaned++
+		_, err = def.ToRaw(wce, dst)
+		if err != nil {
+			return fmt.Errorf("rgbtrackdef %s: %w", def.Tag, err)
+		}
+	}
+	for _, def := range wce.SimpleSpriteDefs {
+		if def.fragID > 0 {
+			continue
+		}
+		orphaned++
+		_, err = def.ToRaw(wce, dst)
+		if err != nil {
+			return fmt.Errorf("simplespritedef %s: %w", def.Tag, err)
+		}
+	}
+	for _, def := range wce.Sprite2DDefs {
+		if def.fragID > 0 {
+			continue
+		}
+		orphaned++
+		_, err = def.ToRaw(wce, dst)
+		if err != nil {
+			return fmt.Errorf("sprite2ddef %s: %w", def.Tag, err)
+		}
+	}
+	for _, def := range wce.Sprite3DDefs {
+		if def.fragID > 0 {
+			continue
+		}
+		orphaned++
+		_, err = def.ToRaw(wce, dst)
+		if err != nil {
+			return fmt.Errorf("sprite3ddef %s: %w", def.Tag, err)
+		}
+	}
+	for _, def := range wce.TrackDefs {
+		if def.fragID > 0 {
+			continue
+		}
+		orphaned++
+		_, err = def.ToRaw(wce, dst)
+		if err != nil {
+			return fmt.Errorf("trackdef %s: %w", def.Tag, err)
+		}
+	}
+	for _, def := range wce.TrackInstances {
+		if def.fragID > 0 {
+			continue
+		}
+		orphaned++
+		_, err = def.ToRaw(wce, dst)
+		if err != nil {
+			return fmt.Errorf("trackinstance %s: %w", def.Tag, err)
+		}
+	}
+	for _, def := range wce.WorldTrees {
+		if def.fragID > 0 {
+			continue
+		}
+		orphaned++
+		_, err = def.ToRaw(wce, dst)
+		if err != nil {
+			return fmt.Errorf("worldtree %s: %w", def.Tag, err)
+		}
+	}
+	for _, def := range wce.Zones {
+		if def.fragID > 0 {
+			continue
+		}
+		orphaned++
+		_, err = def.ToRaw(wce, dst)
+		if err != nil {
+			return fmt.Errorf("zone %s: %w", def.Tag, err)
+		}
+	}
+
+	if orphaned > 0 {
+		fmt.Printf("Wrote %d orphaned definitions\n", orphaned)
+	}
+
+	return nil
 }

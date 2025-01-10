@@ -13,12 +13,7 @@ var cfgFile string
 var rootCmd = &cobra.Command{
 	Use:   "quail",
 	Short: "Ever[Q]uest [U]niversal [A]rchive, [I]mport, and [L]oader system",
-	Long: `An Ever[Q]uest [U]niversal [A]rchive, [I]mport, and [L]oader system.
-  - .ani animation files (inspect)
-  - .eqg pfs archives (compress, extract, inspect)
-  - .mod model files (inspect)
-  - .ter terrain files (inspect)
-  - .zon zone files (inspect)`,
+	Long:  `An Ever[Q]uest [U]niversal [A]rchive, [I]mport, and [L]oader system.`,
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.

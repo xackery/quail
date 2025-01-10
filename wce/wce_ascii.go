@@ -550,6 +550,11 @@ func (wce *Wce) writeAsciiData(path string, baseTags []string) error {
 		}
 	}
 
+	err = wce.writeOrphanedData(path, token)
+	if err != nil {
+		return fmt.Errorf("write orphaned data: %w", err)
+	}
+
 	token.Close()
 
 	rootW, err := os.Create(fmt.Sprintf("%s/_root.wce", path))
@@ -634,4 +639,367 @@ func (wce *Wce) writeAsciiHeader(w io.Writer) {
 	fmt.Fprintf(w, "// wcemu %s\n", AsciiVersion)
 	fmt.Fprintf(w, "// This file was created by quail %s\n", common.Version)
 	fmt.Fprintf(w, "// Original file: %s\n\n", wce.FileName)
+}
+
+func (wce *Wce) writeOrphanedData(path string, token *AsciiWriteToken) error {
+
+	var err error
+	orphaned := 0
+
+	for _, def := range wce.ActorDefs {
+		if def.fragID == -1 {
+			continue
+		}
+		orphaned++
+		err = token.SetWriter("world")
+		if err != nil {
+			return fmt.Errorf("set orphaned actordef %s writer: %w", def.Tag, err)
+		}
+
+		err = def.Write(token)
+		if err != nil {
+			return fmt.Errorf("orphaned actordef %s: %w", def.Tag, err)
+		}
+	}
+
+	for _, def := range wce.ActorInsts {
+		if def.fragID == -1 {
+			continue
+		}
+		orphaned++
+		err = token.SetWriter("world")
+		if err != nil {
+			return fmt.Errorf("set orphaned actorinst %s writer: %w", def.Tag, err)
+		}
+
+		err = def.Write(token)
+		if err != nil {
+			return fmt.Errorf("orphaned actorinst %s: %w", def.Tag, err)
+		}
+	}
+
+	for _, def := range wce.AmbientLights {
+		if def.fragID == -1 {
+			continue
+		}
+		orphaned++
+		err = token.SetWriter("world")
+		if err != nil {
+			return fmt.Errorf("set orphaned ambientlight %s writer: %w", def.Tag, err)
+		}
+
+		err = def.Write(token)
+		if err != nil {
+			return fmt.Errorf("orphaned ambientlight %s: %w", def.Tag, err)
+		}
+	}
+
+	for _, def := range wce.BlitSpriteDefs {
+		if def.fragID == -1 {
+			continue
+		}
+		orphaned++
+		err = token.SetWriter("world")
+		if err != nil {
+			return fmt.Errorf("set orphaned blitsprite %s writer: %w", def.Tag, err)
+		}
+
+		err = def.Write(token)
+		if err != nil {
+			return fmt.Errorf("orphaned blitsprite %s: %w", def.Tag, err)
+		}
+	}
+
+	for _, def := range wce.DMSpriteDefs {
+		if def.fragID > 0 {
+			continue
+		}
+		orphaned++
+		err = token.SetWriter("world")
+		if err != nil {
+			return fmt.Errorf("set orphaned dmspritedef %s writer: %w", def.Tag, err)
+		}
+
+		err = def.Write(token)
+		if err != nil {
+			return fmt.Errorf("orphaned dmspritedef %s: %w", def.Tag, err)
+		}
+	}
+	for _, def := range wce.DMSpriteDef2s {
+		if def.fragID > 0 {
+			continue
+		}
+		orphaned++
+		err = token.SetWriter("world")
+		if err != nil {
+			return fmt.Errorf("set orphaned dmspritedef2 %s writer: %w", def.Tag, err)
+		}
+
+		err = def.Write(token)
+		if err != nil {
+			return fmt.Errorf("orphaned dmspritedef2 %s: %w", def.Tag, err)
+		}
+	}
+	for _, def := range wce.DMTrackDef2s {
+		if def.fragID > 0 {
+			continue
+		}
+		orphaned++
+		err = token.SetWriter("world")
+		if err != nil {
+			return fmt.Errorf("set orphaned dmtrackdef2 %s writer: %w", def.Tag, err)
+		}
+
+		err = def.Write(token)
+		if err != nil {
+			return fmt.Errorf("orphaned dmtrackdef2 %s: %w", def.Tag, err)
+		}
+	}
+	for _, def := range wce.HierarchicalSpriteDefs {
+		if def.fragID > 0 {
+			continue
+		}
+		orphaned++
+		err = token.SetWriter("world")
+		if err != nil {
+			return fmt.Errorf("set orphaned hierarchicalspritedef %s writer: %w", def.Tag, err)
+		}
+
+		err = def.Write(token)
+		if err != nil {
+			return fmt.Errorf("orphaned hierarchicalspritedef %s: %w", def.Tag, err)
+		}
+	}
+	for _, def := range wce.LightDefs {
+		if def.fragID > 0 {
+			continue
+		}
+		orphaned++
+		err = token.SetWriter("world")
+		if err != nil {
+			return fmt.Errorf("set orphaned lightdef %s writer: %w", def.Tag, err)
+		}
+
+		err = def.Write(token)
+		if err != nil {
+			return fmt.Errorf("orphaned lightdef %s: %w", def.Tag, err)
+		}
+	}
+	for _, def := range wce.MaterialDefs {
+		if def.fragID > 0 {
+			continue
+		}
+		orphaned++
+		err = token.SetWriter("world")
+		if err != nil {
+			return fmt.Errorf("set orphaned materialdef %s writer: %w", def.Tag, err)
+		}
+
+		err = def.Write(token)
+		if err != nil {
+			return fmt.Errorf("orphaned materialdef %s: %w", def.Tag, err)
+		}
+	}
+	for _, def := range wce.MaterialPalettes {
+		if def.fragID > 0 {
+			continue
+		}
+		orphaned++
+		err = token.SetWriter("world")
+		if err != nil {
+			return fmt.Errorf("set orphaned materialpalette %s writer: %w", def.Tag, err)
+		}
+
+		err = def.Write(token)
+		if err != nil {
+			return fmt.Errorf("orphaned materialpalette %s: %w", def.Tag, err)
+		}
+	}
+	for _, def := range wce.ParticleCloudDefs {
+		if def.fragID > 0 {
+			continue
+		}
+		orphaned++
+		err = token.SetWriter("world")
+		if err != nil {
+			return fmt.Errorf("set orphaned particleclouddef %s writer: %w", def.Tag, err)
+		}
+
+		err = def.Write(token)
+		if err != nil {
+			return fmt.Errorf("orphaned particleclouddef %s: %w", def.Tag, err)
+		}
+	}
+	for _, def := range wce.PointLights {
+		if def.fragID > 0 {
+			continue
+		}
+		orphaned++
+		err = token.SetWriter("world")
+		if err != nil {
+			return fmt.Errorf("set orphaned pointlight %s writer: %w", def.Tag, err)
+		}
+
+		err = def.Write(token)
+		if err != nil {
+			return fmt.Errorf("orphaned pointlight %s: %w", def.Tag, err)
+		}
+	}
+	for _, def := range wce.PolyhedronDefs {
+		if def.fragID > 0 {
+			continue
+		}
+		orphaned++
+		err = token.SetWriter("world")
+		if err != nil {
+			return fmt.Errorf("set orphaned polyhedrondefinition %s writer: %w", def.Tag, err)
+		}
+
+		err = def.Write(token)
+		if err != nil {
+			return fmt.Errorf("orphaned polyhedrondefinition %s: %w", def.Tag, err)
+		}
+	}
+	for _, def := range wce.Regions {
+		if def.fragID > 0 {
+			continue
+		}
+		orphaned++
+		err = token.SetWriter("world")
+		if err != nil {
+			return fmt.Errorf("set orphaned region %s writer: %w", def.Tag, err)
+		}
+
+		err = def.Write(token)
+		if err != nil {
+			return fmt.Errorf("orphaned region %s: %w", def.Tag, err)
+		}
+	}
+	for _, def := range wce.RGBTrackDefs {
+		if def.fragID > 0 {
+			continue
+		}
+		orphaned++
+		err = token.SetWriter("world")
+		if err != nil {
+			return fmt.Errorf("set orphaned rgbtrackdef %s writer: %w", def.Tag, err)
+		}
+
+		err = def.Write(token)
+		if err != nil {
+			return fmt.Errorf("orphaned rgbtrackdef %s: %w", def.Tag, err)
+		}
+	}
+	for _, def := range wce.SimpleSpriteDefs {
+		if def.fragID > 0 {
+			continue
+		}
+		orphaned++
+		err = token.SetWriter("world")
+		if err != nil {
+			return fmt.Errorf("set orphaned simplespritedef %s writer: %w", def.Tag, err)
+		}
+
+		err = def.Write(token)
+		if err != nil {
+			return fmt.Errorf("orphaned simplespritedef %s: %w", def.Tag, err)
+		}
+	}
+	for _, def := range wce.Sprite2DDefs {
+		if def.fragID > 0 {
+			continue
+		}
+		orphaned++
+		err = token.SetWriter("world")
+		if err != nil {
+			return fmt.Errorf("set orphaned sprite2ddef %s writer: %w", def.Tag, err)
+		}
+
+		err = def.Write(token)
+		if err != nil {
+			return fmt.Errorf("orphaned sprite2ddef %s: %w", def.Tag, err)
+		}
+	}
+	for _, def := range wce.Sprite3DDefs {
+		if def.fragID > 0 {
+			continue
+		}
+		orphaned++
+		err = token.SetWriter("world")
+		if err != nil {
+			return fmt.Errorf("set orphaned sprite3ddef %s writer: %w", def.Tag, err)
+		}
+
+		err = def.Write(token)
+		if err != nil {
+			return fmt.Errorf("orphaned sprite3ddef %s: %w", def.Tag, err)
+		}
+	}
+	for _, def := range wce.TrackDefs {
+		if def.fragID > 0 {
+			continue
+		}
+		orphaned++
+		err = token.SetWriter("world")
+		if err != nil {
+			return fmt.Errorf("set orphaned trackdef %s writer: %w", def.Tag, err)
+		}
+
+		err = def.Write(token)
+		if err != nil {
+			return fmt.Errorf("orphaned trackdef %s: %w", def.Tag, err)
+		}
+	}
+	for _, def := range wce.TrackInstances {
+		if def.fragID > 0 {
+			continue
+		}
+		orphaned++
+		err = token.SetWriter("world")
+		if err != nil {
+			return fmt.Errorf("set orphaned trackinstance %s writer: %w", def.Tag, err)
+		}
+
+		err = def.Write(token)
+		if err != nil {
+			return fmt.Errorf("orphaned trackinstance %s: %w", def.Tag, err)
+		}
+	}
+	for _, def := range wce.WorldTrees {
+		if def.fragID > 0 {
+			continue
+		}
+		orphaned++
+		err = token.SetWriter("world")
+		if err != nil {
+			return fmt.Errorf("set orphaned worldtree %s writer: %w", def.Tag, err)
+		}
+
+		err = def.Write(token)
+		if err != nil {
+			return fmt.Errorf("orphaned worldtree %s: %w", def.Tag, err)
+		}
+	}
+	for _, def := range wce.Zones {
+		if def.fragID > 0 {
+			continue
+		}
+		orphaned++
+		err = token.SetWriter("world")
+		if err != nil {
+			return fmt.Errorf("set orphaned zone %s writer: %w", def.Tag, err)
+		}
+
+		err = def.Write(token)
+		if err != nil {
+			return fmt.Errorf("orphaned zone %s: %w", def.Tag, err)
+		}
+	}
+
+	if orphaned > 0 {
+		fmt.Printf("Wrote %d orphaned definitions\n", orphaned)
+	}
+
+	return nil
+
 }
