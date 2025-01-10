@@ -11,6 +11,7 @@ import (
 	"github.com/xackery/quail/model"
 	"github.com/xackery/quail/raw"
 	"github.com/xackery/quail/raw/rawfrag"
+	"github.com/xackery/quail/tree"
 )
 
 func (wce *Wce) ReadWldRaw(src *raw.Wld) error {
@@ -23,6 +24,18 @@ func (wce *Wce) ReadWldRaw(src *raw.Wld) error {
 	}
 	if src.IsZone {
 		wce.WorldDef.Zone = 1
+	}
+
+	roots, err := tree.BuildFragReferenceTree(src)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return nil
+	}
+
+	// Traverse and print the trees
+	for rootID, root := range roots {
+		fmt.Printf("Root Node: %d (%s)\n", rootID, root.Tag)
+		tree.PrintNode(root, 0)
 	}
 
 	modelChunks := make(map[int]string)
