@@ -57,6 +57,7 @@ func (wce *Wce) ReadWldRaw(src *raw.Wld) error {
 }
 
 func readRawFrag(e *Wce, rawWld *raw.Wld, fragment model.FragmentReadWriter) error {
+	uniqueTags := make(map[string]bool)
 	switch fragment.FragCode() {
 	case rawfrag.FragCodeGlobalAmbientLightDef:
 
@@ -67,6 +68,17 @@ func readRawFrag(e *Wce, rawWld *raw.Wld, fragment model.FragmentReadWriter) err
 		}
 		e.GlobalAmbientLightDef = def
 	case rawfrag.FragCodeBMInfo:
+		frag := fragment.(*rawfrag.WldFragBMInfo)
+		name := rawWld.Name(int32(frag.NameRef))
+		if name == "" {
+			return nil
+		}
+
+		_, ok := uniqueTags[name]
+		if ok {
+			return fmt.Errorf("duplicate %T tag %s", frag, name)
+		}
+		uniqueTags[name] = true
 		return nil
 	case rawfrag.FragCodeSimpleSpriteDef:
 		def := &SimpleSpriteDef{}
@@ -75,23 +87,63 @@ func readRawFrag(e *Wce, rawWld *raw.Wld, fragment model.FragmentReadWriter) err
 			return fmt.Errorf("simplespritedef: %w", err)
 		}
 
+		_, ok := uniqueTags[def.Tag]
+		if ok {
+			return fmt.Errorf("duplicate %T tag %s", def, def.Tag)
+		}
+		uniqueTags[def.Tag] = true
 		e.SimpleSpriteDefs = append(e.SimpleSpriteDefs, def)
 	case rawfrag.FragCodeSimpleSprite:
 		//return fmt.Errorf("simplesprite fragment found, but not expected")
+		frag := fragment.(*rawfrag.WldFragSimpleSprite)
+		name := rawWld.Name(int32(frag.NameRef))
+		if name == "" {
+			return nil
+		}
+
+		_, ok := uniqueTags[name]
+		if ok {
+			return fmt.Errorf("duplicate %T tag %s", frag, name)
+		}
+		uniqueTags[name] = true
+		return nil
 	case rawfrag.FragCodeBlitSpriteDef:
 		def := &BlitSpriteDef{}
 		err := def.FromRaw(e, rawWld, fragment.(*rawfrag.WldFragBlitSpriteDef))
 		if err != nil {
 			return fmt.Errorf("blitspritedef: %w", err)
 		}
+
+		_, ok := uniqueTags[def.Tag]
+		if ok {
+			return fmt.Errorf("duplicate %T tag %s", def, def.Tag)
+		}
+		uniqueTags[def.Tag] = true
 		e.BlitSpriteDefs = append(e.BlitSpriteDefs, def)
 	case rawfrag.FragCodeBlitSprite:
+		frag := fragment.(*rawfrag.WldFragBlitSprite)
+		name := rawWld.Name(int32(frag.NameRef))
+		if name == "" {
+			return nil
+		}
+
+		_, ok := uniqueTags[name]
+		if ok {
+			return fmt.Errorf("duplicate %T tag %s", frag, name)
+		}
+		uniqueTags[name] = true
 	case rawfrag.FragCodeParticleCloudDef:
 		def := &ParticleCloudDef{}
 		err := def.FromRaw(e, rawWld, fragment.(*rawfrag.WldFragParticleCloudDef))
 		if err != nil {
 			return fmt.Errorf("particleclouddef: %w", err)
 		}
+
+		_, ok := uniqueTags[def.Tag]
+		if ok {
+			return fmt.Errorf("duplicate %T tag %s", def, def.Tag)
+		}
+		uniqueTags[def.Tag] = true
 		e.ParticleCloudDefs = append(e.ParticleCloudDefs, def)
 	case rawfrag.FragCodeMaterialDef:
 		def := &MaterialDef{}
@@ -99,6 +151,12 @@ func readRawFrag(e *Wce, rawWld *raw.Wld, fragment model.FragmentReadWriter) err
 		if err != nil {
 			return fmt.Errorf("materialdef: %w", err)
 		}
+
+		_, ok := uniqueTags[def.Tag]
+		if ok {
+			return fmt.Errorf("duplicate %T tag %s", def, def.Tag)
+		}
+		uniqueTags[def.Tag] = true
 		e.MaterialDefs = append(e.MaterialDefs, def)
 	case rawfrag.FragCodeMaterialPalette:
 		def := &MaterialPalette{}
@@ -106,6 +164,12 @@ func readRawFrag(e *Wce, rawWld *raw.Wld, fragment model.FragmentReadWriter) err
 		if err != nil {
 			return fmt.Errorf("materialpalette: %w", err)
 		}
+
+		_, ok := uniqueTags[def.Tag]
+		if ok {
+			return fmt.Errorf("duplicate %T tag %s", def, def.Tag)
+		}
+		uniqueTags[def.Tag] = true
 		e.MaterialPalettes = append(e.MaterialPalettes, def)
 		e.isVariationMaterial = true
 	case rawfrag.FragCodeDmSpriteDef2:
@@ -126,6 +190,11 @@ func readRawFrag(e *Wce, rawWld *raw.Wld, fragment model.FragmentReadWriter) err
 			}
 		}
 
+		_, ok := uniqueTags[def.Tag]
+		if ok {
+			return fmt.Errorf("duplicate %T tag %s", def, def.Tag)
+		}
+		uniqueTags[def.Tag] = true
 		e.DMSpriteDef2s = append(e.DMSpriteDef2s, def)
 	case rawfrag.FragCodeTrack:
 		def := &TrackInstance{}
@@ -133,6 +202,11 @@ func readRawFrag(e *Wce, rawWld *raw.Wld, fragment model.FragmentReadWriter) err
 		if err != nil {
 			return fmt.Errorf("track: %w", err)
 		}
+		_, ok := uniqueTags[def.Tag]
+		if ok {
+			return fmt.Errorf("duplicate %T tag %s", def, def.Tag)
+		}
+		uniqueTags[def.Tag] = true
 		e.TrackInstances = append(e.TrackInstances, def)
 	case rawfrag.FragCodeTrackDef:
 		def := &TrackDef{}
@@ -140,6 +214,11 @@ func readRawFrag(e *Wce, rawWld *raw.Wld, fragment model.FragmentReadWriter) err
 		if err != nil {
 			return fmt.Errorf("trackdef: %w", err)
 		}
+		_, ok := uniqueTags[def.Tag]
+		if ok {
+			return fmt.Errorf("duplicate %T tag %s", def, def.Tag)
+		}
+		uniqueTags[def.Tag] = true
 		e.TrackDefs = append(e.TrackDefs, def)
 
 	case rawfrag.FragCodeDMTrack:
@@ -147,12 +226,28 @@ func readRawFrag(e *Wce, rawWld *raw.Wld, fragment model.FragmentReadWriter) err
 		if frag.Flags != 0 {
 			return fmt.Errorf("dmtrack: unexpected flags %d, report this to xack", frag.Flags)
 		}
+		name := rawWld.Name(int32(frag.NameRef))
+		if name == "" {
+			return nil
+		}
+
+		_, ok := uniqueTags[name]
+		if ok {
+			return fmt.Errorf("duplicate %T tag %s", frag, name)
+		}
+		uniqueTags[name] = true
+		return fmt.Errorf("dmtrack: unhandled fragment type")
 	case rawfrag.FragCodeDmTrackDef2:
 		def := &DMTrackDef2{}
 		err := def.FromRaw(e, rawWld, fragment.(*rawfrag.WldFragDmTrackDef2))
 		if err != nil {
 			return fmt.Errorf("dmtrackdef2: %w", err)
 		}
+		_, ok := uniqueTags[def.Tag]
+		if ok {
+			return fmt.Errorf("duplicate %T tag %s", def, def.Tag)
+		}
+		uniqueTags[def.Tag] = true
 		e.DMTrackDef2s = append(e.DMTrackDef2s, def)
 
 	case rawfrag.FragCodeDMSpriteDef:
@@ -161,8 +256,26 @@ func readRawFrag(e *Wce, rawWld *raw.Wld, fragment model.FragmentReadWriter) err
 		if err != nil {
 			return fmt.Errorf("dmspritedef: %w", err)
 		}
+		_, ok := uniqueTags[def.Tag]
+		if ok {
+			return fmt.Errorf("duplicate %T tag %s", def, def.Tag)
+		}
+		uniqueTags[def.Tag] = true
 		e.DMSpriteDefs = append(e.DMSpriteDefs, def)
 	case rawfrag.FragCodeDMSprite:
+		// dmsprite instances are ignored, since they're derived from other definitions
+		frag := fragment.(*rawfrag.WldFragDMSprite)
+		name := rawWld.Name(int32(frag.NameRef))
+		if name == "" {
+			return nil
+		}
+
+		_, ok := uniqueTags[name]
+		if ok {
+			return fmt.Errorf("duplicate %T tag %s", frag, name)
+		}
+		uniqueTags[name] = true
+		return nil
 	case rawfrag.FragCodeActorDef:
 		def := &ActorDef{}
 		err := def.FromRaw(e, rawWld, fragment.(*rawfrag.WldFragActorDef))
@@ -170,6 +283,11 @@ func readRawFrag(e *Wce, rawWld *raw.Wld, fragment model.FragmentReadWriter) err
 			return fmt.Errorf("actordef: %w", err)
 		}
 
+		_, ok := uniqueTags[def.Tag]
+		if ok {
+			return fmt.Errorf("duplicate %T tag %s", def, def.Tag)
+		}
+		uniqueTags[def.Tag] = true
 		e.ActorDefs = append(e.ActorDefs, def)
 		e.isVariationMaterial = false
 	case rawfrag.FragCodeActor:
@@ -179,6 +297,11 @@ func readRawFrag(e *Wce, rawWld *raw.Wld, fragment model.FragmentReadWriter) err
 			return fmt.Errorf("actor: %w", err)
 		}
 
+		_, ok := uniqueTags[def.Tag]
+		if ok {
+			return fmt.Errorf("duplicate %T tag %s", def, def.Tag)
+		}
+		uniqueTags[def.Tag] = true
 		e.ActorInsts = append(e.ActorInsts, def)
 	case rawfrag.FragCodeHierarchicalSpriteDef:
 		def := &HierarchicalSpriteDef{}
@@ -186,17 +309,49 @@ func readRawFrag(e *Wce, rawWld *raw.Wld, fragment model.FragmentReadWriter) err
 		if err != nil {
 			return fmt.Errorf("hierarchicalspritedef: %w", err)
 		}
+
+		_, ok := uniqueTags[def.Tag]
+		if ok {
+			return fmt.Errorf("duplicate %T tag %s", def, def.Tag)
+		}
+		uniqueTags[def.Tag] = true
 		e.HierarchicalSpriteDefs = append(e.HierarchicalSpriteDefs, def)
 	case rawfrag.FragCodeHierarchicalSprite:
-		return nil
+		frag := fragment.(*rawfrag.WldFragHierarchicalSprite)
+		name := rawWld.Name(int32(frag.NameRef))
+		if name == "" {
+			return nil
+		}
+
+		_, ok := uniqueTags[name]
+		if ok {
+			return fmt.Errorf("duplicate %T tag %s", frag, name)
+		}
+		uniqueTags[name] = true
 	case rawfrag.FragCodeLightDef:
 		def := &LightDef{}
 		err := def.FromRaw(e, rawWld, fragment.(*rawfrag.WldFragLightDef))
 		if err != nil {
 			return fmt.Errorf("lightdef: %w", err)
 		}
+		_, ok := uniqueTags[def.Tag]
+		if ok {
+			return fmt.Errorf("duplicate %T tag %s", def, def.Tag)
+		}
+		uniqueTags[def.Tag] = true
 		e.LightDefs = append(e.LightDefs, def)
 	case rawfrag.FragCodeLight:
+		frag := fragment.(*rawfrag.WldFragLight)
+		name := rawWld.Name(int32(frag.NameRef))
+		if name == "" {
+			return nil
+		}
+
+		_, ok := uniqueTags[name]
+		if ok {
+			return fmt.Errorf("duplicate %T tag %s", frag, name)
+		}
+		uniqueTags[name] = true
 		return nil // light instances are ignored, since they're derived from other definitions
 	case rawfrag.FragCodeSprite3DDef:
 		def := &Sprite3DDef{}
@@ -204,9 +359,25 @@ func readRawFrag(e *Wce, rawWld *raw.Wld, fragment model.FragmentReadWriter) err
 		if err != nil {
 			return fmt.Errorf("sprite3ddef: %w", err)
 		}
+		_, ok := uniqueTags[def.Tag]
+		if ok {
+			return fmt.Errorf("duplicate %T tag %s", def, def.Tag)
+		}
+		uniqueTags[def.Tag] = true
 		e.Sprite3DDefs = append(e.Sprite3DDefs, def)
 	case rawfrag.FragCodeSprite3D:
 		// sprite instances are ignored, since they're derived from other definitions
+		frag := fragment.(*rawfrag.WldFragSprite3D)
+		name := rawWld.Name(int32(frag.NameRef))
+		if name == "" {
+			return nil
+		}
+
+		_, ok := uniqueTags[name]
+		if ok {
+			return fmt.Errorf("duplicate %T tag %s", frag, name)
+		}
+		uniqueTags[name] = true
 		return nil
 	case rawfrag.FragCodeZone:
 		def := &Zone{}
@@ -214,6 +385,11 @@ func readRawFrag(e *Wce, rawWld *raw.Wld, fragment model.FragmentReadWriter) err
 		if err != nil {
 			return fmt.Errorf("zone: %w", err)
 		}
+		_, ok := uniqueTags[def.Tag]
+		if ok {
+			return fmt.Errorf("duplicate %T tag %s", def, def.Tag)
+		}
+		uniqueTags[def.Tag] = true
 		e.Zones = append(e.Zones, def)
 
 	case rawfrag.FragCodeWorldTree:
@@ -222,6 +398,11 @@ func readRawFrag(e *Wce, rawWld *raw.Wld, fragment model.FragmentReadWriter) err
 		if err != nil {
 			return fmt.Errorf("worldtree: %w", err)
 		}
+		_, ok := uniqueTags[def.Tag]
+		if ok {
+			return fmt.Errorf("duplicate %T tag %s", def, def.Tag)
+		}
+		uniqueTags[def.Tag] = true
 		e.WorldTrees = append(e.WorldTrees, def)
 
 	case rawfrag.FragCodeRegion:
@@ -230,6 +411,11 @@ func readRawFrag(e *Wce, rawWld *raw.Wld, fragment model.FragmentReadWriter) err
 		if err != nil {
 			return fmt.Errorf("region: %w", err)
 		}
+		_, ok := uniqueTags[def.Tag]
+		if ok {
+			return fmt.Errorf("duplicate %T tag %s", def, def.Tag)
+		}
+		uniqueTags[def.Tag] = true
 		e.Regions = append(e.Regions, def)
 	case rawfrag.FragCodeAmbientLight:
 		def := &AmbientLight{}
@@ -237,6 +423,11 @@ func readRawFrag(e *Wce, rawWld *raw.Wld, fragment model.FragmentReadWriter) err
 		if err != nil {
 			return fmt.Errorf("ambientlight: %w", err)
 		}
+		_, ok := uniqueTags[def.Tag]
+		if ok {
+			return fmt.Errorf("duplicate %T tag %s", def, def.Tag)
+		}
+		uniqueTags[def.Tag] = true
 		e.AmbientLights = append(e.AmbientLights, def)
 	case rawfrag.FragCodePointLight:
 		def := &PointLight{}
@@ -244,6 +435,11 @@ func readRawFrag(e *Wce, rawWld *raw.Wld, fragment model.FragmentReadWriter) err
 		if err != nil {
 			return fmt.Errorf("pointlight: %w", err)
 		}
+		_, ok := uniqueTags[def.Tag]
+		if ok {
+			return fmt.Errorf("duplicate %T tag %s", def, def.Tag)
+		}
+		uniqueTags[def.Tag] = true
 		e.PointLights = append(e.PointLights, def)
 	case rawfrag.FragCodePolyhedronDef:
 		def := &PolyhedronDefinition{}
@@ -251,12 +447,39 @@ func readRawFrag(e *Wce, rawWld *raw.Wld, fragment model.FragmentReadWriter) err
 		if err != nil {
 			return fmt.Errorf("polyhedrondefinition: %w", err)
 		}
+		_, ok := uniqueTags[def.Tag]
+		if ok {
+			return fmt.Errorf("duplicate %T tag %s", def, def.Tag)
+		}
+		uniqueTags[def.Tag] = true
 		e.PolyhedronDefs = append(e.PolyhedronDefs, def)
 	case rawfrag.FragCodePolyhedron:
 		// polyhedron instances are ignored, since they're derived from other definitions
+		frag := fragment.(*rawfrag.WldFragPolyhedron)
+		name := rawWld.Name(int32(frag.NameRef))
+		if name == "" {
+			return nil
+		}
+
+		_, ok := uniqueTags[name]
+		if ok {
+			return fmt.Errorf("duplicate %T tag %s", frag, name)
+		}
+		uniqueTags[name] = true
 		return nil
 	case rawfrag.FragCodeSphere:
 		// sphere instances are ignored, since they're derived from other definitions
+		frag := fragment.(*rawfrag.WldFragSphere)
+		name := rawWld.Name(int32(frag.NameRef))
+		if name == "" {
+			return nil
+		}
+
+		_, ok := uniqueTags[name]
+		if ok {
+			return fmt.Errorf("duplicate %T tag %s", frag, name)
+		}
+		uniqueTags[name] = true
 		return nil
 	case rawfrag.FragCodeDmRGBTrackDef:
 		def := &RGBTrackDef{}
@@ -264,16 +487,40 @@ func readRawFrag(e *Wce, rawWld *raw.Wld, fragment model.FragmentReadWriter) err
 		if err != nil {
 			return fmt.Errorf("dmrgbtrackdef: %w", err)
 		}
+		_, ok := uniqueTags[def.Tag]
+		if ok {
+			return fmt.Errorf("duplicate %T tag %s", def, def.Tag)
+		}
+		uniqueTags[def.Tag] = true
 		e.RGBTrackDefs = append(e.RGBTrackDefs, def)
 	case rawfrag.FragCodeDmRGBTrack:
+		return fmt.Errorf("dmrgbtrack: unhandled fragment type")
 	case rawfrag.FragCodeSprite2DDef:
 		def := &Sprite2DDef{}
 		err := def.FromRaw(e, rawWld, fragment.(*rawfrag.WldFragSprite2DDef))
 		if err != nil {
 			return fmt.Errorf("sprite2ddef: %w", err)
 		}
+		_, ok := uniqueTags[def.Tag]
+		if ok {
+			return fmt.Errorf("duplicate %T tag %s", def, def.Tag)
+		}
+		uniqueTags[def.Tag] = true
 		e.Sprite2DDefs = append(e.Sprite2DDefs, def)
 	case rawfrag.FragCodeSprite2D:
+		// sprite instances are ignored, since they're derived from other definitions
+		frag := fragment.(*rawfrag.WldFragSprite2D)
+		name := rawWld.Name(int32(frag.NameRef))
+		if name == "" {
+			return nil
+		}
+
+		_, ok := uniqueTags[name]
+		if ok {
+			return fmt.Errorf("duplicate %T tag %s", frag, name)
+		}
+		uniqueTags[name] = true
+		return nil
 	default:
 		return fmt.Errorf("unhandled fragment type %d (%s)", fragment.FragCode(), raw.FragName(fragment.FragCode()))
 	}
@@ -837,6 +1084,7 @@ func handleNewAniModelCode(wce *Wce, newAniCode, newModelCode string) (string, s
 	return newAniCode, newModelCode
 }
 
+// writeRemainingFragments writes out any fragments that haven't been written yet
 func (wce *Wce) writeRemainingFragments(w io.Writer, dst *raw.Wld) error {
 	var err error
 

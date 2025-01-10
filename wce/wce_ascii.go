@@ -92,25 +92,13 @@ func (wce *Wce) writeAsciiData(path string, baseTags []string) error {
 	}
 
 	for _, track := range wce.TrackInstances {
-		if len(track.SpriteTag) < 3 {
-			if !regTrack1.MatchString(track.Tag) {
-				if !regTrack2.MatchString(track.Tag) {
-					return fmt.Errorf("track %s model basetag too short (%s)", track.Tag, track.SpriteTag)
-				} else {
-					track.SpriteTag = regTrack2.FindStringSubmatch(track.Tag)[1]
-				}
-			} else {
-				track.SpriteTag = regTrack1.FindStringSubmatch(track.Tag)[1]
-			}
-			track.model = track.SpriteTag
-		}
+
 		baseTag, _, _, _ := wce.trackTagAndSequence(track.Tag)
 		if baseTag == "" {
 			// return fmt.Errorf("track %s tag too short (baseTag empty)", track.Tag)
 			baseTag = track.model
 		}
 
-		track.model = baseTag
 		isFound := false
 		for _, tag := range baseTags {
 			if tag == baseTag {
@@ -134,7 +122,6 @@ func (wce *Wce) writeAsciiData(path string, baseTags []string) error {
 			} else {
 				trackDef.SpriteTag = regTrack1.FindStringSubmatch(trackDef.Tag)[1]
 			}
-			trackDef.model = trackDef.SpriteTag
 		}
 
 		baseTag, _, _, _ := wce.trackTagAndSequence(trackDef.Tag)
@@ -144,7 +131,6 @@ func (wce *Wce) writeAsciiData(path string, baseTags []string) error {
 
 		}
 
-		trackDef.model = baseTag
 		isFound := false
 		for _, tag := range baseTags {
 			if tag == baseTag {
@@ -550,7 +536,7 @@ func (wce *Wce) writeAsciiData(path string, baseTags []string) error {
 		}
 	}
 
-	err = wce.writeOrphanedData(path, token)
+	err = wce.writeOrphanedData(token)
 	if err != nil {
 		return fmt.Errorf("write orphaned data: %w", err)
 	}
@@ -641,7 +627,8 @@ func (wce *Wce) writeAsciiHeader(w io.Writer) {
 	fmt.Fprintf(w, "// Original file: %s\n\n", wce.FileName)
 }
 
-func (wce *Wce) writeOrphanedData(path string, token *AsciiWriteToken) error {
+// writeOrphanedData writes any data that was not written to a file
+func (wce *Wce) writeOrphanedData(token *AsciiWriteToken) error {
 
 	var err error
 	orphaned := 0
