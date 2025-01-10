@@ -2149,9 +2149,18 @@ func (e *BlitSpriteDef) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
 		return -1, fmt.Errorf("sprite %s to raw: %w", e.SpriteTag, err)
 	}
 
+	wfSprite := &rawfrag.WldFragSimpleSprite{
+		//NameRef:   rawWld.NameAdd(m.SimpleSpriteTag),
+		SpriteRef: uint32(spriteDefRef),
+	}
+
+	rawWld.Fragments = append(rawWld.Fragments, wfSprite)
+
+	spriteRef := int16(len(rawWld.Fragments))
+
 	wfBlitSpriteDef := &rawfrag.WldFragBlitSpriteDef{
 		Unknown:           e.Unknown,
-		SpriteInstanceRef: uint32(spriteDefRef),
+		SpriteInstanceRef: uint32(spriteRef),
 	}
 
 	if e.Transparent > 0 {
@@ -2162,12 +2171,6 @@ func (e *BlitSpriteDef) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
 
 	rawWld.Fragments = append(rawWld.Fragments, wfBlitSpriteDef)
 	e.fragID = int16(len(rawWld.Fragments))
-
-	wfBlitSprite := &rawfrag.WldFragBlitSprite{
-		BlitSpriteRef: int32(len(rawWld.Fragments)),
-	}
-
-	rawWld.Fragments = append(rawWld.Fragments, wfBlitSprite)
 
 	return e.fragID, nil
 }
@@ -3205,6 +3208,8 @@ func (e *ActorInst) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
 			}
 
 			wfActorInst.ActorDefRef = int32(actorDefRef)
+		} else {
+			wfActorInst.ActorDefRef = rawWld.NameAdd(e.DefinitionTag)
 		}
 	}
 
@@ -7463,14 +7468,9 @@ func (e *ParticleCloudDef) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
 		return 0, fmt.Errorf("blit sprite def to raw: %w", err)
 	}
 
-	wfSSprite := &rawfrag.WldFragSimpleSprite{
-		SpriteRef: uint32(blitFragID),
-	}
+	blitSpriteDefRef := uint32(blitFragID)
 
-	rawWld.Fragments = append(rawWld.Fragments, wfSSprite)
-	sSpriteRef := uint32(len(rawWld.Fragments))
-
-	wfParticleCloud.BlitSpriteRef = sSpriteRef
+	wfParticleCloud.BlitSpriteRef = blitSpriteDefRef
 
 	wfParticleCloud.NameRef = rawWld.NameAdd(e.Tag)
 
@@ -7568,11 +7568,11 @@ type Sprite2DDef struct {
 	Tag             string
 	Scale           [2]float32
 	SphereListTag   string
-	DepthScale      float32
-	CenterOffset    [3]float32
-	BoundingRadius  float32
-	CurrentFrameRef int32
-	Sleep           uint32
+	DepthScale      NullFloat32
+	CenterOffset    NullFloat32Slice3
+	BoundingRadius  NullFloat32
+	CurrentFrameRef NullInt32
+	Sleep           NullUint32
 	Pitches         []*Pitch
 	RenderMethod    string
 	Pen             NullUint32
@@ -7584,11 +7584,12 @@ type Sprite2DDef struct {
 	VAxis           NullFloat32Slice3
 	Uvs             [][2]float32
 	TwoSided        int
+	HexTenFlag      uint16
 }
 
 type Pitch struct {
 	PitchCap        int32
-	TopOrBottomView uint16 // Only 0 or 1
+	TopOrBottomView uint32 // Only 0 or 1
 	Headings        []*Heading
 }
 
@@ -7614,11 +7615,11 @@ func (e *Sprite2DDef) Write(token *AsciiWriteToken) error {
 	fmt.Fprintf(w, "%s \"%s\"\n", e.Definition(), e.Tag)
 	fmt.Fprintf(w, "\tSCALE %0.8e %0.8e\n", e.Scale[0], e.Scale[1])
 	fmt.Fprintf(w, "\tSPHERELISTTAG \"%s\"\n", e.SphereListTag)
-	fmt.Fprintf(w, "\tDEPTHSCALE %0.8e\n", e.DepthScale)
-	fmt.Fprintf(w, "\tCENTEROFFSET %0.8e %0.8e %0.8e\n", e.CenterOffset[0], e.CenterOffset[1], e.CenterOffset[2])
-	fmt.Fprintf(w, "\tBOUNDINGRADIUS %0.8e\n", e.BoundingRadius)
-	fmt.Fprintf(w, "\tCURRENTFRAMEREF %d\n", e.CurrentFrameRef)
-	fmt.Fprintf(w, "\tSLEEP %d\n", e.Sleep)
+	fmt.Fprintf(w, "\tDEPTHSCALE? %s\n", wcVal(e.DepthScale))
+	fmt.Fprintf(w, "\tCENTEROFFSET? %s\n", wcVal(e.CenterOffset))
+	fmt.Fprintf(w, "\tBOUNDINGRADIUS? %s\n", wcVal(e.BoundingRadius))
+	fmt.Fprintf(w, "\tCURRENTFRAMEREF? %s\n", wcVal(e.CurrentFrameRef))
+	fmt.Fprintf(w, "\tSLEEP? %s\n", wcVal(e.Sleep))
 	fmt.Fprintf(w, "\tNUMPITCHES %d\n", len(e.Pitches))
 	for i, pitch := range e.Pitches {
 		fmt.Fprintf(w, "\t\tPITCH // %d\n", i)
@@ -7649,6 +7650,8 @@ func (e *Sprite2DDef) Write(token *AsciiWriteToken) error {
 	}
 	fmt.Fprintf(w, "\t\t\tTWOSIDED %d\n", e.TwoSided)
 	fmt.Fprintf(w, "\n")
+	fmt.Fprintf(w, "\tHEXTENFLAG %d\n", e.HexTenFlag)
+	fmt.Fprintf(w, "\n")
 	return nil
 }
 
@@ -7668,7 +7671,7 @@ func (e *Sprite2DDef) Read(token *AsciiReadToken) error {
 	}
 	e.SphereListTag = records[1]
 
-	records, err = token.ReadProperty("DEPTHSCALE", 1)
+	records, err = token.ReadProperty("DEPTHSCALE?", 1)
 	if err != nil {
 		return err
 	}
@@ -7677,7 +7680,7 @@ func (e *Sprite2DDef) Read(token *AsciiReadToken) error {
 		return fmt.Errorf("depth scale: %w", err)
 	}
 
-	records, err = token.ReadProperty("CENTEROFFSET", 3)
+	records, err = token.ReadProperty("CENTEROFFSET?", 3)
 	if err != nil {
 		return err
 	}
@@ -7686,7 +7689,7 @@ func (e *Sprite2DDef) Read(token *AsciiReadToken) error {
 		return fmt.Errorf("center offset: %w", err)
 	}
 
-	records, err = token.ReadProperty("BOUNDINGRADIUS", 1)
+	records, err = token.ReadProperty("BOUNDINGRADIUS?", 1)
 	if err != nil {
 		return err
 	}
@@ -7695,7 +7698,7 @@ func (e *Sprite2DDef) Read(token *AsciiReadToken) error {
 		return fmt.Errorf("bounding radius: %w", err)
 	}
 
-	records, err = token.ReadProperty("CURRENTFRAMEREF", 1)
+	records, err = token.ReadProperty("CURRENTFRAMEREF?", 1)
 	if err != nil {
 		return err
 	}
@@ -7704,7 +7707,7 @@ func (e *Sprite2DDef) Read(token *AsciiReadToken) error {
 		return fmt.Errorf("current frame ref: %w", err)
 	}
 
-	records, err = token.ReadProperty("SLEEP", 1)
+	records, err = token.ReadProperty("SLEEP?", 1)
 	if err != nil {
 		return err
 	}
@@ -7909,6 +7912,15 @@ func (e *Sprite2DDef) Read(token *AsciiReadToken) error {
 		return fmt.Errorf("two sided: %w", err)
 	}
 
+	records, err = token.ReadProperty("HEXTENFLAG", 1)
+	if err != nil {
+		return err
+	}
+	err = parse(&e.HexTenFlag, records[1])
+	if err != nil {
+		return fmt.Errorf("hextenflag: %w", err)
+	}
+
 	return nil
 }
 
@@ -7917,12 +7929,33 @@ func (e *Sprite2DDef) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
 		return e.fragID, nil
 	}
 	wfSprite2D := &rawfrag.WldFragSprite2DDef{
-		Scale:           e.Scale,
-		DepthScale:      e.DepthScale,
-		CenterOffset:    e.CenterOffset,
-		BoundingRadius:  e.BoundingRadius,
-		CurrentFrameRef: e.CurrentFrameRef,
-		Sleep:           e.Sleep,
+		Scale:        e.Scale,
+		RenderMethod: model.RenderMethodInt(e.RenderMethod),
+	}
+
+	if e.DepthScale.Valid {
+		wfSprite2D.Flags |= 0x80
+		wfSprite2D.DepthScale = e.DepthScale.Float32
+	}
+
+	if e.CenterOffset.Valid {
+		wfSprite2D.Flags |= 0x01
+		wfSprite2D.CenterOffset = e.CenterOffset.Float32Slice3
+	}
+
+	if e.BoundingRadius.Valid {
+		wfSprite2D.Flags |= 0x02
+		wfSprite2D.BoundingRadius = e.BoundingRadius.Float32
+	}
+
+	if e.CurrentFrameRef.Valid {
+		wfSprite2D.Flags |= 0x04
+		wfSprite2D.CurrentFrameRef = e.CurrentFrameRef.Int32
+	}
+
+	if e.Sleep.Valid {
+		wfSprite2D.Flags |= 0x08
+		wfSprite2D.Sleep = e.Sleep.Uint32
 	}
 
 	wfSprite2D.Pitches = []*rawfrag.WldFragSprite2DPitch{}
@@ -7932,13 +7965,28 @@ func (e *Sprite2DDef) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
 			TopOrBottomView: pitch.TopOrBottomView,
 		}
 
+		rawPitch.Headings = []*rawfrag.WldFragSprite2DHeading{}
 		for _, heading := range pitch.Headings {
 			rawHeading := &rawfrag.WldFragSprite2DHeading{
 				HeadingCap: heading.HeadingCap,
 			}
-			for _, frame := range heading.Sprite2DFrames {
-				frameRef := rawWld.NameAdd(frame.TextureTag)
-				rawHeading.FrameRefs = append(rawHeading.FrameRefs, frameRef)
+
+			if len(heading.Sprite2DFrames) > 0 {
+				wfBMInfo := &rawfrag.WldFragBMInfo{}
+				for _, frame := range heading.Sprite2DFrames {
+					frameRef := rawWld.NameAdd(frame.TextureTag)
+					if wfBMInfo.NameRef != 0 && frameRef != wfBMInfo.NameRef {
+						// Add the current BMInfo to fragments and reset it
+						rawWld.Fragments = append(rawWld.Fragments, wfBMInfo)
+						rawHeading.FrameRefs = append(rawHeading.FrameRefs, int32(len(rawWld.Fragments)))
+						wfBMInfo = &rawfrag.WldFragBMInfo{}
+					}
+					wfBMInfo.NameRef = frameRef
+					wfBMInfo.TextureNames = append(wfBMInfo.TextureNames, frame.TextureFile+"\x00")
+				}
+
+				rawWld.Fragments = append(rawWld.Fragments, wfBMInfo)
+				rawHeading.FrameRefs = append(rawHeading.FrameRefs, int32(len(rawWld.Fragments)))
 			}
 			rawPitch.Headings = append(rawPitch.Headings, rawHeading)
 		}
@@ -7989,6 +8037,11 @@ func (e *Sprite2DDef) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
 		}
 		wfSprite2D.SphereListRef = uint32(sphereListRef)
 	}
+
+	if e.HexTenFlag != 0 {
+		wfSprite2D.Flags |= 0x10
+	}
+
 	wfSprite2D.NameRef = rawWld.NameAdd(e.Tag)
 
 	rawWld.Fragments = append(rawWld.Fragments, wfSprite2D)
@@ -8017,11 +8070,32 @@ func (e *Sprite2DDef) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragSp
 		e.SphereListTag = rawWld.Name(sphereList.NameRef)
 	}
 	e.Scale = frag.Scale
-	e.DepthScale = frag.DepthScale
-	e.CenterOffset = frag.CenterOffset
-	e.BoundingRadius = frag.BoundingRadius
-	e.CurrentFrameRef = frag.CurrentFrameRef
-	e.Sleep = frag.Sleep
+
+	if frag.Flags&0x80 == 0x80 {
+		e.DepthScale.Valid = true
+		e.DepthScale.Float32 = frag.DepthScale
+	}
+
+	if frag.Flags&0x01 == 0x01 {
+		e.CenterOffset.Valid = true
+		e.CenterOffset.Float32Slice3 = frag.CenterOffset
+	}
+
+	if frag.Flags&0x02 == 0x02 {
+		e.BoundingRadius.Valid = true
+		e.BoundingRadius.Float32 = frag.BoundingRadius
+	}
+
+	if frag.Flags&0x04 == 0x04 {
+		e.CurrentFrameRef.Valid = true
+		e.CurrentFrameRef.Int32 = frag.CurrentFrameRef
+	}
+
+	if frag.Flags&0x08 == 0x08 {
+		e.Sleep.Valid = true
+		e.Sleep.Uint32 = frag.Sleep
+	}
+
 	e.Pitches = []*Pitch{}
 	for _, rawPitch := range frag.Pitches {
 		pitch := &Pitch{
@@ -8111,6 +8185,11 @@ func (e *Sprite2DDef) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragSp
 	if frag.RenderFlags&0x40 == 0x40 {
 		e.TwoSided = 1
 	}
+
+	if frag.Flags&0x10 != 0 {
+		e.HexTenFlag = 1
+	}
+
 	return nil
 }
 
