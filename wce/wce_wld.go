@@ -4627,9 +4627,6 @@ func (e *TrackInstance) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFrag
 		e.Interpolate = 1
 	}
 
-	// Print debug information for the track
-	fmt.Printf("Track: %s, Animation: %s, Model: %s\n", e.Tag, e.animation, e.model)
-
 	return nil
 }
 

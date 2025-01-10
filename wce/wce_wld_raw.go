@@ -786,11 +786,9 @@ func (wce *Wce) trackAnimationParse(tag string) (string, string) {
 	// Special cases for isChr == false
 	if strings.HasPrefix(tag, wce.currentAniCode) {
 		if wce.currentAniModelCode == "IT157" && len(tag) >= 6 && tag[3:6] == "SNA" {
-			fmt.Printf("[trackAnimationParse] Special case IT157/SNA match (Tag: %s)\n", tag)
 			return wce.currentAniCode, wce.currentAniModelCode
 		}
 		if wce.currentAniModelCode == "IT61" && len(tag) >= 6 && tag[3:6] == "WIP" {
-			fmt.Printf("[trackAnimationParse] Special case IT61/WIP match (Tag: %s)\n", tag)
 			return wce.currentAniCode, wce.currentAniModelCode
 		}
 	}
