@@ -3208,6 +3208,8 @@ func (e *ActorInst) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
 			}
 
 			wfActorInst.ActorDefRef = int32(actorDefRef)
+		} else {
+			wfActorInst.ActorDefRef = rawWld.NameAdd(e.DefinitionTag)
 		}
 	}
 
