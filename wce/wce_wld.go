@@ -4600,17 +4600,14 @@ func (e *TrackInstance) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFrag
 		e.SpriteTag = wce.lastReadModelTag
 	}
 
-	// Use original logic if isObj is true
 	if wce.isObj {
 		e.model = wce.lastReadModelTag
-		e.animation = "" // Ensure animation is blank for non-animation tracks
+		e.animation = ""
 	} else if wce.isTrackAni(e.Tag) {
-		// Parse animation and model codes
 		e.animation, e.model = wce.trackAnimationParse(e.Tag)
 	} else {
-		// Fallback to original logic
 		e.model = wce.lastReadModelTag
-		e.animation = "" // Ensure animation is blank for non-animation tracks
+		e.animation = ""
 	}
 
 	e.DefinitionTag = rawWld.Name(trackDef.NameRef)
@@ -4627,11 +4624,15 @@ func (e *TrackInstance) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFrag
 		e.Interpolate = 1
 	}
 
+	// Print debug information for the track
+	fmt.Printf("Track: %s, Animation: %s, Model: %s\n", e.Tag, e.animation, e.model)
+
 	return nil
 }
 
 type TrackDef struct {
 	fragID       int16
+	animation    string
 	model        string
 	Tag          string
 	TagIndex     int
@@ -4869,7 +4870,20 @@ func (e *TrackDef) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragTrack
 	if seqNum < 0 {
 		e.SpriteTag = wce.lastReadModelTag
 	}
-	e.model = wce.lastReadModelTag
+
+	if wce.isObj {
+		e.model = wce.lastReadModelTag
+		e.animation = ""
+	} else {
+		modifiedTag := strings.TrimSuffix(e.Tag, "DEF")
+
+		if wce.isTrackAni(modifiedTag) {
+			e.animation, e.model = wce.trackAnimationParse(modifiedTag)
+		} else {
+			e.model = wce.lastReadModelTag
+			e.animation = ""
+		}
+	}
 
 	for _, fragFrame := range frag.FrameTransforms {
 		//scale := float32(1.0)
