@@ -6,10 +6,15 @@ import (
 	"io"
 
 	"github.com/xackery/encdec"
+	"github.com/xackery/quail/common"
 )
 
 // WldFragTrackDef is TrackDef in libeq, Mob Skeleton Piece WldFragTrackDef in openzone, TRACKDEFINITION in wld, TrackDefFragment in lantern
 type WldFragTrackDef struct {
+	parents         []common.TreeLinker
+	children        []common.TreeLinker
+	fragID          int
+	tag             string
 	NameRef         int32                       `yaml:"name_ref"`
 	Flags           uint32                      `yaml:"flags"`
 	FrameTransforms []WldFragTrackBoneTransform `yaml:"skeleton_transforms"`
@@ -99,4 +104,36 @@ func (e *WldFragTrackDef) Read(r io.ReadSeeker, isNewWorld bool) error {
 		return fmt.Errorf("write: %w", err)
 	}
 	return nil
+}
+
+func (e *WldFragTrackDef) Parents() []common.TreeLinker {
+	return e.parents
+}
+
+func (e *WldFragTrackDef) AddParent(parent common.TreeLinker) {
+	e.parents = append(e.parents, parent)
+}
+
+func (e *WldFragTrackDef) Tag() string {
+	return e.tag
+}
+
+func (e *WldFragTrackDef) SetFragID(id int) {
+	e.fragID = id
+}
+
+func (e *WldFragTrackDef) FragID() int {
+	return e.fragID
+}
+
+func (e *WldFragTrackDef) Children() []common.TreeLinker {
+	return nil
+}
+
+func (e *WldFragTrackDef) FragType() string {
+	return "TRKD"
+}
+
+func (e *WldFragTrackDef) AddChild(child common.TreeLinker) {
+	e.children = append(e.children, child)
 }

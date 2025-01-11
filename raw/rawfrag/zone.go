@@ -6,11 +6,16 @@ import (
 	"io"
 
 	"github.com/xackery/encdec"
+	"github.com/xackery/quail/common"
 	"github.com/xackery/quail/helper"
 )
 
 // WldFragZone is Zone in libeq, Region Flag in openzone, ZONE in wld, BspRegionType in lantern
 type WldFragZone struct {
+	parents  []common.TreeLinker
+	children []common.TreeLinker
+	fragID   int
+	tag      string
 	NameRef  int32    `yaml:"name_ref"`
 	Flags    uint32   `yaml:"flags"`
 	Regions  []uint32 `yaml:"regions"`
@@ -67,4 +72,36 @@ func (e *WldFragZone) Read(r io.ReadSeeker, isNewWorld bool) error {
 	}
 
 	return nil
+}
+
+func (e *WldFragZone) Parents() []common.TreeLinker {
+	return e.parents
+}
+
+func (e *WldFragZone) AddParent(parent common.TreeLinker) {
+	e.parents = append(e.parents, parent)
+}
+
+func (e *WldFragZone) Tag() string {
+	return e.tag
+}
+
+func (e *WldFragZone) SetFragID(id int) {
+	e.fragID = id
+}
+
+func (e *WldFragZone) FragID() int {
+	return e.fragID
+}
+
+func (e *WldFragZone) Children() []common.TreeLinker {
+	return nil
+}
+
+func (e *WldFragZone) FragType() string {
+	return "ZOND"
+}
+
+func (e *WldFragZone) AddChild(child common.TreeLinker) {
+	e.children = append(e.children, child)
 }

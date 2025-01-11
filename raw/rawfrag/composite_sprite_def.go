@@ -6,12 +6,17 @@ import (
 	"io"
 
 	"github.com/xackery/encdec"
+	"github.com/xackery/quail/common"
 )
 
 // WldFragCompositeSpriteDef is empty in libeq, empty in openzone, COMPOSITESPRITEDEF in wld, Actor in lantern
 type WldFragCompositeSpriteDef struct {
-	NameRef int32  `yaml:"name_ref"`
-	Flags   uint32 `yaml:"flags"`
+	parents  []common.TreeLinker
+	children []common.TreeLinker
+	fragID   int
+	tag      string
+	NameRef  int32  `yaml:"name_ref"`
+	Flags    uint32 `yaml:"flags"`
 }
 
 func (e *WldFragCompositeSpriteDef) FragCode() int {
@@ -38,4 +43,36 @@ func (e *WldFragCompositeSpriteDef) Read(r io.ReadSeeker, isNewWorld bool) error
 		return fmt.Errorf("read: %w", err)
 	}
 	return nil
+}
+
+func (e *WldFragCompositeSpriteDef) Parents() []common.TreeLinker {
+	return e.parents
+}
+
+func (e *WldFragCompositeSpriteDef) AddParent(parent common.TreeLinker) {
+	e.parents = append(e.parents, parent)
+}
+
+func (e *WldFragCompositeSpriteDef) Tag() string {
+	return e.tag
+}
+
+func (e *WldFragCompositeSpriteDef) SetFragID(id int) {
+	e.fragID = id
+}
+
+func (e *WldFragCompositeSpriteDef) FragID() int {
+	return e.fragID
+}
+
+func (e *WldFragCompositeSpriteDef) Children() []common.TreeLinker {
+	return nil
+}
+
+func (e *WldFragCompositeSpriteDef) FragType() string {
+	return "COSD"
+}
+
+func (e *WldFragCompositeSpriteDef) AddChild(child common.TreeLinker) {
+	e.children = append(e.children, child)
 }

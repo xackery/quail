@@ -8,10 +8,9 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/xackery/quail/model"
+	"github.com/xackery/quail/common"
 	"github.com/xackery/quail/raw"
 	"github.com/xackery/quail/raw/rawfrag"
-	"github.com/xackery/quail/tree"
 )
 
 func (wce *Wce) ReadWldRaw(src *raw.Wld) error {
@@ -24,18 +23,6 @@ func (wce *Wce) ReadWldRaw(src *raw.Wld) error {
 	}
 	if src.IsZone {
 		wce.WorldDef.Zone = 1
-	}
-
-	roots, err := tree.BuildFragReferenceTree(src)
-	if err != nil {
-		fmt.Println("Error:", err)
-		return nil
-	}
-
-	// Traverse and print the trees
-	for rootID, root := range roots {
-		fmt.Printf("Root Node: %d (%s)\n", rootID, root.Tag)
-		tree.PrintNode(root, 0)
 	}
 
 	modelChunks := make(map[int]string)
@@ -69,7 +56,7 @@ func (wce *Wce) ReadWldRaw(src *raw.Wld) error {
 	return nil
 }
 
-func readRawFrag(e *Wce, rawWld *raw.Wld, fragment model.FragmentReadWriter) error {
+func readRawFrag(e *Wce, rawWld *raw.Wld, fragment common.FragmentReadWriter) error {
 	switch fragment.FragCode() {
 	case rawfrag.FragCodeGlobalAmbientLightDef:
 
@@ -123,7 +110,7 @@ func readRawFrag(e *Wce, rawWld *raw.Wld, fragment model.FragmentReadWriter) err
 		e.isVariationMaterial = true
 	case rawfrag.FragCodeDmSpriteDef2:
 		def := &DMSpriteDef2{}
-		err := def.FromRaw(e, rawWld, fragment.(*rawfrag.WldFragDmSpriteDef2))
+		err := def.FromRaw(e, rawWld, fragment.(*rawfrag.WldFragDMSpriteDef2))
 		if err != nil {
 			return fmt.Errorf("dmspritedef2: %w", err)
 		}
@@ -162,7 +149,7 @@ func readRawFrag(e *Wce, rawWld *raw.Wld, fragment model.FragmentReadWriter) err
 		}
 	case rawfrag.FragCodeDmTrackDef2:
 		def := &DMTrackDef2{}
-		err := def.FromRaw(e, rawWld, fragment.(*rawfrag.WldFragDmTrackDef2))
+		err := def.FromRaw(e, rawWld, fragment.(*rawfrag.WldFragDMTrackDef2))
 		if err != nil {
 			return fmt.Errorf("dmtrackdef2: %w", err)
 		}
@@ -303,7 +290,7 @@ func (wce *Wce) WriteWldRaw(w io.Writer) error {
 		dst.IsNewWorld = true
 	}
 	if dst.Fragments == nil {
-		dst.Fragments = []model.FragmentReadWriter{}
+		dst.Fragments = []common.FragmentReadWriter{}
 	}
 	dst.NameClear()
 
@@ -550,7 +537,7 @@ func (wce *Wce) WriteWldRaw(w io.Writer) error {
 		}
 	}
 
-	dst.Fragments = append([]model.FragmentReadWriter{&rawfrag.WldFragDefault{}}, dst.Fragments...)
+	dst.Fragments = append([]common.FragmentReadWriter{&rawfrag.WldFragDefault{}}, dst.Fragments...)
 	return dst.Write(w)
 }
 

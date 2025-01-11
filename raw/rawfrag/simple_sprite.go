@@ -6,10 +6,15 @@ import (
 	"io"
 
 	"github.com/xackery/encdec"
+	"github.com/xackery/quail/common"
 )
 
 // WldFragSimpleSprite is SimpleSprite in libeq, Texture Bitmap Info Reference in openzone, SIMPLESPRITEINST in wld, BitmapInfoReference in lantern
 type WldFragSimpleSprite struct {
+	parents   []common.TreeLinker
+	children  []common.TreeLinker
+	fragID    int
+	tag       string
 	NameRef   int32  `yaml:"name_ref"`
 	SpriteRef uint32 `yaml:"sprite_ref"`
 	Flags     uint32 `yaml:"flags"`
@@ -42,4 +47,36 @@ func (e *WldFragSimpleSprite) Read(r io.ReadSeeker, isNewWorld bool) error {
 		return fmt.Errorf("read: %w", err)
 	}
 	return nil
+}
+
+func (e *WldFragSimpleSprite) Parents() []common.TreeLinker {
+	return e.parents
+}
+
+func (e *WldFragSimpleSprite) AddParent(parent common.TreeLinker) {
+	e.parents = append(e.parents, parent)
+}
+
+func (e *WldFragSimpleSprite) Tag() string {
+	return e.tag
+}
+
+func (e *WldFragSimpleSprite) SetFragID(id int) {
+	e.fragID = id
+}
+
+func (e *WldFragSimpleSprite) FragID() int {
+	return e.fragID
+}
+
+func (e *WldFragSimpleSprite) Children() []common.TreeLinker {
+	return nil
+}
+
+func (e *WldFragSimpleSprite) FragType() string {
+	return "SISI"
+}
+
+func (e *WldFragSimpleSprite) AddChild(child common.TreeLinker) {
+	e.children = append(e.children, child)
 }

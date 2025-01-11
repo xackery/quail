@@ -6,10 +6,15 @@ import (
 	"io"
 
 	"github.com/xackery/encdec"
+	"github.com/xackery/quail/common"
 )
 
-// WldFragDMSpriteDef is DmSpriteDef in libeq, Alternate Mesh in openzone, DMSPRITEDEF in wld, LegacyMesh in lantern
+// WldFragDMSpriteDef is DMSpriteDef in libeq, Alternate Mesh in openzone, DMSPRITEDEF in wld, LegacyMesh in lantern
 type WldFragDMSpriteDef struct {
+	parents              []common.TreeLinker
+	children             []common.TreeLinker
+	fragID               int
+	tag                  string
 	NameRef              int32
 	Flags                uint32
 	Fragment1            int16
@@ -271,4 +276,36 @@ func (e *WldFragDMSpriteDef) Read(r io.ReadSeeker, isNewWorld bool) error {
 	}
 	return nil
 
+}
+
+func (e *WldFragDMSpriteDef) Parents() []common.TreeLinker {
+	return e.parents
+}
+
+func (e *WldFragDMSpriteDef) AddParent(parent common.TreeLinker) {
+	e.parents = append(e.parents, parent)
+}
+
+func (e *WldFragDMSpriteDef) Tag() string {
+	return e.tag
+}
+
+func (e *WldFragDMSpriteDef) SetFragID(id int) {
+	e.fragID = id
+}
+
+func (e *WldFragDMSpriteDef) FragID() int {
+	return e.fragID
+}
+
+func (e *WldFragDMSpriteDef) Children() []common.TreeLinker {
+	return nil
+}
+
+func (e *WldFragDMSpriteDef) FragType() string {
+	return "DMSD"
+}
+
+func (e *WldFragDMSpriteDef) AddChild(child common.TreeLinker) {
+	e.children = append(e.children, child)
 }

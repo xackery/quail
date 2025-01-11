@@ -6,10 +6,15 @@ import (
 	"io"
 
 	"github.com/xackery/encdec"
+	"github.com/xackery/quail/common"
 )
 
 // WldFragSprite3DDef is Sprite3DDef in libeq, Camera in openzone, 3DSPRITEDEF in wld, Camera in lantern
 type WldFragSprite3DDef struct {
+	parents        []common.TreeLinker
+	children       []common.TreeLinker
+	fragID         int
+	tag            string
 	NameRef        int32
 	Flags          uint32
 	SphereListRef  uint32
@@ -181,4 +186,36 @@ func (e *WldFragSprite3DDef) Read(r io.ReadSeeker, isNewWorld bool) error {
 	}
 	return nil
 
+}
+
+func (e *WldFragSprite3DDef) Parents() []common.TreeLinker {
+	return e.parents
+}
+
+func (e *WldFragSprite3DDef) AddParent(parent common.TreeLinker) {
+	e.parents = append(e.parents, parent)
+}
+
+func (e *WldFragSprite3DDef) Tag() string {
+	return e.tag
+}
+
+func (e *WldFragSprite3DDef) SetFragID(id int) {
+	e.fragID = id
+}
+
+func (e *WldFragSprite3DDef) FragID() int {
+	return e.fragID
+}
+
+func (e *WldFragSprite3DDef) Children() []common.TreeLinker {
+	return nil
+}
+
+func (e *WldFragSprite3DDef) FragType() string {
+	return "S3DD"
+}
+
+func (e *WldFragSprite3DDef) AddChild(child common.TreeLinker) {
+	e.children = append(e.children, child)
 }

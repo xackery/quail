@@ -6,11 +6,16 @@ import (
 	"io"
 
 	"github.com/xackery/encdec"
+	"github.com/xackery/quail/common"
 	"github.com/xackery/quail/model"
 )
 
 // WldFragSprite4DDef is Sprite4DDef in libeq, empty in openzone, 4DSPRITEDEF in wld
 type WldFragSprite4DDef struct {
+	parents         []common.TreeLinker
+	children        []common.TreeLinker
+	fragID          int
+	tag             string
 	NameRef         int32         `yaml:"name_ref"`
 	Flags           uint32        `yaml:"flags"`
 	PolyRef         int32         `yaml:"poly_ref"`
@@ -87,4 +92,36 @@ func (e *WldFragSprite4DDef) Read(r io.ReadSeeker, isNewWorld bool) error {
 		return fmt.Errorf("read: %w", err)
 	}
 	return nil
+}
+
+func (e *WldFragSprite4DDef) Parents() []common.TreeLinker {
+	return e.parents
+}
+
+func (e *WldFragSprite4DDef) AddParent(parent common.TreeLinker) {
+	e.parents = append(e.parents, parent)
+}
+
+func (e *WldFragSprite4DDef) Tag() string {
+	return e.tag
+}
+
+func (e *WldFragSprite4DDef) SetFragID(id int) {
+	e.fragID = id
+}
+
+func (e *WldFragSprite4DDef) FragID() int {
+	return e.fragID
+}
+
+func (e *WldFragSprite4DDef) Children() []common.TreeLinker {
+	return nil
+}
+
+func (e *WldFragSprite4DDef) FragType() string {
+	return "S4DD"
+}
+
+func (e *WldFragSprite4DDef) AddChild(child common.TreeLinker) {
+	e.children = append(e.children, child)
 }

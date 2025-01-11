@@ -6,10 +6,15 @@ import (
 	"io"
 
 	"github.com/xackery/encdec"
+	"github.com/xackery/quail/common"
 )
 
 // WldFragParticleCloudDef is ParticleCloudDef in libeq, empty in openzone, empty in wld, WldFragParticleCloudDef in lantern
 type WldFragParticleCloudDef struct {
+	parents               []common.TreeLinker
+	children              []common.TreeLinker
+	fragID                int
+	tag                   string
 	NameRef               int32
 	SettingOne            uint32
 	SettingTwo            uint32
@@ -101,4 +106,36 @@ func (e *WldFragParticleCloudDef) Read(r io.ReadSeeker, isNewWorld bool) error {
 		return fmt.Errorf("read: %w", err)
 	}
 	return nil
+}
+
+func (e *WldFragParticleCloudDef) Parents() []common.TreeLinker {
+	return e.parents
+}
+
+func (e *WldFragParticleCloudDef) AddParent(parent common.TreeLinker) {
+	e.parents = append(e.parents, parent)
+}
+
+func (e *WldFragParticleCloudDef) Tag() string {
+	return e.tag
+}
+
+func (e *WldFragParticleCloudDef) SetFragID(id int) {
+	e.fragID = id
+}
+
+func (e *WldFragParticleCloudDef) FragID() int {
+	return e.fragID
+}
+
+func (e *WldFragParticleCloudDef) Children() []common.TreeLinker {
+	return nil
+}
+
+func (e *WldFragParticleCloudDef) FragType() string {
+	return "PACD"
+}
+
+func (e *WldFragParticleCloudDef) AddChild(child common.TreeLinker) {
+	e.children = append(e.children, child)
 }

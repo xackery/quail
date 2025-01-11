@@ -692,7 +692,7 @@ func (e *DMSpriteDef2) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
 		}
 	}
 
-	dmSpriteDef := &rawfrag.WldFragDmSpriteDef2{
+	dmSpriteDef := &rawfrag.WldFragDMSpriteDef2{
 		MaterialPaletteRef:   uint32(materialPaletteRef),
 		CenterOffset:         e.CenterOffset,
 		Params2:              e.Params2,
@@ -866,7 +866,7 @@ func (e *DMSpriteDef2) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
 	return int16(len(rawWld.Fragments)), nil
 }
 
-func (e *DMSpriteDef2) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragDmSpriteDef2) error {
+func (e *DMSpriteDef2) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragDMSpriteDef2) error {
 	if frag == nil {
 		return fmt.Errorf("frag is not dmspritedef2 (wrong fragcode?)")
 	}
@@ -894,7 +894,7 @@ func (e *DMSpriteDef2) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragD
 		if len(rawWld.Fragments) < int(dmTrack.TrackRef) {
 			return fmt.Errorf("dmtrack name ref %d out of bounds", dmTrack.TrackRef)
 		}
-		dmTrackDef, ok := rawWld.Fragments[dmTrack.TrackRef].(*rawfrag.WldFragDmTrackDef2)
+		dmTrackDef, ok := rawWld.Fragments[dmTrack.TrackRef].(*rawfrag.WldFragDMTrackDef2)
 		if !ok {
 			return fmt.Errorf("dmtrackdef2 name ref %d not valid", dmTrack.TrackRef)
 		}
@@ -2951,7 +2951,7 @@ func (e *ActorDef) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragActor
 					switch spriteDef := rawWld.Fragments[sprite.DMSpriteRef].(type) {
 					case *rawfrag.WldFragDMSpriteDef:
 						spriteTag = rawWld.Name(spriteDef.NameRef)
-					case *rawfrag.WldFragDmSpriteDef2:
+					case *rawfrag.WldFragDMSpriteDef2:
 						spriteTag = rawWld.Name(spriteDef.NameRef)
 					default:
 						return fmt.Errorf("unhandled dmsprite instance def fragment type %d (%s)", sprite.FragCode(), raw.FragName(sprite.FragCode()))
@@ -5576,7 +5576,7 @@ func (e *HierarchicalSpriteDef) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag
 					spriteTag = rawWld.Name(simpleSprite.NameRef)
 				case *rawfrag.WldFragSprite2D:
 					spriteTag = rawWld.Name(simpleSprite.NameRef)
-				case *rawfrag.WldFragDmSpriteDef2:
+				case *rawfrag.WldFragDMSpriteDef2:
 					spriteTag = rawWld.Name(simpleSprite.NameRef)
 				case *rawfrag.WldFragBlitSpriteDef:
 					spriteTag = rawWld.Name(simpleSprite.NameRef)
@@ -5624,7 +5624,7 @@ func (e *HierarchicalSpriteDef) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag
 			dmSpriteTag = rawWld.Name(spriteDef.NameRef)
 		case *rawfrag.WldFragSprite2D:
 			dmSpriteTag = rawWld.Name(spriteDef.NameRef)
-		case *rawfrag.WldFragDmSpriteDef2:
+		case *rawfrag.WldFragDMSpriteDef2:
 			dmSpriteTag = rawWld.Name(spriteDef.NameRef)
 		default:
 			return fmt.Errorf("unhandled dmsprite reference fragment type %d (%s) at offset %d", spriteDef.FragCode(), raw.FragName(spriteDef.FragCode()), i)
@@ -6707,7 +6707,7 @@ func (e *Region) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragRegion)
 
 		rawMesh := rawWld.Fragments[frag.MeshReference]
 		switch mesh := rawMesh.(type) {
-		case *rawfrag.WldFragDmSpriteDef2:
+		case *rawfrag.WldFragDMSpriteDef2:
 			e.SpriteTag = rawWld.Name(mesh.NameRef)
 		default:
 			return fmt.Errorf("unhandled mesh reference fragment type %d (%s)", rawMesh.FragCode(), raw.FragName(rawMesh.FragCode()))
@@ -8416,7 +8416,7 @@ func (e *DMTrackDef2) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
 	//	return e.fragID, nil
 	//}
 
-	wfTrack2 := &rawfrag.WldFragDmTrackDef2{
+	wfTrack2 := &rawfrag.WldFragDMTrackDef2{
 		Sleep:  e.Sleep,
 		Param2: e.Param2,
 		Scale:  e.FPScale,
@@ -8450,7 +8450,7 @@ func (e *DMTrackDef2) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
 	return int16(e.fragID), nil
 }
 
-func (e *DMTrackDef2) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragDmTrackDef2) error {
+func (e *DMTrackDef2) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragDMTrackDef2) error {
 	if frag == nil {
 		return fmt.Errorf("frag is not trackdef (wrong fragcode?)")
 	}

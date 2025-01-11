@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/xackery/quail/common"
-	"github.com/xackery/quail/model"
 	"github.com/xackery/quail/raw"
 	"github.com/xackery/quail/raw/rawfrag"
 )
@@ -65,7 +64,7 @@ func (e *Quail) wldWrite(wld *raw.Wld) error {
 		return fmt.Errorf("wld is nil")
 	}
 	if wld.Fragments == nil {
-		wld.Fragments = []model.FragmentReadWriter{&rawfrag.WldFragDefault{}}
+		wld.Fragments = []common.FragmentReadWriter{&rawfrag.WldFragDefault{}}
 	}
 
 	fragIndex := 1
@@ -80,7 +79,7 @@ func (e *Quail) wldWrite(wld *raw.Wld) error {
 	//material materialdef
 
 	for _, mod := range e.Models {
-		mesh := &rawfrag.WldFragDmSpriteDef2{}
+		mesh := &rawfrag.WldFragDMSpriteDef2{}
 
 		materialList := &rawfrag.WldFragMaterialPalette{}
 		for _, srcMat := range mod.Materials {

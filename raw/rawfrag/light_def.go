@@ -6,10 +6,15 @@ import (
 	"io"
 
 	"github.com/xackery/encdec"
+	"github.com/xackery/quail/common"
 )
 
 // WldFragLightDef is LightDef in libeq, WldFragLightDef Source in openzone, LIGHT (ref) in wld, LightSource in lantern
 type WldFragLightDef struct {
+	parents         []common.TreeLinker
+	children        []common.TreeLinker
+	fragID          int
+	tag             string
 	NameRef         int32        `yaml:"name_ref"`
 	Flags           uint32       `yaml:"flags"`
 	FrameCurrentRef uint32       `yaml:"frame_current_ref"`
@@ -79,4 +84,36 @@ func (e *WldFragLightDef) Read(r io.ReadSeeker, isNewWorld bool) error {
 		return fmt.Errorf("read: %w", err)
 	}
 	return nil
+}
+
+func (e *WldFragLightDef) Parents() []common.TreeLinker {
+	return e.parents
+}
+
+func (e *WldFragLightDef) AddParent(parent common.TreeLinker) {
+	e.parents = append(e.parents, parent)
+}
+
+func (e *WldFragLightDef) Tag() string {
+	return e.tag
+}
+
+func (e *WldFragLightDef) SetFragID(id int) {
+	e.fragID = id
+}
+
+func (e *WldFragLightDef) FragID() int {
+	return e.fragID
+}
+
+func (e *WldFragLightDef) Children() []common.TreeLinker {
+	return nil
+}
+
+func (e *WldFragLightDef) FragType() string {
+	return "LITD"
+}
+
+func (e *WldFragLightDef) AddChild(child common.TreeLinker) {
+	e.children = append(e.children, child)
 }

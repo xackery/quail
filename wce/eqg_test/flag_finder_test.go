@@ -81,7 +81,7 @@ func TestFragFlags(t *testing.T) {
 			for i := 0; i < len(rawWld.Fragments); i++ {
 				fragRaw := rawWld.Fragments[i]
 
-				frag, ok := fragRaw.(*rawfrag.WldFragDmSpriteDef2)
+				frag, ok := fragRaw.(*rawfrag.WldFragDMSpriteDef2)
 				if !ok {
 					continue
 				}

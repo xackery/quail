@@ -6,10 +6,15 @@ import (
 	"io"
 
 	"github.com/xackery/encdec"
+	"github.com/xackery/quail/common"
 )
 
 // WldFragMaterialDef is MaterialDef in libeq, Texture in openzone, MATERIALDEFINITION in wld, Material in lantern
 type WldFragMaterialDef struct {
+	parents         []common.TreeLinker
+	children        []common.TreeLinker
+	fragID          int
+	tag             string
 	NameRef         int32    `yaml:"name_ref"`
 	Flags           uint32   `yaml:"flags"`
 	RenderMethod    uint32   `yaml:"render_method"`
@@ -66,4 +71,36 @@ func (e *WldFragMaterialDef) Read(r io.ReadSeeker, isNewWorld bool) error {
 		return fmt.Errorf("read: %w", err)
 	}
 	return nil
+}
+
+func (e *WldFragMaterialDef) Parents() []common.TreeLinker {
+	return e.parents
+}
+
+func (e *WldFragMaterialDef) AddParent(parent common.TreeLinker) {
+	e.parents = append(e.parents, parent)
+}
+
+func (e *WldFragMaterialDef) Tag() string {
+	return e.tag
+}
+
+func (e *WldFragMaterialDef) SetFragID(id int) {
+	e.fragID = id
+}
+
+func (e *WldFragMaterialDef) FragID() int {
+	return e.fragID
+}
+
+func (e *WldFragMaterialDef) Children() []common.TreeLinker {
+	return nil
+}
+
+func (e *WldFragMaterialDef) FragType() string {
+	return "MATD"
+}
+
+func (e *WldFragMaterialDef) AddChild(child common.TreeLinker) {
+	e.children = append(e.children, child)
 }

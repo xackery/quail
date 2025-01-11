@@ -6,24 +6,29 @@ import (
 	"io"
 
 	"github.com/xackery/encdec"
+	"github.com/xackery/quail/common"
 )
 
-// WldFragDmTrackDef2 is DmTrackDef2 in libeq, Mesh Animated Vertices in openzone, DMTRACKDEF in wld, MeshAnimatedVertices in lantern
-type WldFragDmTrackDef2 struct {
-	NameRef int32
-	Flags   uint32
-	Sleep   uint16
-	Param2  uint16
-	Scale   uint16
-	Frames  [][][3]int16
-	Size6   uint16
+// WldFragDMTrackDef2 is DmTrackDef2 in libeq, Mesh Animated Vertices in openzone, DMTRACKDEF in wld, MeshAnimatedVertices in lantern
+type WldFragDMTrackDef2 struct {
+	parents  []common.TreeLinker
+	children []common.TreeLinker
+	fragID   int
+	tag      string
+	NameRef  int32
+	Flags    uint32
+	Sleep    uint16
+	Param2   uint16
+	Scale    uint16
+	Frames   [][][3]int16
+	Size6    uint16
 }
 
-func (e *WldFragDmTrackDef2) FragCode() int {
+func (e *WldFragDMTrackDef2) FragCode() int {
 	return FragCodeDmTrackDef2
 }
 
-func (e *WldFragDmTrackDef2) Write(w io.Writer, isNewWorld bool) error {
+func (e *WldFragDMTrackDef2) Write(w io.Writer, isNewWorld bool) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
 	enc.Int32(e.NameRef)
 	enc.Uint32(e.Flags)
@@ -50,7 +55,7 @@ func (e *WldFragDmTrackDef2) Write(w io.Writer, isNewWorld bool) error {
 	return nil
 }
 
-func (e *WldFragDmTrackDef2) Read(r io.ReadSeeker, isNewWorld bool) error {
+func (e *WldFragDMTrackDef2) Read(r io.ReadSeeker, isNewWorld bool) error {
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	e.NameRef = dec.Int32()
 	e.Flags = dec.Uint32()
@@ -74,4 +79,36 @@ func (e *WldFragDmTrackDef2) Read(r io.ReadSeeker, isNewWorld bool) error {
 		return err
 	}
 	return nil
+}
+
+func (e *WldFragDMTrackDef2) Parents() []common.TreeLinker {
+	return e.parents
+}
+
+func (e *WldFragDMTrackDef2) AddParent(parent common.TreeLinker) {
+	e.parents = append(e.parents, parent)
+}
+
+func (e *WldFragDMTrackDef2) Tag() string {
+	return e.tag
+}
+
+func (e *WldFragDMTrackDef2) SetFragID(id int) {
+	e.fragID = id
+}
+
+func (e *WldFragDMTrackDef2) FragID() int {
+	return e.fragID
+}
+
+func (e *WldFragDMTrackDef2) Children() []common.TreeLinker {
+	return nil
+}
+
+func (e *WldFragDMTrackDef2) FragType() string {
+	return "DT2D"
+}
+
+func (e *WldFragDMTrackDef2) AddChild(child common.TreeLinker) {
+	e.children = append(e.children, child)
 }

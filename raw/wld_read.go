@@ -7,8 +7,8 @@ import (
 	"io"
 
 	"github.com/xackery/encdec"
+	"github.com/xackery/quail/common"
 	"github.com/xackery/quail/helper"
-	"github.com/xackery/quail/model"
 	"github.com/xackery/quail/raw/rawfrag"
 )
 
@@ -17,7 +17,7 @@ type Wld struct {
 	Version      uint32
 	IsNewWorld   bool
 	IsZone       bool
-	Fragments    []model.FragmentReadWriter
+	Fragments    []common.FragmentReadWriter
 	Unk2         uint32
 	Unk3         uint32
 	names        []*nameEntry
@@ -31,7 +31,7 @@ func (wld *Wld) Identity() string {
 // Read reads a wld file that was prepped by Load
 func (wld *Wld) Read(r io.ReadSeeker) error {
 	if wld.Fragments == nil {
-		wld.Fragments = []model.FragmentReadWriter{&rawfrag.WldFragDefault{}}
+		wld.Fragments = []common.FragmentReadWriter{&rawfrag.WldFragDefault{}}
 	}
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	header := dec.Bytes(4)
@@ -367,11 +367,11 @@ func (wld *Wld) TagByFrag(srcFrag interface{}) string {
 		return wld.Name(frag.NameRef)
 	case *rawfrag.WldFragDmRGBTrackDef:
 		return wld.Name(frag.NameRef)
-	case *rawfrag.WldFragDmSpriteDef2:
+	case *rawfrag.WldFragDMSpriteDef2:
 		return wld.Name(frag.NameRef)
 	case *rawfrag.WldFragDMSpriteDef:
 		return wld.Name(frag.NameRef)
-	case *rawfrag.WldFragDmTrackDef2:
+	case *rawfrag.WldFragDMTrackDef2:
 		return wld.Name(frag.NameRef)
 	case *rawfrag.WldFragLight:
 		return wld.Name(frag.NameRef)
@@ -434,4 +434,27 @@ func (wld *Wld) TagByFrag(srcFrag interface{}) string {
 	}
 
 	return ""
+}
+
+func (wld *Wld) AddParent(parent common.TreeLinker) {
+}
+
+func (wld *Wld) Tag() string {
+	return wld.MetaFileName
+}
+
+func (wld *Wld) FragID() int {
+	return -1
+}
+
+func (wld *Wld) Children() []common.TreeLinker {
+	children := []common.TreeLinker{}
+	for _, frag := range wld.Fragments {
+		children = append(children, frag)
+	}
+	return children
+}
+
+func (wld *Wld) FragType() string {
+	return "ROOT"
 }

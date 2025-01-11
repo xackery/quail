@@ -6,10 +6,15 @@ import (
 	"io"
 
 	"github.com/xackery/encdec"
+	"github.com/xackery/quail/common"
 )
 
 // WldFragSphereList is SphereList in libeq, empty in openzone, SPHERELIST (ref) in wld
 type WldFragSphereList struct {
+	parents          []common.TreeLinker
+	children         []common.TreeLinker
+	fragID           int
+	tag              string
 	NameRef          int32  `yaml:"name_ref"`
 	SphereListDefRef int32  `yaml:"sphere_list_def_ref"`
 	Params1          uint32 `yaml:"params1"`
@@ -41,4 +46,36 @@ func (e *WldFragSphereList) Read(r io.ReadSeeker, isNewWorld bool) error {
 		return fmt.Errorf("read: %w", err)
 	}
 	return nil
+}
+
+func (e *WldFragSphereList) Parents() []common.TreeLinker {
+	return e.parents
+}
+
+func (e *WldFragSphereList) AddParent(parent common.TreeLinker) {
+	e.parents = append(e.parents, parent)
+}
+
+func (e *WldFragSphereList) Tag() string {
+	return e.tag
+}
+
+func (e *WldFragSphereList) SetFragID(id int) {
+	e.fragID = id
+}
+
+func (e *WldFragSphereList) FragID() int {
+	return e.fragID
+}
+
+func (e *WldFragSphereList) Children() []common.TreeLinker {
+	return nil
+}
+
+func (e *WldFragSphereList) FragType() string {
+	return "SPLI"
+}
+
+func (e *WldFragSphereList) AddChild(child common.TreeLinker) {
+	e.children = append(e.children, child)
 }

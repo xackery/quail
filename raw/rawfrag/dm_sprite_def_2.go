@@ -7,10 +7,15 @@ import (
 	"math"
 
 	"github.com/xackery/encdec"
+	"github.com/xackery/quail/common"
 )
 
-// WldFragDmSpriteDef2 is DmSpriteDef2 in libeq, WldFragDmSpriteDef2 in openzone, DMSPRITEDEF2 in wld, WldFragDmSpriteDef2 in lantern
-type WldFragDmSpriteDef2 struct {
+// WldFragDMSpriteDef2 is DmSpriteDef2 in libeq, WldFragDMSpriteDef2 in openzone, DMSPRITEDEF2 in wld, WldFragDMSpriteDef2 in lantern
+type WldFragDMSpriteDef2 struct {
+	parents              []common.TreeLinker
+	children             []common.TreeLinker
+	fragID               int
+	tag                  string
 	NameRef              int32
 	Flags                uint32
 	MaterialPaletteRef   uint32
@@ -57,11 +62,11 @@ type WldFragMeshOpEntry struct {
 	TypeField uint8
 }
 
-func (e *WldFragDmSpriteDef2) FragCode() int {
+func (e *WldFragDMSpriteDef2) FragCode() int {
 	return FragCodeDmSpriteDef2
 }
 
-func (e *WldFragDmSpriteDef2) Write(w io.Writer, isNewWorld bool) error {
+func (e *WldFragDMSpriteDef2) Write(w io.Writer, isNewWorld bool) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
 
 	padStart := enc.Pos()
@@ -176,7 +181,7 @@ func (e *WldFragDmSpriteDef2) Write(w io.Writer, isNewWorld bool) error {
 	return nil
 }
 
-func (e *WldFragDmSpriteDef2) Read(r io.ReadSeeker, isNewWorld bool) error {
+func (e *WldFragDMSpriteDef2) Read(r io.ReadSeeker, isNewWorld bool) error {
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	e.NameRef = dec.Int32()
 	e.Flags = dec.Uint32() // flags, currently unknown, zone meshes are 0x00018003, placeable objects are 0x00014003
@@ -291,4 +296,36 @@ func (e *WldFragDmSpriteDef2) Read(r io.ReadSeeker, isNewWorld bool) error {
 	}
 	return nil
 
+}
+
+func (e *WldFragDMSpriteDef2) Parents() []common.TreeLinker {
+	return e.parents
+}
+
+func (e *WldFragDMSpriteDef2) AddParent(parent common.TreeLinker) {
+	e.parents = append(e.parents, parent)
+}
+
+func (e *WldFragDMSpriteDef2) Tag() string {
+	return e.tag
+}
+
+func (e *WldFragDMSpriteDef2) SetFragID(id int) {
+	e.fragID = id
+}
+
+func (e *WldFragDMSpriteDef2) FragID() int {
+	return e.fragID
+}
+
+func (e *WldFragDMSpriteDef2) Children() []common.TreeLinker {
+	return nil
+}
+
+func (e *WldFragDMSpriteDef2) FragType() string {
+	return "DS2D"
+}
+
+func (e *WldFragDMSpriteDef2) AddChild(child common.TreeLinker) {
+	e.children = append(e.children, child)
 }

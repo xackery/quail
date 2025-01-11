@@ -6,11 +6,16 @@ import (
 	"io"
 
 	"github.com/xackery/encdec"
+	"github.com/xackery/quail/common"
 )
 
 // WldFragGlobalAmbientLightDef is GlobalAmbientLightDef in libeq, WldFragGlobalAmbientLightDef Fragment in openzone, empty in wld, GlobalAmbientLight in lantern
 type WldFragGlobalAmbientLightDef struct {
-	Color [4]uint8
+	parents  []common.TreeLinker
+	children []common.TreeLinker
+	fragID   int
+	tag      string
+	Color    [4]uint8
 }
 
 func (e *WldFragGlobalAmbientLightDef) FragCode() int {
@@ -42,4 +47,36 @@ func (e *WldFragGlobalAmbientLightDef) Read(r io.ReadSeeker, isNewWorld bool) er
 		return fmt.Errorf("read: %w", err)
 	}
 	return nil
+}
+
+func (e *WldFragGlobalAmbientLightDef) Parents() []common.TreeLinker {
+	return e.parents
+}
+
+func (e *WldFragGlobalAmbientLightDef) AddParent(parent common.TreeLinker) {
+	e.parents = append(e.parents, parent)
+}
+
+func (e *WldFragGlobalAmbientLightDef) Tag() string {
+	return e.tag
+}
+
+func (e *WldFragGlobalAmbientLightDef) SetFragID(id int) {
+	e.fragID = id
+}
+
+func (e *WldFragGlobalAmbientLightDef) FragID() int {
+	return e.fragID
+}
+
+func (e *WldFragGlobalAmbientLightDef) Children() []common.TreeLinker {
+	return nil
+}
+
+func (e *WldFragGlobalAmbientLightDef) FragType() string {
+	return "GALD"
+}
+
+func (e *WldFragGlobalAmbientLightDef) AddChild(child common.TreeLinker) {
+	e.children = append(e.children, child)
 }

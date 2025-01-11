@@ -71,7 +71,7 @@ func getFragRefs(fragment interface{}) []int32 {
 	case *rawfrag.WldFragDMSpriteDef:
 		refs = append(refs, int32(frag.MaterialPaletteRef)) // Cast uint32 to int32
 
-	case *rawfrag.WldFragDmSpriteDef2:
+	case *rawfrag.WldFragDMSpriteDef2:
 		refs = append(refs, int32(frag.MaterialPaletteRef)) // Cast uint32 to int32
 		refs = append(refs, frag.DMTrackRef)
 		refs = append(refs, frag.Fragment4Ref)

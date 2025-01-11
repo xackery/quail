@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/xackery/quail/common"
-	"github.com/xackery/quail/model"
 	"github.com/xackery/quail/pfs"
 	"github.com/xackery/quail/raw"
 	"github.com/xackery/quail/raw/rawfrag"
@@ -70,7 +69,7 @@ func TestTrackOrderWCE(t *testing.T) {
 				t.Fatalf("failed to read %s: %s", baseName, err.Error())
 			}
 
-			newFrags := []model.FragmentReadWriter{}
+			newFrags := []common.FragmentReadWriter{}
 			for i := 0; i < len(rawWldSrc.Fragments); i++ {
 				frag := rawWldSrc.Fragments[i]
 				switch fragData := frag.(type) {
@@ -78,7 +77,7 @@ func TestTrackOrderWCE(t *testing.T) {
 				case *rawfrag.WldFragTrackDef:
 				case *rawfrag.WldFragTrack:
 					fragData.TrackRef = int32(len(newFrags) - 1)
-				case *rawfrag.WldFragDmSpriteDef2:
+				case *rawfrag.WldFragDMSpriteDef2:
 				default:
 					continue
 				}

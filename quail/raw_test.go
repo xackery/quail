@@ -11,7 +11,6 @@ import (
 	"github.com/xackery/encdec"
 
 	"github.com/xackery/quail/common"
-	"github.com/xackery/quail/model"
 	"github.com/xackery/quail/pfs"
 	"github.com/xackery/quail/raw"
 )
@@ -28,7 +27,7 @@ func TestWldRead(t *testing.T) {
 		path      string
 		file      string
 		fragIndex int
-		want      model.FragmentReadWriter
+		want      common.FragmentReadWriter
 		wantErr   bool
 	}{
 		{"btp_chr.s3d", "btp_chr.wld", 0, nil, false},
@@ -40,7 +39,7 @@ func TestWldRead(t *testing.T) {
 			path      string
 			file      string
 			fragIndex int
-			want      model.FragmentReadWriter
+			want      common.FragmentReadWriter
 			wantErr   bool
 		}{
 			{"globalfroglok_chr.s3d", "globalfroglok_chr.wld", 0, nil, false},

@@ -1,11 +1,14 @@
-package model
+package common
 
-import "io"
+import (
+	"io"
+)
 
 // FragmentReadWriter is used to read a fragment in wld format
 type FragmentReadWriter interface {
 	FragmentReader
 	FragmentWriter
+	TreeLinker
 }
 
 type FragmentReader interface {

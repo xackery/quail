@@ -6,10 +6,15 @@ import (
 	"io"
 
 	"github.com/xackery/encdec"
+	"github.com/xackery/quail/common"
 )
 
 // WldFragPolyhedronDef is PolyhedronDef in libeq, Polygon animation in openzone, POLYHEDRONDEFINITION in wld, Fragment17 in lantern
 type WldFragPolyhedronDef struct {
+	parents        []common.TreeLinker
+	children       []common.TreeLinker
+	fragID         int
+	tag            string
 	NameRef        int32
 	Flags          uint32
 	BoundingRadius float32      // params1 in libeq
@@ -73,4 +78,36 @@ func (e *WldFragPolyhedronDef) Read(r io.ReadSeeker, isNewWorld bool) error {
 		return fmt.Errorf("read: %w", err)
 	}
 	return nil
+}
+
+func (e *WldFragPolyhedronDef) Parents() []common.TreeLinker {
+	return e.parents
+}
+
+func (e *WldFragPolyhedronDef) AddParent(parent common.TreeLinker) {
+	e.parents = append(e.parents, parent)
+}
+
+func (e *WldFragPolyhedronDef) Tag() string {
+	return e.tag
+}
+
+func (e *WldFragPolyhedronDef) SetFragID(id int) {
+	e.fragID = id
+}
+
+func (e *WldFragPolyhedronDef) FragID() int {
+	return e.fragID
+}
+
+func (e *WldFragPolyhedronDef) Children() []common.TreeLinker {
+	return nil
+}
+
+func (e *WldFragPolyhedronDef) FragType() string {
+	return "PLYD"
+}
+
+func (e *WldFragPolyhedronDef) AddChild(child common.TreeLinker) {
+	e.children = append(e.children, child)
 }

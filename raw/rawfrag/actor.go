@@ -6,10 +6,15 @@ import (
 	"io"
 
 	"github.com/xackery/encdec"
+	"github.com/xackery/quail/common"
 )
 
 // WldFragActor is Actor in libeq, Object Location in openzone, ACTORINST in wld, ObjectInstance in lantern
 type WldFragActor struct {
+	parents        []common.TreeLinker
+	children       []common.TreeLinker
+	fragID         int
+	tag            string
 	NameRef        int32
 	ActorDefRef    int32
 	Flags          uint32
@@ -103,4 +108,36 @@ func (e *WldFragActor) Read(r io.ReadSeeker, isNewWorld bool) error {
 		return fmt.Errorf("read: %w", err)
 	}
 	return nil
+}
+
+func (e *WldFragActor) Parents() []common.TreeLinker {
+	return e.parents
+}
+
+func (e *WldFragActor) AddParent(parent common.TreeLinker) {
+	e.parents = append(e.parents, parent)
+}
+
+func (e *WldFragActor) Tag() string {
+	return fmt.Sprintf("%d", e.NameRef)
+}
+
+func (e *WldFragActor) SetFragID(id int) {
+	e.fragID = id
+}
+
+func (e *WldFragActor) FragID() int {
+	return e.fragID
+}
+
+func (e *WldFragActor) Children() []common.TreeLinker {
+	return nil
+}
+
+func (e *WldFragActor) FragType() string {
+	return "ACTI"
+}
+
+func (e *WldFragActor) AddChild(child common.TreeLinker) {
+	e.children = append(e.children, child)
 }

@@ -6,16 +6,21 @@ import (
 	"io"
 
 	"github.com/xackery/encdec"
+	"github.com/xackery/quail/common"
 )
 
 // WldFragDmRGBTrackDef is a list of colors, one per vertex, for baked lighting. It is DmRGBTrackDef in libeq, Vertex Color in openzone, empty in wld, VertexColors in lantern
 type WldFragDmRGBTrackDef struct {
-	NameRef int32
-	Data1   uint32 // usually contains 1
-	Data2   uint32 // usually contains 1
-	Sleep   uint32 // usually contains 200
-	Data4   uint32 // usually contains 0
-	RGBAs   [][4]uint8
+	parents  []common.TreeLinker
+	children []common.TreeLinker
+	fragID   int
+	tag      string
+	NameRef  int32
+	Data1    uint32 // usually contains 1
+	Data2    uint32 // usually contains 1
+	Sleep    uint32 // usually contains 200
+	Data4    uint32 // usually contains 0
+	RGBAs    [][4]uint8
 }
 
 func (e *WldFragDmRGBTrackDef) FragCode() int {
@@ -81,4 +86,36 @@ func (e *WldFragDmRGBTrackDef) Read(r io.ReadSeeker, isNewWorld bool) error {
 		e.RGBAs[i][3] = dec.Uint8()
 	}
 	return nil
+}
+
+func (e *WldFragDmRGBTrackDef) Parents() []common.TreeLinker {
+	return e.parents
+}
+
+func (e *WldFragDmRGBTrackDef) AddParent(parent common.TreeLinker) {
+	e.parents = append(e.parents, parent)
+}
+
+func (e *WldFragDmRGBTrackDef) Tag() string {
+	return e.tag
+}
+
+func (e *WldFragDmRGBTrackDef) SetFragID(id int) {
+	e.fragID = id
+}
+
+func (e *WldFragDmRGBTrackDef) FragID() int {
+	return e.fragID
+}
+
+func (e *WldFragDmRGBTrackDef) Children() []common.TreeLinker {
+	return nil
+}
+
+func (e *WldFragDmRGBTrackDef) FragType() string {
+	return "RGTD"
+}
+
+func (e *WldFragDmRGBTrackDef) AddChild(child common.TreeLinker) {
+	e.children = append(e.children, child)
 }

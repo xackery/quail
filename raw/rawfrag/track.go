@@ -6,10 +6,15 @@ import (
 	"io"
 
 	"github.com/xackery/encdec"
+	"github.com/xackery/quail/common"
 )
 
 // WldFragTrack is a bone in a skeleton. It is Track in libeq, Mob Skeleton Piece Track Reference in openzone, TRACKINSTANCE in wld, TrackDefFragment in lantern
 type WldFragTrack struct {
+	parents  []common.TreeLinker
+	children []common.TreeLinker
+	fragID   int
+	tag      string
 	NameRef  int32
 	TrackRef int32
 	Flags    uint32
@@ -51,4 +56,36 @@ func (e *WldFragTrack) Read(r io.ReadSeeker, isNewWorld bool) error {
 		return fmt.Errorf("write: %w", err)
 	}
 	return nil
+}
+
+func (e *WldFragTrack) Parents() []common.TreeLinker {
+	return e.parents
+}
+
+func (e *WldFragTrack) AddParent(parent common.TreeLinker) {
+	e.parents = append(e.parents, parent)
+}
+
+func (e *WldFragTrack) Tag() string {
+	return e.tag
+}
+
+func (e *WldFragTrack) SetFragID(id int) {
+	e.fragID = id
+}
+
+func (e *WldFragTrack) FragID() int {
+	return e.fragID
+}
+
+func (e *WldFragTrack) Children() []common.TreeLinker {
+	return nil
+}
+
+func (e *WldFragTrack) FragType() string {
+	return "TRKI"
+}
+
+func (e *WldFragTrack) AddChild(child common.TreeLinker) {
+	e.children = append(e.children, child)
 }

@@ -6,12 +6,17 @@ import (
 	"io"
 
 	"github.com/xackery/encdec"
+	"github.com/xackery/quail/common"
 )
 
 // WldFragPointLightOld is empty in libeq, empty in openzone, POINTLIGHT?? in wld
 type WldFragPointLightOld struct {
-	NameRef int32  `yaml:"name_ref"`
-	Flags   uint32 `yaml:"flags"`
+	parents  []common.TreeLinker
+	children []common.TreeLinker
+	fragID   int
+	tag      string
+	NameRef  int32  `yaml:"name_ref"`
+	Flags    uint32 `yaml:"flags"`
 }
 
 func (e *WldFragPointLightOld) FragCode() int {
@@ -38,4 +43,36 @@ func (e *WldFragPointLightOld) Read(r io.ReadSeeker, isNewWorld bool) error {
 		return fmt.Errorf("read: %w", err)
 	}
 	return nil
+}
+
+func (e *WldFragPointLightOld) Parents() []common.TreeLinker {
+	return e.parents
+}
+
+func (e *WldFragPointLightOld) AddParent(parent common.TreeLinker) {
+	e.parents = append(e.parents, parent)
+}
+
+func (e *WldFragPointLightOld) Tag() string {
+	return e.tag
+}
+
+func (e *WldFragPointLightOld) SetFragID(id int) {
+	e.fragID = id
+}
+
+func (e *WldFragPointLightOld) FragID() int {
+	return e.fragID
+}
+
+func (e *WldFragPointLightOld) Children() []common.TreeLinker {
+	return nil
+}
+
+func (e *WldFragPointLightOld) FragType() string {
+	return "PLOI"
+}
+
+func (e *WldFragPointLightOld) AddChild(child common.TreeLinker) {
+	e.children = append(e.children, child)
 }

@@ -6,7 +6,7 @@ import (
 	"io"
 
 	"github.com/xackery/encdec"
-	"github.com/xackery/quail/model"
+	"github.com/xackery/quail/common"
 )
 
 var (
@@ -149,7 +149,7 @@ func FragIndex(name string) int {
 }
 
 // NewFrag takes a reader, analyzes the first 4 bytes, and returns a new fragment struct based on it
-func NewFrag(r io.ReadSeeker) model.FragmentReadWriter {
+func NewFrag(r io.ReadSeeker) common.FragmentReadWriter {
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	fragCode := dec.Int32()
 	err := dec.Error()
@@ -267,9 +267,9 @@ func NewFrag(r io.ReadSeeker) model.FragmentReadWriter {
 	case FragCodeGlobalAmbientLightDef:
 		return &WldFragGlobalAmbientLightDef{}
 	case FragCodeDmSpriteDef2:
-		return &WldFragDmSpriteDef2{}
+		return &WldFragDMSpriteDef2{}
 	case FragCodeDmTrackDef2:
-		return &WldFragDmTrackDef2{}
+		return &WldFragDMTrackDef2{}
 	}
 	return nil
 }

@@ -6,10 +6,15 @@ import (
 	"io"
 
 	"github.com/xackery/encdec"
+	"github.com/xackery/quail/common"
 )
 
 // WldFragSprite2DDef is Sprite2DDef in libeq, Two-Dimensional Object in openzone, 2DSPRITEDEF in wld, Fragment06 in lantern
 type WldFragSprite2DDef struct {
+	parents                     []common.TreeLinker
+	children                    []common.TreeLinker
+	fragID                      int
+	tag                         string
 	NameRef                     int32
 	Flags                       uint32
 	Scale                       [2]float32
@@ -233,4 +238,36 @@ func (e *WldFragSprite2DDef) Read(r io.ReadSeeker, isNewWorld bool) error {
 	}
 	return nil
 
+}
+
+func (e *WldFragSprite2DDef) Parents() []common.TreeLinker {
+	return e.parents
+}
+
+func (e *WldFragSprite2DDef) AddParent(parent common.TreeLinker) {
+	e.parents = append(e.parents, parent)
+}
+
+func (e *WldFragSprite2DDef) Tag() string {
+	return e.tag
+}
+
+func (e *WldFragSprite2DDef) SetFragID(id int) {
+	e.fragID = id
+}
+
+func (e *WldFragSprite2DDef) FragID() int {
+	return e.fragID
+}
+
+func (e *WldFragSprite2DDef) Children() []common.TreeLinker {
+	return nil
+}
+
+func (e *WldFragSprite2DDef) FragType() string {
+	return "S2DD"
+}
+
+func (e *WldFragSprite2DDef) AddChild(child common.TreeLinker) {
+	e.children = append(e.children, child)
 }

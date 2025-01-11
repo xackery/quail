@@ -6,12 +6,17 @@ import (
 	"io"
 
 	"github.com/xackery/encdec"
+	"github.com/xackery/quail/common"
 )
 
 // WldFragSound is empty in libeq, empty in openzone, SOUNDDEFINITION in wld
 type WldFragSound struct {
-	NameRef int32  `yaml:"name_ref"`
-	Flags   uint32 `yaml:"flags"`
+	parents  []common.TreeLinker
+	children []common.TreeLinker
+	fragID   int
+	tag      string
+	NameRef  int32  `yaml:"name_ref"`
+	Flags    uint32 `yaml:"flags"`
 }
 
 func (e *WldFragSound) FragCode() int {
@@ -38,4 +43,36 @@ func (e *WldFragSound) Read(r io.ReadSeeker, isNewWorld bool) error {
 		return fmt.Errorf("read: %w", err)
 	}
 	return nil
+}
+
+func (e *WldFragSound) Parents() []common.TreeLinker {
+	return e.parents
+}
+
+func (e *WldFragSound) AddParent(parent common.TreeLinker) {
+	e.parents = append(e.parents, parent)
+}
+
+func (e *WldFragSound) Tag() string {
+	return e.tag
+}
+
+func (e *WldFragSound) SetFragID(id int) {
+	e.fragID = id
+}
+
+func (e *WldFragSound) FragID() int {
+	return e.fragID
+}
+
+func (e *WldFragSound) Children() []common.TreeLinker {
+	return nil
+}
+
+func (e *WldFragSound) FragType() string {
+	return "SNDI"
+}
+
+func (e *WldFragSound) AddChild(child common.TreeLinker) {
+	e.children = append(e.children, child)
 }

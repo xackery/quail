@@ -6,10 +6,15 @@ import (
 	"io"
 
 	"github.com/xackery/encdec"
+	"github.com/xackery/quail/common"
 )
 
 // WldFragHierarchicalSpriteDef is HierarchicalSpriteDef in libeq, SkeletonTrackSet in openzone, HIERARCHICALSPRITE in wld, SkeletonHierarchy in lantern
 type WldFragHierarchicalSpriteDef struct {
+	parents                     []common.TreeLinker
+	children                    []common.TreeLinker
+	fragID                      int
+	tag                         string
 	NameRef                     int32         `yaml:"name_ref"`
 	Flags                       uint32        `yaml:"flags"`
 	CollisionVolumeRef          uint32        `yaml:"collision_volume_ref"`
@@ -118,4 +123,36 @@ func (e *WldFragHierarchicalSpriteDef) Read(r io.ReadSeeker, isNewWorld bool) er
 		return fmt.Errorf("write: %w", err)
 	}
 	return nil
+}
+
+func (e *WldFragHierarchicalSpriteDef) Parents() []common.TreeLinker {
+	return e.parents
+}
+
+func (e *WldFragHierarchicalSpriteDef) AddParent(parent common.TreeLinker) {
+	e.parents = append(e.parents, parent)
+}
+
+func (e *WldFragHierarchicalSpriteDef) Tag() string {
+	return e.tag
+}
+
+func (e *WldFragHierarchicalSpriteDef) SetFragID(id int) {
+	e.fragID = id
+}
+
+func (e *WldFragHierarchicalSpriteDef) FragID() int {
+	return e.fragID
+}
+
+func (e *WldFragHierarchicalSpriteDef) Children() []common.TreeLinker {
+	return nil
+}
+
+func (e *WldFragHierarchicalSpriteDef) FragType() string {
+	return "HISD"
+}
+
+func (e *WldFragHierarchicalSpriteDef) AddChild(child common.TreeLinker) {
+	e.children = append(e.children, child)
 }

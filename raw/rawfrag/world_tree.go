@@ -6,14 +6,19 @@ import (
 	"io"
 
 	"github.com/xackery/encdec"
+	"github.com/xackery/quail/common"
 )
 
 // WldFragWorldTree is WorldTree in libeq, BSP Tree in openzone, WORLDTREE in wld, BspTree in lantern
 // For serialization, refer to here: https://github.com/knervous/LanternExtractor2/blob/knervous/merged/LanternExtractor/EQ/Wld/DataTypes/BspNode.cs
 // For constructing, refer to here: https://github.com/knervous/LanternExtractor2/blob/920541d15958e90aa91f7446a74226cbf26b829a/LanternExtractor/EQ/Wld/Exporters/GltfWriter.cs#L304
 type WldFragWorldTree struct {
-	NameRef int32           `yaml:"name_ref"`
-	Nodes   []WorldTreeNode `yaml:"nodes"`
+	parents  []common.TreeLinker
+	children []common.TreeLinker
+	fragID   int
+	tag      string
+	NameRef  int32           `yaml:"name_ref"`
+	Nodes    []WorldTreeNode `yaml:"nodes"`
 }
 
 type WorldTreeNode struct {
@@ -67,4 +72,36 @@ func (e *WldFragWorldTree) Read(r io.ReadSeeker, isNewWorld bool) error {
 		return fmt.Errorf("read: %w", err)
 	}
 	return nil
+}
+
+func (e *WldFragWorldTree) Parents() []common.TreeLinker {
+	return e.parents
+}
+
+func (e *WldFragWorldTree) AddParent(parent common.TreeLinker) {
+	e.parents = append(e.parents, parent)
+}
+
+func (e *WldFragWorldTree) Tag() string {
+	return e.tag
+}
+
+func (e *WldFragWorldTree) SetFragID(id int) {
+	e.fragID = id
+}
+
+func (e *WldFragWorldTree) FragID() int {
+	return e.fragID
+}
+
+func (e *WldFragWorldTree) Children() []common.TreeLinker {
+	return nil
+}
+
+func (e *WldFragWorldTree) FragType() string {
+	return "WDTD"
+}
+
+func (e *WldFragWorldTree) AddChild(child common.TreeLinker) {
+	e.children = append(e.children, child)
 }
