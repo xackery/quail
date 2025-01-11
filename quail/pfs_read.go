@@ -1,7 +1,6 @@
 package quail
 
 import (
-	"bytes"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -43,14 +42,25 @@ func (q *Quail) PfsRead(path string) error {
 
 	for _, file := range pfs.Files() {
 		ext := strings.ToLower(filepath.Ext(file.Name()))
-		reader, err := raw.Read(ext, bytes.NewReader(file.Data()))
-		if err != nil {
-			return fmt.Errorf("read %s: %w", file.Name(), err)
-		}
-		reader.SetFileName(file.Name())
-		err = q.RawRead(reader)
-		if err != nil {
-			return fmt.Errorf("rawRead %s: %w", file.Name(), err)
+		if ext == ".wld" {
+			r, err := os.Open(path)
+			if err != nil {
+				return fmt.Errorf("open %s: %w", path, err)
+			}
+			defer r.Close()
+			rawWld := &raw.Wld{}
+			err = rawWld.Read(r)
+			if err != nil {
+				return fmt.Errorf("wld read: %w", err)
+			}
+
+			q.Wld = wce.New(filepath.Base(path))
+
+			err = q.Wld.ReadWldRaw(rawWld)
+			if err != nil {
+				return fmt.Errorf("wld read: %w", err)
+			}
+			return nil
 		}
 	}
 	return nil

@@ -10,7 +10,7 @@ import (
 
 // WldFragPolyhedron is Polyhedron in libeq, Polygon Animation Reference in openzone, POLYHEDRON (ref) in wld, Fragment18 in lantern
 type WldFragPolyhedron struct {
-	NameRef     int32   `yaml:"name_ref"`
+	nameRef     int32   `yaml:"name_ref"`
 	FragmentRef int32   `yaml:"fragment_ref"`
 	Flags       uint32  `yaml:"flags"`
 	Scale       float32 `yaml:"scale"`
@@ -22,7 +22,7 @@ func (e *WldFragPolyhedron) FragCode() int {
 
 func (e *WldFragPolyhedron) Write(w io.Writer, isNewWorld bool) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
-	enc.Int32(e.NameRef)
+	enc.Int32(e.nameRef)
 	enc.Int32(e.FragmentRef)
 	enc.Uint32(e.Flags)
 	enc.Float32(e.Scale)
@@ -35,7 +35,7 @@ func (e *WldFragPolyhedron) Write(w io.Writer, isNewWorld bool) error {
 
 func (e *WldFragPolyhedron) Read(r io.ReadSeeker, isNewWorld bool) error {
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
-	e.NameRef = dec.Int32()
+	e.nameRef = dec.Int32()
 	e.FragmentRef = dec.Int32()
 	e.Flags = dec.Uint32()
 	e.Scale = dec.Float32()
@@ -44,4 +44,8 @@ func (e *WldFragPolyhedron) Read(r io.ReadSeeker, isNewWorld bool) error {
 		return fmt.Errorf("read: %w", err)
 	}
 	return nil
+}
+
+func (e *WldFragPolyhedron) NameRef() int32 {
+	return e.nameRef
 }

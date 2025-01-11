@@ -10,7 +10,7 @@ import (
 
 // WldFragDmTrackDef2 is DmTrackDef2 in libeq, Mesh Animated Vertices in openzone, DMTRACKDEF in wld, MeshAnimatedVertices in lantern
 type WldFragDmTrackDef2 struct {
-	NameRef int32
+	nameRef int32
 	Flags   uint32
 	Sleep   uint16
 	Param2  uint16
@@ -25,7 +25,7 @@ func (e *WldFragDmTrackDef2) FragCode() int {
 
 func (e *WldFragDmTrackDef2) Write(w io.Writer, isNewWorld bool) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
-	enc.Int32(e.NameRef)
+	enc.Int32(e.nameRef)
 	enc.Uint32(e.Flags)
 	if len(e.Frames) < 1 {
 		return fmt.Errorf("no frames found")
@@ -52,7 +52,7 @@ func (e *WldFragDmTrackDef2) Write(w io.Writer, isNewWorld bool) error {
 
 func (e *WldFragDmTrackDef2) Read(r io.ReadSeeker, isNewWorld bool) error {
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
-	e.NameRef = dec.Int32()
+	e.nameRef = dec.Int32()
 	e.Flags = dec.Uint32()
 	vertexCount := dec.Uint16()
 	frameCount := dec.Uint16()
@@ -74,4 +74,12 @@ func (e *WldFragDmTrackDef2) Read(r io.ReadSeeker, isNewWorld bool) error {
 		return err
 	}
 	return nil
+}
+
+func (e *WldFragDmTrackDef2) NameRef() int32 {
+	return e.nameRef
+}
+
+func (e *WldFragDmTrackDef2) SetNameRef(id int32) {
+	e.nameRef = id
 }

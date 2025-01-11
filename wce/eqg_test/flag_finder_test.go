@@ -86,7 +86,7 @@ func TestFragFlags(t *testing.T) {
 					continue
 				}
 
-				tagName := rawWld.Name(int32(frag.NameRef))
+				tagName := rawWld.Name(frag.NameRef())
 
 				for _, face := range frag.Faces {
 					flags := uint32(face.Flags)

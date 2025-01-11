@@ -10,7 +10,7 @@ import (
 
 // WldFragSprite2DDef is Sprite2DDef in libeq, Two-Dimensional Object in openzone, 2DSPRITEDEF in wld, Fragment06 in lantern
 type WldFragSprite2DDef struct {
-	NameRef                     int32
+	nameRef                     int32
 	Flags                       uint32
 	Scale                       [2]float32
 	SphereListRef               uint32
@@ -49,7 +49,7 @@ func (e *WldFragSprite2DDef) FragCode() int {
 
 func (e *WldFragSprite2DDef) Write(w io.Writer, isNewWorld bool) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
-	enc.Int32(e.NameRef)
+	enc.Int32(e.nameRef)
 	enc.Uint32(e.Flags)
 
 	textureCount := uint32(0)
@@ -143,7 +143,7 @@ func (e *WldFragSprite2DDef) Write(w io.Writer, isNewWorld bool) error {
 
 func (e *WldFragSprite2DDef) Read(r io.ReadSeeker, isNewWorld bool) error {
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
-	e.NameRef = dec.Int32()
+	e.nameRef = dec.Int32()
 	e.Flags = dec.Uint32()
 	textureCount := dec.Uint32()
 	pitchCount := dec.Uint32()
@@ -233,4 +233,12 @@ func (e *WldFragSprite2DDef) Read(r io.ReadSeeker, isNewWorld bool) error {
 	}
 	return nil
 
+}
+
+func (e *WldFragSprite2DDef) NameRef() int32 {
+	return e.nameRef
+}
+
+func (e *WldFragSprite2DDef) SetNameRef(nameRef int32) {
+	e.nameRef = nameRef
 }

@@ -10,7 +10,7 @@ import (
 
 // WldFragSimpleSpriteDef is SimpleSpriteDef in libeq, WldFragSimpleSpriteDef Bitmap Info in openzone, SIMPLESPRITEDEF in wld, BitmapInfo in lantern
 type WldFragSimpleSpriteDef struct {
-	NameRef      int32    `yaml:"name_ref"`
+	nameRef      int32    `yaml:"name_ref"`
 	Flags        uint32   `yaml:"flags"`
 	CurrentFrame int32    `yaml:"current_frame"`
 	Sleep        uint32   `yaml:"sleep"`
@@ -23,7 +23,7 @@ func (e *WldFragSimpleSpriteDef) FragCode() int {
 
 func (e *WldFragSimpleSpriteDef) Write(w io.Writer, isNewWorld bool) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
-	enc.Int32(e.NameRef)
+	enc.Int32(e.nameRef)
 	enc.Uint32(e.Flags)
 	enc.Uint32(uint32(len(e.BitmapRefs)))
 	if e.Flags&0x20 != 0 {
@@ -44,7 +44,7 @@ func (e *WldFragSimpleSpriteDef) Write(w io.Writer, isNewWorld bool) error {
 
 func (e *WldFragSimpleSpriteDef) Read(r io.ReadSeeker, isNewWorld bool) error {
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
-	e.NameRef = dec.Int32()
+	e.nameRef = dec.Int32()
 	e.Flags = dec.Uint32()
 	textureRefCount := dec.Uint32()
 	if e.Flags&0x20 != 0 {
@@ -61,4 +61,12 @@ func (e *WldFragSimpleSpriteDef) Read(r io.ReadSeeker, isNewWorld bool) error {
 		return fmt.Errorf("read: %w", err)
 	}
 	return nil
+}
+
+func (e *WldFragSimpleSpriteDef) NameRef() int32 {
+	return e.nameRef
+}
+
+func (e *WldFragSimpleSpriteDef) SetNameRef(nameRef int32) {
+	e.nameRef = nameRef
 }

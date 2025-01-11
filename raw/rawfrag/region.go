@@ -10,7 +10,7 @@ import (
 
 // WldFragRegion is Region in libeq, Bsp WldFragRegion in openzone, REGION in wld, BspRegion in lantern
 type WldFragRegion struct {
-	NameRef         int32        `yaml:"name_ref"`
+	nameRef         int32        `yaml:"name_ref"`
 	Flags           uint32       `yaml:"flags"`
 	AmbientLightRef int32        `yaml:"ambient_light_ref"`
 	RegionVertices  [][3]float32 `yaml:"region_vertices"`
@@ -73,7 +73,7 @@ func (e *WldFragRegion) FragCode() int {
 func (e *WldFragRegion) Write(w io.Writer, isNewWorld bool) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
 	padStart := enc.Pos()
-	enc.Int32(e.NameRef)
+	enc.Int32(e.nameRef)
 	enc.Uint32(e.Flags)
 	enc.Int32(e.AmbientLightRef)
 	enc.Uint32(uint32(len(e.RegionVertices)))
@@ -214,7 +214,7 @@ func (e *WldFragRegion) Write(w io.Writer, isNewWorld bool) error {
 
 func (e *WldFragRegion) Read(r io.ReadSeeker, isNewWorld bool) error {
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
-	e.NameRef = dec.Int32()
+	e.nameRef = dec.Int32()
 	e.Flags = dec.Uint32()
 	e.AmbientLightRef = dec.Int32()
 	regionVertexCount := dec.Uint32()
@@ -353,4 +353,12 @@ func (e *WldFragRegion) Read(r io.ReadSeeker, isNewWorld bool) error {
 		return fmt.Errorf("read: %w", err)
 	}
 	return nil
+}
+
+func (e *WldFragRegion) NameRef() int32 {
+	return e.nameRef
+}
+
+func (e *WldFragRegion) SetNameRef(nameRef int32) {
+	e.nameRef = nameRef
 }

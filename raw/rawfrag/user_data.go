@@ -17,3 +17,7 @@ func (e *WldFragUserData) Write(w io.Writer, isNewWorld bool) error {
 func (e *WldFragUserData) Read(r io.ReadSeeker, isNewWorld bool) error {
 	return nil
 }
+
+func (e *WldFragUserData) NameRef() int32 {
+	return 0
+}

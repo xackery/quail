@@ -11,7 +11,7 @@ import (
 
 // WldFragDmSpriteDef2 is DmSpriteDef2 in libeq, WldFragDmSpriteDef2 in openzone, DMSPRITEDEF2 in wld, WldFragDmSpriteDef2 in lantern
 type WldFragDmSpriteDef2 struct {
-	NameRef              int32
+	nameRef              int32
 	Flags                uint32
 	MaterialPaletteRef   uint32
 	DMTrackRef           int32 // only used for flags/trees
@@ -65,7 +65,7 @@ func (e *WldFragDmSpriteDef2) Write(w io.Writer, isNewWorld bool) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
 
 	padStart := enc.Pos()
-	enc.Int32(e.NameRef)
+	enc.Int32(e.nameRef)
 
 	enc.Uint32(e.Flags)
 
@@ -178,7 +178,7 @@ func (e *WldFragDmSpriteDef2) Write(w io.Writer, isNewWorld bool) error {
 
 func (e *WldFragDmSpriteDef2) Read(r io.ReadSeeker, isNewWorld bool) error {
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
-	e.NameRef = dec.Int32()
+	e.nameRef = dec.Int32()
 	e.Flags = dec.Uint32() // flags, currently unknown, zone meshes are 0x00018003, placeable objects are 0x00014003
 
 	e.MaterialPaletteRef = dec.Uint32()
@@ -291,4 +291,12 @@ func (e *WldFragDmSpriteDef2) Read(r io.ReadSeeker, isNewWorld bool) error {
 	}
 	return nil
 
+}
+
+func (e *WldFragDmSpriteDef2) NameRef() int32 {
+	return e.nameRef
+}
+
+func (e *WldFragDmSpriteDef2) SetNameRef(nameRef int32) {
+	e.nameRef = nameRef
 }

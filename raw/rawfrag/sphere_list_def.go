@@ -11,7 +11,7 @@ import (
 
 // WldFragSphereListDef is SphereListDef in libeq, empty in openzone, SPHERELISTDEFINITION in wld
 type WldFragSphereListDef struct {
-	NameRef     int32         `yaml:"name_ref"`
+	nameRef     int32         `yaml:"name_ref"`
 	Flags       uint32        `yaml:"flags"`
 	SphereCount uint32        `yaml:"sphere_count"`
 	Radius      float32       `yaml:"radius"`
@@ -25,7 +25,7 @@ func (e *WldFragSphereListDef) FragCode() int {
 
 func (e *WldFragSphereListDef) Write(w io.Writer, isNewWorld bool) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
-	enc.Int32(e.NameRef)
+	enc.Int32(e.nameRef)
 	enc.Uint32(e.Flags)
 	enc.Uint32(e.SphereCount)
 	enc.Float32(e.Radius)
@@ -45,7 +45,7 @@ func (e *WldFragSphereListDef) Write(w io.Writer, isNewWorld bool) error {
 
 func (e *WldFragSphereListDef) Read(r io.ReadSeeker, isNewWorld bool) error {
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
-	e.NameRef = dec.Int32()
+	e.nameRef = dec.Int32()
 	e.Flags = dec.Uint32()
 	e.SphereCount = dec.Uint32()
 	e.Radius = dec.Float32()
@@ -64,4 +64,8 @@ func (e *WldFragSphereListDef) Read(r io.ReadSeeker, isNewWorld bool) error {
 		return fmt.Errorf("read: %w", err)
 	}
 	return nil
+}
+
+func (e *WldFragSphereListDef) NameRef() int32 {
+	return e.nameRef
 }

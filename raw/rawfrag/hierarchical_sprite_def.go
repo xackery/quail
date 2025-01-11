@@ -10,7 +10,7 @@ import (
 
 // WldFragHierarchicalSpriteDef is HierarchicalSpriteDef in libeq, SkeletonTrackSet in openzone, HIERARCHICALSPRITE in wld, SkeletonHierarchy in lantern
 type WldFragHierarchicalSpriteDef struct {
-	NameRef                     int32         `yaml:"name_ref"`
+	nameRef                     int32         `yaml:"name_ref"`
 	Flags                       uint32        `yaml:"flags"`
 	CollisionVolumeRef          uint32        `yaml:"collision_volume_ref"`
 	CenterOffset                [3]float32    `yaml:"center_offset"`
@@ -21,7 +21,7 @@ type WldFragHierarchicalSpriteDef struct {
 }
 
 type WldFragDag struct {
-	NameRef                   int32    `yaml:"name_ref"`
+	nameRef                   int32    `yaml:"name_ref"`
 	Flags                     uint32   `yaml:"flags"`
 	TrackRef                  uint32   `yaml:"track_ref"`
 	MeshOrSpriteOrParticleRef uint32   `yaml:"mesh_or_sprite_or_particle_ref"`
@@ -34,7 +34,7 @@ func (e *WldFragHierarchicalSpriteDef) FragCode() int {
 
 func (e *WldFragHierarchicalSpriteDef) Write(w io.Writer, isNewWorld bool) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
-	enc.Int32(e.NameRef)
+	enc.Int32(e.nameRef)
 	enc.Uint32(e.Flags)
 	enc.Uint32(uint32(len(e.Dags)))
 	enc.Uint32(e.CollisionVolumeRef)
@@ -49,7 +49,7 @@ func (e *WldFragHierarchicalSpriteDef) Write(w io.Writer, isNewWorld bool) error
 	}
 
 	for _, bone := range e.Dags {
-		enc.Int32(bone.NameRef)
+		enc.Int32(bone.nameRef)
 		enc.Uint32(bone.Flags)
 		enc.Uint32(bone.TrackRef)
 		enc.Uint32(bone.MeshOrSpriteOrParticleRef)
@@ -79,7 +79,7 @@ func (e *WldFragHierarchicalSpriteDef) Write(w io.Writer, isNewWorld bool) error
 func (e *WldFragHierarchicalSpriteDef) Read(r io.ReadSeeker, isNewWorld bool) error {
 
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
-	e.NameRef = dec.Int32()
+	e.nameRef = dec.Int32()
 	e.Flags = dec.Uint32()
 	numDags := dec.Uint32()
 	e.CollisionVolumeRef = dec.Uint32()
@@ -93,7 +93,7 @@ func (e *WldFragHierarchicalSpriteDef) Read(r io.ReadSeeker, isNewWorld bool) er
 
 	for i := 0; i < int(numDags); i++ {
 		dag := &WldFragDag{}
-		dag.NameRef = dec.Int32()
+		dag.nameRef = dec.Int32()
 		dag.Flags = dec.Uint32()
 		dag.TrackRef = dec.Uint32()
 		dag.MeshOrSpriteOrParticleRef = dec.Uint32()
@@ -118,4 +118,20 @@ func (e *WldFragHierarchicalSpriteDef) Read(r io.ReadSeeker, isNewWorld bool) er
 		return fmt.Errorf("write: %w", err)
 	}
 	return nil
+}
+
+func (e *WldFragHierarchicalSpriteDef) NameRef() int32 {
+	return e.nameRef
+}
+
+func (e *WldFragHierarchicalSpriteDef) SetNameRef(nameRef int32) {
+	e.nameRef = nameRef
+}
+
+func (e *WldFragDag) NameRef() int32 {
+	return e.nameRef
+}
+
+func (e *WldFragDag) SetNameRef(nameRef int32) {
+	e.nameRef = nameRef
 }

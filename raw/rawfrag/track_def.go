@@ -10,7 +10,7 @@ import (
 
 // WldFragTrackDef is TrackDef in libeq, Mob Skeleton Piece WldFragTrackDef in openzone, TRACKDEFINITION in wld, TrackDefFragment in lantern
 type WldFragTrackDef struct {
-	NameRef         int32                       `yaml:"name_ref"`
+	nameRef         int32                       `yaml:"name_ref"`
 	Flags           uint32                      `yaml:"flags"`
 	FrameTransforms []WldFragTrackBoneTransform `yaml:"skeleton_transforms"`
 }
@@ -28,7 +28,7 @@ func (e *WldFragTrackDef) FragCode() int {
 
 func (e *WldFragTrackDef) Write(w io.Writer, isNewWorld bool) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
-	enc.Int32(e.NameRef)
+	enc.Int32(e.nameRef)
 	enc.Uint32(e.Flags)
 	enc.Uint32(uint32(len(e.FrameTransforms)))
 
@@ -64,7 +64,7 @@ func (e *WldFragTrackDef) Write(w io.Writer, isNewWorld bool) error {
 
 func (e *WldFragTrackDef) Read(r io.ReadSeeker, isNewWorld bool) error {
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
-	e.NameRef = dec.Int32()
+	e.nameRef = dec.Int32()
 	e.Flags = dec.Uint32()
 	frameCount := dec.Uint32()
 
@@ -99,4 +99,12 @@ func (e *WldFragTrackDef) Read(r io.ReadSeeker, isNewWorld bool) error {
 		return fmt.Errorf("write: %w", err)
 	}
 	return nil
+}
+
+func (e *WldFragTrackDef) NameRef() int32 {
+	return e.nameRef
+}
+
+func (e *WldFragTrackDef) SetNameRef(nameRef int32) {
+	e.nameRef = nameRef
 }

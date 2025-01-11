@@ -3,7 +3,6 @@ package tree
 import (
 	"fmt"
 	"io"
-	"reflect"
 	"strings"
 
 	"github.com/xackery/quail/raw"
@@ -11,6 +10,7 @@ import (
 
 type Node struct {
 	FragID   int32
+	FragType string
 	Tag      string
 	Children map[int32]*Node
 }
@@ -36,38 +36,8 @@ func BuildFragReferenceTree(wld *raw.Wld) (map[int32]*Node, error) {
 	// Map to store all nodes
 	nodes := make(map[int32]*Node)
 
-	// Map to track which nodes are referenced as children
-	referenced := make(map[int32]bool)
-
-	// Helper function to find or create a node
-	findOrCreateNode := func(fragID int32) *Node {
-		if node, exists := nodes[fragID]; exists {
-			return node
-		}
-		node := &Node{
-			FragID:   fragID,
-			Tag:      "", // Tag will be assigned when creating the node
-			Children: make(map[int32]*Node),
-		}
-		nodes[fragID] = node
-		return node
-	}
-
-	// Helper function to extract the NameRef
-	getNameRef := func(frag interface{}) int32 {
-		v := reflect.ValueOf(frag)
-		if v.Kind() == reflect.Ptr {
-			v = v.Elem()
-		}
-
-		// Check if the fragment has a "NameRef" field
-		field := v.FieldByName("NameRef")
-		if field.IsValid() && field.Kind() == reflect.Int32 {
-			return int32(field.Int())
-		}
-		// Return -1 if NameRef does not exist
-		return 0
-	}
+	// Map to track which nodes are linkedNodes as children
+	linkedNodes := make(map[int32]bool)
 
 	// Create nodes and establish relationships
 	for i := 1; i < len(wld.Fragments); i++ { // Start at index 1
@@ -77,36 +47,35 @@ func BuildFragReferenceTree(wld *raw.Wld) (map[int32]*Node, error) {
 		}
 
 		fragID := int32(i)
-		nameRef := getNameRef(frag)
 		tag := ""
-		if nameRef < 0 {
-			tag = wld.Name(nameRef)
+		if frag.NameRef() < 0 {
+			tag = wld.Name(frag.NameRef())
 		}
 
 		// Find or create the node for this fragment
-		node := findOrCreateNode(fragID)
-		node.Tag = strings.TrimSpace(tag)
+		node := upsertNode(nodes, fmt.Sprintf("%T", frag), fragID, strings.TrimSpace(tag))
 
 		// Extract references from the fragment
-		fragRefs := getFragRefs(frag)
+		fragRefs := fragRefs(frag)
 		for _, refID := range fragRefs {
-			if refID > 0 {
-				// Mark this refID as being referenced
-				referenced[refID] = true
-
-				// Find or create the child node
-				child := findOrCreateNode(refID)
-
-				// Establish the parent-child relationship
-				node.Children[refID] = child
+			if refID <= 0 {
+				continue
 			}
+			// Mark this refID as being referenced
+			linkedNodes[refID] = true
+
+			// Find or create the child node
+			child := upsertNode(nodes, fmt.Sprintf("%T", frag), refID, tag)
+
+			// Establish the parent-child relationship
+			node.Children[refID] = child
 		}
 	}
 
 	// Identify root nodes (nodes that are not referenced as children)
 	roots := make(map[int32]*Node)
 	for fragID, node := range nodes {
-		if !referenced[fragID] {
+		if !linkedNodes[fragID] {
 			roots[fragID] = node
 		}
 	}
@@ -114,8 +83,28 @@ func BuildFragReferenceTree(wld *raw.Wld) (map[int32]*Node, error) {
 	return roots, nil
 }
 
+// upsertNode finds or creates a node in the map
+func upsertNode(nodes map[int32]*Node, fragType string, fragID int32, tag string) *Node {
+	fragType = strings.TrimPrefix(fragType, "*rawfrag.WldFrag")
+
+	node, ok := nodes[fragID]
+	if ok {
+		node.Tag = tag
+		node.FragType = fragType
+		return node
+	}
+	node = &Node{
+		FragID:   fragID,
+		Tag:      tag,
+		FragType: fragType,
+		Children: make(map[int32]*Node),
+	}
+	nodes[fragID] = node
+	return node
+}
+
 func PrintNode(node *Node, level int) {
-	fmt.Printf("%sNode: %d (%s)\n", strings.Repeat("  ", level), node.FragID, node.Tag)
+	fmt.Printf("%s%s: %d (%s)\n", strings.Repeat("  ", level), node.FragType, node.FragID, node.Tag)
 	for _, child := range node.Children {
 		PrintNode(child, level+1)
 	}

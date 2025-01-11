@@ -34,7 +34,7 @@ func (wce *Wce) ReadWldRaw(src *raw.Wld) error {
 
 	// Traverse and print the trees
 	for rootID, root := range roots {
-		fmt.Printf("Root Node: %d (%s)\n", rootID, root.Tag)
+		fmt.Printf("Root %s: %d (%s)\n", root.FragType, rootID, root.Tag)
 		tree.PrintNode(root, 0)
 	}
 
@@ -46,7 +46,7 @@ func (wce *Wce) ReadWldRaw(src *raw.Wld) error {
 		if !ok {
 			continue
 		}
-		modelChunks[lastModelIndex] = strings.TrimSuffix(src.Name(actorDef.NameRef), "_ACTORDEF")
+		modelChunks[lastModelIndex] = strings.TrimSuffix(src.Name(actorDef.NameRef()), "_ACTORDEF")
 		wce.modelTags = append(wce.modelTags, modelChunks[lastModelIndex])
 		lastModelIndex = i
 	}

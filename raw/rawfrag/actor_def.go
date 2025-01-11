@@ -10,7 +10,7 @@ import (
 
 // WldFragActorDef is ActorDef in libeq, Static in openzone, ACTORDEF in wld
 type WldFragActorDef struct {
-	NameRef         int32 `yaml:"name_ref"`
+	nameRef         int32
 	Flags           uint32
 	CallbackNameRef int32  `yaml:"callback_name_ref"`
 	BoundsRef       int32  // ref to sphere, spherelist or polyhedron
@@ -33,7 +33,7 @@ func (e *WldFragActorDef) FragCode() int {
 
 func (e *WldFragActorDef) Write(w io.Writer, isNewWorld bool) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
-	enc.Int32(e.NameRef)
+	enc.Int32(e.nameRef)
 	enc.Uint32(e.Flags)
 
 	enc.Int32(e.CallbackNameRef)
@@ -72,7 +72,7 @@ func (e *WldFragActorDef) Write(w io.Writer, isNewWorld bool) error {
 
 func (e *WldFragActorDef) Read(r io.ReadSeeker, isNewWorld bool) error {
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
-	e.NameRef = dec.Int32()
+	e.nameRef = dec.Int32()
 	e.Flags = dec.Uint32()
 	e.CallbackNameRef = dec.Int32()
 	actionCount := dec.Uint32()
@@ -109,4 +109,12 @@ func (e *WldFragActorDef) Read(r io.ReadSeeker, isNewWorld bool) error {
 		return fmt.Errorf("read: %w", err)
 	}
 	return nil
+}
+
+func (e *WldFragActorDef) NameRef() int32 {
+	return e.nameRef
+}
+
+func (e *WldFragActorDef) SetNameRef(nameRef int32) {
+	e.nameRef = nameRef
 }

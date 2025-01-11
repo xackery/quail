@@ -10,7 +10,7 @@ import (
 
 // WldFragDMSpriteDef is DmSpriteDef in libeq, Alternate Mesh in openzone, DMSPRITEDEF in wld, LegacyMesh in lantern
 type WldFragDMSpriteDef struct {
-	NameRef              int32
+	nameRef              int32
 	Flags                uint32
 	Fragment1            int16
 	MaterialPaletteRef   uint32
@@ -51,7 +51,7 @@ func (e *WldFragDMSpriteDef) FragCode() int {
 
 func (e *WldFragDMSpriteDef) Write(w io.Writer, isNewWorld bool) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
-	enc.Int32(e.NameRef)
+	enc.Int32(e.nameRef)
 	enc.Uint32(e.Flags)
 	enc.Uint32(uint32(len(e.Vertices)))
 	enc.Uint32(uint32(len(e.TexCoords)))
@@ -169,7 +169,7 @@ func (e *WldFragDMSpriteDef) Write(w io.Writer, isNewWorld bool) error {
 
 func (e *WldFragDMSpriteDef) Read(r io.ReadSeeker, isNewWorld bool) error {
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
-	e.NameRef = dec.Int32()
+	e.nameRef = dec.Int32()
 	e.Flags = dec.Uint32()
 	vertexCount := dec.Uint32()
 	texCoordCount := dec.Uint32()
@@ -271,4 +271,12 @@ func (e *WldFragDMSpriteDef) Read(r io.ReadSeeker, isNewWorld bool) error {
 	}
 	return nil
 
+}
+
+func (e *WldFragDMSpriteDef) NameRef() int32 {
+	return e.nameRef
+}
+
+func (e *WldFragDMSpriteDef) SetNameRef(nameRef int32) {
+	e.nameRef = nameRef
 }

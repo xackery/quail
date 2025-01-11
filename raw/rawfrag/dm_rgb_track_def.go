@@ -10,7 +10,7 @@ import (
 
 // WldFragDmRGBTrackDef is a list of colors, one per vertex, for baked lighting. It is DmRGBTrackDef in libeq, Vertex Color in openzone, empty in wld, VertexColors in lantern
 type WldFragDmRGBTrackDef struct {
-	NameRef int32
+	nameRef int32
 	Data1   uint32 // usually contains 1
 	Data2   uint32 // usually contains 1
 	Sleep   uint32 // usually contains 200
@@ -25,7 +25,7 @@ func (e *WldFragDmRGBTrackDef) FragCode() int {
 func (e *WldFragDmRGBTrackDef) Write(w io.Writer, isNewWorld bool) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
 
-	enc.Int32(e.NameRef)
+	enc.Int32(e.nameRef)
 	if e.Data1 == 0 {
 		e.Data1 = 1
 	}
@@ -57,7 +57,7 @@ func (e *WldFragDmRGBTrackDef) Write(w io.Writer, isNewWorld bool) error {
 func (e *WldFragDmRGBTrackDef) Read(r io.ReadSeeker, isNewWorld bool) error {
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 
-	e.NameRef = dec.Int32()
+	e.nameRef = dec.Int32()
 	e.Data1 = dec.Uint32()
 	if e.Data1 != 1 {
 		fmt.Printf("Data1 on rgbtrack is not 1 (%d), tell xack you found this!\n", e.Data1)
@@ -81,4 +81,12 @@ func (e *WldFragDmRGBTrackDef) Read(r io.ReadSeeker, isNewWorld bool) error {
 		e.RGBAs[i][3] = dec.Uint8()
 	}
 	return nil
+}
+
+func (e *WldFragDmRGBTrackDef) NameRef() int32 {
+	return e.nameRef
+}
+
+func (e *WldFragDmRGBTrackDef) SetNameRef(id int32) {
+	e.nameRef = id
 }

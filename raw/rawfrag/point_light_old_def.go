@@ -10,7 +10,7 @@ import (
 
 // WldFragPointLightOldDef is empty in libeq, empty in openzone, empty in wld
 type WldFragPointLightOldDef struct {
-	NameRef       int32 `yaml:"name_ref"`
+	nameRef       int32 `yaml:"name_ref"`
 	PointLightRef int32 `yaml:"point_light_ref"`
 }
 
@@ -20,7 +20,7 @@ func (e *WldFragPointLightOldDef) FragCode() int {
 
 func (e *WldFragPointLightOldDef) Write(w io.Writer, isNewWorld bool) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
-	enc.Int32(e.NameRef)
+	enc.Int32(e.nameRef)
 	enc.Int32(e.PointLightRef)
 	err := enc.Error()
 	if err != nil {
@@ -31,11 +31,15 @@ func (e *WldFragPointLightOldDef) Write(w io.Writer, isNewWorld bool) error {
 
 func (e *WldFragPointLightOldDef) Read(r io.ReadSeeker, isNewWorld bool) error {
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
-	e.NameRef = dec.Int32()
+	e.nameRef = dec.Int32()
 	e.PointLightRef = dec.Int32()
 	err := dec.Error()
 	if err != nil {
 		return fmt.Errorf("read: %w", err)
 	}
 	return nil
+}
+
+func (e *WldFragPointLightOldDef) NameRef() int32 {
+	return e.nameRef
 }
