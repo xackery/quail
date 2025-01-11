@@ -18,11 +18,16 @@ type Node struct {
 // Dump dumps a tree to a writer
 func Dump(src interface{}, w io.Writer) error {
 	var err error
+	var nodes map[int32]*Node
 	switch val := src.(type) {
 	case *raw.Wld:
-		err = wldDump(val, w)
+		nodes, err = BuildFragReferenceTree(val)
 		if err != nil {
-			return fmt.Errorf("wld dump: %w", err)
+			return fmt.Errorf("build frag reference tree: %w", err)
+		}
+		for _, root := range nodes {
+			fmt.Printf("Root ")
+			PrintNode(root, 0)
 		}
 	case *raw.Bmp:
 		return nil
@@ -75,9 +80,11 @@ func BuildFragReferenceTree(wld *raw.Wld) (map[int32]*Node, error) {
 	// Identify root nodes (nodes that are not referenced as children)
 	roots := make(map[int32]*Node)
 	for fragID, node := range nodes {
-		if !linkedNodes[fragID] {
-			roots[fragID] = node
+		if linkedNodes[fragID] {
+			continue
 		}
+		roots[fragID] = node
+
 	}
 
 	return roots, nil

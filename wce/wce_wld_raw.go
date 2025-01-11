@@ -28,13 +28,12 @@ func (wce *Wce) ReadWldRaw(src *raw.Wld) error {
 
 	roots, err := tree.BuildFragReferenceTree(src)
 	if err != nil {
-		fmt.Println("Error:", err)
-		return nil
+		return fmt.Errorf("build frag reference tree: %w", err)
 	}
 
 	// Traverse and print the trees
-	for rootID, root := range roots {
-		fmt.Printf("Root %s: %d (%s)\n", root.FragType, rootID, root.Tag)
+	for _, root := range roots {
+		fmt.Printf("Root ")
 		tree.PrintNode(root, 0)
 	}
 
