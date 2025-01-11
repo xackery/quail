@@ -70,7 +70,13 @@ func BuildFragReferenceTree(wld *raw.Wld) (map[int32]*Node, error) {
 			linkedNodes[refID] = true
 
 			// Find or create the child node
-			child := upsertNode(nodes, fmt.Sprintf("%T", frag), refID, tag)
+			childFrag := wld.Fragments[refID]
+			childTag := ""
+			if childFrag != nil && childFrag.NameRef() < 0 {
+				childTag = wld.Name(childFrag.NameRef())
+			}
+
+			child := upsertNode(nodes, fmt.Sprintf("%T", childFrag), refID, strings.TrimSpace(childTag))
 
 			// Establish the parent-child relationship
 			node.Children[refID] = child
