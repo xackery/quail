@@ -11,6 +11,7 @@ type FragmentReadWriter interface {
 type FragmentReader interface {
 	Read(w io.ReadSeeker, isNewWorld bool) error
 	FragCode() int
+	NameRef() int32
 }
 
 // FragmentWriter2 is used to write a fragment in wld format

@@ -11,7 +11,7 @@ import (
 
 // WldFragParticleSpriteDef is ParticleSpriteDef in libeq, empty in openzone, PARTICLESPRITEDEF in wld
 type WldFragParticleSpriteDef struct {
-	NameRef                     int32           `yaml:"name_ref"`
+	nameRef                     int32           `yaml:"name_ref"`
 	Flags                       uint32          `yaml:"flags"`
 	VerticesCount               uint32          `yaml:"vertices_count"`
 	Unknown                     uint32          `yaml:"unknown"`
@@ -38,7 +38,7 @@ func (e *WldFragParticleSpriteDef) FragCode() int {
 
 func (e *WldFragParticleSpriteDef) Write(w io.Writer, isNewWorld bool) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
-	enc.Int32(e.NameRef)
+	enc.Int32(e.nameRef)
 	enc.Uint32(e.Flags)
 	enc.Uint32(e.VerticesCount)
 	enc.Uint32(e.Unknown)
@@ -86,7 +86,7 @@ func (e *WldFragParticleSpriteDef) Write(w io.Writer, isNewWorld bool) error {
 
 func (e *WldFragParticleSpriteDef) Read(r io.ReadSeeker, isNewWorld bool) error {
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
-	e.NameRef = dec.Int32()
+	e.nameRef = dec.Int32()
 	e.Flags = dec.Uint32()
 	e.VerticesCount = dec.Uint32()
 	e.Unknown = dec.Uint32()
@@ -134,4 +134,8 @@ func (e *WldFragParticleSpriteDef) Read(r io.ReadSeeker, isNewWorld bool) error 
 		return fmt.Errorf("read: %w", err)
 	}
 	return nil
+}
+
+func (e *WldFragParticleSpriteDef) NameRef() int32 {
+	return e.nameRef
 }

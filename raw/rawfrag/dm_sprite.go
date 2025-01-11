@@ -10,7 +10,7 @@ import (
 
 // WldFragDMSprite is DmSprite in libeq, Mesh Reference in openzone, empty in wld, MeshReference in lantern
 type WldFragDMSprite struct {
-	NameRef     int32  `yaml:"name_ref"`
+	nameRef     int32  `yaml:"name_ref"`
 	DMSpriteRef int32  `yaml:"dm_sprite_ref"`
 	Params      uint32 `yaml:"params"`
 }
@@ -21,7 +21,7 @@ func (e *WldFragDMSprite) FragCode() int {
 
 func (e *WldFragDMSprite) Write(w io.Writer, isNewWorld bool) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
-	enc.Int32(e.NameRef)
+	enc.Int32(e.nameRef)
 	enc.Int32(e.DMSpriteRef)
 	enc.Uint32(e.Params)
 	err := enc.Error()
@@ -33,7 +33,7 @@ func (e *WldFragDMSprite) Write(w io.Writer, isNewWorld bool) error {
 
 func (e *WldFragDMSprite) Read(r io.ReadSeeker, isNewWorld bool) error {
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
-	e.NameRef = dec.Int32()
+	e.nameRef = dec.Int32()
 	e.DMSpriteRef = dec.Int32()
 	e.Params = dec.Uint32()
 	err := dec.Error()
@@ -41,4 +41,8 @@ func (e *WldFragDMSprite) Read(r io.ReadSeeker, isNewWorld bool) error {
 		return fmt.Errorf("read: %w", err)
 	}
 	return nil
+}
+
+func (e *WldFragDMSprite) NameRef() int32 {
+	return e.nameRef
 }

@@ -145,7 +145,7 @@ func FragIndex(name string) int {
 			return k
 		}
 	}
-	return -1
+	return 0
 }
 
 // NewFrag takes a reader, analyzes the first 4 bytes, and returns a new fragment struct based on it

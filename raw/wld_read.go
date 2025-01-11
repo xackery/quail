@@ -350,87 +350,87 @@ func (wld *Wld) NameClear() {
 func (wld *Wld) TagByFrag(srcFrag interface{}) string {
 	switch frag := srcFrag.(type) {
 	case *rawfrag.WldFragActorDef:
-		return wld.Name(frag.NameRef)
+		return wld.Name(frag.NameRef())
 	case *rawfrag.WldFragActor:
-		return wld.Name(frag.NameRef)
+		return wld.Name(frag.NameRef())
 	case *rawfrag.WldFragBlitSpriteDef:
-		return wld.Name(frag.NameRef)
+		return wld.Name(frag.NameRef())
 	case *rawfrag.WldFragBlitSprite:
-		return wld.Name(frag.NameRef)
+		return wld.Name(frag.NameRef())
 	case *rawfrag.WldFragBMInfo:
-		return wld.Name(frag.NameRef)
+		return wld.Name(frag.NameRef())
 	case *rawfrag.WldFragCompositeSpriteDef:
-		return wld.Name(frag.NameRef)
+		return wld.Name(frag.NameRef())
 	case *rawfrag.WldFragCompositeSprite:
-		return wld.Name(frag.NameRef)
+		return wld.Name(frag.NameRef())
 	case *rawfrag.WldFragDmRGBTrack:
-		return wld.Name(frag.NameRef)
+		return wld.Name(frag.NameRef())
 	case *rawfrag.WldFragDmRGBTrackDef:
-		return wld.Name(frag.NameRef)
+		return wld.Name(frag.NameRef())
 	case *rawfrag.WldFragDmSpriteDef2:
-		return wld.Name(frag.NameRef)
+		return wld.Name(frag.NameRef())
 	case *rawfrag.WldFragDMSpriteDef:
-		return wld.Name(frag.NameRef)
+		return wld.Name(frag.NameRef())
 	case *rawfrag.WldFragDmTrackDef2:
-		return wld.Name(frag.NameRef)
+		return wld.Name(frag.NameRef())
 	case *rawfrag.WldFragLight:
-		return wld.Name(frag.NameRef)
+		return wld.Name(frag.NameRef())
 	case *rawfrag.WldFragHierarchicalSpriteDef:
-		return wld.Name(frag.NameRef)
+		return wld.Name(frag.NameRef())
 	case *rawfrag.WldFragLightDef:
-		return wld.Name(frag.NameRef)
+		return wld.Name(frag.NameRef())
 	case *rawfrag.WldFragMaterialDef:
-		return wld.Name(frag.NameRef)
+		return wld.Name(frag.NameRef())
 	case *rawfrag.WldFragMaterialPalette:
-		return wld.Name(frag.NameRef)
+		return wld.Name(frag.NameRef())
 	case *rawfrag.WldFragParticleCloudDef:
-		return wld.Name(frag.NameRef)
+		return wld.Name(frag.NameRef())
 	case *rawfrag.WldFragParticleSpriteDef:
-		return wld.Name(frag.NameRef)
+		return wld.Name(frag.NameRef())
 	case *rawfrag.WldFragParticleSprite:
-		return wld.Name(frag.NameRef)
+		return wld.Name(frag.NameRef())
 	case *rawfrag.WldFragPointLight:
-		return wld.Name(frag.NameRef)
+		return wld.Name(frag.NameRef())
 	case *rawfrag.WldFragPolyhedron:
-		return wld.Name(frag.NameRef)
+		return wld.Name(frag.NameRef())
 	case *rawfrag.WldFragPolyhedronDef:
-		return wld.Name(frag.NameRef)
+		return wld.Name(frag.NameRef())
 	case *rawfrag.WldFragRegion:
-		return wld.Name(frag.NameRef)
+		return wld.Name(frag.NameRef())
 	case *rawfrag.WldFragSimpleSpriteDef:
-		return wld.Name(frag.NameRef)
+		return wld.Name(frag.NameRef())
 	case *rawfrag.WldFragSimpleSprite:
-		return wld.Name(frag.NameRef)
+		return wld.Name(frag.NameRef())
 	case *rawfrag.WldFragSoundDef:
-		return wld.Name(frag.NameRef)
+		return wld.Name(frag.NameRef())
 	case *rawfrag.WldFragSound:
-		return wld.Name(frag.NameRef)
+		return wld.Name(frag.NameRef())
 	case *rawfrag.WldFragSphereListDef:
-		return wld.Name(frag.NameRef)
+		return wld.Name(frag.NameRef())
 	case *rawfrag.WldFragSphereList:
-		return wld.Name(frag.NameRef)
+		return wld.Name(frag.NameRef())
 	case *rawfrag.WldFragSphere:
-		return wld.Name(frag.NameRef)
+		return wld.Name(frag.NameRef())
 	case *rawfrag.WldFragSprite2D:
-		return wld.Name(frag.NameRef)
+		return wld.Name(frag.NameRef())
 	case *rawfrag.WldFragSprite2DDef:
-		return wld.Name(frag.NameRef)
+		return wld.Name(frag.NameRef())
 	case *rawfrag.WldFragSprite3D:
-		return wld.Name(frag.NameRef)
+		return wld.Name(frag.NameRef())
 	case *rawfrag.WldFragSprite3DDef:
-		return wld.Name(frag.NameRef)
+		return wld.Name(frag.NameRef())
 	case *rawfrag.WldFragSprite4DDef:
-		return wld.Name(frag.NameRef)
+		return wld.Name(frag.NameRef())
 	case *rawfrag.WldFragSprite4D:
-		return wld.Name(frag.NameRef)
+		return wld.Name(frag.NameRef())
 	case *rawfrag.WldFragTrack:
-		return wld.Name(frag.NameRef)
+		return wld.Name(frag.NameRef())
 	case *rawfrag.WldFragTrackDef:
-		return wld.Name(frag.NameRef)
+		return wld.Name(frag.NameRef())
 	case *rawfrag.WldFragWorldTree:
-		return wld.Name(frag.NameRef)
+		return wld.Name(frag.NameRef())
 	case *rawfrag.WldFragZone:
-		return wld.Name(frag.NameRef)
+		return wld.Name(frag.NameRef())
 	}
 
 	return ""

@@ -10,7 +10,7 @@ import (
 
 // WldFragTrack is a bone in a skeleton. It is Track in libeq, Mob Skeleton Piece Track Reference in openzone, TRACKINSTANCE in wld, TrackDefFragment in lantern
 type WldFragTrack struct {
-	NameRef  int32
+	nameRef  int32
 	TrackRef int32
 	Flags    uint32
 	Sleep    uint32 // if 0x01 is set, this is the number of milliseconds to sleep before starting the animation
@@ -22,7 +22,7 @@ func (e *WldFragTrack) FragCode() int {
 
 func (e *WldFragTrack) Write(w io.Writer, isNewWorld bool) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
-	enc.Int32(e.NameRef)
+	enc.Int32(e.nameRef)
 	enc.Int32(e.TrackRef)
 	enc.Uint32(e.Flags)
 	if e.Flags&0x01 == 0x01 {
@@ -39,7 +39,7 @@ func (e *WldFragTrack) Write(w io.Writer, isNewWorld bool) error {
 func (e *WldFragTrack) Read(r io.ReadSeeker, isNewWorld bool) error {
 
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
-	e.NameRef = dec.Int32()
+	e.nameRef = dec.Int32()
 	e.TrackRef = dec.Int32()
 	e.Flags = dec.Uint32()
 	if e.Flags&0x01 == 0x01 {
@@ -51,4 +51,12 @@ func (e *WldFragTrack) Read(r io.ReadSeeker, isNewWorld bool) error {
 		return fmt.Errorf("write: %w", err)
 	}
 	return nil
+}
+
+func (e *WldFragTrack) NameRef() int32 {
+	return e.nameRef
+}
+
+func (e *WldFragTrack) SetNameRef(id int32) {
+	e.nameRef = id
 }

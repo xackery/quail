@@ -10,7 +10,7 @@ import (
 
 // WldFragPolyhedronDef is PolyhedronDef in libeq, Polygon animation in openzone, POLYHEDRONDEFINITION in wld, Fragment17 in lantern
 type WldFragPolyhedronDef struct {
-	NameRef        int32
+	nameRef        int32
 	Flags          uint32
 	BoundingRadius float32      // params1 in libeq
 	ScaleFactor    float32      // params2 in libeq
@@ -24,7 +24,7 @@ func (e *WldFragPolyhedronDef) FragCode() int {
 
 func (e *WldFragPolyhedronDef) Write(w io.Writer, isNewWorld bool) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
-	enc.Int32(e.NameRef)
+	enc.Int32(e.nameRef)
 	enc.Uint32(e.Flags)
 	enc.Uint32(uint32(len(e.Vertices)))
 	enc.Uint32(uint32(len(e.Faces)))
@@ -50,7 +50,7 @@ func (e *WldFragPolyhedronDef) Write(w io.Writer, isNewWorld bool) error {
 
 func (e *WldFragPolyhedronDef) Read(r io.ReadSeeker, isNewWorld bool) error {
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
-	e.NameRef = dec.Int32()
+	e.nameRef = dec.Int32()
 	e.Flags = dec.Uint32()
 	vertexCount := dec.Uint32()
 	faceCount := dec.Uint32()
@@ -73,4 +73,12 @@ func (e *WldFragPolyhedronDef) Read(r io.ReadSeeker, isNewWorld bool) error {
 		return fmt.Errorf("read: %w", err)
 	}
 	return nil
+}
+
+func (e *WldFragPolyhedronDef) NameRef() int32 {
+	return e.nameRef
+}
+
+func (e *WldFragPolyhedronDef) SetNameRef(nameRef int32) {
+	e.nameRef = nameRef
 }

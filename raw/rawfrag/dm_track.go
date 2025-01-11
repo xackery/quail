@@ -10,7 +10,7 @@ import (
 
 // WldFragDMTrack is DmTrack in libeq, Mesh Animated Vertices Reference in openzone, empty in wld, MeshAnimatedVerticesReference in lantern
 type WldFragDMTrack struct {
-	NameRef  int32
+	nameRef  int32
 	TrackRef int32
 	Flags    uint32
 }
@@ -21,7 +21,7 @@ func (e *WldFragDMTrack) FragCode() int {
 
 func (e *WldFragDMTrack) Write(w io.Writer, isNewWorld bool) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
-	enc.Int32(e.NameRef)
+	enc.Int32(e.nameRef)
 	enc.Int32(e.TrackRef)
 	enc.Uint32(e.Flags)
 
@@ -35,7 +35,7 @@ func (e *WldFragDMTrack) Write(w io.Writer, isNewWorld bool) error {
 func (e *WldFragDMTrack) Read(r io.ReadSeeker, isNewWorld bool) error {
 
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
-	e.NameRef = dec.Int32()
+	e.nameRef = dec.Int32()
 	e.TrackRef = dec.Int32()
 	e.Flags = dec.Uint32()
 
@@ -44,4 +44,8 @@ func (e *WldFragDMTrack) Read(r io.ReadSeeker, isNewWorld bool) error {
 		return fmt.Errorf("write: %w", err)
 	}
 	return nil
+}
+
+func (e *WldFragDMTrack) NameRef() int32 {
+	return e.nameRef
 }

@@ -87,7 +87,7 @@ func TestFragFlags(t *testing.T) {
 				}
 
 				flags := uint32(frag.Flags)
-				tagName := rawWld.Name(int32(frag.NameRef))
+				tagName := rawWld.Name(int32(frag.NameRef()))
 				hexFlagDump := hexFlagDump(int(flags))
 				flagsMap[int(flags)] = &flagEntry{
 					baseName:    s3dName,

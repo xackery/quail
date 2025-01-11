@@ -10,7 +10,7 @@ import (
 
 // WldFragParticleCloudDef is ParticleCloudDef in libeq, empty in openzone, empty in wld, WldFragParticleCloudDef in lantern
 type WldFragParticleCloudDef struct {
-	NameRef               int32
+	nameRef               int32
 	SettingOne            uint32
 	SettingTwo            uint32
 	ParticleMovement      uint32 // 0x01 sphere, 0x02 plane, 0x03 stream, 0x04 none
@@ -38,7 +38,7 @@ func (e *WldFragParticleCloudDef) FragCode() int {
 
 func (e *WldFragParticleCloudDef) Write(w io.Writer, isNewWorld bool) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
-	enc.Int32(e.NameRef)
+	enc.Int32(e.nameRef)
 	enc.Uint32(e.SettingOne)
 	enc.Uint32(e.SettingTwo)
 	enc.Uint32(e.ParticleMovement)
@@ -76,7 +76,7 @@ func (e *WldFragParticleCloudDef) Write(w io.Writer, isNewWorld bool) error {
 
 func (e *WldFragParticleCloudDef) Read(r io.ReadSeeker, isNewWorld bool) error {
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
-	e.NameRef = dec.Int32()
+	e.nameRef = dec.Int32()
 	e.SettingOne = dec.Uint32()
 	e.SettingTwo = dec.Uint32()
 	e.ParticleMovement = dec.Uint32()
@@ -101,4 +101,12 @@ func (e *WldFragParticleCloudDef) Read(r io.ReadSeeker, isNewWorld bool) error {
 		return fmt.Errorf("read: %w", err)
 	}
 	return nil
+}
+
+func (e *WldFragParticleCloudDef) NameRef() int32 {
+	return e.nameRef
+}
+
+func (e *WldFragParticleCloudDef) SetNameRef(id int32) {
+	e.nameRef = id
 }

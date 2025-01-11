@@ -10,7 +10,7 @@ import (
 
 // WldFragCompositeSprite is empty in libeq, empty in openzone, COMPOSITESPRITE (ref) in wld
 type WldFragCompositeSprite struct {
-	NameRef               int32  `yaml:"name_ref"`
+	nameRef               int32  `yaml:"name_ref"`
 	CompositeSpriteDefRef int32  `yaml:"composite_sprite_def_ref"`
 	Flags                 uint32 `yaml:"flags"`
 }
@@ -21,7 +21,7 @@ func (e *WldFragCompositeSprite) FragCode() int {
 
 func (e *WldFragCompositeSprite) Write(w io.Writer, isNewWorld bool) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
-	enc.Int32(e.NameRef)
+	enc.Int32(e.nameRef)
 	enc.Int32(e.CompositeSpriteDefRef)
 	enc.Uint32(e.Flags)
 	err := enc.Error()
@@ -33,7 +33,7 @@ func (e *WldFragCompositeSprite) Write(w io.Writer, isNewWorld bool) error {
 
 func (e *WldFragCompositeSprite) Read(r io.ReadSeeker, isNewWorld bool) error {
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
-	e.NameRef = dec.Int32()
+	e.nameRef = dec.Int32()
 	e.CompositeSpriteDefRef = dec.Int32()
 	e.Flags = dec.Uint32()
 	err := dec.Error()
@@ -41,4 +41,8 @@ func (e *WldFragCompositeSprite) Read(r io.ReadSeeker, isNewWorld bool) error {
 		return fmt.Errorf("read: %w", err)
 	}
 	return nil
+}
+
+func (e *WldFragCompositeSprite) NameRef() int32 {
+	return e.nameRef
 }

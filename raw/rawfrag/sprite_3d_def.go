@@ -10,7 +10,7 @@ import (
 
 // WldFragSprite3DDef is Sprite3DDef in libeq, Camera in openzone, 3DSPRITEDEF in wld, Camera in lantern
 type WldFragSprite3DDef struct {
-	NameRef        int32
+	nameRef        int32
 	Flags          uint32
 	SphereListRef  uint32
 	CenterOffset   [3]float32
@@ -41,7 +41,7 @@ func (e *WldFragSprite3DDef) FragCode() int {
 
 func (e *WldFragSprite3DDef) Write(w io.Writer, isNewWorld bool) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
-	enc.Int32(e.NameRef)
+	enc.Int32(e.nameRef)
 	enc.Uint32(e.Flags)
 	enc.Uint32(uint32(len(e.Vertices)))
 	enc.Uint32(uint32(len(e.BspNodes)))
@@ -116,7 +116,7 @@ func (e *WldFragSprite3DDef) Write(w io.Writer, isNewWorld bool) error {
 
 func (e *WldFragSprite3DDef) Read(r io.ReadSeeker, isNewWorld bool) error {
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
-	e.NameRef = dec.Int32()
+	e.nameRef = dec.Int32()
 	e.Flags = dec.Uint32()
 	vertexCount := dec.Uint32()
 	bspNodeCount := dec.Uint32()
@@ -181,4 +181,12 @@ func (e *WldFragSprite3DDef) Read(r io.ReadSeeker, isNewWorld bool) error {
 	}
 	return nil
 
+}
+
+func (e *WldFragSprite3DDef) NameRef() int32 {
+	return e.nameRef
+}
+
+func (e *WldFragSprite3DDef) SetNameRef(nameRef int32) {
+	e.nameRef = nameRef
 }

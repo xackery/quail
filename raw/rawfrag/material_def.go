@@ -10,7 +10,7 @@ import (
 
 // WldFragMaterialDef is MaterialDef in libeq, Texture in openzone, MATERIALDEFINITION in wld, Material in lantern
 type WldFragMaterialDef struct {
-	NameRef         int32    `yaml:"name_ref"`
+	nameRef         int32    `yaml:"name_ref"`
 	Flags           uint32   `yaml:"flags"`
 	RenderMethod    uint32   `yaml:"render_method"`
 	RGBPen          [4]uint8 `yaml:"rgb_pen"`
@@ -27,7 +27,7 @@ func (e *WldFragMaterialDef) FragCode() int {
 
 func (e *WldFragMaterialDef) Write(w io.Writer, isNewWorld bool) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
-	enc.Int32(e.NameRef)
+	enc.Int32(e.nameRef)
 	enc.Uint32(e.Flags)
 	enc.Uint32(e.RenderMethod)
 	enc.Uint8(e.RGBPen[0])
@@ -50,7 +50,7 @@ func (e *WldFragMaterialDef) Write(w io.Writer, isNewWorld bool) error {
 
 func (e *WldFragMaterialDef) Read(r io.ReadSeeker, isNewWorld bool) error {
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
-	e.NameRef = dec.Int32()
+	e.nameRef = dec.Int32()
 	e.Flags = dec.Uint32()
 	e.RenderMethod = dec.Uint32()
 	e.RGBPen = [4]uint8{dec.Uint8(), dec.Uint8(), dec.Uint8(), dec.Uint8()}
@@ -66,4 +66,12 @@ func (e *WldFragMaterialDef) Read(r io.ReadSeeker, isNewWorld bool) error {
 		return fmt.Errorf("read: %w", err)
 	}
 	return nil
+}
+
+func (e *WldFragMaterialDef) NameRef() int32 {
+	return e.nameRef
+}
+
+func (e *WldFragMaterialDef) SetNameRef(nameRef int32) {
+	e.nameRef = nameRef
 }
