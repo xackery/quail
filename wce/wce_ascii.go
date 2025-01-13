@@ -182,24 +182,6 @@ func (wce *Wce) writeAsciiData(path string) error {
 		if len(track.Tag) < 3 {
 			return fmt.Errorf("track %s tag too short", track.Tag)
 		}
-		// TODO: Verify why this fails?
-		//		if len(track.SpriteTag) < 3 {
-		//			return fmt.Errorf("track %s model too short (%s)", track.Tag, track.SpriteTag)
-		//		}
-
-		tag := track.model
-		if wce.isTrackAni(track.Tag) {
-			tag += "_ani"
-		}
-
-		if token.TagIsWritten(fmt.Sprintf("%s_%d", track.Tag, track.TagIndex)) {
-			continue
-		}
-
-		err = token.SetWriter(tag)
-		if err != nil {
-			return fmt.Errorf("set track baseTag (%s) %s writer: %w", tag, track.Tag, err)
-		}
 
 		err = track.Write(token)
 		if err != nil {
