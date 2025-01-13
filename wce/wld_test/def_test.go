@@ -10,7 +10,8 @@ var tests = []struct {
 	baseName string
 	wldName  string
 }{
-	{baseName: "gequip"},
+	//{baseName: "gequip"},
+
 	//{baseName: "global3_chr"},
 	//{baseName: "emeraldjungle"},
 	//{baseName: "emeraldjungle_obj"},
@@ -21,7 +22,7 @@ var tests = []struct {
 	//{baseName: "load2"}, // dmspritedef2: fragment4 unknown type *rawfrag.WldFragBMInfo
 	//{baseName: "globalogm_chr2"}, //track L10BOGML10B_OGM_TRACK model too short ()
 	//{baseName: "sseru_2_obj"}, // OK
-	//{baseName: "mim_chr"}, // OK
+	{baseName: "mim_chr"}, // OK
 	//{baseName: "chardok_2_obj"}, // OK
 	//{baseName: "butcher2_chr"}, // OK
 	//{baseName: "chequip"}, // OK

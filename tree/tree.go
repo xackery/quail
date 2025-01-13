@@ -12,6 +12,7 @@ type Node struct {
 	FragID   int32
 	FragType string
 	Tag      string
+	Parent   string
 	Children map[int32]*Node
 }
 
@@ -58,7 +59,7 @@ func BuildFragReferenceTree(wld *raw.Wld) (map[int32]*Node, error) {
 		}
 
 		// Find or create the node for this fragment
-		node := upsertNode(nodes, fmt.Sprintf("%T", frag), fragID, strings.TrimSpace(tag))
+		node := upsertNode(nodes, "", fmt.Sprintf("%T", frag), fragID, strings.TrimSpace(tag))
 
 		// Extract references from the fragment
 		fragRefs := fragRefs(frag)
@@ -76,7 +77,7 @@ func BuildFragReferenceTree(wld *raw.Wld) (map[int32]*Node, error) {
 				childTag = wld.Name(childFrag.NameRef())
 			}
 
-			child := upsertNode(nodes, fmt.Sprintf("%T", childFrag), refID, strings.TrimSpace(childTag))
+			child := upsertNode(nodes, node.Tag, fmt.Sprintf("%T", childFrag), refID, strings.TrimSpace(childTag))
 
 			// Establish the parent-child relationship
 			node.Children[refID] = child
@@ -97,16 +98,18 @@ func BuildFragReferenceTree(wld *raw.Wld) (map[int32]*Node, error) {
 }
 
 // upsertNode finds or creates a node in the map
-func upsertNode(nodes map[int32]*Node, fragType string, fragID int32, tag string) *Node {
+func upsertNode(nodes map[int32]*Node, parent string, fragType string, fragID int32, tag string) *Node {
 	fragType = strings.TrimPrefix(fragType, "*rawfrag.WldFrag")
 
 	node, ok := nodes[fragID]
 	if ok {
+		node.Parent = parent
 		node.Tag = tag
 		node.FragType = fragType
 		return node
 	}
 	node = &Node{
+		Parent:   parent,
 		FragID:   fragID,
 		Tag:      tag,
 		FragType: fragType,

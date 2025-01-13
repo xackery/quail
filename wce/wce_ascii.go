@@ -52,29 +52,28 @@ func (wce *Wce) WriteAscii(path string) error {
 	if err != nil {
 		return fmt.Errorf("mkdir: %w", err)
 	}
-
-	baseTags := []string{}
-	for _, actorDef := range wce.ActorDefs {
-		if len(actorDef.Tag) < 3 {
-			return fmt.Errorf("actorDef %s tag too short", actorDef.Tag)
-		}
-		baseTag := baseTagTrim(wce.isObj, actorDef.Tag)
-		isFound := false
-		for _, tag := range baseTags {
-			if tag == baseTag {
-				isFound = true
-				break
+	/*
+		for _, actorDef := range wce.ActorDefs {
+			if len(actorDef.Tag) < 3 {
+				return fmt.Errorf("actorDef %s tag too short", actorDef.Tag)
+			}
+			baseTag := baseTagTrim(wce.isObj, actorDef.Tag)
+			isFound := false
+			for _, tag := range baseTags {
+				if tag == baseTag {
+					isFound = true
+					break
+				}
+			}
+			if !isFound {
+				baseTags = append(baseTags, baseTag)
 			}
 		}
-		if !isFound {
-			baseTags = append(baseTags, baseTag)
-		}
-	}
-	if wce.WorldDef != nil && wce.WorldDef.Zone == 1 {
-		baseTags = append(baseTags, "R")
-	}
+		if wce.WorldDef != nil && wce.WorldDef.Zone == 1 {
+			baseTags = append(baseTags, "R")
+		} */
 
-	err = wce.writeAsciiData(path, baseTags)
+	err = wce.writeAsciiData(path)
 	if err != nil {
 		return err
 	}
@@ -82,7 +81,7 @@ func (wce *Wce) WriteAscii(path string) error {
 	return nil
 }
 
-func (wce *Wce) writeAsciiData(path string, baseTags []string) error {
+func (wce *Wce) writeAsciiData(path string) error {
 
 	token := NewAsciiWriteToken(path, wce)
 	defer token.Close()
@@ -90,186 +89,7 @@ func (wce *Wce) writeAsciiData(path string, baseTags []string) error {
 	if wce.WorldDef == nil {
 		return fmt.Errorf("worlddef not found")
 	}
-
-	for _, track := range wce.TrackInstances {
-		if len(track.SpriteTag) < 3 {
-			if !regTrack1.MatchString(track.Tag) {
-				if !regTrack2.MatchString(track.Tag) {
-					return fmt.Errorf("track %s model basetag too short (%s)", track.Tag, track.SpriteTag)
-				} else {
-					track.SpriteTag = regTrack2.FindStringSubmatch(track.Tag)[1]
-				}
-			} else {
-				track.SpriteTag = regTrack1.FindStringSubmatch(track.Tag)[1]
-			}
-			track.model = track.SpriteTag
-		}
-		baseTag, _, _, _ := wce.trackTagAndSequence(track.Tag)
-		if baseTag == "" {
-			// return fmt.Errorf("track %s tag too short (baseTag empty)", track.Tag)
-			baseTag = track.model
-		}
-
-		track.model = baseTag
-		isFound := false
-		for _, tag := range baseTags {
-			if tag == baseTag {
-				isFound = true
-				break
-			}
-		}
-		if !isFound {
-			baseTags = append(baseTags, baseTag)
-		}
-	}
-
-	for _, trackDef := range wce.TrackDefs {
-		if len(trackDef.SpriteTag) < 3 {
-			if !regTrack1.MatchString(trackDef.Tag) {
-				if !regTrack2.MatchString(trackDef.Tag) {
-					return fmt.Errorf("trackDef %s model basetag too short (%s)", trackDef.Tag, trackDef.SpriteTag)
-				} else {
-					trackDef.SpriteTag = regTrack2.FindStringSubmatch(trackDef.Tag)[1]
-				}
-			} else {
-				trackDef.SpriteTag = regTrack1.FindStringSubmatch(trackDef.Tag)[1]
-			}
-			trackDef.model = trackDef.SpriteTag
-		}
-
-		baseTag, _, _, _ := wce.trackTagAndSequence(trackDef.Tag)
-		if baseTag == "" {
-			//return fmt.Errorf("trackDef %s tag too short (baseTag empty)", trackDef.Tag)
-			baseTag = trackDef.model
-
-		}
-
-		trackDef.model = baseTag
-		isFound := false
-		for _, tag := range baseTags {
-			if tag == baseTag {
-				isFound = true
-				break
-			}
-		}
-		if !isFound {
-			baseTags = append(baseTags, baseTag)
-		}
-	}
-
-	for _, trackDef := range wce.DMTrackDef2s {
-		baseTag, _, _, _ := wce.trackTagAndSequence(trackDef.Tag)
-		if baseTag == "" {
-			//return fmt.Errorf("trackDef %s tag too short (baseTag empty)", trackDef.Tag)
-			baseTag = trackDef.model
-
-		}
-
-		trackDef.model = baseTag
-		isFound := false
-		for _, tag := range baseTags {
-			if tag == baseTag {
-				isFound = true
-				break
-			}
-		}
-		if !isFound {
-			baseTags = append(baseTags, baseTag)
-		}
-	}
-
-	for _, actorDef := range wce.ActorDefs {
-		if len(actorDef.Tag) < 3 {
-			return fmt.Errorf("actorDef %s tag too short", actorDef.Tag)
-		}
-		baseTag := baseTagTrim(wce.isObj, actorDef.Tag)
-		isFound := false
-		for _, tag := range baseTags {
-			if tag == baseTag {
-				isFound = true
-				break
-			}
-		}
-		if !isFound {
-			baseTags = append(baseTags, baseTag)
-		}
-	}
-
-	for _, mdsDef := range wce.MdsDefs {
-		if len(mdsDef.Tag) < 3 {
-			return fmt.Errorf("mdsDef %s tag too short", mdsDef.Tag)
-		}
-		baseTag := baseTagTrim(wce.isObj, mdsDef.Tag)
-		isFound := false
-		for _, tag := range baseTags {
-			if tag == baseTag {
-				isFound = true
-				break
-			}
-		}
-		if !isFound {
-			baseTags = append(baseTags, baseTag)
-		}
-	}
-
-	for _, modDef := range wce.ModDefs {
-		if len(modDef.Tag) < 3 {
-			return fmt.Errorf("modDef %s tag too short", modDef.Tag)
-		}
-		baseTag := modDef.Tag
-		isFound := false
-		for _, tag := range baseTags {
-			if tag == baseTag {
-				isFound = true
-				break
-			}
-		}
-		if !isFound {
-			baseTags = append(baseTags, baseTag)
-		}
-	}
-
-	for _, terDef := range wce.TerDefs {
-		if len(terDef.Tag) < 3 {
-			return fmt.Errorf("terDef %s tag too short", terDef.Tag)
-		}
-		baseTag := terDef.Tag
-		isFound := false
-		for _, tag := range baseTags {
-			if tag == baseTag {
-				isFound = true
-				break
-			}
-		}
-		if !isFound {
-			baseTags = append(baseTags, baseTag)
-		}
-	}
-
-	err := token.AddWriter("world", fmt.Sprintf("%s/world.wce", path))
-	if err != nil {
-		return fmt.Errorf("add world writer: %w", err)
-	}
-
-	err = token.AddWriter("region", fmt.Sprintf("%s/region.wce", path))
-	if err != nil {
-		return fmt.Errorf("add region writer: %w", err)
-	}
-
-	for _, baseTag := range baseTags {
-		writePath := fmt.Sprintf("%s/%s/%s.wce", path, strings.ToLower(baseTag), strings.ToLower(baseTag))
-		err = token.AddWriter(baseTag, writePath)
-		if err != nil {
-			return fmt.Errorf("add writer %s: %w", baseTag, err)
-		}
-
-		writePath = fmt.Sprintf("%s/%s/%s_ani.wce", path, strings.ToLower(baseTag), strings.ToLower(baseTag))
-		err = token.AddWriter(baseTag+"_ani", writePath)
-		if err != nil {
-			return fmt.Errorf("add writer %s_ani: %w", baseTag, err)
-		}
-	}
-
+	var err error
 	if wce.WorldDef != nil {
 		err = token.SetWriter("world")
 		if err != nil {
@@ -334,10 +154,6 @@ func (wce *Wce) writeAsciiData(path string, baseTags []string) error {
 		baseTag := baseTagTrim(wce.isObj, actorDef.Tag)
 		wce.lastReadModelTag = baseTag
 
-		err = token.SetWriter(actorDef.Tag)
-		if err != nil {
-			return fmt.Errorf("set actordef %s writer: %w", actorDef.Tag, err)
-		}
 		err = actorDef.Write(token)
 		if err != nil {
 			return fmt.Errorf("actordef %s: %w", actorDef.Tag, err)
@@ -345,11 +161,6 @@ func (wce *Wce) writeAsciiData(path string, baseTags []string) error {
 	}
 
 	for _, particleCloudDef := range wce.ParticleCloudDefs {
-		err = token.SetWriter(particleCloudDef.Tag)
-		if err != nil {
-			return fmt.Errorf("set polyhedron %s writer: %w", particleCloudDef.Tag, err)
-		}
-
 		err = particleCloudDef.Write(token)
 		if err != nil {
 			return fmt.Errorf("polyhedron %s: %w", particleCloudDef.Tag, err)
@@ -359,11 +170,6 @@ func (wce *Wce) writeAsciiData(path string, baseTags []string) error {
 	if wce.WorldDef.Zone == 1 {
 
 		for _, dSprite := range wce.DMSpriteDefs {
-			err = token.SetWriter(dSprite.Tag)
-			if err != nil {
-				return fmt.Errorf("set dmspritedef %s writer: %w", dSprite.Tag, err)
-			}
-
 			err = dSprite.Write(token)
 			if err != nil {
 				return fmt.Errorf("dmspritedef %s: %w", dSprite.Tag, err)
@@ -376,9 +182,10 @@ func (wce *Wce) writeAsciiData(path string, baseTags []string) error {
 		if len(track.Tag) < 3 {
 			return fmt.Errorf("track %s tag too short", track.Tag)
 		}
-		if len(track.SpriteTag) < 3 {
-			return fmt.Errorf("track %s model too short (%s)", track.Tag, track.SpriteTag)
-		}
+		// TODO: Verify why this fails?
+		//		if len(track.SpriteTag) < 3 {
+		//			return fmt.Errorf("track %s model too short (%s)", track.Tag, track.SpriteTag)
+		//		}
 
 		tag := track.model
 		if wce.isTrackAni(track.Tag) {
@@ -403,11 +210,6 @@ func (wce *Wce) writeAsciiData(path string, baseTags []string) error {
 	if wce.WorldDef.Zone == 1 {
 
 		for _, polyDef := range wce.PolyhedronDefs {
-			err = token.SetWriter(polyDef.Tag)
-			if err != nil {
-				return fmt.Errorf("set polyhedron %s writer: %w", polyDef.Tag, err)
-			}
-
 			err = polyDef.Write(token)
 			if err != nil {
 				return fmt.Errorf("polyhedron %s: %w", polyDef.Tag, err)
@@ -527,11 +329,6 @@ func (wce *Wce) writeAsciiData(path string, baseTags []string) error {
 	// EQG
 
 	for _, mdsDef := range wce.MdsDefs {
-		err = token.SetWriter(mdsDef.Tag)
-		if err != nil {
-			return fmt.Errorf("set mdsdef %s writer: %w", mdsDef.Tag, err)
-		}
-
 		err = mdsDef.Write(token)
 		if err != nil {
 			return fmt.Errorf("mdsdef %s: %w", mdsDef.Tag, err)
@@ -539,11 +336,6 @@ func (wce *Wce) writeAsciiData(path string, baseTags []string) error {
 	}
 
 	for _, modDef := range wce.ModDefs {
-		err = token.SetWriter(modDef.Tag)
-		if err != nil {
-			return fmt.Errorf("set moddef %s writer: %w", modDef.Tag, err)
-		}
-
 		err = modDef.Write(token)
 		if err != nil {
 			return fmt.Errorf("moddef %s: %w", modDef.Tag, err)
@@ -552,80 +344,75 @@ func (wce *Wce) writeAsciiData(path string, baseTags []string) error {
 
 	token.Close()
 
+	type folderType struct {
+		hasBase bool
+		hasAni  bool
+	}
+	folders := make(map[string]*folderType)
+	for key, w := range token.writers {
+		if key == "world" || key == "region" {
+			w.Close()
+			continue
+		}
+		isAni := false
+		if strings.Contains(key, "_ani") {
+			key = strings.Replace(key, "_ani", "", 1)
+			isAni = true
+		}
+		_, ok := folders[key]
+		if !ok {
+			folders[key] = &folderType{}
+		}
+		if isAni {
+			folders[key].hasAni = true
+			continue
+		}
+		folders[key].hasBase = true
+	}
+
 	rootW, err := os.Create(fmt.Sprintf("%s/_root.wce", path))
 	if err != nil {
 		return err
 	}
 	wce.writeAsciiHeader(rootW)
 
-	defer rootW.Close()
-
 	if token.IsWriterUsed("world") {
 		rootW.WriteString("INCLUDE \"WORLD.WCE\"\n")
-	} else {
-		err = os.Remove(fmt.Sprintf("%s/world.wce", path))
-		if err != nil {
-			return fmt.Errorf("remove %s: %w", fmt.Sprintf("%s/world.wce", path), err)
-		}
 	}
 
 	if token.IsWriterUsed("region") {
 		rootW.WriteString("INCLUDE \"REGION.WCE\"\n")
-	} else {
-		err = os.Remove(fmt.Sprintf("%s/region.wce", path))
-		if err != nil {
-			return fmt.Errorf("remove %s: %w", fmt.Sprintf("%s/region.wce", path), err)
-		}
 	}
 
-	for _, baseTag := range baseTags {
+	var currentW *os.File
+	var currentFolder string
+	for folder, folderInfo := range folders {
+		if currentFolder != folder {
+			if currentW != nil {
+				rootW.WriteString(fmt.Sprintf("INCLUDE \"%s/_ROOT.WCE\"\n", strings.ToUpper(currentFolder)))
+				currentW.Close()
+			}
 
-		if baseTag != "PLAYER" &&
-			!token.IsWriterUsed(baseTag) &&
-			!token.IsWriterUsed(baseTag+"_ani") &&
-			!strings.Contains(path, "_obj") {
-			fmt.Println("Tag", baseTag, "was never used for model or ani (can be ignored)")
-			//			return fmt.Errorf("tag %s was never used for model or ani", baseTag)
-		}
-
-		modelW, err := os.Create(fmt.Sprintf("%s/%s/_root.wce", path, strings.ToLower(baseTag)))
-		if err != nil {
-			return err
-		}
-		wce.writeAsciiHeader(modelW)
-
-		defer modelW.Close()
-
-		rootW.WriteString(fmt.Sprintf("INCLUDE \"%s/_ROOT.WCE\"\n", strings.ToUpper(baseTag)))
-
-		if token.IsWriterUsed(baseTag) {
-			_, err = modelW.WriteString(fmt.Sprintf("INCLUDE \"%s.WCE\"\n", strings.ToUpper(baseTag)))
+			currentW, err = os.Create(fmt.Sprintf("%s/%s/_root.wce", path, strings.ToLower(folder)))
 			if err != nil {
 				return err
 			}
-		} else {
-			removePath := fmt.Sprintf("%s/%s/%s.wce", path, strings.ToLower(baseTag), strings.ToLower(baseTag))
-
-			err = os.Remove(removePath)
-			if err != nil {
-				return fmt.Errorf("remove %s: %w", removePath, err)
-			}
+			currentFolder = folder
 		}
-
-		if token.IsWriterUsed(baseTag + "_ani") {
-			_, err = modelW.WriteString(fmt.Sprintf("INCLUDE \"%s_ANI.WCE\"\n", strings.ToUpper(baseTag)))
-			if err != nil {
-				return fmt.Errorf("write %s: %w", fmt.Sprintf("%s/%s/%s_ani.wce", path, strings.ToLower(baseTag), strings.ToLower(baseTag)), err)
-			}
-		} else {
-			removePath := fmt.Sprintf("%s/%s/%s_ani.wce", path, strings.ToLower(baseTag), strings.ToLower(baseTag))
-
-			err = os.Remove(removePath)
-			if err != nil {
-				return fmt.Errorf("remove %s: %w", removePath, err)
-			}
+		wce.writeAsciiHeader(currentW)
+		if folderInfo.hasBase {
+			currentW.WriteString(fmt.Sprintf("INCLUDE \"%s.WCE\"\n", strings.ToUpper(folder)))
+		}
+		if folderInfo.hasAni {
+			currentW.WriteString(fmt.Sprintf("INCLUDE \"%s_ANI.WCE\"\n", strings.ToUpper(folder)))
 		}
 	}
+	if currentW != nil {
+		rootW.WriteString(fmt.Sprintf("INCLUDE \"%s/_ROOT.WCE\"\n", strings.ToUpper(currentFolder)))
+		currentW.Close()
+	}
+
+	rootW.Close()
 
 	return nil
 }

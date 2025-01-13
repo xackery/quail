@@ -13,6 +13,7 @@ import (
 
 // WorldDef stores data about the world itself
 type WorldDef struct {
+	folder     string // when writing, this is the folder the file is in
 	NewWorld   int
 	Zone       int
 	EqgVersion NullInt8
@@ -25,6 +26,10 @@ func (e *WorldDef) Definition() string {
 
 // Write writes the WorldDef to the writer
 func (e *WorldDef) Write(token *AsciiWriteToken) error {
+	err := token.SetWriter(e.folder)
+	if err != nil {
+		return err
+	}
 	w, err := token.Writer()
 	if err != nil {
 		return err
@@ -39,6 +44,8 @@ func (e *WorldDef) Write(token *AsciiWriteToken) error {
 
 // Read reads the WorldDef from the reader
 func (e *WorldDef) Read(token *AsciiReadToken) error {
+	e.folder = token.folder
+
 	records, err := token.ReadProperty("NEWWORLD", 1)
 	if err != nil {
 		return err
@@ -71,6 +78,7 @@ func (e *WorldDef) Read(token *AsciiReadToken) error {
 
 // GlobalAmbientLightDef is a declaration of GLOBALAMBIENTLIGHTDEF
 type GlobalAmbientLightDef struct {
+	folder string // when writing, this is the folder the file is in
 	fragID int16
 	Color  [4]uint8
 }
@@ -80,6 +88,10 @@ func (e *GlobalAmbientLightDef) Definition() string {
 }
 
 func (e *GlobalAmbientLightDef) Write(token *AsciiWriteToken) error {
+	err := token.SetWriter(e.folder)
+	if err != nil {
+		return err
+	}
 	w, err := token.Writer()
 	if err != nil {
 		return err
@@ -91,6 +103,7 @@ func (e *GlobalAmbientLightDef) Write(token *AsciiWriteToken) error {
 }
 
 func (e *GlobalAmbientLightDef) Read(token *AsciiReadToken) error {
+	e.folder = token.folder
 	records, err := token.ReadProperty("Color", 4)
 	if err != nil {
 		return err
@@ -128,6 +141,7 @@ func (e *GlobalAmbientLightDef) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag
 
 // DMSpriteDef2 is a declaration of DMSpriteDef2
 type DMSpriteDef2 struct {
+	folder                string // when writing, this is the folder the file is in
 	fragID                int16
 	Tag                   string
 	DmTrackTag            string
@@ -174,6 +188,10 @@ func (e *DMSpriteDef2) Definition() string {
 }
 
 func (e *DMSpriteDef2) Write(token *AsciiWriteToken) error {
+	err := token.SetWriter(e.folder)
+	if err != nil {
+		return err
+	}
 	w, err := token.Writer()
 	if err != nil {
 		return err
@@ -307,6 +325,7 @@ func (e *DMSpriteDef2) Write(token *AsciiWriteToken) error {
 }
 
 func (e *DMSpriteDef2) Read(token *AsciiReadToken) error {
+	e.folder = token.folder
 
 	records, err := token.ReadProperty("CENTEROFFSET", 3)
 	if err != nil {
@@ -1014,6 +1033,7 @@ func (e *DMSpriteDef2) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragD
 
 // DMSpriteDef is a declaration of DMSPRITEDEF
 type DMSpriteDef struct {
+	folder               string // when writing, this is the folder the file is in
 	fragID               int16
 	Tag                  string
 	Fragment1            int16
@@ -1057,6 +1077,10 @@ func (e *DMSpriteDef) Definition() string {
 }
 
 func (e *DMSpriteDef) Write(token *AsciiWriteToken) error {
+	err := token.SetWriter(e.folder)
+	if err != nil {
+		return err
+	}
 	w, err := token.Writer()
 	if err != nil {
 		return err
@@ -1150,6 +1174,7 @@ func (e *DMSpriteDef) Write(token *AsciiWriteToken) error {
 }
 
 func (e *DMSpriteDef) Read(token *AsciiReadToken) error {
+	e.folder = token.folder
 
 	records, err := token.ReadProperty("FRAGMENT1", 1)
 	if err != nil {
@@ -1679,6 +1704,7 @@ func (e *DMSpriteDef) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragDM
 
 // MaterialPalette is a declaration of MATERIALPALETTE
 type MaterialPalette struct {
+	folder    string // when writing, this is the folder the file is in
 	fragID    int16
 	Tag       string
 	flags     uint32
@@ -1690,6 +1716,10 @@ func (e *MaterialPalette) Definition() string {
 }
 
 func (e *MaterialPalette) Write(token *AsciiWriteToken) error {
+	err := token.SetWriter(e.folder)
+	if err != nil {
+		return err
+	}
 	w, err := token.Writer()
 	if err != nil {
 		return err
@@ -1721,6 +1751,7 @@ func (e *MaterialPalette) Write(token *AsciiWriteToken) error {
 }
 
 func (e *MaterialPalette) Read(token *AsciiReadToken) error {
+	e.folder = token.folder
 	records, err := token.ReadProperty("NUMMATERIALS", 1)
 	if err != nil {
 		return fmt.Errorf("NUMMATERIALS: %w", err)
@@ -1794,6 +1825,7 @@ func (e *MaterialPalette) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFr
 
 // MaterialDef is an entry MATERIALDEFINITION
 type MaterialDef struct {
+	folder             string // when writing, this is the folder the file is in
 	fragID             int16
 	model              string
 	Tag                string
@@ -1814,6 +1846,10 @@ func (e *MaterialDef) Definition() string {
 }
 
 func (e *MaterialDef) Write(token *AsciiWriteToken) error {
+	err := token.SetWriter(e.folder)
+	if err != nil {
+		return err
+	}
 	w, err := token.Writer()
 	if err != nil {
 		return err
@@ -1854,6 +1890,7 @@ func (e *MaterialDef) Write(token *AsciiWriteToken) error {
 }
 
 func (e *MaterialDef) Read(token *AsciiReadToken) error {
+	e.folder = token.folder
 
 	e.model = token.wce.lastReadModelTag
 
@@ -2057,6 +2094,7 @@ func (e *MaterialDef) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragMa
 
 // BlitSpriteDef is a declaration of BLITSPRITEDEF
 type BlitSpriteDef struct {
+	folder      string // when writing, this is the folder the file is in
 	fragID      int16
 	Tag         string
 	SpriteTag   string
@@ -2069,6 +2107,10 @@ func (e *BlitSpriteDef) Definition() string {
 }
 
 func (e *BlitSpriteDef) Write(token *AsciiWriteToken) error {
+	err := token.SetWriter(e.folder)
+	if err != nil {
+		return err
+	}
 	w, err := token.Writer()
 	if err != nil {
 		return err
@@ -2100,6 +2142,7 @@ func (e *BlitSpriteDef) Write(token *AsciiWriteToken) error {
 }
 
 func (e *BlitSpriteDef) Read(token *AsciiReadToken) error {
+	e.folder = token.folder
 
 	records, err := token.ReadProperty("SPRITE", 1)
 	if err != nil {
@@ -2210,6 +2253,7 @@ func (e *BlitSpriteDef) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFrag
 
 // SimpleSpriteDef is a declaration of SIMPLESPRITEDEF
 type SimpleSpriteDef struct {
+	folder             string // when writing, this is the folder the file is in
 	fragID             int16
 	Tag                string
 	Variation          int
@@ -2221,6 +2265,7 @@ type SimpleSpriteDef struct {
 }
 
 type SimpleSpriteFrame struct {
+	folder      string // when writing, this is the folder the file is in
 	TextureFile string
 	TextureTag  string
 }
@@ -2230,6 +2275,10 @@ func (e *SimpleSpriteDef) Definition() string {
 }
 
 func (e *SimpleSpriteDef) Write(token *AsciiWriteToken) error {
+	err := token.SetWriter(e.folder)
+	if err != nil {
+		return err
+	}
 	w, err := token.Writer()
 	if err != nil {
 		return err
@@ -2253,6 +2302,7 @@ func (e *SimpleSpriteDef) Write(token *AsciiWriteToken) error {
 }
 
 func (e *SimpleSpriteDef) Read(token *AsciiReadToken) error {
+	e.folder = token.folder
 	records, err := token.ReadProperty("VARIATION", 1)
 	if err != nil {
 		return fmt.Errorf("VARIATION: %w", err)
@@ -2428,6 +2478,7 @@ func (e *SimpleSpriteDef) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFr
 
 // ActorDef is a declaration of ACTORDEF
 type ActorDef struct {
+	folder         string // when writing, this is the folder the file is in
 	fragID         int16
 	Tag            string
 	Callback       string
@@ -2460,6 +2511,10 @@ func (e *ActorDef) Definition() string {
 }
 
 func (e *ActorDef) Write(token *AsciiWriteToken) error {
+	err := token.SetWriter(e.folder)
+	if err != nil {
+		return err
+	}
 	w, err := token.Writer()
 	if err != nil {
 		return err
@@ -2596,6 +2651,7 @@ func (e *ActorDef) Write(token *AsciiWriteToken) error {
 }
 
 func (e *ActorDef) Read(token *AsciiReadToken) error {
+	e.folder = token.folder
 
 	records, err := token.ReadProperty("CALLBACK", 1)
 	if err != nil {
@@ -3008,6 +3064,7 @@ func (e *ActorDef) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragActor
 
 // ActorInst is a declaration of ACTORINST
 type ActorInst struct {
+	folder            string
 	fragID            int16
 	Tag               string
 	DefinitionTag     string
@@ -3030,6 +3087,10 @@ func (e *ActorInst) Definition() string {
 }
 
 func (e *ActorInst) Write(token *AsciiWriteToken) error {
+	err := token.SetWriter(e.folder)
+	if err != nil {
+		return err
+	}
 	w, err := token.Writer()
 	if err != nil {
 		return err
@@ -3080,6 +3141,7 @@ func (e *ActorInst) Write(token *AsciiWriteToken) error {
 }
 
 func (e *ActorInst) Read(token *AsciiReadToken) error {
+	e.folder = token.folder
 	records, err := token.ReadProperty("DEFINITION", 1)
 	if err != nil {
 		return err
@@ -3404,6 +3466,7 @@ func (e *ActorInst) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragActo
 
 // LightDef is a declaration of LIGHTDEF
 type LightDef struct {
+	folder       string // when writing, this is the folder the file is in
 	fragID       int16
 	Tag          string
 	CurrentFrame NullUint32
@@ -3418,6 +3481,10 @@ func (e *LightDef) Definition() string {
 }
 
 func (e *LightDef) Write(token *AsciiWriteToken) error {
+	err := token.SetWriter(e.folder)
+	if err != nil {
+		return err
+	}
 	w, err := token.Writer()
 	if err != nil {
 		return err
@@ -3439,6 +3506,7 @@ func (e *LightDef) Write(token *AsciiWriteToken) error {
 }
 
 func (e *LightDef) Read(token *AsciiReadToken) error {
+	e.folder = token.folder
 	records, err := token.ReadProperty("CURRENTFRAME?", 1)
 	if err != nil {
 		return err
@@ -3586,6 +3654,7 @@ func (e *LightDef) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragLight
 
 // PointLight is a declaration of POINTLIGHT
 type PointLight struct {
+	folder          string // when writing, this is the folder the file is in
 	fragID          int16
 	Tag             string
 	LightDefTag     string
@@ -3603,6 +3672,10 @@ func (e *PointLight) Definition() string {
 }
 
 func (e *PointLight) Write(token *AsciiWriteToken) error {
+	err := token.SetWriter(e.folder)
+	if err != nil {
+		return err
+	}
 	w, err := token.Writer()
 	if err != nil {
 		return err
@@ -3629,6 +3702,7 @@ func (e *PointLight) Write(token *AsciiWriteToken) error {
 }
 
 func (e *PointLight) Read(token *AsciiReadToken) error {
+	e.folder = token.folder
 	records, err := token.ReadProperty("LIGHT", 1)
 	if err != nil {
 		return err
@@ -3782,6 +3856,7 @@ func (e *PointLight) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragPoi
 
 // Sprite3DDef is a declaration of SPRITE3DDEF
 type Sprite3DDef struct {
+	folder         string // when writing, this is the folder the file is in
 	fragID         int16
 	Tag            string
 	CenterOffset   NullFloat32Slice3
@@ -3793,6 +3868,7 @@ type Sprite3DDef struct {
 
 // BSPNode is a declaration of BSPNODE
 type BSPNode struct {
+	folder        string // when writing, this is the folder the file is in
 	Vertices      []uint32
 	RenderMethod  string
 	Pen           NullUint32
@@ -3813,6 +3889,10 @@ func (e *Sprite3DDef) Definition() string {
 }
 
 func (e *Sprite3DDef) Write(token *AsciiWriteToken) error {
+	err := token.SetWriter(e.folder)
+	if err != nil {
+		return err
+	}
 	w, err := token.Writer()
 	if err != nil {
 		return err
@@ -3858,12 +3938,13 @@ func (e *Sprite3DDef) Write(token *AsciiWriteToken) error {
 	return nil
 }
 
-func (s *Sprite3DDef) Read(token *AsciiReadToken) error {
+func (e *Sprite3DDef) Read(token *AsciiReadToken) error {
+	e.folder = token.folder
 	records, err := token.ReadProperty("CENTEROFFSET?", 3)
 	if err != nil {
 		return err
 	}
-	err = parse(&s.CenterOffset, records[1:]...)
+	err = parse(&e.CenterOffset, records[1:]...)
 	if err != nil {
 		return fmt.Errorf("center offset: %w", err)
 	}
@@ -3872,7 +3953,7 @@ func (s *Sprite3DDef) Read(token *AsciiReadToken) error {
 	if err != nil {
 		return err
 	}
-	err = parse(&s.BoundingRadius, records[1])
+	err = parse(&e.BoundingRadius, records[1])
 	if err != nil {
 		return fmt.Errorf("bounding radius: %w", err)
 	}
@@ -3881,7 +3962,7 @@ func (s *Sprite3DDef) Read(token *AsciiReadToken) error {
 	if err != nil {
 		return err
 	}
-	s.SphereListTag = records[1]
+	e.SphereListTag = records[1]
 
 	records, err = token.ReadProperty("NUMVERTICES", 1)
 	if err != nil {
@@ -3904,7 +3985,7 @@ func (s *Sprite3DDef) Read(token *AsciiReadToken) error {
 			return fmt.Errorf("vertex %d: %w", i, err)
 		}
 
-		s.Vertices = append(s.Vertices, vert)
+		e.Vertices = append(e.Vertices, vert)
 	}
 
 	records, err = token.ReadProperty("NUMBSPNODES", 1)
@@ -4071,7 +4152,7 @@ func (s *Sprite3DDef) Read(token *AsciiReadToken) error {
 			return fmt.Errorf("back tree: %w", err)
 		}
 
-		s.BSPNodes = append(s.BSPNodes, node)
+		e.BSPNodes = append(e.BSPNodes, node)
 	}
 
 	return nil
@@ -4247,6 +4328,7 @@ func (e *Sprite3DDef) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragSp
 }
 
 type PolyhedronDefinition struct {
+	folder         string // when writing, this is the folder the file is in
 	fragID         int16
 	Tag            string
 	BoundingRadius float32
@@ -4265,6 +4347,10 @@ func (e *PolyhedronDefinition) Definition() string {
 }
 
 func (e *PolyhedronDefinition) Write(token *AsciiWriteToken) error {
+	err := token.SetWriter(e.folder)
+	if err != nil {
+		return err
+	}
 	w, err := token.Writer()
 	if err != nil {
 		return err
@@ -4290,6 +4376,7 @@ func (e *PolyhedronDefinition) Write(token *AsciiWriteToken) error {
 }
 
 func (e *PolyhedronDefinition) Read(token *AsciiReadToken) error {
+	e.folder = token.folder
 	records, err := token.ReadProperty("BOUNDINGRADIUS", 1)
 	if err != nil {
 		return err
@@ -4416,6 +4503,7 @@ func (e *PolyhedronDefinition) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.
 }
 
 type TrackInstance struct {
+	folder             string // when writing, this is the folder the file is in
 	fragID             int16
 	animation          string
 	model              string
@@ -4434,15 +4522,17 @@ func (e *TrackInstance) Definition() string {
 }
 
 func (e *TrackInstance) Write(token *AsciiWriteToken) error {
-	w, err := token.Writer()
+	folder := e.folder
+	if token.wce.isTrackAni(e.Tag) {
+		folder = e.model + "_ani"
+	}
+	err := token.SetWriter(folder)
 	if err != nil {
 		return err
 	}
-	if token.wce.isTrackAni(e.Tag) {
-		w, err = token.UseTempWriter(e.model + "_ani")
-		if err != nil {
-			return err
-		}
+	w, err := token.Writer()
+	if err != nil {
+		return err
 	}
 	if token.TagIsWritten(fmt.Sprintf("%s_%d", e.Tag, e.TagIndex)) {
 		return nil
@@ -4473,6 +4563,7 @@ func (e *TrackInstance) Write(token *AsciiWriteToken) error {
 }
 
 func (e *TrackInstance) Read(token *AsciiReadToken) error {
+	e.folder = token.folder
 	records, err := token.ReadProperty("TAGINDEX", 1)
 	if err != nil {
 		return err
@@ -4627,6 +4718,7 @@ func (e *TrackInstance) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFrag
 }
 
 type TrackDef struct {
+	folder       string // when writing, this is the folder the file is in
 	fragID       int16
 	animation    string
 	model        string
@@ -4655,27 +4747,17 @@ func (e *TrackDef) Definition() string {
 }
 
 func (e *TrackDef) Write(token *AsciiWriteToken) error {
-	w, err := token.Writer()
+	folder := e.folder
+	if token.wce.isTrackAni(e.Tag) {
+		folder = e.model + "_ani"
+	}
+	err := token.SetWriter(folder)
 	if err != nil {
 		return err
 	}
-
-	if strings.HasSuffix(e.Tag, "_TRACKDEF") {
-		trackInstVal := token.wce.ByTagWithIndex(strings.ReplaceAll(e.Tag, "_TRACKDEF", "_TRACK"), e.TagIndex)
-		if trackInstVal == nil {
-			return fmt.Errorf("trackdef %s%d does not have a track instance", e.Tag, e.TagIndex)
-		}
-		trackInst, ok := trackInstVal.(*TrackInstance)
-		if !ok {
-			return fmt.Errorf("trackdef %s%d does not have a track instance", e.Tag, e.TagIndex)
-		}
-
-		if token.wce.isTrackAni(trackInst.Tag) {
-			w, err = token.UseTempWriter(e.model + "_ani")
-			if err != nil {
-				return err
-			}
-		}
+	w, err := token.Writer()
+	if err != nil {
+		return err
 	}
 
 	if token.TagIsWritten(fmt.Sprintf("%s_%d", e.Tag, e.TagIndex)) {
@@ -4703,6 +4785,7 @@ func (e *TrackDef) Write(token *AsciiWriteToken) error {
 }
 
 func (e *TrackDef) Read(token *AsciiReadToken) error {
+	e.folder = token.folder
 	records, err := token.ReadProperty("TAGINDEX", 1)
 	if err != nil {
 		return err
@@ -4926,6 +5009,7 @@ func (e *TrackDef) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragTrack
 }
 
 type HierarchicalSpriteDef struct {
+	folder                string // when writing, this is the folder the file is in
 	fragID                int16
 	Tag                   string
 	Dags                  []Dag
@@ -4955,6 +5039,10 @@ func (e *HierarchicalSpriteDef) Definition() string {
 }
 
 func (e *HierarchicalSpriteDef) Write(token *AsciiWriteToken) error {
+	err := token.SetWriter(e.folder)
+	if err != nil {
+		return err
+	}
 	w, err := token.Writer()
 	if err != nil {
 		return err
@@ -5062,6 +5150,7 @@ func (e *HierarchicalSpriteDef) Write(token *AsciiWriteToken) error {
 }
 
 func (e *HierarchicalSpriteDef) Read(token *AsciiReadToken) error {
+	e.folder = token.folder
 	records, err := token.ReadProperty("NUMDAGS", 1)
 	if err != nil {
 		return err
@@ -5639,12 +5728,14 @@ func (e *HierarchicalSpriteDef) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag
 }
 
 type WorldTree struct {
+	folder     string // when writing, this is the folder the file is in
 	fragID     int16
 	Tag        string
 	WorldNodes []*WorldNode
 }
 
 type WorldNode struct {
+	folder         string // when writing, this is the folder the file is in
 	Normals        [4]float32
 	WorldRegionTag string
 	FrontTree      uint32
@@ -5657,6 +5748,10 @@ func (e *WorldTree) Definition() string {
 }
 
 func (e *WorldTree) Write(token *AsciiWriteToken) error {
+	err := token.SetWriter(e.folder)
+	if err != nil {
+		return err
+	}
 	w, err := token.Writer()
 	if err != nil {
 		return err
@@ -5675,6 +5770,7 @@ func (e *WorldTree) Write(token *AsciiWriteToken) error {
 }
 
 func (e *WorldTree) Read(token *AsciiReadToken) error {
+	e.folder = token.folder
 	records, err := token.ReadProperty("NUMWORLDNODES", 1)
 	if err != nil {
 		return err
@@ -5799,6 +5895,7 @@ func (e *WorldTree) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragWorl
 }
 
 type Region struct {
+	folder            string // when writing, this is the folder the file is in
 	fragID            int16
 	Tag               string
 	RegionFog         int
@@ -5850,8 +5947,10 @@ func (e *Region) Definition() string {
 }
 
 func (e *Region) Write(token *AsciiWriteToken) error {
-	var err error
-
+	err := token.SetWriter(e.folder)
+	if err != nil {
+		return err
+	}
 	if e.SpriteTag != "" {
 		sprite := token.wce.ByTag(e.SpriteTag)
 		if sprite == nil {
@@ -6022,6 +6121,7 @@ func (e *Region) Write(token *AsciiWriteToken) error {
 }
 
 func (e *Region) Read(token *AsciiReadToken) error {
+	e.folder = token.folder
 	e.VisTree = &VisTree{}
 	records, err := token.ReadProperty("REVERBVOLUME", 1)
 	if err != nil {
@@ -6715,6 +6815,7 @@ func (e *Region) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragRegion)
 }
 
 type AmbientLight struct {
+	folder     string // when writing, this is the folder the file is in
 	fragID     int16
 	Tag        string
 	LightTag   string
@@ -6727,6 +6828,10 @@ func (e *AmbientLight) Definition() string {
 }
 
 func (e *AmbientLight) Write(token *AsciiWriteToken) error {
+	err := token.SetWriter(e.folder)
+	if err != nil {
+		return err
+	}
 	w, err := token.Writer()
 	if err != nil {
 		return err
@@ -6744,6 +6849,7 @@ func (e *AmbientLight) Write(token *AsciiWriteToken) error {
 }
 
 func (e *AmbientLight) Read(token *AsciiReadToken) error {
+	e.folder = token.folder
 
 	records, err := token.ReadProperty("LIGHT", 1)
 	if err != nil {
@@ -6852,6 +6958,7 @@ func (e *AmbientLight) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragA
 }
 
 type Zone struct {
+	folder   string // when writing, this is the folder the file is in
 	fragID   int16
 	Tag      string
 	Regions  []uint32
@@ -6863,6 +6970,10 @@ func (e *Zone) Definition() string {
 }
 
 func (e *Zone) Write(token *AsciiWriteToken) error {
+	err := token.SetWriter(e.folder)
+	if err != nil {
+		return err
+	}
 	w, err := token.Writer()
 	if err != nil {
 		return err
@@ -6879,6 +6990,7 @@ func (e *Zone) Write(token *AsciiWriteToken) error {
 }
 
 func (e *Zone) Read(token *AsciiReadToken) error {
+	e.folder = token.folder
 	records, err := token.ReadProperty("REGIONLIST", -1)
 	if err != nil {
 		return err
@@ -6939,6 +7051,7 @@ func (e *Zone) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragZone) err
 }
 
 type RGBTrackDef struct {
+	folder string // when writing, this is the folder the file is in
 	fragID int16
 	Tag    string
 	Data1  uint32
@@ -6953,6 +7066,10 @@ func (e *RGBTrackDef) Definition() string {
 }
 
 func (e *RGBTrackDef) Write(token *AsciiWriteToken) error {
+	err := token.SetWriter(e.folder)
+	if err != nil {
+		return err
+	}
 	w, err := token.Writer()
 	if err != nil {
 		return err
@@ -6972,6 +7089,7 @@ func (e *RGBTrackDef) Write(token *AsciiWriteToken) error {
 }
 
 func (e *RGBTrackDef) Read(token *AsciiReadToken) error {
+	e.folder = token.folder
 	records, err := token.ReadProperty("DATA1", 1)
 	if err != nil {
 		return err
@@ -7072,6 +7190,7 @@ func (e *RGBTrackDef) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragDm
 }
 
 type ParticleCloudDef struct {
+	folder                string // when writing, this is the folder the file is in
 	fragID                int16
 	Tag                   string
 	BlitSpriteDefTag      string
@@ -7108,6 +7227,10 @@ func (e *ParticleCloudDef) Definition() string {
 }
 
 func (e *ParticleCloudDef) Write(token *AsciiWriteToken) error {
+	err := token.SetWriter(e.folder)
+	if err != nil {
+		return err
+	}
 	w, err := token.Writer()
 	if err != nil {
 		return err
@@ -7158,6 +7281,7 @@ func (e *ParticleCloudDef) Write(token *AsciiWriteToken) error {
 }
 
 func (e *ParticleCloudDef) Read(token *AsciiReadToken) error {
+	e.folder = token.folder
 	records, err := token.ReadProperty("BLITTAG", 1)
 	if err != nil {
 		return err
@@ -7585,6 +7709,7 @@ func (e *ParticleCloudDef) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldF
 }
 
 type Sprite2DDef struct {
+	folder          string // when writing, this is the folder the file is in
 	fragID          int16
 	Tag             string
 	Scale           [2]float32
@@ -7620,6 +7745,7 @@ type Heading struct {
 }
 
 type Sprite2DFrame struct {
+	folder      string // when writing, this is the folder the file is in
 	TextureFile string
 	TextureTag  string
 }
@@ -7629,6 +7755,10 @@ func (e *Sprite2DDef) Definition() string {
 }
 
 func (e *Sprite2DDef) Write(token *AsciiWriteToken) error {
+	err := token.SetWriter(e.folder)
+	if err != nil {
+		return err
+	}
 	w, err := token.Writer()
 	if err != nil {
 		return err
@@ -7677,6 +7807,7 @@ func (e *Sprite2DDef) Write(token *AsciiWriteToken) error {
 }
 
 func (e *Sprite2DDef) Read(token *AsciiReadToken) error {
+	e.folder = token.folder
 	records, err := token.ReadProperty("SCALE", 2)
 	if err != nil {
 		return err
@@ -8275,6 +8406,7 @@ func spriteVariationToRaw(wce *Wce, rawWld *raw.Wld, e WldDefinitioner) error {
 }
 
 type DMTrackDef2 struct {
+	folder  string // when writing, this is the folder the file is in
 	fragID  int16
 	model   string
 	Tag     string
@@ -8290,8 +8422,11 @@ func (e *DMTrackDef2) Definition() string {
 }
 
 func (e *DMTrackDef2) Write(token *AsciiWriteToken) error {
-
-	w, err := token.UseTempWriter(e.model + "_ani")
+	err := token.SetWriter(e.folder)
+	if err != nil {
+		return err
+	}
+	w, err := token.Writer()
 	if err != nil {
 		return err
 	}
@@ -8325,6 +8460,7 @@ func (e *DMTrackDef2) Write(token *AsciiWriteToken) error {
 }
 
 func (e *DMTrackDef2) Read(token *AsciiReadToken) error {
+	e.folder = token.folder
 	records, err := token.ReadProperty("SLEEP", 1)
 	if err != nil {
 		return err
