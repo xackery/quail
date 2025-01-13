@@ -10,8 +10,7 @@ var tests = []struct {
 	baseName string
 	wldName  string
 }{
-	//{baseName: "gequip"},
-
+	//{baseName: "gequip2"},
 	//{baseName: "global3_chr"},
 	//{baseName: "emeraldjungle"},
 	//{baseName: "emeraldjungle_obj"},

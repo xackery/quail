@@ -82,7 +82,12 @@ func (q *Quail) treeInspectContent(file string, r *bytes.Reader) error {
 			return fmt.Errorf("wld read: %w", err)
 		}
 
-		err = tree.Dump(rawWld, os.Stdout)
+		isChr := false
+		if strings.Contains(file, "_chr") {
+			isChr = true
+		}
+
+		err = tree.Dump(isChr, rawWld, os.Stdout)
 		if err != nil {
 			return fmt.Errorf("tree dump: %w", err)
 		}

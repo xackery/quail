@@ -5,7 +5,9 @@ import (
 	"io"
 	"strings"
 
+	"github.com/xackery/quail/helper"
 	"github.com/xackery/quail/raw"
+	"github.com/xackery/quail/raw/rawfrag"
 )
 
 type Node struct {
@@ -17,12 +19,12 @@ type Node struct {
 }
 
 // Dump dumps a tree to a writer
-func Dump(src interface{}, w io.Writer) error {
+func Dump(isChr bool, src interface{}, w io.Writer) error {
 	var err error
 	var nodes map[int32]*Node
 	switch val := src.(type) {
 	case *raw.Wld:
-		nodes, err = BuildFragReferenceTree(val)
+		nodes, err = BuildFragReferenceTree(isChr, val)
 		if err != nil {
 			return fmt.Errorf("build frag reference tree: %w", err)
 		}
@@ -38,13 +40,14 @@ func Dump(src interface{}, w io.Writer) error {
 	return nil
 }
 
-func BuildFragReferenceTree(wld *raw.Wld) (map[int32]*Node, error) {
+func BuildFragReferenceTree(isChr bool, wld *raw.Wld) (map[int32]*Node, error) {
 	// Map to store all nodes
 	nodes := make(map[int32]*Node)
 
 	// Map to track which nodes are linkedNodes as children
 	linkedNodes := make(map[int32]bool)
 
+	actorNodes := make(map[string]*Node)
 	// Create nodes and establish relationships
 	for i := 1; i < len(wld.Fragments); i++ { // Start at index 1
 		frag := wld.Fragments[i]
@@ -60,6 +63,27 @@ func BuildFragReferenceTree(wld *raw.Wld) (map[int32]*Node, error) {
 
 		// Find or create the node for this fragment
 		node := upsertNode(nodes, "", fmt.Sprintf("%T", frag), fragID, strings.TrimSpace(tag))
+
+		_, ok := frag.(*rawfrag.WldFragHierarchicalSpriteDef)
+		if ok {
+			actorNodes[tag] = node
+		}
+
+		switch frag.(type) {
+		case *rawfrag.WldFragTrackDef:
+			_, model := helper.TrackAnimationParse(isChr, tag)
+			parentNode, ok := actorNodes[model+"_HS_DEF"]
+			if ok {
+				parentNode.Children[fragID] = node
+			}
+		case *rawfrag.WldFragTrack:
+			_, model := helper.TrackAnimationParse(isChr, tag)
+			parentNode, ok := actorNodes[model+"_HS_DEF"]
+			if ok {
+				parentNode.Children[fragID] = node
+			}
+
+		}
 
 		// Extract references from the fragment
 		fragRefs := fragRefs(frag)

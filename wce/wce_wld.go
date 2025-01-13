@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/xackery/quail/helper"
 	"github.com/xackery/quail/model"
 	"github.com/xackery/quail/raw"
 	"github.com/xackery/quail/raw/rawfrag"
@@ -4694,7 +4695,7 @@ func (e *TrackInstance) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFrag
 		e.model = wce.lastReadModelTag
 		e.animation = ""
 	} else if wce.isTrackAni(e.Tag) {
-		e.animation, e.model = wce.trackAnimationParse(e.Tag)
+		e.animation, e.model = helper.TrackAnimationParse(wce.isChr, e.Tag)
 	} else {
 		e.model = wce.lastReadModelTag
 		e.animation = ""
@@ -4957,7 +4958,7 @@ func (e *TrackDef) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragTrack
 		modifiedTag := strings.TrimSuffix(e.Tag, "DEF")
 
 		if wce.isTrackAni(modifiedTag) {
-			e.animation, e.model = wce.trackAnimationParse(modifiedTag)
+			e.animation, e.model = helper.TrackAnimationParse(wce.isChr, modifiedTag)
 		} else {
 			e.model = wce.lastReadModelTag
 			e.animation = ""
