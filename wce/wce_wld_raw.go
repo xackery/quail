@@ -61,6 +61,9 @@ func (wce *Wce) ReadWldRaw(src *raw.Wld) error {
 }
 
 func readRawFrag(e *Wce, rawWld *raw.Wld, fragment model.FragmentReadWriter, folders []string) error {
+	if len(folders) == 0 {
+		folders = []string{"world"}
+	}
 	switch fragment.FragCode() {
 	case rawfrag.FragCodeGlobalAmbientLightDef:
 

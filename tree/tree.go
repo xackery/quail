@@ -18,7 +18,7 @@ type Node struct {
 }
 
 // Dump dumps a tree to a writer
-func Dump(isChr bool, src interface{}, w io.Writer) error {
+func Dump(w io.Writer, isChr bool, src interface{}) error {
 	var err error
 	var nodes map[int32]*Node
 	switch val := src.(type) {
@@ -28,8 +28,8 @@ func Dump(isChr bool, src interface{}, w io.Writer) error {
 			return fmt.Errorf("build frag reference tree: %w", err)
 		}
 		for _, root := range nodes {
-			fmt.Printf("Root ")
-			PrintNode(root, 0)
+			fmt.Fprintf(w, "Root ")
+			PrintNode(w, root, 0)
 		}
 	case *raw.Bmp:
 		return nil
@@ -180,9 +180,9 @@ func upsertNode(nodes map[int32]*Node, fragType string, fragID int32, tag string
 	return node
 }
 
-func PrintNode(node *Node, level int) {
-	fmt.Printf("%s%s: %d (%s)\n", strings.Repeat("  ", level), node.FragType, node.FragID, node.Tag)
+func PrintNode(w io.Writer, node *Node, level int) {
+	fmt.Fprintf(w, "%s%s: %d (%s)\n", strings.Repeat("  ", level), node.FragType, node.FragID, node.Tag)
 	for _, child := range node.Children {
-		PrintNode(child, level+1)
+		PrintNode(w, child, level+1)
 	}
 }

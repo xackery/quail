@@ -435,3 +435,7 @@ func (wld *Wld) TagByFrag(srcFrag interface{}) string {
 
 	return ""
 }
+
+func (wld *Wld) String() string {
+	return fmt.Sprintf("wld version %d, %d fragments", wld.Version, len(wld.Fragments))
+}
