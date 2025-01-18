@@ -5,7 +5,8 @@ import (
 	"encoding/binary"
 	"fmt"
 	"io"
-	"strings"
+
+	//"strings"
 
 	"github.com/xackery/quail/helper"
 )
@@ -170,7 +171,7 @@ func (e *Pfs) Read(r io.ReadSeeker) error {
 		}
 
 		//force spaces in pfs archives to _
-		dirName = strings.ReplaceAll(dirName, " ", "_")
+		//dirName = strings.ReplaceAll(dirName, " ", "_")
 		e.files = append(e.files, NewFileEntry(dirName, data))
 	}
 

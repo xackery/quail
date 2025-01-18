@@ -1047,7 +1047,7 @@ type DMSpriteDef struct {
 	MaterialPaletteTag   string
 	Fragment3            uint32
 	Center               NullFloat32Slice3
-	Params1              [3]float32
+	Params1              NullFloat32Slice3
 	Vertices             [][3]float32
 	TexCoords            [][2]float32
 	Normals              [][3]float32
@@ -1059,10 +1059,10 @@ type DMSpriteDef struct {
 	FaceMaterialGroups   [][2]int16
 	VertexMaterialGroups [][2]int16
 	Params2              NullFloat32Slice3
-	Params3              NullFloat32Slice6
-	HexTwoHundredFlag    int16
-	HexEightHundredFlag  int16
-	HexOneThousandFlag   int16
+	// Params3              NullFloat32Slice6
+	HexTwoHundredFlag   int16
+	HexEightHundredFlag int16
+	HexOneThousandFlag  int16
 }
 
 type DMSpriteDefFace struct {
@@ -1110,7 +1110,7 @@ func (e *DMSpriteDef) Write(token *AsciiWriteToken) error {
 		fmt.Fprintf(w, "\tMATERIALPALETTE \"%s\"\n", e.MaterialPaletteTag)
 		fmt.Fprintf(w, "\tFRAGMENT3 %d\n", e.Fragment3)
 		fmt.Fprintf(w, "\tCENTER? %s\n", wcVal(e.Center))
-		fmt.Fprintf(w, "\tPARAMS1 %0.8e %0.8e %0.8e\n", e.Params1[0], e.Params1[1], e.Params1[2])
+		fmt.Fprintf(w, "\tPARAMS1? %s\n", wcVal(e.Params1))
 		fmt.Fprintf(w, "\n")
 		fmt.Fprintf(w, "\tNUMVERTICES %d\n", len(e.Vertices))
 		for _, vert := range e.Vertices {
@@ -1172,10 +1172,10 @@ func (e *DMSpriteDef) Write(token *AsciiWriteToken) error {
 		}
 		fmt.Fprintf(w, "\n")
 		fmt.Fprintf(w, "\tPARAMS2? %s\n", wcVal(e.Params2))
-		fmt.Fprintf(w, "\tPARAMS3? %s\n", wcVal(e.Params3))
-		fmt.Fprintf(w, "\tHEXTWOHUNDREDFLAG %d\n", e.HexTwoHundredFlag)
-		fmt.Fprintf(w, "\tHEXEIGHTHUNDREDFLAG %d\n", e.HexEightHundredFlag)
-		fmt.Fprintf(w, "\tHEXONETHOUSANDFLAG %d\n", e.HexOneThousandFlag)
+		// fmt.Fprintf(w, "\tPARAMS3? %s\n", wcVal(e.Params3))
+		// fmt.Fprintf(w, "\tHEXTWOHUNDREDFLAG %d\n", e.HexTwoHundredFlag)
+		// fmt.Fprintf(w, "\tHEXEIGHTHUNDREDFLAG %d\n", e.HexEightHundredFlag)
+		// fmt.Fprintf(w, "\tHEXONETHOUSANDFLAG %d\n", e.HexOneThousandFlag)
 
 		fmt.Fprintf(w, "\n")
 	}
@@ -1219,7 +1219,7 @@ func (e *DMSpriteDef) Read(token *AsciiReadToken) error {
 		return fmt.Errorf("center: %w", err)
 	}
 
-	records, err = token.ReadProperty("PARAMS1", 3)
+	records, err = token.ReadProperty("PARAMS1?", 3)
 	if err != nil {
 		return err
 	}
@@ -1526,42 +1526,42 @@ func (e *DMSpriteDef) Read(token *AsciiReadToken) error {
 		return fmt.Errorf("params2: %w", err)
 	}
 
-	records, err = token.ReadProperty("PARAMS3?", 6)
-	if err != nil {
-		return err
-	}
+	// records, err = token.ReadProperty("PARAMS3?", 6)
+	// if err != nil {
+	// 	return err
+	// }
 
-	err = parse(&e.Params3, records[1:]...)
-	if err != nil {
-		return fmt.Errorf("params3: %w", err)
-	}
+	// err = parse(&e.Params3, records[1:]...)
+	// if err != nil {
+	// 	return fmt.Errorf("params3: %w", err)
+	// }
 
-	records, err = token.ReadProperty("HEXTWOHUNDREDFLAG", 1)
-	if err != nil {
-		return err
-	}
-	err = parse(&e.HexTwoHundredFlag, records[1])
-	if err != nil {
-		return fmt.Errorf("hextwohundredflag: %w", err)
-	}
+	// records, err = token.ReadProperty("HEXTWOHUNDREDFLAG", 1)
+	// if err != nil {
+	// 	return err
+	// }
+	// err = parse(&e.HexTwoHundredFlag, records[1])
+	// if err != nil {
+	// 	return fmt.Errorf("hextwohundredflag: %w", err)
+	// }
 
-	records, err = token.ReadProperty("HEXEIGHTHUNDREDFLAG", 1)
-	if err != nil {
-		return err
-	}
-	err = parse(&e.HexEightHundredFlag, records[1])
-	if err != nil {
-		return fmt.Errorf("hexeighthundredflag: %w", err)
-	}
+	// records, err = token.ReadProperty("HEXEIGHTHUNDREDFLAG", 1)
+	// if err != nil {
+	// 	return err
+	// }
+	// err = parse(&e.HexEightHundredFlag, records[1])
+	// if err != nil {
+	// 	return fmt.Errorf("hexeighthundredflag: %w", err)
+	// }
 
-	records, err = token.ReadProperty("HEXONETHOUSANDFLAG", 1)
-	if err != nil {
-		return err
-	}
-	err = parse(&e.HexOneThousandFlag, records[1])
-	if err != nil {
-		return fmt.Errorf("hexonethousandflag: %w", err)
-	}
+	// records, err = token.ReadProperty("HEXONETHOUSANDFLAG", 1)
+	// if err != nil {
+	// 	return err
+	// }
+	// err = parse(&e.HexOneThousandFlag, records[1])
+	// if err != nil {
+	// 	return fmt.Errorf("hexonethousandflag: %w", err)
+	// }
 
 	return nil
 }
@@ -1588,11 +1588,11 @@ func (e *DMSpriteDef) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
 	wfDMSpriteDef := &rawfrag.WldFragDMSpriteDef{
 		MaterialPaletteRef: uint32(materialPaletteRef),
 		CenterOffset:       [3]float32{e.Center.Float32Slice3[0], e.Center.Float32Slice3[1], e.Center.Float32Slice3[2]},
+		Params1:            [3]float32{e.Params1.Float32Slice3[0], e.Params1.Float32Slice3[1], e.Params1.Float32Slice3[2]},
 	}
 	wfDMSpriteDef.SetNameRef(rawWld.NameAdd(e.Tag))
 	wfDMSpriteDef.Fragment1 = e.Fragment1
 	wfDMSpriteDef.Fragment3 = e.Fragment3
-	wfDMSpriteDef.Params1 = e.Params1
 	wfDMSpriteDef.Vertices = e.Vertices
 	wfDMSpriteDef.TexCoords = e.TexCoords
 	wfDMSpriteDef.Normals = e.Normals
@@ -1617,29 +1617,24 @@ func (e *DMSpriteDef) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
 	wfDMSpriteDef.Data8 = e.Data8
 	wfDMSpriteDef.FaceMaterialGroups = e.FaceMaterialGroups
 	wfDMSpriteDef.VertexMaterialGroups = e.VertexMaterialGroups
-	if e.Params2.Valid {
-		wfDMSpriteDef.Flags |= 0x2000
-		wfDMSpriteDef.Params2 = e.Params2.Float32Slice3
-	}
-	if e.Params3.Valid {
-		wfDMSpriteDef.Flags |= 0x4000
-		wfDMSpriteDef.Params3 = e.Params3.Float32Slice6
-	}
-
 	if e.Center.Valid {
 		wfDMSpriteDef.Flags |= 0x1
 	}
-	if e.Params2.Valid {
+	if e.Params1.Valid {
 		wfDMSpriteDef.Flags |= 0x2
 	}
-	if e.HexEightHundredFlag != 0 {
+	if len(e.Data8) != 0 {
+		wfDMSpriteDef.Flags |= 0x200
+	}
+	if len(e.FaceMaterialGroups) != 0 {
 		wfDMSpriteDef.Flags |= 0x800
 	}
-	if e.HexOneThousandFlag != 0 {
+	if len(e.VertexMaterialGroups) != 0 {
 		wfDMSpriteDef.Flags |= 0x1000
 	}
-	if e.Params3.Valid {
+	if e.Params2.Valid {
 		wfDMSpriteDef.Flags |= 0x2000
+		wfDMSpriteDef.Params2 = e.Params2.Float32Slice3
 	}
 
 	rawWld.Fragments = append(rawWld.Fragments, wfDMSpriteDef)
@@ -1665,7 +1660,6 @@ func (e *DMSpriteDef) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragDM
 		e.MaterialPaletteTag = rawWld.Name(materialPalette.NameRef())
 	}
 	e.Fragment3 = frag.Fragment3
-	e.Params1 = frag.Params1
 	e.Vertices = frag.Vertices
 	e.TexCoords = frag.TexCoords
 	e.Normals = frag.Normals
@@ -1695,17 +1689,17 @@ func (e *DMSpriteDef) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragDM
 		e.Center.Float32Slice3 = frag.CenterOffset
 	}
 	if frag.Flags&0x02 != 0 {
-		e.Params2.Valid = true
-		e.Params2.Float32Slice3 = frag.Params2
+		e.Params1.Valid = true
+		e.Params1.Float32Slice3 = frag.Params1
 	}
 
-	if frag.Flags&0x200 != 0 {
-		e.HexTwoHundredFlag = 1
-	}
+	// if frag.Flags&0x200 != 0 {
+	// 	e.HexTwoHundredFlag = 1
+	// }
 
 	if frag.Flags&0x2000 != 0 {
-		e.Params3.Valid = true
-		e.Params3.Float32Slice6 = frag.Params3
+		e.Params2.Valid = true
+		e.Params2.Float32Slice3 = frag.Params2
 	}
 
 	return nil

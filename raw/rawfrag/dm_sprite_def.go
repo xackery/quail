@@ -151,14 +151,14 @@ func (e *WldFragDMSpriteDef) Write(w io.Writer, isNewWorld bool) error {
 		enc.Float32(e.Params2[2])
 	}
 
-	if e.Flags&0x4000 != 0 {
-		enc.Float32(e.Params3[0])
-		enc.Float32(e.Params3[1])
-		enc.Float32(e.Params3[2])
-		enc.Float32(e.Params3[3])
-		enc.Float32(e.Params3[4])
-		enc.Float32(e.Params3[5])
-	}
+	// if e.Flags&0x4000 != 0 {
+	// 	enc.Float32(e.Params3[0])
+	// 	enc.Float32(e.Params3[1])
+	// 	enc.Float32(e.Params3[2])
+	// 	enc.Float32(e.Params3[3])
+	// 	enc.Float32(e.Params3[4])
+	// 	enc.Float32(e.Params3[5])
+	// }
 
 	err := enc.Error()
 	if err != nil {
@@ -261,9 +261,9 @@ func (e *WldFragDMSpriteDef) Read(r io.ReadSeeker, isNewWorld bool) error {
 		e.Params2 = [3]float32{dec.Float32(), dec.Float32(), dec.Float32()}
 	}
 
-	if e.Flags&0x4000 != 0 {
-		e.Params3 = [6]float32{dec.Float32(), dec.Float32(), dec.Float32(), dec.Float32(), dec.Float32(), dec.Float32()}
-	}
+	// if e.Flags&0x4000 != 0 {
+	// 	e.Params3 = [6]float32{dec.Float32(), dec.Float32(), dec.Float32(), dec.Float32(), dec.Float32(), dec.Float32()}
+	// }
 
 	err := dec.Error()
 	if err != nil {
