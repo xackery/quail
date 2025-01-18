@@ -123,6 +123,7 @@ func BuildFragReferenceTree(isChr bool, wld *raw.Wld) (map[int32]*Node, map[int3
 			if ok {
 				parentNode.Children[fragID] = node
 				node.Parent = parentNode.Tag
+				linkedNodes[fragID] = true
 			}
 		}
 
