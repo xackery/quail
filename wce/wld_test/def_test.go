@@ -10,7 +10,8 @@ var tests = []struct {
 	baseName string
 	wldName  string
 }{
-	//{baseName: "gequip2"},
+	//{baseName: "gequip"}, // soul binder uses  IT124, IT124_MP uses 114CRYSBLAK_MDF, probably a rendermethod on that. Will have to wait, I'm working on improvements for quail to work with gequip, but should be doable
+	{baseName: "crushbone"},
 	//{baseName: "global3_chr"},
 	//{baseName: "emeraldjungle"},
 	//{baseName: "emeraldjungle_obj"},
@@ -21,7 +22,7 @@ var tests = []struct {
 	//{baseName: "load2"}, // dmspritedef2: fragment4 unknown type *rawfrag.WldFragBMInfo
 	//{baseName: "globalogm_chr2"}, //track L10BOGML10B_OGM_TRACK model too short ()
 	//{baseName: "sseru_2_obj"}, // OK
-	{baseName: "mim_chr"}, // OK
+	//{baseName: "mim_chr"}, // OK
 	//{baseName: "chardok_2_obj"}, // OK
 	//{baseName: "butcher2_chr"}, // OK
 	//{baseName: "chequip"}, // OK
@@ -46,7 +47,6 @@ var tests = []struct {
 	//{baseName: "twilight", wldName: "objects.wld"},
 	//{baseName: "twilight", wldName: "lights.wld"},
 	//{baseName: "frontiermtns_chr"},
-	//{baseName: "crushbone"},
 	//{baseName: "gukbottom"},
 	//{baseName: "qeynos"},
 	//{baseName: "qeynos_chr"},

@@ -202,7 +202,7 @@ func (a *AsciiReadToken) readDefinitions() error {
 		&Sprite3DDef{},
 		&TrackDef{},
 		&TrackInstance{},
-		&WorldDef{},
+		&WorldDef{folders: []string{"world"}},
 		&WorldTree{},
 		&Zone{},
 	}
@@ -420,7 +420,7 @@ func (a *AsciiReadToken) readDefinitions() error {
 			case *WorldDef:
 
 				a.wce.WorldDef = frag
-				definitions[i] = &WorldDef{}
+				definitions[i] = &WorldDef{folders: []string{"world"}}
 			case *MdsDef:
 				if len(args) == 1 {
 					return fmt.Errorf("definition %s has no arguments", defName)

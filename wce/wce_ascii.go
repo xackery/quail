@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -91,10 +92,6 @@ func (wce *Wce) writeAsciiData(path string) error {
 	}
 	var err error
 	if wce.WorldDef != nil {
-		err = token.SetWriter("world")
-		if err != nil {
-			return fmt.Errorf("set worlddef writer zone: %w", err)
-		}
 		err = wce.WorldDef.Write(token)
 		if err != nil {
 			return fmt.Errorf("world def: %w", err)
@@ -372,43 +369,47 @@ func (wce *Wce) writeAsciiData(path string) error {
 	}
 	wce.writeAsciiHeader(rootW)
 
-	if token.IsWriterUsed("world") {
-		rootW.WriteString("INCLUDE \"WORLD.WCE\"\n")
-	}
-
 	if token.IsWriterUsed("region") {
 		rootW.WriteString("INCLUDE \"REGION.WCE\"\n")
 	}
 
-	var currentW *os.File
-	var currentFolder string
-	for folder, folderInfo := range folders {
-		if currentFolder != folder {
-			if currentW != nil {
-				rootW.WriteString(fmt.Sprintf("INCLUDE \"%s/_ROOT.WCE\"\n", strings.ToUpper(currentFolder)))
-				currentW.Close()
-			}
+	if token.IsWriterUsed("world") {
+		rootW.WriteString("INCLUDE \"WORLD.WCE\"\n")
+	}
 
-			currentW, err = os.Create(fmt.Sprintf("%s/%s/_root.wce", path, strings.ToLower(folder)))
-			if err != nil {
-				return err
-			}
-			currentFolder = folder
+	includes := make(map[string]string)
+
+	sortedFolders := make([]string, 0)
+	for folder := range folders {
+		sortedFolders = append(sortedFolders, folder)
+	}
+	sort.Strings(sortedFolders)
+
+	for _, folder := range sortedFolders {
+		folderInfo, ok := folders[folder]
+		if !ok {
+			return fmt.Errorf("folder %s not found", folder)
 		}
-		wce.writeAsciiHeader(currentW)
+
+		rootW.WriteString(fmt.Sprintf("INCLUDE \"%s/_ROOT.WCE\"\n", strings.ToUpper(folder)))
 		if folderInfo.hasBase {
-			currentW.WriteString(fmt.Sprintf("INCLUDE \"%s.WCE\"\n", strings.ToUpper(folder)))
+			includes[folder] = fmt.Sprintf("INCLUDE \"%s.WCE\"\n", strings.ToUpper(folder))
 		}
 		if folderInfo.hasAni {
-			currentW.WriteString(fmt.Sprintf("INCLUDE \"%s_ANI.WCE\"\n", strings.ToUpper(folder)))
+			includes[folder] = fmt.Sprintf("INCLUDE \"%s_ANI.WCE\"\n", strings.ToUpper(folder))
 		}
 	}
-	if currentW != nil {
-		rootW.WriteString(fmt.Sprintf("INCLUDE \"%s/_ROOT.WCE\"\n", strings.ToUpper(currentFolder)))
-		currentW.Close()
-	}
-
 	rootW.Close()
+
+	for folder, out := range includes {
+		w, err := os.Create(fmt.Sprintf("%s/%s/_root.wce", path, strings.ToLower(folder)))
+		if err != nil {
+			return err
+		}
+		wce.writeAsciiHeader(w)
+		w.WriteString(out)
+		w.Close()
+	}
 
 	return nil
 }

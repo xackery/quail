@@ -47,7 +47,40 @@ func BuildFragReferenceTree(isChr bool, wld *raw.Wld) (map[int32]*Node, map[int3
 	// Map to track which nodes are linkedNodes as children
 	linkedNodes := make(map[int32]bool)
 
+	var zoneNode *Node
+
 	actorNodes := make(map[string]*Node)
+	// find actornodes and build them first
+	for i := 1; i < len(wld.Fragments); i++ { // Start at index 1
+		frag := wld.Fragments[i]
+		if frag == nil {
+			continue
+		}
+		switch frag.(type) {
+		// case *rawfrag.WldFragTrackDef:
+		// 	// there's a special case where orphaned tracks happen
+		// 	tag := wld.Name(frag.NameRef())
+		// 	_, model := helper.TrackAnimationParse(isChr, tag)
+		// 	switch model {
+		// 	case "POINT":
+		// 		// this is an dummy actordef
+		// 		tag = "POINT_HS_DEF"
+		// 		actorNodes[tag] = upsertNode(nodes, "", fmt.Sprintf("%T", frag), int32(i), strings.TrimSpace(tag))
+		// 		continue
+		// 	}
+
+		case *rawfrag.WldFragHierarchicalSpriteDef:
+		default:
+			continue
+		}
+
+		tag := ""
+		if frag.NameRef() < 0 {
+			tag = wld.Name(frag.NameRef())
+		}
+		actorNodes[tag] = upsertNode(nodes, "", fmt.Sprintf("%T", frag), int32(i), strings.TrimSpace(tag))
+	}
+
 	// Create nodes and establish relationships
 	for i := 1; i < len(wld.Fragments); i++ { // Start at index 1
 		frag := wld.Fragments[i]
@@ -64,12 +97,19 @@ func BuildFragReferenceTree(isChr bool, wld *raw.Wld) (map[int32]*Node, map[int3
 		// Find or create the node for this fragment
 		node := upsertNode(nodes, "", fmt.Sprintf("%T", frag), fragID, strings.TrimSpace(tag))
 
-		_, ok := frag.(*rawfrag.WldFragHierarchicalSpriteDef)
-		if ok {
-			actorNodes[tag] = node
-		}
-
 		switch frag.(type) {
+		case *rawfrag.WldFragGlobalAmbientLightDef:
+			zoneNode = node
+			if zoneNode.Tag == "" {
+				zoneNode.Tag = "zone"
+			}
+		case *rawfrag.WldFragZone, *rawfrag.WldFragRegion, *rawfrag.WldFragWorldTree, *rawfrag.WldFragAmbientLight, *rawfrag.WldFragLight, *rawfrag.WldFragActor:
+			// zones have special frags
+			if zoneNode != nil {
+				zoneNode.Children[fragID] = node
+				node.Parent = zoneNode.Tag
+				linkedNodes[fragID] = true
+			}
 		// case *rawfrag.WldFragTrackDef:
 		// 	cleanedTag := strings.TrimSuffix(tag, "DEF")
 		// 	_, model := helper.TrackAnimationParse(isChr, cleanedTag)
@@ -82,6 +122,7 @@ func BuildFragReferenceTree(isChr bool, wld *raw.Wld) (map[int32]*Node, map[int3
 			parentNode, ok := actorNodes[model+"_HS_DEF"]
 			if ok {
 				parentNode.Children[fragID] = node
+				node.Parent = parentNode.Tag
 			}
 		}
 

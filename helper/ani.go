@@ -1,6 +1,7 @@
 package helper
 
 import (
+	"fmt"
 	"regexp"
 	"strings"
 )
@@ -18,16 +19,6 @@ var dummyStrings = []string{
 	"RIDER", "SHOULDER",
 }
 
-// Root patterns for animation and model parsing
-var rootPatterns = []string{
-	`^[C,D,L,O,P,S,T](0[1-9]|[1-9][0-9])[A-Z]{3}_TRACK$`,
-	`^([C,D,L,O,P,S,T](0[1-9]|[1-9][0-9])){2}_[A-Z]{3}_TRACK$`,
-	`^[C,D,L,O,P,S,T](0[1-9]|[1-9][0-9])[A-Z]{3}[C,D,L,O,P,S,T](0[1-9]|[1-9][0-9])[A-Z]{3}_TRACK$`,
-	`^[C,D,L,O,P,S,T](0[1-9]|[1-9][0-9])[A-Z]{3}[C,D,L,O,P,S,T](0[1-9]|[1-9][0-9])_[A-Z]{3}_TRACK$`,
-	`^[C,D,L,O,P,S,T](0[1-9]|[1-9][0-9])[A,B,G][A-Z]{3}[C,D,L,O,P,S,T](0[1-9]|[1-9][0-9])[A,B,G]_[A-Z]{3}_TRACK$`,
-	`^[C,D,L,O,P,S,T](0[1-9]|[1-9][0-9])[A,B,G][C,D,L,O,P,S,T](0[1-9]|[1-9][0-9])_[A-Z]{3}_TRACK$`,
-}
-
 // Item patterns for non-character cases
 var itemPatterns = []string{
 	`^[C,D,L,O,P,S,T](0[1-9]|[1-9][0-9])IT\d+_TRACK$`,
@@ -36,15 +27,27 @@ var itemPatterns = []string{
 }
 
 // TrackAnimationParse parses the tag and returns the animation and model codes
-func TrackAnimationParse(isChr bool, tag string) (string, string) {
+func TrackAnimationParse(isChr bool, tag string) (animationTag string, modelTag string) {
 	// Check if the tag starts with currentAniCode + currentAniModelCode
 	combinedCode := currentAniCode + currentAniModelCode
 	if currentAniCode != "" && currentAniModelCode != "" && strings.HasPrefix(tag, combinedCode) {
 		return currentAniCode, currentAniModelCode
 	}
 
+	// there's an edge case where e.g. P01POINT01_TRACK is inside this
+	matches, err := RegexpMatch("pointPattern", `^([C,D,L,O,P,S,T]0[1-9]|[1-9][0-9]{2})(POINT)[0-9]{2}_TRACK`, tag)
+	if err != nil {
+		fmt.Println("pointPattern failed:", err)
+	}
+	if len(matches) == 2 {
+		return handleNewAniModelCode(matches[0], matches[1])
+	}
+
 	// Check against previousAnimations
 	for previous := range previousAnimations {
+		if len(previous) == 0 {
+			continue
+		}
 		if strings.HasPrefix(tag, previous) {
 			parts := strings.Split(previous, ":")
 			if len(parts) == 2 {
@@ -84,22 +87,43 @@ func TrackAnimationParse(isChr bool, tag string) (string, string) {
 			}
 		}
 
-		// Attempt to match root patterns
-		for _, pattern := range rootPatterns {
-			matched, _ := regexp.MatchString(pattern, tag)
-			if matched {
-				switch pattern {
-				case rootPatterns[0]: // Pattern 1
-					return handleNewAniModelCode(tag[:3], tag[3:6])
-				case rootPatterns[1]: // Pattern 2
-					return handleNewAniModelCode(tag[:3], tag[7:10])
-				case rootPatterns[2], rootPatterns[3]: // Pattern 3 and 4
-					return handleNewAniModelCode(tag[:3], tag[3:6])
-				case rootPatterns[4]: // Pattern 5
-					return handleNewAniModelCode(tag[:4], tag[4:7])
-				case rootPatterns[5]: // Pattern 6
-					return handleNewAniModelCode(tag[:4], tag[8:11])
-				}
+		// handle generic MIM_TRACK tags
+		matches, err = RegexpMatch("basePattern", `^([A-Z]{3})_TRACK$`, tag)
+		if err != nil {
+			fmt.Println("basePattern failed:", err)
+		}
+		if len(matches) == 1 {
+			return "", matches[0]
+		}
+
+		// handle generic bone MIMPE_TRACK tags
+		matches, err = RegexpMatch("bonePattern", `^([A-Z]{3})[A-Z]{2}_TRACK$`, tag)
+		if err != nil {
+			fmt.Println("bonePattern failed:", err)
+		}
+		if len(matches) == 1 {
+			return "", matches[0]
+		}
+
+		patterns := map[string]string{
+			"aniPattern1": `^[C,D,L,O,P,S,T](0[1-9]|[1-9][0-9])([A-Z]){3}_TRACK$`,
+			"aniPattern2": `^([C,D,L,O,P,S,T]0[1-9]|[1-9][0-9]{2})_([A-Z]{3})_TRACK$`,
+			"aniPattern3": `^([C,D,L,O,P,S,T](0[1-9]|[1-9][0-9])){2}_[A-Z]{3}_TRACK$`,
+			"aniPattern4": `^[C,D,L,O,P,S,T](0[1-9]|[1-9][0-9])[A-Z]{3}[C,D,L,O,P,S,T](0[1-9]|[1-9][0-9])_[A-Z]{3}_TRACK$`,
+			"aniPattern5": `^[C,D,L,O,P,S,T](0[1-9]|[1-9][0-9])[A,B,G][A-Z]{3}[C,D,L,O,P,S,T](0[1-9]|[1-9][0-9])[A,B,G]_[A-Z]{3}_TRACK$`,
+			"aniPattern6": `^[C,D,L,O,P,S,T](0[1-9]|[1-9][0-9])[A,B,G][C,D,L,O,P,S,T](0[1-9]|[1-9][0-9])_[A-Z]{3}_TRACK$`,
+			// aniPattern7 is things like P01MIMCH_TRACK
+			"aniPattern7": `^([C,D,L,O,P,S,T]0[1-9]|[1-9][0-9])([A-Z]{3})[A-Z]{2}_TRACK$`,
+		}
+
+		for key, pattern := range patterns {
+			matches, err := RegexpMatch(key, pattern, tag)
+			if err != nil {
+				fmt.Println(key, "failed:", err)
+				continue
+			}
+			if len(matches) == 2 {
+				return handleNewAniModelCode(matches[0], matches[1])
 			}
 		}
 

@@ -71,7 +71,7 @@ func New(filename string) *Wce {
 		maxMaterialHeads:      make(map[string]int),
 		maxMaterialTextures:   make(map[string]int),
 		variationMaterialDefs: make(map[string][]*MaterialDef),
-		WorldDef:              &WorldDef{},
+		WorldDef:              &WorldDef{folders: []string{"world"}},
 	}
 }
 

@@ -8,12 +8,13 @@ import (
 )
 
 type AsciiWriteToken struct {
-	basePath    string
-	wce         *Wce
-	lastWriter  *os.File
-	writtenDefs map[string]bool
-	writers     map[string]*os.File
-	writersUsed map[string]bool
+	basePath      string
+	wce           *Wce
+	lastWriter    *os.File
+	lastWriterTag string
+	writtenDefs   map[string]bool
+	writers       map[string]*os.File
+	writersUsed   map[string]bool
 }
 
 func NewAsciiWriteToken(path string, wce *Wce) *AsciiWriteToken {
@@ -28,11 +29,11 @@ func NewAsciiWriteToken(path string, wce *Wce) *AsciiWriteToken {
 
 // TagIsWritten returns true if the tag was already written
 func (a *AsciiWriteToken) TagIsWritten(tag string) bool {
-	return a.writtenDefs[tag]
+	return a.writtenDefs[a.lastWriterTag+"-"+tag]
 }
 
 func (a *AsciiWriteToken) TagSetIsWritten(tag string) {
-	a.writtenDefs[tag] = true
+	a.writtenDefs[a.lastWriterTag+"-"+tag] = true
 }
 
 func (a *AsciiWriteToken) TagClearIsWritten() {
@@ -79,7 +80,7 @@ func (a *AsciiWriteToken) SetWriter(tag string) error {
 	}
 
 	a.writersUsed[tag] = true
-
+	a.lastWriterTag = tag
 	a.lastWriter = w
 	return nil
 }
