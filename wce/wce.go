@@ -13,11 +13,8 @@ var AsciiVersion = "v0.0.1"
 type Wce struct {
 	isVariationMaterial    bool   // set true while writing or reading variations
 	lastReadModelTag       string // last model tag read
-	currentAniCode         string
-	currentAniModelCode    string
-	previousAnimations     map[string]struct{}
-	isObj                  bool // true when a _obj suffix is found in path
-	isChr                  bool // true when a _chr suffix is found in path
+	isObj                  bool   // true when a _obj suffix is found in path
+	isChr                  bool   // true when a _chr suffix is found in path
 	modelTags              []string
 	maxMaterialHeads       map[string]int
 	maxMaterialTextures    map[string]int
@@ -48,6 +45,7 @@ type Wce struct {
 	TrackDefs              []*TrackDef
 	TrackInstances         []*TrackInstance
 	variationMaterialDefs  map[string][]*MaterialDef
+	varMaterialDefs        []*MaterialDef
 	WorldTrees             []*WorldTree
 	Zones                  []*Zone
 	MdsDefs                []*MdsDef
@@ -73,8 +71,7 @@ func New(filename string) *Wce {
 		maxMaterialHeads:      make(map[string]int),
 		maxMaterialTextures:   make(map[string]int),
 		variationMaterialDefs: make(map[string][]*MaterialDef),
-		previousAnimations:    make(map[string]struct{}),
-		WorldDef:              &WorldDef{},
+		WorldDef:              &WorldDef{folders: []string{"world"}},
 	}
 }
 

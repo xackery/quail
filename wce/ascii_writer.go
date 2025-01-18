@@ -8,12 +8,13 @@ import (
 )
 
 type AsciiWriteToken struct {
-	basePath    string
-	wce         *Wce
-	lastWriter  *os.File
-	writtenDefs map[string]bool
-	writers     map[string]*os.File
-	writersUsed map[string]bool
+	basePath      string
+	wce           *Wce
+	lastWriter    *os.File
+	lastWriterTag string
+	writtenDefs   map[string]bool
+	writers       map[string]*os.File
+	writersUsed   map[string]bool
 }
 
 func NewAsciiWriteToken(path string, wce *Wce) *AsciiWriteToken {
@@ -28,11 +29,11 @@ func NewAsciiWriteToken(path string, wce *Wce) *AsciiWriteToken {
 
 // TagIsWritten returns true if the tag was already written
 func (a *AsciiWriteToken) TagIsWritten(tag string) bool {
-	return a.writtenDefs[tag]
+	return a.writtenDefs[a.lastWriterTag+"-"+tag]
 }
 
 func (a *AsciiWriteToken) TagSetIsWritten(tag string) {
-	a.writtenDefs[tag] = true
+	a.writtenDefs[a.lastWriterTag+"-"+tag] = true
 }
 
 func (a *AsciiWriteToken) TagClearIsWritten() {
@@ -50,58 +51,36 @@ func (a *AsciiWriteToken) Writer() (*os.File, error) {
 	return a.lastWriter, nil
 }
 
-// Writer returns the file writer for a given tag
-func (a *AsciiWriteToken) WriterByTag(tag string) (*os.File, error) {
-	suffix := ""
-	if strings.HasSuffix(tag, "_root") {
-		suffix = "_root"
-		tag = strings.TrimSuffix(tag, "_root")
-	}
-	if strings.HasSuffix(tag, "_ani") {
-		suffix = "_ani"
-		tag = strings.TrimSuffix(tag, "_ani")
-	}
-
-	rootTag := tag
-	baseTag := tag
-	if !a.wce.WorldDef.EqgVersion.Valid {
-		rootTag = baseTagTrim(a.wce.isObj, tag)
-		baseTag = rootTag
-	}
-	baseTag = baseTag + suffix
-	w, ok := a.writers[baseTag]
-	if !ok {
-		if len(rootTag) < 3 {
-			return nil, fmt.Errorf("writer for short basetag %s (%s) does not exist", baseTag, tag)
-		}
-		rootTag = rootTag[:3]
-		baseTag = rootTag + suffix
-
-		w, ok = a.writers[baseTag]
-		if !ok {
-			w, ok = a.writers[a.wce.lastReadModelTag]
-			if !ok {
-				return nil, fmt.Errorf("writer for basetag %s (%s) does not exist (last read modeltag: %s)", baseTag, tag, a.wce.lastReadModelTag)
-			}
-		}
-	}
-	a.writersUsed[baseTag] = true
-	return w, nil
-}
-
-func (a *AsciiWriteToken) UseTempWriter(tag string) (*os.File, error) {
-	w, err := a.WriterByTag(tag)
-	if err != nil {
-		return nil, err
-	}
-	return w, nil
-}
-
 func (a *AsciiWriteToken) SetWriter(tag string) error {
-	w, err := a.WriterByTag(tag)
-	if err != nil {
-		return err
+	var err error
+	if tag == "" {
+		tag = "world"
 	}
+
+	w, ok := a.writers[tag]
+	if !ok {
+		rootFolder := tag
+		if strings.Contains(rootFolder, "_") {
+			rootFolder = strings.Split(rootFolder, "_")[0]
+		}
+		path := filepath.Join(a.basePath, strings.ToLower(rootFolder), strings.ToLower(tag+".wce"))
+		switch tag {
+		case "world", "region":
+			path = filepath.Join(a.basePath, tag+".wce")
+		}
+
+		err = a.AddWriter(tag, path)
+		if err != nil {
+			return err
+		}
+		w, ok = a.writers[tag]
+		if !ok {
+			return fmt.Errorf("writer for tag %s not found", tag)
+		}
+	}
+
+	a.writersUsed[tag] = true
+	a.lastWriterTag = tag
 	a.lastWriter = w
 	return nil
 }

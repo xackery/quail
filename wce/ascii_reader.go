@@ -13,6 +13,7 @@ import (
 var regexLine = regexp.MustCompile(`"([^"]*)"|(\S+)`)
 
 type AsciiReadToken struct {
+	folder         string
 	basePath       string
 	lineNumber     int
 	buf            *bytes.Buffer
@@ -32,6 +33,7 @@ func LoadAsciiFile(path string, wce *Wce) (*AsciiReadToken, error) {
 		wce:        wce,
 	}
 	a.basePath = filepath.Dir(strings.ToLower(path))
+	a.folder = filepath.Base(a.basePath)
 
 	err = a.readDefinitions()
 	if err != nil {
@@ -200,7 +202,7 @@ func (a *AsciiReadToken) readDefinitions() error {
 		&Sprite3DDef{},
 		&TrackDef{},
 		&TrackInstance{},
-		&WorldDef{},
+		&WorldDef{folders: []string{"world"}},
 		&WorldTree{},
 		&Zone{},
 	}
@@ -418,7 +420,7 @@ func (a *AsciiReadToken) readDefinitions() error {
 			case *WorldDef:
 
 				a.wce.WorldDef = frag
-				definitions[i] = &WorldDef{}
+				definitions[i] = &WorldDef{folders: []string{"world"}}
 			case *MdsDef:
 				if len(args) == 1 {
 					return fmt.Errorf("definition %s has no arguments", defName)

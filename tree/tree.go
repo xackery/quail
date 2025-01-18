@@ -5,7 +5,9 @@ import (
 	"io"
 	"strings"
 
+	"github.com/xackery/quail/helper"
 	"github.com/xackery/quail/raw"
+	"github.com/xackery/quail/raw/rawfrag"
 )
 
 type Node struct {
@@ -16,12 +18,12 @@ type Node struct {
 }
 
 // Dump dumps a tree to a writer
-func Dump(src interface{}, w io.Writer) error {
+func Dump(isChr bool, src interface{}, w io.Writer) error {
 	var err error
 	var nodes map[int32]*Node
 	switch val := src.(type) {
 	case *raw.Wld:
-		nodes, err = BuildFragReferenceTree(val)
+		nodes, _, err = BuildFragReferenceTree(isChr, val)
 		if err != nil {
 			return fmt.Errorf("build frag reference tree: %w", err)
 		}
@@ -37,12 +39,46 @@ func Dump(src interface{}, w io.Writer) error {
 	return nil
 }
 
-func BuildFragReferenceTree(wld *raw.Wld) (map[int32]*Node, error) {
+func BuildFragReferenceTree(isChr bool, wld *raw.Wld) (map[int32]*Node, map[int32]*Node, error) {
 	// Map to store all nodes
 	nodes := make(map[int32]*Node)
 
 	// Map to track which nodes are linkedNodes as children
 	linkedNodes := make(map[int32]bool)
+
+	var zoneNode *Node
+
+	actorNodes := make(map[string]*Node)
+	// find actornodes and build them first
+	for i := 1; i < len(wld.Fragments); i++ { // Start at index 1
+		frag := wld.Fragments[i]
+		if frag == nil {
+			continue
+		}
+		switch frag.(type) {
+		// case *rawfrag.WldFragTrackDef:
+		// 	// there's a special case where orphaned tracks happen
+		// 	tag := wld.Name(frag.NameRef())
+		// 	_, model := helper.TrackAnimationParse(isChr, tag)
+		// 	switch model {
+		// 	case "POINT":
+		// 		// this is an dummy actordef
+		// 		tag = "POINT_HS_DEF"
+		// 		actorNodes[tag] = upsertNode(nodes, "", fmt.Sprintf("%T", frag), int32(i), strings.TrimSpace(tag))
+		// 		continue
+		// 	}
+
+		case *rawfrag.WldFragHierarchicalSpriteDef:
+		default:
+			continue
+		}
+
+		tag := ""
+		if frag.NameRef() < 0 {
+			tag = wld.Name(frag.NameRef())
+		}
+		actorNodes[tag] = upsertNode(nodes, fmt.Sprintf("%T", frag), int32(i), strings.TrimSpace(tag))
+	}
 
 	// Create nodes and establish relationships
 	for i := 1; i < len(wld.Fragments); i++ { // Start at index 1
@@ -60,6 +96,34 @@ func BuildFragReferenceTree(wld *raw.Wld) (map[int32]*Node, error) {
 		// Find or create the node for this fragment
 		node := upsertNode(nodes, fmt.Sprintf("%T", frag), fragID, strings.TrimSpace(tag))
 
+		switch frag.(type) {
+		case *rawfrag.WldFragGlobalAmbientLightDef:
+			zoneNode = node
+			if zoneNode.Tag == "" {
+				zoneNode.Tag = "zone"
+			}
+		case *rawfrag.WldFragZone, *rawfrag.WldFragRegion, *rawfrag.WldFragWorldTree, *rawfrag.WldFragAmbientLight, *rawfrag.WldFragLight, *rawfrag.WldFragActor:
+			// zones have special frags
+			if zoneNode != nil {
+				zoneNode.Children[fragID] = node
+				linkedNodes[fragID] = true
+			}
+		// case *rawfrag.WldFragTrackDef:
+		// 	cleanedTag := strings.TrimSuffix(tag, "DEF")
+		// 	_, model := helper.TrackAnimationParse(isChr, cleanedTag)
+		// 	parentNode, ok := actorNodes[model+"_HS_DEF"]
+		// 	if ok {
+		// 		parentNode.Children[fragID] = node
+		// 	}
+		case *rawfrag.WldFragTrack:
+			_, model := helper.TrackAnimationParse(isChr, tag)
+			parentNode, ok := actorNodes[model+"_HS_DEF"]
+			if ok {
+				parentNode.Children[fragID] = node
+				linkedNodes[fragID] = true
+			}
+		}
+
 		// Extract references from the fragment
 		fragRefs := fragRefs(frag)
 		for _, refID := range fragRefs {
@@ -70,7 +134,13 @@ func BuildFragReferenceTree(wld *raw.Wld) (map[int32]*Node, error) {
 			linkedNodes[refID] = true
 
 			// Find or create the child node
-			child := upsertNode(nodes, fmt.Sprintf("%T", frag), refID, tag)
+			childFrag := wld.Fragments[refID]
+			childTag := ""
+			if childFrag != nil && childFrag.NameRef() < 0 {
+				childTag = wld.Name(childFrag.NameRef())
+			}
+
+			child := upsertNode(nodes, fmt.Sprintf("%T", childFrag), refID, strings.TrimSpace(childTag))
 
 			// Establish the parent-child relationship
 			node.Children[refID] = child
@@ -87,7 +157,7 @@ func BuildFragReferenceTree(wld *raw.Wld) (map[int32]*Node, error) {
 
 	}
 
-	return roots, nil
+	return roots, nodes, nil
 }
 
 // upsertNode finds or creates a node in the map
