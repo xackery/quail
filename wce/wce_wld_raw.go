@@ -27,17 +27,20 @@ func (wce *Wce) ReadWldRaw(src *raw.Wld) error {
 		wce.WorldDef.Zone = 1
 	}
 
+	// get a list of root nodes
 	roots, nodes, err := tree.BuildFragReferenceTree(wce.isChr, src)
 	if err != nil {
 		return fmt.Errorf("build frag reference tree: %w", err)
 	}
 
+	// make a map of folders each frag contains
 	foldersByFrag := make(map[int][]string)
-	// Traverse and print the trees
 	// fmt.Println("Debug tree:")
+	// iterate root
 	for _, root := range roots {
 		// fmt.Printf("Root ")
 		// tree.PrintNode(root, 0)
+		// propagate the root via root.Tag to all children
 		addChildrenFolder(foldersByFrag, root.Tag, root, wce.isChr, nodes)
 	}
 
@@ -695,6 +698,7 @@ func baseTagTrim(isObj bool, tag string) string {
 
 func addChildrenFolder(foldersByFrag map[int][]string, folder string, node *tree.Node, isChr bool, nodes map[int32]*tree.Node) {
 
+	// clean up folder AKA root.Tag to not have _DATA
 	if strings.Contains(folder, "_") {
 		folder = strings.Split(folder, "_")[0]
 	}
@@ -735,6 +739,8 @@ func addChildrenFolder(foldersByFrag map[int][]string, folder string, node *tree
 			}
 		}
 	}
+
+	// if child doesn't already have folder, add it
 	isUnique := true
 	for _, existingFolder := range foldersByFrag[int(node.FragID)] {
 		if existingFolder == folder {
@@ -745,6 +751,7 @@ func addChildrenFolder(foldersByFrag map[int][]string, folder string, node *tree
 	if isUnique {
 		foldersByFrag[int(node.FragID)] = append(foldersByFrag[int(node.FragID)], folder)
 	}
+	// continue down chain of children giving them root.Tag
 	for _, child := range node.Children {
 		addChildrenFolder(foldersByFrag, folder, child, isChr, nodes)
 	}
