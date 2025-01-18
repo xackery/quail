@@ -6,7 +6,7 @@ package cmd
 import (
 	"fmt"
 	"os"
-	"strings"
+	"path/filepath"
 
 	"github.com/spf13/cobra"
 	"github.com/xackery/quail/quail"
@@ -15,8 +15,7 @@ import (
 func init() {
 	rootCmd.AddCommand(treeCmd)
 	treeCmd.PersistentFlags().String("path", "", "path to pfs archive or file")
-	treeCmd.PersistentFlags().String("file", "", "file to read inside pfs archive")
-
+	treeCmd.PersistentFlags().String("path2", "", "path to compare pfs archive or file")
 }
 
 // treeCmd represents the tree command
@@ -39,6 +38,14 @@ func runTree(cmd *cobra.Command, args []string) error {
 }
 
 func runTreeE(cmd *cobra.Command, args []string) error {
+	var err error
+	defer func() {
+		if err != nil {
+			fmt.Println("Error:", err)
+			os.Exit(1)
+		}
+	}()
+
 	path, err := cmd.Flags().GetString("path")
 	if err != nil {
 		return fmt.Errorf("parse path: %w", err)
@@ -49,33 +56,30 @@ func runTreeE(cmd *cobra.Command, args []string) error {
 		}
 		path = args[0]
 	}
-	file, err := cmd.Flags().GetString("file")
-	if strings.Contains(path, ":") {
-		file = strings.Split(path, ":")[1]
-		path = strings.Split(path, ":")[0]
-	}
-	if file == "" {
-		if len(args) >= 2 {
-			file = args[1]
-		}
-	}
-	defer func() {
-		if err != nil {
-			fmt.Println("Error:", err)
-			os.Exit(1)
-		}
-	}()
 
-	fi, err := os.Stat(path)
+	path2, err := cmd.Flags().GetString("path2")
 	if err != nil {
-		return fmt.Errorf("path check: %w", err)
+		return fmt.Errorf("parse path2: %w", err)
 	}
-	if fi.IsDir() {
-		return fmt.Errorf("inspect requires a target file, directory provided")
+	if path2 == "" {
+		if len(args) >= 2 {
+			path2 = args[1]
+		}
 	}
-	q := quail.New()
 
-	err = q.TreeRead(path, file)
+	q := quail.New()
+	if path2 != "" {
+		file1 := filepath.Base(path)
+		file2 := filepath.Base(path2)
+		fmt.Printf("Comparing %s to %s\n", file1, file2)
+		err = q.TreeCompare(path, path2)
+		if err != nil {
+			return fmt.Errorf("tree compare: %w", err)
+		}
+		return nil
+	}
+
+	err = q.TreeRead(os.Stdout, path)
 	if err != nil {
 		return fmt.Errorf("tree read: %w", err)
 	}
