@@ -18,7 +18,7 @@ func TestConvertQuail(t *testing.T) {
 		fmt.Sprintf("%s/mim_chr.s3d", eqPath),
 		fmt.Sprintf("%s/mim_chr.quail", dirTest),
 	}
-	err := runConvertE(nil, args)
+	err := runConvertE(args)
 	if err != nil {
 		t.Fatal(err)
 	}

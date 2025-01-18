@@ -14,7 +14,6 @@ type Node struct {
 	FragID   int32
 	FragType string
 	Tag      string
-	Parent   string
 	Children map[int32]*Node
 }
 
@@ -78,7 +77,7 @@ func BuildFragReferenceTree(isChr bool, wld *raw.Wld) (map[int32]*Node, map[int3
 		if frag.NameRef() < 0 {
 			tag = wld.Name(frag.NameRef())
 		}
-		actorNodes[tag] = upsertNode(nodes, "", fmt.Sprintf("%T", frag), int32(i), strings.TrimSpace(tag))
+		actorNodes[tag] = upsertNode(nodes, fmt.Sprintf("%T", frag), int32(i), strings.TrimSpace(tag))
 	}
 
 	// Create nodes and establish relationships
@@ -95,7 +94,7 @@ func BuildFragReferenceTree(isChr bool, wld *raw.Wld) (map[int32]*Node, map[int3
 		}
 
 		// Find or create the node for this fragment
-		node := upsertNode(nodes, "", fmt.Sprintf("%T", frag), fragID, strings.TrimSpace(tag))
+		node := upsertNode(nodes, fmt.Sprintf("%T", frag), fragID, strings.TrimSpace(tag))
 
 		switch frag.(type) {
 		case *rawfrag.WldFragGlobalAmbientLightDef:
@@ -107,7 +106,6 @@ func BuildFragReferenceTree(isChr bool, wld *raw.Wld) (map[int32]*Node, map[int3
 			// zones have special frags
 			if zoneNode != nil {
 				zoneNode.Children[fragID] = node
-				node.Parent = zoneNode.Tag
 				linkedNodes[fragID] = true
 			}
 		// case *rawfrag.WldFragTrackDef:
@@ -122,7 +120,6 @@ func BuildFragReferenceTree(isChr bool, wld *raw.Wld) (map[int32]*Node, map[int3
 			parentNode, ok := actorNodes[model+"_HS_DEF"]
 			if ok {
 				parentNode.Children[fragID] = node
-				node.Parent = parentNode.Tag
 				linkedNodes[fragID] = true
 			}
 		}
@@ -143,7 +140,7 @@ func BuildFragReferenceTree(isChr bool, wld *raw.Wld) (map[int32]*Node, map[int3
 				childTag = wld.Name(childFrag.NameRef())
 			}
 
-			child := upsertNode(nodes, node.Tag, fmt.Sprintf("%T", childFrag), refID, strings.TrimSpace(childTag))
+			child := upsertNode(nodes, fmt.Sprintf("%T", childFrag), refID, strings.TrimSpace(childTag))
 
 			// Establish the parent-child relationship
 			node.Children[refID] = child
@@ -164,18 +161,16 @@ func BuildFragReferenceTree(isChr bool, wld *raw.Wld) (map[int32]*Node, map[int3
 }
 
 // upsertNode finds or creates a node in the map
-func upsertNode(nodes map[int32]*Node, parent string, fragType string, fragID int32, tag string) *Node {
+func upsertNode(nodes map[int32]*Node, fragType string, fragID int32, tag string) *Node {
 	fragType = strings.TrimPrefix(fragType, "*rawfrag.WldFrag")
 
 	node, ok := nodes[fragID]
 	if ok {
-		node.Parent = parent
 		node.Tag = tag
 		node.FragType = fragType
 		return node
 	}
 	node = &Node{
-		Parent:   parent,
 		FragID:   fragID,
 		Tag:      tag,
 		FragType: fragType,
