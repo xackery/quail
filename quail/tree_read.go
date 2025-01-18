@@ -133,6 +133,7 @@ func treeCompare(val, val2 string) error {
 	}
 
 	type treeEntry struct {
+		defType       string
 		srcLineNumber int
 		src           string
 		srcCount      int
@@ -145,19 +146,21 @@ func treeCompare(val, val2 string) error {
 	// we mainly are looking for identical definitions
 	entries := make(map[string]*treeEntry)
 
-	regex := regexp.MustCompile(`.*: (\d+) \((.*)\)`)
+	regex := regexp.MustCompile(`(.*): (\d+) \((.*)\)`)
 
 	lines := strings.Split(val, "\n")
 	for lineNumber, line := range lines {
 		matches := regex.FindStringSubmatch(line)
-		if len(matches) < 3 {
+		if len(matches) < 4 {
 			continue
 		}
-		frag := matches[1]
-		tag := matches[2]
+		defType := strings.TrimSpace(matches[1])
+		frag := matches[2]
+		tag := matches[3]
 		entry, ok := entries[tag]
 		if !ok {
 			entries[tag] = &treeEntry{
+				defType:       defType,
 				src:           frag,
 				srcLineNumber: lineNumber,
 				srcCount:      1,
@@ -170,14 +173,16 @@ func treeCompare(val, val2 string) error {
 	lines = strings.Split(val2, "\n")
 	for lineNumber, line := range lines {
 		matches := regex.FindStringSubmatch(line)
-		if len(matches) < 3 {
+		if len(matches) < 4 {
 			continue
 		}
-		frag := matches[1]
-		tag := matches[2]
+		defType := strings.TrimSpace(matches[1])
+		frag := matches[2]
+		tag := matches[3]
 		_, ok := entries[tag]
 		if !ok {
 			entries[tag] = &treeEntry{
+				defType:       defType,
 				dst:           frag,
 				dstLineNumber: lineNumber,
 				dstCount:      1,
@@ -191,7 +196,7 @@ func treeCompare(val, val2 string) error {
 	}
 
 	missingTotal := 0
-	for _, entry := range entries {
+	for tag, entry := range entries {
 		if entry.src == "" {
 			fmt.Printf("dst tree line %d missing on src: %s\n", entry.dstLineNumber, entry.dst)
 			missingTotal++
@@ -203,14 +208,14 @@ func treeCompare(val, val2 string) error {
 			continue
 		}
 		if entry.dstCount != entry.srcCount {
-			fmt.Printf("src tree line %d count %d != dst tree line %d count %d: %s\n", entry.srcLineNumber, entry.srcCount, entry.dstLineNumber, entry.dstCount, entry.src)
+			fmt.Printf("!! %s %s src count: %d, dst count: %d\n", entry.defType, tag, entry.srcCount, entry.dstCount)
 			missingTotal++
 			continue
 		}
 	}
 
 	if missingTotal > 0 {
-		return fmt.Errorf("%d missing entries", missingTotal)
+		return fmt.Errorf("%d mismatched entries", missingTotal)
 	}
 
 	fmt.Println("Files have same count of nodes")

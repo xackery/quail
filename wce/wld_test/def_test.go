@@ -10,9 +10,9 @@ var tests = []struct {
 	baseName string
 	wldName  string
 }{
-	{baseName: "gequip"}, // soul binder uses  IT124, IT124_MP uses 114CRYSBLAK_MDF, probably a rendermethod on that. Will have to wait, I'm working on improvements for quail to work with gequip, but should be doable
+	//{baseName: "gequip"}, // soul binder uses  IT124, IT124_MP uses 114CRYSBLAK_MDF, probably a rendermethod on that. Will have to wait, I'm working on improvements for quail to work with gequip, but should be doable
 	//{baseName: "crushbone"},
-	//{baseName: "global3_chr"},
+	{baseName: "global_chr"},
 	//{baseName: "emeraldjungle"},
 	//{baseName: "emeraldjungle_obj"},
 	//{baseName: "emeraldjungle", wldName: "objects.wld"},

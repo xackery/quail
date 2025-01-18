@@ -140,6 +140,8 @@ exploretest-%: ## shortcut for wld-cli to explore a test file
 	mkdir -p test/
 	wld-cli explore test/$*.wld
 
+cmptreetest-%:
+	go run main.go tree test/$*.src.wld test/$*.dst.wld
 
 wldcom-%: ## shortcut for WLDCOM.EXE for decoding
 	mkdir -p test/
