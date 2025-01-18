@@ -140,7 +140,12 @@ func fragRefs(fragment interface{}) []int32 {
 		refs = append(refs, int32(frag.TwoDSpriteRef)) // Cast uint32 to int32
 
 	case *rawfrag.WldFragSprite2DDef:
-		refs = append(refs, int32(frag.SphereListRef))               // Cast uint32 to int32
+		refs = append(refs, int32(frag.SphereListRef)) // Cast uint32 to int32
+		for _, pitch := range frag.Pitches {
+			for _, heading := range pitch.Headings {
+				refs = append(refs, heading.FrameRefs...)
+			}
+		}
 		refs = append(refs, int32(frag.RenderSimpleSpriteReference)) // Cast uint32 to int32
 
 	case *rawfrag.WldFragSprite3D:

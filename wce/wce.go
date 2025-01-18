@@ -45,6 +45,7 @@ type Wce struct {
 	TrackDefs              []*TrackDef
 	TrackInstances         []*TrackInstance
 	variationMaterialDefs  map[string][]*MaterialDef
+	varMaterialDefs        []*MaterialDef
 	WorldTrees             []*WorldTree
 	Zones                  []*Zone
 	MdsDefs                []*MdsDef

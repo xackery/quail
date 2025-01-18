@@ -160,10 +160,24 @@ func (wce *Wce) writeAsciiData(path string) error {
 		}
 	}
 
+	for _, hierarchicalSpriteDef := range wce.HierarchicalSpriteDefs {
+		err = hierarchicalSpriteDef.Write(token)
+		if err != nil {
+			return fmt.Errorf("hierarchicalspritedef %s: %w", hierarchicalSpriteDef.Tag, err)
+		}
+	}
+
 	for _, particleCloudDef := range wce.ParticleCloudDefs {
 		err = particleCloudDef.Write(token)
 		if err != nil {
-			return fmt.Errorf("polyhedron %s: %w", particleCloudDef.Tag, err)
+			return fmt.Errorf("particleclouddef %s: %w", particleCloudDef.Tag, err)
+		}
+	}
+
+	for _, varMatDef := range wce.varMaterialDefs {
+		err = varMatDef.Write(token)
+		if err != nil {
+			return fmt.Errorf("materialdef %s: %w", varMatDef.Tag, err)
 		}
 	}
 

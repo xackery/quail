@@ -24,7 +24,7 @@ func Dump(isChr bool, src interface{}, w io.Writer) error {
 	var nodes map[int32]*Node
 	switch val := src.(type) {
 	case *raw.Wld:
-		nodes, err = BuildFragReferenceTree(isChr, val)
+		nodes, _, err = BuildFragReferenceTree(isChr, val)
 		if err != nil {
 			return fmt.Errorf("build frag reference tree: %w", err)
 		}
@@ -40,7 +40,7 @@ func Dump(isChr bool, src interface{}, w io.Writer) error {
 	return nil
 }
 
-func BuildFragReferenceTree(isChr bool, wld *raw.Wld) (map[int32]*Node, error) {
+func BuildFragReferenceTree(isChr bool, wld *raw.Wld) (map[int32]*Node, map[int32]*Node, error) {
 	// Map to store all nodes
 	nodes := make(map[int32]*Node)
 
@@ -70,19 +70,19 @@ func BuildFragReferenceTree(isChr bool, wld *raw.Wld) (map[int32]*Node, error) {
 		}
 
 		switch frag.(type) {
-		case *rawfrag.WldFragTrackDef:
-			_, model := helper.TrackAnimationParse(isChr, tag)
-			parentNode, ok := actorNodes[model+"_HS_DEF"]
-			if ok {
-				parentNode.Children[fragID] = node
-			}
+		// case *rawfrag.WldFragTrackDef:
+		// 	cleanedTag := strings.TrimSuffix(tag, "DEF")
+		// 	_, model := helper.TrackAnimationParse(isChr, cleanedTag)
+		// 	parentNode, ok := actorNodes[model+"_HS_DEF"]
+		// 	if ok {
+		// 		parentNode.Children[fragID] = node
+		// 	}
 		case *rawfrag.WldFragTrack:
 			_, model := helper.TrackAnimationParse(isChr, tag)
 			parentNode, ok := actorNodes[model+"_HS_DEF"]
 			if ok {
 				parentNode.Children[fragID] = node
 			}
-
 		}
 
 		// Extract references from the fragment
@@ -118,7 +118,7 @@ func BuildFragReferenceTree(isChr bool, wld *raw.Wld) (map[int32]*Node, error) {
 
 	}
 
-	return roots, nil
+	return roots, nodes, nil
 }
 
 // upsertNode finds or creates a node in the map

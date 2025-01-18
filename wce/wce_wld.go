@@ -892,6 +892,7 @@ func (e *DMSpriteDef2) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragD
 	}
 
 	e.Tag = rawWld.Name(frag.NameRef())
+
 	if frag.MaterialPaletteRef > 0 {
 		if len(rawWld.Fragments) < int(frag.MaterialPaletteRef) {
 			return fmt.Errorf("materialpalette ref %d out of bounds", frag.MaterialPaletteRef)
@@ -2076,8 +2077,40 @@ func (e *MaterialDef) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragMa
 	e.RGBPen = frag.RGBPen
 	e.Brightness = frag.Brightness
 	e.ScaledAmbient = frag.ScaledAmbient
-	if wce.isVariationMaterial {
-		e.Variation = 1
+	if wce.isChr {
+		name := rawWld.Name(frag.NameRef())
+
+		// Use the helper function to parse the material tag
+		prefix, err := helper.MaterialTagParse(wce.isChr, name)
+		if err != nil {
+			return fmt.Errorf("error parsing material tag: %w", err)
+		}
+
+		if prefix != "" {
+			e.Variation = 1
+
+			// Search for the parent material by matching the prefix
+			for _, otherMaterial := range wce.MaterialDefs {
+				if strings.HasPrefix(otherMaterial.Tag, prefix) {
+					e.folder = otherMaterial.folder
+					break
+				}
+			}
+		} else {
+			e.Variation = 0
+		}
+	} else {
+		e.Variation = 0
+	}
+	// Propagate Variation to SimpleSpriteDef if applicable
+	if e.Variation == 1 && frag.SimpleSpriteRef > 0 {
+		for _, sprite := range wce.SimpleSpriteDefs {
+			if sprite.Tag == e.SimpleSpriteTag {
+				sprite.Variation = 1
+				sprite.folder = e.folder
+				break
+			}
+		}
 	}
 	if frag.Flags&0x01 != 0 {
 		e.DoubleSided = 1
@@ -2087,6 +2120,10 @@ func (e *MaterialDef) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragMa
 		e.Pair1.Uint32 = frag.Pair1
 		e.Pair2.Valid = true
 		e.Pair2.Float32 = frag.Pair2
+	}
+
+	if e.Variation == 1 {
+		wce.varMaterialDefs = append(wce.varMaterialDefs, e)
 	}
 
 	wce.variationMaterialDefs[wce.lastReadModelTag] = append(wce.variationMaterialDefs[wce.lastReadModelTag], e)

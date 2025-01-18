@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/xackery/quail/helper"
 	"github.com/xackery/quail/model"
 	"github.com/xackery/quail/raw"
 	"github.com/xackery/quail/raw/rawfrag"
@@ -26,7 +27,7 @@ func (wce *Wce) ReadWldRaw(src *raw.Wld) error {
 		wce.WorldDef.Zone = 1
 	}
 
-	roots, err := tree.BuildFragReferenceTree(wce.isChr, src)
+	roots, nodes, err := tree.BuildFragReferenceTree(wce.isChr, src)
 	if err != nil {
 		return fmt.Errorf("build frag reference tree: %w", err)
 	}
@@ -34,11 +35,11 @@ func (wce *Wce) ReadWldRaw(src *raw.Wld) error {
 	folders := make(map[int]string)
 
 	// Traverse and print the trees
-	fmt.Println("Debug tree:")
+	// fmt.Println("Debug tree:")
 	for _, root := range roots {
-		fmt.Printf("Root ")
-		tree.PrintNode(root, 0)
-		setChildrenFolder(folders, root)
+		// fmt.Printf("Root ")
+		// tree.PrintNode(root, 0)
+		setChildrenFolder(folders, root, wce.isChr, nodes)
 	}
 
 	for i := 1; i < len(src.Fragments); i++ {
@@ -108,7 +109,7 @@ func readRawFrag(e *Wce, rawWld *raw.Wld, fragment model.FragmentReadWriter, fol
 			return fmt.Errorf("materialpalette: %w", err)
 		}
 		e.MaterialPalettes = append(e.MaterialPalettes, def)
-		e.isVariationMaterial = true
+		// e.isVariationMaterial = true
 	case rawfrag.FragCodeDmSpriteDef2:
 		def := &DMSpriteDef2{folder: folder}
 		err := def.FromRaw(e, rawWld, fragment.(*rawfrag.WldFragDmSpriteDef2))
@@ -172,7 +173,7 @@ func readRawFrag(e *Wce, rawWld *raw.Wld, fragment model.FragmentReadWriter, fol
 		}
 
 		e.ActorDefs = append(e.ActorDefs, def)
-		e.isVariationMaterial = false
+		// e.isVariationMaterial = false
 	case rawfrag.FragCodeActor:
 		def := &ActorInst{folder: folder}
 		err := def.FromRaw(e, rawWld, fragment.(*rawfrag.WldFragActor))
@@ -681,16 +682,56 @@ func baseTagTrim(isObj bool, tag string) string {
 	return tag
 }
 
-func setChildrenFolder(folders map[int]string, node *tree.Node) {
-	tag := node.Parent
-	if tag == "" {
-		tag = node.Tag
+func setChildrenFolder(folders map[int]string, node *tree.Node, isChr bool, nodes map[int32]*tree.Node) {
+	folder := folders[int(node.FragID)]
+
+	// If no folder is assigned, handle specific cases based on FragType
+	if folder == "" {
+		switch node.FragType {
+		case "DmSpriteDef2":
+			prefix, err := helper.DmSpriteDefTagParse(isChr, node.Tag)
+			if err == nil && prefix != "" {
+				folder = prefix
+			}
+		case "MaterialDef":
+			prefix, err := helper.MaterialTagParse(isChr, node.Tag)
+			if err == nil && prefix != "" {
+				if prefix == "CLK04" {
+					for _, potentialNode := range nodes {
+						if potentialNode.FragType == "MaterialPalette" {
+							// Check the child nodes of the MaterialPalette node
+							for _, childNode := range potentialNode.Children {
+								if strings.HasPrefix(childNode.Tag, "CLK04") {
+									// Set the folder to the first 3 characters of the MaterialPalette node's tag
+									folder = potentialNode.Tag[:3]
+									break
+								}
+							}
+
+							// Exit the loop if the folder is already set
+							if folder != "" {
+								break
+							}
+						}
+					}
+				} else {
+					// Use the returned prefix directly as the folder
+					folder = prefix
+				}
+			}
+		default:
+			folder = node.Tag
+			if strings.Contains(folder, "_") {
+				folder = strings.Split(folder, "_")[0]
+			}
+		}
 	}
-	if strings.Contains(tag, "_") {
-		tag = strings.Split(tag, "_")[0]
-	}
-	folders[int(node.FragID)] = tag
+
+	folders[int(node.FragID)] = folder
+
+	// Recursively process child nodes
 	for _, child := range node.Children {
-		setChildrenFolder(folders, child)
+		folders[int(child.FragID)] = folder
+		setChildrenFolder(folders, child, isChr, nodes)
 	}
 }
