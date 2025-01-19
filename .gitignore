@@ -5,7 +5,7 @@
 *.so
 *.dylib
 *.cpp
-
+*.wasm
 # Test binary, built with `go test -c`
 *.test
 
@@ -35,3 +35,5 @@ _*/
 *.txt
 *.yaml
 *.sh
+
+node_modules/

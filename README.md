@@ -19,6 +19,12 @@ Features include:
 Quail currently in an early preview status. While many functionality goals have even reached, they are buggy and not supporting every use case.
 
 
+## Compiling WebAssembly API
+Quail can be compiled to WebAssembly to be used in the browser. To compile to WebAssembly, run:
+```
+GOOS=js GOARCH=wasm go build -o wasm/quail.wasm main_wasm.go
+```
+
 # EverQuest File Overview
 ## Pfs
 
