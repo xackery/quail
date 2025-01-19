@@ -5,7 +5,6 @@ import (
 	"io"
 	"strings"
 
-	"github.com/xackery/quail/helper"
 	"github.com/xackery/quail/raw"
 	"github.com/xackery/quail/raw/rawfrag"
 )
@@ -108,20 +107,20 @@ func BuildFragReferenceTree(isChr bool, wld *raw.Wld) (map[int32]*Node, map[int3
 				zoneNode.Children[fragID] = node
 				linkedNodes[fragID] = true
 			}
-		// case *rawfrag.WldFragTrackDef:
-		// 	cleanedTag := strings.TrimSuffix(tag, "DEF")
-		// 	_, model := helper.TrackAnimationParse(isChr, cleanedTag)
-		// 	parentNode, ok := actorNodes[model+"_HS_DEF"]
-		// 	if ok {
-		// 		parentNode.Children[fragID] = node
-		// 	}
-		case *rawfrag.WldFragTrack:
-			_, model := helper.TrackAnimationParse(isChr, tag)
-			parentNode, ok := actorNodes[model+"_HS_DEF"]
-			if ok {
-				parentNode.Children[fragID] = node
-				linkedNodes[fragID] = true
-			}
+			// case *rawfrag.WldFragTrackDef:
+			// 	cleanedTag := strings.TrimSuffix(tag, "DEF")
+			// 	_, model := helper.TrackAnimationParse(isChr, cleanedTag)
+			// 	parentNode, ok := actorNodes[model+"_HS_DEF"]
+			// 	if ok {
+			// 		parentNode.Children[fragID] = node
+			// 	}
+			// case *rawfrag.WldFragTrack:
+			// 	_, model := helper.TrackAnimationParse(isChr, tag)
+			// 	parentNode, ok := actorNodes[model+"_HS_DEF"]
+			// 	if ok {
+			// 		parentNode.Children[fragID] = node
+			// 		linkedNodes[fragID] = true
+			// 	}
 		}
 
 		// Extract references from the fragment

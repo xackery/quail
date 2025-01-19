@@ -35,13 +35,27 @@ func (wce *Wce) ReadWldRaw(src *raw.Wld) error {
 
 	// make a map of folders each frag contains
 	foldersByFrag := make(map[int][]string)
+
 	// fmt.Println("Debug tree:")
 	// iterate root
+	// Sort root nodes by FragID before processing
+	sortedRoots := make([]*tree.Node, 0, len(roots))
 	for _, root := range roots {
+		sortedRoots = append(sortedRoots, root)
+	}
+
+	// Sort by FragID
+	sort.Slice(sortedRoots, func(i, j int) bool {
+		return sortedRoots[i].FragID < sortedRoots[j].FragID
+	})
+
+	// Process the sorted roots
+	for _, root := range sortedRoots {
 		// fmt.Printf("Root ")
 		// tree.PrintNode(root, 0)
 		// propagate the root via root.Tag to all children
-		setRootFolder(foldersByFrag, "", root, wce.isChr, nodes)
+		fmt.Printf("Processing Root FragID: %d, Tag: %s\n", root.FragID, root.Tag)
+		setRootFolder(foldersByFrag, "", root, wce.isChr, nodes, wce)
 	}
 
 	for i := 1; i < len(src.Fragments); i++ {
@@ -698,7 +712,7 @@ func baseTagTrim(isObj bool, tag string) string {
 	return tag
 }
 
-func setRootFolder(foldersByFrag map[int][]string, folder string, node *tree.Node, isChr bool, nodes map[int32]*tree.Node) {
+func setRootFolder(foldersByFrag map[int][]string, folder string, node *tree.Node, isChr bool, nodes map[int32]*tree.Node, wce *Wce) {
 
 	// If no folder is assigned, handle specific cases based on FragType
 	if len(foldersByFrag[int(node.FragID)]) == 0 {
@@ -717,15 +731,10 @@ func setRootFolder(foldersByFrag map[int][]string, folder string, node *tree.Nod
 							// Check the child nodes of the MaterialPalette node
 							for _, childNode := range potentialNode.Children {
 								if strings.HasPrefix(childNode.Tag, "CLK04") {
-									// Set the folder to the first 3 characters of the MaterialPalette node's tag
-									folder = potentialNode.Tag[:3]
-									break
+									// Add the first 3 characters of each MaterialPalette node's tags to foldersByFrag
+									folderToAdd := potentialNode.Tag[:3]
+									foldersByFrag[int(node.FragID)] = appendUnique(foldersByFrag[int(node.FragID)], folderToAdd)
 								}
-							}
-
-							// Exit the loop if the folder is already set
-							if folder != "" {
-								break
 							}
 						}
 					}
@@ -735,9 +744,19 @@ func setRootFolder(foldersByFrag map[int][]string, folder string, node *tree.Nod
 				}
 			}
 		case "Track":
-			_, prefix := helper.TrackAnimationParse(isChr, node.Tag)
-			if prefix != "" {
-				folder = prefix
+			if wce.isTrackAni(node.Tag) {
+				// Call TrackAnimationParse only if isTrackAni returns true
+				_, prefix := helper.TrackAnimationParse(isChr, node.Tag)
+				if prefix != "" {
+					folder = prefix
+				}
+			} else {
+				// If isTrackAni returns false, set folder to the first 3 characters of node.Tag
+				if len(node.Tag) >= 3 {
+					folder = node.Tag[:3]
+				} else {
+					folder = node.Tag // Fallback to the full tag if it's shorter than 3 characters
+				}
 			}
 		default:
 			folder = node.Tag
@@ -771,4 +790,13 @@ func addChildrenFolder(foldersByFrag map[int][]string, folder string, node *tree
 		// Recursively process the child nodes
 		addChildrenFolder(foldersByFrag, folder, child)
 	}
+}
+
+func appendUnique(slice []string, value string) []string {
+	for _, v := range slice {
+		if v == value {
+			return slice
+		}
+	}
+	return append(slice, value)
 }
