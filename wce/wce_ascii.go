@@ -5,7 +5,8 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"regexp"
+
+	// "regexp"
 	"sort"
 	"strconv"
 	"strings"
@@ -14,8 +15,8 @@ import (
 )
 
 var (
-	regTrack1 = regexp.MustCompile(`[A-Z][0-9][0-9].*_([A-Z]{3})_TRACK`)
-	regTrack2 = regexp.MustCompile(`[A-Z][0-9][0-9]([A-Z]{3}).*_TRACK`)
+// regTrack1 = regexp.MustCompile(`[A-Z][0-9][0-9].*_([A-Z]{3})_TRACK`)
+// regTrack2 = regexp.MustCompile(`[A-Z][0-9][0-9]([A-Z]{3}).*_TRACK`)
 )
 
 // ReadAscii reads the ascii file at path
@@ -161,6 +162,13 @@ func (wce *Wce) writeAsciiData(path string) error {
 		err = hierarchicalSpriteDef.Write(token)
 		if err != nil {
 			return fmt.Errorf("hierarchicalspritedef %s: %w", hierarchicalSpriteDef.Tag, err)
+		}
+	}
+
+	for _, blitSpriteDef := range wce.BlitSpriteDefs {
+		err = blitSpriteDef.Write(token)
+		if err != nil {
+			return fmt.Errorf("blitspritedef %s: %w", blitSpriteDef.Tag, err)
 		}
 	}
 

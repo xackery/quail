@@ -36,8 +36,6 @@ func (wce *Wce) ReadWldRaw(src *raw.Wld) error {
 	// make a map of folders each frag contains
 	foldersByFrag := make(map[int][]string)
 
-	// fmt.Println("Debug tree:")
-	// iterate root
 	// Sort root nodes by FragID before processing
 	sortedRoots := make([]*tree.Node, 0, len(roots))
 	for _, root := range roots {
@@ -51,9 +49,6 @@ func (wce *Wce) ReadWldRaw(src *raw.Wld) error {
 
 	// Process the sorted roots
 	for _, root := range sortedRoots {
-		// fmt.Printf("Root ")
-		// tree.PrintNode(root, 0)
-		// propagate the root via root.Tag to all children
 		fmt.Printf("Processing Root FragID: %d, Tag: %s\n", root.FragID, root.Tag)
 		setRootFolder(foldersByFrag, "", root, wce.isChr, nodes, wce)
 	}
@@ -574,87 +569,87 @@ func (wce *Wce) WriteWldRaw(w io.Writer) error {
 }
 
 var (
-	regexAniNormal    = regexp.MustCompile(`^([A-Z])([0-9]{2})([A-Z]{3}).*`)
-	regexAniAlt       = regexp.MustCompile(`^([A-Z])([0-9]{2})([A-Z])([A-Z]{3}).*`)
-	regexAniAltSuffix = regexp.MustCompile(`^([A-Z])([0-9]{2}).*_([A-Z]{3})$`)
-	regexTrackNormal  = regexp.MustCompile(`^([A-Z]{3}).*`)
-	regexAniPrefix    = regexp.MustCompile(`^[CDLOPST](0[1-9]|[1-9][0-9])`)
+	// regexAniNormal    = regexp.MustCompile(`^([A-Z])([0-9]{2})([A-Z]{3}).*`)
+	// regexAniAlt       = regexp.MustCompile(`^([A-Z])([0-9]{2})([A-Z])([A-Z]{3}).*`)
+	// regexAniAltSuffix = regexp.MustCompile(`^([A-Z])([0-9]{2}).*_([A-Z]{3})$`)
+	// regexTrackNormal  = regexp.MustCompile(`^([A-Z]{3}).*`)
+	regexAniPrefix = regexp.MustCompile(`^[CDLOPST](0[1-9]|[1-9][0-9])`)
 )
 
 // returns model name (ELF, etc), sequence tag (C, P, etc), subsequence, sequence number
 // if sequence number is -1, it's a bone
-func (wce *Wce) trackTagAndSequence(tag string) (string, string, string, int) {
-	tag = strings.TrimSuffix(tag, "_TRACK")
-	tag = strings.TrimSuffix(tag, "_TRACKDEF")
-	m := regexTrackNormal.FindStringSubmatch(tag)
-	if len(m) > 1 {
-		isFound := false
-		for _, modelTag := range wce.modelTags {
-			if modelTag != m[1] {
-				continue
-			}
-			isFound = true
-			break
-		}
-		if isFound {
-			return m[1], "", "", -1
-		}
-	}
-	m = regexAniNormal.FindStringSubmatch(tag)
-	if len(m) > 3 {
-		isFound := false
-		for _, modelTag := range wce.modelTags {
-			if modelTag != m[3] {
-				continue
-			}
-			isFound = true
-			break
-		}
-		if isFound {
-			seq, err := strconv.Atoi(m[2])
-			if err == nil {
-				return m[3], m[1], "", seq
-			}
-		}
-	}
+// func (wce *Wce) trackTagAndSequence(tag string) (string, string, string, int) {
+// 	tag = strings.TrimSuffix(tag, "_TRACK")
+// 	tag = strings.TrimSuffix(tag, "_TRACKDEF")
+// 	m := regexTrackNormal.FindStringSubmatch(tag)
+// 	if len(m) > 1 {
+// 		isFound := false
+// 		for _, modelTag := range wce.modelTags {
+// 			if modelTag != m[1] {
+// 				continue
+// 			}
+// 			isFound = true
+// 			break
+// 		}
+// 		if isFound {
+// 			return m[1], "", "", -1
+// 		}
+// 	}
+// 	m = regexAniNormal.FindStringSubmatch(tag)
+// 	if len(m) > 3 {
+// 		isFound := false
+// 		for _, modelTag := range wce.modelTags {
+// 			if modelTag != m[3] {
+// 				continue
+// 			}
+// 			isFound = true
+// 			break
+// 		}
+// 		if isFound {
+// 			seq, err := strconv.Atoi(m[2])
+// 			if err == nil {
+// 				return m[3], m[1], "", seq
+// 			}
+// 		}
+// 	}
 
-	m = regexAniAlt.FindStringSubmatch(tag)
-	if len(m) > 4 {
-		isFound := false
-		for _, modelTag := range wce.modelTags {
-			if modelTag != m[4] {
-				continue
-			}
-			isFound = true
-			break
-		}
-		if isFound {
-			seq, err := strconv.Atoi(m[2])
-			if err == nil {
-				return m[4], m[1], m[3], seq
-			}
-		}
-	}
-	m = regexAniAltSuffix.FindStringSubmatch(tag)
-	if len(m) > 1 {
-		isFound := false
-		for _, modelTag := range wce.modelTags {
-			if modelTag != m[3] {
-				continue
-			}
-			isFound = true
-			break
-		}
-		if isFound {
-			seq, err := strconv.Atoi(m[2])
-			if err == nil {
-				return m[3], m[1], "", -seq
-			}
-		}
-	}
+// 	m = regexAniAlt.FindStringSubmatch(tag)
+// 	if len(m) > 4 {
+// 		isFound := false
+// 		for _, modelTag := range wce.modelTags {
+// 			if modelTag != m[4] {
+// 				continue
+// 			}
+// 			isFound = true
+// 			break
+// 		}
+// 		if isFound {
+// 			seq, err := strconv.Atoi(m[2])
+// 			if err == nil {
+// 				return m[4], m[1], m[3], seq
+// 			}
+// 		}
+// 	}
+// 	m = regexAniAltSuffix.FindStringSubmatch(tag)
+// 	if len(m) > 1 {
+// 		isFound := false
+// 		for _, modelTag := range wce.modelTags {
+// 			if modelTag != m[3] {
+// 				continue
+// 			}
+// 			isFound = true
+// 			break
+// 		}
+// 		if isFound {
+// 			seq, err := strconv.Atoi(m[2])
+// 			if err == nil {
+// 				return m[3], m[1], "", -seq
+// 			}
+// 		}
+// 	}
 
-	return "", "", "", -1
-}
+// 	return "", "", "", -1
+// }
 
 func (wce *Wce) isTrackAni(tag string) bool {
 	// If isObj is true, it's not a track animation
@@ -721,6 +716,16 @@ func setRootFolder(foldersByFrag map[int][]string, folder string, node *tree.Nod
 			prefix, err := helper.DmSpriteDefTagParse(isChr, node.Tag)
 			if err == nil && prefix != "" {
 				folder = prefix
+			}
+		case "BlitSpriteDef":
+			if strings.HasPrefix(node.Tag, "I_") {
+				// Remove "I_" and take the part before the next "_"
+				strippedTag := strings.TrimPrefix(node.Tag, "I_")
+				if strings.Contains(strippedTag, "_") {
+					folder = strings.Split(strippedTag, "_")[0]
+				} else {
+					folder = strippedTag
+				}
 			}
 		case "MaterialDef":
 			prefix, err := helper.MaterialTagParse(isChr, node.Tag)

@@ -4727,7 +4727,7 @@ func (e *TrackInstance) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFrag
 	e.Tag = rawWld.Name(frag.NameRef())
 	e.TagIndex = wce.NextTagIndex(e.Tag)
 	var seqNum int
-	e.SpriteTag, _, _, seqNum = wce.trackTagAndSequence(e.Tag)
+	// e.SpriteTag, _, _, seqNum = wce.trackTagAndSequence(e.Tag)
 	if seqNum < 0 {
 		e.SpriteTag = wce.lastReadModelTag
 	}
@@ -4979,7 +4979,7 @@ func (e *TrackDef) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragTrack
 	e.Tag = rawWld.Name(frag.NameRef())
 	e.TagIndex = wce.NextTagIndex(e.Tag)
 	var seqNum int
-	e.SpriteTag, _, _, seqNum = wce.trackTagAndSequence(e.Tag)
+	// e.SpriteTag, _, _, seqNum = wce.trackTagAndSequence(e.Tag)
 	if seqNum < 0 {
 		e.SpriteTag = wce.lastReadModelTag
 	}
