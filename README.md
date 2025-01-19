@@ -2,35 +2,22 @@
 [![quail](quail.png)](https://github.com/xackery/quail/releases/latest) [![GoDoc](https://godoc.org/github.com/xackery/quail?status.svg)](https://godoc.org/github.com/xackery/quail) [![Go Report Card](https://goreportcard.com/badge/github.com/xackery/quail)](https://goreportcard.com/report/github.com/xackery/quail)
 
 
-Quail is a command line EverQuest archive manager.
-
-You can use it to extract content from EQG, S3D, and other pfs-based files.
-
-You can also use it with [WCEmu](https://docs.eqemu.io/client/wcemu/) to modify content.
-
-For a more user-friendly approach, I suggest [quail-addon](https://github.com/xackery/quail-addon).
+Quail is a command line Ever**Qu**est asset manager.
 
 You can [find the latest download of quail in releases](https://github.com/xackery/quail/releases/latest)
 
+
+Features include:
+
+- zip/unzip pfs archives such as eqg, s3d, pak, and pfs
+- convert between pfs archives and .quail folder format (also known as [wce (WorldCom Emu)](https://docs.eqemu.io/client/wcemu/))
+- inspect binary files like wld, mod, mds
+- tree to visualize binary files
 
 ## Status
 
 Quail currently in an early preview status. While many functionality goals have even reached, they are buggy and not supporting every use case.
 
-## Usage
-
-Quail has a number of commands that are displayed when the program is ran on it's own with no arguments:
-```
-Available Commands:
-  completion  Generate the autocompletion script for the specified shell
-  compress    Compress an eqg/s3d/pfs/pak folder named _file.ext/ to a pfs archive
-  convert     Take one file, convert to another
-  extract     Extract an pfs (eqg/s3d/pak/pfs) archive to a _file.ext/ folder
-  extract-mod ExtractMod an pfs archive to a _file.ext/ folder
-  help        Help about any command
-  hybrid      Hybrid merge geometry with existing bone data
-  inspect     Inspect an EverQuest asset
-```
 
 # EverQuest File Overview
 ## Pfs
@@ -83,25 +70,9 @@ prj|3DS Max **Pr**o**j**ect files, this is used by internal team for opening a p
 dbg.txt|**D**e**b**u**g** log, shows the last export attempt internally, doesn't appear to have any use for EverQuest.
 
 
-## Progress Checklist
-- Import Support
-  - Bugs EQG with V4 and zone files
-  - Bugs S3D (not supported currently)
-- Export Support
-  - UV Fix bad alignment
-- Bone/Animations
-- Image Sequence support (animated textures)
-- MOD support
-- S3D/WLD support
-- V4 Zone support
-
 # Running Tests and Setting Up a Development Environment
 
 At the root of the repo, you'll see a file called `.env_default`. Copy it to the file `.env`, and edit the EQ_PATH variable inside to point to your EQ directory. NOTE that this EQ directory will get folders made like _gequip.s3d/, or _test_data/, so you may want to consider pointing to a unused EQ path if you don't like the clutter of folders on top.
-
-# References
-
-- Frozen Crusader Ornament, item id 81466, is it13926
 
 # External resources
 
@@ -110,35 +81,3 @@ At the root of the repo, you'll see a file called `.env_default`. Copy it to the
 [fragment overview ref](https://github.com/cjab/libeq/blob/0aff154702fe122fa726fb7fbb43a079d8f3a138/crates/libeq_wld/docs/README.md)
 
 [eq-sage ref](https://gitlab.com/knervous/eq-sage/-/tree/master/src/lib?ref_type=heads)
-
-polyhedron none
-ambientlight none
-blitspritedef none
-dmrgbtrack none
-====
---skipped
-compositesprite
-===
-dmspritedef 0x01 0x02 0x800 0x1000
-Flag 6146 found in global_chr.s3d/global_chr.wld/IVM_DMSPRITEDEF fragID 558 Flag 6146 (0x1802) -- 0x02 0x800 0x1000
-Flag 6147 found in erudsxing_chr2.s3d/erudsxing_chr2.wld/HULL_DMSPRITEDEF fragID 74 Flag 6147 (0x1803) -- 0x02 0x800 0x1000
-===
-actordef 0x80 abysmal_obj.s3d/abysmal_obj.wld/ARMSHPSIGN301_ACTORDEF fragID 2046 Flag 128
-===
-polyhedrondef 0x01
-===
-dmspritedef2 0x02 0x4000 0x8000 0x10000
-dmspritedef2 face 0x1000  https://gist.github.com/xackery/a587a84fd31f663d3a27c24e655ed0d1
-Flag 3 found in abysmal_obj.s3d/abysmal_obj.wld/FWD301_DMSPRITEDEF fragID 170 Flag 3 (0x3) -- 0x02
-Flag 16387 found in befallen_obj.s3d/befallen_obj.wld/SPIKEHEADHUM_DMSPRITEDEF fragID 382 Flag 16387 (0x4003) -- 0x02 0x4000
-Flag 65539 found in abysmal.s3d/abysmal.wld/R63_DMSPRITEDEF fragID 220 Flag 65539 (0x10003) -- 0x02 0x10000
-Flag 81923 found in abysmal_obj.s3d/abysmal_obj.wld/ARMSHPSIGN301_DMSPRITEDEF fragID 31 Flag 81923 (0x14003) -- 0x02 0x4000 0x10000
-Flag 98307 found in acrylia.s3d/acrylia.wld/R1_DMSPRITEDEF fragID 299 Flag 98307 (0x18003) -- 0x02 0x8000 0x10000
-Max flag found: 2 0x02
-===
-actor
-Flag 46 found in abysmal.s3d/abysmal.wld/ fragID 11861 Flag 46 (0x2e) -- 0x02 0x04 0x08 0x20
-Flag 558 found in timorous_lit.s3d/timorous_lit.wld/ fragID 13349 Flag 558 (0x22e) -- 0x02 0x04 0x08 0x20 0x200
-Flag 814 found in timorous_lit.s3d/timorous_lit.wld/ fragID 13192 Flag 814 (0x32e) -- 0x02 0x04 0x08 0x20 0x100 0x200
-Max flag found: 2 0x02
-===
