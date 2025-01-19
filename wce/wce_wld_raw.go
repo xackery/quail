@@ -41,7 +41,7 @@ func (wce *Wce) ReadWldRaw(src *raw.Wld) error {
 		// fmt.Printf("Root ")
 		// tree.PrintNode(root, 0)
 		// propagate the root via root.Tag to all children
-		addChildrenFolder(foldersByFrag, root.Tag, root, wce.isChr, nodes)
+		setRootFolder(foldersByFrag, "", root, wce.isChr, nodes)
 	}
 
 	for i := 1; i < len(src.Fragments); i++ {
@@ -140,12 +140,12 @@ func readRawFrag(e *Wce, rawWld *raw.Wld, fragment model.FragmentReadWriter, fol
 		if err != nil {
 			return fmt.Errorf("track: %w", err)
 		}
-		if def.SpriteTag == "" {
-			if len(folders) == 0 {
-				return fmt.Errorf("trackdef: can't discern parent, orphaned frag? tell xack")
-			}
-			def.SpriteTag = folders[0]
-		}
+		// if def.SpriteTag == "" {
+		// 	if len(folders) == 0 {
+		// 		return fmt.Errorf("trackdef: can't discern parent, orphaned frag? tell xack")
+		// 	}
+		// 	def.SpriteTag = folders[0]
+		// }
 		e.TrackInstances = append(e.TrackInstances, def)
 	case rawfrag.FragCodeTrackDef:
 		def := &TrackDef{folders: folders}
@@ -153,14 +153,13 @@ func readRawFrag(e *Wce, rawWld *raw.Wld, fragment model.FragmentReadWriter, fol
 		if err != nil {
 			return fmt.Errorf("trackdef: %w", err)
 		}
-		if def.SpriteTag == "" {
-			if len(folders) == 0 {
-				return fmt.Errorf("trackdef: can't discern parent, orphaned frag? tell xack")
-			}
-			def.SpriteTag = folders[0]
-		}
+		// if def.SpriteTag == "" {
+		// 	if len(folders) == 0 {
+		// 		return fmt.Errorf("trackdef: can't discern parent, orphaned frag? tell xack")
+		// 	}
+		// 	def.SpriteTag = folders[0]
+		// }
 		e.TrackDefs = append(e.TrackDefs, def)
-
 	case rawfrag.FragCodeDMTrack:
 		frag := fragment.(*rawfrag.WldFragDMTrack)
 		if frag.Flags != 0 {
@@ -699,15 +698,10 @@ func baseTagTrim(isObj bool, tag string) string {
 	return tag
 }
 
-func addChildrenFolder(foldersByFrag map[int][]string, folder string, node *tree.Node, isChr bool, nodes map[int32]*tree.Node) {
-
-	// clean up folder AKA root.Tag to not have _DATA
-	if strings.Contains(folder, "_") {
-		folder = strings.Split(folder, "_")[0]
-	}
+func setRootFolder(foldersByFrag map[int][]string, folder string, node *tree.Node, isChr bool, nodes map[int32]*tree.Node) {
 
 	// If no folder is assigned, handle specific cases based on FragType
-	if folder == "" {
+	if len(foldersByFrag[int(node.FragID)]) == 0 {
 		switch node.FragType {
 		case "DmSpriteDef2":
 			prefix, err := helper.DmSpriteDefTagParse(isChr, node.Tag)
@@ -740,23 +734,41 @@ func addChildrenFolder(foldersByFrag map[int][]string, folder string, node *tree
 					folder = prefix
 				}
 			}
+		case "Track":
+			_, prefix := helper.TrackAnimationParse(isChr, node.Tag)
+			if prefix != "" {
+				folder = prefix
+			}
+		default:
+			folder = node.Tag
+			if strings.Contains(folder, "_") {
+				folder = strings.Split(folder, "_")[0]
+			}
 		}
 	}
 
-	// if child doesn't already have folder, add it
-	isUnique := true
-	for _, existingFolder := range foldersByFrag[int(node.FragID)] {
-		if existingFolder == folder {
-			isUnique = false
-			break
-		}
-	}
-	if isUnique {
-		foldersByFrag[int(node.FragID)] = append(foldersByFrag[int(node.FragID)], folder)
-	}
-	// continue down chain of children giving them root.Tag
+	foldersByFrag[int(node.FragID)] = append(foldersByFrag[int(node.FragID)], folder)
+
+	// Pass the folder down to child nodes
+	addChildrenFolder(foldersByFrag, folder, node)
+}
+
+func addChildrenFolder(foldersByFrag map[int][]string, folder string, node *tree.Node) {
+	// Propagate the folder to the children
 	for _, child := range node.Children {
-		addChildrenFolder(foldersByFrag, folder, child, isChr, nodes)
-	}
+		// Add the folder to the child node's folder list if it's not already there
+		isUnique := true
+		for _, existingFolder := range foldersByFrag[int(child.FragID)] {
+			if existingFolder == folder {
+				isUnique = false
+				break
+			}
+		}
+		if isUnique {
+			foldersByFrag[int(child.FragID)] = append(foldersByFrag[int(child.FragID)], folder)
+		}
 
+		// Recursively process the child nodes
+		addChildrenFolder(foldersByFrag, folder, child)
+	}
 }
