@@ -4506,7 +4506,6 @@ type TrackInstance struct {
 	model              string
 	Tag                string
 	TagIndex           int
-	SpriteTag          string
 	DefinitionTag      string
 	DefinitionTagIndex int
 	Interpolate        int
@@ -4542,7 +4541,6 @@ func (e *TrackInstance) Write(token *AsciiWriteToken) error {
 
 		fmt.Fprintf(w, "%s \"%s\"\n", e.Definition(), e.Tag)
 		fmt.Fprintf(w, "\tTAGINDEX %d\n", e.TagIndex)
-		fmt.Fprintf(w, "\tSPRITE \"%s_DMSPRITEDEF\"\n", e.SpriteTag)
 		fmt.Fprintf(w, "\tDEFINITION \"%s\"\n", e.DefinitionTag)
 		fmt.Fprintf(w, "\tDEFINITIONINDEX %d\n", e.DefinitionTagIndex)
 		fmt.Fprintf(w, "\tINTERPOLATE %d // deprecated\n", e.Interpolate)
@@ -4564,12 +4562,6 @@ func (e *TrackInstance) Read(token *AsciiReadToken) error {
 	if err != nil {
 		return fmt.Errorf("tag index: %w", err)
 	}
-
-	records, err = token.ReadProperty("SPRITE", 1)
-	if err != nil {
-		return err
-	}
-	e.SpriteTag = strings.TrimSuffix(records[1], "_DMSPRITEDEF")
 
 	records, err = token.ReadProperty("DEFINITION", 1)
 	if err != nil {
@@ -4676,11 +4668,6 @@ func (e *TrackInstance) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFrag
 
 	e.Tag = rawWld.Name(frag.NameRef())
 	e.TagIndex = wce.NextTagIndex(e.Tag)
-	var seqNum int
-	// e.SpriteTag, _, _, seqNum = wce.trackTagAndSequence(e.Tag)
-	if seqNum < 0 {
-		e.SpriteTag = wce.lastReadModelTag
-	}
 
 	if wce.isObj {
 		e.model = wce.lastReadModelTag
@@ -4716,7 +4703,6 @@ type TrackDef struct {
 	model        string
 	Tag          string
 	TagIndex     int
-	SpriteTag    string
 	Frames       []*Frame
 	LegacyFrames []*LegacyFrame
 }
@@ -4751,7 +4737,6 @@ func (e *TrackDef) Write(token *AsciiWriteToken) error {
 
 		fmt.Fprintf(w, "%s \"%s\"\n", e.Definition(), e.Tag)
 		fmt.Fprintf(w, "\tTAGINDEX %d\n", e.TagIndex)
-		fmt.Fprintf(w, "\tSPRITE \"%s_DMSPRITEDEF\"\n", e.SpriteTag)
 		fmt.Fprintf(w, "\tNUMFRAMES %d\n", len(e.Frames))
 		for _, frame := range e.Frames {
 			fmt.Fprintf(w, "\t\tFRAME %d %d %d %d ", frame.XYZScale, frame.XYZ[0], frame.XYZ[1], frame.XYZ[2])
@@ -4778,12 +4763,6 @@ func (e *TrackDef) Read(token *AsciiReadToken) error {
 	if err != nil {
 		return fmt.Errorf("tag index: %w", err)
 	}
-
-	records, err = token.ReadProperty("SPRITE", 1)
-	if err != nil {
-		return err
-	}
-	e.SpriteTag = strings.TrimSuffix(records[1], "_DMSPRITEDEF")
 
 	records, err = token.ReadProperty("NUMFRAMES", 1)
 	if err != nil {
@@ -4925,10 +4904,6 @@ func (e *TrackDef) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragTrack
 
 	e.Tag = rawWld.Name(frag.NameRef())
 	e.TagIndex = wce.NextTagIndex(e.Tag)
-	var seqNum int
-	if seqNum < 0 {
-		e.SpriteTag = wce.lastReadModelTag
-	}
 
 	if wce.isObj {
 		e.model = wce.lastReadModelTag

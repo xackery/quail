@@ -439,10 +439,6 @@ func (wce *Wce) WriteWldRaw(w io.Writer) error {
 					continue
 				}
 
-				if track.SpriteTag != baseTag {
-					continue
-				}
-
 				_, err = track.ToRaw(wce, dst)
 				if err != nil {
 					return fmt.Errorf("track %s: %w", track.Tag, err)

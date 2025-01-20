@@ -35,27 +35,6 @@ func (wce *Wce) WriteJSON(path string) error {
 		return fmt.Errorf("mkdir: %w", err)
 	}
 
-	baseTags := []string{}
-	for _, actorDef := range wce.ActorDefs {
-		if len(actorDef.Tag) < 3 {
-			return fmt.Errorf("actorDef %s tag too short", actorDef.Tag)
-		}
-		baseTag := baseTagTrim(wce.isObj, actorDef.Tag)
-		isFound := false
-		for _, tag := range baseTags {
-			if tag == baseTag {
-				isFound = true
-				break
-			}
-		}
-		if !isFound {
-			baseTags = append(baseTags, baseTag)
-		}
-	}
-	if wce.WorldDef != nil && wce.WorldDef.Zone == 1 {
-		baseTags = append(baseTags, "R")
-	}
-
 	w, err := os.Create(path)
 	if err != nil {
 		return fmt.Errorf("create: %w", err)
