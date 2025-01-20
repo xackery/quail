@@ -54,23 +54,5 @@ func (q *Quail) PfsRead(path string) error {
 		}
 	}
 
-	// for _, file := range pfs.Files() {
-	// 	ext := strings.ToLower(filepath.Ext(file.Name()))
-	// 	if ext == ".wld" {
-	// 		rawWld := &raw.Wld{}
-	// 		err = rawWld.Read(bytes.NewReader(file.Data()))
-	// 		if err != nil {
-	// 			return fmt.Errorf("wld read: %w", err)
-	// 		}
-
-	// 		q.Wld = wce.New(filepath.Base(path))
-
-	// 		err = q.Wld.ReadWldRaw(rawWld)
-	// 		if err != nil {
-	// 			return fmt.Errorf("wld read: %w", err)
-	// 		}
-	// 		return nil
-	// 	}
-	// }
 	return nil
 }
