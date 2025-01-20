@@ -219,3 +219,6 @@ jsondifffrag-%:
 	wld-cli extract test/$*.src.wld -f json --fragindex $(FRAG) test/$*.src.json
 	wld-cli extract test/$*.dst.wld -f json --fragindex $(FRAG) test/$*.dst.json
 	code -d test/$*.src.json test/$*.dst.json
+
+flagfinder:
+	source .env && EQ_PATH=$$EQ_PATH SCRIPT_TEST=1 go test -v -run ^TestFragFlags$$ github.com/xackery/quail/wce/wld_test

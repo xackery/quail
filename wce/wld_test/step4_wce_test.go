@@ -33,7 +33,6 @@ func TestWceReadWrite(t *testing.T) {
 		t.Skip("EQ_PATH not set")
 	}
 	dirTest := common.DirTest()
-	os.Chdir("../../")
 
 	for _, tt := range tests {
 		t.Run(tt.baseName, func(t *testing.T) {

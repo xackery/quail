@@ -12,6 +12,8 @@ import (
 	"github.com/xackery/quail/raw"
 )
 
+// This test iterates fragments and attempts to rebuild it 1:1
+// after going through our rawfrag read then write
 func TestRawBinReadWrite(t *testing.T) {
 	if os.Getenv("SINGLE_TEST") != "1" {
 		t.Skip("skipping test; SINGLE_TEST not set")

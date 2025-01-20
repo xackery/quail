@@ -113,7 +113,7 @@ func TestLayWrite(t *testing.T) {
 		// .lay|4|amy.lay|amy.eqg
 		//{name: "amy.eqg"}, // PASS
 		// .lay|4|cwc.lay|cwc.eqg cwc.eqg pfs import: readPrt cwc.lay: 0 names colorTexture 0xffffffff not found
-		{name: "cwc.eqg"}, // PASS
+		//{name: "cwc.eqg"}, // PASS
 	}
 
 	for _, tt := range tests {

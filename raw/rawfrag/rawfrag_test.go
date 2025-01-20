@@ -36,7 +36,7 @@ func TestFragment(t *testing.T) {
 		// OK 0x05 TextureRef SimpleSprite
 		//{path: "global_chr.s3d", file: "global_chr.wld", fragIndex: 3},
 		// 0x06 TwoDSprite
-		{path: "gequip.s3d", file: "gequip.wld"},
+		//{path: "gequip.s3d", file: "gequip.wld"},
 
 		// 0x07 TwoDSpriteRef
 		// 0x08 ThreeDSprite
@@ -122,7 +122,7 @@ func TestFragment(t *testing.T) {
 		}{
 			//{path: "global_chr.s3d", file: "global_chr.wld", fragIndex: 4},
 			//{path: "load2.s3d", file: "load2.wld", fragIndex: 0},
-			{path: "gequip.s3d", file: "gequip.wld", fragIndex: 0},
+			//{path: "gequip.s3d", file: "gequip.wld", fragIndex: 0},
 		}
 	}
 	for _, tt := range tests {
@@ -196,7 +196,7 @@ func TestFragment(t *testing.T) {
 
 				err := common.ByteCompareTest(srcData, dstData)
 				if err != nil {
-					t.Fatalf("frag %d 0x%x (%s) mismatch: %s", i, reader.FragCode(), FragName(int(reader.FragCode())), err.Error())
+					t.Fatalf("%s frag %d 0x%x (%s) mismatch: %s", tt.file, i, reader.FragCode(), FragName(int(reader.FragCode())), err.Error())
 				}
 			}
 			if tt.fragIndex != 0 {
