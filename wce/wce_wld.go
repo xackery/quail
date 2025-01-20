@@ -1059,10 +1059,6 @@ type DMSpriteDef struct {
 	FaceMaterialGroups   [][2]int16
 	VertexMaterialGroups [][2]int16
 	Params2              NullFloat32Slice3
-	// Params3              NullFloat32Slice6
-	HexTwoHundredFlag   int16
-	HexEightHundredFlag int16
-	HexOneThousandFlag  int16
 }
 
 type DMSpriteDefFace struct {
@@ -1172,10 +1168,6 @@ func (e *DMSpriteDef) Write(token *AsciiWriteToken) error {
 		}
 		fmt.Fprintf(w, "\n")
 		fmt.Fprintf(w, "\tPARAMS2? %s\n", wcVal(e.Params2))
-		// fmt.Fprintf(w, "\tPARAMS3? %s\n", wcVal(e.Params3))
-		// fmt.Fprintf(w, "\tHEXTWOHUNDREDFLAG %d\n", e.HexTwoHundredFlag)
-		// fmt.Fprintf(w, "\tHEXEIGHTHUNDREDFLAG %d\n", e.HexEightHundredFlag)
-		// fmt.Fprintf(w, "\tHEXONETHOUSANDFLAG %d\n", e.HexOneThousandFlag)
 
 		fmt.Fprintf(w, "\n")
 	}
@@ -1526,43 +1518,6 @@ func (e *DMSpriteDef) Read(token *AsciiReadToken) error {
 		return fmt.Errorf("params2: %w", err)
 	}
 
-	// records, err = token.ReadProperty("PARAMS3?", 6)
-	// if err != nil {
-	// 	return err
-	// }
-
-	// err = parse(&e.Params3, records[1:]...)
-	// if err != nil {
-	// 	return fmt.Errorf("params3: %w", err)
-	// }
-
-	// records, err = token.ReadProperty("HEXTWOHUNDREDFLAG", 1)
-	// if err != nil {
-	// 	return err
-	// }
-	// err = parse(&e.HexTwoHundredFlag, records[1])
-	// if err != nil {
-	// 	return fmt.Errorf("hextwohundredflag: %w", err)
-	// }
-
-	// records, err = token.ReadProperty("HEXEIGHTHUNDREDFLAG", 1)
-	// if err != nil {
-	// 	return err
-	// }
-	// err = parse(&e.HexEightHundredFlag, records[1])
-	// if err != nil {
-	// 	return fmt.Errorf("hexeighthundredflag: %w", err)
-	// }
-
-	// records, err = token.ReadProperty("HEXONETHOUSANDFLAG", 1)
-	// if err != nil {
-	// 	return err
-	// }
-	// err = parse(&e.HexOneThousandFlag, records[1])
-	// if err != nil {
-	// 	return fmt.Errorf("hexonethousandflag: %w", err)
-	// }
-
 	return nil
 }
 
@@ -1693,10 +1648,9 @@ func (e *DMSpriteDef) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragDM
 		e.Params1.Float32Slice3 = frag.Params1
 	}
 
-	// if frag.Flags&0x200 != 0 {
-	// 	e.HexTwoHundredFlag = 1
-	// }
-
+	if frag.Flags&0x200 != 0 {
+		return fmt.Errorf("0x200 flag not implemented (used to be HexTwoHundredFlag)")
+	}
 	if frag.Flags&0x2000 != 0 {
 		e.Params2.Valid = true
 		e.Params2.Float32Slice3 = frag.Params2

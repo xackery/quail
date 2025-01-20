@@ -168,8 +168,6 @@ func (e *Pfs) Read(r io.ReadSeeker) error {
 			//return fmt.Errorf("dirName for crc %d not found", crc)
 		}
 
-		//force spaces in pfs archives to _
-		// dirName = strings.ReplaceAll(dirName, " ", "_")
 		e.files = append(e.files, NewFileEntry(dirName, data))
 	}
 
