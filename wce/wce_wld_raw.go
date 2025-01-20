@@ -149,12 +149,6 @@ func readRawFrag(e *Wce, rawWld *raw.Wld, fragment model.FragmentReadWriter, fol
 		if err != nil {
 			return fmt.Errorf("track: %w", err)
 		}
-		// if def.SpriteTag == "" {
-		// 	if len(folders) == 0 {
-		// 		return fmt.Errorf("trackdef: can't discern parent, orphaned frag? tell xack")
-		// 	}
-		// 	def.SpriteTag = folders[0]
-		// }
 		e.TrackInstances = append(e.TrackInstances, def)
 	case rawfrag.FragCodeTrackDef:
 		def := &TrackDef{folders: folders}
@@ -162,12 +156,6 @@ func readRawFrag(e *Wce, rawWld *raw.Wld, fragment model.FragmentReadWriter, fol
 		if err != nil {
 			return fmt.Errorf("trackdef: %w", err)
 		}
-		// if def.SpriteTag == "" {
-		// 	if len(folders) == 0 {
-		// 		return fmt.Errorf("trackdef: can't discern parent, orphaned frag? tell xack")
-		// 	}
-		// 	def.SpriteTag = folders[0]
-		// }
 		e.TrackDefs = append(e.TrackDefs, def)
 	case rawfrag.FragCodeDMTrack:
 		frag := fragment.(*rawfrag.WldFragDMTrack)
