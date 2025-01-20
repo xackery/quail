@@ -3,6 +3,7 @@ package quail
 import (
 	"bytes"
 	"fmt"
+	"strings"
 
 	"github.com/xackery/quail/common"
 	"github.com/xackery/quail/raw"
@@ -251,12 +252,20 @@ func (q *Quail) mdsConvertMesh(in *raw.Mds) (*common.Model, error) {
 	return model, nil
 }
 
-func (q *Quail) wldRead(in *raw.Wld, filename string) error {
-	q.Wld = wce.New(filename)
+func (q *Quail) wldRead(srcWld *raw.Wld, filename string) error {
 
-	err := q.Wld.ReadWldRaw(in)
+	wld := wce.New(filename)
+	err := wld.ReadWldRaw(srcWld)
 	if err != nil {
-		return fmt.Errorf("wld read: %w", err)
+		return fmt.Errorf("read wld: %w", err)
+	}
+
+	if strings.ToLower(filename) == "objects.wld" {
+		q.WldObject = wld
+	} else if strings.ToLower(filename) == "lights.wld" {
+		q.WldLights = wld
+	} else {
+		q.Wld = wld
 	}
 
 	return nil

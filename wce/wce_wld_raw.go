@@ -696,6 +696,8 @@ func setRootFolder(foldersByFrag map[int][]string, folder string, node *tree.Nod
 	// If no folder is assigned, handle specific cases based on FragType
 	if len(foldersByFrag[int(node.FragID)]) == 0 {
 		switch node.FragType {
+		case "AmbientLight":
+			folder = "ZONE"
 		case "DmSpriteDef2":
 			prefix, err := helper.DmSpriteDefTagParse(isChr, node.Tag)
 			if err == nil && prefix != "" {
@@ -732,6 +734,8 @@ func setRootFolder(foldersByFrag map[int][]string, folder string, node *tree.Nod
 					folder = prefix
 				}
 			}
+		case "Region":
+			folder = "R"
 		case "Track":
 			if wce.isTrackAni(node.Tag) {
 				// Call TrackAnimationParse only if isTrackAni returns true
@@ -747,6 +751,8 @@ func setRootFolder(foldersByFrag map[int][]string, folder string, node *tree.Nod
 					folder = node.Tag // Fallback to the full tag if it's shorter than 3 characters
 				}
 			}
+		case "Zone":
+			folder = "ZONE"
 		default:
 			folder = node.Tag
 			if strings.Contains(folder, "_") {

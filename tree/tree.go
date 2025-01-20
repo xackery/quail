@@ -101,13 +101,6 @@ func BuildFragReferenceTree(isChr bool, wld *raw.Wld) (map[int32]*Node, map[int3
 			if zoneNode.Tag == "" {
 				zoneNode.Tag = "zone"
 			}
-		case *rawfrag.WldFragZone, *rawfrag.WldFragRegion, *rawfrag.WldFragWorldTree, *rawfrag.WldFragAmbientLight, *rawfrag.WldFragLight, *rawfrag.WldFragActor:
-			// zones have special frags
-			if zoneNode != nil {
-				zoneNode.Children[fragID] = node
-				linkedNodes[fragID] = true
-			}
-		}
 
 		// Extract references from the fragment
 		fragRefs := fragRefs(frag)
