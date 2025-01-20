@@ -2044,9 +2044,7 @@ func (e *MaterialDef) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragMa
 			// Search for the parent material by matching the prefix
 			for _, otherMaterial := range wce.MaterialDefs {
 				if strings.HasPrefix(otherMaterial.Tag, prefix) {
-					for _, folder := range otherMaterial.folders {
-						e.folders = append(e.folders, folder)
-					}
+					otherMaterial.folders = append(otherMaterial.folders, e.folders...)
 					break
 				}
 			}
@@ -2254,7 +2252,6 @@ type SimpleSpriteDef struct {
 }
 
 type SimpleSpriteFrame struct {
-	folders     []string // when writing, this is the folder the file is in
 	TextureFile string
 	TextureTag  string
 }
@@ -3865,7 +3862,6 @@ type Sprite3DDef struct {
 
 // BSPNode is a declaration of BSPNODE
 type BSPNode struct {
-	folders       []string // when writing, this is the folder the file is in
 	Vertices      []uint32
 	RenderMethod  string
 	Pen           NullUint32
@@ -4875,9 +4871,6 @@ func (e *TrackDef) Read(token *AsciiReadToken) error {
 }
 
 func (e *TrackDef) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
-	//if e.fragID != 0 {
-	//	return e.fragID, nil
-	//}
 
 	wfTrack := &rawfrag.WldFragTrackDef{}
 
@@ -4933,7 +4926,6 @@ func (e *TrackDef) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragTrack
 	e.Tag = rawWld.Name(frag.NameRef())
 	e.TagIndex = wce.NextTagIndex(e.Tag)
 	var seqNum int
-	// e.SpriteTag, _, _, seqNum = wce.trackTagAndSequence(e.Tag)
 	if seqNum < 0 {
 		e.SpriteTag = wce.lastReadModelTag
 	}
@@ -4953,14 +4945,6 @@ func (e *TrackDef) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragTrack
 	}
 
 	for _, fragFrame := range frag.FrameTransforms {
-		//scale := float32(1.0)
-		/* if fragFrame.ShiftDenominator > 0 {
-			scale = 1.0 / float32(int(1<<fragFrame.ShiftDenominator))
-		}
-		if fragFrame.ShiftDenominator < 0 {
-			scale = float32(math.Pow(2, float64(-fragFrame.ShiftDenominator)))
-		} */
-		//frame.XYZ = fragFrame.Shift
 
 		if frag.Flags&0x08 != 0 {
 			frame := &Frame{
@@ -4969,9 +4953,6 @@ func (e *TrackDef) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragTrack
 			}
 
 			frame.RotScale = fragFrame.RotateDenominator
-			//if fragFrame.RotateDenominator > 0 {
-			//	scale = 1.0 / float32(int(1<<fragFrame.RotateDenominator))
-			//}
 			frame.Rotation = [3]int16{
 				fragFrame.Rotation[0],
 				fragFrame.Rotation[1],
@@ -5304,7 +5285,6 @@ func (e *HierarchicalSpriteDef) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) 
 		collisionTag := ""
 		switch sprite := collusionDef.(type) {
 		case *PolyhedronDefinition:
-			collisionTag = sprite.Tag
 			polyDefID, err := collusionDef.ToRaw(wce, rawWld)
 			if err != nil {
 				return -1, fmt.Errorf("collision volume to raw: %w", err)
@@ -5716,7 +5696,6 @@ type WorldTree struct {
 }
 
 type WorldNode struct {
-	folders        []string // when writing, this is the folder the file is in
 	Normals        [4]float32
 	WorldRegionTag string
 	FrontTree      uint32
@@ -6016,7 +5995,7 @@ func (e *Region) Write(token *AsciiWriteToken) error {
 					byteVal := list.Ranges[i]
 
 					switch {
-					case byteVal >= 0x00 && byteVal <= 0x3E:
+					case byteVal <= 0x3E:
 						// Skip forward by this many region IDs
 						currentRegion += int(byteVal)
 					case byteVal == 0x3F:
@@ -7740,7 +7719,6 @@ type Heading struct {
 }
 
 type Sprite2DFrame struct {
-	folders     []string // when writing, this is the folder the file is in
 	TextureFile string
 	TextureTag  string
 }

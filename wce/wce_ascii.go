@@ -14,11 +14,6 @@ import (
 	"github.com/xackery/quail/common"
 )
 
-var (
-// regTrack1 = regexp.MustCompile(`[A-Z][0-9][0-9].*_([A-Z]{3})_TRACK`)
-// regTrack2 = regexp.MustCompile(`[A-Z][0-9][0-9]([A-Z]{3}).*_TRACK`)
-)
-
 // ReadAscii reads the ascii file at path
 func (wce *Wce) ReadAscii(path string) error {
 
