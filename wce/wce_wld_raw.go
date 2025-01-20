@@ -49,7 +49,7 @@ func (wce *Wce) ReadWldRaw(src *raw.Wld) error {
 
 	// Process the sorted roots
 	for _, root := range sortedRoots {
-		fmt.Printf("Processing Root FragID: %d, Tag: %s\n", root.FragID, root.Tag)
+		//fmt.Printf("Processing Root FragID: %d, Tag: %s\n", root.FragID, root.Tag)
 		setRootFolder(foldersByFrag, "", root, wce.isChr, nodes, wce)
 	}
 

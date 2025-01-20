@@ -28,22 +28,13 @@ var itemPatterns = []string{
 
 // TrackAnimationParse parses the tag and returns the animation and model codes
 func TrackAnimationParse(isChr bool, tag string) (animationTag string, modelTag string) {
-	fmt.Printf("[TrackAnimationParse] Called with tag: %s, currentAniCode: %s, currentAniModelCode: %s\n", tag, currentAniCode, currentAniModelCode)
+	//fmt.Printf("[TrackAnimationParse] Called with tag: %s, currentAniCode: %s, currentAniModelCode: %s\n", tag, currentAniCode, currentAniModelCode)
 	// Check if the tag starts with currentAniCode + currentAniModelCode
 	combinedCode := currentAniCode + currentAniModelCode
 	if currentAniCode != "" && currentAniModelCode != "" && strings.HasPrefix(tag, combinedCode) {
-		fmt.Printf("[TrackAnimationParse] Match found with combinedCode: %s\n", combinedCode)
+		//fmt.Printf("[TrackAnimationParse] Match found with combinedCode: %s\n", combinedCode)
 		return currentAniCode, currentAniModelCode
 	}
-
-	// // there's an edge case where e.g. P01POINT01_TRACK is inside this
-	// matches, err := RegexpMatch("pointPattern", `^([C,D,L,O,P,S,T]0[1-9]|[1-9][0-9]{2})(POINT)[0-9]{2}_TRACK`, tag)
-	// if err != nil {
-	// 	fmt.Println("pointPattern failed:", err)
-	// }
-	// if len(matches) == 2 {
-	// 	return handleNewAniModelCode(matches[0], matches[1])
-	// }
 
 	// Check against previousAnimations
 	for previous := range previousAnimations {
@@ -62,14 +53,14 @@ func TrackAnimationParse(isChr bool, tag string) (animationTag string, modelTag 
 	// Check if the tag starts with the currentAniCode and contains a dummy string
 	for _, dummy := range dummyStrings {
 		if strings.HasPrefix(tag, currentAniCode) && strings.Contains(tag, dummy) {
-			fmt.Printf("[TrackAnimationParse] Dummy match found: %s\n", dummy)
+			//	fmt.Printf("[TrackAnimationParse] Dummy match found: %s\n", dummy)
 			return currentAniCode, currentAniModelCode
 		}
 	}
 
 	// Handle special cases when isChr is true
 	if isChr {
-		fmt.Println("[TrackAnimationParse] Processing as character (isChr = true).")
+		//fmt.Println("[TrackAnimationParse] Processing as character (isChr = true).")
 		if strings.HasPrefix(tag, currentAniCode) {
 			if currentAniModelCode == "SED" && len(tag) >= 6 && tag[3:6] == "FDD" {
 				return currentAniCode, currentAniModelCode
@@ -92,24 +83,6 @@ func TrackAnimationParse(isChr bool, tag string) (animationTag string, modelTag 
 			}
 		}
 
-		// // handle generic MIM_TRACK tags
-		// matches, err = RegexpMatch("basePattern", `^([A-Z]{3})_TRACK$`, tag)
-		// if err != nil {
-		// 	fmt.Println("basePattern failed:", err)
-		// }
-		// if len(matches) == 1 {
-		// 	return "", matches[0]
-		// }
-
-		// // handle generic bone MIMPE_TRACK tags
-		// matches, err = RegexpMatch("bonePattern", `^([A-Z]{3})[A-Z]{2}_TRACK$`, tag)
-		// if err != nil {
-		// 	fmt.Println("bonePattern failed:", err)
-		// }
-		// if len(matches) == 1 {
-		// 	return "", matches[0]
-		// }
-
 		patterns := []string{
 			`^[C,D,L,O,P,S,T](0[1-9]|[1-9][0-9])([A-Z]){3}_TRACK$`,
 			`^([C,D,L,O,P,S,T]0[1-9]|[1-9][0-9]{2})_([A-Z]{3})_TRACK$`,
@@ -118,17 +91,6 @@ func TrackAnimationParse(isChr bool, tag string) (animationTag string, modelTag 
 			`^[C,D,L,O,P,S,T](0[1-9]|[1-9][0-9])[A,B,G][A-Z]{3}[C,D,L,O,P,S,T](0[1-9]|[1-9][0-9])[A,B,G]_[A-Z]{3}_TRACK$`,
 			`^[C,D,L,O,P,S,T](0[1-9]|[1-9][0-9])[A,B,G][C,D,L,O,P,S,T](0[1-9]|[1-9][0-9])_[A-Z]{3}_TRACK$`,
 		}
-
-		// for key, pattern := range patterns {
-		// 	matches, err := RegexpMatch(key, pattern, tag)
-		// 	if err != nil {
-		// 		fmt.Println(key, "failed:", err)
-		// 		continue
-		// 	}
-		// 	if len(matches) == 2 {
-		// 		return handleNewAniModelCode(matches[0], matches[1])
-		// 	}
-		// }
 
 		// Attempt to match root patterns
 		for i, pattern := range patterns {
