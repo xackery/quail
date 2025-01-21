@@ -101,6 +101,7 @@ func BuildFragReferenceTree(isChr bool, wld *raw.Wld) (map[int32]*Node, map[int3
 			if zoneNode.Tag == "" {
 				zoneNode.Tag = "zone"
 			}
+		}
 
 		// Extract references from the fragment
 		fragRefs := fragRefs(frag)
