@@ -152,6 +152,7 @@ type DMSpriteDef2 struct {
 	folders               []string // when writing, this is the folder the file is in
 	fragID                int16
 	Tag                   string
+	TagIndex              int
 	DmTrackTag            string
 	Params2               [3]uint32
 	BoundingBoxMin        [3]float32
@@ -255,6 +256,7 @@ func (e *DMSpriteDef2) Write(token *AsciiWriteToken) error {
 		}
 
 		fmt.Fprintf(w, "%s \"%s\"\n", e.Definition(), e.Tag)
+		fmt.Fprintf(w, "\tTAGINDEX %d\n", e.TagIndex)
 		fmt.Fprintf(w, "\tCENTEROFFSET %0.8e %0.8e %0.8e\n", e.CenterOffset[0], e.CenterOffset[1], e.CenterOffset[2])
 		fmt.Fprintf(w, "\n")
 		fmt.Fprintf(w, "\tNUMVERTICES %d\n", len(e.Vertices))
@@ -333,7 +335,16 @@ func (e *DMSpriteDef2) Write(token *AsciiWriteToken) error {
 func (e *DMSpriteDef2) Read(token *AsciiReadToken) error {
 	e.folders = append(e.folders, token.folder)
 
-	records, err := token.ReadProperty("CENTEROFFSET", 3)
+	records, err := token.ReadProperty("TAGINDEX", 1)
+	if err != nil {
+		return err
+	}
+	err = parse(&e.TagIndex, records[1])
+	if err != nil {
+		return fmt.Errorf("tag index: %w", err)
+	}
+
+	records, err = token.ReadProperty("CENTEROFFSET", 3)
 	if err != nil {
 		return err
 	}
@@ -897,6 +908,7 @@ func (e *DMSpriteDef2) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragD
 	}
 
 	e.Tag = rawWld.Name(frag.NameRef())
+	e.TagIndex = wce.NextTagIndex(e.Tag)
 
 	if frag.MaterialPaletteRef > 0 {
 		if len(rawWld.Fragments) < int(frag.MaterialPaletteRef) {
@@ -1043,6 +1055,7 @@ type DMSpriteDef struct {
 	folders              []string // when writing, this is the folder the file is in
 	fragID               int16
 	Tag                  string
+	TagIndex             int
 	Fragment1            int16
 	MaterialPaletteTag   string
 	Fragment3            uint32
@@ -1102,6 +1115,7 @@ func (e *DMSpriteDef) Write(token *AsciiWriteToken) error {
 		}
 
 		fmt.Fprintf(w, "%s \"%s\"\n", e.Definition(), e.Tag)
+		fmt.Fprintf(w, "\tTAGINDEX %d\n", e.TagIndex)
 		fmt.Fprintf(w, "\tFRAGMENT1 %d\n", e.Fragment1)
 		fmt.Fprintf(w, "\tMATERIALPALETTE \"%s\"\n", e.MaterialPaletteTag)
 		fmt.Fprintf(w, "\tFRAGMENT3 %d\n", e.Fragment3)
@@ -1178,7 +1192,16 @@ func (e *DMSpriteDef) Write(token *AsciiWriteToken) error {
 func (e *DMSpriteDef) Read(token *AsciiReadToken) error {
 	e.folders = append(e.folders, token.folder)
 
-	records, err := token.ReadProperty("FRAGMENT1", 1)
+	records, err := token.ReadProperty("TAGINDEX", 1)
+	if err != nil {
+		return err
+	}
+	err = parse(&e.TagIndex, records[1])
+	if err != nil {
+		return fmt.Errorf("tag index: %w", err)
+	}
+
+	records, err = token.ReadProperty("FRAGMENT1", 1)
 	if err != nil {
 		return err
 	}
@@ -1603,6 +1626,7 @@ func (e *DMSpriteDef) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragDM
 		return fmt.Errorf("frag is not dmspritedef (wrong fragcode?)")
 	}
 	e.Tag = rawWld.Name(frag.NameRef())
+	e.TagIndex = wce.NextTagIndex(e.Tag)
 	e.Fragment1 = frag.Fragment1
 	if frag.MaterialPaletteRef > 0 {
 		if len(rawWld.Fragments) < int(frag.MaterialPaletteRef) {
@@ -1803,15 +1827,27 @@ func (e *MaterialDef) Definition() string {
 }
 
 func (e *MaterialDef) Write(token *AsciiWriteToken) error {
+	// if len(e.folders) == 0 {
+	// 	fmt.Printf("No folders to process for MaterialDef with Tag: %s\n", e.Tag)
+	// } else {
+	// 	fmt.Printf("Processing folders for MaterialDef with Tag: %s - Folders: %v\n", e.Tag, e.folders)
+	// }
+
+	// Iterate through the folders
 	for _, folder := range e.folders {
+		// fmt.Printf("MaterialDef Tag: %s - Setting writer for folder: %s\n", e.Tag, folder)
+
 		err := token.SetWriter(folder)
 		if err != nil {
-			return err
+			return fmt.Errorf("MaterialDef Tag: %s - failed to set writer for folder %s: %w", e.Tag, folder, err)
 		}
+
 		w, err := token.Writer()
 		if err != nil {
-			return err
+			return fmt.Errorf("MaterialDef Tag: %s - failed to get writer for folder %s: %w", e.Tag, folder, err)
 		}
+
+		// fmt.Printf("MaterialDef Tag: %s - Writer successfully set for folder: %s\n", e.Tag, folder)
 
 		if e.SimpleSpriteTag != "" {
 			simpleSprite := token.wce.ByTagWithIndex(e.SimpleSpriteTag, e.Variation)
@@ -4975,6 +5011,7 @@ type Dag struct {
 
 type AttachedSkin struct {
 	DMSpriteTag               string
+	DMSpriteTagIndex          int
 	LinkSkinUpdatesToDagIndex uint32
 }
 
@@ -5029,7 +5066,7 @@ func (e *HierarchicalSpriteDef) Write(token *AsciiWriteToken) error {
 				continue
 			}
 
-			dmSprite := token.wce.ByTag(skin.DMSpriteTag)
+			dmSprite := token.wce.ByTagWithIndex(skin.DMSpriteTag, skin.DMSpriteTagIndex)
 			err = dmSprite.Write(token)
 			if err != nil {
 				return fmt.Errorf("dmsprite %s: %w", skin.DMSpriteTag, err)
@@ -5068,6 +5105,7 @@ func (e *HierarchicalSpriteDef) Write(token *AsciiWriteToken) error {
 		for _, skin := range e.AttachedSkins {
 			fmt.Fprintf(w, "\t\tATTACHEDSKIN\n")
 			fmt.Fprintf(w, "\t\t\tDMSPRITE \"%s\"\n", skin.DMSpriteTag)
+			fmt.Fprintf(w, "\t\t\tDMSPRITEINDEX %d\n", skin.DMSpriteTagIndex)
 			fmt.Fprintf(w, "\t\t\tLINKSKINUPDATESTODAGINDEX %d\n", skin.LinkSkinUpdatesToDagIndex)
 		}
 		fmt.Fprintf(w, "\n")
@@ -5177,6 +5215,15 @@ func (e *HierarchicalSpriteDef) Read(token *AsciiReadToken) error {
 			return err
 		}
 		skin.DMSpriteTag = records[1]
+
+		records, err = token.ReadProperty("DMSPRITEINDEX", 1)
+		if err != nil {
+			return err
+		}
+		err = parse(&skin.DMSpriteTagIndex, records[1])
+		if err != nil {
+			return fmt.Errorf("dmsprite index: %w", err)
+		}
 
 		records, err = token.ReadProperty("LINKSKINUPDATESTODAGINDEX", 1)
 		if err != nil {
@@ -5415,7 +5462,7 @@ func (e *HierarchicalSpriteDef) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) 
 			continue
 		}
 
-		spriteDefFrag := wce.ByTag(skin.DMSpriteTag)
+		spriteDefFrag := wce.ByTagWithIndex(skin.DMSpriteTag, skin.DMSpriteTagIndex)
 		if spriteDefFrag == nil {
 			return -1, fmt.Errorf("skin sprite def not found: %s", skin.DMSpriteTag)
 		}
@@ -5654,6 +5701,7 @@ func (e *HierarchicalSpriteDef) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag
 
 		skin := AttachedSkin{
 			DMSpriteTag:               dmSpriteTag,
+			DMSpriteTagIndex:          wce.tagIndexes[rawWld.Name(dmSprite.NameRef())],
 			LinkSkinUpdatesToDagIndex: frag.LinkSkinUpdatesToDagIndexes[i],
 		}
 

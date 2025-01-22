@@ -5,10 +5,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-
-	// "regexp"
 	"sort"
-	"strconv"
 	"strings"
 
 	"github.com/xackery/quail/common"
@@ -95,68 +92,65 @@ func (wce *Wce) writeAsciiData(path string) error {
 	}
 
 	if wce.GlobalAmbientLightDef != nil {
-		err = token.SetWriter("world")
-		if err != nil {
-			return fmt.Errorf("set global ambient light writer zone: %w", err)
-		}
 		err = wce.GlobalAmbientLightDef.Write(token)
 		if err != nil {
 			return fmt.Errorf("global ambient light: %w", err)
 		}
 	}
 
-	clks := make(map[string]bool)
-	err = token.SetWriter("world")
-	if err != nil {
-		return fmt.Errorf("set material palette writer zone: %w", err)
-	}
 	for _, matDef := range wce.MaterialDefs {
-		if !strings.HasPrefix(matDef.Tag, "CLK") {
-			continue
-		}
-
-		_, err := strconv.Atoi(matDef.Tag[3:6])
-		if err != nil {
-			continue
-		}
-		if clks[matDef.Tag] {
-			continue
-		}
-		clks[matDef.Tag] = true
-
 		err = matDef.Write(token)
 		if err != nil {
 			return fmt.Errorf("materialdef %s: %w", matDef.Tag, err)
 		}
 	}
 
-	for _, region := range wce.Regions {
-		err = token.SetWriter("R")
+	for _, lightDef := range wce.LightDefs {
+		err = lightDef.Write(token)
 		if err != nil {
-			return fmt.Errorf("set R %s writer: %w", region.Tag, err)
+			return fmt.Errorf("lightdef %s: %w", lightDef.Tag, err)
 		}
+	}
 
+	for _, polyDef := range wce.PolyhedronDefs {
+		err = polyDef.Write(token)
+		if err != nil {
+			return fmt.Errorf("polyhedron %s: %w", polyDef.Tag, err)
+		}
+	}
+
+	for _, dSprite := range wce.DMSpriteDefs {
+		err = dSprite.Write(token)
+		if err != nil {
+			return fmt.Errorf("dmspritedef %s: %w", dSprite.Tag, err)
+		}
+	}
+
+	for _, dSprite2 := range wce.DMSpriteDef2s {
+		err = dSprite2.Write(token)
+		if err != nil {
+			return fmt.Errorf("dmspritedef2 %s: %w", dSprite2.Tag, err)
+		}
+	}
+
+	for _, tree := range wce.WorldTrees {
+		err = tree.Write(token)
+		if err != nil {
+			return fmt.Errorf("world tree %s: %w", tree.Tag, err)
+		}
+	}
+
+	for _, region := range wce.Regions {
 		err = region.Write(token)
 		if err != nil {
 			return fmt.Errorf("region %s: %w", region.Tag, err)
 		}
 	}
 
-	for _, actorDef := range wce.ActorDefs {
-		token.TagClearIsWritten()
-		baseTag := baseTagTrim(wce.isObj, actorDef.Tag)
-		wce.lastReadModelTag = baseTag
-
-		err = actorDef.Write(token)
+	for _, pLight := range wce.PointLights {
+		err = pLight.Write(token)
 		if err != nil {
-			return fmt.Errorf("actordef %s: %w", actorDef.Tag, err)
-		}
-	}
-
-	for _, hierarchicalSpriteDef := range wce.HierarchicalSpriteDefs {
-		err = hierarchicalSpriteDef.Write(token)
-		if err != nil {
-			return fmt.Errorf("hierarchicalspritedef %s: %w", hierarchicalSpriteDef.Tag, err)
+			return fmt.Errorf("point light (%s): %w", pLight.Tag, err)
 		}
 	}
 
@@ -174,148 +168,35 @@ func (wce *Wce) writeAsciiData(path string) error {
 		}
 	}
 
-	for _, varMatDef := range wce.varMaterialDefs {
-		err = varMatDef.Write(token)
-		if err != nil {
-			return fmt.Errorf("materialdef %s: %w", varMatDef.Tag, err)
-		}
-	}
-
-	if wce.WorldDef.Zone == 1 {
-
-		for _, dSprite := range wce.DMSpriteDefs {
-			err = dSprite.Write(token)
-			if err != nil {
-				return fmt.Errorf("dmspritedef %s: %w", dSprite.Tag, err)
-			}
-		}
-	}
-
-	// global tracks
 	for _, track := range wce.TrackInstances {
-		if len(track.Tag) < 3 {
-			return fmt.Errorf("track %s tag too short", track.Tag)
-		}
-
 		err = track.Write(token)
 		if err != nil {
 			return fmt.Errorf("track %s_%d: %w", track.Tag, track.TagIndex, err)
 		}
 	}
 
-	if wce.WorldDef.Zone == 1 {
-
-		for _, polyDef := range wce.PolyhedronDefs {
-			err = polyDef.Write(token)
-			if err != nil {
-				return fmt.Errorf("polyhedron %s: %w", polyDef.Tag, err)
-			}
+	for _, hierarchicalSpriteDef := range wce.HierarchicalSpriteDefs {
+		err = hierarchicalSpriteDef.Write(token)
+		if err != nil {
+			return fmt.Errorf("hierarchicalspritedef %s: %w", hierarchicalSpriteDef.Tag, err)
 		}
 	}
 
-	for _, pLight := range wce.PointLights {
-		err = token.SetWriter("world")
+	for _, actorDef := range wce.ActorDefs {
+		err = actorDef.Write(token)
 		if err != nil {
-			return fmt.Errorf("set point light %s writer: %w", pLight.Tag, err)
-		}
-
-		err = pLight.Write(token)
-		if err != nil {
-			return fmt.Errorf("point light (%s): %w", pLight.Tag, err)
-		}
-	}
-
-	// for _, matDef := range wce.MaterialDefs {
-	// 	tag := matDef.Tag
-	// 	if wce.WorldDef.Zone == 1 {
-	// 		tag = "R"
-	// 	}
-
-	// 	if strings.Count(tag, "_") > 1 {
-	// 		tag = strings.Split(tag, "_")[0]
-	// 	}
-
-	// 	err = token.SetWriter(tag)
-	// 	if err != nil {
-	// 		return fmt.Errorf("set materialdef %s writer: %w", matDef.Tag, err)
-	// 	}
-
-	// 	err = matDef.Write(token)
-	// 	if err != nil {
-	// 		return fmt.Errorf("materialdef %s: %w", matDef.Tag, err)
-	// 	}
-	// }
-
-	for _, lightDef := range wce.LightDefs {
-		err = token.SetWriter("world")
-		if err != nil {
-			return fmt.Errorf("set lightdef %s writer: %w", lightDef.Tag, err)
-		}
-
-		err = lightDef.Write(token)
-		if err != nil {
-			return fmt.Errorf("lightdef %s: %w", lightDef.Tag, err)
-		}
-	}
-
-	for _, tree := range wce.WorldTrees {
-		err = token.SetWriter("world")
-		if err != nil {
-			return fmt.Errorf("set world tree %s writer: %w", tree.Tag, err)
-		}
-
-		err = tree.Write(token)
-		if err != nil {
-			return fmt.Errorf("world tree %s: %w", tree.Tag, err)
-		}
-	}
-
-	for _, aLight := range wce.AmbientLights {
-		err = token.SetWriter("world")
-		if err != nil {
-			return fmt.Errorf("set ambient light %s writer: %w", aLight.Tag, err)
-		}
-
-		err = aLight.Write(token)
-		if err != nil {
-			return fmt.Errorf("ambient light %s: %w", aLight.Tag, err)
+			return fmt.Errorf("actordef %s: %w", actorDef.Tag, err)
 		}
 	}
 
 	for _, actor := range wce.ActorInsts {
-		err = token.SetWriter("world")
-		if err != nil {
-			return fmt.Errorf("set actor %s writer: %w", actor.Tag, err)
-		}
-
 		err = actor.Write(token)
 		if err != nil {
 			return fmt.Errorf("actor %s: %w", actor.Tag, err)
 		}
 	}
 
-	// for _, actorDef := range wce.ActorDefs {
-	// 	tag := actorDef.Tag
-	// 	if wce.WorldDef.Zone == 1 {
-	// 		tag = "R"
-	// 	}
-	// 	err = token.SetWriter(tag)
-	// 	if err != nil {
-	// 		return fmt.Errorf("set actor def %s writer: %w", actorDef.Tag, err)
-	// 	}
-
-	// 	err = actorDef.Write(token)
-	// 	if err != nil {
-	// 		return fmt.Errorf("actor def %s: %w", actorDef.Tag, err)
-	// 	}
-	// }
-
 	for _, zone := range wce.Zones {
-		err = token.SetWriter("world")
-		if err != nil {
-			return fmt.Errorf("set zone %s writer: %w", zone.Tag, err)
-		}
-
 		err = zone.Write(token)
 		if err != nil {
 			return fmt.Errorf("zone %s: %w", zone.Tag, err)

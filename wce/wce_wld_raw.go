@@ -688,7 +688,7 @@ func setRootFolder(foldersByFrag map[int][]string, folder string, node *tree.Nod
 		}
 	}
 
-	foldersByFrag[int(node.FragID)] = append(foldersByFrag[int(node.FragID)], folder)
+	foldersByFrag[int(node.FragID)] = appendUnique(foldersByFrag[int(node.FragID)], folder)
 
 	// Pass the folder down to child nodes
 	addChildrenFolder(foldersByFrag, folder, node)
@@ -697,17 +697,8 @@ func setRootFolder(foldersByFrag map[int][]string, folder string, node *tree.Nod
 func addChildrenFolder(foldersByFrag map[int][]string, folder string, node *tree.Node) {
 	// Propagate the folder to the children
 	for _, child := range node.Children {
-		// Add the folder to the child node's folder list if it's not already there
-		isUnique := true
-		for _, existingFolder := range foldersByFrag[int(child.FragID)] {
-			if existingFolder == folder {
-				isUnique = false
-				break
-			}
-		}
-		if isUnique {
-			foldersByFrag[int(child.FragID)] = append(foldersByFrag[int(child.FragID)], folder)
-		}
+
+		foldersByFrag[int(child.FragID)] = appendUnique(foldersByFrag[int(child.FragID)], folder)
 
 		// Recursively process the child nodes
 		addChildrenFolder(foldersByFrag, folder, child)

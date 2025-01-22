@@ -234,6 +234,19 @@ func (wce *Wce) ByTagWithIndex(tag string, index int) WldDefinitioner {
 		return nil
 	}
 
+	if strings.HasSuffix(tag, "_DMSPRITEDEF") {
+		for _, dmsprite := range wce.DMSpriteDef2s {
+			if dmsprite.Tag == tag && dmsprite.TagIndex == index {
+				return dmsprite
+			}
+		}
+		for _, dmsprite := range wce.DMSpriteDefs {
+			if dmsprite.Tag == tag && dmsprite.TagIndex == index {
+				return dmsprite
+			}
+		}
+	}
+
 	if strings.HasSuffix(tag, "_TRACK") {
 		for _, track := range wce.TrackInstances {
 			if track.Tag == tag && track.TagIndex == index {
