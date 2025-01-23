@@ -105,7 +105,6 @@ func (e *MdsDef) Read(token *AsciiReadToken) error {
 		return fmt.Errorf("num vertices: %w", err)
 	}
 
-	e.Vertices = make([][3]float32, numVertices)
 	for i := 0; i < numVertices; i++ {
 		records, err = token.ReadProperty("XYZ", 3)
 		if err != nil {
@@ -129,7 +128,6 @@ func (e *MdsDef) Read(token *AsciiReadToken) error {
 		return fmt.Errorf("num tints: %w", err)
 	}
 
-	e.Tints = make([][4]uint8, numTints)
 	for i := 0; i < numTints; i++ {
 		records, err = token.ReadProperty("RGBA", 4)
 		if err != nil {
@@ -153,7 +151,6 @@ func (e *MdsDef) Read(token *AsciiReadToken) error {
 		return fmt.Errorf("num faces: %w", err)
 	}
 
-	e.Faces = make([]*EQFace, numFaces)
 	for i := 0; i < numFaces; i++ {
 		_, err = token.ReadProperty("FACE", 0)
 		if err != nil {
@@ -197,17 +194,13 @@ func (e *MdsDef) ToRaw(wce *Wce, dst *raw.Mds) error {
 func (e *MdsDef) FromRaw(wce *Wce, src *raw.Mds) error {
 	e.Tag = string(src.FileName())
 	e.Version = src.Version
-	e.Vertices = make([][3]float32, len(src.Vertices))
-	e.Normals = make([][3]float32, len(src.Vertices))
-	e.UVs = make([][2]float32, len(src.Vertices))
-	e.UV2s = make([][2]float32, len(src.Vertices))
-	e.Tints = make([][4]uint8, len(src.Vertices))
-	for i, v := range src.Vertices {
-		e.Vertices[i] = v.Position
-		e.Normals[i] = v.Normal
-		e.UVs[i] = v.Uv
-		e.UV2s[i] = v.Uv2
-		e.Tints[i] = v.Tint
+	for _, v := range src.Vertices {
+
+		e.Vertices = append(e.Vertices, v.Position)
+		e.Normals = append(e.Normals, v.Normal)
+		e.UVs = append(e.UVs, v.Uv)
+		e.UV2s = append(e.UV2s, v.Uv2)
+		e.Tints = append(e.Tints, v.Tint)
 	}
 	for _, face := range src.Triangles {
 		eqFace := &EQFace{
@@ -317,7 +310,6 @@ func (e *ModDef) Read(token *AsciiReadToken) error {
 		return fmt.Errorf("num vertices: %w", err)
 	}
 
-	e.Vertices = make([][3]float32, numVertices)
 	for i := 0; i < numVertices; i++ {
 		records, err = token.ReadProperty("XYZ", 3)
 		if err != nil {
@@ -341,7 +333,6 @@ func (e *ModDef) Read(token *AsciiReadToken) error {
 		return fmt.Errorf("num uvs: %w", err)
 	}
 
-	e.UVs = make([][2]float32, numUVs)
 	for i := 0; i < numUVs; i++ {
 		records, err = token.ReadProperty("UV", 2)
 		if err != nil {
@@ -365,7 +356,6 @@ func (e *ModDef) Read(token *AsciiReadToken) error {
 		return fmt.Errorf("num faces: %w", err)
 	}
 
-	e.Faces = make([]*EQFace, numFaces)
 	for i := 0; i < numFaces; i++ {
 		_, err = token.ReadProperty("FACE", 0)
 		if err != nil {
@@ -419,17 +409,12 @@ func (e *ModDef) FromRaw(wce *Wce, src *raw.Mod) error {
 	}
 
 	e.Version = src.Version
-	e.Vertices = make([][3]float32, len(src.Vertices))
-	e.Normals = make([][3]float32, len(src.Vertices))
-	e.UVs = make([][2]float32, len(src.Vertices))
-	e.UV2s = make([][2]float32, len(src.Vertices))
-	e.Tints = make([][4]uint8, len(src.Vertices))
-	for i, v := range src.Vertices {
-		e.Vertices[i] = v.Position
-		e.Normals[i] = v.Normal
-		e.UVs[i] = v.Uv
-		e.UV2s[i] = v.Uv2
-		e.Tints[i] = v.Tint
+	for _, v := range src.Vertices {
+		e.Vertices = append(e.Vertices, v.Position)
+		e.Normals = append(e.Normals, v.Normal)
+		e.UVs = append(e.UVs, v.Uv)
+		e.UV2s = append(e.UV2s, v.Uv2)
+		e.Tints = append(e.Tints, v.Tint)
 	}
 
 	for _, face := range src.Faces {
@@ -533,7 +518,6 @@ func (e *TerDef) Read(token *AsciiReadToken) error {
 		return fmt.Errorf("num vertices: %w", err)
 	}
 
-	e.Vertices = make([][3]float32, numVertices)
 	for i := 0; i < numVertices; i++ {
 		records, err = token.ReadProperty("XYZ", 3)
 		if err != nil {
@@ -557,7 +541,6 @@ func (e *TerDef) Read(token *AsciiReadToken) error {
 		return fmt.Errorf("num uvs: %w", err)
 	}
 
-	e.UVs = make([][2]float32, numUVs)
 	for i := 0; i < numUVs; i++ {
 		records, err = token.ReadProperty("UV", 2)
 		if err != nil {
@@ -582,7 +565,6 @@ func (e *TerDef) Read(token *AsciiReadToken) error {
 		return fmt.Errorf("num faces: %w", err)
 	}
 
-	e.Faces = make([]*EQFace, numFaces)
 	for i := 0; i < numFaces; i++ {
 		_, err = token.ReadProperty("FACE", 0)
 		if err != nil {
@@ -627,17 +609,12 @@ func (e *TerDef) ToRaw(wce *Wce, dst *raw.Ter) error {
 func (e *TerDef) FromRaw(wce *Wce, src *raw.Ter) error {
 	e.Tag = string(src.FileName())
 	e.Version = src.Version
-	e.Vertices = make([][3]float32, len(src.Vertices))
-	e.Normals = make([][3]float32, len(src.Vertices))
-	e.UVs = make([][2]float32, len(src.Vertices))
-	e.UV2s = make([][2]float32, len(src.Vertices))
-	e.Tints = make([][4]uint8, len(src.Vertices))
-	for i, v := range src.Vertices {
-		e.Vertices[i] = v.Position
-		e.Normals[i] = v.Normal
-		e.UVs[i] = v.Uv
-		e.UV2s[i] = v.Uv2
-		e.Tints[i] = v.Tint
+	for _, v := range src.Vertices {
+		e.Vertices = append(e.Vertices, v.Position)
+		e.Normals = append(e.Normals, v.Normal)
+		e.UVs = append(e.UVs, v.Uv)
+		e.UV2s = append(e.UV2s, v.Uv2)
+		e.Tints = append(e.Tints, v.Tint)
 	}
 
 	for _, face := range src.Triangles {
@@ -735,7 +712,6 @@ func (e *EQMaterialDef) Read(token *AsciiReadToken) error {
 		return fmt.Errorf("num properties: %w", err)
 	}
 
-	e.Properties = make([]*MaterialProperty, numProperties)
 	for i := 0; i < numProperties; i++ {
 		records, err = token.ReadProperty("PROPERTY", 3)
 		if err != nil {
@@ -791,15 +767,221 @@ func (e *EQMaterialDef) FromRaw(wce *Wce, src *raw.Material) error {
 	if src.Flag&0x01 != 0 {
 		e.HexOneFlag = 1
 	}
-	e.Properties = make([]*MaterialProperty, len(src.Properties))
-	for i, prop := range src.Properties {
-		e.Properties[i] = &MaterialProperty{
+	for _, prop := range src.Properties {
+		mp := &MaterialProperty{
 			Name:  prop.Name,
 			Type:  prop.Type,
 			Value: prop.Value,
 		}
+		e.Properties = append(e.Properties, mp)
 	}
 	e.AnimationSleep = src.Animation.Sleep
 	e.AnimationTextures = src.Animation.Textures
+	return nil
+}
+
+// AniDef represents an eqg .ani file
+type AniDef struct {
+	Tag      string
+	Version  uint32
+	Bones    []*AniBone
+	IsStrict int
+}
+
+type AniBone struct {
+	Name   string
+	Frames []*AniBoneFrame
+}
+
+type AniBoneFrame struct {
+	Milliseconds uint32
+	Translation  [3]float32
+	Rotation     [4]float32
+	Scale        [3]float32
+}
+
+func (e *AniDef) Definition() string {
+	return "EQANIDEF"
+}
+
+func (e *AniDef) Write(token *AsciiWriteToken) error {
+	w, err := token.Writer()
+	if err != nil {
+		return err
+	}
+
+	if token.TagIsWritten(e.Tag) {
+		return nil
+	}
+
+	token.TagSetIsWritten(e.Tag)
+
+	fmt.Fprintf(w, "%s \"%s\"\n", e.Definition(), e.Tag)
+	fmt.Fprintf(w, "\tVERSION %d\n", e.Version)
+	fmt.Fprintf(w, "\tISSTRICT %d\n", e.IsStrict)
+	fmt.Fprintf(w, "\tNUMBONES %d\n", len(e.Bones))
+	for _, bone := range e.Bones {
+		fmt.Fprintf(w, "\t\tBONE \"%s\"\n", bone.Name)
+		fmt.Fprintf(w, "\t\tNUMFRAMES %d\n", len(bone.Frames))
+		for i, frame := range bone.Frames {
+			fmt.Fprintf(w, "\t\t\tFRAME // %d\n", i)
+			fmt.Fprintf(w, "\t\t\t\tMILLISECONDS %d\n", frame.Milliseconds)
+			fmt.Fprintf(w, "\t\t\t\tTRANSLATION %0.8e %0.8e %0.8e\n", frame.Translation[0], frame.Translation[1], frame.Translation[2])
+			fmt.Fprintf(w, "\t\t\t\tROTATION %0.8e %0.8e %0.8e %0.8e\n", frame.Rotation[0], frame.Rotation[1], frame.Rotation[2], frame.Rotation[3])
+			fmt.Fprintf(w, "\t\t\t\tSCALE %0.8e %0.8e %0.8e\n", frame.Scale[0], frame.Scale[1], frame.Scale[2])
+		}
+	}
+	fmt.Fprintf(w, "\n")
+
+	token.TagSetIsWritten(e.Tag)
+	return nil
+
+}
+
+func (e *AniDef) Read(token *AsciiReadToken) error {
+
+	records, err := token.ReadProperty("VERSION", 1)
+	if err != nil {
+		return err
+	}
+	err = parse(&e.Version, records[1])
+	if err != nil {
+		return fmt.Errorf("version: %w", err)
+	}
+
+	records, err = token.ReadProperty("ISSTRICT", 1)
+	if err != nil {
+		return err
+	}
+
+	err = parse(&e.IsStrict, records[1])
+	if err != nil {
+		return fmt.Errorf("isstrict: %w", err)
+	}
+
+	records, err = token.ReadProperty("NUMBONES", 1)
+	if err != nil {
+		return err
+	}
+	numBones := 0
+	err = parse(&numBones, records[1])
+	if err != nil {
+		return fmt.Errorf("num bones: %w", err)
+	}
+
+	for i := 0; i < numBones; i++ {
+		_, err = token.ReadProperty("BONE", 1)
+		if err != nil {
+			return fmt.Errorf("bone %d: %w", i, err)
+		}
+		bone := &AniBone{}
+		records, err = token.ReadProperty("NUMFRAMES", 1)
+		if err != nil {
+			return err
+		}
+		numFrames := 0
+		err = parse(&numFrames, records[1])
+		if err != nil {
+			return fmt.Errorf("num frames: %w", err)
+		}
+
+		for j := 0; j < numFrames; j++ {
+			frame := &AniBoneFrame{}
+
+			_, err = token.ReadProperty("FRAME", 0)
+			if err != nil {
+				return err
+			}
+
+			_, err = token.ReadProperty("MILLISECONDS", 1)
+			if err != nil {
+				return err
+			}
+			err = parse(&frame.Milliseconds, records[1])
+			if err != nil {
+				return fmt.Errorf("milliseconds %d: %w", j, err)
+			}
+			records, err = token.ReadProperty("TRANSLATION", 3)
+			if err != nil {
+				return err
+			}
+			err = parse(&frame.Translation, records[1:]...)
+			if err != nil {
+				return fmt.Errorf("translation %d: %w", j, err)
+			}
+
+			records, err = token.ReadProperty("ROTATION", 4)
+			if err != nil {
+				return err
+			}
+			err = parse(&frame.Rotation, records[1:]...)
+			if err != nil {
+				return fmt.Errorf("rotation %d: %w", j, err)
+			}
+
+			records, err = token.ReadProperty("SCALE", 3)
+			if err != nil {
+				return err
+			}
+
+			err = parse(&frame.Scale, records[1:]...)
+			if err != nil {
+				return fmt.Errorf("scale %d: %w", j, err)
+			}
+
+			bone.Frames = append(bone.Frames, frame)
+		}
+		e.Bones = append(e.Bones, bone)
+	}
+
+	return nil
+}
+
+func (e *AniDef) ToRaw(wce *Wce, dst *raw.Ani) error {
+	dst.MetaFileName = e.Tag
+	dst.Version = e.Version
+	for _, bone := range e.Bones {
+		rawBone := &raw.AniBone{
+			Name: bone.Name,
+		}
+		for _, frame := range bone.Frames {
+			rawBoneFrame := &raw.AniBoneFrame{
+				Milliseconds: frame.Milliseconds,
+				Translation:  frame.Translation,
+				Rotation:     frame.Rotation,
+				Scale:        frame.Scale,
+			}
+			rawBone.Frames = append(rawBone.Frames, rawBoneFrame)
+		}
+		dst.Bones = append(dst.Bones, rawBone)
+	}
+	dst.IsStrict = e.IsStrict == 1
+	return nil
+}
+
+func (e *AniDef) FromRaw(wce *Wce, src *raw.Ani) error {
+	e.Tag = src.MetaFileName
+	e.Version = src.Version
+	for _, bone := range src.Bones {
+		aniBone := &AniBone{
+			Name: bone.Name,
+		}
+		for _, frame := range bone.Frames {
+			aniBoneFrame := &AniBoneFrame{
+				Milliseconds: frame.Milliseconds,
+				Translation:  frame.Translation,
+				Rotation:     frame.Rotation,
+				Scale:        frame.Scale,
+			}
+
+			aniBone.Frames = append(aniBone.Frames, aniBoneFrame)
+		}
+		e.Bones = append(e.Bones, aniBone)
+	}
+	e.IsStrict = 0
+	if src.IsStrict {
+		e.IsStrict = 1
+	}
+
 	return nil
 }

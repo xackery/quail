@@ -219,6 +219,20 @@ func (wce *Wce) writeAsciiData(path string) error {
 		}
 	}
 
+	for _, terDef := range wce.TerDefs {
+		err = terDef.Write(token)
+		if err != nil {
+			return fmt.Errorf("terdef %s: %w", terDef.Tag, err)
+		}
+	}
+
+	for _, aniDef := range wce.AniDefs {
+		err = aniDef.Write(token)
+		if err != nil {
+			return fmt.Errorf("anidef %s: %w", aniDef.Tag, err)
+		}
+	}
+
 	token.Close()
 
 	type folderType struct {

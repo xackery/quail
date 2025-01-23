@@ -14,6 +14,13 @@ func (wce *Wce) ReadEqgRaw(src raw.Reader) error {
 		wce.WorldDef.EqgVersion.Int8 = 1
 	}
 	switch frag := src.(type) {
+	case *raw.Ani:
+		def := &AniDef{}
+		err := def.FromRaw(wce, frag)
+		if err != nil {
+			return fmt.Errorf("ani: %w", err)
+		}
+		wce.AniDefs = append(wce.AniDefs, def)
 	case *raw.Mds:
 		def := &MdsDef{}
 		err := def.FromRaw(wce, frag)

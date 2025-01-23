@@ -7,14 +7,13 @@ import (
 
 	"github.com/xackery/encdec"
 	"github.com/xackery/quail/helper"
-	"github.com/xackery/quail/model"
 )
 
 type Ani struct {
-	MetaFileName string     `yaml:"file_name"`
-	Version      uint32     `yaml:"version"`
-	Bones        []*AniBone `yaml:"bones,omitempty"`
-	IsStrict     bool       `yaml:"is_strict,omitempty"`
+	MetaFileName string
+	Version      uint32
+	Bones        []*AniBone
+	IsStrict     bool
 	names        []*nameEntry
 	nameBuf      []byte
 }
@@ -24,16 +23,16 @@ func (ani *Ani) Identity() string {
 }
 
 type AniBone struct {
-	Name   string          `yaml:"name"`
-	Frames []*AniBoneFrame `yaml:"frames,omitempty"`
+	Name   string
+	Frames []*AniBoneFrame
 }
 
 // AniBoneFrame is a bone animation frame
 type AniBoneFrame struct {
-	Milliseconds uint32        `yaml:"milliseconds"`
-	Translation  model.Vector3 `yaml:"translation"`
-	Rotation     model.Quad4   `yaml:"rotation"`
-	Scale        model.Vector3 `yaml:"scale"`
+	Milliseconds uint32
+	Translation  [3]float32
+	Rotation     [4]float32
+	Scale        [3]float32
 }
 
 // Read an ANI file
@@ -84,23 +83,23 @@ func (ani *Ani) Read(r io.ReadSeeker) error {
 			frame := &AniBoneFrame{}
 
 			frame.Milliseconds = dec.Uint32()
-			frame.Translation = model.Vector3{
-				X: dec.Float32(),
-				Y: dec.Float32(),
-				Z: dec.Float32(),
+			frame.Translation = [3]float32{
+				dec.Float32(),
+				dec.Float32(),
+				dec.Float32(),
 			}
 
-			frame.Rotation = model.Quad4{
-				X: dec.Float32(),
-				Y: dec.Float32(),
-				Z: dec.Float32(),
-				W: dec.Float32(),
+			frame.Rotation = [4]float32{
+				dec.Float32(),
+				dec.Float32(),
+				dec.Float32(),
+				dec.Float32(),
 			}
 
-			frame.Scale = model.Vector3{
-				X: dec.Float32(),
-				Y: dec.Float32(),
-				Z: dec.Float32(),
+			frame.Scale = [3]float32{
+				dec.Float32(),
+				dec.Float32(),
+				dec.Float32(),
 			}
 			bone.Frames = append(bone.Frames, frame)
 		}

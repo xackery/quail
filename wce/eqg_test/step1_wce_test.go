@@ -34,7 +34,7 @@ func TestWceReadWrite(t *testing.T) {
 	}
 	dirTest := common.DirTest()
 
-	knownExts := []string{".mds", ".mod", ".ter"}
+	knownExts := []string{".mds", ".mod", ".ter", ".ani"}
 	start := time.Now()
 	for _, tt := range tests {
 		t.Run(tt.baseName, func(t *testing.T) {
@@ -153,6 +153,10 @@ func parseEQGEntry(t *testing.T, fileName string, dirTest string, baseName strin
 	case ".ter":
 		rawWldSrc = &raw.Ter{
 			MetaFileName: strings.TrimSuffix(fileName, ".ter"),
+		}
+	case ".ani":
+		rawWldSrc = &raw.Ani{
+			MetaFileName: strings.TrimSuffix(fileName, ".ani"),
 		}
 
 	default:
