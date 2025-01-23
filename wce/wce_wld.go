@@ -2078,7 +2078,11 @@ func (e *MaterialDef) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragMa
 			// Search for the parent material by matching the prefix
 			for _, otherMaterial := range wce.MaterialDefs {
 				if strings.HasPrefix(otherMaterial.Tag, prefix) {
-					otherMaterial.folders = append(otherMaterial.folders, e.folders...)
+					folders := otherMaterial.folders
+					for _, folder := range e.folders {
+						folders = appendUnique(folders, folder)
+					}
+					otherMaterial.folders = folders
 					break
 				}
 			}
