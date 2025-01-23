@@ -177,6 +177,8 @@ func inspectContent(file string, r *bytes.Reader, index int) (string, error) {
 
 func inspectDump(inspect interface{}, index int, w io.Writer) error {
 	switch val := inspect.(type) {
+	case *pfs.Pfs:
+		fmt.Println(val.ContentsSummary)
 	case *raw.Wld:
 		if index <= 0 {
 			fmt.Fprintf(w, "%s\n", val.String())
