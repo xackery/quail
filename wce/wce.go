@@ -12,12 +12,9 @@ var AsciiVersion = "v0.0.1"
 // Wce is a struct representing a Wce file
 type Wce struct {
 	isVariationMaterial    bool   // set true while writing or reading variations
-	lastReadModelTag       string // last model tag read
-	currentAniCode         string
-	currentAniModelCode    string
-	previousAnimations     map[string]struct{}
-	isObj                  bool // true when a _obj suffix is found in path
-	isChr                  bool // true when a _chr suffix is found in path
+	lastReadFolder         string // used during wce parsing to remember context
+	isObj                  bool   // true when a _obj suffix is found in path
+	isChr                  bool   // true when a _chr suffix is found in path
 	modelTags              []string
 	maxMaterialHeads       map[string]int
 	maxMaterialTextures    map[string]int
@@ -73,8 +70,7 @@ func New(filename string) *Wce {
 		maxMaterialHeads:      make(map[string]int),
 		maxMaterialTextures:   make(map[string]int),
 		variationMaterialDefs: make(map[string][]*MaterialDef),
-		previousAnimations:    make(map[string]struct{}),
-		WorldDef:              &WorldDef{},
+		WorldDef:              &WorldDef{folders: []string{"world"}},
 	}
 }
 
@@ -237,6 +233,19 @@ func (wce *Wce) ByTagWithIndex(tag string, index int) WldDefinitioner {
 		return nil
 	}
 
+	if strings.HasSuffix(tag, "_DMSPRITEDEF") {
+		for _, dmsprite := range wce.DMSpriteDef2s {
+			if dmsprite.Tag == tag && dmsprite.TagIndex == index {
+				return dmsprite
+			}
+		}
+		for _, dmsprite := range wce.DMSpriteDefs {
+			if dmsprite.Tag == tag && dmsprite.TagIndex == index {
+				return dmsprite
+			}
+		}
+	}
+
 	if strings.HasSuffix(tag, "_TRACK") {
 		for _, track := range wce.TrackInstances {
 			if track.Tag == tag && track.TagIndex == index {
@@ -294,8 +303,7 @@ func (wce *Wce) NextTagIndex(tag string) int {
 
 func (wce *Wce) reset() {
 	wce.GlobalAmbientLightDef = nil
-	wce.lastReadModelTag = ""
-	wce.modelTags = []string{}
+	wce.lastReadFolder = ""
 	wce.tagIndexes = make(map[string]int)
 	wce.SimpleSpriteDefs = []*SimpleSpriteDef{}
 	wce.MaterialDefs = []*MaterialDef{}

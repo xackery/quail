@@ -33,7 +33,6 @@ func TestWceReadWrite(t *testing.T) {
 		t.Skip("EQ_PATH not set")
 	}
 	dirTest := common.DirTest()
-	os.Chdir("../../")
 
 	knownExts := []string{".mds", ".mod", ".ter"}
 	start := time.Now()
@@ -55,7 +54,7 @@ func TestWceReadWrite(t *testing.T) {
 
 			err = os.WriteFile(fmt.Sprintf("%s/%s.src.eqg", dirTest, baseName), copyData, 0644)
 			if err != nil {
-				t.Fatalf("failed to write eqg %s: %s", baseName, err.Error())
+				t.Fatalf("Failed to write eqg %s: %s", baseName, err.Error())
 			}
 
 			archive, err := pfs.NewFile(fmt.Sprintf("%s/%s.eqg", eqPath, baseName))

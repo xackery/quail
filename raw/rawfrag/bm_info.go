@@ -12,7 +12,7 @@ import (
 
 // WldFragBMInfo is BmInfo in libeq, Texture Bitmap Names in openzone, FRAME and BMINFO in wld, BitmapName in lantern
 type WldFragBMInfo struct {
-	NameRef      int32    `yaml:"name_ref"`
+	nameRef      int32    `yaml:"name_ref"`
 	TextureNames []string `yaml:"texture_names"`
 }
 
@@ -24,7 +24,7 @@ func (e *WldFragBMInfo) Write(w io.Writer, isNewWorld bool) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
 	start := enc.Pos()
 
-	enc.Int32(e.NameRef)
+	enc.Int32(e.nameRef)
 	enc.Int32(int32(len(e.TextureNames)) - 1)
 	for _, textureName := range e.TextureNames {
 		// encodedStr := helper.WriteStringHash(textureName + "\x00")
@@ -48,7 +48,7 @@ func (e *WldFragBMInfo) Write(w io.Writer, isNewWorld bool) error {
 
 func (e *WldFragBMInfo) Read(r io.ReadSeeker, isNewWorld bool) error {
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
-	e.NameRef = dec.Int32()
+	e.nameRef = dec.Int32()
 	textureCount := dec.Int32()
 
 	for i := 0; i < int(textureCount+1); i++ {
@@ -62,4 +62,12 @@ func (e *WldFragBMInfo) Read(r io.ReadSeeker, isNewWorld bool) error {
 		return fmt.Errorf("read: %w", err)
 	}
 	return nil
+}
+
+func (e *WldFragBMInfo) NameRef() int32 {
+	return e.nameRef
+}
+
+func (e *WldFragBMInfo) SetNameRef(nameRef int32) {
+	e.nameRef = nameRef
 }

@@ -6,7 +6,7 @@ package cmd
 import (
 	"fmt"
 	"os"
-	"time"
+	"path/filepath"
 
 	"github.com/spf13/cobra"
 	"github.com/xackery/quail/quail"
@@ -14,6 +14,8 @@ import (
 
 func init() {
 	rootCmd.AddCommand(treeCmd)
+	treeCmd.PersistentFlags().String("path", "", "path to pfs archive or file")
+	treeCmd.PersistentFlags().String("path2", "", "path to compare pfs archive or file")
 }
 
 // treeCmd represents the tree command
@@ -36,25 +38,48 @@ func runTree(cmd *cobra.Command, args []string) error {
 }
 
 func runTreeE(cmd *cobra.Command, args []string) error {
-	if len(args) < 1 {
-		fmt.Println("Usage: quail tree <src>")
-		os.Exit(1)
-	}
-	start := time.Now()
+	var err error
 	defer func() {
-		fmt.Printf("Finished in %0.2f seconds\n", time.Since(start).Seconds())
+		if err != nil {
+			fmt.Println("Error:", err)
+			os.Exit(1)
+		}
 	}()
-	srcPath := args[0]
-	fi, err := os.Stat(srcPath)
-	if err != nil {
-		return fmt.Errorf("stat: %w", err)
-	}
-	if fi.IsDir() {
-		return fmt.Errorf("tree: srcPath is a directory. Set to a file for this extension")
-	}
-	q := quail.New()
 
-	err = q.TreeRead(srcPath)
+	path, err := cmd.Flags().GetString("path")
+	if err != nil {
+		return fmt.Errorf("parse path: %w", err)
+	}
+	if path == "" {
+		if len(args) < 1 {
+			return cmd.Usage()
+		}
+		path = args[0]
+	}
+
+	path2, err := cmd.Flags().GetString("path2")
+	if err != nil {
+		return fmt.Errorf("parse path2: %w", err)
+	}
+	if path2 == "" {
+		if len(args) >= 2 {
+			path2 = args[1]
+		}
+	}
+
+	q := quail.New()
+	if path2 != "" {
+		file1 := filepath.Base(path)
+		file2 := filepath.Base(path2)
+		fmt.Printf("Comparing %s to %s\n", file1, file2)
+		err = q.TreeCompare(path, path2)
+		if err != nil {
+			return fmt.Errorf("tree compare: %w", err)
+		}
+		return nil
+	}
+
+	err = q.TreeRead(os.Stdout, path)
 	if err != nil {
 		return fmt.Errorf("tree read: %w", err)
 	}

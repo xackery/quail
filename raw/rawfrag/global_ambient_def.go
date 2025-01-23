@@ -43,3 +43,7 @@ func (e *WldFragGlobalAmbientLightDef) Read(r io.ReadSeeker, isNewWorld bool) er
 	}
 	return nil
 }
+
+func (e *WldFragGlobalAmbientLightDef) NameRef() int32 {
+	return 0
+}

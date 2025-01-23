@@ -11,7 +11,7 @@ import (
 
 // WldFragZone is Zone in libeq, Region Flag in openzone, ZONE in wld, BspRegionType in lantern
 type WldFragZone struct {
-	NameRef  int32    `yaml:"name_ref"`
+	nameRef  int32    `yaml:"name_ref"`
 	Flags    uint32   `yaml:"flags"`
 	Regions  []uint32 `yaml:"regions"`
 	UserData string   `yaml:"user_data"`
@@ -27,7 +27,7 @@ func (e *WldFragZone) Write(w io.Writer, isNewWorld bool) error {
 
 	paddingSize := (4 - (len(userData) % 4)) % 4
 
-	enc.Int32(e.NameRef)
+	enc.Int32(e.nameRef)
 	enc.Uint32(e.Flags)
 	enc.Uint32(uint32(len(e.Regions)))
 	for _, region := range e.Regions {
@@ -49,7 +49,7 @@ func (e *WldFragZone) Write(w io.Writer, isNewWorld bool) error {
 func (e *WldFragZone) Read(r io.ReadSeeker, isNewWorld bool) error {
 
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
-	e.NameRef = dec.Int32()
+	e.nameRef = dec.Int32()
 	e.Flags = dec.Uint32()
 	regionCount := dec.Uint32()
 	e.Regions = make([]uint32, 0)
@@ -67,4 +67,12 @@ func (e *WldFragZone) Read(r io.ReadSeeker, isNewWorld bool) error {
 	}
 
 	return nil
+}
+
+func (e *WldFragZone) NameRef() int32 {
+	return e.nameRef
+}
+
+func (e *WldFragZone) SetNameRef(nameRef int32) {
+	e.nameRef = nameRef
 }

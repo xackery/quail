@@ -6,12 +6,11 @@ import (
 	"time"
 )
 
-var tests = []struct {
-	baseName string
-	wldName  string
-}{
-	{baseName: "gequip"},
-	//{baseName: "global3_chr"},
+var tests = []testEntry{
+	//{baseName: "gequip"}, // soul binder uses  IT124, IT124_MP uses 114CRYSBLAK_MDF, probably a rendermethod on that. Will have to wait, I'm working on improvements for quail to work with gequip, but should be doable
+	//{baseName: "crushbone"},
+	//{baseName: "global_chr"},
+	{baseName: "globalelf_chr"},
 	//{baseName: "emeraldjungle"},
 	//{baseName: "emeraldjungle_obj"},
 	//{baseName: "emeraldjungle", wldName: "objects.wld"},
@@ -40,13 +39,11 @@ var tests = []struct {
 	//{baseName: "overthere_chr"},
 	//{baseName: "gfaydark", wldName: "objects.wld"},
 	//{baseName: "gfaydark_obj"},
-	//{baseName: "globalelf_chr"}, // BROKE
 	//{baseName: "global6_chr"}, // FIX ME
 	//{baseName: "global_chr"},
 	//{baseName: "twilight", wldName: "objects.wld"},
 	//{baseName: "twilight", wldName: "lights.wld"},
 	//{baseName: "frontiermtns_chr"},
-	//{baseName: "crushbone"},
 	//{baseName: "gukbottom"},
 	//{baseName: "qeynos"},
 	//{baseName: "qeynos_chr"},
@@ -89,6 +86,12 @@ var tests = []struct {
 	//{baseName: "acrylia_obj"}, //acrylia_obj failed to write acrylia_obj: hierarchicalsprite ACTORCH301_HS_DEF: collision volume not found: I_L301_SPB
 	// {baseName: "ael_chr"}, //failed to write ael_chr: actordef AEL_ACTORDEF: sprite AEL_HS_DEF to raw: collision volume not found: I_AELCLOUD01_SPB
 	//{baseName: "gequip.takp", wldName: "gequip.wld"},
+
+}
+
+type testEntry struct {
+	baseName string
+	wldName  string
 }
 
 func TestStep1(t *testing.T) {
@@ -127,10 +130,7 @@ func TestPastGoodTests(t *testing.T) {
 
 	start := time.Now()
 
-	tests = []struct {
-		baseName string
-		wldName  string
-	}{
+	tests = []testEntry{
 		{baseName: "twilight_obj"},
 		{baseName: "crushbone"},
 		{baseName: "crushbone", wldName: "objects.wld"},

@@ -10,7 +10,7 @@ import (
 
 // WldFragLightDef is LightDef in libeq, WldFragLightDef Source in openzone, LIGHT (ref) in wld, LightSource in lantern
 type WldFragLightDef struct {
-	NameRef         int32        `yaml:"name_ref"`
+	nameRef         int32        `yaml:"name_ref"`
 	Flags           uint32       `yaml:"flags"`
 	FrameCurrentRef uint32       `yaml:"frame_current_ref"`
 	Sleep           uint32       `yaml:"sleep"`
@@ -24,7 +24,7 @@ func (e *WldFragLightDef) FragCode() int {
 
 func (e *WldFragLightDef) Write(w io.Writer, isNewWorld bool) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
-	enc.Int32(e.NameRef)
+	enc.Int32(e.nameRef)
 	enc.Uint32(e.Flags)
 	enc.Uint32(uint32(len(e.LightLevels)))
 	if e.Flags&0x1 != 0 {
@@ -54,7 +54,7 @@ func (e *WldFragLightDef) Write(w io.Writer, isNewWorld bool) error {
 
 func (e *WldFragLightDef) Read(r io.ReadSeeker, isNewWorld bool) error {
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
-	e.NameRef = dec.Int32()
+	e.nameRef = dec.Int32()
 	e.Flags = dec.Uint32()
 	frameCount := dec.Uint32()
 	if e.Flags&0x1 != 0 {
@@ -79,4 +79,12 @@ func (e *WldFragLightDef) Read(r io.ReadSeeker, isNewWorld bool) error {
 		return fmt.Errorf("read: %w", err)
 	}
 	return nil
+}
+
+func (e *WldFragLightDef) NameRef() int32 {
+	return e.nameRef
+}
+
+func (e *WldFragLightDef) SetNameRef(id int32) {
+	e.nameRef = id
 }

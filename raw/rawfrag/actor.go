@@ -10,7 +10,7 @@ import (
 
 // WldFragActor is Actor in libeq, Object Location in openzone, ACTORINST in wld, ObjectInstance in lantern
 type WldFragActor struct {
-	NameRef        int32
+	nameRef        int32
 	ActorDefRef    int32
 	Flags          uint32
 	SphereRef      uint32
@@ -30,7 +30,7 @@ func (e *WldFragActor) FragCode() int {
 
 func (e *WldFragActor) Write(w io.Writer, isNewWorld bool) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
-	enc.Int32(e.NameRef)
+	enc.Int32(e.nameRef)
 	enc.Int32(e.ActorDefRef)
 	enc.Uint32(e.Flags)
 	enc.Uint32(e.SphereRef)
@@ -69,7 +69,7 @@ func (e *WldFragActor) Write(w io.Writer, isNewWorld bool) error {
 
 func (e *WldFragActor) Read(r io.ReadSeeker, isNewWorld bool) error {
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
-	e.NameRef = dec.Int32()
+	e.nameRef = dec.Int32()
 	e.ActorDefRef = dec.Int32()
 	e.Flags = dec.Uint32()
 	e.SphereRef = dec.Uint32()
@@ -103,4 +103,8 @@ func (e *WldFragActor) Read(r io.ReadSeeker, isNewWorld bool) error {
 		return fmt.Errorf("read: %w", err)
 	}
 	return nil
+}
+
+func (e *WldFragActor) NameRef() int32 {
+	return e.nameRef
 }

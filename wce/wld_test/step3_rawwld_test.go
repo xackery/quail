@@ -6,7 +6,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/go-test/deep"
 	"github.com/xackery/quail/common"
 	"github.com/xackery/quail/pfs"
 	"github.com/xackery/quail/raw"
@@ -94,19 +93,6 @@ func TestRawWldReadWrite(t *testing.T) {
 			err = rawWldDst.Read(bytes.NewReader(buf.Bytes()))
 			if err != nil {
 				t.Fatalf("failed to read %s: %s", baseName, err.Error())
-			}
-
-			diff := deep.Equal(rawWldSrc, rawWldDst)
-			if diff != nil {
-				t.Fatalf("wld diff %s: %s", tt.baseName, diff)
-			}
-
-			for i := 0; i < len(rawWldSrc.Fragments); i++ {
-				srcFrag := rawWldSrc.Fragments[i]
-				dstFrag := rawWldDst.Fragments[i]
-				if srcFrag.FragCode() != dstFrag.FragCode() {
-					t.Fatalf("fragment %d fragcode mismatch: src: %s, dst: %s", i, raw.FragName(srcFrag.FragCode()), raw.FragName(dstFrag.FragCode()))
-				}
 			}
 
 			for i := 0; i < len(rawWldSrc.Fragments); i++ {

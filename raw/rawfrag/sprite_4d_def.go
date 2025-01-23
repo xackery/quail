@@ -11,7 +11,7 @@ import (
 
 // WldFragSprite4DDef is Sprite4DDef in libeq, empty in openzone, 4DSPRITEDEF in wld
 type WldFragSprite4DDef struct {
-	NameRef         int32         `yaml:"name_ref"`
+	nameRef         int32         `yaml:"name_ref"`
 	Flags           uint32        `yaml:"flags"`
 	PolyRef         int32         `yaml:"poly_ref"`
 	CenterOffset    model.Vector3 `yaml:"center_offset"`
@@ -27,7 +27,7 @@ func (e *WldFragSprite4DDef) FragCode() int {
 
 func (e *WldFragSprite4DDef) Write(w io.Writer, isNewWorld bool) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
-	enc.Int32(e.NameRef)
+	enc.Int32(e.nameRef)
 	enc.Uint32(e.Flags)
 	enc.Uint32(uint32(len(e.SpriteFragments)))
 	enc.Int32(e.PolyRef)
@@ -59,7 +59,7 @@ func (e *WldFragSprite4DDef) Write(w io.Writer, isNewWorld bool) error {
 
 func (e *WldFragSprite4DDef) Read(r io.ReadSeeker, isNewWorld bool) error {
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
-	e.NameRef = dec.Int32()
+	e.nameRef = dec.Int32()
 	e.Flags = dec.Uint32()
 	frameCount := dec.Uint32()
 	e.PolyRef = dec.Int32()
@@ -87,4 +87,8 @@ func (e *WldFragSprite4DDef) Read(r io.ReadSeeker, isNewWorld bool) error {
 		return fmt.Errorf("read: %w", err)
 	}
 	return nil
+}
+
+func (e *WldFragSprite4DDef) NameRef() int32 {
+	return e.nameRef
 }

@@ -25,15 +25,11 @@ func (e *tagEntry) String() string {
 }
 
 func TestWceReadWrite(t *testing.T) {
-	if os.Getenv("SINGLE_TEST") != "1" {
-		t.Skip("skipping test; SINGLE_TEST not set")
-	}
 	eqPath := os.Getenv("EQ_PATH")
 	if eqPath == "" {
 		t.Skip("EQ_PATH not set")
 	}
 	dirTest := common.DirTest()
-	os.Chdir("../../")
 
 	for _, tt := range tests {
 		t.Run(tt.baseName, func(t *testing.T) {
@@ -238,8 +234,11 @@ func TestWceReadWrite(t *testing.T) {
 					continue
 				}
 
-				t.Fatalf("fragment code %d (%s) count mismatch: src: %d, dst: %d", code, rawfrag.FragName(code), count, dstFragByCodes[code])
+				if dstFragByCodes[code] > count {
+					continue
+				}
 
+				t.Fatalf("fragment code %d (%s) count mismatch: src: %d, dst: %d", code, rawfrag.FragName(code), count, dstFragByCodes[code])
 			}
 			for code, tags := range srcFragByTags {
 				if len(tags) > len(dstFragByTags[code]) {

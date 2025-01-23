@@ -17,3 +17,7 @@ func (e *WldFragDMTrackDef) Write(w io.Writer, isNewWorld bool) error {
 func (e *WldFragDMTrackDef) Read(r io.ReadSeeker, isNewWorld bool) error {
 	return nil
 }
+
+func (e *WldFragDMTrackDef) NameRef() int32 {
+	return 0
+}

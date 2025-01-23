@@ -17,3 +17,7 @@ func (e *WldFragSkyRegion) Write(w io.Writer, isNewWorld bool) error {
 func (e *WldFragSkyRegion) Read(r io.ReadSeeker, isNewWorld bool) error {
 	return nil
 }
+
+func (e *WldFragSkyRegion) NameRef() int32 {
+	return 0
+}

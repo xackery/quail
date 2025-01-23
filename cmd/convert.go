@@ -26,7 +26,7 @@ Example: quail convert foo.quail foo.s3d - Takes foo.quail folder and creates a 
 }
 
 func runConvert(cmd *cobra.Command, args []string) error {
-	err := runConvertE(cmd, args)
+	err := runConvertE(args)
 	if err != nil {
 		fmt.Printf("Failed: %s\n", err.Error())
 		os.Exit(1)
@@ -34,7 +34,7 @@ func runConvert(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func runConvertE(cmd *cobra.Command, args []string) error {
+func runConvertE(args []string) error {
 	if len(args) < 2 {
 		fmt.Println("Usage: quail convert <src> <dst>")
 		os.Exit(1)

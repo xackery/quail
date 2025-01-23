@@ -40,14 +40,19 @@ test: ## run tests that aren't flagged for SINGLE_TEST
 
 .PHONY: test-all
 test-all: ## test all, including SINGLE_TEST
-	@echo "test-all: running every test, even ones flagged SINGLE_TEST timeout 120s..."
+	@echo "test-all: Running extensive tests"
 	@mkdir -p test
 	@rm -rf test/*
-	@IS_TEST_EXTENSIVE=1 SINGLE_TEST=1 go test -timeout 120s -tags ci ./...
+	@source .env && EQ_PATH=$$EQ_PATH SINGLE_TEST=1 go test -timeout 120s -tags test_all ./...
 
 build-all: build-darwin build-windows build-linux build-windows-addon build-wasm ## build all supported os's
 
+clean: test-clear
+clear: test-clear
 
+test-clear:
+	@echo "test-clear: clearing test files"
+	rm -rf test/*
 build-darwin: ## build darwin
 	@echo "build-darwin: ${BUILD_VERSION}"
 	@CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -trimpath -buildmode=pie -ldflags="-X main.Version=v${VERSION} -X main.ShowVersion=1 -s -w" -o bin/${NAME}-darwin main.go
@@ -140,6 +145,8 @@ exploretest-%: ## shortcut for wld-cli to explore a test file
 	mkdir -p test/
 	wld-cli explore test/$*.wld
 
+cmptreetest-%:
+	go run main.go tree test/$*.src.wld test/$*.dst.wld
 
 wldcom-%: ## shortcut for WLDCOM.EXE for decoding
 	mkdir -p test/
@@ -217,3 +224,6 @@ jsondifffrag-%:
 	wld-cli extract test/$*.src.wld -f json --fragindex $(FRAG) test/$*.src.json
 	wld-cli extract test/$*.dst.wld -f json --fragindex $(FRAG) test/$*.dst.json
 	code -d test/$*.src.json test/$*.dst.json
+
+flagfinder:
+	source .env && EQ_PATH=$$EQ_PATH SCRIPT_TEST=1 go test -v -run ^TestFragFlags$$ github.com/xackery/quail/wce/wld_test

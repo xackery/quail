@@ -53,5 +53,6 @@ func (q *Quail) PfsRead(path string) error {
 			return fmt.Errorf("rawRead %s: %w", file.Name(), err)
 		}
 	}
+
 	return nil
 }

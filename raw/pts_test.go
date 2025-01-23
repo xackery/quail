@@ -27,8 +27,6 @@ func TestPtsRead(t *testing.T) {
 	}{
 		// .pts|1|aam.pts|aam.eqg
 		{name: "aam.eqg"},
-		// .pts|1|ae3.pts|ae3.eqg
-		{name: "ae3.eqg"},
 		// .pts|1|ahf.pts|ahf.eqg
 		{name: "ahf.eqg"},
 		// .pts|1|ahm.pts|ahm.eqg

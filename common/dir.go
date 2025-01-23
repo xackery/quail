@@ -6,19 +6,8 @@ import (
 	"strings"
 )
 
-func IsTestExtensive() bool {
-	return os.Getenv("IS_TEST_EXTENSIVE") == "1"
-}
-
-func IsTest() bool {
-	return os.Getenv("IS_TEST") == "1"
-}
-
 // TestDir returns a testing directory
 func DirTest() string {
-	if !IsTest() {
-		return "."
-	}
 	path := "go.mod"
 
 	// look for go.mod
@@ -46,5 +35,6 @@ func DirTest() string {
 	if err != nil {
 		return "."
 	}
+	os.Chdir(dir)
 	return dir
 }

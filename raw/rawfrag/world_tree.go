@@ -12,7 +12,7 @@ import (
 // For serialization, refer to here: https://github.com/knervous/LanternExtractor2/blob/knervous/merged/LanternExtractor/EQ/Wld/DataTypes/BspNode.cs
 // For constructing, refer to here: https://github.com/knervous/LanternExtractor2/blob/920541d15958e90aa91f7446a74226cbf26b829a/LanternExtractor/EQ/Wld/Exporters/GltfWriter.cs#L304
 type WldFragWorldTree struct {
-	NameRef int32           `yaml:"name_ref"`
+	nameRef int32           `yaml:"name_ref"`
 	Nodes   []WorldTreeNode `yaml:"nodes"`
 }
 
@@ -29,7 +29,7 @@ func (e *WldFragWorldTree) FragCode() int {
 
 func (e *WldFragWorldTree) Write(w io.Writer, isNewWorld bool) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
-	enc.Int32(e.NameRef)
+	enc.Int32(e.nameRef)
 	enc.Uint32(uint32(len(e.Nodes)))
 	for _, node := range e.Nodes {
 		enc.Float32(node.Normal[0])
@@ -49,7 +49,7 @@ func (e *WldFragWorldTree) Write(w io.Writer, isNewWorld bool) error {
 
 func (e *WldFragWorldTree) Read(r io.ReadSeeker, isNewWorld bool) error {
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
-	e.NameRef = dec.Int32()
+	e.nameRef = dec.Int32()
 	nodeCount := dec.Uint32()
 	for i := uint32(0); i < nodeCount; i++ {
 		node := WorldTreeNode{}
@@ -67,4 +67,12 @@ func (e *WldFragWorldTree) Read(r io.ReadSeeker, isNewWorld bool) error {
 		return fmt.Errorf("read: %w", err)
 	}
 	return nil
+}
+
+func (e *WldFragWorldTree) NameRef() int32 {
+	return e.nameRef
+}
+
+func (e *WldFragWorldTree) SetNameRef(nameRef int32) {
+	e.nameRef = nameRef
 }

@@ -8,16 +8,18 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/xackery/quail/helper"
 	"github.com/xackery/quail/model"
 	"github.com/xackery/quail/raw"
 	"github.com/xackery/quail/raw/rawfrag"
+	"github.com/xackery/quail/tree"
 )
 
 func (wce *Wce) ReadWldRaw(src *raw.Wld) error {
 	wce.reset()
 	wce.maxMaterialHeads = make(map[string]int)
 	wce.maxMaterialTextures = make(map[string]int)
-	wce.WorldDef = &WorldDef{}
+	wce.WorldDef = &WorldDef{folders: []string{"world"}}
 	if src.IsNewWorld {
 		wce.WorldDef.NewWorld = 1
 	}
@@ -25,29 +27,40 @@ func (wce *Wce) ReadWldRaw(src *raw.Wld) error {
 		wce.WorldDef.Zone = 1
 	}
 
-	modelChunks := make(map[int]string)
-	lastModelIndex := 0
+	// get a list of root nodes
+	roots, nodes, err := tree.BuildFragReferenceTree(wce.isChr, src)
+	if err != nil {
+		return fmt.Errorf("build frag reference tree: %w", err)
+	}
+
+	// make a map of folders each frag contains
+	foldersByFrag := make(map[int][]string)
+
+	// Sort root nodes by FragID before processing
+	sortedRoots := make([]*tree.Node, 0, len(roots))
+	for _, root := range roots {
+		sortedRoots = append(sortedRoots, root)
+	}
+
+	// Sort by FragID
+	sort.Slice(sortedRoots, func(i, j int) bool {
+		return sortedRoots[i].FragID < sortedRoots[j].FragID
+	})
+
+	// Process the sorted roots
+	for _, root := range sortedRoots {
+		//fmt.Printf("Processing Root FragID: %d, Tag: %s\n", root.FragID, root.Tag)
+		setRootFolder(foldersByFrag, "", root, wce.isChr, nodes, wce)
+	}
+
 	for i := 1; i < len(src.Fragments); i++ {
 		fragment := src.Fragments[i]
-		actorDef, ok := fragment.(*rawfrag.WldFragActorDef)
+		folders, ok := foldersByFrag[i]
 		if !ok {
-			continue
-		}
-		modelChunks[lastModelIndex] = strings.TrimSuffix(src.Name(actorDef.NameRef), "_ACTORDEF")
-		wce.modelTags = append(wce.modelTags, modelChunks[lastModelIndex])
-		lastModelIndex = i
-	}
-
-	if modelChunks[0] != "" {
-		wce.lastReadModelTag = modelChunks[0]
-	}
-	for i := 1; i < len(src.Fragments); i++ {
-		fragment := src.Fragments[i]
-		if modelChunks[i] != "" {
-			wce.lastReadModelTag = modelChunks[i]
+			return fmt.Errorf("fragment %d (%s): folders not found", i, raw.FragName(fragment.FragCode()))
 		}
 
-		err := readRawFrag(wce, src, fragment)
+		err := readRawFrag(wce, src, fragment, folders)
 		if err != nil {
 			return fmt.Errorf("fragment %d (%s): %w", i, raw.FragName(fragment.FragCode()), err)
 		}
@@ -56,11 +69,14 @@ func (wce *Wce) ReadWldRaw(src *raw.Wld) error {
 	return nil
 }
 
-func readRawFrag(e *Wce, rawWld *raw.Wld, fragment model.FragmentReadWriter) error {
+func readRawFrag(e *Wce, rawWld *raw.Wld, fragment model.FragmentReadWriter, folders []string) error {
+	if len(folders) == 0 {
+		folders = []string{"world"}
+	}
 	switch fragment.FragCode() {
 	case rawfrag.FragCodeGlobalAmbientLightDef:
 
-		def := &GlobalAmbientLightDef{}
+		def := &GlobalAmbientLightDef{folders: folders}
 		err := def.FromRaw(e, rawWld, fragment.(*rawfrag.WldFragGlobalAmbientLightDef))
 		if err != nil {
 			return fmt.Errorf("globalambientlightdef: %w", err)
@@ -69,7 +85,7 @@ func readRawFrag(e *Wce, rawWld *raw.Wld, fragment model.FragmentReadWriter) err
 	case rawfrag.FragCodeBMInfo:
 		return nil
 	case rawfrag.FragCodeSimpleSpriteDef:
-		def := &SimpleSpriteDef{}
+		def := &SimpleSpriteDef{folders: folders}
 		err := def.FromRaw(e, rawWld, fragment.(*rawfrag.WldFragSimpleSpriteDef))
 		if err != nil {
 			return fmt.Errorf("simplespritedef: %w", err)
@@ -79,7 +95,7 @@ func readRawFrag(e *Wce, rawWld *raw.Wld, fragment model.FragmentReadWriter) err
 	case rawfrag.FragCodeSimpleSprite:
 		//return fmt.Errorf("simplesprite fragment found, but not expected")
 	case rawfrag.FragCodeBlitSpriteDef:
-		def := &BlitSpriteDef{}
+		def := &BlitSpriteDef{folders: folders}
 		err := def.FromRaw(e, rawWld, fragment.(*rawfrag.WldFragBlitSpriteDef))
 		if err != nil {
 			return fmt.Errorf("blitspritedef: %w", err)
@@ -87,29 +103,29 @@ func readRawFrag(e *Wce, rawWld *raw.Wld, fragment model.FragmentReadWriter) err
 		e.BlitSpriteDefs = append(e.BlitSpriteDefs, def)
 	case rawfrag.FragCodeBlitSprite:
 	case rawfrag.FragCodeParticleCloudDef:
-		def := &ParticleCloudDef{}
+		def := &ParticleCloudDef{folders: folders}
 		err := def.FromRaw(e, rawWld, fragment.(*rawfrag.WldFragParticleCloudDef))
 		if err != nil {
 			return fmt.Errorf("particleclouddef: %w", err)
 		}
 		e.ParticleCloudDefs = append(e.ParticleCloudDefs, def)
 	case rawfrag.FragCodeMaterialDef:
-		def := &MaterialDef{}
+		def := &MaterialDef{folders: folders}
 		err := def.FromRaw(e, rawWld, fragment.(*rawfrag.WldFragMaterialDef))
 		if err != nil {
 			return fmt.Errorf("materialdef: %w", err)
 		}
 		e.MaterialDefs = append(e.MaterialDefs, def)
 	case rawfrag.FragCodeMaterialPalette:
-		def := &MaterialPalette{}
+		def := &MaterialPalette{folders: folders}
 		err := def.FromRaw(e, rawWld, fragment.(*rawfrag.WldFragMaterialPalette))
 		if err != nil {
 			return fmt.Errorf("materialpalette: %w", err)
 		}
 		e.MaterialPalettes = append(e.MaterialPalettes, def)
-		e.isVariationMaterial = true
+		// e.isVariationMaterial = true
 	case rawfrag.FragCodeDmSpriteDef2:
-		def := &DMSpriteDef2{}
+		def := &DMSpriteDef2{folders: folders}
 		err := def.FromRaw(e, rawWld, fragment.(*rawfrag.WldFragDmSpriteDef2))
 		if err != nil {
 			return fmt.Errorf("dmspritedef2: %w", err)
@@ -120,7 +136,7 @@ func readRawFrag(e *Wce, rawWld *raw.Wld, fragment model.FragmentReadWriter) err
 			_, err := strconv.Atoi(tag)
 			if err == nil {
 				if e.WorldDef == nil {
-					e.WorldDef = &WorldDef{}
+					e.WorldDef = &WorldDef{folders: []string{"world"}}
 				}
 				e.WorldDef.Zone = 1
 			}
@@ -128,27 +144,26 @@ func readRawFrag(e *Wce, rawWld *raw.Wld, fragment model.FragmentReadWriter) err
 
 		e.DMSpriteDef2s = append(e.DMSpriteDef2s, def)
 	case rawfrag.FragCodeTrack:
-		def := &TrackInstance{}
+		def := &TrackInstance{folders: folders}
 		err := def.FromRaw(e, rawWld, fragment.(*rawfrag.WldFragTrack))
 		if err != nil {
 			return fmt.Errorf("track: %w", err)
 		}
 		e.TrackInstances = append(e.TrackInstances, def)
 	case rawfrag.FragCodeTrackDef:
-		def := &TrackDef{}
+		def := &TrackDef{folders: folders}
 		err := def.FromRaw(e, rawWld, fragment.(*rawfrag.WldFragTrackDef))
 		if err != nil {
 			return fmt.Errorf("trackdef: %w", err)
 		}
 		e.TrackDefs = append(e.TrackDefs, def)
-
 	case rawfrag.FragCodeDMTrack:
 		frag := fragment.(*rawfrag.WldFragDMTrack)
 		if frag.Flags != 0 {
 			return fmt.Errorf("dmtrack: unexpected flags %d, report this to xack", frag.Flags)
 		}
 	case rawfrag.FragCodeDmTrackDef2:
-		def := &DMTrackDef2{}
+		def := &DMTrackDef2{folders: folders}
 		err := def.FromRaw(e, rawWld, fragment.(*rawfrag.WldFragDmTrackDef2))
 		if err != nil {
 			return fmt.Errorf("dmtrackdef2: %w", err)
@@ -156,7 +171,7 @@ func readRawFrag(e *Wce, rawWld *raw.Wld, fragment model.FragmentReadWriter) err
 		e.DMTrackDef2s = append(e.DMTrackDef2s, def)
 
 	case rawfrag.FragCodeDMSpriteDef:
-		def := &DMSpriteDef{}
+		def := &DMSpriteDef{folders: folders}
 		err := def.FromRaw(e, rawWld, fragment.(*rawfrag.WldFragDMSpriteDef))
 		if err != nil {
 			return fmt.Errorf("dmspritedef: %w", err)
@@ -164,16 +179,16 @@ func readRawFrag(e *Wce, rawWld *raw.Wld, fragment model.FragmentReadWriter) err
 		e.DMSpriteDefs = append(e.DMSpriteDefs, def)
 	case rawfrag.FragCodeDMSprite:
 	case rawfrag.FragCodeActorDef:
-		def := &ActorDef{}
+		def := &ActorDef{folders: folders}
 		err := def.FromRaw(e, rawWld, fragment.(*rawfrag.WldFragActorDef))
 		if err != nil {
 			return fmt.Errorf("actordef: %w", err)
 		}
 
 		e.ActorDefs = append(e.ActorDefs, def)
-		e.isVariationMaterial = false
+		// e.isVariationMaterial = false
 	case rawfrag.FragCodeActor:
-		def := &ActorInst{}
+		def := &ActorInst{folders: folders}
 		err := def.FromRaw(e, rawWld, fragment.(*rawfrag.WldFragActor))
 		if err != nil {
 			return fmt.Errorf("actor: %w", err)
@@ -181,7 +196,7 @@ func readRawFrag(e *Wce, rawWld *raw.Wld, fragment model.FragmentReadWriter) err
 
 		e.ActorInsts = append(e.ActorInsts, def)
 	case rawfrag.FragCodeHierarchicalSpriteDef:
-		def := &HierarchicalSpriteDef{}
+		def := &HierarchicalSpriteDef{folders: folders}
 		err := def.FromRaw(e, rawWld, fragment.(*rawfrag.WldFragHierarchicalSpriteDef))
 		if err != nil {
 			return fmt.Errorf("hierarchicalspritedef: %w", err)
@@ -190,7 +205,7 @@ func readRawFrag(e *Wce, rawWld *raw.Wld, fragment model.FragmentReadWriter) err
 	case rawfrag.FragCodeHierarchicalSprite:
 		return nil
 	case rawfrag.FragCodeLightDef:
-		def := &LightDef{}
+		def := &LightDef{folders: folders}
 		err := def.FromRaw(e, rawWld, fragment.(*rawfrag.WldFragLightDef))
 		if err != nil {
 			return fmt.Errorf("lightdef: %w", err)
@@ -199,7 +214,7 @@ func readRawFrag(e *Wce, rawWld *raw.Wld, fragment model.FragmentReadWriter) err
 	case rawfrag.FragCodeLight:
 		return nil // light instances are ignored, since they're derived from other definitions
 	case rawfrag.FragCodeSprite3DDef:
-		def := &Sprite3DDef{}
+		def := &Sprite3DDef{folders: folders}
 		err := def.FromRaw(e, rawWld, fragment.(*rawfrag.WldFragSprite3DDef))
 		if err != nil {
 			return fmt.Errorf("sprite3ddef: %w", err)
@@ -209,7 +224,7 @@ func readRawFrag(e *Wce, rawWld *raw.Wld, fragment model.FragmentReadWriter) err
 		// sprite instances are ignored, since they're derived from other definitions
 		return nil
 	case rawfrag.FragCodeZone:
-		def := &Zone{}
+		def := &Zone{folders: folders}
 		err := def.FromRaw(e, rawWld, fragment.(*rawfrag.WldFragZone))
 		if err != nil {
 			return fmt.Errorf("zone: %w", err)
@@ -217,7 +232,7 @@ func readRawFrag(e *Wce, rawWld *raw.Wld, fragment model.FragmentReadWriter) err
 		e.Zones = append(e.Zones, def)
 
 	case rawfrag.FragCodeWorldTree:
-		def := &WorldTree{}
+		def := &WorldTree{folders: folders}
 		err := def.FromRaw(e, rawWld, fragment.(*rawfrag.WldFragWorldTree))
 		if err != nil {
 			return fmt.Errorf("worldtree: %w", err)
@@ -225,28 +240,28 @@ func readRawFrag(e *Wce, rawWld *raw.Wld, fragment model.FragmentReadWriter) err
 		e.WorldTrees = append(e.WorldTrees, def)
 
 	case rawfrag.FragCodeRegion:
-		def := &Region{}
+		def := &Region{folders: folders}
 		err := def.FromRaw(e, rawWld, fragment.(*rawfrag.WldFragRegion))
 		if err != nil {
 			return fmt.Errorf("region: %w", err)
 		}
 		e.Regions = append(e.Regions, def)
 	case rawfrag.FragCodeAmbientLight:
-		def := &AmbientLight{}
+		def := &AmbientLight{folders: folders}
 		err := def.FromRaw(e, rawWld, fragment.(*rawfrag.WldFragAmbientLight))
 		if err != nil {
 			return fmt.Errorf("ambientlight: %w", err)
 		}
 		e.AmbientLights = append(e.AmbientLights, def)
 	case rawfrag.FragCodePointLight:
-		def := &PointLight{}
+		def := &PointLight{folders: folders}
 		err := def.FromRaw(e, rawWld, fragment.(*rawfrag.WldFragPointLight))
 		if err != nil {
 			return fmt.Errorf("pointlight: %w", err)
 		}
 		e.PointLights = append(e.PointLights, def)
 	case rawfrag.FragCodePolyhedronDef:
-		def := &PolyhedronDefinition{}
+		def := &PolyhedronDefinition{folders: folders}
 		err := def.FromRaw(e, rawWld, fragment.(*rawfrag.WldFragPolyhedronDef))
 		if err != nil {
 			return fmt.Errorf("polyhedrondefinition: %w", err)
@@ -259,7 +274,7 @@ func readRawFrag(e *Wce, rawWld *raw.Wld, fragment model.FragmentReadWriter) err
 		// sphere instances are ignored, since they're derived from other definitions
 		return nil
 	case rawfrag.FragCodeDmRGBTrackDef:
-		def := &RGBTrackDef{}
+		def := &RGBTrackDef{folders: folders}
 		err := def.FromRaw(e, rawWld, fragment.(*rawfrag.WldFragDmRGBTrackDef))
 		if err != nil {
 			return fmt.Errorf("dmrgbtrackdef: %w", err)
@@ -267,7 +282,7 @@ func readRawFrag(e *Wce, rawWld *raw.Wld, fragment model.FragmentReadWriter) err
 		e.RGBTrackDefs = append(e.RGBTrackDefs, def)
 	case rawfrag.FragCodeDmRGBTrack:
 	case rawfrag.FragCodeSprite2DDef:
-		def := &Sprite2DDef{}
+		def := &Sprite2DDef{folders: folders}
 		err := def.FromRaw(e, rawWld, fragment.(*rawfrag.WldFragSprite2DDef))
 		if err != nil {
 			return fmt.Errorf("sprite2ddef: %w", err)
@@ -301,8 +316,6 @@ func (wce *Wce) WriteWldRaw(w io.Writer) error {
 		}
 	}
 
-	wce.modelTags = []string{}
-
 	if wce.WorldDef.Zone != 1 {
 		baseTags := []string{}
 		for _, actorDef := range wce.ActorDefs {
@@ -319,7 +332,6 @@ func (wce *Wce) WriteWldRaw(w io.Writer) error {
 			if isUnique {
 				baseTags = append(baseTags, baseTagTrim(wce.isObj, actorDef.Tag))
 			}
-			wce.modelTags = append(wce.modelTags, baseTagTrim(wce.isObj, actorDef.Tag))
 		}
 
 		//sort.Strings(baseTags)
@@ -421,10 +433,6 @@ func (wce *Wce) WriteWldRaw(w io.Writer) error {
 			for _, track := range wce.TrackInstances {
 
 				if wce.isTrackAni(track.Tag) {
-					continue
-				}
-
-				if track.SpriteTag != baseTag {
 					continue
 				}
 
@@ -542,87 +550,8 @@ func (wce *Wce) WriteWldRaw(w io.Writer) error {
 }
 
 var (
-	regexAniNormal    = regexp.MustCompile(`^([A-Z])([0-9]{2})([A-Z]{3}).*`)
-	regexAniAlt       = regexp.MustCompile(`^([A-Z])([0-9]{2})([A-Z])([A-Z]{3}).*`)
-	regexAniAltSuffix = regexp.MustCompile(`^([A-Z])([0-9]{2}).*_([A-Z]{3})$`)
-	regexTrackNormal  = regexp.MustCompile(`^([A-Z]{3}).*`)
-	regexAniPrefix    = regexp.MustCompile(`^[CDLOPST](0[1-9]|[1-9][0-9])`)
+	regexAniPrefix = regexp.MustCompile(`^[CDLOPST](0[1-9]|[1-9][0-9])`)
 )
-
-// returns model name (ELF, etc), sequence tag (C, P, etc), subsequence, sequence number
-// if sequence number is -1, it's a bone
-func (wce *Wce) trackTagAndSequence(tag string) (string, string, string, int) {
-	tag = strings.TrimSuffix(tag, "_TRACK")
-	tag = strings.TrimSuffix(tag, "_TRACKDEF")
-	m := regexTrackNormal.FindStringSubmatch(tag)
-	if len(m) > 1 {
-		isFound := false
-		for _, modelTag := range wce.modelTags {
-			if modelTag != m[1] {
-				continue
-			}
-			isFound = true
-			break
-		}
-		if isFound {
-			return m[1], "", "", -1
-		}
-	}
-	m = regexAniNormal.FindStringSubmatch(tag)
-	if len(m) > 3 {
-		isFound := false
-		for _, modelTag := range wce.modelTags {
-			if modelTag != m[3] {
-				continue
-			}
-			isFound = true
-			break
-		}
-		if isFound {
-			seq, err := strconv.Atoi(m[2])
-			if err == nil {
-				return m[3], m[1], "", seq
-			}
-		}
-	}
-
-	m = regexAniAlt.FindStringSubmatch(tag)
-	if len(m) > 4 {
-		isFound := false
-		for _, modelTag := range wce.modelTags {
-			if modelTag != m[4] {
-				continue
-			}
-			isFound = true
-			break
-		}
-		if isFound {
-			seq, err := strconv.Atoi(m[2])
-			if err == nil {
-				return m[4], m[1], m[3], seq
-			}
-		}
-	}
-	m = regexAniAltSuffix.FindStringSubmatch(tag)
-	if len(m) > 1 {
-		isFound := false
-		for _, modelTag := range wce.modelTags {
-			if modelTag != m[3] {
-				continue
-			}
-			isFound = true
-			break
-		}
-		if isFound {
-			seq, err := strconv.Atoi(m[2])
-			if err == nil {
-				return m[3], m[1], "", -seq
-			}
-		}
-	}
-
-	return "", "", "", -1
-}
 
 func (wce *Wce) isTrackAni(tag string) bool {
 	// If isObj is true, it's not a track animation
@@ -680,154 +609,104 @@ func baseTagTrim(isObj bool, tag string) string {
 	return tag
 }
 
-// Dummy strings used in tag matching
-var dummyStrings = []string{
-	"10404P0", "2HNSWORD", "BARDING", "BELT", "BODY", "BONE",
-	"BOW", "BOX", "DUMMY", "HUMEYE", "MESH", "POINT", "POLYSURF",
-	"RIDER", "SHOULDER",
-}
+func setRootFolder(foldersByFrag map[int][]string, folder string, node *tree.Node, isChr bool, nodes map[int32]*tree.Node, wce *Wce) {
 
-// Root patterns for animation and model parsing
-var rootPatterns = []string{
-	`^[C,D,L,O,P,S,T](0[1-9]|[1-9][0-9])[A-Z]{3}_TRACK$`,
-	`^([C,D,L,O,P,S,T](0[1-9]|[1-9][0-9])){2}_[A-Z]{3}_TRACK$`,
-	`^[C,D,L,O,P,S,T](0[1-9]|[1-9][0-9])[A-Z]{3}[C,D,L,O,P,S,T](0[1-9]|[1-9][0-9])[A-Z]{3}_TRACK$`,
-	`^[C,D,L,O,P,S,T](0[1-9]|[1-9][0-9])[A-Z]{3}[C,D,L,O,P,S,T](0[1-9]|[1-9][0-9])_[A-Z]{3}_TRACK$`,
-	`^[C,D,L,O,P,S,T](0[1-9]|[1-9][0-9])[A,B,G][A-Z]{3}[C,D,L,O,P,S,T](0[1-9]|[1-9][0-9])[A,B,G]_[A-Z]{3}_TRACK$`,
-	`^[C,D,L,O,P,S,T](0[1-9]|[1-9][0-9])[A,B,G][C,D,L,O,P,S,T](0[1-9]|[1-9][0-9])_[A-Z]{3}_TRACK$`,
-}
-
-// Item patterns for non-character cases
-var itemPatterns = []string{
-	`^[C,D,L,O,P,S,T](0[1-9]|[1-9][0-9])IT\d+_TRACK$`,
-	`^[C,D,L,O,P,S,T](0[1-9]|[1-9][0-9])_IT\d+_TRACK$`,
-	`^([C,D,L,O,P,S,T](0[1-9]|[1-9][0-9])){2}_IT\d+_TRACK$`,
-}
-
-func (wce *Wce) trackAnimationParse(tag string) (string, string) {
-	// Check if the tag starts with currentAniCode + currentAniModelCode
-	combinedCode := wce.currentAniCode + wce.currentAniModelCode
-	if wce.currentAniCode != "" && wce.currentAniModelCode != "" && strings.HasPrefix(tag, combinedCode) {
-		return wce.currentAniCode, wce.currentAniModelCode
-	}
-
-	// Check against previousAnimations
-	for previous := range wce.previousAnimations {
-		if strings.HasPrefix(tag, previous) {
-			parts := strings.Split(previous, ":")
-			if len(parts) == 2 {
-				return parts[0], parts[1]
+	// If no folder is assigned, handle specific cases based on FragType
+	if len(foldersByFrag[int(node.FragID)]) == 0 {
+		switch node.FragType {
+		case "AmbientLight":
+			folder = "ZONE"
+		case "DmSpriteDef2":
+			prefix, err := helper.DmSpriteDefTagParse(isChr, node.Tag)
+			if err == nil && prefix != "" {
+				folder = prefix
 			}
-		}
-	}
-
-	// Check if the tag starts with the currentAniCode and contains a dummy string
-	for _, dummy := range dummyStrings {
-		if strings.HasPrefix(tag, wce.currentAniCode) && strings.Contains(tag, dummy) {
-			return wce.currentAniCode, wce.currentAniModelCode
-		}
-	}
-
-	// Handle special cases when isChr is true
-	if wce.isChr {
-		if strings.HasPrefix(tag, wce.currentAniCode) {
-			if wce.currentAniModelCode == "SED" && len(tag) >= 6 && tag[3:6] == "FDD" {
-				return wce.currentAniCode, wce.currentAniModelCode
+		case "BlitSpriteDef":
+			if strings.HasPrefix(node.Tag, "I_") {
+				// Remove "I_" and take the part before the next "_"
+				strippedTag := strings.TrimPrefix(node.Tag, "I_")
+				if strings.Contains(strippedTag, "_") {
+					folder = strings.Split(strippedTag, "_")[0]
+				} else {
+					folder = strippedTag
+				}
 			}
-			if wce.currentAniModelCode == "FMP" && len(tag) >= len(wce.currentAniCode)+2 {
-				suffixStartIndex := len(wce.currentAniCode)
-				for _, suffix := range []string{"PE", "CH", "NE", "HE", "BI", "FO", "TH", "CA", "BO"} {
-					if strings.HasPrefix(tag[suffixStartIndex:], suffix) {
-						return wce.currentAniCode, wce.currentAniModelCode
+		case "MaterialDef":
+			prefix, err := helper.MaterialTagParse(isChr, node.Tag)
+			if err == nil && prefix != "" {
+				if prefix == "CLK04" {
+					for _, potentialNode := range nodes {
+						if potentialNode.FragType == "MaterialPalette" {
+							// Check the child nodes of the MaterialPalette node
+							for _, childNode := range potentialNode.Children {
+								if strings.HasPrefix(childNode.Tag, "CLK04") {
+									// Add the first 3 characters of each MaterialPalette node's tags to foldersByFrag
+									folderToAdd := potentialNode.Tag[:3]
+									foldersByFrag[int(node.FragID)] = appendUnique(foldersByFrag[int(node.FragID)], folderToAdd)
+								}
+							}
+						}
 					}
+				} else {
+					// Use the returned prefix directly as the folder
+					folder = prefix
 				}
 			}
-			if wce.currentAniModelCode == "SKE" && len(tag) >= len(wce.currentAniCode)+2 {
-				suffixStartIndex := len(wce.currentAniCode)
-				for _, suffix := range []string{"BI", "BO", "CA", "CH", "FA", "FI", "FO", "HA", "HE", "L_POINT", "NE", "PE", "R_POINT", "SH", "TH", "TO", "TU"} {
-					if strings.HasPrefix(tag[suffixStartIndex:], suffix) {
-						return wce.currentAniCode, wce.currentAniModelCode
-					}
+		case "Region":
+			folder = "R"
+		case "Track":
+			if wce.isTrackAni(node.Tag) {
+				_, prefix := helper.TrackAnimationParse(isChr, node.Tag)
+				if prefix != "" {
+					folder = prefix
 				}
-			}
-		}
-
-		// Attempt to match root patterns
-		for _, pattern := range rootPatterns {
-			matched, _ := regexp.MatchString(pattern, tag)
-			if matched {
-				switch pattern {
-				case rootPatterns[0]: // Pattern 1
-					return handleNewAniModelCode(wce, tag[:3], tag[3:6])
-				case rootPatterns[1]: // Pattern 2
-					return handleNewAniModelCode(wce, tag[:3], tag[7:10])
-				case rootPatterns[2], rootPatterns[3]: // Pattern 3 and 4
-					return handleNewAniModelCode(wce, tag[:3], tag[3:6])
-				case rootPatterns[4]: // Pattern 5
-					return handleNewAniModelCode(wce, tag[:4], tag[4:7])
-				case rootPatterns[5]: // Pattern 6
-					return handleNewAniModelCode(wce, tag[:4], tag[8:11])
-				}
-			}
-		}
-
-		// Fallback for isChr
-		if len(tag) >= 6 {
-			newAniCode := tag[:3]
-			newModelCode := tag[3:6]
-
-			return handleNewAniModelCode(wce, newAniCode, newModelCode)
-		}
-
-		// If the tag is too short, return empty values
-		return "", ""
-	}
-
-	// Special cases for isChr == false
-	if strings.HasPrefix(tag, wce.currentAniCode) {
-		if wce.currentAniModelCode == "IT157" && len(tag) >= 6 && tag[3:6] == "SNA" {
-			return wce.currentAniCode, wce.currentAniModelCode
-		}
-		if wce.currentAniModelCode == "IT61" && len(tag) >= 6 && tag[3:6] == "WIP" {
-			return wce.currentAniCode, wce.currentAniModelCode
-		}
-	}
-
-	// Handle item patterns if isChr is false
-	for _, pattern := range itemPatterns {
-		matched, _ := regexp.MatchString(pattern, tag)
-		if matched {
-			newAniCode := tag[:3]
-			modelCodeStart := strings.Index(tag, "IT") + 2
-			modelCodeEnd := modelCodeStart
-			for modelCodeEnd < len(tag) && tag[modelCodeEnd] >= '0' && tag[modelCodeEnd] <= '9' {
-				modelCodeEnd++
-			}
-			return handleNewAniModelCode(wce, newAniCode, "IT"+tag[modelCodeStart:modelCodeEnd])
-		}
-	}
-
-	// Default fallback for isChr == false
-	if len(tag) >= 6 {
-		aniCode := tag[:3]
-		modelCode := "IT"
-		for i := 3; i < len(tag); i++ {
-			if tag[i] >= '0' && tag[i] <= '9' {
-				modelCode += string(tag[i])
 			} else {
-				break
+				if strings.HasPrefix(node.Tag, "IT") {
+					if strings.Contains(node.Tag, "_") {
+						folder = strings.SplitN(node.Tag, "_", 2)[0]
+					} else {
+						folder = node.Tag // Use the whole tag if there's no "_"
+					}
+				} else {
+					if len(node.Tag) >= 3 {
+						folder = node.Tag[:3]
+					} else {
+						folder = node.Tag // Use the full tag if it's shorter than 3 characters
+					}
+				}
+			}
+		case "Zone":
+			folder = "ZONE"
+		default:
+			folder = node.Tag
+			if strings.Contains(folder, "_") {
+				folder = strings.Split(folder, "_")[0]
 			}
 		}
-		return handleNewAniModelCode(wce, aniCode, modelCode)
 	}
 
-	return "", ""
+	foldersByFrag[int(node.FragID)] = appendUnique(foldersByFrag[int(node.FragID)], folder)
+
+	// Pass the folder down to child nodes
+	addChildrenFolder(foldersByFrag, folder, node)
 }
 
-// Helper function to handle new animation and model codes
-func handleNewAniModelCode(wce *Wce, newAniCode, newModelCode string) (string, string) {
-	wce.previousAnimations[wce.currentAniCode+wce.currentAniModelCode] = struct{}{}
-	wce.currentAniCode = newAniCode
-	wce.currentAniModelCode = newModelCode
-	return newAniCode, newModelCode
+func addChildrenFolder(foldersByFrag map[int][]string, folder string, node *tree.Node) {
+	// Propagate the folder to the children
+	for _, child := range node.Children {
+
+		foldersByFrag[int(child.FragID)] = appendUnique(foldersByFrag[int(child.FragID)], folder)
+
+		// Recursively process the child nodes
+		addChildrenFolder(foldersByFrag, folder, child)
+	}
+}
+
+func appendUnique(slice []string, value string) []string {
+	for _, v := range slice {
+		if v == value {
+			return slice
+		}
+	}
+	return append(slice, value)
 }

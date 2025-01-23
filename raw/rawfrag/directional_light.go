@@ -28,3 +28,7 @@ func (e *WldFragDirectionalLight) Read(r io.ReadSeeker, isNewWorld bool) error {
 	}
 	return nil
 }
+
+func (e *WldFragDirectionalLight) NameRef() int32 {
+	return 0
+}

@@ -14,6 +14,9 @@ import (
 	"github.com/xackery/quail/raw/rawfrag"
 )
 
+// This is all about raw frag checking.
+// We iterate a wld for every fragment, read it, write it,
+// and compare it to the original.
 func TestRawFragReadWrite(t *testing.T) {
 	eqPath := os.Getenv("EQ_PATH")
 	if eqPath == "" {

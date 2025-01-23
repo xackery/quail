@@ -17,3 +17,7 @@ func (e *WldFragDirectionalLightOld) Write(w io.Writer, isNewWorld bool) error {
 func (e *WldFragDirectionalLightOld) Read(r io.ReadSeeker, isNewWorld bool) error {
 	return nil
 }
+
+func (e *WldFragDirectionalLightOld) NameRef() int32 {
+	return 0
+}

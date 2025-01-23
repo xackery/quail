@@ -10,7 +10,7 @@ import (
 
 // WldFragLight is Light in libeq, Light Source Reference in openzone, POINTLIGHTT ?? in wld, LightSourceReference in lantern
 type WldFragLight struct {
-	NameRef     int32  `yaml:"name_ref"`
+	nameRef     int32  `yaml:"name_ref"`
 	LightDefRef int32  `yaml:"light_def_ref"`
 	Flags       uint32 `yaml:"flags"`
 }
@@ -21,7 +21,7 @@ func (e *WldFragLight) FragCode() int {
 
 func (e *WldFragLight) Write(w io.Writer, isNewWorld bool) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
-	enc.Int32(e.NameRef)
+	enc.Int32(e.nameRef)
 	enc.Int32(e.LightDefRef)
 	enc.Uint32(e.Flags)
 	err := enc.Error()
@@ -33,7 +33,7 @@ func (e *WldFragLight) Write(w io.Writer, isNewWorld bool) error {
 
 func (e *WldFragLight) Read(r io.ReadSeeker, isNewWorld bool) error {
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
-	e.NameRef = dec.Int32()
+	e.nameRef = dec.Int32()
 	e.LightDefRef = dec.Int32()
 	e.Flags = dec.Uint32()
 	err := dec.Error()
@@ -41,4 +41,8 @@ func (e *WldFragLight) Read(r io.ReadSeeker, isNewWorld bool) error {
 		return fmt.Errorf("read: %w", err)
 	}
 	return nil
+}
+
+func (e *WldFragLight) NameRef() int32 {
+	return e.nameRef
 }

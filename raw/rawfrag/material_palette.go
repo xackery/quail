@@ -10,7 +10,7 @@ import (
 
 // WldFragMaterialPalette is MaterialPalette in libeq, TextureList in openzone, MATERIALPALETTE in wld, WldFragMaterialPalette in lantern
 type WldFragMaterialPalette struct {
-	NameRef      int32
+	nameRef      int32
 	Flags        uint32
 	MaterialRefs []uint32
 }
@@ -21,7 +21,7 @@ func (e *WldFragMaterialPalette) FragCode() int {
 
 func (e *WldFragMaterialPalette) Write(w io.Writer, isNewWorld bool) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
-	enc.Int32(e.NameRef)
+	enc.Int32(e.nameRef)
 	enc.Uint32(e.Flags)
 	enc.Uint32(uint32(len(e.MaterialRefs)))
 	for _, materialRef := range e.MaterialRefs {
@@ -36,7 +36,7 @@ func (e *WldFragMaterialPalette) Write(w io.Writer, isNewWorld bool) error {
 
 func (e *WldFragMaterialPalette) Read(r io.ReadSeeker, isNewWorld bool) error {
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
-	e.NameRef = dec.Int32()
+	e.nameRef = dec.Int32()
 	e.Flags = dec.Uint32()
 	materialCount := dec.Uint32()
 	for i := 0; i < int(materialCount); i++ {
@@ -47,4 +47,12 @@ func (e *WldFragMaterialPalette) Read(r io.ReadSeeker, isNewWorld bool) error {
 		return fmt.Errorf("read: %w", err)
 	}
 	return nil
+}
+
+func (e *WldFragMaterialPalette) NameRef() int32 {
+	return e.nameRef
+}
+
+func (e *WldFragMaterialPalette) SetNameRef(nameRef int32) {
+	e.nameRef = nameRef
 }

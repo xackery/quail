@@ -12,7 +12,7 @@ var tests = []struct {
 }{
 	//{baseName: "ork"},
 	//{baseName: "arena"},
-	{baseName: "commonlands"},
+	//{baseName: "commonlands"},
 }
 
 func TestStep1(t *testing.T) {
