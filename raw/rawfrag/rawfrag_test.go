@@ -113,18 +113,7 @@ func TestFragment(t *testing.T) {
 		//{path: "wol_v3_chr.s3d", file: "wol_v3_chr.wld", fragIndex: 0}, // PASS
 		//{path: "globalhuf_chr.s3d", file: "globalhuf_chr.wld", fragIndex: 0}, // PASS
 	}
-	if !common.IsTestExtensive() {
-		tests = []struct {
-			path      string
-			file      string
-			fragIndex int
-			isDump    bool
-		}{
-			//{path: "global_chr.s3d", file: "global_chr.wld", fragIndex: 4},
-			//{path: "load2.s3d", file: "load2.wld", fragIndex: 0},
-			//{path: "gequip.s3d", file: "gequip.wld", fragIndex: 0},
-		}
-	}
+
 	for _, tt := range tests {
 		t.Run(tt.file, func(t *testing.T) {
 			pfs, err := pfs.NewFile(fmt.Sprintf("%s/%s", eqPath, tt.path))

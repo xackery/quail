@@ -40,10 +40,10 @@ test: ## run tests that aren't flagged for SINGLE_TEST
 
 .PHONY: test-all
 test-all: ## test all, including SINGLE_TEST
-	@echo "test-all: running every test, even ones flagged SINGLE_TEST timeout 120s..."
+	@echo "test-all: Running extensive tests"
 	@mkdir -p test
 	@rm -rf test/*
-	@IS_TEST_EXTENSIVE=1 SINGLE_TEST=1 go test -timeout 120s -tags ci ./...
+	@source .env && EQ_PATH=$$EQ_PATH SINGLE_TEST=1 go test -timeout 120s -tags test_all ./...
 
 build-all: build-darwin build-windows build-linux build-windows-addon ## build all supported os's
 

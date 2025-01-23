@@ -3,8 +3,6 @@ package quail
 import (
 	"os"
 	"testing"
-
-	"github.com/xackery/quail/common"
 )
 
 func TestQuailRead(t *testing.T) {
@@ -21,14 +19,7 @@ func TestQuailRead(t *testing.T) {
 	}{
 		{"ala.eqg", false},
 	}
-	if !common.IsTestExtensive() {
-		tests = []struct {
-			pfsName string
-			wantErr bool
-		}{
-			{"ala.eqg", false},
-		}
-	}
+
 	for _, tt := range tests {
 		t.Run(tt.pfsName, func(t *testing.T) {
 			q := &Quail{}

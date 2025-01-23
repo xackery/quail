@@ -31,15 +31,7 @@ func TestAniRead(t *testing.T) {
 		// .ani|2|walk_ba_1_vaf.ani|vaf.eqg valdeholm.eqg pfs import: eqg load: decode: read nameData unexpected EOF
 		{name: "vaf.eqg"}, // PASS
 	}
-	if !common.IsTestExtensive() {
-		tests = []struct {
-			name    string
-			args    args
-			wantErr bool
-		}{
-			{name: "exo.eqg"}, // PASS
-		}
-	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			pfs, err := pfs.NewFile(fmt.Sprintf("%s/%s", eqPath, tt.name))

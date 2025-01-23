@@ -2,6 +2,9 @@
     "files.associations": {
         "*.log": "ini",
     },
+    "gopls": {
+        "buildFlags": ["-tags", "test_all"],
+    },
     "go.testEnvVars": {
         "SINGLE_TEST": "1"
     },

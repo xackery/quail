@@ -25,9 +25,6 @@ func (e *tagEntry) String() string {
 }
 
 func TestWceReadWrite(t *testing.T) {
-	if os.Getenv("SINGLE_TEST") != "1" {
-		t.Skip("skipping test; SINGLE_TEST not set")
-	}
 	eqPath := os.Getenv("EQ_PATH")
 	if eqPath == "" {
 		t.Skip("EQ_PATH not set")
