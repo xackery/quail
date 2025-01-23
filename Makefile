@@ -47,7 +47,12 @@ test-all: ## test all, including SINGLE_TEST
 
 build-all: build-darwin build-windows build-linux build-windows-addon ## build all supported os's
 
+clean: test-clear
+clear: test-clear
 
+test-clear:
+	@echo "test-clear: clearing test files"
+	rm -rf test/*
 build-darwin: ## build darwin
 	@echo "build-darwin: ${BUILD_VERSION}"
 	@CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -trimpath -buildmode=pie -ldflags="-X main.Version=v${VERSION} -X main.ShowVersion=1 -s -w" -o bin/${NAME}-darwin main.go

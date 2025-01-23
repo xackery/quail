@@ -1827,24 +1827,22 @@ func (e *MaterialDef) Definition() string {
 }
 
 func (e *MaterialDef) Write(token *AsciiWriteToken) error {
-	// if len(e.folders) == 0 {
-	// 	fmt.Printf("No folders to process for MaterialDef with Tag: %s\n", e.Tag)
-	// } else {
-	// 	fmt.Printf("Processing folders for MaterialDef with Tag: %s - Folders: %v\n", e.Tag, e.folders)
-	// }
 
 	// Iterate through the folders
 	for _, folder := range e.folders {
-		// fmt.Printf("MaterialDef Tag: %s - Setting writer for folder: %s\n", e.Tag, folder)
-
 		err := token.SetWriter(folder)
 		if err != nil {
-			return fmt.Errorf("MaterialDef Tag: %s - failed to set writer for folder %s: %w", e.Tag, folder, err)
+			return err
 		}
+
+		if token.TagIsWritten(e.Tag) {
+			continue
+		}
+		token.TagSetIsWritten(e.Tag)
 
 		w, err := token.Writer()
 		if err != nil {
-			return fmt.Errorf("MaterialDef Tag: %s - failed to get writer for folder %s: %w", e.Tag, folder, err)
+			return err
 		}
 
 		// fmt.Printf("MaterialDef Tag: %s - Writer successfully set for folder: %s\n", e.Tag, folder)
