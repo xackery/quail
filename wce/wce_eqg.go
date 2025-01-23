@@ -8,7 +8,6 @@ import (
 
 // MdsDef is an entry EQSKINNEDMODELDEF
 type MdsDef struct {
-	model    string
 	Tag      string
 	Version  uint32
 	Vertices [][3]float32
@@ -86,8 +85,6 @@ func (e *MdsDef) Write(token *AsciiWriteToken) error {
 }
 
 func (e *MdsDef) Read(token *AsciiReadToken) error {
-
-	e.model = token.wce.lastReadModelTag
 
 	records, err := token.ReadProperty("VERSION", 1)
 	if err != nil {
@@ -228,7 +225,6 @@ func (e *MdsDef) FromRaw(wce *Wce, src *raw.Mds) error {
 
 // ModDef is an entry EQMODELDEF
 type ModDef struct {
-	model    string
 	Tag      string
 	Version  uint32
 	Vertices [][3]float32
@@ -301,8 +297,6 @@ func (e *ModDef) Write(token *AsciiWriteToken) error {
 }
 
 func (e *ModDef) Read(token *AsciiReadToken) error {
-
-	e.model = token.wce.lastReadModelTag
 
 	records, err := token.ReadProperty("VERSION", 1)
 	if err != nil {
@@ -454,7 +448,6 @@ func (e *ModDef) FromRaw(wce *Wce, src *raw.Mod) error {
 
 // TerDef is an entry EQTERRAINDEF
 type TerDef struct {
-	model    string
 	Tag      string
 	Version  uint32
 	Vertices [][3]float32
@@ -520,8 +513,6 @@ func (e *TerDef) Write(token *AsciiWriteToken) error {
 }
 
 func (e *TerDef) Read(token *AsciiReadToken) error {
-
-	e.model = token.wce.lastReadModelTag
 
 	records, err := token.ReadProperty("VERSION", 1)
 	if err != nil {
@@ -665,7 +656,6 @@ func (e *TerDef) FromRaw(wce *Wce, src *raw.Ter) error {
 
 // EQMaterialDef is an entry EQMATERIALDEF
 type EQMaterialDef struct {
-	model             string
 	Tag               string
 	ShaderTag         string
 	HexOneFlag        int
@@ -719,8 +709,6 @@ func (e *EQMaterialDef) Write(token *AsciiWriteToken) error {
 }
 
 func (e *EQMaterialDef) Read(token *AsciiReadToken) error {
-
-	e.model = token.wce.lastReadModelTag
 
 	records, err := token.ReadProperty("SHADERTAG", 1)
 	if err != nil {

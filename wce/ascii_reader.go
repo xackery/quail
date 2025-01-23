@@ -456,7 +456,7 @@ func (a *AsciiReadToken) readInclude(args []string) error {
 
 	path := a.basePath + "/" + args[1]
 	if strings.HasSuffix(args[1], "/_ROOT.WCE") {
-		a.wce.lastReadModelTag = strings.TrimSuffix(args[1], "/_ROOT.WCE")
+		a.wce.lastReadFolder = strings.TrimSuffix(args[1], "/_ROOT.WCE")
 	}
 	ir, err := LoadAsciiFile(path, a.wce)
 	if err != nil {

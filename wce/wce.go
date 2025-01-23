@@ -12,7 +12,7 @@ var AsciiVersion = "v0.0.1"
 // Wce is a struct representing a Wce file
 type Wce struct {
 	isVariationMaterial    bool   // set true while writing or reading variations
-	lastReadModelTag       string // last model tag read
+	lastReadFolder         string // used during wce parsing to remember context
 	isObj                  bool   // true when a _obj suffix is found in path
 	isChr                  bool   // true when a _chr suffix is found in path
 	modelTags              []string
@@ -45,7 +45,6 @@ type Wce struct {
 	TrackDefs              []*TrackDef
 	TrackInstances         []*TrackInstance
 	variationMaterialDefs  map[string][]*MaterialDef
-	varMaterialDefs        []*MaterialDef
 	WorldTrees             []*WorldTree
 	Zones                  []*Zone
 	MdsDefs                []*MdsDef
@@ -304,8 +303,7 @@ func (wce *Wce) NextTagIndex(tag string) int {
 
 func (wce *Wce) reset() {
 	wce.GlobalAmbientLightDef = nil
-	wce.lastReadModelTag = ""
-	wce.modelTags = []string{}
+	wce.lastReadFolder = ""
 	wce.tagIndexes = make(map[string]int)
 	wce.SimpleSpriteDefs = []*SimpleSpriteDef{}
 	wce.MaterialDefs = []*MaterialDef{}

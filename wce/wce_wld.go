@@ -1808,7 +1808,6 @@ func (e *MaterialPalette) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFr
 type MaterialDef struct {
 	folders            []string // when writing, this is the folder the file is in
 	fragID             int16
-	model              string
 	Tag                string
 	Variation          int
 	SpriteHexFiftyFlag int
@@ -1879,8 +1878,6 @@ func (e *MaterialDef) Write(token *AsciiWriteToken) error {
 
 func (e *MaterialDef) Read(token *AsciiReadToken) error {
 	e.folders = append(e.folders, token.folder)
-
-	e.model = token.wce.lastReadModelTag
 
 	records, err := token.ReadProperty("VARIATION", 1)
 	if err != nil {
@@ -1968,7 +1965,7 @@ func (e *MaterialDef) Read(token *AsciiReadToken) error {
 		return fmt.Errorf("doublesided: %w", err)
 	}
 
-	token.wce.variationMaterialDefs[token.wce.lastReadModelTag] = append(token.wce.variationMaterialDefs[token.wce.lastReadModelTag], e)
+	token.wce.variationMaterialDefs[token.wce.lastReadFolder] = append(token.wce.variationMaterialDefs[token.wce.lastReadFolder], e)
 	return nil
 }
 
@@ -2031,11 +2028,10 @@ func (e *MaterialDef) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
 }
 
 func (e *MaterialDef) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragMaterialDef) error {
+	var err error
 	if frag == nil {
 		return fmt.Errorf("frag is not materialdef (wrong fragcode?)")
 	}
-
-	e.model = wce.lastReadModelTag
 
 	if frag.SimpleSpriteRef > 0 {
 		if len(rawWld.Fragments) < int(frag.SimpleSpriteRef) {
@@ -2063,45 +2059,11 @@ func (e *MaterialDef) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragMa
 	e.RGBPen = frag.RGBPen
 	e.Brightness = frag.Brightness
 	e.ScaledAmbient = frag.ScaledAmbient
-	if wce.isChr {
-		name := rawWld.Name(frag.NameRef())
-
-		// Use the helper function to parse the material tag
-		prefix, err := helper.MaterialTagParse(wce.isChr, name)
-		if err != nil {
-			return fmt.Errorf("error parsing material tag: %w", err)
-		}
-
-		if prefix != "" {
-			e.Variation = 1
-
-			// Search for the parent material by matching the prefix
-			for _, otherMaterial := range wce.MaterialDefs {
-				if strings.HasPrefix(otherMaterial.Tag, prefix) {
-					folders := otherMaterial.folders
-					for _, folder := range e.folders {
-						folders = appendUnique(folders, folder)
-					}
-					otherMaterial.folders = folders
-					break
-				}
-			}
-		} else {
-			e.Variation = 0
-		}
-	} else {
-		e.Variation = 0
+	e.Variation, err = e.variationParseFromRaw(wce, frag)
+	if err != nil {
+		return fmt.Errorf("variationParse: %w", err)
 	}
-	// Propagate Variation to SimpleSpriteDef if applicable
-	if e.Variation == 1 && frag.SimpleSpriteRef > 0 {
-		for _, sprite := range wce.SimpleSpriteDefs {
-			if sprite.Tag == e.SimpleSpriteTag {
-				sprite.Variation = 1
-				sprite.folders = e.folders
-				break
-			}
-		}
-	}
+
 	if frag.Flags&0x01 != 0 {
 		e.DoubleSided = 1
 	}
@@ -2112,12 +2074,51 @@ func (e *MaterialDef) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragMa
 		e.Pair2.Float32 = frag.Pair2
 	}
 
-	if e.Variation == 1 {
-		wce.varMaterialDefs = append(wce.varMaterialDefs, e)
+	wce.variationMaterialDefs[wce.lastReadFolder] = append(wce.variationMaterialDefs[wce.lastReadFolder], e)
+	return nil
+}
+
+func (e *MaterialDef) variationParseFromRaw(wce *Wce, frag *rawfrag.WldFragMaterialDef) (int, error) {
+	if !wce.isChr {
+		return 0, nil
 	}
 
-	wce.variationMaterialDefs[wce.lastReadModelTag] = append(wce.variationMaterialDefs[wce.lastReadModelTag], e)
-	return nil
+	// Use the helper function to parse the material tag
+	prefix, err := helper.MaterialTagParse(wce.isChr, e.Tag)
+	if err != nil {
+		return 0, fmt.Errorf("materialTagParse %s (isChr): %w", e.Tag, err)
+	}
+	if prefix == "" {
+		return 0, nil
+	}
+
+	// Search for the parent material by matching the prefix
+	for _, otherMaterial := range wce.MaterialDefs {
+		if !strings.HasPrefix(otherMaterial.Tag, prefix) {
+			continue
+		}
+		folders := otherMaterial.folders
+		for _, folder := range e.folders {
+			folders = appendUnique(folders, folder)
+		}
+		otherMaterial.folders = folders
+		break
+	}
+
+	// Propagate Variation to SimpleSpriteDef if applicable
+	if frag.SimpleSpriteRef == 0 {
+		return 1, nil
+	}
+	for _, sprite := range wce.SimpleSpriteDefs {
+		if sprite.Tag != e.SimpleSpriteTag {
+			continue
+		}
+		sprite.Variation = 1
+		sprite.folders = e.folders
+		break
+	}
+
+	return 1, nil
 }
 
 // BlitSpriteDef is a declaration of BLITSPRITEDEF
@@ -2583,7 +2584,7 @@ func (e *ActorDef) Write(token *AsciiWriteToken) error {
 						return fmt.Errorf("lod %d hsprite %s: %w", lodIndex, sprite.Tag, err)
 					}
 
-					variations := token.wce.variationMaterialDefs[token.wce.lastReadModelTag]
+					variations := token.wce.variationMaterialDefs[token.wce.lastReadFolder]
 					sort.Slice(variations, func(i, j int) bool {
 						return variations[i].Tag < variations[j].Tag
 					})
@@ -2846,7 +2847,7 @@ func (e *ActorDef) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
 		actorDef.Flags |= 0x80
 	}
 
-	wce.lastReadModelTag = strings.TrimSuffix(e.Tag, "_ACTORDEF")
+	wce.lastReadFolder = strings.TrimSuffix(e.Tag, "_ACTORDEF")
 
 	for _, action := range e.Actions {
 		actorAction := rawfrag.WldFragModelAction{
@@ -2904,7 +2905,7 @@ func (e *ActorDef) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
 					return -1, fmt.Errorf("hierchcicalspritedef %s to raw: %w", lod.SpriteTag, err)
 				}
 
-				variations := wce.variationMaterialDefs[wce.lastReadModelTag]
+				variations := wce.variationMaterialDefs[wce.lastReadFolder]
 				sort.Slice(variations, func(i, j int) bool {
 					return variations[i].Tag < variations[j].Tag
 				})
@@ -4541,7 +4542,6 @@ type TrackInstance struct {
 	folders            []string // when writing, this is the folder the file is in
 	fragID             int16
 	animation          string
-	model              string
 	Tag                string
 	TagIndex           int
 	DefinitionTag      string
@@ -4708,12 +4708,10 @@ func (e *TrackInstance) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFrag
 	e.TagIndex = wce.NextTagIndex(e.Tag)
 
 	if wce.isObj {
-		e.model = wce.lastReadModelTag
 		e.animation = ""
 	} else if wce.isTrackAni(e.Tag) {
-		e.animation, e.model = helper.TrackAnimationParse(wce.isChr, e.Tag)
+		e.animation, _ = helper.TrackAnimationParse(wce.isChr, e.Tag)
 	} else {
-		e.model = wce.lastReadModelTag
 		e.animation = ""
 	}
 
@@ -4738,7 +4736,6 @@ type TrackDef struct {
 	folders      []string // when writing, this is the folder the file is in
 	fragID       int16
 	animation    string
-	model        string
 	Tag          string
 	TagIndex     int
 	Frames       []*Frame
@@ -4944,15 +4941,13 @@ func (e *TrackDef) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragTrack
 	e.TagIndex = wce.NextTagIndex(e.Tag)
 
 	if wce.isObj {
-		e.model = wce.lastReadModelTag
 		e.animation = ""
 	} else {
 		modifiedTag := strings.TrimSuffix(e.Tag, "DEF")
 
 		if wce.isTrackAni(modifiedTag) {
-			e.animation, e.model = helper.TrackAnimationParse(wce.isChr, modifiedTag)
+			e.animation, _ = helper.TrackAnimationParse(wce.isChr, modifiedTag)
 		} else {
-			e.model = wce.lastReadModelTag
 			e.animation = ""
 		}
 	}
@@ -8409,7 +8404,6 @@ func spriteVariationToRaw(wce *Wce, rawWld *raw.Wld, e WldDefinitioner) error {
 type DMTrackDef2 struct {
 	folders []string // when writing, this is the folder the file is in
 	fragID  int16
-	model   string
 	Tag     string
 	Sleep   uint16
 	Param2  uint16
@@ -8434,7 +8428,7 @@ func (e *DMTrackDef2) Write(token *AsciiWriteToken) error {
 		}
 
 		if e.Sleep == 0 {
-			return fmt.Errorf("sleep is 0 for dmtrackdef2 %s on %s, this isn't handled report to Xackery", e.Tag, e.model)
+			return fmt.Errorf("sleep is 0 for dmtrackdef2 %s, this isn't handled report to Xackery", e.Tag)
 		}
 
 		fmt.Fprintf(w, "%s \"%s\"\n", e.Definition(), e.Tag)
@@ -8605,7 +8599,6 @@ func (e *DMTrackDef2) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragDm
 		e.Frames = append(e.Frames, frames)
 	}
 
-	e.model = wce.lastReadModelTag
 	if frag.Flags != 0 {
 		return fmt.Errorf("unknown flags %d", frag.Flags)
 	}

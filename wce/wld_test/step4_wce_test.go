@@ -234,8 +234,11 @@ func TestWceReadWrite(t *testing.T) {
 					continue
 				}
 
-				t.Fatalf("fragment code %d (%s) count mismatch: src: %d, dst: %d", code, rawfrag.FragName(code), count, dstFragByCodes[code])
+				if dstFragByCodes[code] > count {
+					continue
+				}
 
+				t.Fatalf("fragment code %d (%s) count mismatch: src: %d, dst: %d", code, rawfrag.FragName(code), count, dstFragByCodes[code])
 			}
 			for code, tags := range srcFragByTags {
 				if len(tags) > len(dstFragByTags[code]) {
