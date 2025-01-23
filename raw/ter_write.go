@@ -20,10 +20,10 @@ func (ter *Ter) Write(w io.Writer) error {
 
 	for _, material := range ter.Materials {
 		ter.NameAdd(material.Name)
-		ter.NameAdd(material.ShaderName)
+		ter.NameAdd(material.EffectName)
 		for _, prop := range material.Properties {
 			ter.NameAdd(prop.Name)
-			switch prop.Category {
+			switch prop.Type {
 			case 2:
 				ter.NameAdd(prop.Value)
 			default:
@@ -41,12 +41,12 @@ func (ter *Ter) Write(w io.Writer) error {
 	for _, material := range ter.Materials {
 		enc.Int32(material.ID)
 		enc.Uint32(uint32(ter.NameIndex(material.Name)))
-		enc.Uint32(uint32(ter.NameIndex(material.ShaderName)))
+		enc.Uint32(uint32(ter.NameIndex(material.EffectName)))
 		enc.Uint32(uint32(len(material.Properties)))
 		for _, prop := range material.Properties {
 			enc.Uint32(uint32(ter.NameIndex(prop.Name)))
-			enc.Uint32(uint32(prop.Category))
-			switch prop.Category {
+			enc.Uint32(uint32(prop.Type))
+			switch prop.Type {
 			case 0:
 				fval, err := strconv.ParseFloat(prop.Value, 32)
 				if err != nil {
@@ -89,7 +89,7 @@ func (ter *Ter) Write(w io.Writer) error {
 			}
 		}
 		enc.Int32(matID)
-		enc.Uint32(tri.Flag)
+		enc.Uint32(tri.Flags)
 	}
 
 	err = enc.Error()

@@ -14,7 +14,7 @@ type Ter struct {
 	Version      uint32      `yaml:"version"`
 	Materials    []*Material `yaml:"materials"`
 	Vertices     []Vertex    `yaml:"vertices"`
-	Triangles    []Triangle  `yaml:"triangles"`
+	Triangles    []Face      `yaml:"triangles"`
 	names        []*nameEntry
 	nameBuf      []byte
 }
@@ -64,24 +64,24 @@ func (ter *Ter) Read(r io.ReadSeeker) error {
 		nameCounter++
 
 		material.Name = ter.Name(dec.Int32())
-		material.ShaderName = ter.Name(dec.Int32())
+		material.EffectName = ter.Name(dec.Int32())
 
 		ter.Materials = append(ter.Materials, material)
 
 		propertyCount := dec.Uint32()
 		for j := 0; j < int(propertyCount); j++ {
-			property := &MaterialProperty{
+			property := &MaterialParam{
 				Name: material.Name,
 			}
 
 			property.Name = ter.Name(dec.Int32())
 
-			property.Category = dec.Uint32()
-			if property.Category == 0 {
+			property.Type = MaterialParamType(dec.Uint32())
+			if property.Type == 0 {
 				property.Value = fmt.Sprintf("%0.8f", dec.Float32())
 			} else {
 				val := dec.Int32()
-				if property.Category == 2 {
+				if property.Type == 2 {
 					property.Value = ter.Name(val)
 				} else {
 					property.Value = fmt.Sprintf("%d", val)
@@ -119,7 +119,7 @@ func (ter *Ter) Read(r io.ReadSeeker) error {
 	}
 
 	for i := 0; i < int(triangleCount); i++ {
-		t := Triangle{}
+		t := Face{}
 		t.Index[0] = dec.Uint32()
 		t.Index[1] = dec.Uint32()
 		t.Index[2] = dec.Uint32()
@@ -143,7 +143,7 @@ func (ter *Ter) Read(r io.ReadSeeker) error {
 			t.MaterialName = material.Name
 		}
 
-		t.Flag = dec.Uint32()
+		t.Flags = dec.Uint32()
 		ter.Triangles = append(ter.Triangles, t)
 	}
 

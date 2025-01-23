@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	"fmt"
 	"strconv"
+
+	"github.com/xackery/quail/raw"
 )
 
 type NullInt8 struct {
@@ -276,6 +278,14 @@ func parse(inVal interface{}, src ...string) error {
 		}
 		val.Int64 = i
 		val.Valid = true
+		return nil
+	case *raw.MaterialParamType:
+		i, err := strconv.ParseUint(src[0], 10, 32)
+		if err != nil {
+			return err
+		}
+
+		*val = raw.MaterialParamType(i)
 		return nil
 	case *NullUint8:
 		if src[0] == "NULL" {

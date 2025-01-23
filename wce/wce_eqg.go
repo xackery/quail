@@ -214,7 +214,7 @@ func (e *MdsDef) FromRaw(wce *Wce, src *raw.Mds) error {
 			MaterialName: string(face.MaterialName),
 			Index:        face.Index,
 		}
-		if face.Flag&0x01 != 0 {
+		if face.Flags&0x01 != 0 {
 			eqFace.HexOneFlag = 1
 		}
 		e.Faces = append(e.Faces, eqFace)
@@ -432,12 +432,12 @@ func (e *ModDef) FromRaw(wce *Wce, src *raw.Mod) error {
 		e.Tints[i] = v.Tint
 	}
 
-	for _, face := range src.Triangles {
+	for _, face := range src.Faces {
 		eqFace := &EQFace{
 			MaterialName: string(face.MaterialName),
 			Index:        face.Index,
 		}
-		if face.Flag&0x01 != 0 {
+		if face.Flags&0x01 != 0 {
 			eqFace.HexOneFlag = 1
 		}
 		e.Faces = append(e.Faces, eqFace)
@@ -645,7 +645,7 @@ func (e *TerDef) FromRaw(wce *Wce, src *raw.Ter) error {
 			MaterialName: string(face.MaterialName),
 			Index:        face.Index,
 		}
-		if face.Flag&0x01 != 0 {
+		if face.Flags&0x01 != 0 {
 			eqFace.HexOneFlag = 1
 		}
 		e.Faces = append(e.Faces, eqFace)
@@ -665,9 +665,9 @@ type EQMaterialDef struct {
 }
 
 type MaterialProperty struct {
-	Name     string
-	Category uint32
-	Value    string
+	Name  string
+	Type  raw.MaterialParamType
+	Value string
 }
 
 func (e *EQMaterialDef) Definition() string {
@@ -692,7 +692,7 @@ func (e *EQMaterialDef) Write(token *AsciiWriteToken) error {
 
 	fmt.Fprintf(w, "\tNUMPROPERTIES %d\n", len(e.Properties))
 	for _, prop := range e.Properties {
-		fmt.Fprintf(w, "\t\tPROPERTY \"%s\" %d \"%s\"\n", prop.Name, prop.Category, prop.Value)
+		fmt.Fprintf(w, "\t\tPROPERTY \"%s\" %d \"%s\"\n", prop.Name, prop.Type, prop.Value)
 	}
 
 	fmt.Fprintf(w, "\tANIMSLEEP %d\n", e.AnimationSleep)
@@ -743,10 +743,9 @@ func (e *EQMaterialDef) Read(token *AsciiReadToken) error {
 		}
 		prop := &MaterialProperty{}
 		prop.Name = records[1]
-		err = parse(&prop.Category, records[2])
+		err = parse(&prop.Type, records[2])
 		if err != nil {
-
-			return fmt.Errorf("property category: %w", err)
+			return fmt.Errorf("property param: %w", err)
 		}
 
 		prop.Value = records[3]
@@ -788,16 +787,16 @@ func (e *EQMaterialDef) ToRaw(wce *Wce, dst *raw.Material) error {
 
 func (e *EQMaterialDef) FromRaw(wce *Wce, src *raw.Material) error {
 	e.Tag = src.Name
-	e.ShaderTag = src.ShaderName
+	e.ShaderTag = src.EffectName
 	if src.Flag&0x01 != 0 {
 		e.HexOneFlag = 1
 	}
 	e.Properties = make([]*MaterialProperty, len(src.Properties))
 	for i, prop := range src.Properties {
 		e.Properties[i] = &MaterialProperty{
-			Name:     prop.Name,
-			Category: prop.Category,
-			Value:    prop.Value,
+			Name:  prop.Name,
+			Type:  prop.Type,
+			Value: prop.Value,
 		}
 	}
 	e.AnimationSleep = src.Animation.Sleep

@@ -81,7 +81,7 @@ func TestModWrite(t *testing.T) {
 		// .mod|0|obp_fob_tree.mod|oldfieldofboneb.eqg oldfieldofboneb.eqg pfs import: readMod obp_fob_tree.mod: invalid header EQLO, wanted EQGM
 		//{eqg: "oldfieldofboneb.eqg", file: "obp_fob_tree.mod"}, // TODO: EQLO v4 .mod
 		// .mod|1|arch.mod|dranik.eqg
-		//{eqg: "dranik.eqg", file: "arch.mod"}, // PASS
+		{eqg: "dranik.eqg", file: "arch.mod"}, // PASS
 		// .mod|1|aro.mod|aro.eqg
 		//{eqg: "aro.eqg", file: "aro.mod"}, // PASS
 		// .mod|1|col_b04.mod|b04.eqg b04.eqg pfs import: readMod col_b04.mod: material shader not found
@@ -135,8 +135,8 @@ func TestModWrite(t *testing.T) {
 				t.Errorf("Vertices mismatch, got %d, expected %d", len(mod.Vertices), len(mod2.Vertices))
 			}
 
-			if len(mod.Triangles) != len(mod2.Triangles) {
-				t.Errorf("Triangles mismatch, got %d, expected %d", len(mod.Triangles), len(mod2.Triangles))
+			if len(mod.Faces) != len(mod2.Faces) {
+				t.Errorf("Triangles mismatch, got %d, expected %d", len(mod.Faces), len(mod2.Faces))
 			}
 
 			if len(mod.Bones) != len(mod2.Bones) {

@@ -17,7 +17,7 @@ type Mds struct {
 	MainNameIndex   int32                `yaml:"main_name_index"`
 	SubNameIndex    int32                `yaml:"sub_name_index"`
 	Vertices        []*Vertex            `yaml:"vertices"`
-	Triangles       []Triangle           `yaml:"triangles"`
+	Triangles       []Face               `yaml:"triangles"`
 	Subs            []*MdsSub            `yaml:"subs"`
 	BoneAssignments []*MdsBoneAssignment `yaml:"bone_assignments"`
 	names           []*nameEntry
@@ -80,23 +80,23 @@ func (mds *Mds) Read(r io.ReadSeeker) error {
 		material := &Material{}
 		material.ID = dec.Int32()
 		material.Name = mds.Name(dec.Int32())
-		material.ShaderName = mds.Name(dec.Int32())
+		material.EffectName = mds.Name(dec.Int32())
 
 		mds.Materials = append(mds.Materials, material)
 		propertyCount := dec.Uint32()
 		for j := 0; j < int(propertyCount); j++ {
-			property := &MaterialProperty{
+			property := &MaterialParam{
 				Name: material.Name,
 			}
 
 			property.Name = mds.Name(dec.Int32())
 
-			property.Category = dec.Uint32()
-			if property.Category == 0 {
+			property.Type = MaterialParamType(dec.Uint32())
+			if property.Type == 0 {
 				property.Value = fmt.Sprintf("%0.8f", dec.Float32())
 			} else {
 				val := dec.Int32()
-				if property.Category == 2 {
+				if property.Type == 2 {
 					property.Value = mds.Name(val)
 				} else {
 					property.Value = fmt.Sprintf("%d", val)
@@ -116,10 +116,10 @@ func (mds *Mds) Read(r io.ReadSeeker) error {
 		bone.Pivot[0] = dec.Float32()
 		bone.Pivot[1] = dec.Float32()
 		bone.Pivot[2] = dec.Float32()
-		bone.Rotation[0] = dec.Float32()
-		bone.Rotation[1] = dec.Float32()
-		bone.Rotation[2] = dec.Float32()
-		bone.Rotation[3] = dec.Float32()
+		bone.Quaternion[0] = dec.Float32()
+		bone.Quaternion[1] = dec.Float32()
+		bone.Quaternion[2] = dec.Float32()
+		bone.Quaternion[3] = dec.Float32()
 		bone.Scale[0] = dec.Float32()
 		bone.Scale[1] = dec.Float32()
 		bone.Scale[2] = dec.Float32()
@@ -161,7 +161,7 @@ func (mds *Mds) Read(r io.ReadSeeker) error {
 	}
 
 	for i := 0; i < int(triangleCount); i++ {
-		t := Triangle{}
+		t := Face{}
 		t.Index[0] = dec.Uint32()
 		t.Index[1] = dec.Uint32()
 		t.Index[2] = dec.Uint32()
@@ -185,7 +185,7 @@ func (mds *Mds) Read(r io.ReadSeeker) error {
 			t.MaterialName = material.Name
 		}
 
-		t.Flag = dec.Uint32()
+		t.Flags = dec.Uint32()
 		mds.Triangles = append(mds.Triangles, t)
 	}
 

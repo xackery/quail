@@ -20,10 +20,10 @@ func (mod *Mod) Write(w io.Writer) error {
 
 	for _, material := range mod.Materials {
 		mod.NameAdd(material.Name)
-		mod.NameAdd(material.ShaderName)
+		mod.NameAdd(material.EffectName)
 		for _, prop := range material.Properties {
 			mod.NameAdd(prop.Name)
-			switch prop.Category {
+			switch prop.Type {
 			case 2:
 				mod.NameAdd(prop.Value)
 			default:
@@ -39,19 +39,19 @@ func (mod *Mod) Write(w io.Writer) error {
 	enc.Uint32(uint32(len(nameData))) // nameLength
 	enc.Uint32(uint32(len(mod.Materials)))
 	enc.Uint32(uint32(len(mod.Vertices)))
-	enc.Uint32(uint32(len(mod.Triangles)))
+	enc.Uint32(uint32(len(mod.Faces)))
 	enc.Uint32(uint32(len(mod.Bones)))
 	enc.Bytes(nameData)
 
 	for _, material := range mod.Materials {
 		enc.Int32(material.ID)
 		enc.Uint32(uint32(mod.NameIndex(material.Name)))
-		enc.Uint32(uint32(mod.NameIndex(material.ShaderName)))
+		enc.Uint32(uint32(mod.NameIndex(material.EffectName)))
 		enc.Uint32(uint32(len(material.Properties)))
 		for _, prop := range material.Properties {
 			enc.Uint32(uint32(mod.NameIndex(prop.Name)))
-			enc.Uint32(uint32(prop.Category))
-			switch prop.Category {
+			enc.Uint32(uint32(prop.Type))
+			switch prop.Type {
 			case 0:
 				fval, err := strconv.ParseFloat(prop.Value, 32)
 				if err != nil {
@@ -91,7 +91,7 @@ func (mod *Mod) Write(w io.Writer) error {
 		}
 	}
 
-	for _, tri := range mod.Triangles {
+	for _, tri := range mod.Faces {
 		enc.Uint32(tri.Index[0])
 		enc.Uint32(tri.Index[1])
 		enc.Uint32(tri.Index[2])
@@ -103,7 +103,7 @@ func (mod *Mod) Write(w io.Writer) error {
 			}
 		}
 		enc.Int32(matID)
-		enc.Uint32(tri.Flag)
+		enc.Uint32(tri.Flags)
 	}
 
 	for _, bone := range mod.Bones {
@@ -114,13 +114,13 @@ func (mod *Mod) Write(w io.Writer) error {
 		enc.Float32(bone.Pivot[0])
 		enc.Float32(bone.Pivot[1])
 		enc.Float32(bone.Pivot[2])
-		enc.Float32(bone.Rotation[0])
-		enc.Float32(bone.Rotation[1])
-		enc.Float32(bone.Rotation[2])
+		enc.Float32(bone.Quaternion[0])
+		enc.Float32(bone.Quaternion[1])
+		enc.Float32(bone.Quaternion[2])
+		enc.Float32(bone.Quaternion[3])
 		enc.Float32(bone.Scale[0])
 		enc.Float32(bone.Scale[1])
 		enc.Float32(bone.Scale[2])
-		enc.Float32(bone.Scale2)
 	}
 
 	err = enc.Error()

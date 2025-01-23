@@ -7,33 +7,41 @@ type Bone struct {
 	ChildrenCount uint32
 	ChildIndex    int32
 	Pivot         [3]float32
-	Rotation      [4]float32
+	Quaternion    [4]float32
 	Scale         [3]float32
-	Scale2        float32
 }
 
-// Triangle is a triangle
-type Triangle struct {
+// Face is a triangle
+type Face struct {
 	Index        [3]uint32
 	MaterialName string
-	Flag         uint32
+	Flags        uint32
 }
 
 type Material struct {
 	ID         int32
 	Name       string
-	ShaderName string
+	EffectName string
 	Flag       uint32
-	Properties []*MaterialProperty
+	Properties []*MaterialParam
 	Animation  MaterialAnimation
 }
 
-// MaterialProperty is a material property
-type MaterialProperty struct {
-	Name     string
-	Category uint32
-	Value    string
-	Data     []byte
+type MaterialParamType uint32
+
+const (
+	MaterialParamTypeUnused MaterialParamType = iota
+	MaterialParamTypeInt
+	MaterialParamTypeTexture
+	MaterialParamTypeColor
+)
+
+// MaterialParam is a material property
+type MaterialParam struct {
+	Name  string
+	Type  MaterialParamType
+	Value string
+	Data  []byte
 }
 
 type MaterialAnimation struct {

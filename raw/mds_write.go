@@ -20,10 +20,10 @@ func (mds *Mds) Write(w io.Writer) error {
 
 	for _, material := range mds.Materials {
 		mds.NameAdd(material.Name)
-		mds.NameAdd(material.ShaderName)
+		mds.NameAdd(material.EffectName)
 		for _, prop := range material.Properties {
 			mds.NameAdd(prop.Name)
-			switch prop.Category {
+			switch prop.Type {
 			case 2:
 				mds.NameAdd(prop.Value)
 			default:
@@ -45,12 +45,12 @@ func (mds *Mds) Write(w io.Writer) error {
 	for _, material := range mds.Materials {
 		enc.Int32(material.ID)
 		enc.Uint32(uint32(mds.NameIndex(material.Name)))
-		enc.Uint32(uint32(mds.NameIndex(material.ShaderName)))
+		enc.Uint32(uint32(mds.NameIndex(material.EffectName)))
 		enc.Uint32(uint32(len(material.Properties)))
 		for _, prop := range material.Properties {
 			enc.Uint32(uint32(mds.NameIndex(prop.Name)))
-			enc.Uint32(uint32(prop.Category))
-			switch prop.Category {
+			enc.Uint32(uint32(prop.Type))
+			switch prop.Type {
 			case 0:
 				fval, err := strconv.ParseFloat(prop.Value, 32)
 				if err != nil {
@@ -73,13 +73,13 @@ func (mds *Mds) Write(w io.Writer) error {
 		enc.Float32(bone.Pivot[0])
 		enc.Float32(bone.Pivot[1])
 		enc.Float32(bone.Pivot[2])
-		enc.Float32(bone.Rotation[0])
-		enc.Float32(bone.Rotation[1])
-		enc.Float32(bone.Rotation[2])
+		enc.Float32(bone.Quaternion[0])
+		enc.Float32(bone.Quaternion[1])
+		enc.Float32(bone.Quaternion[2])
+		enc.Float32(bone.Quaternion[3])
 		enc.Float32(bone.Scale[0])
 		enc.Float32(bone.Scale[1])
 		enc.Float32(bone.Scale[2])
-		enc.Float32(bone.Scale2)
 	}
 
 	enc.Int32(mds.MainNameIndex)
@@ -122,7 +122,7 @@ func (mds *Mds) Write(w io.Writer) error {
 			}
 		}
 		enc.Int32(matID)
-		enc.Uint32(tri.Flag)
+		enc.Uint32(tri.Flags)
 	}
 
 	// TODO: sub count
