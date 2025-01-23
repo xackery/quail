@@ -7,23 +7,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: 20
       - run: make set-version-${{github.run_number}}
       - run: go get ./...
       - run: go test -tags ci ./...
       - run: make build-all
-      - run: npm run inject
-        working-directory: wasm
-      - name: Authenticate with npm
-        run: npm config set //registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}
-      - name: Publish package
-        run: npm publish
-        working-directory: wasm
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - uses: "marvinpinto/action-automatic-releases@latest"
         if: github.ref == 'refs/heads/main'
         with:
