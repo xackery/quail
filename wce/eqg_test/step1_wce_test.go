@@ -69,6 +69,13 @@ func TestWceReadWrite(t *testing.T) {
 			if tt.fileName == "" {
 				files := archive.Files()
 				for _, file := range files {
+					if strings.Contains(file.Name(), ".ter") {
+						wldSrc.WorldDef.Zone = 1
+						break
+					}
+				}
+
+				for _, file := range files {
 					ext := filepath.Ext(file.Name())
 					for _, knownExt := range knownExts {
 						if ext == knownExt {
@@ -134,11 +141,15 @@ func parseEQGEntry(t *testing.T, fileName string, dirTest string, baseName strin
 	if err != nil {
 		t.Fatalf("failed to open %s %s: %s", ext, baseName, err.Error())
 	}
-	err = os.WriteFile(fmt.Sprintf("%s/%s.src%s", dirTest, baseName, ext), data, 0644)
-	if err != nil {
-		t.Fatalf("failed to write %s %s: %s", ext, baseName, err.Error())
+	noExtName := strings.TrimSuffix(fileName, ext)
+
+	if wldSrc.WorldDef.Zone != 1 || ext == ".ter" {
+		err = os.WriteFile(fmt.Sprintf("%s/%s_%s.src%s", dirTest, baseName, noExtName, ext), data, 0644)
+		if err != nil {
+			t.Fatalf("failed to write %s %s: %s", ext, baseName, err.Error())
+		}
+		fmt.Println("Wrote", fmt.Sprintf("%s/%s_%s.src%s in %0.2f seconds", dirTest, baseName, noExtName, ext, time.Since(start).Seconds()))
 	}
-	fmt.Println("Wrote", fmt.Sprintf("%s/%s.src%s in %0.2f seconds", dirTest, baseName, ext, time.Since(start).Seconds()))
 
 	var rawWldSrc raw.Reader
 	switch ext {

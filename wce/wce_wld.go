@@ -38,9 +38,9 @@ func (e *WorldDef) Write(token *AsciiWriteToken) error {
 		}
 
 		fmt.Fprintf(w, "%s\n", e.Definition())
-		fmt.Fprintf(w, "\tNEWWORLD %d\n", e.NewWorld)
-		fmt.Fprintf(w, "\tZONE %d\n", e.Zone)
-		fmt.Fprintf(w, "\tEQGVERSION? %s\n", wcVal(e.EqgVersion))
+		fmt.Fprintf(w, "\tNEWWORLD %d // in wld files this signifies a version flag\n", e.NewWorld)
+		fmt.Fprintf(w, "\tZONE %d // when 1 this parses things as if a zone\n", e.Zone)
+		fmt.Fprintf(w, "\tEQGVERSION? %s // used in eqg parsing for version rebuilding\n", wcVal(e.EqgVersion))
 		fmt.Fprintf(w, "\n")
 	}
 	e.folders = []string{}

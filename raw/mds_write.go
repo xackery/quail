@@ -86,7 +86,7 @@ func (mds *Mds) Write(w io.Writer) error {
 	enc.Int32(mds.SubNameIndex)
 
 	enc.Uint32(uint32(len(mds.Vertices)))
-	enc.Uint32(uint32(len(mds.Triangles)))
+	enc.Uint32(uint32(len(mds.Faces)))
 	enc.Uint32(uint32(len(mds.BoneAssignments)))
 
 	for _, vert := range mds.Vertices {
@@ -110,7 +110,7 @@ func (mds *Mds) Write(w io.Writer) error {
 		}
 	}
 
-	for _, tri := range mds.Triangles {
+	for _, tri := range mds.Faces {
 		enc.Uint32(tri.Index[0])
 		enc.Uint32(tri.Index[1])
 		enc.Uint32(tri.Index[2])

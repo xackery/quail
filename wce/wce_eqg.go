@@ -2,12 +2,14 @@ package wce
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/xackery/quail/raw"
 )
 
 // MdsDef is an entry EQSKINNEDMODELDEF
 type MdsDef struct {
+	folders  []string
 	Tag      string
 	Version  uint32
 	Vertices [][3]float32
@@ -29,58 +31,58 @@ func (e *MdsDef) Definition() string {
 }
 
 func (e *MdsDef) Write(token *AsciiWriteToken) error {
-	w, err := token.Writer()
-	if err != nil {
-		return err
-	}
-
-	if token.TagIsWritten(e.Tag) {
-		return nil
-	}
-
-	token.TagSetIsWritten(e.Tag)
-
-	for _, material := range token.wce.EQMaterialDefs {
-		err = material.Write(token)
+	for _, folder := range e.folders {
+		err := token.SetWriter(folder)
 		if err != nil {
 			return err
 		}
-	}
+		w, err := token.Writer()
+		if err != nil {
+			return err
+		}
 
-	fmt.Fprintf(w, "%s \"%s\"\n", e.Definition(), e.Tag)
-	fmt.Fprintf(w, "\tVERSION %d\n", e.Version)
-	fmt.Fprintf(w, "\tNUMVERTICES %d\n", len(e.Vertices))
-	for _, v := range e.Vertices {
-		fmt.Fprintf(w, "\t\tXYZ %0.8e %0.8e %0.8e\n", v[0], v[1], v[2])
-	}
-	fmt.Fprintf(w, "\tNUMUVs %d\n", len(e.UVs))
-	for _, u := range e.UVs {
-		fmt.Fprintf(w, "\t\tUV %0.8e %0.8e\n", u[0], u[1])
-	}
-	fmt.Fprintf(w, "\tNUMUV2s %d\n", len(e.UV2s))
-	for _, u := range e.UV2s {
-		fmt.Fprintf(w, "\t\tUV %0.8e %0.8e\n", u[0], u[1])
-	}
+		for _, material := range token.wce.EQMaterialDefs {
+			err = material.Write(token)
+			if err != nil {
+				return err
+			}
+		}
 
-	fmt.Fprintf(w, "\tNUMNORMALS %d\n", len(e.Normals))
-	for _, n := range e.Normals {
-		fmt.Fprintf(w, "\t\tXYZ %0.8e %0.8e %0.8e\n", n[0], n[1], n[2])
-	}
-	fmt.Fprintf(w, "\tNUMTINTS %d\n", len(e.Tints))
-	for _, t := range e.Tints {
-		fmt.Fprintf(w, "\t\tRGBA %d %d %d %d\n", t[0], t[1], t[2], t[3])
-	}
+		fmt.Fprintf(w, "%s \"%s\"\n", e.Definition(), e.Tag)
+		fmt.Fprintf(w, "\tVERSION %d\n", e.Version)
+		fmt.Fprintf(w, "\tNUMVERTICES %d\n", len(e.Vertices))
+		for _, v := range e.Vertices {
+			fmt.Fprintf(w, "\t\tXYZ %0.8e %0.8e %0.8e\n", v[0], v[1], v[2])
+		}
+		fmt.Fprintf(w, "\tNUMUVs %d\n", len(e.UVs))
+		for _, u := range e.UVs {
+			fmt.Fprintf(w, "\t\tUV %0.8e %0.8e\n", u[0], u[1])
+		}
+		fmt.Fprintf(w, "\tNUMUV2s %d\n", len(e.UV2s))
+		for _, u := range e.UV2s {
+			fmt.Fprintf(w, "\t\tUV %0.8e %0.8e\n", u[0], u[1])
+		}
 
-	fmt.Fprintf(w, "\tNUMFACES %d\n", len(e.Faces))
-	for i, face := range e.Faces {
-		fmt.Fprintf(w, "\t\tFACE // %d\n", i)
-		fmt.Fprintf(w, "\t\t\tTRIANGLE %d %d %d\n", face.Index[0], face.Index[1], face.Index[2])
-		fmt.Fprintf(w, "\t\t\tMATERIAL \"%s\"\n", face.MaterialName)
-		fmt.Fprintf(w, "\t\t\tHEXONEFLAG %d\n", face.HexOneFlag)
-	}
-	fmt.Fprintf(w, "\n")
+		fmt.Fprintf(w, "\tNUMNORMALS %d\n", len(e.Normals))
+		for _, n := range e.Normals {
+			fmt.Fprintf(w, "\t\tXYZ %0.8e %0.8e %0.8e\n", n[0], n[1], n[2])
+		}
+		fmt.Fprintf(w, "\tNUMTINTS %d\n", len(e.Tints))
+		for _, t := range e.Tints {
+			fmt.Fprintf(w, "\t\tRGBA %d %d %d %d\n", t[0], t[1], t[2], t[3])
+		}
 
-	token.TagSetIsWritten(e.Tag)
+		fmt.Fprintf(w, "\tNUMFACES %d\n", len(e.Faces))
+		for i, face := range e.Faces {
+			fmt.Fprintf(w, "\t\tFACE // %d\n", i)
+			fmt.Fprintf(w, "\t\t\tTRIANGLE %d %d %d\n", face.Index[0], face.Index[1], face.Index[2])
+			fmt.Fprintf(w, "\t\t\tMATERIAL \"%s\"\n", face.MaterialName)
+			fmt.Fprintf(w, "\t\t\tHEXONEFLAG %d\n", face.HexOneFlag)
+		}
+		fmt.Fprintf(w, "\n")
+
+		token.TagSetIsWritten(e.Tag)
+	}
 	return nil
 }
 
@@ -187,11 +189,32 @@ func (e *MdsDef) Read(token *AsciiReadToken) error {
 }
 
 func (e *MdsDef) ToRaw(wce *Wce, dst *raw.Mds) error {
+	dst.MetaFileName = e.Tag
+	dst.Version = e.Version
+	for i := 0; i < len(e.Vertices); i++ {
+		v := &raw.Vertex{}
+		v.Position = e.Vertices[i]
+		v.Normal = e.Normals[i]
+		v.Uv = e.UVs[i]
+		v.Uv2 = e.UV2s[i]
+		v.Tint = e.Tints[i]
+		dst.Vertices = append(dst.Vertices, v)
+	}
+	for _, face := range e.Faces {
+		rawFace := raw.Face{
+			MaterialName: face.MaterialName,
+			Index:        face.Index,
+			Flags:        uint32(face.HexOneFlag),
+		}
+		dst.Faces = append(dst.Faces, rawFace)
+	}
 
 	return nil
 }
 
 func (e *MdsDef) FromRaw(wce *Wce, src *raw.Mds) error {
+	folder := strings.TrimSuffix(strings.ToLower(wce.FileName), ".eqg")
+	e.folders = append(e.folders, folder)
 	e.Tag = string(src.FileName())
 	e.Version = src.Version
 	for _, v := range src.Vertices {
@@ -202,7 +225,7 @@ func (e *MdsDef) FromRaw(wce *Wce, src *raw.Mds) error {
 		e.UV2s = append(e.UV2s, v.Uv2)
 		e.Tints = append(e.Tints, v.Tint)
 	}
-	for _, face := range src.Triangles {
+	for _, face := range src.Faces {
 		eqFace := &EQFace{
 			MaterialName: string(face.MaterialName),
 			Index:        face.Index,
@@ -218,6 +241,7 @@ func (e *MdsDef) FromRaw(wce *Wce, src *raw.Mds) error {
 
 // ModDef is an entry EQMODELDEF
 type ModDef struct {
+	folders  []string
 	Tag      string
 	Version  uint32
 	Vertices [][3]float32
@@ -233,59 +257,65 @@ func (e *ModDef) Definition() string {
 }
 
 func (e *ModDef) Write(token *AsciiWriteToken) error {
-	w, err := token.Writer()
-	if err != nil {
-		return err
-	}
-
-	if token.TagIsWritten(e.Tag) {
-		return nil
-	}
-
-	token.TagSetIsWritten(e.Tag)
-
-	for _, material := range token.wce.EQMaterialDefs {
-		err = material.Write(token)
+	for _, folder := range e.folders {
+		err := token.SetWriter(folder)
 		if err != nil {
 			return err
 		}
-	}
+		w, err := token.Writer()
+		if err != nil {
+			return err
+		}
 
-	fmt.Fprintf(w, "%s \"%s\"\n", e.Definition(), e.Tag)
-	fmt.Fprintf(w, "\tVERSION %d\n", e.Version)
-	fmt.Fprintf(w, "\tNUMVERTICES %d\n", len(e.Vertices))
-	for _, v := range e.Vertices {
-		fmt.Fprintf(w, "\t\tXYZ %0.8e %0.8e %0.8e\n", v[0], v[1], v[2])
-	}
-	fmt.Fprintf(w, "\tNUMUVs %d\n", len(e.UVs))
-	for _, u := range e.UVs {
-		fmt.Fprintf(w, "\t\tUV %0.8e %0.8e\n", u[0], u[1])
-	}
-	fmt.Fprintf(w, "\tNUMUV2s %d\n", len(e.UV2s))
-	for _, u := range e.UV2s {
-		fmt.Fprintf(w, "\t\tUV %0.8e %0.8e\n", u[0], u[1])
-	}
+		if token.TagIsWritten(e.Tag) {
+			return nil
+		}
 
-	fmt.Fprintf(w, "\tNUMNORMALS %d\n", len(e.Normals))
-	for _, n := range e.Normals {
-		fmt.Fprintf(w, "\t\tXYZ %0.8e %0.8e %0.8e\n", n[0], n[1], n[2])
-	}
-	fmt.Fprintf(w, "\tNUMTINTS %d\n", len(e.Tints))
-	for _, t := range e.Tints {
-		fmt.Fprintf(w, "\t\tRGBA %d %d %d %d\n", t[0], t[1], t[2], t[3])
-	}
+		token.TagSetIsWritten(e.Tag)
 
-	fmt.Fprintf(w, "\tNUMFACES %d\n", len(e.Faces))
-	for i, face := range e.Faces {
-		fmt.Fprintf(w, "\t\tFACE // %d\n", i)
-		fmt.Fprintf(w, "\t\t\tTRIANGLE %d %d %d\n", face.Index[0], face.Index[1], face.Index[2])
-		fmt.Fprintf(w, "\t\t\tMATERIAL \"%s\"\n", face.MaterialName)
-		fmt.Fprintf(w, "\t\t\tHEXONEFLAG %d\n", face.HexOneFlag)
+		for _, material := range token.wce.EQMaterialDefs {
+			err = material.Write(token)
+			if err != nil {
+				return err
+			}
+		}
+
+		fmt.Fprintf(w, "%s \"%s\"\n", e.Definition(), e.Tag)
+		fmt.Fprintf(w, "\tVERSION %d\n", e.Version)
+		fmt.Fprintf(w, "\tNUMVERTICES %d\n", len(e.Vertices))
+		for _, v := range e.Vertices {
+			fmt.Fprintf(w, "\t\tXYZ %0.8e %0.8e %0.8e\n", v[0], v[1], v[2])
+		}
+		fmt.Fprintf(w, "\tNUMUVs %d\n", len(e.UVs))
+		for _, u := range e.UVs {
+			fmt.Fprintf(w, "\t\tUV %0.8e %0.8e\n", u[0], u[1])
+		}
+		fmt.Fprintf(w, "\tNUMUV2s %d\n", len(e.UV2s))
+		for _, u := range e.UV2s {
+			fmt.Fprintf(w, "\t\tUV %0.8e %0.8e\n", u[0], u[1])
+		}
+
+		fmt.Fprintf(w, "\tNUMNORMALS %d\n", len(e.Normals))
+		for _, n := range e.Normals {
+			fmt.Fprintf(w, "\t\tXYZ %0.8e %0.8e %0.8e\n", n[0], n[1], n[2])
+		}
+		fmt.Fprintf(w, "\tNUMTINTS %d\n", len(e.Tints))
+		for _, t := range e.Tints {
+			fmt.Fprintf(w, "\t\tRGBA %d %d %d %d\n", t[0], t[1], t[2], t[3])
+		}
+
+		fmt.Fprintf(w, "\tNUMFACES %d\n", len(e.Faces))
+		for i, face := range e.Faces {
+			fmt.Fprintf(w, "\t\tFACE // %d\n", i)
+			fmt.Fprintf(w, "\t\t\tTRIANGLE %d %d %d\n", face.Index[0], face.Index[1], face.Index[2])
+			fmt.Fprintf(w, "\t\t\tMATERIAL \"%s\"\n", face.MaterialName)
+			fmt.Fprintf(w, "\t\t\tHEXONEFLAG %d\n", face.HexOneFlag)
+		}
+
+		fmt.Fprintf(w, "\n")
+
+		token.TagSetIsWritten(e.Tag)
 	}
-
-	fmt.Fprintf(w, "\n")
-
-	token.TagSetIsWritten(e.Tag)
 	return nil
 }
 
@@ -398,6 +428,11 @@ func (e *ModDef) ToRaw(wce *Wce, dst *raw.Mod) error {
 
 func (e *ModDef) FromRaw(wce *Wce, src *raw.Mod) error {
 	e.Tag = string(src.FileName())
+	folder := strings.TrimSuffix(strings.ToLower(wce.FileName), ".eqg")
+	if wce.WorldDef.Zone == 1 {
+		folder = "obj/" + e.Tag
+	}
+	e.folders = append(e.folders, folder)
 
 	for _, material := range src.Materials {
 		eqMaterialDef := &EQMaterialDef{}
@@ -433,6 +468,7 @@ func (e *ModDef) FromRaw(wce *Wce, src *raw.Mod) error {
 
 // TerDef is an entry EQTERRAINDEF
 type TerDef struct {
+	folders  []string
 	Tag      string
 	Version  uint32
 	Vertices [][3]float32
@@ -444,56 +480,62 @@ type TerDef struct {
 }
 
 func (e *TerDef) Definition() string {
-	return "EQMODELDEF"
+	return "EQTERDEF"
 }
 
 func (e *TerDef) Write(token *AsciiWriteToken) error {
-	w, err := token.Writer()
-	if err != nil {
-		return err
-	}
+	for _, folder := range e.folders {
+		err := token.SetWriter(folder)
+		if err != nil {
+			return err
+		}
+		w, err := token.Writer()
+		if err != nil {
+			return err
+		}
 
-	if token.TagIsWritten(e.Tag) {
-		return nil
-	}
+		if token.TagIsWritten(e.Tag) {
+			return nil
+		}
 
-	token.TagSetIsWritten(e.Tag)
+		token.TagSetIsWritten(e.Tag)
 
-	fmt.Fprintf(w, "%s \"%s\"\n", e.Definition(), e.Tag)
-	fmt.Fprintf(w, "\tVERSION %d\n", e.Version)
-	fmt.Fprintf(w, "\tNUMVERTICES %d\n", len(e.Vertices))
-	for _, v := range e.Vertices {
-		fmt.Fprintf(w, "\t\tXYZ %0.8e %0.8e %0.8e\n", v[0], v[1], v[2])
-	}
-	fmt.Fprintf(w, "\tNUMUVs %d\n", len(e.UVs))
-	for _, u := range e.UVs {
-		fmt.Fprintf(w, "\t\tUV %0.8e %0.8e\n", u[0], u[1])
-	}
-	fmt.Fprintf(w, "\tNUMUV2s %d\n", len(e.UV2s))
-	for _, u := range e.UV2s {
-		fmt.Fprintf(w, "\t\tUV %0.8e %0.8e\n", u[0], u[1])
-	}
+		fmt.Fprintf(w, "%s \"%s\"\n", e.Definition(), e.Tag)
+		fmt.Fprintf(w, "\tVERSION %d\n", e.Version)
+		fmt.Fprintf(w, "\tNUMVERTICES %d\n", len(e.Vertices))
+		for _, v := range e.Vertices {
+			fmt.Fprintf(w, "\t\tXYZ %0.8e %0.8e %0.8e\n", v[0], v[1], v[2])
+		}
+		fmt.Fprintf(w, "\tNUMUVs %d\n", len(e.UVs))
+		for _, u := range e.UVs {
+			fmt.Fprintf(w, "\t\tUV %0.8e %0.8e\n", u[0], u[1])
+		}
+		fmt.Fprintf(w, "\tNUMUV2s %d\n", len(e.UV2s))
+		for _, u := range e.UV2s {
+			fmt.Fprintf(w, "\t\tUV %0.8e %0.8e\n", u[0], u[1])
+		}
 
-	fmt.Fprintf(w, "\tNUMNORMALS %d\n", len(e.Normals))
-	for _, n := range e.Normals {
-		fmt.Fprintf(w, "\t\tXYZ %0.8e %0.8e %0.8e\n", n[0], n[1], n[2])
-	}
-	fmt.Fprintf(w, "\tNUMTINTS %d\n", len(e.Tints))
-	for _, t := range e.Tints {
-		fmt.Fprintf(w, "\t\tRGBA %d %d %d %d\n", t[0], t[1], t[2], t[3])
-	}
+		fmt.Fprintf(w, "\tNUMNORMALS %d\n", len(e.Normals))
+		for _, n := range e.Normals {
+			fmt.Fprintf(w, "\t\tXYZ %0.8e %0.8e %0.8e\n", n[0], n[1], n[2])
+		}
+		fmt.Fprintf(w, "\tNUMTINTS %d\n", len(e.Tints))
+		for _, t := range e.Tints {
+			fmt.Fprintf(w, "\t\tRGBA %d %d %d %d\n", t[0], t[1], t[2], t[3])
+		}
 
-	fmt.Fprintf(w, "\tNUMFACES %d\n", len(e.Faces))
-	for i, face := range e.Faces {
-		fmt.Fprintf(w, "\t\tFACE // %d\n", i)
-		fmt.Fprintf(w, "\t\t\tTRIANGLE %d %d %d\n", face.Index[0], face.Index[1], face.Index[2])
-		fmt.Fprintf(w, "\t\t\tMATERIAL \"%s\"\n", face.MaterialName)
-		fmt.Fprintf(w, "\t\t\tHEXONEFLAG %d\n", face.HexOneFlag)
+		fmt.Fprintf(w, "\tNUMFACES %d\n", len(e.Faces))
+		for i, face := range e.Faces {
+			fmt.Fprintf(w, "\t\tFACE // %d\n", i)
+			fmt.Fprintf(w, "\t\t\tTRIANGLE %d %d %d\n", face.Index[0], face.Index[1], face.Index[2])
+			fmt.Fprintf(w, "\t\t\tMATERIAL \"%s\"\n", face.MaterialName)
+			fmt.Fprintf(w, "\t\t\tHEXONEFLAG %d\n", face.HexOneFlag)
+		}
+
+		fmt.Fprintf(w, "\n")
+
+		token.TagSetIsWritten(e.Tag)
 	}
-
-	fmt.Fprintf(w, "\n")
-
-	token.TagSetIsWritten(e.Tag)
 	return nil
 }
 
@@ -607,6 +649,7 @@ func (e *TerDef) ToRaw(wce *Wce, dst *raw.Ter) error {
 }
 
 func (e *TerDef) FromRaw(wce *Wce, src *raw.Ter) error {
+	e.folders = append(e.folders, "world")
 	e.Tag = string(src.FileName())
 	e.Version = src.Version
 	for _, v := range src.Vertices {
@@ -633,6 +676,7 @@ func (e *TerDef) FromRaw(wce *Wce, src *raw.Ter) error {
 
 // EQMaterialDef is an entry EQMATERIALDEF
 type EQMaterialDef struct {
+	folders           []string
 	Tag               string
 	ShaderTag         string
 	HexOneFlag        int
@@ -652,36 +696,43 @@ func (e *EQMaterialDef) Definition() string {
 }
 
 func (e *EQMaterialDef) Write(token *AsciiWriteToken) error {
-	w, err := token.Writer()
-	if err != nil {
-		return err
+	for _, folder := range e.folders {
+		if token.TagIsWritten(e.Tag) {
+			continue
+		}
+		err := token.SetWriter(folder)
+		if err != nil {
+			return err
+		}
+		w, err := token.Writer()
+		if err != nil {
+			return err
+		}
+
+		if token.TagIsWritten(e.Tag) {
+			return nil
+		}
+
+		token.TagSetIsWritten(e.Tag)
+
+		fmt.Fprintf(w, "%s \"%s\"\n", e.Definition(), e.Tag)
+		fmt.Fprintf(w, "\tSHADERTAG \"%s\"\n", e.ShaderTag)
+		fmt.Fprintf(w, "\tHEXONEFLAG %d\n", e.HexOneFlag)
+
+		fmt.Fprintf(w, "\tNUMPROPERTIES %d\n", len(e.Properties))
+		for _, prop := range e.Properties {
+			fmt.Fprintf(w, "\t\tPROPERTY \"%s\" %d \"%s\"\n", prop.Name, prop.Type, prop.Value)
+		}
+
+		fmt.Fprintf(w, "\tANIMSLEEP %d\n", e.AnimationSleep)
+		fmt.Fprintf(w, "\tANIMTEXTURES %d\n", len(e.AnimationTextures))
+		for _, anim := range e.AnimationTextures {
+			fmt.Fprintf(w, " \"%s\"", anim)
+		}
+		fmt.Fprintf(w, "\n")
+
+		token.TagSetIsWritten(e.Tag)
 	}
-
-	if token.TagIsWritten(e.Tag) {
-		return nil
-	}
-
-	token.TagSetIsWritten(e.Tag)
-
-	fmt.Fprintf(w, "%s \"%s\"\n", e.Definition(), e.Tag)
-	fmt.Fprintf(w, "\tSHADERTAG \"%s\"\n", e.ShaderTag)
-	fmt.Fprintf(w, "\tHEXONEFLAG %d\n", e.HexOneFlag)
-
-	fmt.Fprintf(w, "\tNUMPROPERTIES %d\n", len(e.Properties))
-	for _, prop := range e.Properties {
-		fmt.Fprintf(w, "\t\tPROPERTY \"%s\" %d \"%s\"\n", prop.Name, prop.Type, prop.Value)
-	}
-
-	fmt.Fprintf(w, "\tANIMSLEEP %d\n", e.AnimationSleep)
-	fmt.Fprintf(w, "\tANIMTEXTURES %d\n", len(e.AnimationTextures))
-	for _, anim := range e.AnimationTextures {
-		fmt.Fprintf(w, " \"%s\"", anim)
-	}
-	fmt.Fprintf(w, "\n")
-
-	fmt.Fprintf(w, "\n")
-
-	token.TagSetIsWritten(e.Tag)
 	return nil
 }
 
@@ -757,11 +808,32 @@ func (e *EQMaterialDef) Read(token *AsciiReadToken) error {
 }
 
 func (e *EQMaterialDef) ToRaw(wce *Wce, dst *raw.Material) error {
+	dst.Name = e.Tag
+	dst.EffectName = e.ShaderTag
+	if e.HexOneFlag == 1 {
+		dst.Flag = 0x01
+	}
+	for _, prop := range e.Properties {
+		mp := &raw.MaterialParam{
+			Name:  prop.Name,
+			Type:  prop.Type,
+			Value: prop.Value,
+		}
+		dst.Properties = append(dst.Properties, mp)
+	}
+	dst.Animation.Sleep = e.AnimationSleep
+	dst.Animation.Textures = e.AnimationTextures
 
 	return nil
 }
 
 func (e *EQMaterialDef) FromRaw(wce *Wce, src *raw.Material) error {
+	folder := strings.TrimSuffix(strings.ToLower(wce.FileName), ".eqg")
+	if wce.WorldDef.Zone == 1 {
+		folder = "world"
+	}
+	e.folders = append(e.folders, folder)
+
 	e.Tag = src.Name
 	e.ShaderTag = src.EffectName
 	if src.Flag&0x01 != 0 {
@@ -782,10 +854,11 @@ func (e *EQMaterialDef) FromRaw(wce *Wce, src *raw.Material) error {
 
 // AniDef represents an eqg .ani file
 type AniDef struct {
-	Tag      string
-	Version  uint32
-	Bones    []*AniBone
-	IsStrict int
+	folders []string
+	Tag     string
+	Version uint32
+	Bones   []*AniBone
+	Strict  int
 }
 
 type AniBone struct {
@@ -805,35 +878,40 @@ func (e *AniDef) Definition() string {
 }
 
 func (e *AniDef) Write(token *AsciiWriteToken) error {
-	w, err := token.Writer()
-	if err != nil {
-		return err
-	}
-
-	if token.TagIsWritten(e.Tag) {
-		return nil
-	}
-
-	token.TagSetIsWritten(e.Tag)
-
-	fmt.Fprintf(w, "%s \"%s\"\n", e.Definition(), e.Tag)
-	fmt.Fprintf(w, "\tVERSION %d\n", e.Version)
-	fmt.Fprintf(w, "\tISSTRICT %d\n", e.IsStrict)
-	fmt.Fprintf(w, "\tNUMBONES %d\n", len(e.Bones))
-	for _, bone := range e.Bones {
-		fmt.Fprintf(w, "\t\tBONE \"%s\"\n", bone.Name)
-		fmt.Fprintf(w, "\t\tNUMFRAMES %d\n", len(bone.Frames))
-		for i, frame := range bone.Frames {
-			fmt.Fprintf(w, "\t\t\tFRAME // %d\n", i)
-			fmt.Fprintf(w, "\t\t\t\tMILLISECONDS %d\n", frame.Milliseconds)
-			fmt.Fprintf(w, "\t\t\t\tTRANSLATION %0.8e %0.8e %0.8e\n", frame.Translation[0], frame.Translation[1], frame.Translation[2])
-			fmt.Fprintf(w, "\t\t\t\tROTATION %0.8e %0.8e %0.8e %0.8e\n", frame.Rotation[0], frame.Rotation[1], frame.Rotation[2], frame.Rotation[3])
-			fmt.Fprintf(w, "\t\t\t\tSCALE %0.8e %0.8e %0.8e\n", frame.Scale[0], frame.Scale[1], frame.Scale[2])
+	for _, folder := range e.folders {
+		err := token.SetWriter(folder)
+		if err != nil {
+			return err
 		}
-	}
-	fmt.Fprintf(w, "\n")
+		w, err := token.Writer()
+		if err != nil {
+			return err
+		}
+		if token.TagIsWritten(e.Tag) {
+			return nil
+		}
 
-	token.TagSetIsWritten(e.Tag)
+		token.TagSetIsWritten(e.Tag)
+
+		fmt.Fprintf(w, "%s \"%s\"\n", e.Definition(), e.Tag)
+		fmt.Fprintf(w, "\tVERSION %d\n", e.Version)
+		fmt.Fprintf(w, "\tSTRICT %d\n", e.Strict)
+		fmt.Fprintf(w, "\tNUMBONES %d\n", len(e.Bones))
+		for _, bone := range e.Bones {
+			fmt.Fprintf(w, "\t\tBONE \"%s\"\n", bone.Name)
+			fmt.Fprintf(w, "\t\tNUMFRAMES %d\n", len(bone.Frames))
+			for i, frame := range bone.Frames {
+				fmt.Fprintf(w, "\t\t\tFRAME // %d\n", i)
+				fmt.Fprintf(w, "\t\t\t\tMILLISECONDS %d\n", frame.Milliseconds)
+				fmt.Fprintf(w, "\t\t\t\tTRANSLATION %0.8e %0.8e %0.8e\n", frame.Translation[0], frame.Translation[1], frame.Translation[2])
+				fmt.Fprintf(w, "\t\t\t\tROTATION %0.8e %0.8e %0.8e %0.8e\n", frame.Rotation[0], frame.Rotation[1], frame.Rotation[2], frame.Rotation[3])
+				fmt.Fprintf(w, "\t\t\t\tSCALE %0.8e %0.8e %0.8e\n", frame.Scale[0], frame.Scale[1], frame.Scale[2])
+			}
+		}
+		fmt.Fprintf(w, "\n")
+
+		token.TagSetIsWritten(e.Tag)
+	}
 	return nil
 
 }
@@ -849,14 +927,14 @@ func (e *AniDef) Read(token *AsciiReadToken) error {
 		return fmt.Errorf("version: %w", err)
 	}
 
-	records, err = token.ReadProperty("ISSTRICT", 1)
+	records, err = token.ReadProperty("STRICT", 1)
 	if err != nil {
 		return err
 	}
 
-	err = parse(&e.IsStrict, records[1])
+	err = parse(&e.Strict, records[1])
 	if err != nil {
-		return fmt.Errorf("isstrict: %w", err)
+		return fmt.Errorf("strict: %w", err)
 	}
 
 	records, err = token.ReadProperty("NUMBONES", 1)
@@ -955,11 +1033,13 @@ func (e *AniDef) ToRaw(wce *Wce, dst *raw.Ani) error {
 		}
 		dst.Bones = append(dst.Bones, rawBone)
 	}
-	dst.IsStrict = e.IsStrict == 1
+	dst.IsStrict = e.Strict == 1
 	return nil
 }
 
 func (e *AniDef) FromRaw(wce *Wce, src *raw.Ani) error {
+	folder := strings.TrimSuffix(strings.ToLower(wce.FileName), ".eqg")
+	e.folders = append(e.folders, folder+"_ani")
 	e.Tag = src.MetaFileName
 	e.Version = src.Version
 	for _, bone := range src.Bones {
@@ -978,9 +1058,8 @@ func (e *AniDef) FromRaw(wce *Wce, src *raw.Ani) error {
 		}
 		e.Bones = append(e.Bones, aniBone)
 	}
-	e.IsStrict = 0
 	if src.IsStrict {
-		e.IsStrict = 1
+		e.Strict = 1
 	}
 
 	return nil

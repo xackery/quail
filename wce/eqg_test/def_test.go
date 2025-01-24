@@ -10,8 +10,9 @@ var tests = []struct {
 	baseName string
 	fileName string
 }{
+	//{baseName: "it12043"},
 	//{baseName: "ork"},
-	//{baseName: "arena"},
+	{baseName: "arena"},
 	//{baseName: "commonlands"},
 }
 

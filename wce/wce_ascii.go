@@ -283,10 +283,31 @@ func (wce *Wce) writeAsciiData(path string) error {
 	}
 	sort.Strings(sortedFolders)
 
+	writtenSubfolders := make(map[string]bool)
 	for _, folder := range sortedFolders {
 		folderInfo, ok := folders[folder]
 		if !ok {
 			return fmt.Errorf("folder %s not found", folder)
+		}
+
+		if strings.Contains(folder, "/") {
+			rootFolder := strings.Split(folder, "/")[0]
+			tag := strings.Split(folder, "/")[1]
+			if _, ok := writtenSubfolders[rootFolder]; !ok {
+				rootW.WriteString(fmt.Sprintf("INCLUDE \"%s/_ROOT.WCE\"\n", strings.ToUpper(rootFolder)))
+			}
+
+			if folderInfo.hasBase {
+				includes[rootFolder] += fmt.Sprintf("INCLUDE \"%s.WCE\"\n", strings.ToUpper(tag))
+			}
+
+			if folderInfo.hasAni {
+				includes[rootFolder] += fmt.Sprintf("INCLUDE \"%s_ANI.WCE\"\n", strings.ToUpper(tag))
+			}
+
+			writtenSubfolders[rootFolder] = true
+
+			continue
 		}
 
 		rootW.WriteString(fmt.Sprintf("INCLUDE \"%s/_ROOT.WCE\"\n", strings.ToUpper(folder)))

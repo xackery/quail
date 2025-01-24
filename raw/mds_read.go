@@ -17,7 +17,7 @@ type Mds struct {
 	MainNameIndex   int32                `yaml:"main_name_index"`
 	SubNameIndex    int32                `yaml:"sub_name_index"`
 	Vertices        []*Vertex            `yaml:"vertices"`
-	Triangles       []Face               `yaml:"triangles"`
+	Faces           []Face               `yaml:"triangles"`
 	Subs            []*MdsSub            `yaml:"subs"`
 	BoneAssignments []*MdsBoneAssignment `yaml:"bone_assignments"`
 	names           []*nameEntry
@@ -186,7 +186,7 @@ func (mds *Mds) Read(r io.ReadSeeker) error {
 		}
 
 		t.Flags = dec.Uint32()
-		mds.Triangles = append(mds.Triangles, t)
+		mds.Faces = append(mds.Faces, t)
 	}
 
 	for i := 0; i < int(subCount); i++ {
