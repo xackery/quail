@@ -20,6 +20,17 @@ type Mod struct {
 	nameBuf      []byte
 }
 
+type ModFaceFlag uint32
+
+const (
+	ModFaceFlagNone              ModFaceFlag = 0x00
+	ModFaceFlagPassable          ModFaceFlag = 0x01
+	ModFaceFlagTransparent       ModFaceFlag = 0x02
+	ModFaceFlagCollisionRequired ModFaceFlag = 0x04
+	ModFaceFlagCulled            ModFaceFlag = 0x08
+	ModFaceFlagDegenerate        ModFaceFlag = 0x10
+)
+
 func (mod *Mod) Identity() string {
 	return "mod"
 }

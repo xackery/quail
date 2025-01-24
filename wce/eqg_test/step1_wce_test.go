@@ -69,6 +69,10 @@ func TestWceReadWrite(t *testing.T) {
 			if tt.fileName == "" {
 				files := archive.Files()
 				for _, file := range files {
+					if strings.EqualFold(file.Name(), baseName+".dat") {
+						wldSrc.WorldDef.Zone = 1
+						break
+					}
 					if strings.Contains(file.Name(), ".ter") {
 						wldSrc.WorldDef.Zone = 1
 						break

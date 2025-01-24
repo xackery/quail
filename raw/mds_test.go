@@ -103,16 +103,12 @@ func TestMdsWrite(t *testing.T) {
 				t.Errorf("Materials mismatch, got %d, expected %d", len(mds.Materials), len(mds2.Materials))
 			}
 
-			if len(mds.Vertices) != len(mds2.Vertices) {
-				t.Errorf("Vertices mismatch, got %d, expected %d", len(mds.Vertices), len(mds2.Vertices))
-			}
-
-			if len(mds.Faces) != len(mds2.Faces) {
-				t.Errorf("Triangles mismatch, got %d, expected %d", len(mds.Faces), len(mds2.Faces))
-			}
-
 			if len(mds.Bones) != len(mds2.Bones) {
 				t.Errorf("Bones mismatch, got %d, expected %d", len(mds.Bones), len(mds2.Bones))
+			}
+
+			if len(mds.Models) != len(mds2.Models) {
+				t.Errorf("Models mismatch, got %d, expected %d", len(mds.Models), len(mds.Models))
 			}
 
 		})

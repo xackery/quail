@@ -10,28 +10,32 @@ import (
 )
 
 type Mds struct {
-	MetaFileName    string               `yaml:"file_name"`
-	Version         uint32               `yaml:"version"`
-	Materials       []*Material          `yaml:"materials"`
-	Bones           []*Bone              `yaml:"bones"`
-	MainNameIndex   int32                `yaml:"main_name_index"`
-	SubNameIndex    int32                `yaml:"sub_name_index"`
-	Vertices        []*Vertex            `yaml:"vertices"`
-	Faces           []Face               `yaml:"triangles"`
-	Subs            []*MdsSub            `yaml:"subs"`
-	BoneAssignments []*MdsBoneAssignment `yaml:"bone_assignments"`
-	names           []*nameEntry
-	nameBuf         []byte
+	MetaFileName string
+	Version      uint32
+	Materials    []*Material
+	Bones        []*Bone
+	//MainNameIndex int32
+	//SubNameIndex  int32
+	Models  []*MdsModel
+	names   []*nameEntry
+	nameBuf []byte
 }
 
 func (mds *Mds) Identity() string {
 	return "mds"
 }
 
-type MdsSub struct {
+type MdsModel struct {
+	MainPiece       uint32 // 0: no, 1: yes, head is a mainpiece
+	Name            string
+	Vertices        []*Vertex
+	Faces           []*Face
+	BoneAssignments [][4]*MdsBoneWeight
 }
 
-type MdsBoneAssignment struct {
+type MdsBoneWeight struct {
+	BoneIndex int32
+	Value     float32
 }
 
 func (mds *Mds) String() string {
@@ -49,11 +53,10 @@ func (mds *Mds) Read(r io.ReadSeeker) error {
 	}
 
 	mds.Version = dec.Uint32()
-
 	nameLength := int(dec.Uint32())
 	materialCount := dec.Uint32()
 	boneCount := dec.Uint32()
-	subCount := dec.Uint32()
+	modelCount := dec.Uint32()
 
 	nameData := dec.Bytes(int(nameLength))
 
@@ -126,75 +129,99 @@ func (mds *Mds) Read(r io.ReadSeeker) error {
 		mds.Bones = append(mds.Bones, bone)
 	}
 
-	mds.MainNameIndex = dec.Int32()
-	mds.SubNameIndex = dec.Int32()
+	//mds.MainNameIndex = dec.Int32()
+	//mds.SubNameIndex = dec.Int32()
 
-	verticesCount := dec.Uint32()
-	triangleCount := dec.Uint32()
+	//verticesCount := dec.Uint32()
+	//triangleCount := dec.Uint32()
 
-	boneAssignmentCount := dec.Uint32()
+	//boneAssignmentCount := dec.Uint32()
 
-	for i := 0; i < int(verticesCount); i++ {
-		v := &Vertex{}
-		v.Position[0] = dec.Float32()
-		v.Position[1] = dec.Float32()
-		v.Position[2] = dec.Float32()
-		v.Normal[0] = dec.Float32()
-		v.Normal[1] = dec.Float32()
-		v.Normal[2] = dec.Float32()
-		if mds.Version <= 2 {
-			v.Tint = [4]uint8{128, 128, 128, 255}
-		} else {
-			v.Tint = [4]uint8{dec.Uint8(), dec.Uint8(), dec.Uint8(), dec.Uint8()}
-		}
-		v.Uv[0] = dec.Float32()
-		v.Uv[1] = dec.Float32()
-		if mds.Version <= 2 {
-			v.Uv2[0] = 0
-			v.Uv2[1] = 0
-		} else {
-			v.Uv2[0] = dec.Float32()
-			v.Uv2[1] = dec.Float32()
-		}
+	for i := 0; i < int(modelCount); i++ {
+		model := &MdsModel{}
+		model.MainPiece = dec.Uint32()
+		model.Name = mds.Name(dec.Int32())
+		verticesCount := dec.Uint32()
+		faceCount := dec.Uint32()
+		boneAssignmentCount := dec.Uint32()
 
-		mds.Vertices = append(mds.Vertices, v)
-	}
-
-	for i := 0; i < int(triangleCount); i++ {
-		t := Face{}
-		t.Index[0] = dec.Uint32()
-		t.Index[1] = dec.Uint32()
-		t.Index[2] = dec.Uint32()
-
-		materialID := dec.Int32()
-
-		var material *Material
-		for _, mat := range mds.Materials {
-			if mat.ID == materialID {
-				material = mat
-				break
+		for i := 0; i < int(verticesCount); i++ {
+			v := &Vertex{}
+			v.Position[0] = dec.Float32()
+			v.Position[1] = dec.Float32()
+			v.Position[2] = dec.Float32()
+			v.Normal[0] = dec.Float32()
+			v.Normal[1] = dec.Float32()
+			v.Normal[2] = dec.Float32()
+			if mds.Version <= 2 {
+				v.Tint = [4]uint8{128, 128, 128, 255}
+			} else {
+				v.Tint = [4]uint8{dec.Uint8(), dec.Uint8(), dec.Uint8(), dec.Uint8()}
 			}
-		}
-		if material == nil {
-			if materialID != -1 {
-				fmt.Printf("Material %d not found", materialID)
-				//return fmt.Errorf("material %d not found", materialID)
+			v.Uv[0] = dec.Float32()
+			v.Uv[1] = dec.Float32()
+			if mds.Version <= 2 {
+				v.Uv2[0] = 0
+				v.Uv2[1] = 0
+			} else {
+				v.Uv2[0] = dec.Float32()
+				v.Uv2[1] = dec.Float32()
 			}
-			t.MaterialName = ""
-		} else {
-			t.MaterialName = material.Name
+
+			model.Vertices = append(model.Vertices, v)
 		}
 
-		t.Flags = dec.Uint32()
-		mds.Faces = append(mds.Faces, t)
-	}
+		for i := 0; i < int(faceCount); i++ {
+			f := &Face{}
+			f.Index[0] = dec.Uint32()
+			f.Index[1] = dec.Uint32()
+			f.Index[2] = dec.Uint32()
 
-	for i := 0; i < int(subCount); i++ {
-		// TODO: sub count
-	}
+			materialID := dec.Int32()
 
-	for i := 0; i < int(boneAssignmentCount); i++ {
-		// TODO: bone assignment count
+			var material *Material
+			for _, mat := range mds.Materials {
+				if mat.ID == materialID {
+					material = mat
+					break
+				}
+			}
+			if material == nil {
+				if materialID != -1 && materialID != 65536 {
+					fmt.Printf("Material %d not found", materialID)
+					//return fmt.Errorf("material %d not found", materialID)
+				}
+				f.MaterialName = ""
+			} else {
+				f.MaterialName = material.Name
+			}
+
+			f.Flags = dec.Uint32()
+			model.Faces = append(model.Faces, f)
+		}
+
+		if boneAssignmentCount > 99999 {
+			return fmt.Errorf("bone assignment count too high: %d", boneAssignmentCount)
+		}
+
+		for i := 0; i < int(boneAssignmentCount); i++ {
+			weightCount := dec.Uint32()
+			weights := [4]*MdsBoneWeight{}
+			for j := 0; j < int(4); j++ {
+				if weightCount < uint32(j+1) {
+					weights[j] = &MdsBoneWeight{}
+					continue
+				}
+				weight := &MdsBoneWeight{}
+				weight.BoneIndex = dec.Int32()
+				weight.Value = dec.Float32()
+				weights[j] = weight
+			}
+			model.BoneAssignments = append(model.BoneAssignments, weights)
+		}
+
+		mds.Models = append(mds.Models, model)
+
 	}
 
 	if dec.Error() != nil {

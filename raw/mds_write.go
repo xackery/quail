@@ -38,8 +38,10 @@ func (mds *Mds) Write(w io.Writer) error {
 	nameData := mds.NameData()
 	enc.Uint32(uint32(len(nameData))) // nameLength
 	enc.Uint32(uint32(len(mds.Materials)))
+
 	enc.Uint32(uint32(len(mds.Bones)))
-	enc.Uint32(uint32(len(mds.Subs)))
+	enc.Uint32(uint32(len(mds.Models)))
+
 	enc.Bytes(nameData)
 
 	for _, material := range mds.Materials {
@@ -82,51 +84,70 @@ func (mds *Mds) Write(w io.Writer) error {
 		enc.Float32(bone.Scale[2])
 	}
 
-	enc.Int32(mds.MainNameIndex)
-	enc.Int32(mds.SubNameIndex)
+	//enc.Int32(mds.MainNameIndex)
+	//enc.Int32(mds.SubNameIndex)
 
-	enc.Uint32(uint32(len(mds.Vertices)))
-	enc.Uint32(uint32(len(mds.Faces)))
-	enc.Uint32(uint32(len(mds.BoneAssignments)))
+	//enc.Uint32(uint32(len(mds.Vertices)))
+	//enc.Uint32(uint32(len(mds.Faces)))
+	//enc.Uint32(uint32(len(mds.BoneAssignments)))
 
-	for _, vert := range mds.Vertices {
-		enc.Float32(vert.Position[0])
-		enc.Float32(vert.Position[1])
-		enc.Float32(vert.Position[2])
-		enc.Float32(vert.Normal[0])
-		enc.Float32(vert.Normal[1])
-		enc.Float32(vert.Normal[2])
-		if mds.Version > 2 {
-			enc.Uint8(vert.Tint[0])
-			enc.Uint8(vert.Tint[1])
-			enc.Uint8(vert.Tint[2])
-			enc.Uint8(vert.Tint[3])
-		}
-		enc.Float32(vert.Uv[0])
-		enc.Float32(vert.Uv[1])
-		if mds.Version > 2 {
-			enc.Float32(vert.Uv2[0])
-			enc.Float32(vert.Uv2[1])
-		}
-	}
+	for _, model := range mds.Models {
+		enc.Uint32(model.MainPiece)
+		enc.Int32(mds.NameIndex(model.Name))
+		enc.Uint32(uint32(len(model.Vertices)))
+		enc.Uint32(uint32(len(model.Faces)))
+		enc.Uint32(uint32(len(model.BoneAssignments)))
 
-	for _, tri := range mds.Faces {
-		enc.Uint32(tri.Index[0])
-		enc.Uint32(tri.Index[1])
-		enc.Uint32(tri.Index[2])
-		matID := int32(0)
-		for _, mat := range mds.Materials {
-			if mat.Name == tri.MaterialName {
-				matID = mat.ID
-				break
+		for _, vert := range model.Vertices {
+			enc.Float32(vert.Position[0])
+			enc.Float32(vert.Position[1])
+			enc.Float32(vert.Position[2])
+			enc.Float32(vert.Normal[0])
+			enc.Float32(vert.Normal[1])
+			enc.Float32(vert.Normal[2])
+			if mds.Version > 2 {
+				enc.Uint8(vert.Tint[0])
+				enc.Uint8(vert.Tint[1])
+				enc.Uint8(vert.Tint[2])
+				enc.Uint8(vert.Tint[3])
+			}
+			enc.Float32(vert.Uv[0])
+			enc.Float32(vert.Uv[1])
+			if mds.Version > 2 {
+				enc.Float32(vert.Uv2[0])
+				enc.Float32(vert.Uv2[1])
 			}
 		}
-		enc.Int32(matID)
-		enc.Uint32(tri.Flags)
-	}
 
-	// TODO: sub count
-	// TODO: bone assigment count
+		for _, tri := range model.Faces {
+			enc.Uint32(tri.Index[0])
+			enc.Uint32(tri.Index[1])
+			enc.Uint32(tri.Index[2])
+			matID := int32(0)
+			for _, mat := range mds.Materials {
+				if mat.Name == tri.MaterialName {
+					matID = mat.ID
+					break
+				}
+			}
+			enc.Int32(matID)
+			enc.Uint32(tri.Flags)
+		}
+
+		for _, weights := range model.BoneAssignments {
+			enc.Uint32(uint32(len(weights)))
+			for i := 0; i < 4; i++ {
+				if i < len(weights) {
+					enc.Int32(weights[i].BoneIndex)
+					enc.Float32(weights[i].Value)
+				} else {
+					enc.Int32(0)
+					enc.Float32(0)
+				}
+			}
+		}
+
+	}
 
 	err = enc.Error()
 	if err != nil {

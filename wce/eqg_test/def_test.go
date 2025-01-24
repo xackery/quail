@@ -11,8 +11,8 @@ var tests = []struct {
 	fileName string
 }{
 	//{baseName: "it12043"},
-	//{baseName: "ork"},
-	{baseName: "arena"},
+	{baseName: "mrd"},
+	//{baseName: "arena"},
 	//{baseName: "commonlands"},
 }
 
