@@ -1708,17 +1708,17 @@ func (e *MaterialPalette) Write(token *AsciiWriteToken) error {
 			return err
 		}
 
-		for _, materialTag := range e.Materials {
-			materialDef := token.wce.ByTag(materialTag)
-			if materialDef == nil {
-				return fmt.Errorf("material %s not found", materialTag)
-			}
+		// for _, materialTag := range e.Materials {
+		// 	materialDef := token.wce.ByTag(materialTag)
+		// 	if materialDef == nil {
+		// 		return fmt.Errorf("material %s not found", materialTag)
+		// 	}
 
-			err = materialDef.Write(token)
-			if err != nil {
-				return fmt.Errorf("write materialdef %s: %w", materialTag, err)
-			}
-		}
+		// 	err = materialDef.Write(token)
+		// 	if err != nil {
+		// 		return fmt.Errorf("write materialdef %s: %w", materialTag, err)
+		// 	}
+		// }
 
 		fmt.Fprintf(w, "%s \"%s\"\n", e.Definition(), e.Tag)
 		fmt.Fprintf(w, "\tNUMMATERIALS %d\n", len(e.Materials))
@@ -1834,10 +1834,10 @@ func (e *MaterialDef) Write(token *AsciiWriteToken) error {
 			return err
 		}
 
-		if token.TagIsWritten(e.Tag) {
-			continue
-		}
-		token.TagSetIsWritten(e.Tag)
+		// if token.TagIsWritten(e.Tag) {
+		// 	continue
+		// }
+		// token.TagSetIsWritten(e.Tag)
 
 		w, err := token.Writer()
 		if err != nil {
@@ -1870,7 +1870,7 @@ func (e *MaterialDef) Write(token *AsciiWriteToken) error {
 		fmt.Fprintf(w, "\tDOUBLESIDED %d\n", e.DoubleSided)
 		fmt.Fprintf(w, "\n")
 
-		token.TagSetIsWritten(e.Tag)
+		//token.TagSetIsWritten(e.Tag)
 	}
 	e.folders = []string{}
 	return nil
@@ -1995,7 +1995,7 @@ func (e *MaterialDef) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
 	}
 
 	if e.SimpleSpriteTag != "" {
-		spriteDef := wce.ByTagWithIndex(e.SimpleSpriteTag, e.Variation)
+		spriteDef := wce.ByTag(e.SimpleSpriteTag)
 		if spriteDef == nil {
 			return -1, fmt.Errorf("simple sprite %s not found", e.SimpleSpriteTag)
 		}
@@ -2059,7 +2059,7 @@ func (e *MaterialDef) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragMa
 	e.RGBPen = frag.RGBPen
 	e.Brightness = frag.Brightness
 	e.ScaledAmbient = frag.ScaledAmbient
-	e.Variation, err = e.variationParseFromRaw(wce, frag)
+	e.Variation, err = e.variationParseFromRaw(wce, frag, rawWld)
 	if err != nil {
 		return fmt.Errorf("variationParse: %w", err)
 	}
@@ -2078,9 +2078,33 @@ func (e *MaterialDef) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragMa
 	return nil
 }
 
-func (e *MaterialDef) variationParseFromRaw(wce *Wce, frag *rawfrag.WldFragMaterialDef) (int, error) {
+func (e *MaterialDef) variationParseFromRaw(wce *Wce, frag *rawfrag.WldFragMaterialDef, rawWld *raw.Wld) (int, error) {
 	if !wce.isChr {
 		return 0, nil
+	}
+
+	// Check if the material tag exists in a MaterialPalette
+	for _, rawFrag := range rawWld.Fragments {
+		materialPalette, ok := rawFrag.(*rawfrag.WldFragMaterialPalette)
+		if !ok {
+			continue
+		}
+		for _, materialRef := range materialPalette.MaterialRefs {
+			if len(rawWld.Fragments) <= int(materialRef) {
+				return 0, fmt.Errorf("material ref %d not found", materialRef)
+			}
+
+			// Get the referenced MaterialDef
+			materialDef, ok := rawWld.Fragments[materialRef].(*rawfrag.WldFragMaterialDef)
+			if !ok {
+				return 0, fmt.Errorf("invalid materialdef fragment at offset %d", materialRef)
+			}
+
+			// Check if the tag matches
+			if e.Tag == rawWld.Name(materialDef.NameRef()) {
+				return 0, nil // Exit early if a match is found
+			}
+		}
 	}
 
 	// Use the helper function to parse the material tag
@@ -2092,18 +2116,18 @@ func (e *MaterialDef) variationParseFromRaw(wce *Wce, frag *rawfrag.WldFragMater
 		return 0, nil
 	}
 
-	// Search for the parent material by matching the prefix
-	for _, otherMaterial := range wce.MaterialDefs {
-		if !strings.HasPrefix(otherMaterial.Tag, prefix) {
-			continue
-		}
-		folders := otherMaterial.folders
-		for _, folder := range e.folders {
-			folders = appendUnique(folders, folder)
-		}
-		otherMaterial.folders = folders
-		break
-	}
+	// // Search for the parent material by matching the prefix
+	// for _, otherMaterial := range wce.MaterialDefs {
+	// 	if !strings.HasPrefix(otherMaterial.Tag, prefix) {
+	// 		continue
+	// 	}
+	// 	folders := otherMaterial.folders
+	// 	for _, folder := range e.folders {
+	// 		folders = appendUnique(folders, folder)
+	// 	}
+	// 	otherMaterial.folders = folders
+	// 	break
+	// }
 
 	// Propagate Variation to SimpleSpriteDef if applicable
 	if frag.SimpleSpriteRef == 0 {
@@ -2114,7 +2138,7 @@ func (e *MaterialDef) variationParseFromRaw(wce *Wce, frag *rawfrag.WldFragMater
 			continue
 		}
 		sprite.Variation = 1
-		sprite.folders = e.folders
+		// sprite.folders = e.folders
 		break
 	}
 
@@ -2584,21 +2608,21 @@ func (e *ActorDef) Write(token *AsciiWriteToken) error {
 						return fmt.Errorf("lod %d hsprite %s: %w", lodIndex, sprite.Tag, err)
 					}
 
-					variations := token.wce.variationMaterialDefs[token.wce.lastReadFolder]
-					sort.Slice(variations, func(i, j int) bool {
-						return variations[i].Tag < variations[j].Tag
-					})
+					// variations := token.wce.variationMaterialDefs[token.wce.lastReadFolder]
+					// sort.Slice(variations, func(i, j int) bool {
+					// 	return variations[i].Tag < variations[j].Tag
+					// })
 
-					for _, variation := range variations {
-						err = variation.Write(token)
-						if err != nil {
-							return fmt.Errorf("lod %d hsprite %s variation %s: %w", lodIndex, sprite.Tag, variation.Tag, err)
-						}
-					}
+					// for _, variation := range variations {
+					// 	err = variation.Write(token)
+					// 	if err != nil {
+					// 		return fmt.Errorf("lod %d hsprite %s variation %s: %w", lodIndex, sprite.Tag, variation.Tag, err)
+					// 	}
+					// }
 
-					if err != nil {
-						return fmt.Errorf("lod %d hsprite %s material: %w", lodIndex, sprite.Tag, err)
-					}
+					// if err != nil {
+					// 	return fmt.Errorf("lod %d hsprite %s material: %w", lodIndex, sprite.Tag, err)
+					// }
 				case *DMSpriteDef:
 					err = sprite.Write(token)
 					if err != nil {

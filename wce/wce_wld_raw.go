@@ -643,6 +643,7 @@ func setRootFolder(foldersByFrag map[int][]string, folder string, node *tree.Nod
 									// Add the first 3 characters of each MaterialPalette node's tags to foldersByFrag
 									folderToAdd := potentialNode.Tag[:3]
 									foldersByFrag[int(node.FragID)] = appendUnique(foldersByFrag[int(node.FragID)], folderToAdd)
+									addChildrenFolder(foldersByFrag, folderToAdd, node)
 								}
 							}
 						}

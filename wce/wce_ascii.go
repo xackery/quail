@@ -98,6 +98,13 @@ func (wce *Wce) writeAsciiData(path string) error {
 		}
 	}
 
+	for _, ambientLight := range wce.AmbientLights {
+		err = ambientLight.Write(token)
+		if err != nil {
+			return fmt.Errorf("ambientlight %s: %w", ambientLight.Tag, err)
+		}
+	}
+
 	for _, matDef := range wce.MaterialDefs {
 		err = matDef.Write(token)
 		if err != nil {

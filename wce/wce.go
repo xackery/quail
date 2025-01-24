@@ -272,13 +272,9 @@ func (wce *Wce) ByTagWithIndex(tag string, index int) WldDefinitioner {
 
 	if strings.HasSuffix(tag, "_SPRITE") {
 		for _, sprite := range wce.SimpleSpriteDefs {
-			if sprite.Tag != tag {
-				continue
+			if sprite.Tag == tag && sprite.Variation == index {
+				return sprite
 			}
-			if sprite.Variation != index {
-				continue
-			}
-			return sprite
 		}
 	}
 

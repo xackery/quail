@@ -45,7 +45,7 @@ func BuildFragReferenceTree(isChr bool, wld *raw.Wld) (map[int32]*Node, map[int3
 	// Map to track which nodes are linkedNodes as children
 	linkedNodes := make(map[int32]bool)
 
-	var zoneNode *Node
+	//var zoneNode *Node
 
 	actorNodes := make(map[string]*Node)
 	// find actornodes and build them first
@@ -96,11 +96,11 @@ func BuildFragReferenceTree(isChr bool, wld *raw.Wld) (map[int32]*Node, map[int3
 		node := upsertNode(nodes, fmt.Sprintf("%T", frag), fragID, strings.TrimSpace(tag))
 
 		switch frag.(type) {
-		case *rawfrag.WldFragGlobalAmbientLightDef:
-			zoneNode = node
-			if zoneNode.Tag == "" {
-				zoneNode.Tag = "zone"
-			}
+		// case *rawfrag.WldFragGlobalAmbientLightDef:
+		// 	zoneNode = node
+		// 	if zoneNode.Tag == "" {
+		// 		zoneNode.Tag = "zone"
+		// 	}
 		}
 
 		// Extract references from the fragment
