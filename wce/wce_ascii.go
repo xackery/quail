@@ -205,6 +205,13 @@ func (wce *Wce) writeAsciiData(path string) error {
 
 	// EQG
 
+	for _, matDef := range wce.EQMaterialDefs {
+		err = matDef.Write(token)
+		if err != nil {
+			return fmt.Errorf("eqmaterialdef %s: %w", matDef.Tag, err)
+		}
+	}
+
 	for _, mdsDef := range wce.MdsDefs {
 		err = mdsDef.Write(token)
 		if err != nil {

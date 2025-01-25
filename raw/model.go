@@ -22,7 +22,7 @@ type Material struct {
 	ID         int32
 	Name       string
 	EffectName string
-	Flag       uint32
+	Flags      uint32
 	Properties []*MaterialParam
 	Animation  MaterialAnimation
 }

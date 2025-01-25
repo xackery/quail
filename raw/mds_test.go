@@ -60,8 +60,9 @@ func TestMdsWrite(t *testing.T) {
 		file    string
 		wantErr bool
 	}{
+		{eqg: "mrd.eqg", file: "mrd.mds"}, // PASS
 		// .mds|1|aam.mds|aam.eqg
-		{eqg: "aam.eqg", file: "aam.mds"}, // PASS
+		//{eqg: "aam.eqg", file: "aam.mds"}, // PASS
 		// .mds|1|ae3.mds|ae3.eqg
 		//{eqg: "ae3.eqg", file: "ae3.mds"}, // PASS
 		// .mds|1|bcn.mds|harbingers.eqg
@@ -87,6 +88,18 @@ func TestMdsWrite(t *testing.T) {
 				t.Fatalf("Decode() error = %v, wantErr %v", err, tt.wantErr)
 			}
 
+			// srcNames := []string{}
+
+			// chunk := []byte{}
+			// for _, b := range mds.nameBuf {
+			// 	if b != 0 {
+			// 		chunk = append(chunk, b)
+			// 		continue
+			// 	}
+			// 	srcNames = append(srcNames, string(chunk))
+			// 	chunk = []byte{}
+			// }
+
 			buf := bytes.NewBuffer(nil)
 			err = mds.Write(buf)
 			if err != nil {
@@ -99,6 +112,29 @@ func TestMdsWrite(t *testing.T) {
 				t.Fatalf("Decode() error = %v, wantErr %v", err, tt.wantErr)
 			}
 
+			// dstNames := []string{}
+			// chunk = []byte{}
+			// for _, b := range mds.nameBuf {
+			// 	if b != 0 {
+			// 		chunk = append(chunk, b)
+			// 		continue
+			// 	}
+			// 	dstNames = append(dstNames, string(chunk))
+			// 	chunk = []byte{}
+			// }
+
+			// sort.Strings(srcNames)
+			// sort.Strings(dstNames)
+			// for i := 0; i < len(srcNames); i++ {
+			// 	if len(srcNames) > i && len(dstNames) > i {
+			// 		fmt.Printf("%d src: %s, dst: %s\n", i, srcNames[i], dstNames[i])
+			// 	}
+			// }
+
+			// if len(srcNames) != len(dstNames) {
+			// 	t.Errorf("Name count mismatch, got %d, expected %d", len(srcNames), len(dstNames))
+			// }
+
 			if len(mds.Materials) != len(mds2.Materials) {
 				t.Errorf("Materials mismatch, got %d, expected %d", len(mds.Materials), len(mds2.Materials))
 			}
@@ -110,6 +146,10 @@ func TestMdsWrite(t *testing.T) {
 			if len(mds.Models) != len(mds2.Models) {
 				t.Errorf("Models mismatch, got %d, expected %d", len(mds.Models), len(mds.Models))
 			}
+
+			// if len(mds.NameData()) != len(mds2.NameData()) {
+			// 	t.Errorf("NameData mismatch, got %d, expected %d", len(mds2.NameData()), len(mds.NameData()))
+			// }
 
 		})
 	}

@@ -122,10 +122,76 @@ func (wce *Wce) WriteEqgRaw(archive *pfs.Pfs) error {
 	if archive == nil {
 		return fmt.Errorf("archive is nil")
 	}
+	var err error
 
 	for _, mds := range wce.MdsDefs {
 		buf := &bytes.Buffer{}
-		dst := &raw.Mds{}
+		dst := &raw.Mds{
+			MetaFileName: mds.Tag,
+			Version:      mds.Version,
+		}
+
+		dst.Materials, err = writeEqgMaterials(mds.Materials)
+		if err != nil {
+			return fmt.Errorf("write materials: %w", err)
+		}
+
+		for _, bone := range mds.Bones {
+			dst.Bones = append(dst.Bones, &raw.Bone{
+				Name:          bone.Name,
+				Next:          bone.Next,
+				ChildrenCount: bone.ChildrenCount,
+				ChildIndex:    bone.ChildIndex,
+				Pivot:         bone.Pivot,
+				Quaternion:    bone.Quaternion,
+				Scale:         bone.Scale,
+			})
+		}
+
+		for _, model := range mds.Models {
+			model := &raw.MdsModel{
+				MainPiece: model.MainPiece,
+				Name:      model.Name,
+			}
+			for _, vert := range model.Vertices {
+				model.Vertices = append(model.Vertices, &raw.Vertex{
+					Position: vert.Position,
+					Normal:   vert.Normal,
+					Tint:     vert.Tint,
+					Uv:       vert.Uv,
+					Uv2:      vert.Uv2,
+				})
+			}
+			for _, face := range model.Faces {
+				flags := uint32(0)
+				if face.Flags&1 == 1 {
+					flags |= 1
+				}
+
+				model.Faces = append(model.Faces, &raw.Face{
+					Index:        face.Index,
+					MaterialName: face.MaterialName,
+					Flags:        flags,
+				})
+
+			}
+
+			for _, boneAssignment := range model.BoneAssignments {
+				weights := [4]*raw.MdsBoneWeight{}
+				for i := 0; i < len(boneAssignment); i++ {
+					wt := boneAssignment[i]
+					weight := &raw.MdsBoneWeight{
+						BoneIndex: wt.BoneIndex,
+						Value:     wt.Value,
+					}
+					weights[i] = weight
+				}
+				model.BoneAssignments = append(model.BoneAssignments, weights)
+			}
+
+			dst.Models = append(dst.Models, model)
+		}
+
 		err := dst.Write(buf)
 		if err != nil {
 			return fmt.Errorf("mds write: %w", err)
@@ -138,7 +204,37 @@ func (wce *Wce) WriteEqgRaw(archive *pfs.Pfs) error {
 
 	for _, mod := range wce.ModDefs {
 		buf := &bytes.Buffer{}
-		dst := &raw.Mod{}
+		dst := &raw.Mod{
+			MetaFileName: mod.Tag,
+			Version:      mod.Version,
+		}
+
+		materialNames := make(map[string]bool)
+		for _, face := range mod.Faces {
+			materialNames[face.MaterialName] = true
+		}
+
+		materials := []*EQMaterialDef{}
+		for materialName := range materialNames {
+			isFound := false
+			for _, material := range wce.EQMaterialDefs {
+				if material.Tag != materialName {
+					continue
+				}
+				materials = append(materials, material)
+				isFound = true
+				break
+			}
+			if !isFound {
+				return fmt.Errorf("model %s refers to material %s, but not declared", mod.Tag, materialName)
+			}
+		}
+
+		dst.Materials, err = writeEqgMaterials(materials)
+		if err != nil {
+			return fmt.Errorf("write materials: %w", err)
+		}
+
 		err := dst.Write(buf)
 		if err != nil {
 			return fmt.Errorf("mod write: %w", err)
@@ -152,6 +248,33 @@ func (wce *Wce) WriteEqgRaw(archive *pfs.Pfs) error {
 	for _, ter := range wce.TerDefs {
 		buf := &bytes.Buffer{}
 		dst := &raw.Ter{}
+
+		materialNames := make(map[string]bool)
+		for _, face := range ter.Faces {
+			materialNames[face.MaterialName] = true
+		}
+
+		materials := []*EQMaterialDef{}
+		for materialName := range materialNames {
+			isFound := false
+			for _, material := range wce.EQMaterialDefs {
+				if material.Tag != materialName {
+					continue
+				}
+				materials = append(materials, material)
+				isFound = true
+				break
+			}
+			if !isFound {
+				return fmt.Errorf("terrain %s refers to material %s, but not declared", ter.Tag, materialName)
+			}
+		}
+
+		dst.Materials, err = writeEqgMaterials(materials)
+		if err != nil {
+			return fmt.Errorf("write materials: %w", err)
+		}
+
 		err := dst.Write(buf)
 		if err != nil {
 			return fmt.Errorf("ter write: %w", err)
@@ -176,4 +299,20 @@ func (wce *Wce) WriteEqgRaw(archive *pfs.Pfs) error {
 	}
 
 	return nil
+}
+
+func writeEqgMaterials(srcMaterials []*EQMaterialDef) ([]*raw.Material, error) {
+	dstMaterials := []*raw.Material{}
+	for _, srcMat := range srcMaterials {
+		mat := &raw.Material{
+			Name:       srcMat.Tag,
+			EffectName: srcMat.ShaderTag,
+		}
+		if srcMat.HexOneFlag == 1 {
+			mat.Flags &= 1
+		}
+
+		dstMaterials = append(dstMaterials, mat)
+	}
+	return dstMaterials, nil
 }

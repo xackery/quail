@@ -18,6 +18,10 @@ func (mds *Mds) Write(w io.Writer) error {
 
 	mds.NameClear()
 
+	for _, model := range mds.Models {
+		mds.NameAdd(model.Name)
+	}
+
 	for _, material := range mds.Materials {
 		mds.NameAdd(material.Name)
 		mds.NameAdd(material.EffectName)

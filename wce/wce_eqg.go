@@ -46,7 +46,11 @@ type MdsVertex struct {
 type MdsFace struct {
 	Index        [3]uint32
 	MaterialName string
-	Flags        uint32
+	Passable     int
+	Transparent  int
+	Collision    int
+	Culled       int
+	Degenerate   int
 }
 
 type MdsBoneWeight struct {
@@ -69,18 +73,23 @@ func (e *MdsDef) Write(token *AsciiWriteToken) error {
 			return err
 		}
 
-		for _, material := range token.wce.EQMaterialDefs {
-			err = material.Write(token)
-			if err != nil {
-				return err
-			}
-		}
-
 		fmt.Fprintf(w, "%s \"%s\"\n", e.Definition(), e.Tag)
 		fmt.Fprintf(w, "\tVERSION %d\n", e.Version)
 		fmt.Fprintf(w, "\tNUMMATERIALS %d\n", len(e.Materials))
 		for _, material := range e.Materials {
 			fmt.Fprintf(w, "\t\tMATERIAL \"%s\"\n", material.Tag)
+			fmt.Fprintf(w, "\t\t\tSHADERTAG \"%s\"\n", material.ShaderTag)
+			fmt.Fprintf(w, "\t\t\tHEXONEFLAG %d\n", material.HexOneFlag)
+			fmt.Fprintf(w, "\t\t\tNUMPROPERTIES %d\n", len(material.Properties))
+			for _, prop := range material.Properties {
+				fmt.Fprintf(w, "\t\t\t\tPROPERTY \"%s\" %d \"%s\"\n", prop.Name, prop.Type, prop.Value)
+			}
+			fmt.Fprintf(w, "\t\t\tANIMSLEEP %d\n", material.AnimationSleep)
+			fmt.Fprintf(w, "\t\t\tANIMTEXTURES %d\n", len(material.AnimationTextures))
+			for _, anim := range material.AnimationTextures {
+				fmt.Fprintf(w, " \"%s\"", anim)
+			}
+
 		}
 
 		fmt.Fprintf(w, "\tNUMBONES %d\n", len(e.Bones))
@@ -125,7 +134,11 @@ func (e *MdsDef) Write(token *AsciiWriteToken) error {
 				fmt.Fprintf(w, "\t\t\t\tFACE\n")
 				fmt.Fprintf(w, "\t\t\t\t\tTRIANGLE %d %d %d\n", face.Index[0], face.Index[1], face.Index[2])
 				fmt.Fprintf(w, "\t\t\t\t\tMATERIAL \"%s\"\n", face.MaterialName)
-				fmt.Fprintf(w, "\t\t\t\t\tFLAGS %d\n", face.Flags)
+				fmt.Fprintf(w, "\t\t\t\t\tPASSABLE %d\n", face.Passable)
+				fmt.Fprintf(w, "\t\t\t\t\tTRANSPARENT %d\n", face.Transparent)
+				fmt.Fprintf(w, "\t\t\t\t\tCOLLISIONREQUIRED %d\n", face.Collision)
+				fmt.Fprintf(w, "\t\t\t\t\tCULLED %d\n", face.Culled)
+				fmt.Fprintf(w, "\t\t\t\t\tDEGENERATE %d\n", face.Degenerate)
 			}
 			fmt.Fprintf(w, "\t\t\tNUMWEIGHTS %d\n", len(model.BoneAssignments))
 			for _, weights := range model.BoneAssignments {
@@ -162,6 +175,12 @@ func (e *MdsDef) Read(token *AsciiReadToken) error {
 
 	for i := 0; i < numMaterials; i++ {
 		eqMaterialDef := &EQMaterialDef{}
+		records, err = token.ReadProperty("MATERIAL", 1)
+		if err != nil {
+			return fmt.Errorf("material %d: %w", i, err)
+		}
+		eqMaterialDef.Tag = records[1]
+
 		err = eqMaterialDef.Read(token)
 		if err != nil {
 			return fmt.Errorf("material %d: %w", i, err)
@@ -433,13 +452,52 @@ func (e *MdsDef) Read(token *AsciiReadToken) error {
 			}
 			face.MaterialName = records[1]
 
-			records, err = token.ReadProperty("FLAGS", 1)
+			records, err = token.ReadProperty("PASSABLE", 1)
 			if err != nil {
-				return fmt.Errorf("model %d face %d flags: %w", i, j, err)
+				return fmt.Errorf("model %d face %d passable: %w", i, j, err)
 			}
-			err = parse(&face.Flags, records[1])
+			err = parse(&face.Passable, records[1])
 			if err != nil {
-				return fmt.Errorf("model %d face %d flags: %w", i, j, err)
+				return fmt.Errorf("model %d face %d passable: %w", i, j, err)
+			}
+
+			records, err = token.ReadProperty("TRANSPARENT", 1)
+			if err != nil {
+				return fmt.Errorf("model %d face %d transparent: %w", i, j, err)
+			}
+
+			err = parse(&face.Transparent, records[1])
+			if err != nil {
+				return fmt.Errorf("model %d face %d transparent: %w", i, j, err)
+			}
+
+			records, err = token.ReadProperty("COLLISIONREQUIRED", 1)
+			if err != nil {
+				return fmt.Errorf("model %d face %d collisionrequired: %w", i, j, err)
+			}
+			err = parse(&face.Collision, records[1])
+			if err != nil {
+				return fmt.Errorf("model %d face %d collisionrequired: %w", i, j, err)
+			}
+
+			records, err = token.ReadProperty("CULLED", 1)
+			if err != nil {
+				return fmt.Errorf("model %d face %d culled: %w", i, j, err)
+			}
+
+			err = parse(&face.Culled, records[1])
+			if err != nil {
+				return fmt.Errorf("model %d face %d culled: %w", i, j, err)
+			}
+
+			records, err = token.ReadProperty("DEGENERATE", 1)
+			if err != nil {
+				return fmt.Errorf("model %d face %d degenerate: %w", i, j, err)
+			}
+
+			err = parse(&face.Degenerate, records[1])
+			if err != nil {
+				return fmt.Errorf("model %d face %d degenerate: %w", i, j, err)
 			}
 
 			model.Faces = append(model.Faces, face)
@@ -533,8 +591,23 @@ func (e *MdsDef) ToRaw(wce *Wce, dst *raw.Mds) error {
 			rawFace := &raw.Face{
 				Index:        face.Index,
 				MaterialName: face.MaterialName,
-				Flags:        face.Flags,
 			}
+			if face.Passable == 1 {
+				rawFace.Flags |= 1
+			}
+			if face.Transparent == 1 {
+				rawFace.Flags |= 2
+			}
+			if face.Collision == 1 {
+				rawFace.Flags |= 4
+			}
+			if face.Culled == 1 {
+				rawFace.Flags |= 8
+			}
+			if face.Degenerate == 1 {
+				rawFace.Flags |= 16
+			}
+
 			rawModel.Faces = append(rawModel.Faces, rawFace)
 		}
 		for _, weights := range model.BoneAssignments {
@@ -564,10 +637,11 @@ func (e *MdsDef) FromRaw(wce *Wce, src *raw.Mds) error {
 	e.Version = src.Version
 	for _, mat := range src.Materials {
 		eqMaterialDef := &EQMaterialDef{}
-		err := eqMaterialDef.FromRaw(wce, mat)
+		err := eqMaterialDef.FromRawNoAppend(wce, mat)
 		if err != nil {
 			return fmt.Errorf("material %s: %w", mat.Name, err)
 		}
+		e.Materials = append(e.Materials, eqMaterialDef)
 	}
 
 	for _, bone := range src.Bones {
@@ -602,8 +676,23 @@ func (e *MdsDef) FromRaw(wce *Wce, src *raw.Mds) error {
 			mdsFace := &MdsFace{
 				Index:        face.Index,
 				MaterialName: face.MaterialName,
-				Flags:        face.Flags,
 			}
+			if face.Flags&1 == 1 {
+				mdsFace.Passable = 1
+			}
+			if face.Flags&2 == 2 {
+				mdsFace.Transparent = 1
+			}
+			if face.Flags&4 == 4 {
+				mdsFace.Collision = 1
+			}
+			if face.Flags&8 == 8 {
+				mdsFace.Culled = 1
+			}
+			if face.Flags&16 == 16 {
+				mdsFace.Degenerate = 1
+			}
+
 			mdsModel.Faces = append(mdsModel.Faces, mdsFace)
 		}
 		for _, weights := range model.BoneAssignments {
@@ -1314,7 +1403,7 @@ func (e *EQMaterialDef) ToRaw(wce *Wce, dst *raw.Material) error {
 	dst.Name = e.Tag
 	dst.EffectName = e.ShaderTag
 	if e.HexOneFlag == 1 {
-		dst.Flag = 0x01
+		dst.Flags = 0x01
 	}
 	for _, prop := range e.Properties {
 		mp := &raw.MaterialParam{
@@ -1331,6 +1420,15 @@ func (e *EQMaterialDef) ToRaw(wce *Wce, dst *raw.Material) error {
 }
 
 func (e *EQMaterialDef) FromRaw(wce *Wce, src *raw.Material) error {
+	err := e.FromRawNoAppend(wce, src)
+	if err != nil {
+		return err
+	}
+	wce.EQMaterialDefs = append(wce.EQMaterialDefs, e)
+	return nil
+}
+
+func (e *EQMaterialDef) FromRawNoAppend(wce *Wce, src *raw.Material) error {
 	folder := strings.TrimSuffix(strings.ToLower(wce.FileName), ".eqg")
 	if wce.WorldDef.Zone == 1 {
 		folder = "world"
@@ -1339,7 +1437,7 @@ func (e *EQMaterialDef) FromRaw(wce *Wce, src *raw.Material) error {
 
 	e.Tag = src.Name
 	e.ShaderTag = src.EffectName
-	if src.Flag&0x01 != 0 {
+	if src.Flags&0x01 != 0 {
 		e.HexOneFlag = 1
 	}
 	for _, prop := range src.Properties {
@@ -1352,6 +1450,7 @@ func (e *EQMaterialDef) FromRaw(wce *Wce, src *raw.Material) error {
 	}
 	e.AnimationSleep = src.Animation.Sleep
 	e.AnimationTextures = src.Animation.Textures
+
 	return nil
 }
 

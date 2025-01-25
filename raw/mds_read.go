@@ -6,7 +6,6 @@ import (
 	"io"
 
 	"github.com/xackery/encdec"
-	"github.com/xackery/quail/helper"
 )
 
 type Mds struct {
@@ -39,7 +38,37 @@ type MdsBoneWeight struct {
 }
 
 func (mds *Mds) String() string {
-	return "mds"
+	out := fmt.Sprintf("Mds: %s,", mds.MetaFileName)
+	out += fmt.Sprintf(" %d names,", len(mds.names))
+	out += fmt.Sprintf(" %d materials", len(mds.Materials))
+	if len(mds.Materials) > 0 {
+		out += " ["
+
+		for i, material := range mds.Materials {
+			out += material.Name
+			if i < len(mds.Materials)-1 {
+				out += ", "
+			}
+		}
+		out += "]"
+
+	}
+
+	out += fmt.Sprintf(", %d bones,", len(mds.Bones))
+	out += fmt.Sprintf(" %d models", len(mds.Models))
+	if len(mds.Models) > 0 {
+		out += " ["
+
+		for i, model := range mds.Models {
+			out += model.Name
+			if i < len(mds.Models)-1 {
+				out += ", "
+			}
+		}
+		out += "]"
+
+	}
+	return out
 }
 
 // Read reads a mds file
@@ -288,9 +317,9 @@ func (mds *Mds) NameAdd(name string) int32 {
 		name += "\x00"
 	}
 	*/
-	if id := mds.NameOffset(name); id != -1 {
-		return -id
-	}
+	// if id := mds.NameOffset(name); id != -1 {
+	// 	return -id
+	// }
 	mds.names = append(mds.names, &nameEntry{offset: len(mds.nameBuf), name: name})
 	lastRef := int32(len(mds.nameBuf))
 	mds.nameBuf = append(mds.nameBuf, []byte(name)...)
@@ -316,17 +345,22 @@ func (mds *Mds) NameIndex(name string) int32 {
 		return -1
 	}
 	for k, v := range mds.names {
-		if v.name == name {
-			return int32(k)
+		if v.name != name {
+			continue
 		}
+		return int32(k)
 	}
 	return -1
 }
 
 // NameData is used during writing, dumps the name cache
 func (mds *Mds) NameData() []byte {
+	if len(mds.nameBuf) == 0 {
+		return nil
+	}
+	return mds.nameBuf[:len(mds.nameBuf)-1]
 
-	return helper.WriteStringHash(string(mds.nameBuf))
+	//return helper.WriteStringHash(string(mds.nameBuf))
 }
 
 // NameClear purges names and namebuf, called when encode starts
