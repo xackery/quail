@@ -6,7 +6,6 @@ import (
 	"io"
 
 	"github.com/xackery/encdec"
-	"github.com/xackery/quail/helper"
 )
 
 // Lay is a raw layer struct
@@ -21,6 +20,26 @@ type Lay struct {
 // Identity notes this is a lay file
 func (lay *Lay) Identity() string {
 	return "lay"
+}
+
+func (lay *Lay) String() string {
+	out := fmt.Sprintf("Lay: %s,", lay.MetaFileName)
+	out += fmt.Sprintf(" %d names,", len(lay.names))
+	out += fmt.Sprintf(" %d layers", len(lay.Layers))
+	if len(lay.Layers) > 0 {
+		out += " ["
+
+		for i, layer := range lay.Layers {
+			out += layer.Material
+			if i < len(lay.Layers)-1 {
+				out += ", "
+			}
+		}
+		out += "]"
+
+	}
+
+	return out
 }
 
 // LayEntry is a raw layer entry struct
@@ -203,8 +222,11 @@ func (lay *Lay) NameIndex(name string) int32 {
 
 // NameData is used during writing, dumps the name cache
 func (lay *Lay) NameData() []byte {
+	if len(lay.nameBuf) == 0 {
+		return nil
+	}
+	return lay.nameBuf[:len(lay.nameBuf)-1]
 
-	return helper.WriteStringHash(string(lay.nameBuf))
 }
 
 // NameClear purges names and namebuf, called when encode starts

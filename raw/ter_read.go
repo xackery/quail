@@ -6,7 +6,6 @@ import (
 	"io"
 
 	"github.com/xackery/encdec"
-	"github.com/xackery/quail/helper"
 )
 
 type Ter struct {
@@ -253,8 +252,11 @@ func (ter *Ter) NameIndex(name string) int32 {
 
 // NameData is used during writing, dumps the name cache
 func (ter *Ter) NameData() []byte {
+	if len(ter.nameBuf) == 0 {
+		return nil
+	}
+	return ter.nameBuf[:len(ter.nameBuf)-1]
 
-	return helper.WriteStringHash(string(ter.nameBuf))
 }
 
 // NameClear purges names and namebuf, called when encode starts

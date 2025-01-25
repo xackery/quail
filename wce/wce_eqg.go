@@ -1748,20 +1748,20 @@ func (e *LayDef) Read(token *AsciiReadToken) error {
 			return fmt.Errorf("entry %d: %w", i, err)
 		}
 
-		_, err = token.ReadProperty("MATERIAL", 1)
+		records, err = token.ReadProperty("MATERIAL", 1)
 		if err != nil {
 			return fmt.Errorf("entry %d material: %w", i, err)
 		}
 		layer.Material = records[1]
 
-		_, err = token.ReadProperty("DIFFUSE", 1)
+		records, err = token.ReadProperty("DIFFUSE", 1)
 		if err != nil {
 			return fmt.Errorf("entry %d diffuse: %w", i, err)
 		}
 
 		layer.Diffuse = records[1]
 
-		_, err = token.ReadProperty("NORMAL", 1)
+		records, err = token.ReadProperty("NORMAL", 1)
 		if err != nil {
 			return fmt.Errorf("entry %d normal: %w", i, err)
 		}

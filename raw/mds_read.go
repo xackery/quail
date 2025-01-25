@@ -302,10 +302,10 @@ func (mds *Mds) NameSet(newNames map[int32]string) {
 func (mds *Mds) NameAdd(name string) int32 {
 
 	if mds.names == nil {
-		mds.names = []*nameEntry{
-			{offset: 0, name: ""},
-		}
-		mds.nameBuf = []byte{0x00}
+		mds.names = []*nameEntry{}
+		//			{offset: 0, name: ""},
+		//		}
+		//		mds.nameBuf = []byte{0x00}
 	}
 	if name == "" {
 		return 0
@@ -356,9 +356,7 @@ func (mds *Mds) NameData() []byte {
 	if len(mds.nameBuf) == 0 {
 		return nil
 	}
-	return mds.nameBuf[:len(mds.nameBuf)-1]
-
-	//return helper.WriteStringHash(string(mds.nameBuf))
+	return mds.nameBuf
 }
 
 // NameClear purges names and namebuf, called when encode starts

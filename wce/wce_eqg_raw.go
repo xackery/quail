@@ -319,7 +319,18 @@ func (wce *Wce) WriteEqgRaw(archive *pfs.Pfs) error {
 
 	for _, lay := range wce.LayDefs {
 		buf := &bytes.Buffer{}
-		dst := &raw.Lay{}
+		dst := &raw.Lay{
+			MetaFileName: lay.Tag,
+			Version:      lay.Version,
+		}
+		for _, layEntry := range lay.Layers {
+			dst.Layers = append(dst.Layers, &raw.LayEntry{
+				Material: layEntry.Material,
+				Diffuse:  layEntry.Diffuse,
+				Normal:   layEntry.Normal,
+			})
+		}
+
 		err = lay.ToRaw(wce, dst)
 		if err != nil {
 			return fmt.Errorf("lay to raw: %w", err)
@@ -347,6 +358,14 @@ func writeEqgMaterials(srcMaterials []*EQMaterialDef) ([]*raw.Material, error) {
 		}
 		if srcMat.HexOneFlag == 1 {
 			mat.Flags &= 1
+		}
+
+		for _, prop := range srcMat.Properties {
+			mat.Properties = append(mat.Properties, &raw.MaterialParam{
+				Name:  prop.Name,
+				Value: prop.Value,
+				Type:  prop.Type,
+			})
 		}
 
 		dstMaterials = append(dstMaterials, mat)

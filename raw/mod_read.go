@@ -6,7 +6,6 @@ import (
 	"io"
 
 	"github.com/xackery/encdec"
-	"github.com/xackery/quail/helper"
 )
 
 type Mod struct {
@@ -281,8 +280,11 @@ func (mod *Mod) NameIndex(name string) int32 {
 
 // NameData is used during writing, dumps the name cache
 func (mod *Mod) NameData() []byte {
+	if len(mod.nameBuf) == 0 {
+		return nil
+	}
+	return mod.nameBuf[:len(mod.nameBuf)-1]
 
-	return helper.WriteStringHash(string(mod.nameBuf))
 }
 
 // NameClear purges names and namebuf, called when encode starts

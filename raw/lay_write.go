@@ -41,19 +41,19 @@ func (lay *Lay) Write(w io.Writer) error {
 	for _, layEntry := range lay.Layers {
 		offset := uint32(0xffffffff)
 		if layEntry.Material != "" {
-			offset = uint32(lay.NameIndex(layEntry.Material))
+			offset = uint32(lay.NameOffset(layEntry.Material))
 		}
 		enc.Uint32(offset)
 
 		offset = uint32(0xffffffff)
 		if layEntry.Diffuse != "" {
-			offset = uint32(lay.NameIndex(layEntry.Diffuse))
+			offset = uint32(lay.NameOffset(layEntry.Diffuse))
 		}
 		enc.Uint32(offset)
 
 		offset = uint32(0xffffffff)
 		if layEntry.Normal != "" {
-			offset = uint32(lay.NameIndex(layEntry.Normal))
+			offset = uint32(lay.NameOffset(layEntry.Normal))
 		}
 		enc.Uint32(offset)
 

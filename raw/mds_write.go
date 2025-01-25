@@ -18,10 +18,6 @@ func (mds *Mds) Write(w io.Writer) error {
 
 	mds.NameClear()
 
-	for _, model := range mds.Models {
-		mds.NameAdd(model.Name)
-	}
-
 	for _, material := range mds.Materials {
 		mds.NameAdd(material.Name)
 		mds.NameAdd(material.EffectName)
@@ -39,6 +35,10 @@ func (mds *Mds) Write(w io.Writer) error {
 		mds.NameAdd(bone.Name)
 	}
 
+	for _, model := range mds.Models {
+		mds.NameAdd(model.Name)
+	}
+
 	nameData := mds.NameData()
 	enc.Uint32(uint32(len(nameData))) // nameLength
 	enc.Uint32(uint32(len(mds.Materials)))
@@ -50,11 +50,11 @@ func (mds *Mds) Write(w io.Writer) error {
 
 	for _, material := range mds.Materials {
 		enc.Int32(material.ID)
-		enc.Uint32(uint32(mds.NameIndex(material.Name)))
-		enc.Uint32(uint32(mds.NameIndex(material.EffectName)))
+		enc.Uint32(uint32(mds.NameOffset(material.Name)))
+		enc.Uint32(uint32(mds.NameOffset(material.EffectName)))
 		enc.Uint32(uint32(len(material.Properties)))
 		for _, prop := range material.Properties {
-			enc.Uint32(uint32(mds.NameIndex(prop.Name)))
+			enc.Uint32(uint32(mds.NameOffset(prop.Name)))
 			enc.Uint32(uint32(prop.Type))
 			switch prop.Type {
 			case 0:
@@ -64,7 +64,7 @@ func (mds *Mds) Write(w io.Writer) error {
 				}
 				enc.Float32(float32(fval))
 			case 2:
-				enc.Int32(mds.NameIndex(prop.Value))
+				enc.Int32(mds.NameOffset(prop.Value))
 			default:
 				return err
 			}
@@ -72,7 +72,7 @@ func (mds *Mds) Write(w io.Writer) error {
 	}
 
 	for _, bone := range mds.Bones {
-		enc.Int32(mds.NameIndex(bone.Name))
+		enc.Int32(mds.NameOffset(bone.Name))
 		enc.Int32(bone.Next)
 		enc.Uint32(bone.ChildrenCount)
 		enc.Int32(bone.ChildIndex)
@@ -97,7 +97,7 @@ func (mds *Mds) Write(w io.Writer) error {
 
 	for _, model := range mds.Models {
 		enc.Uint32(model.MainPiece)
-		enc.Int32(mds.NameIndex(model.Name))
+		enc.Int32(mds.NameOffset(model.Name))
 		enc.Uint32(uint32(len(model.Vertices)))
 		enc.Uint32(uint32(len(model.Faces)))
 		enc.Uint32(uint32(len(model.BoneAssignments)))
