@@ -1708,18 +1708,6 @@ func (e *MaterialPalette) Write(token *AsciiWriteToken) error {
 			return err
 		}
 
-		// for _, materialTag := range e.Materials {
-		// 	materialDef := token.wce.ByTag(materialTag)
-		// 	if materialDef == nil {
-		// 		return fmt.Errorf("material %s not found", materialTag)
-		// 	}
-
-		// 	err = materialDef.Write(token)
-		// 	if err != nil {
-		// 		return fmt.Errorf("write materialdef %s: %w", materialTag, err)
-		// 	}
-		// }
-
 		fmt.Fprintf(w, "%s \"%s\"\n", e.Definition(), e.Tag)
 		fmt.Fprintf(w, "\tNUMMATERIALS %d\n", len(e.Materials))
 		for _, mat := range e.Materials {
@@ -1809,6 +1797,7 @@ type MaterialDef struct {
 	folders            []string // when writing, this is the folder the file is in
 	fragID             int16
 	Tag                string
+	TagIndex           int
 	Variation          int
 	SpriteHexFiftyFlag int
 	RenderMethod       string
@@ -1826,6 +1815,10 @@ func (e *MaterialDef) Definition() string {
 }
 
 func (e *MaterialDef) Write(token *AsciiWriteToken) error {
+	//fmt.Printf("Writing MaterialDef: Tag = %s\n", e.Tag)
+	// for i, folder := range e.folders {
+	// 	fmt.Printf("Folder[%d]: '%s'\n", i, folder)
+	// }
 
 	// Iterate through the folders
 	for _, folder := range e.folders {
@@ -1847,7 +1840,9 @@ func (e *MaterialDef) Write(token *AsciiWriteToken) error {
 		// fmt.Printf("MaterialDef Tag: %s - Writer successfully set for folder: %s\n", e.Tag, folder)
 
 		if e.SimpleSpriteTag != "" {
-			simpleSprite := token.wce.ByTagWithIndex(e.SimpleSpriteTag, e.Variation)
+			//fmt.Printf("Searching for SimpleSpriteTag: %s with Variation: %d\n", e.SimpleSpriteTag, e.Variation)
+
+			simpleSprite := token.wce.ByTagWithIndex(e.SimpleSpriteTag, e.TagIndex)
 			if simpleSprite == nil {
 				return fmt.Errorf("simple sprite %s not found", e.SimpleSpriteTag)
 			}
@@ -1858,6 +1853,7 @@ func (e *MaterialDef) Write(token *AsciiWriteToken) error {
 		}
 
 		fmt.Fprintf(w, "%s \"%s\"\n", e.Definition(), e.Tag)
+		fmt.Fprintf(w, "\tTAGINDEX %d\n", e.TagIndex)
 		fmt.Fprintf(w, "\tVARIATION %d\n", e.Variation)
 		fmt.Fprintf(w, "\tRENDERMETHOD \"%s\"\n", e.RenderMethod)
 		fmt.Fprintf(w, "\tRGBPEN %d %d %d %d\n", e.RGBPen[0], e.RGBPen[1], e.RGBPen[2], e.RGBPen[3])
@@ -1879,7 +1875,16 @@ func (e *MaterialDef) Write(token *AsciiWriteToken) error {
 func (e *MaterialDef) Read(token *AsciiReadToken) error {
 	e.folders = append(e.folders, token.folder)
 
-	records, err := token.ReadProperty("VARIATION", 1)
+	records, err := token.ReadProperty("TAGINDEX", 1)
+	if err != nil {
+		return err
+	}
+	err = parse(&e.TagIndex, records[1])
+	if err != nil {
+		return fmt.Errorf("tag index: %w", err)
+	}
+
+	records, err = token.ReadProperty("VARIATION", 1)
 	if err != nil {
 		return err
 	}
@@ -2055,6 +2060,7 @@ func (e *MaterialDef) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragMa
 		e.SimpleSpriteTag = rawWld.Name(spriteDef.NameRef())
 	}
 	e.Tag = rawWld.Name(frag.NameRef())
+	e.TagIndex = wce.NextTagIndex(e.Tag)
 	e.RenderMethod = model.RenderMethodStr(frag.RenderMethod)
 	e.RGBPen = frag.RGBPen
 	e.Brightness = frag.Brightness
@@ -2306,6 +2312,7 @@ type SimpleSpriteDef struct {
 	folders            []string // when writing, this is the folder the file is in
 	fragID             int16
 	Tag                string
+	TagIndex           int
 	Variation          int
 	SkipFrames         NullUint32
 	Sleep              NullUint32
@@ -2335,6 +2342,7 @@ func (e *SimpleSpriteDef) Write(token *AsciiWriteToken) error {
 		}
 
 		fmt.Fprintf(w, "%s \"%s\"\n", e.Definition(), e.Tag)
+		fmt.Fprintf(w, "\tTAGINDEX %d\n", e.TagIndex)
 		fmt.Fprintf(w, "\tVARIATION %d\n", e.Variation)
 		fmt.Fprintf(w, "\tSKIPFRAMES? %s\n", wcVal(e.SkipFrames))
 		fmt.Fprintf(w, "\tANIMATED? %s\n", wcVal(e.Animated))
@@ -2352,7 +2360,17 @@ func (e *SimpleSpriteDef) Write(token *AsciiWriteToken) error {
 
 func (e *SimpleSpriteDef) Read(token *AsciiReadToken) error {
 	e.folders = append(e.folders, token.folder)
-	records, err := token.ReadProperty("VARIATION", 1)
+
+	records, err := token.ReadProperty("TAGINDEX", 1)
+	if err != nil {
+		return err
+	}
+	err = parse(&e.TagIndex, records[1])
+	if err != nil {
+		return fmt.Errorf("tag index: %w", err)
+	}
+
+	records, err = token.ReadProperty("VARIATION", 1)
 	if err != nil {
 		return fmt.Errorf("VARIATION: %w", err)
 	}
@@ -2484,6 +2502,7 @@ func (e *SimpleSpriteDef) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFr
 		return fmt.Errorf("frag is not simplespritedef (wrong fragcode?)")
 	}
 	e.Tag = rawWld.Name(frag.NameRef())
+	e.TagIndex = wce.NextTagIndex(e.Tag)
 	if frag.Flags&0x02 == 0x02 {
 		e.SkipFrames.Valid = true
 	}

@@ -123,7 +123,6 @@ func readRawFrag(e *Wce, rawWld *raw.Wld, fragment model.FragmentReadWriter, fol
 			return fmt.Errorf("materialpalette: %w", err)
 		}
 		e.MaterialPalettes = append(e.MaterialPalettes, def)
-		// e.isVariationMaterial = true
 	case rawfrag.FragCodeDmSpriteDef2:
 		def := &DMSpriteDef2{folders: folders}
 		err := def.FromRaw(e, rawWld, fragment.(*rawfrag.WldFragDmSpriteDef2))
@@ -186,7 +185,6 @@ func readRawFrag(e *Wce, rawWld *raw.Wld, fragment model.FragmentReadWriter, fol
 		}
 
 		e.ActorDefs = append(e.ActorDefs, def)
-		// e.isVariationMaterial = false
 	case rawfrag.FragCodeActor:
 		def := &ActorInst{folders: folders}
 		err := def.FromRaw(e, rawWld, fragment.(*rawfrag.WldFragActor))
@@ -554,7 +552,7 @@ var (
 )
 
 func (wce *Wce) isTrackAni(tag string) bool {
-	// If isObj is true, it's not a track animation
+	// If isObj is true, it's not an animation track
 	if wce.isObj {
 		return false
 	}
@@ -704,6 +702,10 @@ func addChildrenFolder(foldersByFrag map[int][]string, folder string, node *tree
 }
 
 func appendUnique(slice []string, value string) []string {
+	// Skip adding empty strings
+	if strings.TrimSpace(value) == "" {
+		return slice
+	}
 	for _, v := range slice {
 		if v == value {
 			return slice
