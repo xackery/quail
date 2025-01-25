@@ -52,6 +52,7 @@ type Wce struct {
 	ModDefs                []*ModDef
 	TerDefs                []*TerDef
 	EQMaterialDefs         []*EQMaterialDef
+	LayDefs                []*LayDef
 }
 
 type WldDefinitioner interface {

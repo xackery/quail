@@ -28,17 +28,17 @@ func (lay *Lay) Write(w io.Writer) error {
 	}
 
 	lay.NameClear()
-	for _, layEntry := range lay.Entries {
+	for _, layEntry := range lay.Layers {
 		lay.NameAdd(layEntry.Material)
 		lay.NameAdd(layEntry.Diffuse)
 		lay.NameAdd(layEntry.Normal)
 	}
 
 	enc.Uint32(uint32(len(lay.NameData()))) // nameLength
-	enc.Uint32(uint32(len(lay.Entries)))    //layerCount
+	enc.Uint32(uint32(len(lay.Layers)))     //layerCount
 	enc.Bytes(lay.NameData())               // nameData
 
-	for _, layEntry := range lay.Entries {
+	for _, layEntry := range lay.Layers {
 		offset := uint32(0xffffffff)
 		if layEntry.Material != "" {
 			offset = uint32(lay.NameIndex(layEntry.Material))

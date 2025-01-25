@@ -106,8 +106,6 @@ func (mds *Mds) Read(r io.ReadSeeker) error {
 
 	mds.NameSet(names)
 
-	//model.Header.Name = lastElement
-
 	for i := 0; i < int(materialCount); i++ {
 		material := &Material{}
 		material.ID = dec.Int32()

@@ -109,7 +109,7 @@ func ondemand(path string) error {
 				return fmt.Errorf("lay read: %w", err)
 			}
 
-			for _, le := range lay.Entries {
+			for _, le := range lay.Layers {
 				fmt.Printf("%s^%s^%s^EQGL\n", eqgName, feName, le.Material)
 			}
 		case ".mod":

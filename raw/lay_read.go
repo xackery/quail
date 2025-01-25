@@ -11,9 +11,9 @@ import (
 
 // Lay is a raw layer struct
 type Lay struct {
-	MetaFileName string      `yaml:"file_name"`
-	Version      uint32      `yaml:"version"`
-	Entries      []*LayEntry `yaml:"entries"`
+	MetaFileName string
+	Version      uint32
+	Layers       []*LayEntry
 	names        []*nameEntry
 	nameBuf      []byte
 }
@@ -25,9 +25,9 @@ func (lay *Lay) Identity() string {
 
 // LayEntry is a raw layer entry struct
 type LayEntry struct {
-	Material string `yaml:"material"`
-	Diffuse  string `yaml:"diffuse"`
-	Normal   string `yaml:"normal"`
+	Material string
+	Diffuse  string
+	Normal   string
 }
 
 // IsRaw notes this is a raw file
@@ -95,7 +95,7 @@ func (lay *Lay) Read(r io.ReadSeeker) error {
 		}
 		dec.Bytes(versionOffset)
 		//fmt.Println(hex.Dump())
-		lay.Entries = append(lay.Entries, layEntry)
+		lay.Layers = append(lay.Layers, layEntry)
 	}
 
 	if dec.Error() != nil {

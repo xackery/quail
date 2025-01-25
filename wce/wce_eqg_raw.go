@@ -111,6 +111,20 @@ func (wce *Wce) readEqgEntry(entry *pfs.FileEntry) error {
 			return fmt.Errorf("ani: %w", err)
 		}
 		wce.AniDefs = append(wce.AniDefs, def)
+	case ".lay":
+		rawSrc := &raw.Lay{
+			MetaFileName: strings.TrimSuffix(entry.Name(), ".lay"),
+		}
+		err = rawSrc.Read(bytes.NewReader(entry.Data()))
+		if err != nil {
+			return fmt.Errorf("read %s: %w", entry.Name(), err)
+		}
+		def := &LayDef{}
+		err := def.FromRaw(wce, rawSrc)
+		if err != nil {
+			return fmt.Errorf("lay: %w", err)
+		}
+		wce.LayDefs = append(wce.LayDefs, def)
 	default:
 		return nil
 	}
@@ -288,13 +302,36 @@ func (wce *Wce) WriteEqgRaw(archive *pfs.Pfs) error {
 	for _, ani := range wce.AniDefs {
 		buf := &bytes.Buffer{}
 		dst := &raw.Ani{}
-		err := dst.Write(buf)
+		err = ani.ToRaw(wce, dst)
+		if err != nil {
+			return fmt.Errorf("ani to raw: %w", err)
+		}
+
+		err = dst.Write(buf)
 		if err != nil {
 			return fmt.Errorf("ani write: %w", err)
 		}
 		err = archive.Add(ani.Tag+".ani", buf.Bytes())
 		if err != nil {
 			return fmt.Errorf("add ani: %w", err)
+		}
+	}
+
+	for _, lay := range wce.LayDefs {
+		buf := &bytes.Buffer{}
+		dst := &raw.Lay{}
+		err = lay.ToRaw(wce, dst)
+		if err != nil {
+			return fmt.Errorf("lay to raw: %w", err)
+		}
+
+		err := dst.Write(buf)
+		if err != nil {
+			return fmt.Errorf("lay write: %w", err)
+		}
+		err = archive.Add(lay.Tag+".lay", buf.Bytes())
+		if err != nil {
+			return fmt.Errorf("add lay: %w", err)
 		}
 	}
 

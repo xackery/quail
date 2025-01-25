@@ -1666,3 +1666,144 @@ func (e *AniDef) FromRaw(wce *Wce, src *raw.Ani) error {
 
 	return nil
 }
+
+// LayDef represents an eqg .lay file
+type LayDef struct {
+	folders []string
+	Tag     string
+	Version uint32
+	Layers  []*LayEntry
+}
+
+type LayEntry struct {
+	Material string
+	Diffuse  string
+	Normal   string
+}
+
+func (e *LayDef) Definition() string {
+	return "EQLAYERDEF"
+}
+
+func (e *LayDef) Write(token *AsciiWriteToken) error {
+	for _, folder := range e.folders {
+		err := token.SetWriter(folder)
+		if err != nil {
+			return err
+		}
+		w, err := token.Writer()
+		if err != nil {
+			return err
+		}
+		if token.TagIsWritten(e.Tag) {
+			return nil
+		}
+
+		token.TagSetIsWritten(e.Tag)
+
+		fmt.Fprintf(w, "%s \"%s\"\n", e.Definition(), e.Tag)
+		fmt.Fprintf(w, "\tVERSION %d\n", e.Version)
+		fmt.Fprintf(w, "\tNUMLAYERS %d\n", len(e.Layers))
+		for i, layer := range e.Layers {
+			fmt.Fprintf(w, "\t\tLAYER // %d\n", i)
+			fmt.Fprintf(w, "\t\t\tMATERIAL \"%s\"\n", layer.Material)
+			fmt.Fprintf(w, "\t\t\tDIFFUSE \"%s\"\n", layer.Diffuse)
+			fmt.Fprintf(w, "\t\t\tNORMAL \"%s\"\n", layer.Normal)
+		}
+		fmt.Fprintf(w, "\n")
+
+		token.TagSetIsWritten(e.Tag)
+	}
+	return nil
+
+}
+
+func (e *LayDef) Read(token *AsciiReadToken) error {
+
+	records, err := token.ReadProperty("VERSION", 1)
+	if err != nil {
+		return err
+	}
+	err = parse(&e.Version, records[1])
+	if err != nil {
+		return fmt.Errorf("version: %w", err)
+	}
+
+	records, err = token.ReadProperty("NUMLAYERS", 1)
+	if err != nil {
+		return err
+	}
+
+	numEntries := 0
+	err = parse(&numEntries, records[1])
+	if err != nil {
+		return fmt.Errorf("num entries: %w", err)
+	}
+
+	for i := 0; i < numEntries; i++ {
+		layer := &LayEntry{}
+
+		_, err = token.ReadProperty("LAYER", 0)
+		if err != nil {
+			return fmt.Errorf("entry %d: %w", i, err)
+		}
+
+		_, err = token.ReadProperty("MATERIAL", 1)
+		if err != nil {
+			return fmt.Errorf("entry %d material: %w", i, err)
+		}
+		layer.Material = records[1]
+
+		_, err = token.ReadProperty("DIFFUSE", 1)
+		if err != nil {
+			return fmt.Errorf("entry %d diffuse: %w", i, err)
+		}
+
+		layer.Diffuse = records[1]
+
+		_, err = token.ReadProperty("NORMAL", 1)
+		if err != nil {
+			return fmt.Errorf("entry %d normal: %w", i, err)
+		}
+
+		layer.Normal = records[1]
+
+		e.Layers = append(e.Layers, layer)
+
+	}
+
+	return nil
+}
+
+func (e *LayDef) ToRaw(wce *Wce, dst *raw.Lay) error {
+	dst.MetaFileName = e.Tag
+	dst.Version = e.Version
+	for _, layer := range e.Layers {
+		layEntry := &raw.LayEntry{
+			Material: layer.Material,
+			Diffuse:  layer.Diffuse,
+			Normal:   layer.Normal,
+		}
+		dst.Layers = append(dst.Layers, layEntry)
+	}
+
+	return nil
+}
+
+func (e *LayDef) FromRaw(wce *Wce, src *raw.Lay) error {
+	folder := strings.TrimSuffix(strings.ToLower(wce.FileName), ".eqg")
+	e.folders = append(e.folders, folder)
+	e.Tag = src.MetaFileName
+	e.Version = src.Version
+
+	for _, layer := range src.Layers {
+		layEntry := &LayEntry{
+			Material: layer.Material,
+			Diffuse:  layer.Diffuse,
+			Normal:   layer.Normal,
+		}
+		e.Layers = append(e.Layers, layEntry)
+	}
+
+	return nil
+}
