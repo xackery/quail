@@ -144,7 +144,6 @@ func (mds *Mds) Read(r io.ReadSeeker) error {
 		verticesCount := dec.Uint32()
 		faceCount := dec.Uint32()
 		boneAssignmentCount := dec.Uint32()
-
 		for i := 0; i < int(verticesCount); i++ {
 			v := &Vertex{}
 			v.Position[0] = dec.Float32()
@@ -205,13 +204,9 @@ func (mds *Mds) Read(r io.ReadSeeker) error {
 		}
 
 		for i := 0; i < int(boneAssignmentCount); i++ {
-			weightCount := dec.Uint32()
+			_ = dec.Uint32() //weightCount
 			weights := [4]*MdsBoneWeight{}
 			for j := 0; j < int(4); j++ {
-				if weightCount < uint32(j+1) {
-					weights[j] = &MdsBoneWeight{}
-					continue
-				}
 				weight := &MdsBoneWeight{}
 				weight.BoneIndex = dec.Int32()
 				weight.Value = dec.Float32()

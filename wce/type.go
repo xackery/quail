@@ -448,6 +448,18 @@ func parse(inVal interface{}, src ...string) error {
 			val[i] = int16(v)
 		}
 		return nil
+	case *[3]uint32:
+		if len(src) < 3 {
+			return fmt.Errorf("need 3 arguments: %v", src)
+		}
+		for i := 0; i < 3; i++ {
+			v, err := strconv.ParseUint(src[i], 10, 32)
+			if err != nil {
+				return err
+			}
+			val[i] = uint32(v)
+		}
+		return nil
 	case *[4]uint16:
 		if len(src) < 4 {
 			return fmt.Errorf("need 4 arguments: %v", src)

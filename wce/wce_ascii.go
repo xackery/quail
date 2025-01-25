@@ -312,10 +312,10 @@ func (wce *Wce) writeAsciiData(path string) error {
 
 		rootW.WriteString(fmt.Sprintf("INCLUDE \"%s/_ROOT.WCE\"\n", strings.ToUpper(folder)))
 		if folderInfo.hasBase {
-			includes[folder] = fmt.Sprintf("INCLUDE \"%s.WCE\"\n", strings.ToUpper(folder))
+			includes[folder] += fmt.Sprintf("INCLUDE \"%s.WCE\"\n", strings.ToUpper(folder))
 		}
 		if folderInfo.hasAni {
-			includes[folder] = fmt.Sprintf("INCLUDE \"%s_ANI.WCE\"\n", strings.ToUpper(folder))
+			includes[folder] += fmt.Sprintf("INCLUDE \"%s_ANI.WCE\"\n", strings.ToUpper(folder))
 		}
 	}
 	rootW.Close()
