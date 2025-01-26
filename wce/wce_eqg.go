@@ -717,15 +717,16 @@ func (e *MdsDef) FromRaw(wce *Wce, src *raw.Mds) error {
 
 // ModDef is an entry EQMODELDEF
 type ModDef struct {
-	folders  []string
-	Tag      string
-	Version  uint32
-	Vertices [][3]float32
-	Normals  [][3]float32
-	Tints    [][4]uint8
-	UVs      [][2]float32
-	UV2s     [][2]float32
-	Faces    []*ModFace
+	folders   []string
+	Tag       string
+	Version   uint32
+	Materials []*EQMaterialDef
+	Vertices  [][3]float32
+	Normals   [][3]float32
+	Tints     [][4]uint8
+	UVs       [][2]float32
+	UV2s      [][2]float32
+	Faces     []*ModFace
 }
 
 type ModFace struct {
@@ -768,6 +769,21 @@ func (e *ModDef) Write(token *AsciiWriteToken) error {
 
 		fmt.Fprintf(w, "%s \"%s\"\n", e.Definition(), e.Tag)
 		fmt.Fprintf(w, "\tVERSION %d\n", e.Version)
+		fmt.Fprintf(w, "\tNUMMATERIALS %d\n", len(e.Materials))
+		for _, material := range e.Materials {
+			fmt.Fprintf(w, "\t\tMATERIAL \"%s\"\n", material.Tag)
+			fmt.Fprintf(w, "\t\t\tSHADERTAG \"%s\"\n", material.ShaderTag)
+			fmt.Fprintf(w, "\t\t\tHEXONEFLAG %d\n", material.HexOneFlag)
+			fmt.Fprintf(w, "\t\t\tNUMPROPERTIES %d\n", len(material.Properties))
+			for _, prop := range material.Properties {
+				fmt.Fprintf(w, "\t\t\t\tPROPERTY \"%s\" %d \"%s\"\n", prop.Name, prop.Type, prop.Value)
+			}
+			fmt.Fprintf(w, "\t\t\tANIMSLEEP %d\n", material.AnimationSleep)
+			fmt.Fprintf(w, "\t\t\tANIMTEXTURES %d\n", len(material.AnimationTextures))
+			for _, anim := range material.AnimationTextures {
+				fmt.Fprintf(w, " \"%s\"", anim)
+			}
+		}
 		fmt.Fprintf(w, "\tNUMVERTICES %d\n", len(e.Vertices))
 		for _, v := range e.Vertices {
 			fmt.Fprintf(w, "\t\tXYZ %0.8e %0.8e %0.8e\n", v[0], v[1], v[2])
@@ -820,6 +836,32 @@ func (e *ModDef) Read(token *AsciiReadToken) error {
 		return fmt.Errorf("version: %w", err)
 	}
 
+	records, err = token.ReadProperty("NUMMATERIALS", 1)
+	if err != nil {
+		return err
+	}
+
+	numMaterials := 0
+	err = parse(&numMaterials, records[1])
+	if err != nil {
+		return fmt.Errorf("num materials: %w", err)
+	}
+
+	for i := 0; i < numMaterials; i++ {
+		eqMaterialDef := &EQMaterialDef{}
+		records, err = token.ReadProperty("MATERIAL", 1)
+		if err != nil {
+			return fmt.Errorf("material %d: %w", i, err)
+		}
+		eqMaterialDef.Tag = records[1]
+
+		err = eqMaterialDef.Read(token)
+		if err != nil {
+			return fmt.Errorf("material %d: %w", i, err)
+		}
+		e.Materials = append(e.Materials, eqMaterialDef)
+	}
+
 	records, err = token.ReadProperty("NUMVERTICES", 1)
 	if err != nil {
 		return err
@@ -866,6 +908,80 @@ func (e *ModDef) Read(token *AsciiReadToken) error {
 
 		e.UVs = append(e.UVs, uv)
 	}
+
+	records, err = token.ReadProperty("NUMUV2S", 1)
+	if err != nil {
+		return err
+	}
+
+	numUV2s := 0
+	err = parse(&numUV2s, records[1])
+	if err != nil {
+		return fmt.Errorf("num uv2s: %w", err)
+	}
+
+	for i := 0; i < numUV2s; i++ {
+		records, err = token.ReadProperty("UV", 2)
+		if err != nil {
+			return fmt.Errorf("uv2 %d: %w", i, err)
+		}
+		uv2 := [2]float32{}
+		err = parse(&uv2, records[1:]...)
+		if err != nil {
+			return fmt.Errorf("uv2 %d: %w", i, err)
+		}
+
+		e.UV2s = append(e.UV2s, uv2)
+	}
+
+	records, err = token.ReadProperty("NUMNORMALS", 1)
+	if err != nil {
+		return err
+	}
+	numNormals := 0
+	err = parse(&numNormals, records[1])
+	if err != nil {
+		return fmt.Errorf("num normals: %w", err)
+	}
+
+	for i := 0; i < numNormals; i++ {
+		records, err = token.ReadProperty("XYZ", 3)
+		if err != nil {
+			return fmt.Errorf("normal %d: %w", i, err)
+		}
+		normal := [3]float32{}
+		err = parse(&normal, records[1:]...)
+		if err != nil {
+			return fmt.Errorf("normal %d: %w", i, err)
+		}
+
+		e.Normals = append(e.Normals, normal)
+	}
+
+	records, err = token.ReadProperty("NUMTINTS", 1)
+	if err != nil {
+		return err
+	}
+	numTints := 0
+	err = parse(&numTints, records[1])
+	if err != nil {
+		return fmt.Errorf("num tints: %w", err)
+	}
+
+	for i := 0; i < numTints; i++ {
+		records, err = token.ReadProperty("RGBA", 4)
+		if err != nil {
+			return fmt.Errorf("tint %d: %w", i, err)
+		}
+		tint := [4]uint8{}
+		err = parse(&tint, records[1:]...)
+		if err != nil {
+			return fmt.Errorf("tint %d: %w", i, err)
+		}
+
+		e.Tints = append(e.Tints, tint)
+	}
+
 	records, err = token.ReadProperty("NUMFACES", 1)
 	if err != nil {
 		return err
@@ -960,13 +1076,13 @@ func (e *ModDef) FromRaw(wce *Wce, src *raw.Mod) error {
 	}
 	e.folders = append(e.folders, folder)
 
-	for _, material := range src.Materials {
+	for _, mat := range src.Materials {
 		eqMaterialDef := &EQMaterialDef{}
-		err := eqMaterialDef.FromRaw(wce, material)
+		err := eqMaterialDef.FromRawNoAppend(wce, mat)
 		if err != nil {
-			return err
+			return fmt.Errorf("material %s: %w", mat.Name, err)
 		}
-		wce.EQMaterialDefs = append(wce.EQMaterialDefs, eqMaterialDef)
+		e.Materials = append(e.Materials, eqMaterialDef)
 	}
 
 	e.Version = src.Version

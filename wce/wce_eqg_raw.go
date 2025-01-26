@@ -223,28 +223,7 @@ func (wce *Wce) WriteEqgRaw(archive *pfs.Pfs) error {
 			Version:      mod.Version,
 		}
 
-		materialNames := make(map[string]bool)
-		for _, face := range mod.Faces {
-			materialNames[face.MaterialName] = true
-		}
-
-		materials := []*EQMaterialDef{}
-		for materialName := range materialNames {
-			isFound := false
-			for _, material := range wce.EQMaterialDefs {
-				if material.Tag != materialName {
-					continue
-				}
-				materials = append(materials, material)
-				isFound = true
-				break
-			}
-			if !isFound {
-				return fmt.Errorf("model %s refers to material %s, but not declared", mod.Tag, materialName)
-			}
-		}
-
-		dst.Materials, err = writeEqgMaterials(materials)
+		dst.Materials, err = writeEqgMaterials(mod.Materials)
 		if err != nil {
 			return fmt.Errorf("write materials: %w", err)
 		}
