@@ -52,12 +52,33 @@ func TestWceReadWrite(t *testing.T) {
 				t.Fatalf("Failed to write eqg %s: %s", baseName, err.Error())
 			}
 
+			knownExts := []string{".mod", ".mds", "ter"}
+
+			isKnownExt := func(ext string) bool {
+				for _, knownExt := range knownExts {
+					if ext == knownExt {
+						return true
+					}
+				}
+				return false
+			}
+
 			ext := ".eqg"
 			archive, err := pfs.NewFile(fmt.Sprintf("%s/%s.eqg", eqPath, baseName))
 			if err != nil {
 				t.Fatalf("failed to open eqg %s: %s", baseName, err.Error())
 			}
 			defer archive.Close()
+
+			for _, file := range archive.Files() {
+				if !isKnownExt(file.Ext()) {
+					continue
+				}
+				err = os.WriteFile(fmt.Sprintf("%s/%s.src.%s", dirTest, baseName, file.Name()), file.Data(), 0644)
+				if err != nil {
+					t.Fatalf("failed to write %s: %s", baseName, err.Error())
+				}
+			}
 
 			wldSrc := wce.New(baseName + ".eqg")
 			err = wldSrc.ReadEqgRaw(archive)
@@ -105,6 +126,16 @@ func TestWceReadWrite(t *testing.T) {
 			err = outArchive.Write(w)
 			if err != nil {
 				t.Fatalf("failed to write %s: %s", baseName, err.Error())
+			}
+
+			for _, file := range outArchive.Files() {
+				if !isKnownExt(file.Ext()) {
+					continue
+				}
+				err = os.WriteFile(fmt.Sprintf("%s/%s.dst.%s", dirTest, baseName, file.Name()), file.Data(), 0644)
+				if err != nil {
+					t.Fatalf("failed to write %s: %s", baseName, err.Error())
+				}
 			}
 
 			fmt.Println("Wrote", fmt.Sprintf("%s/%s.dst%s in %0.2f seconds", dirTest, baseName, ext, time.Since(start).Seconds()))
