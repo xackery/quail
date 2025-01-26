@@ -6,7 +6,6 @@ import (
 	"io"
 
 	"github.com/xackery/encdec"
-	"github.com/xackery/quail/helper"
 )
 
 type Ani struct {
@@ -14,8 +13,7 @@ type Ani struct {
 	Version      uint32
 	Bones        []*AniBone
 	IsStrict     bool
-	names        []*nameEntry
-	nameBuf      []byte
+	name         *eqgName
 }
 
 func (ani *Ani) Identity() string {
@@ -37,6 +35,9 @@ type AniBoneFrame struct {
 
 // Read an ANI file
 func (ani *Ani) Read(r io.ReadSeeker) error {
+	if ani.name == nil {
+		ani.name = &eqgName{}
+	}
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 
 	header := dec.StringFixed(4)
@@ -57,27 +58,13 @@ func (ani *Ani) Read(r io.ReadSeeker) error {
 	}
 
 	nameData := dec.Bytes(int(nameLength))
-
-	names := make(map[int32]string)
-	chunk := []byte{}
-	lastOffset := 0
-	for i, b := range nameData {
-		if b == 0 {
-			names[int32(lastOffset)] = string(chunk)
-			chunk = []byte{}
-			lastOffset = i + 1
-			continue
-		}
-		chunk = append(chunk, b)
-	}
-
-	ani.NameSet(names)
+	ani.name.parse(nameData)
 
 	for i := 0; i < int(boneCount); i++ {
 		bone := &AniBone{}
 		frameCount := dec.Uint32()
 
-		bone.Name = ani.Name(dec.Int32())
+		bone.Name = ani.name.byOffset(dec.Int32())
 
 		for j := 0; j < int(frameCount); j++ {
 			frame := &AniBoneFrame{}
@@ -121,111 +108,4 @@ func (ani *Ani) SetFileName(name string) {
 
 func (ani *Ani) FileName() string {
 	return ani.MetaFileName
-}
-
-// Name is used during reading, returns the Name of an id
-func (ani *Ani) Name(id int32) string {
-	if id < 0 {
-		id = -id
-	}
-	if ani.names == nil {
-		return fmt.Sprintf("!UNK(%d)", id)
-	}
-	//fmt.Println("name: [", names[id], "]")
-
-	for _, v := range ani.names {
-		if int32(v.offset) == id {
-			return v.name
-		}
-	}
-	return fmt.Sprintf("!UNK(%d)", id)
-}
-
-// NameSet is used during reading, sets the names within a buffer
-func (ani *Ani) NameSet(newNames map[int32]string) {
-	if newNames == nil {
-		ani.names = []*nameEntry{}
-		return
-	}
-	for k, v := range newNames {
-		ani.names = append(ani.names, &nameEntry{offset: int(k), name: v})
-	}
-	ani.nameBuf = []byte{0x00}
-
-	for _, v := range ani.names {
-		ani.nameBuf = append(ani.nameBuf, []byte(v.name)...)
-		ani.nameBuf = append(ani.nameBuf, 0)
-	}
-}
-
-// NameAdd is used when writing, appending new names
-func (ani *Ani) NameAdd(name string) int32 {
-
-	if ani.names == nil {
-		ani.names = []*nameEntry{
-			{offset: 0, name: ""},
-		}
-		ani.nameBuf = []byte{0x00}
-	}
-	if name == "" {
-		return 0
-	}
-
-	/* if name[len(ani.name)-1:] != "\x00" {
-		name += "\x00"
-	}
-	*/
-	if id := ani.NameOffset(name); id != -1 {
-		return -id
-	}
-	ani.names = append(ani.names, &nameEntry{offset: len(ani.nameBuf), name: name})
-	lastRef := int32(len(ani.nameBuf))
-	ani.nameBuf = append(ani.nameBuf, []byte(name)...)
-	ani.nameBuf = append(ani.nameBuf, 0)
-	return int32(-lastRef)
-}
-
-func (ani *Ani) NameOffset(name string) int32 {
-	if ani.names == nil {
-		return -1
-	}
-	for _, v := range ani.names {
-		if v.name == name {
-			return int32(v.offset)
-		}
-	}
-	return -1
-}
-
-// NameIndex is used when reading, returns the index of a name, or -1 if not found
-func (ani *Ani) NameIndex(name string) int32 {
-	if ani.names == nil {
-		return -1
-	}
-	for k, v := range ani.names {
-		if v.name == name {
-			return int32(k)
-		}
-	}
-	return -1
-}
-
-// NameData is used during writing, dumps the name cache
-func (ani *Ani) NameData() []byte {
-
-	return helper.WriteStringHash(string(ani.nameBuf))
-}
-
-// NameClear purges names and namebuf, called when encode starts
-func (ani *Ani) NameClear() {
-	ani.names = nil
-	ani.nameBuf = nil
-}
-
-func (ani *Ani) Names() []string {
-	names := []string{}
-	for _, v := range ani.names {
-		names = append(names, v.name)
-	}
-	return names
 }

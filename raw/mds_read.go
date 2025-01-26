@@ -15,9 +15,8 @@ type Mds struct {
 	Bones        []*Bone
 	//MainNameIndex int32
 	//SubNameIndex  int32
-	Models  []*MdsModel
-	names   []*nameEntry
-	nameBuf []byte
+	Models []*MdsModel
+	name   *eqgName
 }
 
 func (mds *Mds) Identity() string {
@@ -38,8 +37,11 @@ type MdsBoneWeight struct {
 }
 
 func (mds *Mds) String() string {
+	if mds.name == nil {
+		mds.name = &eqgName{}
+	}
 	out := fmt.Sprintf("Mds: %s,", mds.MetaFileName)
-	out += fmt.Sprintf(" %d names,", len(mds.names))
+	out += fmt.Sprintf(" %d names,", mds.name.len())
 	out += fmt.Sprintf(" %d materials", len(mds.Materials))
 	if len(mds.Materials) > 0 {
 		out += " ["
@@ -73,6 +75,9 @@ func (mds *Mds) String() string {
 
 // Read reads a mds file
 func (mds *Mds) Read(r io.ReadSeeker) error {
+	if mds.name == nil {
+		mds.name = &eqgName{}
+	}
 
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 
@@ -89,28 +94,16 @@ func (mds *Mds) Read(r io.ReadSeeker) error {
 
 	nameData := dec.Bytes(int(nameLength))
 
-	names := make(map[int32]string)
-	chunk := []byte{}
-	lastOffset := 0
-	//lastElement := ""
-	for i, b := range nameData {
-		if b == 0 {
-			names[int32(lastOffset)] = string(chunk)
-			//	lastElement = string(chunk)
-			chunk = []byte{}
-			lastOffset = i + 1
-			continue
-		}
-		chunk = append(chunk, b)
+	err := mds.name.parse(nameData)
+	if err != nil {
+		return fmt.Errorf("nameDataParse: %w", err)
 	}
-
-	mds.NameSet(names)
 
 	for i := 0; i < int(materialCount); i++ {
 		material := &Material{}
 		material.ID = dec.Int32()
-		material.Name = mds.Name(dec.Int32())
-		material.EffectName = mds.Name(dec.Int32())
+		material.Name = mds.name.byOffset(dec.Int32())
+		material.EffectName = mds.name.byOffset(dec.Int32())
 
 		mds.Materials = append(mds.Materials, material)
 		propertyCount := dec.Uint32()
@@ -119,7 +112,7 @@ func (mds *Mds) Read(r io.ReadSeeker) error {
 				Name: material.Name,
 			}
 
-			property.Name = mds.Name(dec.Int32())
+			property.Name = mds.name.byOffset(dec.Int32())
 
 			property.Type = MaterialParamType(dec.Uint32())
 			if property.Type == 0 {
@@ -127,7 +120,7 @@ func (mds *Mds) Read(r io.ReadSeeker) error {
 			} else {
 				val := dec.Int32()
 				if property.Type == 2 {
-					property.Value = mds.Name(val)
+					property.Value = mds.name.byOffset(val)
 				} else {
 					property.Value = fmt.Sprintf("%d", val)
 				}
@@ -139,7 +132,7 @@ func (mds *Mds) Read(r io.ReadSeeker) error {
 
 	for i := 0; i < int(boneCount); i++ {
 		bone := &Bone{}
-		bone.Name = mds.Name(dec.Int32())
+		bone.Name = mds.name.byOffset(dec.Int32())
 		bone.Next = dec.Int32()
 		bone.ChildrenCount = dec.Uint32()
 		bone.ChildIndex = dec.Int32()
@@ -167,7 +160,7 @@ func (mds *Mds) Read(r io.ReadSeeker) error {
 	for i := 0; i < int(modelCount); i++ {
 		model := &MdsModel{}
 		model.MainPiece = dec.Uint32()
-		model.Name = mds.Name(dec.Int32())
+		model.Name = mds.name.byOffset(dec.Int32())
 		verticesCount := dec.Uint32()
 		faceCount := dec.Uint32()
 		boneAssignmentCount := dec.Uint32()
@@ -261,117 +254,4 @@ func (mds *Mds) SetFileName(name string) {
 // FileName returns the name of the file
 func (mds *Mds) FileName() string {
 	return mds.MetaFileName
-}
-
-// Name is used during reading, returns the Name of an id
-func (mds *Mds) Name(id int32) string {
-	if id < 0 {
-		id = -id
-	}
-	if mds.names == nil {
-		return fmt.Sprintf("!UNK(%d)", id)
-	}
-	//fmt.Println("name: [", names[id], "]")
-
-	for _, v := range mds.names {
-		if int32(v.offset) == id {
-			return v.name
-		}
-	}
-	return fmt.Sprintf("!UNK(%d)", id)
-}
-
-// NameSet is used during reading, sets the names within a buffer
-func (mds *Mds) NameSet(newNames map[int32]string) {
-	if newNames == nil {
-		mds.names = []*nameEntry{}
-		return
-	}
-	for k, v := range newNames {
-		mds.names = append(mds.names, &nameEntry{offset: int(k), name: v})
-	}
-	mds.nameBuf = []byte{0x00}
-
-	for _, v := range mds.names {
-		mds.nameBuf = append(mds.nameBuf, []byte(v.name)...)
-		mds.nameBuf = append(mds.nameBuf, 0)
-	}
-}
-
-// NameAdd is used when writing, appending new names
-func (mds *Mds) NameAdd(name string) int32 {
-
-	if mds.names == nil {
-		mds.names = []*nameEntry{}
-		//			{offset: 0, name: ""},
-		//		}
-		//		mds.nameBuf = []byte{0x00}
-	}
-	if name == "" {
-		return 0
-	}
-
-	/* if name[len(mds.name)-1:] != "\x00" {
-		name += "\x00"
-	}
-	*/
-	// if id := mds.NameOffset(name); id != -1 {
-	// 	return -id
-	// }
-	mds.names = append(mds.names, &nameEntry{offset: len(mds.nameBuf), name: name})
-	lastRef := int32(len(mds.nameBuf))
-	mds.nameBuf = append(mds.nameBuf, []byte(name)...)
-	mds.nameBuf = append(mds.nameBuf, 0)
-	return int32(-lastRef)
-}
-
-func (mds *Mds) NameOffset(name string) int32 {
-	if mds.names == nil {
-		return -1
-	}
-	for _, v := range mds.names {
-		if v.name == name {
-			return int32(v.offset)
-		}
-	}
-	return -1
-}
-
-// NameIndex is used when reading, returns the index of a name, or -1 if not found
-func (mds *Mds) NameIndex(name string) int32 {
-	if mds.names == nil {
-		return -1
-	}
-	for k, v := range mds.names {
-		if v.name != name {
-			continue
-		}
-		return int32(k)
-	}
-	return -1
-}
-
-// NameData is used during writing, dumps the name cache
-func (mds *Mds) NameData() []byte {
-	if len(mds.nameBuf) == 0 {
-		return nil
-	}
-	return mds.nameBuf
-}
-
-// NameClear purges names and namebuf, called when encode starts
-func (mds *Mds) NameClear() {
-	mds.names = nil
-	mds.nameBuf = nil
-}
-
-func (mds *Mds) Names() []string {
-	if mds.names == nil {
-		return nil
-	}
-	names := []string{}
-	for _, v := range mds.names {
-		names = append(names, v.name)
-	}
-	return names
 }

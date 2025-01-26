@@ -12,34 +12,37 @@ import (
 // Write writes a mds file
 func (mds *Mds) Write(w io.Writer) error {
 	var err error
+	if mds.name == nil {
+		mds.name = &eqgName{}
+	}
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
 	enc.String("EQGS")
 	enc.Uint32(mds.Version)
 
-	mds.NameClear()
+	mds.name.clear()
 
 	for _, material := range mds.Materials {
-		mds.NameAdd(material.Name)
-		mds.NameAdd(material.EffectName)
+		mds.name.add(material.Name)
+		mds.name.add(material.EffectName)
 		for _, prop := range material.Properties {
-			mds.NameAdd(prop.Name)
+			mds.name.add(prop.Name)
 			switch prop.Type {
 			case 2:
-				mds.NameAdd(prop.Value)
+				mds.name.add(prop.Value)
 			default:
 			}
 		}
 	}
 
 	for _, bone := range mds.Bones {
-		mds.NameAdd(bone.Name)
+		mds.name.add(bone.Name)
 	}
 
 	for _, model := range mds.Models {
-		mds.NameAdd(model.Name)
+		mds.name.add(model.Name)
 	}
 
-	nameData := mds.NameData()
+	nameData := mds.name.data()
 	enc.Uint32(uint32(len(nameData))) // nameLength
 	enc.Uint32(uint32(len(mds.Materials)))
 
@@ -50,11 +53,11 @@ func (mds *Mds) Write(w io.Writer) error {
 
 	for _, material := range mds.Materials {
 		enc.Int32(material.ID)
-		enc.Uint32(uint32(mds.NameOffset(material.Name)))
-		enc.Uint32(uint32(mds.NameOffset(material.EffectName)))
+		enc.Uint32(uint32(mds.name.offsetByName(material.Name)))
+		enc.Uint32(uint32(mds.name.offsetByName(material.EffectName)))
 		enc.Uint32(uint32(len(material.Properties)))
 		for _, prop := range material.Properties {
-			enc.Uint32(uint32(mds.NameOffset(prop.Name)))
+			enc.Uint32(uint32(mds.name.offsetByName(prop.Name)))
 			enc.Uint32(uint32(prop.Type))
 			switch prop.Type {
 			case 0:
@@ -64,7 +67,7 @@ func (mds *Mds) Write(w io.Writer) error {
 				}
 				enc.Float32(float32(fval))
 			case 2:
-				enc.Int32(mds.NameOffset(prop.Value))
+				enc.Int32(mds.name.offsetByName(prop.Value))
 			default:
 				return err
 			}
@@ -72,7 +75,7 @@ func (mds *Mds) Write(w io.Writer) error {
 	}
 
 	for _, bone := range mds.Bones {
-		enc.Int32(mds.NameOffset(bone.Name))
+		enc.Int32(mds.name.offsetByName(bone.Name))
 		enc.Int32(bone.Next)
 		enc.Uint32(bone.ChildrenCount)
 		enc.Int32(bone.ChildIndex)
@@ -97,7 +100,7 @@ func (mds *Mds) Write(w io.Writer) error {
 
 	for _, model := range mds.Models {
 		enc.Uint32(model.MainPiece)
-		enc.Int32(mds.NameOffset(model.Name))
+		enc.Int32(mds.name.offsetByName(model.Name))
 		enc.Uint32(uint32(len(model.Vertices)))
 		enc.Uint32(uint32(len(model.Faces)))
 		enc.Uint32(uint32(len(model.BoneAssignments)))

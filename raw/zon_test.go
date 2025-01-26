@@ -27,7 +27,7 @@ func TestZonRead(t *testing.T) {
 		wantErr bool
 	}{
 		// .zon|2|guardian.zon|guardian.eqg
-		//{name: "guardian.eqg"}, // PASS
+		{name: "guardian.eqg"}, // PASS
 		// .zon|1|anguish.zon|anguish.eqg
 		//{name: "anguish.eqg"}, // PASS
 		// .zon|1|bazaar.zon|bazaar.eqg

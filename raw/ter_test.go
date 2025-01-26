@@ -26,7 +26,7 @@ func TestTerRead(t *testing.T) {
 		wantErr bool
 	}{
 		// .ter|1|ter_temple01.ter|fhalls.eqg
-		//{name: "fhalls.eqg"},
+		{name: "fhalls.eqg"},
 		// .ter|2|ter_abyss01.ter|thenest.eqg
 		// .ter|2|ter_bazaar.ter|bazaar.eqg
 		// .ter|2|ter_upper.ter|riftseekers.eqg

@@ -15,8 +15,7 @@ type Mod struct {
 	Bones        []*Bone
 	Vertices     []*Vertex
 	Faces        []Face
-	names        []*nameEntry
-	nameBuf      []byte
+	name         *eqgName
 }
 
 type ModFaceFlag uint32
@@ -36,6 +35,9 @@ func (mod *Mod) Identity() string {
 
 // Decode reads a MOD file
 func (mod *Mod) Read(r io.ReadSeeker) error {
+	if mod.name == nil {
+		mod.name = &eqgName{}
+	}
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 
 	header := dec.StringFixed(4)
@@ -65,13 +67,13 @@ func (mod *Mod) Read(r io.ReadSeeker) error {
 		chunk = append(chunk, b)
 	}
 
-	mod.NameSet(names)
+	mod.name.set(names)
 
 	for i := 0; i < int(materialCount); i++ {
 		material := &Material{}
 		material.ID = dec.Int32()
-		material.Name = mod.Name(dec.Int32())
-		material.EffectName = mod.Name(dec.Int32())
+		material.Name = mod.name.byOffset(dec.Int32())
+		material.EffectName = mod.name.byOffset(dec.Int32())
 		mod.Materials = append(mod.Materials, material)
 
 		paramCount := dec.Uint32()
@@ -80,7 +82,7 @@ func (mod *Mod) Read(r io.ReadSeeker) error {
 				Name: material.Name,
 			}
 
-			param.Name = mod.Name(dec.Int32())
+			param.Name = mod.name.byOffset(dec.Int32())
 
 			param.Type = MaterialParamType(dec.Uint32())
 			if param.Type == 0 {
@@ -88,7 +90,7 @@ func (mod *Mod) Read(r io.ReadSeeker) error {
 			} else {
 				val := dec.Int32()
 				if param.Type == 2 {
-					param.Value = mod.Name(val)
+					param.Value = mod.name.byOffset(val)
 
 				} else {
 					param.Value = fmt.Sprintf("%d", val)
@@ -156,7 +158,7 @@ func (mod *Mod) Read(r io.ReadSeeker) error {
 
 	for i := 0; i < int(bonesCount); i++ {
 		bone := &Bone{}
-		bone.Name = mod.Name(dec.Int32())
+		bone.Name = mod.name.byOffset(dec.Int32())
 		bone.Next = dec.Int32()
 		bone.ChildrenCount = dec.Uint32()
 		bone.ChildIndex = dec.Int32()
@@ -189,117 +191,4 @@ func (mod *Mod) SetFileName(name string) {
 // FileName returns the name of the file
 func (mod *Mod) FileName() string {
 	return mod.MetaFileName
-}
-
-// Name is used during reading, returns the Name of an id
-func (mod *Mod) Name(id int32) string {
-	if id < 0 {
-		id = -id
-	}
-	if mod.names == nil {
-		return fmt.Sprintf("!UNK(%d)", id)
-	}
-	//fmt.Println("name: [", names[id], "]")
-
-	for _, v := range mod.names {
-		if int32(v.offset) == id {
-			return v.name
-		}
-	}
-	return fmt.Sprintf("!UNK(%d)", id)
-}
-
-// NameSet is used during reading, sets the names within a buffer
-func (mod *Mod) NameSet(newNames map[int32]string) {
-	if newNames == nil {
-		mod.names = []*nameEntry{}
-		return
-	}
-	for k, v := range newNames {
-		mod.names = append(mod.names, &nameEntry{offset: int(k), name: v})
-	}
-	mod.nameBuf = []byte{0x00}
-
-	for _, v := range mod.names {
-		mod.nameBuf = append(mod.nameBuf, []byte(v.name)...)
-		mod.nameBuf = append(mod.nameBuf, 0)
-	}
-}
-
-// NameAdd is used when writing, appending new names
-func (mod *Mod) NameAdd(name string) int32 {
-
-	if mod.names == nil {
-		mod.names = []*nameEntry{
-			{offset: 0, name: ""},
-		}
-		mod.nameBuf = []byte{0x00}
-	}
-	if name == "" {
-		return 0
-	}
-
-	/* if name[len(mod.name)-1:] != "\x00" {
-		name += "\x00"
-	}
-	*/
-	if id := mod.NameOffset(name); id != -1 {
-		return -id
-	}
-	mod.names = append(mod.names, &nameEntry{offset: len(mod.nameBuf), name: name})
-	lastRef := int32(len(mod.nameBuf))
-	mod.nameBuf = append(mod.nameBuf, []byte(name)...)
-	mod.nameBuf = append(mod.nameBuf, 0)
-	return int32(-lastRef)
-}
-
-func (mod *Mod) NameOffset(name string) int32 {
-	if mod.names == nil {
-		return -1
-	}
-	for _, v := range mod.names {
-		if v.name == name {
-			return int32(v.offset)
-		}
-	}
-	return -1
-}
-
-// NameIndex is used when reading, returns the index of a name, or -1 if not found
-func (mod *Mod) NameIndex(name string) int32 {
-	if mod.names == nil {
-		return -1
-	}
-	for k, v := range mod.names {
-		if v.name == name {
-			return int32(k)
-		}
-	}
-	return -1
-}
-
-// NameData is used during writing, dumps the name cache
-func (mod *Mod) NameData() []byte {
-	if len(mod.nameBuf) == 0 {
-		return nil
-	}
-	return mod.nameBuf[:len(mod.nameBuf)-1]
-
-}
-
-// NameClear purges names and namebuf, called when encode starts
-func (mod *Mod) NameClear() {
-	mod.names = nil
-	mod.nameBuf = nil
-}
-
-func (mod *Mod) Names() []string {
-	if mod.names == nil {
-		return nil
-	}
-	names := []string{}
-	for _, v := range mod.names {
-		names = append(names, v.name)
-	}
-	return names
 }

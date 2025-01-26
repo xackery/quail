@@ -12,30 +12,33 @@ import (
 // Encode writes a mod file
 func (mod *Mod) Write(w io.Writer) error {
 	var err error
+	if mod.name == nil {
+		mod.name = &eqgName{}
+	}
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
 	enc.String("EQGM")
 	enc.Uint32(mod.Version)
 
-	mod.NameClear()
+	mod.name.clear()
 
 	for _, material := range mod.Materials {
-		mod.NameAdd(material.Name)
-		mod.NameAdd(material.EffectName)
+		mod.name.add(material.Name)
+		mod.name.add(material.EffectName)
 		for _, prop := range material.Properties {
-			mod.NameAdd(prop.Name)
+			mod.name.add(prop.Name)
 			switch prop.Type {
 			case 2:
-				mod.NameAdd(prop.Value)
+				mod.name.add(prop.Value)
 			default:
 			}
 		}
 	}
 
 	for _, bone := range mod.Bones {
-		mod.NameAdd(bone.Name)
+		mod.name.add(bone.Name)
 	}
 
-	nameData := mod.NameData()
+	nameData := mod.name.data()
 	enc.Uint32(uint32(len(nameData))) // nameLength
 	enc.Uint32(uint32(len(mod.Materials)))
 	enc.Uint32(uint32(len(mod.Vertices)))
@@ -45,11 +48,11 @@ func (mod *Mod) Write(w io.Writer) error {
 
 	for _, material := range mod.Materials {
 		enc.Int32(material.ID)
-		enc.Uint32(uint32(mod.NameIndex(material.Name)))
-		enc.Uint32(uint32(mod.NameIndex(material.EffectName)))
+		enc.Uint32(uint32(mod.name.offsetByName(material.Name)))
+		enc.Uint32(uint32(mod.name.offsetByName(material.EffectName)))
 		enc.Uint32(uint32(len(material.Properties)))
 		for _, prop := range material.Properties {
-			enc.Uint32(uint32(mod.NameIndex(prop.Name)))
+			enc.Uint32(uint32(mod.name.offsetByName(prop.Name)))
 			enc.Uint32(uint32(prop.Type))
 			switch prop.Type {
 			case 0:
@@ -59,7 +62,7 @@ func (mod *Mod) Write(w io.Writer) error {
 				}
 				enc.Float32(float32(fval))
 			case 2:
-				enc.Int32(mod.NameIndex(prop.Value))
+				enc.Int32(mod.name.offsetByName(prop.Value))
 			default:
 				val, err := strconv.Atoi(prop.Value)
 				if err != nil {
@@ -107,7 +110,7 @@ func (mod *Mod) Write(w io.Writer) error {
 	}
 
 	for _, bone := range mod.Bones {
-		enc.Int32(mod.NameIndex(bone.Name))
+		enc.Int32(mod.name.offsetByName(bone.Name))
 		enc.Int32(bone.Next)
 		enc.Uint32(bone.ChildrenCount)
 		enc.Int32(bone.ChildIndex)
