@@ -11,12 +11,12 @@ import (
 
 // WldFragSphereListDef is SphereListDef in libeq, empty in openzone, SPHERELISTDEFINITION in wld
 type WldFragSphereListDef struct {
-	nameRef     int32         `yaml:"name_ref"`
-	Flags       uint32        `yaml:"flags"`
-	SphereCount uint32        `yaml:"sphere_count"`
-	Radius      float32       `yaml:"radius"`
-	Scale       float32       `yaml:"scale"`
-	Spheres     []model.Quad4 `yaml:"spheres"`
+	nameRef     int32
+	Flags       uint32
+	SphereCount uint32
+	Radius      float32
+	Scale       float32
+	Spheres     []model.Quad4
 }
 
 func (e *WldFragSphereListDef) FragCode() int {

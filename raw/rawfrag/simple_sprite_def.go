@@ -10,11 +10,11 @@ import (
 
 // WldFragSimpleSpriteDef is SimpleSpriteDef in libeq, WldFragSimpleSpriteDef Bitmap Info in openzone, SIMPLESPRITEDEF in wld, BitmapInfo in lantern
 type WldFragSimpleSpriteDef struct {
-	nameRef      int32    `yaml:"name_ref"`
-	Flags        uint32   `yaml:"flags"`
-	CurrentFrame int32    `yaml:"current_frame"`
-	Sleep        uint32   `yaml:"sleep"`
-	BitmapRefs   []uint32 `yaml:"bitmap_refs"`
+	nameRef      int32
+	Flags        uint32
+	CurrentFrame int32
+	Sleep        uint32
+	BitmapRefs   []uint32
 }
 
 func (e *WldFragSimpleSpriteDef) FragCode() int {

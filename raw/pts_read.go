@@ -11,9 +11,9 @@ import (
 
 // Pts is a particle point
 type Pts struct {
-	MetaFileName string `yaml:"file_name"`
+	MetaFileName string
 	Version      uint32
-	Entries      []*PtsEntry `yaml:"entries,omitempty"`
+	Entries      []*PtsEntry
 }
 
 // Identity returns the type of the struct
@@ -23,13 +23,13 @@ func (pts *Pts) Identity() string {
 
 // PtsEntry is a single entry in a particle point
 type PtsEntry struct {
-	Name        string        `yaml:"name"`
-	BoneName    string        `yaml:"bone_name"`
-	Translation model.Vector3 `yaml:"translation"`
-	Rotation    model.Vector3 `yaml:"rotation"`
-	Scale       model.Vector3 `yaml:"scale"`
-	//NameSuffix  []byte  `yaml:"name_suffix,omitempty"`
-	//BoneSuffix  []byte  `yaml:"bone_suffix,omitempty"`
+	Name        string
+	BoneName    string
+	Translation model.Vector3
+	Rotation    model.Vector3
+	Scale       model.Vector3
+	//NameSuffix  []byte
+	//BoneSuffix  []byte
 }
 
 // Read reads a PTS file

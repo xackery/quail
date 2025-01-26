@@ -10,9 +10,9 @@ import (
 
 // Prt is a Particle Render
 type Prt struct {
-	MetaFileName string      `yaml:"file_name"`
-	Version      uint32      `yaml:"version"`
-	Entries      []*PrtEntry `yaml:"entries,omitempty"`
+	MetaFileName string
+	Version      uint32
+	Entries      []*PrtEntry
 }
 
 // Identity returns the type of the struct
@@ -22,19 +22,19 @@ func (prt *Prt) Identity() string {
 
 // PrtEntry is  ParticleRender entry
 type PrtEntry struct {
-	ID            uint32 `yaml:"id"` //id is actorsemittersnew.edd
-	ID2           uint32 `yaml:"id2"`
-	ParticlePoint string `yaml:"particle_point"`
-	//ParticlePointSuffix []byte `yaml:"particle_point_suffix,omitempty"`
-	UnknownA1       uint32 `yaml:"unknowna1"`
-	UnknownA2       uint32 `yaml:"unknowna2"`
-	UnknownA3       uint32 `yaml:"unknowna3"`
-	UnknownA4       uint32 `yaml:"unknowna4"`
-	UnknownA5       uint32 `yaml:"unknowna5"`
-	Duration        uint32 `yaml:"duration"`
-	UnknownB        uint32 `yaml:"unknownb"`
-	UnknownFFFFFFFF int32  `yaml:"unknownffffffff"`
-	UnknownC        uint32 `yaml:"unknownc"`
+	ID            uint32
+	ID2           uint32
+	ParticlePoint string
+	//ParticlePointSuffix []byte
+	UnknownA1       uint32
+	UnknownA2       uint32
+	UnknownA3       uint32
+	UnknownA4       uint32
+	UnknownA5       uint32
+	Duration        uint32
+	UnknownB        uint32
+	UnknownFFFFFFFF int32
+	UnknownC        uint32
 }
 
 // Read reads a PRT file

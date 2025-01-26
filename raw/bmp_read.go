@@ -7,8 +7,8 @@ import (
 
 // Bmp takes a raw BMP type and converts it to png
 type Bmp struct {
-	MetaFileName string `yaml:"file_name"`
-	Data         string `yaml:"data"`
+	MetaFileName string
+	Data         string
 }
 
 // Identity returns the type of the struct

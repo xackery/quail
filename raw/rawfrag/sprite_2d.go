@@ -10,9 +10,9 @@ import (
 
 // WldFragSprite2D is Sprite2D in libeq, Two-Dimensional Object Reference in openzone, 2DSPRITE (ref) in wld, Fragment07 in lantern
 type WldFragSprite2D struct {
-	nameRef       int32  `yaml:"name_ref"`
-	TwoDSpriteRef uint32 `yaml:"two_d_sprite_ref"`
-	Flags         uint32 `yaml:"flags"`
+	nameRef       int32
+	TwoDSpriteRef uint32
+	Flags         uint32
 }
 
 func (e *WldFragSprite2D) FragCode() int {

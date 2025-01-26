@@ -10,8 +10,8 @@ import (
 
 // WldFragPointLightOld is empty in libeq, empty in openzone, POINTLIGHT?? in wld
 type WldFragPointLightOld struct {
-	nameRef int32  `yaml:"name_ref"`
-	Flags   uint32 `yaml:"flags"`
+	nameRef int32
+	Flags   uint32
 }
 
 func (e *WldFragPointLightOld) FragCode() int {

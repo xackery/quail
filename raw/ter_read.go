@@ -9,11 +9,11 @@ import (
 )
 
 type Ter struct {
-	MetaFileName string      `yaml:"file_name"`
-	Version      uint32      `yaml:"version"`
-	Materials    []*Material `yaml:"materials"`
-	Vertices     []Vertex    `yaml:"vertices"`
-	Triangles    []Face      `yaml:"triangles"`
+	MetaFileName string
+	Version      uint32
+	Materials    []*Material
+	Vertices     []Vertex
+	Triangles    []Face
 	name         *eqgName
 }
 

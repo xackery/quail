@@ -10,8 +10,8 @@ import (
 )
 
 type Lit struct {
-	MetaFileName string        `yaml:"file_name"`
-	Entries      []*model.RGBA `yaml:"entries"`
+	MetaFileName string
+	Entries      []*model.RGBA
 }
 
 // Identity returns the type of the struct

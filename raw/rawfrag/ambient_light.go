@@ -10,10 +10,10 @@ import (
 
 // WldFragAmbientLight is AmbientLight in libeq, Ambient Light in openzone, AMBIENTLIGHT in wld, WldFragAmbientLight in lantern
 type WldFragAmbientLight struct {
-	nameRef  int32    `yaml:"name_ref"`
-	LightRef int32    `yaml:"light_ref"`
-	Flags    uint32   `yaml:"flags"`
-	Regions  []uint32 `yaml:"regions"`
+	nameRef  int32
+	LightRef int32
+	Flags    uint32
+	Regions  []uint32
 }
 
 func (e *WldFragAmbientLight) FragCode() int {

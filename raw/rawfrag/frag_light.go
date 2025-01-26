@@ -10,9 +10,9 @@ import (
 
 // WldFragLight is Light in libeq, Light Source Reference in openzone, POINTLIGHTT ?? in wld, LightSourceReference in lantern
 type WldFragLight struct {
-	nameRef     int32  `yaml:"name_ref"`
-	LightDefRef int32  `yaml:"light_def_ref"`
-	Flags       uint32 `yaml:"flags"`
+	nameRef     int32
+	LightDefRef int32
+	Flags       uint32
 }
 
 func (e *WldFragLight) FragCode() int {

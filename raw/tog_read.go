@@ -5,8 +5,8 @@ import (
 )
 
 type Tog struct {
-	MetaFileName string      `yaml:"file_name"`
-	Entries      []*TogEntry `yaml:"entries"`
+	MetaFileName string
+	Entries      []*TogEntry
 }
 
 // Identity returns the type of the struct
@@ -15,11 +15,11 @@ func (tog *Tog) Identity() string {
 }
 
 type TogEntry struct {
-	Position [3]float32 `yaml:"position"`
-	Rotation [3]float32 `yaml:"rotation"`
-	Scale    float32    `yaml:"scale"`
-	Name     string     `yaml:"name"`
-	FileType string     `yaml:"file_type"`
+	Position [3]float32
+	Rotation [3]float32
+	Scale    float32
+	Name     string
+	FileType string
 }
 
 func (tog *Tog) Read(r io.ReadSeeker) error {

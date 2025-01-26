@@ -11,14 +11,14 @@ import (
 
 // WldFragSprite4DDef is Sprite4DDef in libeq, empty in openzone, 4DSPRITEDEF in wld
 type WldFragSprite4DDef struct {
-	nameRef         int32         `yaml:"name_ref"`
-	Flags           uint32        `yaml:"flags"`
-	PolyRef         int32         `yaml:"poly_ref"`
-	CenterOffset    model.Vector3 `yaml:"center_offset"`
-	Radius          float32       `yaml:"radius"`
-	CurrentFrame    uint32        `yaml:"current_frame"`
-	Sleep           uint32        `yaml:"sleep"`
-	SpriteFragments []uint32      `yaml:"sprite_fragments"`
+	nameRef         int32
+	Flags           uint32
+	PolyRef         int32
+	CenterOffset    model.Vector3
+	Radius          float32
+	CurrentFrame    uint32
+	Sleep           uint32
+	SpriteFragments []uint32
 }
 
 func (e *WldFragSprite4DDef) FragCode() int {

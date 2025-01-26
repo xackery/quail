@@ -11,14 +11,14 @@ import (
 
 // Zon is a zone
 type Zon struct {
-	MetaFileName string   `yaml:"file_name"`
-	Version      uint32   `yaml:"version"`
-	Models       []string `yaml:"models"`
-	Objects      []Object `yaml:"objects"`
-	Regions      []Region `yaml:"regions"`
-	Lights       []Light  `yaml:"lights"`
-	V4Info       V4Info   `yaml:"v4info"`
-	V4Dat        V4Dat    `yaml:"v4dat"`
+	MetaFileName string
+	Version      uint32
+	Models       []string
+	Objects      []Object
+	Regions      []Region
+	Lights       []Light
+	V4Info       V4Info
+	V4Dat        V4Dat
 	name         *eqgName
 }
 
@@ -27,61 +27,61 @@ func (zon *Zon) Identity() string {
 }
 
 type V4Info struct {
-	Name                 string        `yaml:"name"`
-	MinLng               int           `yaml:"min_lng"`
-	MinLat               int           `yaml:"min_lat"`
-	MaxLng               int           `yaml:"max_lng"`
-	MaxLat               int           `yaml:"max_lat"`
-	MinExtents           model.Vector3 `yaml:"min_extents"`
-	MaxExtents           model.Vector3 `yaml:"max_extents"`
-	UnitsPerVert         float32       `yaml:"units_per_vert"`
-	QuadsPerTile         int           `yaml:"quads_per_tile"`
-	CoverMapInputSize    int           `yaml:"cover_map_input_size"`
-	LayeringMapInputSize int           `yaml:"layering_map_input_size"`
+	Name                 string
+	MinLng               int
+	MinLat               int
+	MaxLng               int
+	MaxLat               int
+	MinExtents           model.Vector3
+	MaxExtents           model.Vector3
+	UnitsPerVert         float32
+	QuadsPerTile         int
+	CoverMapInputSize    int
+	LayeringMapInputSize int
 }
 
 type V4Dat struct {
-	Unk1            uint32 `yaml:"unk1"`
-	Unk2            uint32 `yaml:"unk2"`
-	Unk3            uint32 `yaml:"unk3"`
-	BaseTileTexture string `yaml:"base_tile_texture"`
+	Unk1            uint32
+	Unk2            uint32
+	Unk3            uint32
+	BaseTileTexture string
 	Tiles           []V4DatTile
 }
 
 type V4DatTile struct {
-	Lng     int32    `yaml:"lng"`
-	Lat     int32    `yaml:"lat"`
-	Unk     uint32   `yaml:"unk"`
-	Colors  []uint32 `yaml:"colors"`
-	Colors2 []uint32 `yaml:"colors2"`
+	Lng     int32
+	Lat     int32
+	Unk     uint32
+	Colors  []uint32
+	Colors2 []uint32
 }
 
 // Object is an object
 type Object struct {
-	ModelName    string        `yaml:"model_name"`
-	InstanceName string        `yaml:"instance_name"`
-	Position     model.Vector3 `yaml:"position"`
-	Rotation     model.Vector3 `yaml:"rotation"`
-	Scale        float32       `yaml:"scale"`
-	Lits         []*model.RGBA `yaml:"-"` // used in v2+ zones, omitted since it's huge
+	ModelName    string
+	InstanceName string
+	Position     model.Vector3
+	Rotation     model.Vector3
+	Scale        float32
+	Lits         []*model.RGBA
 }
 
 // Region is a region
 type Region struct {
-	Name    string        `yaml:"name"`
-	Center  model.Vector3 `yaml:"center"`
-	Unknown model.Vector3 `yaml:"unknown"`
-	Extent  model.Vector3 `yaml:"extent"`
-	Unk1    uint32        `yaml:"unk1"`
-	Unk2    uint32        `yaml:"unk2"`
+	Name    string
+	Center  model.Vector3
+	Unknown model.Vector3
+	Extent  model.Vector3
+	Unk1    uint32
+	Unk2    uint32
 }
 
 // Light is a light
 type Light struct {
-	Name     string        `yaml:"name"`
-	Position model.Vector3 `yaml:"position"`
-	Color    model.Vector3 `yaml:"color"`
-	Radius   float32       `yaml:"radius"`
+	Name     string
+	Position model.Vector3
+	Color    model.Vector3
+	Radius   float32
 }
 
 // Decode reads a ZON file

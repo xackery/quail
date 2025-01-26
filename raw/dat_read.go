@@ -10,14 +10,14 @@ import (
 )
 
 type Dat struct {
-	MetaFileName    string     `yaml:"file_name"`
-	Version         uint32     `yaml:"version"`
-	Unk1            uint32     `yaml:"unk1"`
-	Unk2            uint32     `yaml:"unk2"`
-	Unk3            uint32     `yaml:"unk3"`
-	BaseTileTexture string     `yaml:"base_tile_texture"`
-	QuadsPerTile    int        `yaml:"quads_per_tile"`
-	Tiles           []*DatTile `yaml:"tiles"`
+	MetaFileName    string
+	Version         uint32
+	Unk1            uint32
+	Unk2            uint32
+	Unk3            uint32
+	BaseTileTexture string
+	QuadsPerTile    int
+	Tiles           []*DatTile
 }
 
 func (dat *Dat) Identity() string {
@@ -25,77 +25,77 @@ func (dat *Dat) Identity() string {
 }
 
 type DatTile struct {
-	Lng               int32                `yaml:"lng"`
-	Lat               int32                `yaml:"lat"`
-	Unk1              uint32               `yaml:"unk1"`
-	Floats            []float32            `yaml:"floats"`
-	Colors            []uint32             `yaml:"colors"`
-	Colors2           []uint32             `yaml:"colors2"`
-	Flags             []uint8              `yaml:"flags"`
-	BaseWaterLevel    float32              `yaml:"base_water_level"`
-	Unk2              int32                `yaml:"unk2"`      // known to be float or int
-	Unk3              int8                 `yaml:"unk3"`      // unk_byte on loader
-	Unk3Quad          model.Quad4          `yaml:"unk3_quad"` //f1 to f4 on loader
-	Unk3Float         float32              `yaml:"unk3_float"`
-	LayerBaseMaterial string               `yaml:"layer_base_material"`
-	Layers            []*DatLayer          `yaml:"layers"`
-	SinglePlacables   []*DatSinglePlacable `yaml:"single_placables"`
-	Areas             []*DatArea           `yaml:"areas"`
-	LightEffects      []*DatLightEffect    `yaml:"light_effects"`
-	TogRefs           []*DatTogRef         `yaml:"tog_refs"`
+	Lng               int32
+	Lat               int32
+	Unk1              uint32
+	Floats            []float32
+	Colors            []uint32
+	Colors2           []uint32
+	Flags             []uint8
+	BaseWaterLevel    float32
+	Unk2              int32
+	Unk3              int8
+	Unk3Quad          model.Quad4
+	Unk3Float         float32
+	LayerBaseMaterial string
+	Layers            []*DatLayer
+	SinglePlacables   []*DatSinglePlacable
+	Areas             []*DatArea
+	LightEffects      []*DatLightEffect
+	TogRefs           []*DatTogRef
 }
 
 type DatLayer struct {
-	Material       string  `yaml:"material"`
-	DetailMaskDim  uint32  `yaml:"detail_mask_dim"`
-	DetailMaskDims []uint8 `yaml:"detail_mask_dims"`
+	Material       string
+	DetailMaskDim  uint32
+	DetailMaskDims []uint8
 }
 
 type DatSinglePlacable struct {
-	ModelName    string `yaml:"model_name"`
-	InstanceName string `yaml:"instance_name"`
-	Longitude    int32  `yaml:"longitude"`
-	Latitude     int32  `yaml:"latitude"`
+	ModelName    string
+	InstanceName string
+	Longitude    int32
+	Latitude     int32
 
-	Position model.Vector3 `yaml:"position"`
-	Rotation model.Vector3 `yaml:"rotation"`
-	Scale    model.Vector3 `yaml:"scale"`
-	Flags    uint8         `yaml:"flags"`
-	Unk1     uint32        `yaml:"unk1"`
+	Position model.Vector3
+	Rotation model.Vector3
+	Scale    model.Vector3
+	Flags    uint8
+	Unk1     uint32
 }
 
 type DatArea struct {
-	UnkStr1   string        `yaml:"unk_str1"`
-	Type      int32         `yaml:"type"`
-	UnkStr2   string        `yaml:"unk_str2"`
-	Longitude uint32        `yaml:"longitude"`
-	Latitude  uint32        `yaml:"latitude"`
-	Position  model.Vector3 `yaml:"position"`
-	Rotation  model.Vector3 `yaml:"rotation"`
-	Scale     model.Vector3 `yaml:"scale"`
-	Size      model.Vector3 `yaml:"size"`
+	UnkStr1   string
+	Type      int32
+	UnkStr2   string
+	Longitude uint32
+	Latitude  uint32
+	Position  model.Vector3
+	Rotation  model.Vector3
+	Scale     model.Vector3
+	Size      model.Vector3
 }
 
 type DatLightEffect struct {
-	UnkStr1   string        `yaml:"unk_str1"`
-	UnkStr2   string        `yaml:"unk_str2"`
-	Unk3      uint8         `yaml:"unk3"`
-	Longitude uint32        `yaml:"longitude"`
-	Latitude  uint32        `yaml:"latitude"`
-	Position  model.Vector3 `yaml:"position"`
-	Rotation  model.Vector3 `yaml:"rotation"`
-	Scale     model.Vector3 `yaml:"scale"`
-	Size      float32       `yaml:"size"`
+	UnkStr1   string
+	UnkStr2   string
+	Unk3      uint8
+	Longitude uint32
+	Latitude  uint32
+	Position  model.Vector3
+	Rotation  model.Vector3
+	Scale     model.Vector3
+	Size      float32
 }
 
 type DatTogRef struct {
-	Name      string        `yaml:"name"`
-	Longitude uint32        `yaml:"longitude"`
-	Latitude  uint32        `yaml:"latitude"`
-	Position  model.Vector3 `yaml:"position"`
-	Rotation  model.Vector3 `yaml:"rotation"`
-	Scale     model.Vector3 `yaml:"scale"`
-	Adjust    float32       `yaml:"adjust"`
+	Name      string
+	Longitude uint32
+	Latitude  uint32
+	Position  model.Vector3
+	Rotation  model.Vector3
+	Scale     model.Vector3
+	Adjust    float32
 }
 
 // Decode reads a v4 zone dat file

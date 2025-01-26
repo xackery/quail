@@ -11,25 +11,25 @@ import (
 
 // WldFragParticleSpriteDef is ParticleSpriteDef in libeq, empty in openzone, PARTICLESPRITEDEF in wld
 type WldFragParticleSpriteDef struct {
-	nameRef                     int32           `yaml:"name_ref"`
-	Flags                       uint32          `yaml:"flags"`
-	VerticesCount               uint32          `yaml:"vertices_count"`
-	Unknown                     uint32          `yaml:"unknown"`
-	CenterOffset                model.Vector3   `yaml:"center_offset"`
-	Radius                      float32         `yaml:"radius"`
-	Vertices                    []model.Vector3 `yaml:"vertices"`
-	RenderMethod                uint32          `yaml:"render_method"`
-	RenderFlags                 uint32          `yaml:"render_flags"`
-	RenderPen                   uint32          `yaml:"render_pen"`
-	RenderBrightness            float32         `yaml:"render_brightness"`
-	RenderScaledAmbient         float32         `yaml:"render_scaled_ambient"`
-	RenderSimpleSpriteReference uint32          `yaml:"render_simple_sprite_reference"`
-	RenderUVInfoOrigin          model.Vector3   `yaml:"render_uv_info_origin"`
-	RenderUVInfoUAxis           model.Vector3   `yaml:"render_uv_info_u_axis"`
-	RenderUVInfoVAxis           model.Vector3   `yaml:"render_uv_info_v_axis"`
-	RenderUVMapEntryCount       uint32          `yaml:"render_uv_map_entry_count"`
-	RenderUVMapEntries          []model.Vector2 `yaml:"render_uv_map_entries"`
-	Pen                         []uint32        `yaml:"pen"`
+	nameRef                     int32
+	Flags                       uint32
+	VerticesCount               uint32
+	Unknown                     uint32
+	CenterOffset                model.Vector3
+	Radius                      float32
+	Vertices                    []model.Vector3
+	RenderMethod                uint32
+	RenderFlags                 uint32
+	RenderPen                   uint32
+	RenderBrightness            float32
+	RenderScaledAmbient         float32
+	RenderSimpleSpriteReference uint32
+	RenderUVInfoOrigin          model.Vector3
+	RenderUVInfoUAxis           model.Vector3
+	RenderUVInfoVAxis           model.Vector3
+	RenderUVMapEntryCount       uint32
+	RenderUVMapEntries          []model.Vector2
+	Pen                         []uint32
 }
 
 func (e *WldFragParticleSpriteDef) FragCode() int {

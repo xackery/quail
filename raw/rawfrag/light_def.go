@@ -10,12 +10,12 @@ import (
 
 // WldFragLightDef is LightDef in libeq, WldFragLightDef Source in openzone, LIGHT (ref) in wld, LightSource in lantern
 type WldFragLightDef struct {
-	nameRef         int32        `yaml:"name_ref"`
-	Flags           uint32       `yaml:"flags"`
-	FrameCurrentRef uint32       `yaml:"frame_current_ref"`
-	Sleep           uint32       `yaml:"sleep"`
-	LightLevels     []float32    `yaml:"light_levels"`
-	Colors          [][3]float32 `yaml:"colors"`
+	nameRef         int32
+	Flags           uint32
+	FrameCurrentRef uint32
+	Sleep           uint32
+	LightLevels     []float32
+	Colors          [][3]float32
 }
 
 func (e *WldFragLightDef) FragCode() int {

@@ -10,8 +10,8 @@ import (
 
 // WldFragSphere is Sphere in libeq, Zone Unknown in openzone, SPHERE (ref) in wld, Fragment16 in lantern
 type WldFragSphere struct {
-	nameRef int32   `yaml:"name_ref"`
-	Radius  float32 `yaml:"radius"`
+	nameRef int32
+	Radius  float32
 }
 
 func (e *WldFragSphere) FragCode() int {
