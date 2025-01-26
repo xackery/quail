@@ -6,7 +6,6 @@ import (
 	"io"
 
 	"github.com/xackery/encdec"
-	"github.com/xackery/quail/model"
 )
 
 // Pts is a particle point
@@ -25,9 +24,9 @@ func (pts *Pts) Identity() string {
 type PtsEntry struct {
 	Name        string
 	BoneName    string
-	Translation model.Vector3
-	Rotation    model.Vector3
-	Scale       model.Vector3
+	Translation [3]float32
+	Rotation    [3]float32
+	Scale       [3]float32
 	//NameSuffix  []byte
 	//BoneSuffix  []byte
 }
@@ -53,17 +52,17 @@ func (pts *Pts) Read(r io.ReadSeeker) error {
 		_ = dec.Bytes(64 - len(entry.Name) - 1) // entry.NameSuffix
 		entry.BoneName = dec.StringZero()
 		_ = dec.Bytes(64 - len(entry.BoneName) - 1) // entry.BoneSuffix
-		entry.Translation.X = dec.Float32()
-		entry.Translation.Y = dec.Float32()
-		entry.Translation.Z = dec.Float32()
+		entry.Translation[0] = dec.Float32()
+		entry.Translation[1] = dec.Float32()
+		entry.Translation[2] = dec.Float32()
 
-		entry.Rotation.X = dec.Float32()
-		entry.Rotation.Y = dec.Float32()
-		entry.Rotation.Z = dec.Float32()
+		entry.Rotation[0] = dec.Float32()
+		entry.Rotation[1] = dec.Float32()
+		entry.Rotation[2] = dec.Float32()
 
-		entry.Scale.X = dec.Float32()
-		entry.Scale.Y = dec.Float32()
-		entry.Scale.Z = dec.Float32()
+		entry.Scale[0] = dec.Float32()
+		entry.Scale[1] = dec.Float32()
+		entry.Scale[2] = dec.Float32()
 
 		pts.Entries = append(pts.Entries, entry)
 	}

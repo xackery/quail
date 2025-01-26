@@ -23,17 +23,17 @@ func (pts *Pts) Write(w io.Writer) error {
 		enc.StringZero(entry.BoneName)
 		enc.Bytes(make([]byte, 64-len(entry.BoneName)-1)) // enc.Bytes(entry.BoneSuffix)
 
-		enc.Float32(entry.Translation.X)
-		enc.Float32(entry.Translation.Y)
-		enc.Float32(entry.Translation.Z)
+		enc.Float32(entry.Translation[0])
+		enc.Float32(entry.Translation[1])
+		enc.Float32(entry.Translation[2])
 
-		enc.Float32(entry.Rotation.X)
-		enc.Float32(entry.Rotation.Y)
-		enc.Float32(entry.Rotation.Z)
+		enc.Float32(entry.Rotation[0])
+		enc.Float32(entry.Rotation[1])
+		enc.Float32(entry.Rotation[2])
 
-		enc.Float32(entry.Scale.X)
-		enc.Float32(entry.Scale.Y)
-		enc.Float32(entry.Scale.Z)
+		enc.Float32(entry.Scale[0])
+		enc.Float32(entry.Scale[1])
+		enc.Float32(entry.Scale[2])
 	}
 	err := enc.Error()
 	if err != nil {

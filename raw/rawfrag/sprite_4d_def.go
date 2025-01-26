@@ -6,7 +6,6 @@ import (
 	"io"
 
 	"github.com/xackery/encdec"
-	"github.com/xackery/quail/model"
 )
 
 // WldFragSprite4DDef is Sprite4DDef in libeq, empty in openzone, 4DSPRITEDEF in wld
@@ -14,7 +13,7 @@ type WldFragSprite4DDef struct {
 	nameRef         int32
 	Flags           uint32
 	PolyRef         int32
-	CenterOffset    model.Vector3
+	CenterOffset    [3]float32
 	Radius          float32
 	CurrentFrame    uint32
 	Sleep           uint32
@@ -32,9 +31,9 @@ func (e *WldFragSprite4DDef) Write(w io.Writer, isNewWorld bool) error {
 	enc.Uint32(uint32(len(e.SpriteFragments)))
 	enc.Int32(e.PolyRef)
 	if e.Flags&0x01 != 0 {
-		enc.Float32(e.CenterOffset.X)
-		enc.Float32(e.CenterOffset.Y)
-		enc.Float32(e.CenterOffset.Z)
+		enc.Float32(e.CenterOffset[0])
+		enc.Float32(e.CenterOffset[1])
+		enc.Float32(e.CenterOffset[2])
 	}
 	if e.Flags&0x02 != 0 {
 		enc.Float32(e.Radius)
@@ -64,9 +63,9 @@ func (e *WldFragSprite4DDef) Read(r io.ReadSeeker, isNewWorld bool) error {
 	frameCount := dec.Uint32()
 	e.PolyRef = dec.Int32()
 	if e.Flags&0x01 != 0 {
-		e.CenterOffset.X = dec.Float32()
-		e.CenterOffset.Y = dec.Float32()
-		e.CenterOffset.Z = dec.Float32()
+		e.CenterOffset[0] = dec.Float32()
+		e.CenterOffset[1] = dec.Float32()
+		e.CenterOffset[2] = dec.Float32()
 	}
 	if e.Flags&0x02 != 0 {
 		e.Radius = dec.Float32()

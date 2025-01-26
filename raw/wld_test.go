@@ -171,9 +171,9 @@ func TestWldRewrite(t *testing.T) {
 			NameClear()
 			NameAdd("")
 			NameAdd("BOX_ACTORDEF")
-			actor.Offset.X = 0
-			actor.Offset.Y = 0
-			actor.Offset.Z = 0
+			actor.Offset[0] = 0
+			actor.Offset[1] = 0
+			actor.Offset[2] = 0
 
 			wld.Fragments = []FragmentReadWriter{actor}
 			*/

@@ -254,12 +254,12 @@ func TestZonWriteV4(t *testing.T) {
 				t.Fatalf("maxLat mismatch: %d != %d", zon.V4Info.MaxLat, zon2.V4Info.MaxLat)
 			}
 
-			if zon.V4Info.MinExtents.X != zon2.V4Info.MinExtents.X {
-				t.Fatalf("minExtents.X mismatch: %f != %f", zon.V4Info.MinExtents.X, zon2.V4Info.MinExtents.X)
+			if zon.V4Info.MinExtents[0] != zon2.V4Info.MinExtents[0] {
+				t.Fatalf("minExtents.X mismatch: %f != %f", zon.V4Info.MinExtents[0], zon2.V4Info.MinExtents[0])
 			}
 
-			if zon.V4Info.MinExtents.Y != zon2.V4Info.MinExtents.Y {
-				t.Fatalf("minExtents.Y mismatch: %f != %f", zon.V4Info.MinExtents.Y, zon2.V4Info.MinExtents.Y)
+			if zon.V4Info.MinExtents[1] != zon2.V4Info.MinExtents[1] {
+				t.Fatalf("minExtents.Y mismatch: %f != %f", zon.V4Info.MinExtents[1], zon2.V4Info.MinExtents[1])
 			}
 
 		})

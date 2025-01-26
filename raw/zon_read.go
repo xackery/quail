@@ -6,7 +6,6 @@ import (
 	"io"
 
 	"github.com/xackery/encdec"
-	"github.com/xackery/quail/model"
 )
 
 // Zon is a zone
@@ -32,8 +31,8 @@ type V4Info struct {
 	MinLat               int
 	MaxLng               int
 	MaxLat               int
-	MinExtents           model.Vector3
-	MaxExtents           model.Vector3
+	MinExtents           [3]float32
+	MaxExtents           [3]float32
 	UnitsPerVert         float32
 	QuadsPerTile         int
 	CoverMapInputSize    int
@@ -60,18 +59,18 @@ type V4DatTile struct {
 type Object struct {
 	ModelName    string
 	InstanceName string
-	Position     model.Vector3
-	Rotation     model.Vector3
+	Position     [3]float32
+	Rotation     [3]float32
 	Scale        float32
-	Lits         []*model.RGBA
+	Lits         [][4]uint8
 }
 
 // Region is a region
 type Region struct {
 	Name    string
-	Center  model.Vector3
-	Unknown model.Vector3
-	Extent  model.Vector3
+	Center  [3]float32
+	Unknown [3]float32
+	Extent  [3]float32
 	Unk1    uint32
 	Unk2    uint32
 }
@@ -79,8 +78,8 @@ type Region struct {
 // Light is a light
 type Light struct {
 	Name     string
-	Position model.Vector3
-	Color    model.Vector3
+	Position [3]float32
+	Color    [3]float32
 	Radius   float32
 }
 
@@ -134,24 +133,19 @@ func (zon *Zon) Read(r io.ReadSeeker) error {
 
 		object.InstanceName = zon.name.byOffset(dec.Int32())
 
-		object.Position.Y = dec.Float32() // y before x
-		object.Position.X = dec.Float32()
-		object.Position.Z = dec.Float32()
+		object.Position[1] = dec.Float32() // y before x
+		object.Position[0] = dec.Float32()
+		object.Position[2] = dec.Float32()
 
-		object.Rotation.X = dec.Float32()
-		object.Rotation.Y = dec.Float32()
-		object.Rotation.Z = dec.Float32()
+		object.Rotation[0] = dec.Float32()
+		object.Rotation[1] = dec.Float32()
+		object.Rotation[2] = dec.Float32()
 
 		object.Scale = dec.Float32()
 		if zon.Version >= 2 {
 			litCount := dec.Uint32()
 			for j := 0; j < int(litCount); j++ {
-				lit := model.RGBA{}
-				lit.R = dec.Uint8()
-				lit.G = dec.Uint8()
-				lit.B = dec.Uint8()
-				lit.A = dec.Uint8()
-				object.Lits = append(object.Lits, &lit)
+				object.Lits = append(object.Lits, [4]uint8{dec.Uint8(), dec.Uint8(), dec.Uint8(), dec.Uint8()})
 			}
 		}
 		zon.Objects = append(zon.Objects, object)
@@ -162,17 +156,17 @@ func (zon *Zon) Read(r io.ReadSeeker) error {
 
 		region.Name = zon.name.byOffset(dec.Int32())
 
-		region.Center.X = dec.Float32()
-		region.Center.Y = dec.Float32()
-		region.Center.Z = dec.Float32()
+		region.Center[0] = dec.Float32()
+		region.Center[1] = dec.Float32()
+		region.Center[2] = dec.Float32()
 
-		region.Unknown.X = dec.Float32()
-		region.Unknown.Y = dec.Float32()
-		region.Unknown.Z = dec.Float32()
+		region.Unknown[0] = dec.Float32()
+		region.Unknown[1] = dec.Float32()
+		region.Unknown[2] = dec.Float32()
 
-		region.Extent.X = dec.Float32()
-		region.Extent.Y = dec.Float32()
-		region.Extent.Z = dec.Float32()
+		region.Extent[0] = dec.Float32()
+		region.Extent[1] = dec.Float32()
+		region.Extent[2] = dec.Float32()
 
 		//region.Unk1 = dec.Uint32()
 		//region.Unk2 = dec.Uint32()
@@ -185,13 +179,13 @@ func (zon *Zon) Read(r io.ReadSeeker) error {
 
 		light.Name = zon.name.byOffset(dec.Int32())
 
-		light.Position.X = dec.Float32()
-		light.Position.Y = dec.Float32()
-		light.Position.Z = dec.Float32()
+		light.Position[0] = dec.Float32()
+		light.Position[1] = dec.Float32()
+		light.Position[2] = dec.Float32()
 
-		light.Color.X = dec.Float32()
-		light.Color.Y = dec.Float32()
-		light.Color.Z = dec.Float32()
+		light.Color[0] = dec.Float32()
+		light.Color[1] = dec.Float32()
+		light.Color[2] = dec.Float32()
 
 		light.Radius = dec.Float32()
 

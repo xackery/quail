@@ -61,22 +61,22 @@ func (zon *Zon) Write(w io.Writer) error {
 		}
 		subEnc.Int32(zon.name.indexByName(object.InstanceName))
 
-		subEnc.Float32(object.Position.Y) //  y before x
-		subEnc.Float32(object.Position.X)
-		subEnc.Float32(object.Position.Z)
+		subEnc.Float32(object.Position[1]) //  y before x
+		subEnc.Float32(object.Position[0])
+		subEnc.Float32(object.Position[2])
 
-		subEnc.Float32(object.Rotation.X)
-		subEnc.Float32(object.Rotation.Y)
-		subEnc.Float32(object.Rotation.Z)
+		subEnc.Float32(object.Rotation[0])
+		subEnc.Float32(object.Rotation[1])
+		subEnc.Float32(object.Rotation[2])
 
 		subEnc.Float32(object.Scale)
 		if zon.Version >= 2 {
 			subEnc.Uint32(uint32(len(object.Lits)))
 			for _, lit := range object.Lits {
-				subEnc.Uint8(lit.R)
-				subEnc.Uint8(lit.G)
-				subEnc.Uint8(lit.B)
-				subEnc.Uint8(lit.A)
+				subEnc.Uint8(lit[0])
+				subEnc.Uint8(lit[1])
+				subEnc.Uint8(lit[2])
+				subEnc.Uint8(lit[3])
 			}
 		}
 	}
@@ -84,17 +84,17 @@ func (zon *Zon) Write(w io.Writer) error {
 	for _, region := range zon.Regions {
 		subEnc.Int32(zon.name.indexByName(region.Name))
 
-		subEnc.Float32(region.Center.X)
-		subEnc.Float32(region.Center.Y)
-		subEnc.Float32(region.Center.Z)
+		subEnc.Float32(region.Center[0])
+		subEnc.Float32(region.Center[1])
+		subEnc.Float32(region.Center[2])
 
-		subEnc.Float32(region.Unknown.X)
-		subEnc.Float32(region.Unknown.Y)
-		subEnc.Float32(region.Unknown.Z)
+		subEnc.Float32(region.Unknown[0])
+		subEnc.Float32(region.Unknown[1])
+		subEnc.Float32(region.Unknown[2])
 
-		subEnc.Float32(region.Extent.X)
-		subEnc.Float32(region.Extent.Y)
-		subEnc.Float32(region.Extent.Z)
+		subEnc.Float32(region.Extent[0])
+		subEnc.Float32(region.Extent[1])
+		subEnc.Float32(region.Extent[2])
 
 		//subEnc.Uint32(region.Unk1)
 		//subEnc.Uint32(region.Unk2)
@@ -103,13 +103,13 @@ func (zon *Zon) Write(w io.Writer) error {
 	for _, light := range zon.Lights {
 		subEnc.Int32(zon.name.indexByName(light.Name))
 
-		subEnc.Float32(light.Position.X)
-		subEnc.Float32(light.Position.Y)
-		subEnc.Float32(light.Position.Z)
+		subEnc.Float32(light.Position[0])
+		subEnc.Float32(light.Position[1])
+		subEnc.Float32(light.Position[2])
 
-		subEnc.Float32(light.Color.X)
-		subEnc.Float32(light.Color.Y)
-		subEnc.Float32(light.Color.Z)
+		subEnc.Float32(light.Color[0])
+		subEnc.Float32(light.Color[1])
+		subEnc.Float32(light.Color[2])
 
 		subEnc.Float32(light.Radius)
 

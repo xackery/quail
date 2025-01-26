@@ -6,12 +6,11 @@ import (
 	"io"
 
 	"github.com/xackery/encdec"
-	"github.com/xackery/quail/model"
 )
 
 type Lit struct {
 	MetaFileName string
-	Entries      []*model.RGBA
+	Entries      [][4]uint8
 }
 
 // Identity returns the type of the struct
@@ -25,12 +24,7 @@ func (lit *Lit) Read(r io.ReadSeeker) error {
 
 	lightCount := dec.Uint32()
 	for i := 0; i < int(lightCount); i++ {
-		lit.Entries = append(lit.Entries, &model.RGBA{
-			R: dec.Uint8(),
-			G: dec.Uint8(),
-			B: dec.Uint8(),
-			A: dec.Uint8(),
-		})
+		lit.Entries = append(lit.Entries, [4]uint8{dec.Uint8(), dec.Uint8(), dec.Uint8(), dec.Uint8()})
 	}
 	if dec.Error() != nil {
 		return fmt.Errorf("read: %w", dec.Error())
