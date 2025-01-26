@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/xackery/quail/common"
+	"github.com/xackery/quail/helper"
 	"github.com/xackery/quail/pfs"
 )
 
@@ -163,7 +163,7 @@ func TestMdsTestRead(t *testing.T) {
 		t.Skip("EQ_PATH not set")
 	}
 
-	dirTest := common.DirTest()
+	dirTest := helper.DirTest()
 	tests := []struct {
 		eqg     string
 		file    string

@@ -18,7 +18,7 @@ func init() {
 	zipCmd.PersistentFlags().String("out", "", "name of zipped eqg archive output, defaults to path's basename")
 	zipCmd.Example = `quail zip --path="./_clz.eqg/"
 quail zip ./_soldungb.eqg/
-quail zip _soldungb.eqg/ common.eqg
+quail zip _soldungb.eqg/ helper.eqg
 quail zip --path=_soldungb.eqg/ --out=foo.eqg`
 }
 

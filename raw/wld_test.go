@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/xackery/quail/common"
+	"github.com/xackery/quail/helper"
 	"github.com/xackery/quail/pfs"
 	"gopkg.in/yaml.v3"
 )
@@ -57,7 +57,7 @@ func TestWldFragOffsetDump(t *testing.T) {
 	if eqPath == "" {
 		t.Skip("EQ_PATH not set")
 	}
-	dirTest := common.DirTest()
+	dirTest := helper.DirTest()
 
 	tests := []struct {
 		name string
@@ -109,7 +109,7 @@ func TestWldRewrite(t *testing.T) {
 	if eqPath == "" {
 		t.Skip("EQ_PATH not set")
 	}
-	dirTest := common.DirTest()
+	dirTest := helper.DirTest()
 
 	tests := []struct {
 		name string
@@ -263,7 +263,7 @@ func TestWldVsWldCli(t *testing.T) {
 	if eqPath == "" {
 		t.Skip("EQ_PATH not set")
 	}
-	dirTest := common.DirTest()
+	dirTest := helper.DirTest()
 
 	tests := []struct {
 		name string
@@ -327,7 +327,7 @@ func TestWldVsWldCli(t *testing.T) {
 					t.Fatalf("failed to write frag %d: %s", i, err.Error())
 				}
 
-				err = common.ByteCompareTest(buf.Bytes(), dst)
+				err = helper.ByteCompareTest(buf.Bytes(), dst)
 				if err != nil {
 					// write them both out as src/dst for comparison
 					wErr := os.WriteFile(fmt.Sprintf("%s/src.frag", dirTest), buf.Bytes(), 0644)
@@ -356,7 +356,7 @@ func TestWldVsRawFrag(t *testing.T) {
 	if eqPath == "" {
 		t.Skip("EQ_PATH not set")
 	}
-	dirTest := common.DirTest()
+	dirTest := helper.DirTest()
 
 	tests := []struct {
 		name string
@@ -411,7 +411,7 @@ func TestWldVsRawFrag(t *testing.T) {
 					t.Fatalf("failed to write frag %d: %s", i, err.Error())
 				}
 
-				err = common.ByteCompareTest(buf.Bytes(), dst)
+				err = helper.ByteCompareTest(buf.Bytes(), dst)
 				if err != nil {
 					// write them both out as src/dst for comparison
 					wErr := os.WriteFile(fmt.Sprintf("%s/src.frag", dirTest), buf.Bytes(), 0644)

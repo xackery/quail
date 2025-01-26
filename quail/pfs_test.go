@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/xackery/quail/common"
+	"github.com/xackery/quail/helper"
 )
 
 func TestQuail_PfsRead(t *testing.T) {
@@ -45,7 +45,7 @@ func TestQuail_PfsWrite(t *testing.T) {
 	if eqPath == "" {
 		t.Skip("EQ_PATH not set")
 	}
-	dirTest := common.DirTest()
+	dirTest := helper.DirTest()
 	type args struct {
 		fileVersion uint32
 		pfsVersion  int
@@ -85,7 +85,7 @@ func TestQuail_PfsWriteImportExport(t *testing.T) {
 	if eqPath == "" {
 		t.Skip("EQ_PATH not set")
 	}
-	dirTest := common.DirTest()
+	dirTest := helper.DirTest()
 	type args struct {
 		fileVersion uint32
 		pfsVersion  int

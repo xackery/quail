@@ -8,7 +8,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/xackery/quail/common"
+	"github.com/xackery/quail/helper"
 )
 
 // ReadAscii reads the ascii file at path
@@ -349,6 +349,6 @@ func (wce *Wce) writeAsciiData(path string) error {
 
 func (wce *Wce) writeAsciiHeader(w io.Writer) {
 	fmt.Fprintf(w, "// wcemu %s\n", AsciiVersion)
-	fmt.Fprintf(w, "// This file was created by quail %s\n", common.Version)
+	fmt.Fprintf(w, "// This file was created by quail %s\n", helper.Version)
 	fmt.Fprintf(w, "// Original file: %s\n\n", wce.FileName)
 }

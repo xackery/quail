@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/xackery/quail/common"
+	"github.com/xackery/quail/helper"
 	"github.com/xackery/quail/pfs"
 	"github.com/xackery/quail/raw"
 	"github.com/xackery/quail/raw/rawfrag"
@@ -22,7 +22,7 @@ func TestWceDoubleReadWrite(t *testing.T) {
 	if eqPath == "" {
 		t.Skip("EQ_PATH not set")
 	}
-	dirTest := common.DirTest()
+	dirTest := helper.DirTest()
 
 	for _, tt := range tests {
 		t.Run(tt.baseName, func(t *testing.T) {
@@ -275,7 +275,7 @@ func TestWceDoubleReadWrite(t *testing.T) {
 					t.Fatalf("failed to write dst frag %d: %s", i, err.Error())
 				}
 
-				err = common.ByteCompareTest(srcFragBuf.Bytes(), dstFragBuf.Bytes())
+				err = helper.ByteCompareTest(srcFragBuf.Bytes(), dstFragBuf.Bytes())
 				if err != nil {
 					t.Fatalf("%s byteCompare frag %d %s: %s", raw.FragName(srcFrag.FragCode()), i, tt.baseName, err)
 				}

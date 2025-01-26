@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/xackery/quail/common"
+	"github.com/xackery/quail/helper"
 )
 
 func TestConvertQuail(t *testing.T) {
@@ -13,7 +13,7 @@ func TestConvertQuail(t *testing.T) {
 	if eqPath == "" {
 		t.Skip("EQ_PATH not set")
 	}
-	dirTest := common.DirTest()
+	dirTest := helper.DirTest()
 	args := []string{
 		fmt.Sprintf("%s/mim_chr.s3d", eqPath),
 		fmt.Sprintf("%s/mim_chr.quail", dirTest),

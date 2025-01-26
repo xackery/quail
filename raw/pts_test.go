@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/xackery/quail/common"
+	"github.com/xackery/quail/helper"
 	"github.com/xackery/quail/pfs"
 )
 
@@ -16,7 +16,7 @@ func TestPtsRead(t *testing.T) {
 	if eqPath == "" {
 		t.Skip("EQ_PATH not set")
 	}
-	dirTest := common.DirTest()
+	dirTest := helper.DirTest()
 	type args struct {
 	}
 
@@ -64,7 +64,7 @@ func TestPtsWrite(t *testing.T) {
 	if eqPath == "" {
 		t.Skip("EQ_PATH not set")
 	}
-	dirTest := common.DirTest()
+	dirTest := helper.DirTest()
 
 	tests := []struct {
 		name    string
@@ -105,7 +105,7 @@ func TestPtsWrite(t *testing.T) {
 					t.Fatalf("failed to read %s: %s", tt.name, err.Error())
 				}
 
-				buf := common.NewByteSeekerTest()
+				buf := helper.NewByteSeekerTest()
 				err = pts.Write(buf)
 				if tt.isDump {
 					os.WriteFile(fmt.Sprintf("%s/%s.dst.pts", dirTest, file.Name()), buf.Bytes(), 0644)
@@ -119,7 +119,7 @@ func TestPtsWrite(t *testing.T) {
 				/* srcData := file.Data()
 				dstData := buf.Bytes()
 
-				err = common.ByteCompareTest(srcData, dstData)
+				err = helper.ByteCompareTest(srcData, dstData)
 				if err != nil {
 					t.Fatalf("%s byteCompare: %s", tt.name, err)
 				} */
