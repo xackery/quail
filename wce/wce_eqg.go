@@ -7,6 +7,595 @@ import (
 	"github.com/xackery/quail/raw"
 )
 
+// ModDef is an entry EQMODELDEF
+type ModDef struct {
+	folders   []string
+	Tag       string
+	Version   uint32
+	Materials []*EQMaterialDef
+	Vertices  []*ModVertex
+	Faces     []*ModFace
+	Bones     []*ModBone
+}
+
+type ModVertex struct {
+	Position [3]float32
+	Normal   [3]float32
+	Tint     [4]uint8
+	Uv       [2]float32
+	Uv2      [2]float32
+}
+
+type ModFace struct {
+	Index        [3]uint32
+	MaterialName string
+	Passable     int
+	Transparent  int
+	Collision    int
+	Culled       int
+	Degenerate   int
+}
+
+type ModBone struct {
+	Name          string
+	Next          int32
+	ChildrenCount uint32
+	ChildIndex    int32
+	Pivot         [3]float32
+	Quaternion    [4]float32
+	Scale         [3]float32
+}
+
+func (e *ModDef) Definition() string {
+	return "EQMODELDEF"
+}
+
+func (e *ModDef) Write(token *AsciiWriteToken) error {
+	for _, folder := range e.folders {
+		err := token.SetWriter(folder)
+		if err != nil {
+			return err
+		}
+		w, err := token.Writer()
+		if err != nil {
+			return err
+		}
+
+		if token.TagIsWritten(e.Tag) {
+			return nil
+		}
+
+		token.TagSetIsWritten(e.Tag)
+
+		for _, material := range token.wce.EQMaterialDefs {
+			err = material.Write(token)
+			if err != nil {
+				return err
+			}
+		}
+
+		fmt.Fprintf(w, "%s \"%s\"\n", e.Definition(), e.Tag)
+		fmt.Fprintf(w, "\tVERSION %d\n", e.Version)
+		fmt.Fprintf(w, "\tNUMMATERIALS %d\n", len(e.Materials))
+		for _, material := range e.Materials {
+			fmt.Fprintf(w, "\t\tMATERIAL \"%s\"\n", material.Tag)
+			fmt.Fprintf(w, "\t\t\tSHADERTAG \"%s\"\n", material.ShaderTag)
+			fmt.Fprintf(w, "\t\t\tHEXONEFLAG %d\n", material.HexOneFlag)
+			fmt.Fprintf(w, "\t\t\tNUMPROPERTIES %d\n", len(material.Properties))
+			for _, prop := range material.Properties {
+				fmt.Fprintf(w, "\t\t\t\tPROPERTY \"%s\" %d \"%s\"\n", prop.Name, prop.Type, prop.Value)
+			}
+			fmt.Fprintf(w, "\t\t\tANIMSLEEP %d\n", material.AnimationSleep)
+			fmt.Fprintf(w, "\t\t\tANIMTEXTURES %d\n", len(material.AnimationTextures))
+			for _, anim := range material.AnimationTextures {
+				fmt.Fprintf(w, " \"%s\"", anim)
+			}
+		}
+		fmt.Fprintf(w, "\t\t\tNUMVERTICES %d\n", len(e.Vertices))
+		for _, vert := range e.Vertices {
+			fmt.Fprintf(w, "\t\t\t\t\tXYZ %0.8e %0.8e %0.8e\n", vert.Position[0], vert.Position[1], vert.Position[2])
+		}
+		fmt.Fprintf(w, "\t\t\tNUMUVS %d\n", len(e.Vertices))
+		for _, vert := range e.Vertices {
+			fmt.Fprintf(w, "\t\t\t\t\tUV %0.8e %0.8e\n", vert.Uv[0], vert.Uv[1])
+		}
+		fmt.Fprintf(w, "\t\t\tNUMUV2S %d\n", len(e.Vertices))
+		for _, vert := range e.Vertices {
+			fmt.Fprintf(w, "\t\t\t\t\tUV2 %0.8e %0.8e\n", vert.Uv2[0], vert.Uv2[1])
+		}
+
+		fmt.Fprintf(w, "\t\t\tNUMNORMALS %d\n", len(e.Vertices))
+		for _, vert := range e.Vertices {
+			fmt.Fprintf(w, "\t\t\t\t\tNORMAL %0.8e %0.8e %0.8e\n", vert.Normal[0], vert.Normal[1], vert.Normal[2])
+		}
+		fmt.Fprintf(w, "\t\t\tNUMTINTS %d\n", len(e.Vertices))
+		for _, vert := range e.Vertices {
+			fmt.Fprintf(w, "\t\t\t\t\tTINT %d %d %d %d\n", vert.Tint[0], vert.Tint[1], vert.Tint[2], vert.Tint[3])
+		}
+
+		fmt.Fprintf(w, "\tNUMFACES %d\n", len(e.Faces))
+		for i, face := range e.Faces {
+			fmt.Fprintf(w, "\t\tFACE // %d\n", i)
+			fmt.Fprintf(w, "\t\t\tTRIANGLE %d %d %d\n", face.Index[0], face.Index[1], face.Index[2])
+			fmt.Fprintf(w, "\t\t\tMATERIAL \"%s\"\n", face.MaterialName)
+			fmt.Fprintf(w, "\t\t\tPASSABLE %d\n", face.Passable)
+			fmt.Fprintf(w, "\t\t\tTRANSPARENT %d\n", face.Transparent)
+			fmt.Fprintf(w, "\t\t\tCOLLISIONREQUIRED %d\n", face.Collision)
+			fmt.Fprintf(w, "\t\t\tCULLED %d\n", face.Culled)
+			fmt.Fprintf(w, "\t\t\tDEGENERATE %d\n", face.Degenerate)
+		}
+
+		fmt.Fprintf(w, "\tNUMBONES %d\n", len(e.Bones))
+		for i, bone := range e.Bones {
+			fmt.Fprintf(w, "\t\tBONE // %d\n", i)
+			fmt.Fprintf(w, "\t\t\tNAME \"%s\"\n", bone.Name)
+			fmt.Fprintf(w, "\t\t\tNEXT %d\n", bone.Next)
+			fmt.Fprintf(w, "\t\t\tCHILDREN %d\n", bone.ChildrenCount)
+			fmt.Fprintf(w, "\t\t\tCHILDINDEX %d\n", bone.ChildIndex)
+			fmt.Fprintf(w, "\t\t\tPIVOT %0.8e %0.8e %0.8e\n", bone.Pivot[0], bone.Pivot[1], bone.Pivot[2])
+			fmt.Fprintf(w, "\t\t\tQUATERNION %0.8e %0.8e %0.8e %0.8e\n", bone.Quaternion[0], bone.Quaternion[1], bone.Quaternion[2], bone.Quaternion[3])
+			fmt.Fprintf(w, "\t\t\tSCALE %0.8e %0.8e %0.8e\n", bone.Scale[0], bone.Scale[1], bone.Scale[2])
+		}
+
+		fmt.Fprintf(w, "\n")
+
+		token.TagSetIsWritten(e.Tag)
+	}
+	return nil
+}
+
+func (e *ModDef) Read(token *AsciiReadToken) error {
+
+	records, err := token.ReadProperty("VERSION", 1)
+	if err != nil {
+		return err
+	}
+	err = parse(&e.Version, records[1])
+	if err != nil {
+		return fmt.Errorf("version: %w", err)
+	}
+
+	records, err = token.ReadProperty("NUMMATERIALS", 1)
+	if err != nil {
+		return err
+	}
+
+	numMaterials := 0
+	err = parse(&numMaterials, records[1])
+	if err != nil {
+		return fmt.Errorf("num materials: %w", err)
+	}
+
+	for i := 0; i < numMaterials; i++ {
+		eqMaterialDef := &EQMaterialDef{}
+		records, err = token.ReadProperty("MATERIAL", 1)
+		if err != nil {
+			return fmt.Errorf("material %d: %w", i, err)
+		}
+		eqMaterialDef.Tag = records[1]
+
+		err = eqMaterialDef.Read(token)
+		if err != nil {
+			return fmt.Errorf("material %d: %w", i, err)
+		}
+		e.Materials = append(e.Materials, eqMaterialDef)
+	}
+
+	records, err = token.ReadProperty("NUMVERTICES", 1)
+	if err != nil {
+		return err
+	}
+	numVertices := 0
+
+	err = parse(&numVertices, records[1])
+	if err != nil {
+		return fmt.Errorf("numvertices: %w", err)
+	}
+
+	for j := 0; j < numVertices; j++ {
+		records, err = token.ReadProperty("XYZ", 3)
+		if err != nil {
+			return fmt.Errorf("vertex %d xyz: %w", j, err)
+		}
+		vertex := &ModVertex{}
+		err = parse(&vertex.Position, records[1:]...)
+		if err != nil {
+			return fmt.Errorf("vertex %d xyz: %w", j, err)
+		}
+		e.Vertices = append(e.Vertices, vertex)
+	}
+
+	records, err = token.ReadProperty("NUMUVS", 1)
+	if err != nil {
+		return fmt.Errorf("numuvs: %w", err)
+	}
+	numUvs := 0
+	err = parse(&numUvs, records[1])
+	if err != nil {
+		return err
+	}
+
+	if len(e.Vertices) != numUvs {
+		return fmt.Errorf("vertices to uv mismatch: %d != %d", len(e.Vertices), numUvs)
+	}
+
+	for j, vertex := range e.Vertices {
+
+		records, err = token.ReadProperty("UV", 2)
+		if err != nil {
+			return fmt.Errorf("vertex %d uv: %w", j, err)
+		}
+		err = parse(&vertex.Uv, records[1:]...)
+		if err != nil {
+			return fmt.Errorf("vertex %d uv: %w", j, err)
+		}
+	}
+
+	records, err = token.ReadProperty("NUMUV2S", 1)
+	if err != nil {
+		return err
+	}
+	numUv2s := 0
+	err = parse(&numUv2s, records[1])
+	if err != nil {
+		return fmt.Errorf("numuv2s: %w", err)
+	}
+
+	if len(e.Vertices) != numUv2s {
+		return fmt.Errorf("vertices to uv2 mismatch: %d != %d", len(e.Vertices), numUv2s)
+	}
+
+	for j, vertex := range e.Vertices {
+
+		records, err = token.ReadProperty("UV2", 2)
+		if err != nil {
+			return fmt.Errorf("vertex %d uv2: %w", j, err)
+		}
+		err = parse(&vertex.Uv2, records[1:]...)
+		if err != nil {
+			return fmt.Errorf("vertex %d uv2: %w", j, err)
+		}
+	}
+
+	records, err = token.ReadProperty("NUMNORMALS", 1)
+	if err != nil {
+		return fmt.Errorf("numnormals: %w", err)
+	}
+	numNormals := 0
+	err = parse(&numNormals, records[1])
+	if err != nil {
+		return fmt.Errorf("numnormals: %w", err)
+	}
+
+	if len(e.Vertices) != numNormals {
+		return fmt.Errorf("vertices to normals mismatch: %d != %d", len(e.Vertices), numNormals)
+	}
+
+	for i, vertex := range e.Vertices {
+
+		records, err = token.ReadProperty("NORMAL", 3)
+		if err != nil {
+			return fmt.Errorf("vertex %d normal: %w", i, err)
+		}
+		err = parse(&vertex.Normal, records[1:]...)
+		if err != nil {
+			return fmt.Errorf("vertex %d normal: %w", i, err)
+		}
+	}
+
+	records, err = token.ReadProperty("NUMTINTS", 1)
+	if err != nil {
+		return fmt.Errorf("numtints: %w", err)
+	}
+	numTints := 0
+	err = parse(&numTints, records[1])
+	if err != nil {
+		return fmt.Errorf("numtints: %w", err)
+	}
+
+	if len(e.Vertices) != numTints {
+		return fmt.Errorf("vertices to tints mismatch: %d != %d", len(e.Vertices), numTints)
+	}
+
+	for j, vertex := range e.Vertices {
+
+		records, err = token.ReadProperty("TINT", 4)
+		if err != nil {
+			return fmt.Errorf("vertex %d tint: %w", j, err)
+		}
+		err = parse(&vertex.Tint, records[1:]...)
+		if err != nil {
+			return fmt.Errorf("vertex %d tint: %w", j, err)
+		}
+
+		e.Vertices = append(e.Vertices, vertex)
+	}
+
+	records, err = token.ReadProperty("NUMFACES", 1)
+	if err != nil {
+		return err
+	}
+	numFaces := 0
+	err = parse(&numFaces, records[1])
+	if err != nil {
+		return fmt.Errorf("num faces: %w", err)
+	}
+
+	for i := 0; i < numFaces; i++ {
+		_, err = token.ReadProperty("FACE", 0)
+		if err != nil {
+			return err
+		}
+		face := &ModFace{}
+		records, err = token.ReadProperty("TRIANGLE", 3)
+		if err != nil {
+			return err
+		}
+		err = parse(&face.Index, records[1:]...)
+		if err != nil {
+			return fmt.Errorf("triangle %d: %w", i, err)
+		}
+
+		records, err = token.ReadProperty("MATERIAL", 1)
+		if err != nil {
+			return err
+		}
+		face.MaterialName = records[1]
+
+		records, err = token.ReadProperty("PASSABLE", 1)
+		if err != nil {
+			return err
+		}
+		err = parse(&face.Passable, records[1])
+		if err != nil {
+			return fmt.Errorf("passable %d: %w", i, err)
+		}
+
+		records, err = token.ReadProperty("TRANSPARENT", 1)
+		if err != nil {
+			return err
+		}
+		err = parse(&face.Transparent, records[1])
+		if err != nil {
+			return fmt.Errorf("transparent %d: %w", i, err)
+		}
+
+		records, err = token.ReadProperty("COLLISIONREQUIRED", 1)
+		if err != nil {
+			return err
+		}
+		err = parse(&face.Collision, records[1])
+		if err != nil {
+			return fmt.Errorf("collision %d: %w", i, err)
+		}
+
+		records, err = token.ReadProperty("CULLED", 1)
+		if err != nil {
+			return err
+		}
+		err = parse(&face.Culled, records[1])
+		if err != nil {
+			return fmt.Errorf("culled %d: %w", i, err)
+		}
+
+		records, err = token.ReadProperty("DEGENERATE", 1)
+		if err != nil {
+			return err
+		}
+		err = parse(&face.Degenerate, records[1])
+		if err != nil {
+			return fmt.Errorf("degenerate %d: %w", i, err)
+		}
+
+		e.Faces = append(e.Faces, face)
+	}
+
+	records, err = token.ReadProperty("NUMBONES", 1)
+	if err != nil {
+		return err
+	}
+
+	numBones := 0
+	err = parse(&numBones, records[1])
+	if err != nil {
+		return fmt.Errorf("num bones: %w", err)
+	}
+
+	for i := 0; i < numBones; i++ {
+		_, err = token.ReadProperty("BONE", 0)
+		if err != nil {
+			return fmt.Errorf("bone %d: %w", i, err)
+		}
+		bone := &ModBone{}
+		records, err = token.ReadProperty("NAME", 1)
+		if err != nil {
+			return fmt.Errorf("bone %d name: %w", i, err)
+		}
+		bone.Name = records[1]
+
+		records, err = token.ReadProperty("NEXT", 1)
+		if err != nil {
+			return fmt.Errorf("bone %d next: %w", i, err)
+		}
+
+		err = parse(&bone.Next, records[1])
+		if err != nil {
+			return fmt.Errorf("bone %d next: %w", i, err)
+		}
+
+		records, err = token.ReadProperty("CHILDREN", 1)
+		if err != nil {
+			return fmt.Errorf("bone %d children: %w", i, err)
+		}
+
+		err = parse(&bone.ChildrenCount, records[1])
+		if err != nil {
+			return fmt.Errorf("bone %d children: %w", i, err)
+		}
+
+		records, err = token.ReadProperty("CHILDINDEX", 1)
+		if err != nil {
+			return fmt.Errorf("bone %d childindex: %w", i, err)
+		}
+
+		err = parse(&bone.ChildIndex, records[1])
+		if err != nil {
+			return fmt.Errorf("bone %d childindex: %w", i, err)
+		}
+
+		records, err = token.ReadProperty("PIVOT", 3)
+		if err != nil {
+			return fmt.Errorf("bone %d pivot: %w", i, err)
+		}
+
+		err = parse(&bone.Pivot, records[1:]...)
+		if err != nil {
+			return fmt.Errorf("bone %d pivot: %w", i, err)
+		}
+
+		records, err = token.ReadProperty("QUATERNION", 4)
+		if err != nil {
+			return fmt.Errorf("bone %d quaternion: %w", i, err)
+		}
+
+		err = parse(&bone.Quaternion, records[1:]...)
+		if err != nil {
+			return fmt.Errorf("bone %d quaternion: %w", i, err)
+		}
+
+		records, err = token.ReadProperty("SCALE", 3)
+		if err != nil {
+			return fmt.Errorf("bone %d scale: %w", i, err)
+		}
+
+		err = parse(&bone.Scale, records[1:]...)
+		if err != nil {
+			return fmt.Errorf("bone %d scale: %w", i, err)
+		}
+
+		e.Bones = append(e.Bones, bone)
+	}
+
+	return nil
+}
+
+func (e *ModDef) ToRaw(wce *Wce, dst *raw.Mod) error {
+	var err error
+	dst.Version = e.Version
+
+	dst.Materials, err = writeEqgMaterials(e.Materials)
+	if err != nil {
+		return fmt.Errorf("write materials: %w", err)
+	}
+
+	for _, vert := range e.Vertices {
+		rawVertex := &raw.ModVertex{
+			Position: vert.Position,
+			Normal:   vert.Normal,
+			Tint:     vert.Tint,
+			Uv:       vert.Uv,
+			Uv2:      vert.Uv2,
+		}
+		dst.Vertices = append(dst.Vertices, rawVertex)
+	}
+
+	for _, face := range e.Faces {
+		rawFace := raw.ModFace{
+			Index:        face.Index,
+			MaterialName: face.MaterialName,
+		}
+		if face.Passable == 1 {
+			rawFace.Flags |= 1
+		}
+		if face.Transparent == 1 {
+			rawFace.Flags |= 2
+		}
+		if face.Collision == 1 {
+			rawFace.Flags |= 4
+		}
+		if face.Culled == 1 {
+			rawFace.Flags |= 8
+		}
+		if face.Degenerate == 1 {
+			rawFace.Flags |= 16
+		}
+
+		dst.Faces = append(dst.Faces, rawFace)
+
+	}
+
+	for _, bone := range e.Bones {
+		rawBone := &raw.ModBone{
+			Name:          bone.Name,
+			Next:          bone.Next,
+			ChildrenCount: bone.ChildrenCount,
+			ChildIndex:    bone.ChildIndex,
+			Pivot:         bone.Pivot,
+			Quaternion:    bone.Quaternion,
+			Scale:         bone.Scale,
+		}
+		dst.Bones = append(dst.Bones, rawBone)
+	}
+
+	return nil
+}
+
+func (e *ModDef) FromRaw(wce *Wce, src *raw.Mod) error {
+	e.Tag = string(src.FileName())
+	folder := strings.TrimSuffix(strings.ToLower(wce.FileName), ".eqg")
+	if wce.WorldDef.Zone == 1 {
+		folder = "obj/" + e.Tag
+	}
+	e.folders = append(e.folders, folder)
+
+	for _, mat := range src.Materials {
+		eqMaterialDef := &EQMaterialDef{}
+		err := eqMaterialDef.FromRawNoAppend(wce, mat)
+		if err != nil {
+			return fmt.Errorf("material %s: %w", mat.Name, err)
+		}
+		e.Materials = append(e.Materials, eqMaterialDef)
+	}
+
+	e.Version = src.Version
+	for _, v := range src.Vertices {
+		ModVertex := &ModVertex{
+			Position: v.Position,
+			Normal:   v.Normal,
+			Tint:     v.Tint,
+			Uv:       v.Uv,
+			Uv2:      v.Uv2,
+		}
+		e.Vertices = append(e.Vertices, ModVertex)
+	}
+
+	for _, face := range src.Faces {
+		ModFace := &ModFace{
+			MaterialName: string(face.MaterialName),
+			Index:        face.Index,
+		}
+		if face.Flags&uint32(raw.ModFaceFlagPassable) != 0 {
+			ModFace.Passable = 1
+		}
+		if face.Flags&uint32(raw.ModFaceFlagTransparent) != 0 {
+			ModFace.Transparent = 1
+		}
+		if face.Flags&uint32(raw.ModFaceFlagCollisionRequired) != 0 {
+			ModFace.Collision = 1
+		}
+		if face.Flags&uint32(raw.ModFaceFlagCulled) != 0 {
+			ModFace.Culled = 1
+		}
+		if face.Flags&uint32(raw.ModFaceFlagDegenerate) != 0 {
+			ModFace.Degenerate = 1
+		}
+
+		e.Faces = append(e.Faces, ModFace)
+	}
+
+	return nil
+}
+
 // MdsDef is an entry EQSKINNEDMODELDEF
 type MdsDef struct {
 	folders   []string
@@ -30,17 +619,9 @@ type MdsBone struct {
 type MdsModel struct {
 	MainPiece       uint32 // 0: no, 1: yes, head is a mainpiece
 	Name            string
-	Vertices        []*MdsVertex
+	Vertices        []*ModVertex
 	Faces           []*MdsFace
 	BoneAssignments [][4]*MdsBoneWeight
-}
-
-type MdsVertex struct {
-	Position [3]float32
-	Normal   [3]float32
-	Tint     [4]uint8
-	Uv       [2]float32
-	Uv2      [2]float32
 }
 
 type MdsFace struct {
@@ -307,7 +888,7 @@ func (e *MdsDef) Read(token *AsciiReadToken) error {
 			if err != nil {
 				return fmt.Errorf("model %d vertex %d xyz: %w", i, j, err)
 			}
-			vertex := &MdsVertex{}
+			vertex := &ModVertex{}
 			err = parse(&vertex.Position, records[1:]...)
 			if err != nil {
 				return fmt.Errorf("model %d vertex %d xyz: %w", i, j, err)
@@ -548,19 +1129,17 @@ func (e *MdsDef) Read(token *AsciiReadToken) error {
 }
 
 func (e *MdsDef) ToRaw(wce *Wce, dst *raw.Mds) error {
+	var err error
+
 	dst.Version = e.Version
 
-	for _, material := range e.Materials {
-		rawMaterial := &raw.Material{}
-		err := material.ToRaw(wce, rawMaterial)
-		if err != nil {
-			return fmt.Errorf("material %s: %w", material.Tag, err)
-		}
-		dst.Materials = append(dst.Materials, rawMaterial)
+	dst.Materials, err = writeEqgMaterials(e.Materials)
+	if err != nil {
+		return fmt.Errorf("write materials: %w", err)
 	}
 
 	for _, bone := range e.Bones {
-		rawBone := &raw.Bone{
+		rawBone := &raw.ModBone{
 			Name:          bone.Name,
 			Next:          bone.Next,
 			ChildrenCount: bone.ChildrenCount,
@@ -578,7 +1157,7 @@ func (e *MdsDef) ToRaw(wce *Wce, dst *raw.Mds) error {
 			Name:      model.Name,
 		}
 		for _, vert := range model.Vertices {
-			rawVertex := &raw.Vertex{
+			rawVertex := &raw.ModVertex{
 				Position: vert.Position,
 				Normal:   vert.Normal,
 				Tint:     vert.Tint,
@@ -588,7 +1167,7 @@ func (e *MdsDef) ToRaw(wce *Wce, dst *raw.Mds) error {
 			rawModel.Vertices = append(rawModel.Vertices, rawVertex)
 		}
 		for _, face := range model.Faces {
-			rawFace := &raw.Face{
+			rawFace := &raw.ModFace{
 				Index:        face.Index,
 				MaterialName: face.MaterialName,
 			}
@@ -663,7 +1242,7 @@ func (e *MdsDef) FromRaw(wce *Wce, src *raw.Mds) error {
 			Name:      model.Name,
 		}
 		for _, vert := range model.Vertices {
-			mdsVertex := &MdsVertex{
+			mdsVertex := &ModVertex{
 				Position: vert.Position,
 				Normal:   vert.Normal,
 				Tint:     vert.Tint,
@@ -710,412 +1289,6 @@ func (e *MdsDef) FromRaw(wce *Wce, src *raw.Mds) error {
 			mdsModel.BoneAssignments = append(mdsModel.BoneAssignments, mdsWeights)
 		}
 		e.Models = append(e.Models, mdsModel)
-	}
-
-	return nil
-}
-
-// ModDef is an entry EQMODELDEF
-type ModDef struct {
-	folders   []string
-	Tag       string
-	Version   uint32
-	Materials []*EQMaterialDef
-	Vertices  [][3]float32
-	Normals   [][3]float32
-	Tints     [][4]uint8
-	UVs       [][2]float32
-	UV2s      [][2]float32
-	Faces     []*ModFace
-}
-
-type ModFace struct {
-	Index        [3]uint32
-	MaterialName string
-	Passable     int
-	Transparent  int
-	Collision    int
-	Culled       int
-	Degenerate   int
-}
-
-func (e *ModDef) Definition() string {
-	return "EQMODELDEF"
-}
-
-func (e *ModDef) Write(token *AsciiWriteToken) error {
-	for _, folder := range e.folders {
-		err := token.SetWriter(folder)
-		if err != nil {
-			return err
-		}
-		w, err := token.Writer()
-		if err != nil {
-			return err
-		}
-
-		if token.TagIsWritten(e.Tag) {
-			return nil
-		}
-
-		token.TagSetIsWritten(e.Tag)
-
-		for _, material := range token.wce.EQMaterialDefs {
-			err = material.Write(token)
-			if err != nil {
-				return err
-			}
-		}
-
-		fmt.Fprintf(w, "%s \"%s\"\n", e.Definition(), e.Tag)
-		fmt.Fprintf(w, "\tVERSION %d\n", e.Version)
-		fmt.Fprintf(w, "\tNUMMATERIALS %d\n", len(e.Materials))
-		for _, material := range e.Materials {
-			fmt.Fprintf(w, "\t\tMATERIAL \"%s\"\n", material.Tag)
-			fmt.Fprintf(w, "\t\t\tSHADERTAG \"%s\"\n", material.ShaderTag)
-			fmt.Fprintf(w, "\t\t\tHEXONEFLAG %d\n", material.HexOneFlag)
-			fmt.Fprintf(w, "\t\t\tNUMPROPERTIES %d\n", len(material.Properties))
-			for _, prop := range material.Properties {
-				fmt.Fprintf(w, "\t\t\t\tPROPERTY \"%s\" %d \"%s\"\n", prop.Name, prop.Type, prop.Value)
-			}
-			fmt.Fprintf(w, "\t\t\tANIMSLEEP %d\n", material.AnimationSleep)
-			fmt.Fprintf(w, "\t\t\tANIMTEXTURES %d\n", len(material.AnimationTextures))
-			for _, anim := range material.AnimationTextures {
-				fmt.Fprintf(w, " \"%s\"", anim)
-			}
-		}
-		fmt.Fprintf(w, "\tNUMVERTICES %d\n", len(e.Vertices))
-		for _, v := range e.Vertices {
-			fmt.Fprintf(w, "\t\tXYZ %0.8e %0.8e %0.8e\n", v[0], v[1], v[2])
-		}
-		fmt.Fprintf(w, "\tNUMUVS %d\n", len(e.UVs))
-		for _, u := range e.UVs {
-			fmt.Fprintf(w, "\t\tUV %0.8e %0.8e\n", u[0], u[1])
-		}
-		fmt.Fprintf(w, "\tNUMUV2S %d\n", len(e.UV2s))
-		for _, u := range e.UV2s {
-			fmt.Fprintf(w, "\t\tUV %0.8e %0.8e\n", u[0], u[1])
-		}
-
-		fmt.Fprintf(w, "\tNUMNORMALS %d\n", len(e.Normals))
-		for _, n := range e.Normals {
-			fmt.Fprintf(w, "\t\tXYZ %0.8e %0.8e %0.8e\n", n[0], n[1], n[2])
-		}
-		fmt.Fprintf(w, "\tNUMTINTS %d\n", len(e.Tints))
-		for _, t := range e.Tints {
-			fmt.Fprintf(w, "\t\tRGBA %d %d %d %d\n", t[0], t[1], t[2], t[3])
-		}
-
-		fmt.Fprintf(w, "\tNUMFACES %d\n", len(e.Faces))
-		for i, face := range e.Faces {
-			fmt.Fprintf(w, "\t\tFACE // %d\n", i)
-			fmt.Fprintf(w, "\t\t\tTRIANGLE %d %d %d\n", face.Index[0], face.Index[1], face.Index[2])
-			fmt.Fprintf(w, "\t\t\tMATERIAL \"%s\"\n", face.MaterialName)
-			fmt.Fprintf(w, "\t\t\tPASSABLE %d\n", face.Passable)
-			fmt.Fprintf(w, "\t\t\tTRANSPARENT %d\n", face.Transparent)
-			fmt.Fprintf(w, "\t\t\tCOLLISIONREQUIRED %d\n", face.Collision)
-			fmt.Fprintf(w, "\t\t\tCULLED %d\n", face.Culled)
-			fmt.Fprintf(w, "\t\t\tDEGENERATE %d\n", face.Degenerate)
-		}
-
-		fmt.Fprintf(w, "\n")
-
-		token.TagSetIsWritten(e.Tag)
-	}
-	return nil
-}
-
-func (e *ModDef) Read(token *AsciiReadToken) error {
-
-	records, err := token.ReadProperty("VERSION", 1)
-	if err != nil {
-		return err
-	}
-	err = parse(&e.Version, records[1])
-	if err != nil {
-		return fmt.Errorf("version: %w", err)
-	}
-
-	records, err = token.ReadProperty("NUMMATERIALS", 1)
-	if err != nil {
-		return err
-	}
-
-	numMaterials := 0
-	err = parse(&numMaterials, records[1])
-	if err != nil {
-		return fmt.Errorf("num materials: %w", err)
-	}
-
-	for i := 0; i < numMaterials; i++ {
-		eqMaterialDef := &EQMaterialDef{}
-		records, err = token.ReadProperty("MATERIAL", 1)
-		if err != nil {
-			return fmt.Errorf("material %d: %w", i, err)
-		}
-		eqMaterialDef.Tag = records[1]
-
-		err = eqMaterialDef.Read(token)
-		if err != nil {
-			return fmt.Errorf("material %d: %w", i, err)
-		}
-		e.Materials = append(e.Materials, eqMaterialDef)
-	}
-
-	records, err = token.ReadProperty("NUMVERTICES", 1)
-	if err != nil {
-		return err
-	}
-	numVertices := 0
-	err = parse(&numVertices, records[1])
-	if err != nil {
-		return fmt.Errorf("num vertices: %w", err)
-	}
-
-	for i := 0; i < numVertices; i++ {
-		records, err = token.ReadProperty("XYZ", 3)
-		if err != nil {
-			return err
-		}
-		vert := [3]float32{}
-		err = parse(&vert, records[1:]...)
-		if err != nil {
-			return fmt.Errorf("vertex %d: %w", i, err)
-		}
-		e.Vertices = append(e.Vertices, vert)
-	}
-
-	records, err = token.ReadProperty("NUMUVS", 1)
-	if err != nil {
-		return err
-	}
-	numUVs := 0
-	err = parse(&numUVs, records[1])
-	if err != nil {
-		return fmt.Errorf("num uvs: %w", err)
-	}
-
-	for i := 0; i < numUVs; i++ {
-		records, err = token.ReadProperty("UV", 2)
-		if err != nil {
-			return err
-		}
-		uv := [2]float32{}
-		err = parse(&uv, records[1:]...)
-		if err != nil {
-			return fmt.Errorf("uv %d: %w", i, err)
-		}
-
-		e.UVs = append(e.UVs, uv)
-	}
-
-	records, err = token.ReadProperty("NUMUV2S", 1)
-	if err != nil {
-		return err
-	}
-
-	numUV2s := 0
-	err = parse(&numUV2s, records[1])
-	if err != nil {
-		return fmt.Errorf("num uv2s: %w", err)
-	}
-
-	for i := 0; i < numUV2s; i++ {
-		records, err = token.ReadProperty("UV", 2)
-		if err != nil {
-			return fmt.Errorf("uv2 %d: %w", i, err)
-		}
-		uv2 := [2]float32{}
-		err = parse(&uv2, records[1:]...)
-		if err != nil {
-			return fmt.Errorf("uv2 %d: %w", i, err)
-		}
-
-		e.UV2s = append(e.UV2s, uv2)
-	}
-
-	records, err = token.ReadProperty("NUMNORMALS", 1)
-	if err != nil {
-		return err
-	}
-	numNormals := 0
-	err = parse(&numNormals, records[1])
-	if err != nil {
-		return fmt.Errorf("num normals: %w", err)
-	}
-
-	for i := 0; i < numNormals; i++ {
-		records, err = token.ReadProperty("XYZ", 3)
-		if err != nil {
-			return fmt.Errorf("normal %d: %w", i, err)
-		}
-		normal := [3]float32{}
-		err = parse(&normal, records[1:]...)
-		if err != nil {
-			return fmt.Errorf("normal %d: %w", i, err)
-		}
-
-		e.Normals = append(e.Normals, normal)
-	}
-
-	records, err = token.ReadProperty("NUMTINTS", 1)
-	if err != nil {
-		return err
-	}
-	numTints := 0
-	err = parse(&numTints, records[1])
-	if err != nil {
-		return fmt.Errorf("num tints: %w", err)
-	}
-
-	for i := 0; i < numTints; i++ {
-		records, err = token.ReadProperty("RGBA", 4)
-		if err != nil {
-			return fmt.Errorf("tint %d: %w", i, err)
-		}
-		tint := [4]uint8{}
-		err = parse(&tint, records[1:]...)
-		if err != nil {
-			return fmt.Errorf("tint %d: %w", i, err)
-		}
-
-		e.Tints = append(e.Tints, tint)
-	}
-
-	records, err = token.ReadProperty("NUMFACES", 1)
-	if err != nil {
-		return err
-	}
-	numFaces := 0
-	err = parse(&numFaces, records[1])
-	if err != nil {
-		return fmt.Errorf("num faces: %w", err)
-	}
-
-	for i := 0; i < numFaces; i++ {
-		_, err = token.ReadProperty("FACE", 0)
-		if err != nil {
-			return err
-		}
-		face := &ModFace{}
-		records, err = token.ReadProperty("TRIANGLE", 3)
-		if err != nil {
-			return err
-		}
-		err = parse(&face.Index, records[1:]...)
-		if err != nil {
-			return fmt.Errorf("triangle %d: %w", i, err)
-		}
-
-		records, err = token.ReadProperty("MATERIAL", 1)
-		if err != nil {
-			return err
-		}
-		face.MaterialName = records[1]
-
-		records, err = token.ReadProperty("PASSABLE", 1)
-		if err != nil {
-			return err
-		}
-		err = parse(&face.Passable, records[1])
-		if err != nil {
-			return fmt.Errorf("passable %d: %w", i, err)
-		}
-
-		records, err = token.ReadProperty("TRANSPARENT", 1)
-		if err != nil {
-			return err
-		}
-		err = parse(&face.Transparent, records[1])
-		if err != nil {
-			return fmt.Errorf("transparent %d: %w", i, err)
-		}
-
-		records, err = token.ReadProperty("COLLISIONREQUIRED", 1)
-		if err != nil {
-			return err
-		}
-		err = parse(&face.Collision, records[1])
-		if err != nil {
-			return fmt.Errorf("collision %d: %w", i, err)
-		}
-
-		records, err = token.ReadProperty("CULLED", 1)
-		if err != nil {
-			return err
-		}
-		err = parse(&face.Culled, records[1])
-		if err != nil {
-			return fmt.Errorf("culled %d: %w", i, err)
-		}
-
-		records, err = token.ReadProperty("DEGENERATE", 1)
-		if err != nil {
-			return err
-		}
-		err = parse(&face.Degenerate, records[1])
-		if err != nil {
-			return fmt.Errorf("degenerate %d: %w", i, err)
-		}
-
-		e.Faces = append(e.Faces, face)
-	}
-	return nil
-}
-
-func (e *ModDef) ToRaw(wce *Wce, dst *raw.Mod) error {
-
-	return nil
-}
-
-func (e *ModDef) FromRaw(wce *Wce, src *raw.Mod) error {
-	e.Tag = string(src.FileName())
-	folder := strings.TrimSuffix(strings.ToLower(wce.FileName), ".eqg")
-	if wce.WorldDef.Zone == 1 {
-		folder = "obj/" + e.Tag
-	}
-	e.folders = append(e.folders, folder)
-
-	for _, mat := range src.Materials {
-		eqMaterialDef := &EQMaterialDef{}
-		err := eqMaterialDef.FromRawNoAppend(wce, mat)
-		if err != nil {
-			return fmt.Errorf("material %s: %w", mat.Name, err)
-		}
-		e.Materials = append(e.Materials, eqMaterialDef)
-	}
-
-	e.Version = src.Version
-	for _, v := range src.Vertices {
-		e.Vertices = append(e.Vertices, v.Position)
-		e.Normals = append(e.Normals, v.Normal)
-		e.UVs = append(e.UVs, v.Uv)
-		e.UV2s = append(e.UV2s, v.Uv2)
-		e.Tints = append(e.Tints, v.Tint)
-	}
-
-	for _, face := range src.Faces {
-		ModFace := &ModFace{
-			MaterialName: string(face.MaterialName),
-			Index:        face.Index,
-		}
-		if face.Flags&uint32(raw.ModFaceFlagPassable) != 0 {
-			ModFace.Passable = 1
-		}
-		if face.Flags&uint32(raw.ModFaceFlagTransparent) != 0 {
-			ModFace.Transparent = 1
-		}
-		if face.Flags&uint32(raw.ModFaceFlagCollisionRequired) != 0 {
-			ModFace.Collision = 1
-		}
-		if face.Flags&uint32(raw.ModFaceFlagCulled) != 0 {
-			ModFace.Culled = 1
-		}
-		if face.Flags&uint32(raw.ModFaceFlagDegenerate) != 0 {
-			ModFace.Degenerate = 1
-		}
-
-		e.Faces = append(e.Faces, ModFace)
 	}
 
 	return nil
@@ -1356,7 +1529,7 @@ func (e *TerDef) FromRaw(wce *Wce, src *raw.Ter) error {
 		e.Tints = append(e.Tints, v.Tint)
 	}
 
-	for _, face := range src.Triangles {
+	for _, face := range src.Faces {
 		ModFace := &ModFace{
 			MaterialName: string(face.MaterialName),
 			Index:        face.Index,
@@ -1515,14 +1688,14 @@ func (e *EQMaterialDef) Read(token *AsciiReadToken) error {
 	return nil
 }
 
-func (e *EQMaterialDef) ToRaw(wce *Wce, dst *raw.Material) error {
+func (e *EQMaterialDef) ToRaw(wce *Wce, dst *raw.ModMaterial) error {
 	dst.Name = e.Tag
 	dst.EffectName = e.ShaderTag
 	if e.HexOneFlag == 1 {
 		dst.Flags = 0x01
 	}
 	for _, prop := range e.Properties {
-		mp := &raw.MaterialParam{
+		mp := &raw.ModMaterialParam{
 			Name:  prop.Name,
 			Type:  prop.Type,
 			Value: prop.Value,
@@ -1535,7 +1708,7 @@ func (e *EQMaterialDef) ToRaw(wce *Wce, dst *raw.Material) error {
 	return nil
 }
 
-func (e *EQMaterialDef) FromRaw(wce *Wce, src *raw.Material) error {
+func (e *EQMaterialDef) FromRaw(wce *Wce, src *raw.ModMaterial) error {
 	err := e.FromRawNoAppend(wce, src)
 	if err != nil {
 		return err
@@ -1544,7 +1717,7 @@ func (e *EQMaterialDef) FromRaw(wce *Wce, src *raw.Material) error {
 	return nil
 }
 
-func (e *EQMaterialDef) FromRawNoAppend(wce *Wce, src *raw.Material) error {
+func (e *EQMaterialDef) FromRawNoAppend(wce *Wce, src *raw.ModMaterial) error {
 	folder := strings.TrimSuffix(strings.ToLower(wce.FileName), ".eqg")
 	if wce.WorldDef.Zone == 1 {
 		folder = "world"

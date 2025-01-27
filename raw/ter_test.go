@@ -134,8 +134,8 @@ func TestTerWrite(t *testing.T) {
 				t.Fatalf("%s write: vertex count mismatch %d vs %d", tt.name, len(ter2.Vertices), len(ter.Vertices))
 			}
 
-			if len(ter2.Triangles) != len(ter.Triangles) {
-				t.Fatalf("%s write: triangle count mismatch %d vs %d", tt.name, len(ter2.Triangles), len(ter.Triangles))
+			if len(ter2.Faces) != len(ter.Faces) {
+				t.Fatalf("%s write: triangle count mismatch %d vs %d", tt.name, len(ter2.Faces), len(ter.Faces))
 			}
 
 		})

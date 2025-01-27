@@ -82,7 +82,7 @@ func TestZonWrite(t *testing.T) {
 	}{
 
 		// .zon|1|anguish.zon|anguish.eqg
-		// {name: "anguish.eqg"}, // TODO: mismatch
+		{name: "anguish.eqg"}, // TODO: mismatch
 		// .zon|1|bazaar.zon|bazaar.eqg
 		//{name: "bazaar.eqg"}, // TODO: mismatch
 		// .zon|1|bloodfields.zon|bloodfields.eqg
@@ -106,6 +106,8 @@ func TestZonWrite(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 
 			fileName := tt.name
+			baseName := strings.ReplaceAll(fileName, ".eqg", "")
+
 			var data []byte
 			ext := filepath.Ext(tt.name)
 			if ext == ".zon" {
@@ -123,6 +125,11 @@ func TestZonWrite(t *testing.T) {
 				if err != nil {
 					t.Fatalf("failed to open %s.zon: %s", tt.name, err.Error())
 				}
+				err = os.WriteFile(fmt.Sprintf("%s/%s.src%s", dirTest, baseName, ".zon"), data, 0644)
+				if err != nil {
+					t.Fatalf("failed to write %s: %s", fileName, err.Error())
+				}
+
 			}
 
 			zon := &Zon{}
@@ -162,6 +169,11 @@ func TestZonWrite(t *testing.T) {
 
 			srcData := data
 			dstData := buf.Bytes()
+			err = os.WriteFile(fmt.Sprintf("%s/%s.dst%s", dirTest, baseName, ".zon"), dstData, 0644)
+			if err != nil {
+				t.Fatalf("failed to write %s: %s", fileName, err.Error())
+			}
+
 			err = helper.ByteCompareTest(srcData, dstData)
 			if err != nil {
 				t.Fatalf("%s byteCompare: %s", tt.name, err)

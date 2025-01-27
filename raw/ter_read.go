@@ -11,9 +11,9 @@ import (
 type Ter struct {
 	MetaFileName string
 	Version      uint32
-	Materials    []*Material
-	Vertices     []Vertex
-	Triangles    []Face
+	Materials    []*ModMaterial
+	Vertices     []ModVertex
+	Faces        []ModFace
 	name         *eqgName
 }
 
@@ -46,7 +46,7 @@ func (ter *Ter) Read(r io.ReadSeeker) error {
 
 	nameCounter := 0
 	for i := 0; i < int(materialCount); i++ {
-		material := &Material{}
+		material := &ModMaterial{}
 		material.ID = dec.Int32()
 		nameCounter++
 
@@ -57,7 +57,7 @@ func (ter *Ter) Read(r io.ReadSeeker) error {
 
 		propertyCount := dec.Uint32()
 		for j := 0; j < int(propertyCount); j++ {
-			property := &MaterialParam{
+			property := &ModMaterialParam{
 				Name: material.Name,
 			}
 
@@ -80,7 +80,7 @@ func (ter *Ter) Read(r io.ReadSeeker) error {
 	}
 
 	for i := 0; i < int(verticesCount); i++ {
-		v := Vertex{}
+		v := ModVertex{}
 		v.Position[0] = dec.Float32()
 		v.Position[1] = dec.Float32()
 		v.Position[2] = dec.Float32()
@@ -106,14 +106,14 @@ func (ter *Ter) Read(r io.ReadSeeker) error {
 	}
 
 	for i := 0; i < int(triangleCount); i++ {
-		t := Face{}
+		t := ModFace{}
 		t.Index[0] = dec.Uint32()
 		t.Index[1] = dec.Uint32()
 		t.Index[2] = dec.Uint32()
 
 		materialID := dec.Int32()
 
-		var material *Material
+		var material *ModMaterial
 		for _, mat := range ter.Materials {
 			if mat.ID == materialID {
 				material = mat
@@ -131,7 +131,7 @@ func (ter *Ter) Read(r io.ReadSeeker) error {
 		}
 
 		t.Flags = dec.Uint32()
-		ter.Triangles = append(ter.Triangles, t)
+		ter.Faces = append(ter.Faces, t)
 	}
 
 	if dec.Error() != nil {

@@ -145,65 +145,9 @@ func (wce *Wce) WriteEqgRaw(archive *pfs.Pfs) error {
 			Version:      mds.Version,
 		}
 
-		dst.Materials, err = writeEqgMaterials(mds.Materials)
+		err = mds.ToRaw(wce, dst)
 		if err != nil {
-			return fmt.Errorf("write materials: %w", err)
-		}
-
-		for _, bone := range mds.Bones {
-			dst.Bones = append(dst.Bones, &raw.Bone{
-				Name:          bone.Name,
-				Next:          bone.Next,
-				ChildrenCount: bone.ChildrenCount,
-				ChildIndex:    bone.ChildIndex,
-				Pivot:         bone.Pivot,
-				Quaternion:    bone.Quaternion,
-				Scale:         bone.Scale,
-			})
-		}
-
-		for _, model := range mds.Models {
-			model := &raw.MdsModel{
-				MainPiece: model.MainPiece,
-				Name:      model.Name,
-			}
-			for _, vert := range model.Vertices {
-				model.Vertices = append(model.Vertices, &raw.Vertex{
-					Position: vert.Position,
-					Normal:   vert.Normal,
-					Tint:     vert.Tint,
-					Uv:       vert.Uv,
-					Uv2:      vert.Uv2,
-				})
-			}
-			for _, face := range model.Faces {
-				flags := uint32(0)
-				if face.Flags&1 == 1 {
-					flags |= 1
-				}
-
-				model.Faces = append(model.Faces, &raw.Face{
-					Index:        face.Index,
-					MaterialName: face.MaterialName,
-					Flags:        flags,
-				})
-
-			}
-
-			for _, boneAssignment := range model.BoneAssignments {
-				weights := [4]*raw.MdsBoneWeight{}
-				for i := 0; i < len(boneAssignment); i++ {
-					wt := boneAssignment[i]
-					weight := &raw.MdsBoneWeight{
-						BoneIndex: wt.BoneIndex,
-						Value:     wt.Value,
-					}
-					weights[i] = weight
-				}
-				model.BoneAssignments = append(model.BoneAssignments, weights)
-			}
-
-			dst.Models = append(dst.Models, model)
+			return fmt.Errorf("mds to raw: %w", err)
 		}
 
 		err := dst.Write(buf)
@@ -223,9 +167,9 @@ func (wce *Wce) WriteEqgRaw(archive *pfs.Pfs) error {
 			Version:      mod.Version,
 		}
 
-		dst.Materials, err = writeEqgMaterials(mod.Materials)
+		err = mod.ToRaw(wce, dst)
 		if err != nil {
-			return fmt.Errorf("write materials: %w", err)
+			return fmt.Errorf("mod to raw: %w", err)
 		}
 
 		err := dst.Write(buf)
@@ -328,10 +272,10 @@ func (wce *Wce) WriteEqgRaw(archive *pfs.Pfs) error {
 	return nil
 }
 
-func writeEqgMaterials(srcMaterials []*EQMaterialDef) ([]*raw.Material, error) {
-	dstMaterials := []*raw.Material{}
+func writeEqgMaterials(srcMaterials []*EQMaterialDef) ([]*raw.ModMaterial, error) {
+	dstMaterials := []*raw.ModMaterial{}
 	for _, srcMat := range srcMaterials {
-		mat := &raw.Material{
+		mat := &raw.ModMaterial{
 			Name:       srcMat.Tag,
 			EffectName: srcMat.ShaderTag,
 		}
@@ -340,7 +284,7 @@ func writeEqgMaterials(srcMaterials []*EQMaterialDef) ([]*raw.Material, error) {
 		}
 
 		for _, prop := range srcMat.Properties {
-			mat.Properties = append(mat.Properties, &raw.MaterialParam{
+			mat.Properties = append(mat.Properties, &raw.ModMaterialParam{
 				Name:  prop.Name,
 				Value: prop.Value,
 				Type:  prop.Type,

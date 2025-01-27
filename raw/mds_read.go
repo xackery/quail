@@ -11,8 +11,8 @@ import (
 type Mds struct {
 	MetaFileName string
 	Version      uint32
-	Materials    []*Material
-	Bones        []*Bone
+	Materials    []*ModMaterial
+	Bones        []*ModBone
 	//MainNameIndex int32
 	//SubNameIndex  int32
 	Models []*MdsModel
@@ -26,8 +26,8 @@ func (mds *Mds) Identity() string {
 type MdsModel struct {
 	MainPiece       uint32 // 0: no, 1: yes, head is a mainpiece
 	Name            string
-	Vertices        []*Vertex
-	Faces           []*Face
+	Vertices        []*ModVertex
+	Faces           []*ModFace
 	BoneAssignments [][4]*MdsBoneWeight
 }
 
@@ -100,7 +100,7 @@ func (mds *Mds) Read(r io.ReadSeeker) error {
 	}
 
 	for i := 0; i < int(materialCount); i++ {
-		material := &Material{}
+		material := &ModMaterial{}
 		material.ID = dec.Int32()
 		material.Name = mds.name.byOffset(dec.Int32())
 		material.EffectName = mds.name.byOffset(dec.Int32())
@@ -108,7 +108,7 @@ func (mds *Mds) Read(r io.ReadSeeker) error {
 		mds.Materials = append(mds.Materials, material)
 		propertyCount := dec.Uint32()
 		for j := 0; j < int(propertyCount); j++ {
-			property := &MaterialParam{
+			property := &ModMaterialParam{
 				Name: material.Name,
 			}
 
@@ -131,7 +131,7 @@ func (mds *Mds) Read(r io.ReadSeeker) error {
 	}
 
 	for i := 0; i < int(boneCount); i++ {
-		bone := &Bone{}
+		bone := &ModBone{}
 		bone.Name = mds.name.byOffset(dec.Int32())
 		bone.Next = dec.Int32()
 		bone.ChildrenCount = dec.Uint32()
@@ -165,7 +165,7 @@ func (mds *Mds) Read(r io.ReadSeeker) error {
 		faceCount := dec.Uint32()
 		boneAssignmentCount := dec.Uint32()
 		for i := 0; i < int(verticesCount); i++ {
-			v := &Vertex{}
+			v := &ModVertex{}
 			v.Position[0] = dec.Float32()
 			v.Position[1] = dec.Float32()
 			v.Position[2] = dec.Float32()
@@ -191,14 +191,14 @@ func (mds *Mds) Read(r io.ReadSeeker) error {
 		}
 
 		for i := 0; i < int(faceCount); i++ {
-			f := &Face{}
+			f := &ModFace{}
 			f.Index[0] = dec.Uint32()
 			f.Index[1] = dec.Uint32()
 			f.Index[2] = dec.Uint32()
 
 			materialID := dec.Int32()
 
-			var material *Material
+			var material *ModMaterial
 			for _, mat := range mds.Materials {
 				if mat.ID == materialID {
 					material = mat

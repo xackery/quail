@@ -82,20 +82,7 @@ func (lay *Lay) Read(r io.ReadSeeker) error {
 	layerCount := dec.Uint32()
 	nameData := dec.Bytes(int(nameLength))
 
-	names := make(map[int32]string)
-	chunk := []byte{}
-	lastOffset := 0
-	for i, b := range nameData {
-		if b == 0 {
-			names[int32(lastOffset)] = string(chunk)
-			chunk = []byte{}
-			lastOffset = i + 1
-			continue
-		}
-		chunk = append(chunk, b)
-	}
-
-	lay.name.set(names)
+	lay.name.parse(nameData)
 
 	for i := 0; i < int(layerCount); i++ {
 		entryID := dec.Uint32()

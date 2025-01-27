@@ -11,11 +11,69 @@ import (
 type Mod struct {
 	MetaFileName string
 	Version      uint32
-	Materials    []*Material
-	Bones        []*Bone
-	Vertices     []*Vertex
-	Faces        []Face
+	Materials    []*ModMaterial
+	Vertices     []*ModVertex
+	Faces        []ModFace
+	Bones        []*ModBone
 	name         *eqgName
+}
+
+// ModBone is a bone
+type ModBone struct {
+	Name          string
+	Next          int32
+	ChildrenCount uint32
+	ChildIndex    int32
+	Pivot         [3]float32
+	Quaternion    [4]float32
+	Scale         [3]float32
+}
+
+// ModFace is a triangle
+type ModFace struct {
+	Index        [3]uint32
+	MaterialName string
+	Flags        uint32
+}
+
+type ModMaterial struct {
+	ID         int32
+	Name       string
+	EffectName string
+	Flags      uint32
+	Properties []*ModMaterialParam
+	Animation  ModMaterialAnimation
+}
+
+type MaterialParamType uint32
+
+const (
+	MaterialParamTypeUnused MaterialParamType = iota
+	MaterialParamTypeInt
+	MaterialParamTypeTexture
+	MaterialParamTypeColor
+)
+
+// ModMaterialParam is a material property
+type ModMaterialParam struct {
+	Name  string
+	Type  MaterialParamType
+	Value string
+	Data  []byte
+}
+
+type ModMaterialAnimation struct {
+	Sleep    uint32
+	Textures []string
+}
+
+// ModVertex is a vertex
+type ModVertex struct {
+	Position [3]float32
+	Normal   [3]float32
+	Tint     [4]uint8
+	Uv       [2]float32
+	Uv2      [2]float32
 }
 
 type ModFaceFlag uint32
@@ -54,23 +112,10 @@ func (mod *Mod) Read(r io.ReadSeeker) error {
 	bonesCount := dec.Uint32()
 	nameData := dec.Bytes(int(nameLength))
 
-	names := make(map[int32]string)
-	chunk := []byte{}
-	lastOffset := 0
-	for i, b := range nameData {
-		if b == 0 {
-			names[int32(lastOffset)] = string(chunk)
-			chunk = []byte{}
-			lastOffset = i + 1
-			continue
-		}
-		chunk = append(chunk, b)
-	}
-
-	mod.name.set(names)
+	mod.name.parse(nameData)
 
 	for i := 0; i < int(materialCount); i++ {
-		material := &Material{}
+		material := &ModMaterial{}
 		material.ID = dec.Int32()
 		material.Name = mod.name.byOffset(dec.Int32())
 		material.EffectName = mod.name.byOffset(dec.Int32())
@@ -78,7 +123,7 @@ func (mod *Mod) Read(r io.ReadSeeker) error {
 
 		paramCount := dec.Uint32()
 		for j := 0; j < int(paramCount); j++ {
-			param := &MaterialParam{
+			param := &ModMaterialParam{
 				Name: material.Name,
 			}
 
@@ -101,7 +146,7 @@ func (mod *Mod) Read(r io.ReadSeeker) error {
 	}
 
 	for i := 0; i < int(verticesCount); i++ {
-		v := &Vertex{}
+		v := &ModVertex{}
 		v.Position[0] = dec.Float32()
 		v.Position[1] = dec.Float32()
 		v.Position[2] = dec.Float32()
@@ -128,14 +173,14 @@ func (mod *Mod) Read(r io.ReadSeeker) error {
 	}
 
 	for i := 0; i < int(faceCount); i++ {
-		f := Face{}
+		f := ModFace{}
 		f.Index[0] = dec.Uint32()
 		f.Index[1] = dec.Uint32()
 		f.Index[2] = dec.Uint32()
 
 		materialID := dec.Int32()
 
-		var material *Material
+		var material *ModMaterial
 		for _, mat := range mod.Materials {
 			if mat.ID == materialID {
 				material = mat
@@ -157,7 +202,7 @@ func (mod *Mod) Read(r io.ReadSeeker) error {
 	}
 
 	for i := 0; i < int(bonesCount); i++ {
-		bone := &Bone{}
+		bone := &ModBone{}
 		bone.Name = mod.name.byOffset(dec.Int32())
 		bone.Next = dec.Int32()
 		bone.ChildrenCount = dec.Uint32()

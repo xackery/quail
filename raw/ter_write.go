@@ -38,7 +38,7 @@ func (ter *Ter) Write(w io.Writer) error {
 	enc.Uint32(uint32(len(nameData))) // nameLength
 	enc.Uint32(uint32(len(ter.Materials)))
 	enc.Uint32(uint32(len(ter.Vertices)))
-	enc.Uint32(uint32(len(ter.Triangles)))
+	enc.Uint32(uint32(len(ter.Faces)))
 	enc.Bytes(nameData)
 
 	for _, material := range ter.Materials {
@@ -80,7 +80,7 @@ func (ter *Ter) Write(w io.Writer) error {
 
 	}
 
-	for _, tri := range ter.Triangles {
+	for _, tri := range ter.Faces {
 		enc.Uint32(tri.Index[0])
 		enc.Uint32(tri.Index[1])
 		enc.Uint32(tri.Index[2])

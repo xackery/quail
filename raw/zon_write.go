@@ -30,16 +30,17 @@ func (zon *Zon) Write(w io.Writer) error {
 	buf := &bytes.Buffer{}
 	subEnc := encdec.NewEncoder(buf, binary.LittleEndian)
 
-	for _, modelName := range zon.Models {
-		zon.name.offsetByName(modelName)
+	for _, object := range zon.Objects {
+		zon.name.add(object.MeshName)
+		zon.name.add(object.InstanceName)
 	}
 
-	for _, object := range zon.Objects {
-		zon.name.offsetByName(object.InstanceName)
+	for _, lights := range zon.Lights {
+		zon.name.add(lights.Name)
 	}
 
 	for _, region := range zon.Regions {
-		zon.name.offsetByName(region.Name)
+		zon.name.add(region.Name)
 	}
 
 	for _, modelName := range zon.Models {
@@ -49,7 +50,7 @@ func (zon *Zon) Write(w io.Writer) error {
 	for _, object := range zon.Objects {
 		isFound := false
 		for i, name := range zon.Models {
-			if name != object.ModelName {
+			if name != object.MeshName {
 				continue
 			}
 			subEnc.Int32(int32(i))
@@ -57,13 +58,13 @@ func (zon *Zon) Write(w io.Writer) error {
 			break
 		}
 		if !isFound {
-			return fmt.Errorf("object %s ref to model %s not found", object.InstanceName, object.ModelName)
+			return fmt.Errorf("object %s ref to model %s not found", object.InstanceName, object.MeshName)
 		}
 		subEnc.Int32(zon.name.indexByName(object.InstanceName))
 
-		subEnc.Float32(object.Position[1]) //  y before x
-		subEnc.Float32(object.Position[0])
-		subEnc.Float32(object.Position[2])
+		subEnc.Float32(object.Translation[1]) //  y before x
+		subEnc.Float32(object.Translation[0])
+		subEnc.Float32(object.Translation[2])
 
 		subEnc.Float32(object.Rotation[0])
 		subEnc.Float32(object.Rotation[1])
@@ -73,10 +74,7 @@ func (zon *Zon) Write(w io.Writer) error {
 		if zon.Version >= 2 {
 			subEnc.Uint32(uint32(len(object.Lits)))
 			for _, lit := range object.Lits {
-				subEnc.Uint8(lit[0])
-				subEnc.Uint8(lit[1])
-				subEnc.Uint8(lit[2])
-				subEnc.Uint8(lit[3])
+				subEnc.Uint32(lit)
 			}
 		}
 	}
@@ -84,17 +82,17 @@ func (zon *Zon) Write(w io.Writer) error {
 	for _, region := range zon.Regions {
 		subEnc.Int32(zon.name.indexByName(region.Name))
 
-		subEnc.Float32(region.Center[0])
-		subEnc.Float32(region.Center[1])
-		subEnc.Float32(region.Center[2])
+		subEnc.Float32(region.Position[0])
+		subEnc.Float32(region.Position[1])
+		subEnc.Float32(region.Position[2])
 
-		subEnc.Float32(region.Unknown[0])
-		subEnc.Float32(region.Unknown[1])
-		subEnc.Float32(region.Unknown[2])
+		subEnc.Float32(region.Color[0])
+		subEnc.Float32(region.Color[1])
+		subEnc.Float32(region.Color[2])
 
-		subEnc.Float32(region.Extent[0])
-		subEnc.Float32(region.Extent[1])
-		subEnc.Float32(region.Extent[2])
+		subEnc.Float32(region.Radius)
+		//subEnc.Float32(region.Radius[1])
+		//subEnc.Float32(region.Radius[2])
 
 		//subEnc.Uint32(region.Unk1)
 		//subEnc.Uint32(region.Unk2)
