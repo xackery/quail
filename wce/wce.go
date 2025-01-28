@@ -278,6 +278,14 @@ func (wce *Wce) ByTagWithIndex(tag string, index int) WldDefinitioner {
 		}
 	}
 
+	if strings.HasSuffix(tag, "_PCD") {
+		for _, sprite := range wce.ParticleCloudDefs {
+			if sprite.Tag == tag && sprite.TagIndex == index {
+				return sprite
+			}
+		}
+	}
+
 	return nil
 }
 
