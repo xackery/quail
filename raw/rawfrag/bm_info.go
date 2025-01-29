@@ -12,8 +12,8 @@ import (
 
 // WldFragBMInfo is BmInfo in libeq, Texture Bitmap Names in openzone, FRAME and BMINFO in wld, BitmapName in lantern
 type WldFragBMInfo struct {
-	nameRef      int32    `yaml:"name_ref"`
-	TextureNames []string `yaml:"texture_names"`
+	nameRef      int32
+	TextureNames []string
 }
 
 func (e *WldFragBMInfo) FragCode() int {

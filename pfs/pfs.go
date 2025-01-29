@@ -185,3 +185,7 @@ func (e *Pfs) SetFile(name string, data []byte) error {
 	e.files = append(e.files, NewFileEntry(name, data))
 	return nil
 }
+
+func (e *Pfs) Name() string {
+	return e.name
+}

@@ -73,7 +73,7 @@ func runInspectE(cmd *cobra.Command, args []string) error {
 	}
 
 	if path2 == "" {
-		fmt.Printf("%#v\n", val)
+		fmt.Println(val)
 		return nil
 	}
 	val2, err := inspect(path2)
@@ -177,6 +177,8 @@ func inspectContent(file string, r *bytes.Reader, index int) (string, error) {
 
 func inspectDump(inspect interface{}, index int, w io.Writer) error {
 	switch val := inspect.(type) {
+	case *pfs.Pfs:
+		fmt.Println(val.ContentsSummary)
 	case *raw.Wld:
 		if index <= 0 {
 			fmt.Fprintf(w, "%s\n", val.String())
@@ -197,6 +199,14 @@ func inspectDump(inspect interface{}, index int, w io.Writer) error {
 		if index > 0 {
 			return fmt.Errorf("index not supported for %T", val)
 		}
+		type stringer interface {
+			String() string
+		}
+		if s, ok := inspect.(stringer); ok {
+			fmt.Fprintf(w, "%s\n", s.String())
+			return nil
+		}
+
 		_, err := fmt.Fprintf(w, "%#v\n", inspect)
 		if err != nil {
 			return fmt.Errorf("dump: %w", err)

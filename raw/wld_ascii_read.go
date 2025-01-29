@@ -6,8 +6,8 @@ import (
 )
 
 type WldAscii struct {
-	MetaFileName string `yaml:"file_name"`
-	Data         string `yaml:"data"`
+	MetaFileName string
+	Data         string
 }
 
 func (wld *WldAscii) Identity() string {

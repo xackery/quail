@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/xackery/quail/cmd"
-	"github.com/xackery/quail/common"
+	"github.com/xackery/quail/helper"
 	/* "net/http"         // part of pprof heap
 	_ "net/http/pprof" // part of pprof heap */)
 
@@ -30,6 +30,6 @@ func main() {
 	if ShowVersion == "1" {
 		fmt.Printf("quail %s\n", Version)
 	}
-	common.Version = Version
+	helper.Version = Version
 	cmd.Execute()
 }

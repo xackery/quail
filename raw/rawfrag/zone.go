@@ -11,10 +11,10 @@ import (
 
 // WldFragZone is Zone in libeq, Region Flag in openzone, ZONE in wld, BspRegionType in lantern
 type WldFragZone struct {
-	nameRef  int32    `yaml:"name_ref"`
-	Flags    uint32   `yaml:"flags"`
-	Regions  []uint32 `yaml:"regions"`
-	UserData string   `yaml:"user_data"`
+	nameRef  int32
+	Flags    uint32
+	Regions  []uint32
+	UserData string
 }
 
 func (e *WldFragZone) FragCode() int {

@@ -10,9 +10,9 @@ import (
 
 // WldFragParticleSprite is ParticleSprite in libeq, empty in openzone, PARTICLESPRITE (ref) in wld
 type WldFragParticleSprite struct {
-	nameRef              int32  `yaml:"name_ref"`
-	ParticleSpriteDefRef int32  `yaml:"particle_sprite_def_ref"`
-	Flags                uint32 `yaml:"flags"`
+	nameRef              int32
+	ParticleSpriteDefRef int32
+	Flags                uint32
 }
 
 func (e *WldFragParticleSprite) FragCode() int {

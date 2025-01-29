@@ -6,14 +6,13 @@ import (
 	"io"
 
 	"github.com/xackery/encdec"
-	"github.com/xackery/quail/model"
 )
 
 // Pts is a particle point
 type Pts struct {
-	MetaFileName string `yaml:"file_name"`
+	MetaFileName string
 	Version      uint32
-	Entries      []*PtsEntry `yaml:"entries,omitempty"`
+	Entries      []*PtsEntry
 }
 
 // Identity returns the type of the struct
@@ -23,13 +22,13 @@ func (pts *Pts) Identity() string {
 
 // PtsEntry is a single entry in a particle point
 type PtsEntry struct {
-	Name        string        `yaml:"name"`
-	BoneName    string        `yaml:"bone_name"`
-	Translation model.Vector3 `yaml:"translation"`
-	Rotation    model.Vector3 `yaml:"rotation"`
-	Scale       model.Vector3 `yaml:"scale"`
-	//NameSuffix  []byte  `yaml:"name_suffix,omitempty"`
-	//BoneSuffix  []byte  `yaml:"bone_suffix,omitempty"`
+	Name        string
+	BoneName    string
+	Translation [3]float32
+	Rotation    [3]float32
+	Scale       [3]float32
+	//NameSuffix  []byte
+	//BoneSuffix  []byte
 }
 
 // Read reads a PTS file
@@ -53,17 +52,17 @@ func (pts *Pts) Read(r io.ReadSeeker) error {
 		_ = dec.Bytes(64 - len(entry.Name) - 1) // entry.NameSuffix
 		entry.BoneName = dec.StringZero()
 		_ = dec.Bytes(64 - len(entry.BoneName) - 1) // entry.BoneSuffix
-		entry.Translation.X = dec.Float32()
-		entry.Translation.Y = dec.Float32()
-		entry.Translation.Z = dec.Float32()
+		entry.Translation[0] = dec.Float32()
+		entry.Translation[1] = dec.Float32()
+		entry.Translation[2] = dec.Float32()
 
-		entry.Rotation.X = dec.Float32()
-		entry.Rotation.Y = dec.Float32()
-		entry.Rotation.Z = dec.Float32()
+		entry.Rotation[0] = dec.Float32()
+		entry.Rotation[1] = dec.Float32()
+		entry.Rotation[2] = dec.Float32()
 
-		entry.Scale.X = dec.Float32()
-		entry.Scale.Y = dec.Float32()
-		entry.Scale.Z = dec.Float32()
+		entry.Scale[0] = dec.Float32()
+		entry.Scale[1] = dec.Float32()
+		entry.Scale[2] = dec.Float32()
 
 		pts.Entries = append(pts.Entries, entry)
 	}

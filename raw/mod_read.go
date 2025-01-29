@@ -6,19 +6,86 @@ import (
 	"io"
 
 	"github.com/xackery/encdec"
-	"github.com/xackery/quail/helper"
 )
 
 type Mod struct {
 	MetaFileName string
 	Version      uint32
-	Materials    []*Material
-	Bones        []*Bone
-	Vertices     []*Vertex
-	Triangles    []Triangle
-	names        []*nameEntry
-	nameBuf      []byte
+	Materials    []*ModMaterial
+	Vertices     []*ModVertex
+	Faces        []ModFace
+	Bones        []*ModBone
+	name         *eqgName
 }
+
+// ModBone is a bone
+type ModBone struct {
+	Name          string
+	Next          int32
+	ChildrenCount uint32
+	ChildIndex    int32
+	Pivot         [3]float32
+	Quaternion    [4]float32
+	Scale         [3]float32
+}
+
+// ModFace is a triangle
+type ModFace struct {
+	Index        [3]uint32
+	MaterialName string
+	Flags        uint32
+}
+
+type ModMaterial struct {
+	ID         int32
+	Name       string
+	EffectName string
+	Flags      uint32
+	Properties []*ModMaterialParam
+	Animation  ModMaterialAnimation
+}
+
+type MaterialParamType uint32
+
+const (
+	MaterialParamTypeUnused MaterialParamType = iota
+	MaterialParamTypeInt
+	MaterialParamTypeTexture
+	MaterialParamTypeColor
+)
+
+// ModMaterialParam is a material property
+type ModMaterialParam struct {
+	Name  string
+	Type  MaterialParamType
+	Value string
+	Data  []byte
+}
+
+type ModMaterialAnimation struct {
+	Sleep    uint32
+	Textures []string
+}
+
+// ModVertex is a vertex
+type ModVertex struct {
+	Position [3]float32
+	Normal   [3]float32
+	Tint     [4]uint8
+	Uv       [2]float32
+	Uv2      [2]float32
+}
+
+type ModFaceFlag uint32
+
+const (
+	ModFaceFlagNone              ModFaceFlag = 0x00
+	ModFaceFlagPassable          ModFaceFlag = 0x01
+	ModFaceFlagTransparent       ModFaceFlag = 0x02
+	ModFaceFlagCollisionRequired ModFaceFlag = 0x04
+	ModFaceFlagCulled            ModFaceFlag = 0x08
+	ModFaceFlagDegenerate        ModFaceFlag = 0x10
+)
 
 func (mod *Mod) Identity() string {
 	return "mod"
@@ -26,6 +93,9 @@ func (mod *Mod) Identity() string {
 
 // Decode reads a MOD file
 func (mod *Mod) Read(r io.ReadSeeker) error {
+	if mod.name == nil {
+		mod.name = &eqgName{}
+	}
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 
 	header := dec.StringFixed(4)
@@ -38,58 +108,45 @@ func (mod *Mod) Read(r io.ReadSeeker) error {
 	nameLength := int(dec.Uint32())
 	materialCount := dec.Uint32()
 	verticesCount := dec.Uint32()
-	triangleCount := dec.Uint32()
+	faceCount := dec.Uint32()
 	bonesCount := dec.Uint32()
 	nameData := dec.Bytes(int(nameLength))
 
-	names := make(map[int32]string)
-	chunk := []byte{}
-	lastOffset := 0
-	for i, b := range nameData {
-		if b == 0 {
-			names[int32(lastOffset)] = string(chunk)
-			chunk = []byte{}
-			lastOffset = i + 1
-			continue
-		}
-		chunk = append(chunk, b)
-	}
-
-	mod.NameSet(names)
+	mod.name.parse(nameData)
 
 	for i := 0; i < int(materialCount); i++ {
-		material := &Material{}
+		material := &ModMaterial{}
 		material.ID = dec.Int32()
-		material.Name = mod.Name(dec.Int32())
-		material.ShaderName = mod.Name(dec.Int32())
+		material.Name = mod.name.byOffset(dec.Int32())
+		material.EffectName = mod.name.byOffset(dec.Int32())
 		mod.Materials = append(mod.Materials, material)
 
-		propertyCount := dec.Uint32()
-		for j := 0; j < int(propertyCount); j++ {
-			property := &MaterialProperty{
+		paramCount := dec.Uint32()
+		for j := 0; j < int(paramCount); j++ {
+			param := &ModMaterialParam{
 				Name: material.Name,
 			}
 
-			property.Name = mod.Name(dec.Int32())
+			param.Name = mod.name.byOffset(dec.Int32())
 
-			property.Category = dec.Uint32()
-			if property.Category == 0 {
-				property.Value = fmt.Sprintf("%0.8f", dec.Float32())
+			param.Type = MaterialParamType(dec.Uint32())
+			if param.Type == 0 {
+				param.Value = fmt.Sprintf("%0.8f", dec.Float32())
 			} else {
 				val := dec.Int32()
-				if property.Category == 2 {
-					property.Value = mod.Name(val)
+				if param.Type == 2 {
+					param.Value = mod.name.byOffset(val)
 
 				} else {
-					property.Value = fmt.Sprintf("%d", val)
+					param.Value = fmt.Sprintf("%d", val)
 				}
 			}
-			material.Properties = append(material.Properties, property)
+			material.Properties = append(material.Properties, param)
 		}
 	}
 
 	for i := 0; i < int(verticesCount); i++ {
-		v := &Vertex{}
+		v := &ModVertex{}
 		v.Position[0] = dec.Float32()
 		v.Position[1] = dec.Float32()
 		v.Position[2] = dec.Float32()
@@ -115,15 +172,15 @@ func (mod *Mod) Read(r io.ReadSeeker) error {
 		mod.Vertices = append(mod.Vertices, v)
 	}
 
-	for i := 0; i < int(triangleCount); i++ {
-		t := Triangle{}
-		t.Index[0] = dec.Uint32()
-		t.Index[1] = dec.Uint32()
-		t.Index[2] = dec.Uint32()
+	for i := 0; i < int(faceCount); i++ {
+		f := ModFace{}
+		f.Index[0] = dec.Uint32()
+		f.Index[1] = dec.Uint32()
+		f.Index[2] = dec.Uint32()
 
 		materialID := dec.Int32()
 
-		var material *Material
+		var material *ModMaterial
 		for _, mat := range mod.Materials {
 			if mat.ID == materialID {
 				material = mat
@@ -135,31 +192,31 @@ func (mod *Mod) Read(r io.ReadSeeker) error {
 				fmt.Printf("Material mod %d not found", materialID)
 				//return fmt.Errorf("material %d not found", materialID)
 			}
-			t.MaterialName = ""
+			f.MaterialName = ""
 		} else {
-			t.MaterialName = material.Name
+			f.MaterialName = material.Name
 		}
 
-		t.Flag = dec.Uint32()
-		mod.Triangles = append(mod.Triangles, t)
+		f.Flags = dec.Uint32()
+		mod.Faces = append(mod.Faces, f)
 	}
 
 	for i := 0; i < int(bonesCount); i++ {
-		bone := &Bone{}
-		bone.Name = mod.Name(dec.Int32())
+		bone := &ModBone{}
+		bone.Name = mod.name.byOffset(dec.Int32())
 		bone.Next = dec.Int32()
 		bone.ChildrenCount = dec.Uint32()
 		bone.ChildIndex = dec.Int32()
 		bone.Pivot[0] = dec.Float32()
 		bone.Pivot[1] = dec.Float32()
 		bone.Pivot[2] = dec.Float32()
-		bone.Rotation[0] = dec.Float32()
-		bone.Rotation[1] = dec.Float32()
-		bone.Rotation[2] = dec.Float32()
+		bone.Quaternion[0] = dec.Float32()
+		bone.Quaternion[1] = dec.Float32()
+		bone.Quaternion[2] = dec.Float32()
+		bone.Quaternion[3] = dec.Float32()
 		bone.Scale[0] = dec.Float32()
 		bone.Scale[1] = dec.Float32()
 		bone.Scale[2] = dec.Float32()
-		bone.Scale2 = dec.Float32()
 
 		mod.Bones = append(mod.Bones, bone)
 	}
@@ -179,114 +236,4 @@ func (mod *Mod) SetFileName(name string) {
 // FileName returns the name of the file
 func (mod *Mod) FileName() string {
 	return mod.MetaFileName
-}
-
-// Name is used during reading, returns the Name of an id
-func (mod *Mod) Name(id int32) string {
-	if id < 0 {
-		id = -id
-	}
-	if mod.names == nil {
-		return fmt.Sprintf("!UNK(%d)", id)
-	}
-	//fmt.Println("name: [", names[id], "]")
-
-	for _, v := range mod.names {
-		if int32(v.offset) == id {
-			return v.name
-		}
-	}
-	return fmt.Sprintf("!UNK(%d)", id)
-}
-
-// NameSet is used during reading, sets the names within a buffer
-func (mod *Mod) NameSet(newNames map[int32]string) {
-	if newNames == nil {
-		mod.names = []*nameEntry{}
-		return
-	}
-	for k, v := range newNames {
-		mod.names = append(mod.names, &nameEntry{offset: int(k), name: v})
-	}
-	mod.nameBuf = []byte{0x00}
-
-	for _, v := range mod.names {
-		mod.nameBuf = append(mod.nameBuf, []byte(v.name)...)
-		mod.nameBuf = append(mod.nameBuf, 0)
-	}
-}
-
-// NameAdd is used when writing, appending new names
-func (mod *Mod) NameAdd(name string) int32 {
-
-	if mod.names == nil {
-		mod.names = []*nameEntry{
-			{offset: 0, name: ""},
-		}
-		mod.nameBuf = []byte{0x00}
-	}
-	if name == "" {
-		return 0
-	}
-
-	/* if name[len(mod.name)-1:] != "\x00" {
-		name += "\x00"
-	}
-	*/
-	if id := mod.NameOffset(name); id != -1 {
-		return -id
-	}
-	mod.names = append(mod.names, &nameEntry{offset: len(mod.nameBuf), name: name})
-	lastRef := int32(len(mod.nameBuf))
-	mod.nameBuf = append(mod.nameBuf, []byte(name)...)
-	mod.nameBuf = append(mod.nameBuf, 0)
-	return int32(-lastRef)
-}
-
-func (mod *Mod) NameOffset(name string) int32 {
-	if mod.names == nil {
-		return -1
-	}
-	for _, v := range mod.names {
-		if v.name == name {
-			return int32(v.offset)
-		}
-	}
-	return -1
-}
-
-// NameIndex is used when reading, returns the index of a name, or -1 if not found
-func (mod *Mod) NameIndex(name string) int32 {
-	if mod.names == nil {
-		return -1
-	}
-	for k, v := range mod.names {
-		if v.name == name {
-			return int32(k)
-		}
-	}
-	return -1
-}
-
-// NameData is used during writing, dumps the name cache
-func (mod *Mod) NameData() []byte {
-
-	return helper.WriteStringHash(string(mod.nameBuf))
-}
-
-// NameClear purges names and namebuf, called when encode starts
-func (mod *Mod) NameClear() {
-	mod.names = nil
-	mod.nameBuf = nil
-}
-
-func (mod *Mod) Names() []string {
-	if mod.names == nil {
-		return nil
-	}
-	names := []string{}
-	for _, v := range mod.names {
-		names = append(names, v.name)
-	}
-	return names
 }

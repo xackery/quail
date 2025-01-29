@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	"fmt"
 	"strconv"
+
+	"github.com/xackery/quail/raw"
 )
 
 type NullInt8 struct {
@@ -277,6 +279,14 @@ func parse(inVal interface{}, src ...string) error {
 		val.Int64 = i
 		val.Valid = true
 		return nil
+	case *raw.MaterialParamType:
+		i, err := strconv.ParseUint(src[0], 10, 32)
+		if err != nil {
+			return err
+		}
+
+		*val = raw.MaterialParamType(i)
+		return nil
 	case *NullUint8:
 		if src[0] == "NULL" {
 			val.Valid = false
@@ -436,6 +446,18 @@ func parse(inVal interface{}, src ...string) error {
 				return err
 			}
 			val[i] = int16(v)
+		}
+		return nil
+	case *[3]uint32:
+		if len(src) < 3 {
+			return fmt.Errorf("need 3 arguments: %v", src)
+		}
+		for i := 0; i < 3; i++ {
+			v, err := strconv.ParseUint(src[i], 10, 32)
+			if err != nil {
+				return err
+			}
+			val[i] = uint32(v)
 		}
 		return nil
 	case *[4]uint16:

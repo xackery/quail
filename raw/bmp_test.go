@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/xackery/quail/common"
+	"github.com/xackery/quail/helper"
 	"github.com/xackery/quail/pfs"
 )
 
@@ -16,7 +16,7 @@ func TestBmpRead(t *testing.T) {
 	if eqPath == "" {
 		t.Skip("EQ_PATH not set")
 	}
-	dirTest := common.DirTest()
+	dirTest := helper.DirTest()
 	type args struct {
 	}
 	tests := []struct {
@@ -55,7 +55,7 @@ func TestBmpWrite(t *testing.T) {
 	if eqPath == "" {
 		t.Skip("EQ_PATH not set")
 	}
-	dirTest := common.DirTest()
+	dirTest := helper.DirTest()
 
 	tests := []struct {
 		name    string
@@ -92,7 +92,7 @@ func TestBmpWrite(t *testing.T) {
 				srcData := file.Data()
 				dstData := buf.Bytes()
 
-				err = common.ByteCompareTest(srcData, dstData)
+				err = helper.ByteCompareTest(srcData, dstData)
 				if err != nil {
 					t.Fatalf("%s byteCompare: %s", tt.name, err)
 				}

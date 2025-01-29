@@ -3,7 +3,7 @@ package raw
 import (
 	"io"
 
-	"github.com/xackery/quail/model"
+	"github.com/xackery/quail/helper"
 	"github.com/xackery/quail/raw/rawfrag"
 )
 
@@ -12,6 +12,6 @@ func FragName(fragCode int) string {
 	return rawfrag.FragName(fragCode)
 }
 
-func NewFrag(r io.ReadSeeker) model.FragmentReadWriter {
+func NewFrag(r io.ReadSeeker) helper.FragmentReadWriter {
 	return rawfrag.NewFrag(r)
 }

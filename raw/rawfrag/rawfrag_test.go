@@ -10,7 +10,7 @@ import (
 
 	"github.com/go-test/deep"
 	"github.com/xackery/encdec"
-	"github.com/xackery/quail/common"
+	"github.com/xackery/quail/helper"
 	"github.com/xackery/quail/pfs"
 )
 
@@ -19,7 +19,7 @@ func TestFragment(t *testing.T) {
 	if eqPath == "" {
 		t.Skip("EQ_PATH not set")
 	}
-	dirTest := common.DirTest()
+	dirTest := helper.DirTest()
 	tests := []struct {
 		path      string
 		file      string
@@ -151,7 +151,7 @@ func TestFragment(t *testing.T) {
 					os.WriteFile(fmt.Sprintf("%s/%s.src.hex", dirTest, tt.file), srcData, 0644)
 				}
 
-				buf := common.NewByteSeekerTest()
+				buf := helper.NewByteSeekerTest()
 				_, err = buf.Write(srcData[:4])
 				if err != nil {
 					t.Fatalf("frag %d 0x%x (%s) write: %s", i, reader.FragCode(), FragName(int(reader.FragCode())), err.Error())
@@ -183,7 +183,7 @@ func TestFragment(t *testing.T) {
 					os.WriteFile(fmt.Sprintf("%s/%s.dst.hex", dirTest, tt.file), dstData, 0644)
 				}
 
-				err := common.ByteCompareTest(srcData, dstData)
+				err := helper.ByteCompareTest(srcData, dstData)
 				if err != nil {
 					t.Fatalf("%s frag %d 0x%x (%s) mismatch: %s", tt.file, i, reader.FragCode(), FragName(int(reader.FragCode())), err.Error())
 				}

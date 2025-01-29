@@ -8,7 +8,6 @@ import (
 
 	"github.com/xackery/encdec"
 	"github.com/xackery/quail/helper"
-	"github.com/xackery/quail/model"
 	"github.com/xackery/quail/raw/rawfrag"
 )
 
@@ -17,7 +16,7 @@ type Wld struct {
 	Version      uint32
 	IsNewWorld   bool
 	IsZone       bool
-	Fragments    []model.FragmentReadWriter
+	Fragments    []helper.FragmentReadWriter
 	Unk2         uint32
 	Unk3         uint32
 	names        []*nameEntry
@@ -31,7 +30,7 @@ func (wld *Wld) Identity() string {
 // Read reads a wld file that was prepped by Load
 func (wld *Wld) Read(r io.ReadSeeker) error {
 	if wld.Fragments == nil {
-		wld.Fragments = []model.FragmentReadWriter{&rawfrag.WldFragDefault{}}
+		wld.Fragments = []helper.FragmentReadWriter{&rawfrag.WldFragDefault{}}
 	}
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	header := dec.Bytes(4)

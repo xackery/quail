@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/xackery/quail/common"
 	"github.com/xackery/quail/raw"
 	"github.com/xackery/quail/wce"
 )
@@ -53,33 +52,12 @@ func RawRead(in raw.ReadWriter, q *Quail) error {
 }
 
 func (q *Quail) aniRead(in *raw.Ani) error {
-	if q.Header == nil {
-		q.Header = &common.Header{}
-	}
-	q.Header.Version = int(in.Version)
-	q.Header.Name = "animation"
+	return fmt.Errorf("ani not implemented")
 
-	return nil
 }
 
 func (q *Quail) layRead(in *raw.Lay) error {
-	if q.Header == nil {
-		q.Header = &common.Header{}
-	}
-	q.Header.Version = int(in.Version)
-	q.Header.Name = "layer"
-	for _, model := range q.Models {
-		for _, entry := range in.Entries {
-			lay := &common.Layer{
-				Material: entry.Material,
-				Diffuse:  entry.Diffuse,
-				Normal:   entry.Normal,
-			}
-
-			model.Layers = append(model.Layers, lay)
-		}
-	}
-	return nil
+	return fmt.Errorf("lay not implemented")
 }
 
 func (q *Quail) ddsRead(in *raw.Dds) error {
@@ -122,134 +100,11 @@ func (q *Quail) pngRead(in *raw.Png) error {
 }
 
 func (q *Quail) modRead(in *raw.Mod) error {
-	model, err := q.modConvertMesh(in)
-	if err != nil {
-		return fmt.Errorf("modConvertMesh: %w", err)
-	}
-	if model != nil {
-		q.Models = append(q.Models, model)
-	}
-	return nil
+	return fmt.Errorf("mod not implemented")
 }
 
 func (q *Quail) mdsRead(in *raw.Mds) error {
-	model, err := q.mdsConvertMesh(in)
-	if err != nil {
-		return fmt.Errorf("mdsConvertMesh: %w", err)
-	}
-	if model != nil {
-		q.Models = append(q.Models, model)
-	}
-
-	return nil
-}
-
-func (q *Quail) modConvertMesh(in *raw.Mod) (*common.Model, error) {
-	if in == nil {
-		return nil, fmt.Errorf("mod is nil")
-	}
-	model := common.NewModel(in.FileName())
-	model.FileType = "mod"
-
-	for _, triangle := range in.Triangles {
-		model.Triangles = append(model.Triangles, common.Triangle{
-			Index: common.UIndex3{
-				X: uint32(triangle.Index[0]),
-				Y: uint32(triangle.Index[1]),
-				Z: uint32(triangle.Index[2]),
-			},
-			MaterialName: triangle.MaterialName,
-			Flag:         uint32(triangle.Flag),
-		})
-	}
-	for _, vertex := range in.Vertices {
-		model.Vertices = append(model.Vertices, common.Vertex{
-			Position: common.Vector3{
-				X: vertex.Position[0],
-				Y: vertex.Position[1],
-				Z: vertex.Position[2],
-			},
-			Uv: common.Vector2{
-				X: vertex.Uv[0],
-				Y: vertex.Uv[1],
-			},
-			Tint: common.RGBA{
-				R: vertex.Tint[0],
-				G: vertex.Tint[1],
-				B: vertex.Tint[2],
-				A: vertex.Tint[3],
-			},
-		})
-	}
-	for _, material := range in.Materials {
-		dstMaterial := &common.Material{}
-		dstMaterial.Name = material.Name
-		dstMaterial.Flag = material.Flag
-		dstMaterial.ShaderName = material.ShaderName
-		for _, property := range material.Properties {
-			dstProperty := &common.MaterialProperty{}
-			dstProperty.Category = property.Category
-			dstProperty.Name = property.Name
-			dstProperty.Value = property.Value
-			dstMaterial.Properties = append(dstMaterial.Properties, dstProperty)
-		}
-		model.Materials = append(model.Materials, dstMaterial)
-	}
-
-	return model, nil
-}
-
-func (q *Quail) mdsConvertMesh(in *raw.Mds) (*common.Model, error) {
-	if in == nil {
-		return nil, fmt.Errorf("mod is nil")
-	}
-	model := common.NewModel(in.FileName())
-	model.FileType = "mds"
-	for _, triangle := range in.Triangles {
-		model.Triangles = append(model.Triangles, common.Triangle{
-			Index: common.UIndex3{
-				X: uint32(triangle.Index[0]),
-				Y: uint32(triangle.Index[1]),
-				Z: uint32(triangle.Index[2]),
-			},
-			MaterialName: triangle.MaterialName,
-			Flag:         uint32(triangle.Flag),
-		})
-	}
-	for _, vertex := range in.Vertices {
-		model.Vertices = append(model.Vertices, common.Vertex{
-			Position: common.Vector3{
-				X: vertex.Position[0],
-				Y: vertex.Position[1],
-				Z: vertex.Position[2],
-			},
-			Uv: common.Vector2{
-				X: vertex.Uv[0],
-				Y: vertex.Uv[1],
-			},
-			Tint: common.RGBA{
-				R: vertex.Tint[0],
-				G: vertex.Tint[1],
-				B: vertex.Tint[2],
-				A: vertex.Tint[3],
-			},
-		})
-	}
-	for _, material := range in.Materials {
-		dstMaterial := &common.Material{}
-		dstMaterial.Name = material.Name
-		dstMaterial.Flag = material.Flag
-		dstMaterial.ShaderName = material.ShaderName
-		for _, property := range material.Properties {
-			dstProperty := &common.MaterialProperty{}
-			dstProperty.Category = property.Category
-			dstProperty.Name = property.Name
-			dstProperty.Value = property.Value
-			dstMaterial.Properties = append(dstMaterial.Properties, dstProperty)
-		}
-		model.Materials = append(model.Materials, dstMaterial)
-	}
-	return model, nil
+	return fmt.Errorf("mds not implemented")
 }
 
 func (q *Quail) wldRead(srcWld *raw.Wld, filename string) error {

@@ -10,22 +10,22 @@ import (
 
 // WldFragHierarchicalSpriteDef is HierarchicalSpriteDef in libeq, SkeletonTrackSet in openzone, HIERARCHICALSPRITE in wld, SkeletonHierarchy in lantern
 type WldFragHierarchicalSpriteDef struct {
-	nameRef                     int32         `yaml:"name_ref"`
-	Flags                       uint32        `yaml:"flags"`
-	CollisionVolumeRef          uint32        `yaml:"collision_volume_ref"`
-	CenterOffset                [3]float32    `yaml:"center_offset"`
-	BoundingRadius              float32       `yaml:"bounding_radius"`
-	Dags                        []*WldFragDag `yaml:"bones"`
+	nameRef                     int32
+	Flags                       uint32
+	CollisionVolumeRef          uint32
+	CenterOffset                [3]float32
+	BoundingRadius              float32
+	Dags                        []*WldFragDag
 	DMSprites                   []uint32
-	LinkSkinUpdatesToDagIndexes []uint32 `yaml:"skin_links"`
+	LinkSkinUpdatesToDagIndexes []uint32
 }
 
 type WldFragDag struct {
-	nameRef                   int32    `yaml:"name_ref"`
-	Flags                     uint32   `yaml:"flags"`
-	TrackRef                  uint32   `yaml:"track_ref"`
-	MeshOrSpriteOrParticleRef uint32   `yaml:"mesh_or_sprite_or_particle_ref"`
-	SubDags                   []uint32 `yaml:"sub_bones"`
+	nameRef                   int32
+	Flags                     uint32
+	TrackRef                  uint32
+	MeshOrSpriteOrParticleRef uint32
+	SubDags                   []uint32
 }
 
 func (e *WldFragHierarchicalSpriteDef) FragCode() int {

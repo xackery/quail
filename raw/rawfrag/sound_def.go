@@ -10,8 +10,8 @@ import (
 
 // WldFragSoundDef is empty in libeq, empty in openzone, SOUNDINSTANCE in wld
 type WldFragSoundDef struct {
-	nameRef int32  `yaml:"name_ref"`
-	Flags   uint32 `yaml:"flags"`
+	nameRef int32
+	Flags   uint32
 }
 
 func (e *WldFragSoundDef) FragCode() int {

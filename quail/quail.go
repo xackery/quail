@@ -6,17 +6,11 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/xackery/quail/common"
 	"github.com/xackery/quail/raw"
 	"github.com/xackery/quail/wce"
 )
 
 type Quail struct {
-	Header                 *common.Header
-	Models                 []*common.Model
-	Animations             []*common.Animation
-	Zone                   *common.Zone
-	materialCache          map[string]*common.Material
 	IsExtensionVersionDump bool
 	Textures               map[string][]byte // Textures are raw texture files
 	Wld                    *wce.Wce
@@ -26,17 +20,11 @@ type Quail struct {
 
 // New returns a new Quail instance
 func New() *Quail {
-	return &Quail{
-		materialCache: make(map[string]*common.Material),
-	}
+	return &Quail{}
 }
 
 // Close flushes any memory and closes any open files
 func (e *Quail) Close() error {
-	e.Models = nil
-	e.Animations = nil
-	e.Zone = nil
-	e.materialCache = make(map[string]*common.Material)
 	return nil
 }
 
