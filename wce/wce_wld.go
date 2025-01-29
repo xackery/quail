@@ -2432,20 +2432,47 @@ func (e *SimpleSpriteDef) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
 	wfSimpleSpriteDef.Flags = flags
 
 	if len(e.SimpleSpriteFrames) > 0 {
-		wfBMInfo := &rawfrag.WldFragBMInfo{}
-		for _, frame := range e.SimpleSpriteFrames {
-			nameRef := rawWld.NameAdd(frame.TextureTag)
-			if wfBMInfo.NameRef() != 0 && nameRef != wfBMInfo.NameRef() {
-				rawWld.Fragments = append(rawWld.Fragments, wfBMInfo)
-				wfSimpleSpriteDef.BitmapRefs = append(wfSimpleSpriteDef.BitmapRefs, uint32(len(rawWld.Fragments)))
-				wfBMInfo = &rawfrag.WldFragBMInfo{}
-			}
-			wfBMInfo.SetNameRef(nameRef)
-			wfBMInfo.TextureNames = append(wfBMInfo.TextureNames, frame.TextureFile+"\x00")
+		if e.Tag == "LGHTNG15_SPRITE" {
+			fmt.Println("LGHTNG15_SPRITE")
 		}
+		for _, frame := range e.SimpleSpriteFrames {
+			var wfBMInfo *rawfrag.WldFragBMInfo
+			var bmFragID int16
+			// check if it exists already
+			for fragID, frag := range rawWld.Fragments {
+				bmInfo, ok := frag.(*rawfrag.WldFragBMInfo)
+				if !ok {
+					continue
+				}
 
-		rawWld.Fragments = append(rawWld.Fragments, wfBMInfo)
-		wfSimpleSpriteDef.BitmapRefs = append(wfSimpleSpriteDef.BitmapRefs, uint32(len(rawWld.Fragments)))
+				bmName := rawWld.Name(bmInfo.NameRef())
+				if bmName != frame.TextureTag {
+					continue
+				}
+
+				wfBMInfo = bmInfo
+				bmFragID = int16(fragID + 1)
+				break
+			}
+			if wfBMInfo == nil {
+				wfBMInfo = &rawfrag.WldFragBMInfo{}
+				wfBMInfo.SetNameRef(rawWld.NameAdd(frame.TextureTag))
+				rawWld.Fragments = append(rawWld.Fragments, wfBMInfo)
+				bmFragID = int16(len(rawWld.Fragments))
+			}
+			isUnique := true
+			for _, name := range wfBMInfo.TextureNames {
+				if name != frame.TextureFile+"\x00" {
+					continue
+				}
+				isUnique = false
+				break
+			}
+			if isUnique {
+				wfBMInfo.TextureNames = append(wfBMInfo.TextureNames, frame.TextureFile+"\x00")
+			}
+			wfSimpleSpriteDef.BitmapRefs = append(wfSimpleSpriteDef.BitmapRefs, uint32(bmFragID))
+		}
 	}
 
 	wfSimpleSpriteDef.SetNameRef(rawWld.NameAdd(e.Tag))
