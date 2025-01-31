@@ -386,6 +386,17 @@ func (wce *Wce) WriteWldRaw(w io.Writer) error {
 		}
 	}
 
+	// Write out CHR_EYE materials
+	for _, matDef := range wce.MaterialDefs {
+		if !strings.HasPrefix(matDef.Tag, "CHR_EYE") {
+			continue
+		}
+		_, err = matDef.ToRaw(wce, dst)
+		if err != nil {
+			return fmt.Errorf("materialdef %s: %w", matDef.Tag, err)
+		}
+	}
+
 	// Write out "variation" materials
 	for _, matDef := range wce.MaterialDefs {
 		if matDef.Variation == 0 {
@@ -493,6 +504,8 @@ func (wce *Wce) WriteWldRaw(w io.Writer) error {
 		if hasSpriteTag {
 			continue
 		}
+
+		// fmt.Printf("Processing ActorDef: %s\n", actorDef.Tag)
 
 		_, err := actorDef.ToRaw(wce, dst)
 		if err != nil {
