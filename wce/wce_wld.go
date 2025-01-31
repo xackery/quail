@@ -2330,11 +2330,12 @@ func (e *SimpleSpriteDef) Write(token *AsciiWriteToken) error {
 		// Iterate over each frame
 		for _, frame := range e.SimpleSpriteFrames {
 			// Print frame tag
-			fmt.Fprintf(w, "\t\tFRAME \"%s\" NUMFILES %d\n", frame.TextureTag, len(frame.TextureFiles))
+			fmt.Fprintf(w, "\t\tFRAME \"%s\"\n", frame.TextureTag)
+			fmt.Fprintf(w, "\t\t\tNUMFILES %d\n", len(frame.TextureFiles))
 
 			// Print associated texture files for this frame
 			for _, file := range frame.TextureFiles {
-				fmt.Fprintf(w, "\t\t\tFILE \"%s\"\n", file)
+				fmt.Fprintf(w, "\t\t\t\tFILE \"%s\"\n", file)
 			}
 		}
 		fmt.Fprintf(w, "\n")
@@ -2414,7 +2415,7 @@ func (e *SimpleSpriteDef) Read(token *AsciiReadToken) error {
 
 	for i := 0; i < numFrames; i++ {
 		// Read FRAME line, expecting 3 arguments: TextureTag, NUMFILES text, and actual number value
-		records, err = token.ReadProperty("FRAME", 3)
+		records, err = token.ReadProperty("FRAME", 1)
 		if err != nil {
 			return fmt.Errorf("FRAME: %w", err)
 		}
@@ -2423,8 +2424,13 @@ func (e *SimpleSpriteDef) Read(token *AsciiReadToken) error {
 			TextureTag: records[1],
 		}
 
+		records, err = token.ReadProperty("NUMFILES", 1)
+		if err != nil {
+			return fmt.Errorf("NUMFILES: %w", err)
+		}
+
 		numFiles := 0
-		err = parse(&numFiles, records[3])
+		err = parse(&numFiles, records[1])
 		if err != nil {
 			return fmt.Errorf("num files: %w", err)
 		}
