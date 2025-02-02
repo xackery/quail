@@ -1,7 +1,6 @@
 package helper
 
 import (
-	"fmt"
 	"regexp"
 	"strings"
 )
@@ -28,11 +27,9 @@ var itemPatterns = []string{
 
 // TrackAnimationParse parses the tag and returns the animation and model codes
 func TrackAnimationParse(isChr bool, tag string) (animationTag string, modelTag string) {
-	//fmt.Printf("[TrackAnimationParse] Called with tag: %s, currentAniCode: %s, currentAniModelCode: %s\n", tag, currentAniCode, currentAniModelCode)
 	// Check if the tag starts with currentAniCode + currentAniModelCode
 	combinedCode := currentAniCode + currentAniModelCode
 	if currentAniCode != "" && currentAniModelCode != "" && strings.HasPrefix(tag, combinedCode) {
-		//fmt.Printf("[TrackAnimationParse] Match found with combinedCode: %s\n", combinedCode)
 		return currentAniCode, currentAniModelCode
 	}
 
@@ -44,7 +41,6 @@ func TrackAnimationParse(isChr bool, tag string) (animationTag string, modelTag 
 		if strings.HasPrefix(tag, previous) {
 			parts := strings.Split(previous, ":")
 			if len(parts) == 2 {
-				fmt.Printf("[TrackAnimationParse] Match found in previousAnimations: %s\n", previous)
 				return parts[0], parts[1]
 			}
 		}
@@ -53,14 +49,12 @@ func TrackAnimationParse(isChr bool, tag string) (animationTag string, modelTag 
 	// Check if the tag starts with the currentAniCode and contains a dummy string
 	for _, dummy := range dummyStrings {
 		if strings.HasPrefix(tag, currentAniCode) && strings.Contains(tag, dummy) {
-			//	fmt.Printf("[TrackAnimationParse] Dummy match found: %s\n", dummy)
 			return currentAniCode, currentAniModelCode
 		}
 	}
 
 	// Handle special cases when isChr is true
 	if isChr {
-		//fmt.Println("[TrackAnimationParse] Processing as character (isChr = true).")
 		if strings.HasPrefix(tag, currentAniCode) {
 			if currentAniModelCode == "SED" && len(tag) >= 6 && tag[3:6] == "FDD" {
 				return currentAniCode, currentAniModelCode
@@ -115,7 +109,6 @@ func TrackAnimationParse(isChr bool, tag string) (animationTag string, modelTag 
 		if len(tag) >= 6 {
 			newAniCode := tag[:3]
 			newModelCode := tag[3:6]
-			fmt.Printf("[TrackAnimationParse] New animation code: %s, New model code: %s\n", newAniCode, newModelCode)
 
 			return handleNewAniModelCode(newAniCode, newModelCode)
 		}

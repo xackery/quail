@@ -2,7 +2,6 @@ package wce
 
 import (
 	"fmt"
-	"sort"
 	"strconv"
 	"strings"
 
@@ -1468,13 +1467,19 @@ func (e *DMSpriteDef) Read(token *AsciiReadToken) error {
 		return err
 	}
 
-	for _, record := range records[1:] {
-		val := uint32(0)
-		err = parse(&val, record)
-		if err != nil {
-			return fmt.Errorf("data8: %w", err)
+	// Clear Data8 if the only value is 0
+	if len(records) == 2 && records[1] == "0" {
+		e.Data8 = []uint32{} // Reset to ensure Data8 is blank
+	} else {
+		// Otherwise, populate Data8 as normal
+		for _, record := range records[1:] {
+			val := uint32(0)
+			err = parse(&val, record)
+			if err != nil {
+				return fmt.Errorf("data8: %w", err)
+			}
+			e.Data8 = append(e.Data8, val)
 		}
-		e.Data8 = append(e.Data8, val)
 	}
 
 	records, err = token.ReadProperty("FACEMATERIALGROUPS", -1)
@@ -1707,18 +1712,6 @@ func (e *MaterialPalette) Write(token *AsciiWriteToken) error {
 			return err
 		}
 
-		for _, materialTag := range e.Materials {
-			materialDef := token.wce.ByTag(materialTag)
-			if materialDef == nil {
-				return fmt.Errorf("material %s not found", materialTag)
-			}
-
-			err = materialDef.Write(token)
-			if err != nil {
-				return fmt.Errorf("write materialdef %s: %w", materialTag, err)
-			}
-		}
-
 		fmt.Fprintf(w, "%s \"%s\"\n", e.Definition(), e.Tag)
 		fmt.Fprintf(w, "\tNUMMATERIALS %d\n", len(e.Materials))
 		for _, mat := range e.Materials {
@@ -1808,6 +1801,7 @@ type MaterialDef struct {
 	folders            []string // when writing, this is the folder the file is in
 	fragID             int16
 	Tag                string
+	TagIndex           int
 	Variation          int
 	SpriteHexFiftyFlag int
 	RenderMethod       string
@@ -1825,28 +1819,20 @@ func (e *MaterialDef) Definition() string {
 }
 
 func (e *MaterialDef) Write(token *AsciiWriteToken) error {
-
-	// Iterate through the folders
 	for _, folder := range e.folders {
 		err := token.SetWriter(folder)
 		if err != nil {
 			return err
 		}
 
-		if token.TagIsWritten(e.Tag) {
-			continue
-		}
-		token.TagSetIsWritten(e.Tag)
-
 		w, err := token.Writer()
 		if err != nil {
 			return err
 		}
 
-		// fmt.Printf("MaterialDef Tag: %s - Writer successfully set for folder: %s\n", e.Tag, folder)
-
 		if e.SimpleSpriteTag != "" {
-			simpleSprite := token.wce.ByTagWithIndex(e.SimpleSpriteTag, e.Variation)
+
+			simpleSprite := token.wce.ByTagWithIndex(e.SimpleSpriteTag, e.TagIndex)
 			if simpleSprite == nil {
 				return fmt.Errorf("simple sprite %s not found", e.SimpleSpriteTag)
 			}
@@ -1857,6 +1843,7 @@ func (e *MaterialDef) Write(token *AsciiWriteToken) error {
 		}
 
 		fmt.Fprintf(w, "%s \"%s\"\n", e.Definition(), e.Tag)
+		fmt.Fprintf(w, "\tTAGINDEX %d\n", e.TagIndex)
 		fmt.Fprintf(w, "\tVARIATION %d\n", e.Variation)
 		fmt.Fprintf(w, "\tRENDERMETHOD \"%s\"\n", e.RenderMethod)
 		fmt.Fprintf(w, "\tRGBPEN %d %d %d %d\n", e.RGBPen[0], e.RGBPen[1], e.RGBPen[2], e.RGBPen[3])
@@ -1869,7 +1856,6 @@ func (e *MaterialDef) Write(token *AsciiWriteToken) error {
 		fmt.Fprintf(w, "\tDOUBLESIDED %d\n", e.DoubleSided)
 		fmt.Fprintf(w, "\n")
 
-		token.TagSetIsWritten(e.Tag)
 	}
 	e.folders = []string{}
 	return nil
@@ -1878,7 +1864,16 @@ func (e *MaterialDef) Write(token *AsciiWriteToken) error {
 func (e *MaterialDef) Read(token *AsciiReadToken) error {
 	e.folders = append(e.folders, token.folder)
 
-	records, err := token.ReadProperty("VARIATION", 1)
+	records, err := token.ReadProperty("TAGINDEX", 1)
+	if err != nil {
+		return err
+	}
+	err = parse(&e.TagIndex, records[1])
+	if err != nil {
+		return fmt.Errorf("tag index: %w", err)
+	}
+
+	records, err = token.ReadProperty("VARIATION", 1)
 	if err != nil {
 		return err
 	}
@@ -1994,7 +1989,7 @@ func (e *MaterialDef) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
 	}
 
 	if e.SimpleSpriteTag != "" {
-		spriteDef := wce.ByTagWithIndex(e.SimpleSpriteTag, e.Variation)
+		spriteDef := wce.ByTag(e.SimpleSpriteTag)
 		if spriteDef == nil {
 			return -1, fmt.Errorf("simple sprite %s not found", e.SimpleSpriteTag)
 		}
@@ -2054,11 +2049,12 @@ func (e *MaterialDef) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragMa
 		e.SimpleSpriteTag = rawWld.Name(spriteDef.NameRef())
 	}
 	e.Tag = rawWld.Name(frag.NameRef())
+	e.TagIndex = wce.NextTagIndex(e.Tag)
 	e.RenderMethod = helper.RenderMethodStr(frag.RenderMethod)
 	e.RGBPen = frag.RGBPen
 	e.Brightness = frag.Brightness
 	e.ScaledAmbient = frag.ScaledAmbient
-	e.Variation, err = e.variationParseFromRaw(wce, frag)
+	e.Variation, err = e.variationParseFromRaw(wce, frag, rawWld)
 	if err != nil {
 		return fmt.Errorf("variationParse: %w", err)
 	}
@@ -2077,9 +2073,33 @@ func (e *MaterialDef) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragMa
 	return nil
 }
 
-func (e *MaterialDef) variationParseFromRaw(wce *Wce, frag *rawfrag.WldFragMaterialDef) (int, error) {
+func (e *MaterialDef) variationParseFromRaw(wce *Wce, frag *rawfrag.WldFragMaterialDef, rawWld *raw.Wld) (int, error) {
 	if !wce.isChr {
 		return 0, nil
+	}
+
+	// Check if the material tag exists in a MaterialPalette
+	for _, rawFrag := range rawWld.Fragments {
+		materialPalette, ok := rawFrag.(*rawfrag.WldFragMaterialPalette)
+		if !ok {
+			continue
+		}
+		for _, materialRef := range materialPalette.MaterialRefs {
+			if len(rawWld.Fragments) <= int(materialRef) {
+				return 0, fmt.Errorf("material ref %d not found", materialRef)
+			}
+
+			// Get the referenced MaterialDef
+			materialDef, ok := rawWld.Fragments[materialRef].(*rawfrag.WldFragMaterialDef)
+			if !ok {
+				return 0, fmt.Errorf("invalid materialdef fragment at offset %d", materialRef)
+			}
+
+			// Check if the tag matches
+			if e.Tag == rawWld.Name(materialDef.NameRef()) {
+				return 0, nil // Exit early if a match is found
+			}
+		}
 	}
 
 	// Use the helper function to parse the material tag
@@ -2091,19 +2111,6 @@ func (e *MaterialDef) variationParseFromRaw(wce *Wce, frag *rawfrag.WldFragMater
 		return 0, nil
 	}
 
-	// Search for the parent material by matching the prefix
-	for _, otherMaterial := range wce.MaterialDefs {
-		if !strings.HasPrefix(otherMaterial.Tag, prefix) {
-			continue
-		}
-		folders := otherMaterial.folders
-		for _, folder := range e.folders {
-			folders = appendUnique(folders, folder)
-		}
-		otherMaterial.folders = folders
-		break
-	}
-
 	// Propagate Variation to SimpleSpriteDef if applicable
 	if frag.SimpleSpriteRef == 0 {
 		return 1, nil
@@ -2113,7 +2120,6 @@ func (e *MaterialDef) variationParseFromRaw(wce *Wce, frag *rawfrag.WldFragMater
 			continue
 		}
 		sprite.Variation = 1
-		sprite.folders = e.folders
 		break
 	}
 
@@ -2281,6 +2287,7 @@ type SimpleSpriteDef struct {
 	folders            []string // when writing, this is the folder the file is in
 	fragID             int16
 	Tag                string
+	TagIndex           int
 	Variation          int
 	SkipFrames         NullUint32
 	Sleep              NullUint32
@@ -2290,8 +2297,8 @@ type SimpleSpriteDef struct {
 }
 
 type SimpleSpriteFrame struct {
-	TextureFile string
-	TextureTag  string
+	TextureFiles []string
+	TextureTag   string
 }
 
 func (e *SimpleSpriteDef) Definition() string {
@@ -2310,14 +2317,23 @@ func (e *SimpleSpriteDef) Write(token *AsciiWriteToken) error {
 		}
 
 		fmt.Fprintf(w, "%s \"%s\"\n", e.Definition(), e.Tag)
+		fmt.Fprintf(w, "\tTAGINDEX %d\n", e.TagIndex)
 		fmt.Fprintf(w, "\tVARIATION %d\n", e.Variation)
 		fmt.Fprintf(w, "\tSKIPFRAMES? %s\n", wcVal(e.SkipFrames))
 		fmt.Fprintf(w, "\tANIMATED? %s\n", wcVal(e.Animated))
 		fmt.Fprintf(w, "\tSLEEP? %s\n", wcVal(e.Sleep))
 		fmt.Fprintf(w, "\tCURRENTFRAME? %s\n", wcVal(e.CurrentFrame))
 		fmt.Fprintf(w, "\tNUMFRAMES %d\n", len(e.SimpleSpriteFrames))
+		// Iterate over each frame
 		for _, frame := range e.SimpleSpriteFrames {
-			fmt.Fprintf(w, "\t\tFRAME \"%s\" \"%s\"\n", frame.TextureFile, frame.TextureTag)
+			// Print frame tag
+			fmt.Fprintf(w, "\t\tFRAME \"%s\"\n", frame.TextureTag)
+			fmt.Fprintf(w, "\t\t\tNUMFILES %d\n", len(frame.TextureFiles))
+
+			// Print associated texture files for this frame
+			for _, file := range frame.TextureFiles {
+				fmt.Fprintf(w, "\t\t\t\tFILE \"%s\"\n", file)
+			}
 		}
 		fmt.Fprintf(w, "\n")
 	}
@@ -2327,7 +2343,17 @@ func (e *SimpleSpriteDef) Write(token *AsciiWriteToken) error {
 
 func (e *SimpleSpriteDef) Read(token *AsciiReadToken) error {
 	e.folders = append(e.folders, token.folder)
-	records, err := token.ReadProperty("VARIATION", 1)
+
+	records, err := token.ReadProperty("TAGINDEX", 1)
+	if err != nil {
+		return err
+	}
+	err = parse(&e.TagIndex, records[1])
+	if err != nil {
+		return fmt.Errorf("tag index: %w", err)
+	}
+
+	records, err = token.ReadProperty("VARIATION", 1)
 	if err != nil {
 		return fmt.Errorf("VARIATION: %w", err)
 	}
@@ -2385,14 +2411,36 @@ func (e *SimpleSpriteDef) Read(token *AsciiReadToken) error {
 	}
 
 	for i := 0; i < numFrames; i++ {
-		records, err = token.ReadProperty("FRAME", 2)
+		// Read FRAME line, expecting 3 arguments: TextureTag, NUMFILES text, and actual number value
+		records, err = token.ReadProperty("FRAME", 1)
 		if err != nil {
 			return fmt.Errorf("FRAME: %w", err)
 		}
-		e.SimpleSpriteFrames = append(e.SimpleSpriteFrames, SimpleSpriteFrame{
-			TextureFile: records[1],
-			TextureTag:  records[2],
-		})
+
+		frame := SimpleSpriteFrame{
+			TextureTag: records[1],
+		}
+
+		records, err = token.ReadProperty("NUMFILES", 1)
+		if err != nil {
+			return fmt.Errorf("NUMFILES: %w", err)
+		}
+
+		numFiles := 0
+		err = parse(&numFiles, records[1])
+		if err != nil {
+			return fmt.Errorf("num files: %w", err)
+		}
+
+		for j := 0; j < numFiles; j++ {
+			records, err = token.ReadProperty("FILE", 1)
+			if err != nil {
+				return fmt.Errorf("FILE: %w", err)
+			}
+			frame.TextureFiles = append(frame.TextureFiles, records[1])
+		}
+
+		e.SimpleSpriteFrames = append(e.SimpleSpriteFrames, frame)
 	}
 
 	return nil
@@ -2431,20 +2479,16 @@ func (e *SimpleSpriteDef) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
 	wfSimpleSpriteDef.Flags = flags
 
 	if len(e.SimpleSpriteFrames) > 0 {
-		wfBMInfo := &rawfrag.WldFragBMInfo{}
 		for _, frame := range e.SimpleSpriteFrames {
+			wfBMInfo := &rawfrag.WldFragBMInfo{}
 			nameRef := rawWld.NameAdd(frame.TextureTag)
-			if wfBMInfo.NameRef() != 0 && nameRef != wfBMInfo.NameRef() {
-				rawWld.Fragments = append(rawWld.Fragments, wfBMInfo)
-				wfSimpleSpriteDef.BitmapRefs = append(wfSimpleSpriteDef.BitmapRefs, uint32(len(rawWld.Fragments)))
-				wfBMInfo = &rawfrag.WldFragBMInfo{}
-			}
 			wfBMInfo.SetNameRef(nameRef)
-			wfBMInfo.TextureNames = append(wfBMInfo.TextureNames, frame.TextureFile+"\x00")
+			for _, texFile := range frame.TextureFiles {
+				wfBMInfo.TextureNames = append(wfBMInfo.TextureNames, texFile+"\x00")
+			}
+			rawWld.Fragments = append(rawWld.Fragments, wfBMInfo)
+			wfSimpleSpriteDef.BitmapRefs = append(wfSimpleSpriteDef.BitmapRefs, uint32(len(rawWld.Fragments)))
 		}
-
-		rawWld.Fragments = append(rawWld.Fragments, wfBMInfo)
-		wfSimpleSpriteDef.BitmapRefs = append(wfSimpleSpriteDef.BitmapRefs, uint32(len(rawWld.Fragments)))
 	}
 
 	wfSimpleSpriteDef.SetNameRef(rawWld.NameAdd(e.Tag))
@@ -2459,6 +2503,7 @@ func (e *SimpleSpriteDef) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFr
 		return fmt.Errorf("frag is not simplespritedef (wrong fragcode?)")
 	}
 	e.Tag = rawWld.Name(frag.NameRef())
+	e.TagIndex = wce.NextTagIndex(e.Tag)
 	if frag.Flags&0x02 == 0x02 {
 		e.SkipFrames.Valid = true
 	}
@@ -2490,12 +2535,12 @@ func (e *SimpleSpriteDef) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFr
 		if !ok {
 			return fmt.Errorf("invalid bitmap ref %d", bitmapRef)
 		}
-		for _, name := range bmInfo.TextureNames {
-			e.SimpleSpriteFrames = append(e.SimpleSpriteFrames, SimpleSpriteFrame{
-				TextureTag:  rawWld.Name(bmInfo.NameRef()),
-				TextureFile: name,
-			})
-		}
+
+		// Create a SimpleSpriteFrame for the bitmapRef
+		e.SimpleSpriteFrames = append(e.SimpleSpriteFrames, SimpleSpriteFrame{
+			TextureTag:   rawWld.Name(bmInfo.NameRef()),
+			TextureFiles: bmInfo.TextureNames, // Add all TextureNames to the TextureFiles array
+		})
 	}
 	return nil
 }
@@ -2581,22 +2626,6 @@ func (e *ActorDef) Write(token *AsciiWriteToken) error {
 					err = sprite.Write(token)
 					if err != nil {
 						return fmt.Errorf("lod %d hsprite %s: %w", lodIndex, sprite.Tag, err)
-					}
-
-					variations := token.wce.variationMaterialDefs[token.wce.lastReadFolder]
-					sort.Slice(variations, func(i, j int) bool {
-						return variations[i].Tag < variations[j].Tag
-					})
-
-					for _, variation := range variations {
-						err = variation.Write(token)
-						if err != nil {
-							return fmt.Errorf("lod %d hsprite %s variation %s: %w", lodIndex, sprite.Tag, variation.Tag, err)
-						}
-					}
-
-					if err != nil {
-						return fmt.Errorf("lod %d hsprite %s material: %w", lodIndex, sprite.Tag, err)
 					}
 				case *DMSpriteDef:
 					err = sprite.Write(token)
@@ -2853,7 +2882,7 @@ func (e *ActorDef) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
 			Unk1: action.Unk1,
 		}
 
-		for lodIndex, lod := range action.LevelOfDetails {
+		for _, lod := range action.LevelOfDetails {
 			if lod.SpriteTag == "" {
 				continue
 			}
@@ -2902,18 +2931,6 @@ func (e *ActorDef) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
 				spriteRef, err = spriteDef.ToRaw(wce, rawWld)
 				if err != nil {
 					return -1, fmt.Errorf("hierchcicalspritedef %s to raw: %w", lod.SpriteTag, err)
-				}
-
-				variations := wce.variationMaterialDefs[wce.lastReadFolder]
-				sort.Slice(variations, func(i, j int) bool {
-					return variations[i].Tag < variations[j].Tag
-				})
-
-				for _, variation := range variations {
-					_, err = variation.ToRaw(wce, rawWld)
-					if err != nil {
-						return -1, fmt.Errorf("lod %d hsprite %s variation %s: %w", lodIndex, spriteDef.Tag, variation.Tag, err)
-					}
 				}
 
 				sprite := &rawfrag.WldFragHierarchicalSprite{
@@ -4998,11 +5015,12 @@ type HierarchicalSpriteDef struct {
 }
 
 type Dag struct {
-	Tag        string
-	Track      string
-	TrackIndex int
-	SubDags    []uint32
-	SpriteTag  string
+	Tag            string
+	Track          string
+	TrackIndex     int
+	SubDags        []uint32
+	SpriteTag      string
+	SpriteTagIndex int
 }
 
 type AttachedSkin struct {
@@ -5040,9 +5058,9 @@ func (e *HierarchicalSpriteDef) Write(token *AsciiWriteToken) error {
 				}
 			}
 			if dag.SpriteTag != "" {
-				spriteDef := token.wce.ByTag(dag.SpriteTag)
+				spriteDef := token.wce.ByTagWithIndex(dag.SpriteTag, dag.SpriteTagIndex)
 				if spriteDef == nil {
-					return fmt.Errorf("sprite %s not found", dag.SpriteTag)
+					return fmt.Errorf("sprite %s_%d not found", dag.SpriteTag, dag.SpriteTagIndex)
 				}
 
 				if token.TagIsWritten(dag.SpriteTag) {
@@ -5051,7 +5069,7 @@ func (e *HierarchicalSpriteDef) Write(token *AsciiWriteToken) error {
 
 				err = spriteDef.Write(token)
 				if err != nil {
-					return fmt.Errorf("sprite %s: %w", dag.SpriteTag, err)
+					return fmt.Errorf("sprite %s_%d: %w", dag.SpriteTag, dag.SpriteTagIndex, err)
 				}
 				token.TagSetIsWritten(dag.SpriteTag)
 			}
@@ -5087,6 +5105,7 @@ func (e *HierarchicalSpriteDef) Write(token *AsciiWriteToken) error {
 			fmt.Fprintf(w, "\t\tDAG // %d\n", i)
 			fmt.Fprintf(w, "\t\t\tTAG \"%s\"\n", dag.Tag)
 			fmt.Fprintf(w, "\t\t\tSPRITE \"%s\"\n", dag.SpriteTag)
+			fmt.Fprintf(w, "\t\t\tSPRITEINDEX %d\n", dag.SpriteTagIndex)
 			fmt.Fprintf(w, "\t\t\tTRACK \"%s\"\n", dag.Track)
 			fmt.Fprintf(w, "\t\t\tTRACKINDEX %d\n", dag.TrackIndex)
 			fmt.Fprintf(w, "\t\t\tSUBDAGLIST %d", len(dag.SubDags))
@@ -5150,6 +5169,15 @@ func (e *HierarchicalSpriteDef) Read(token *AsciiReadToken) error {
 			return err
 		}
 		dag.SpriteTag = records[1]
+
+		records, err = token.ReadProperty("SPRITEINDEX", 1)
+		if err != nil {
+			return err
+		}
+		err = parse(&dag.SpriteTagIndex, records[1])
+		if err != nil {
+			return fmt.Errorf("sprite index: %w", err)
+		}
 
 		records, err = token.ReadProperty("TRACK", 1)
 		if err != nil {
@@ -5352,7 +5380,7 @@ func (e *HierarchicalSpriteDef) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) 
 		wfDag := &rawfrag.WldFragDag{}
 
 		if dag.SpriteTag != "" {
-			spriteDefFrag := wce.ByTag(dag.SpriteTag)
+			spriteDefFrag := wce.ByTagWithIndex(dag.SpriteTag, dag.SpriteTagIndex)
 			if spriteDefFrag == nil {
 				return -1, fmt.Errorf("sprite instance not found: %s", dag.SpriteTag)
 			}
@@ -5657,11 +5685,12 @@ func (e *HierarchicalSpriteDef) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag
 		} */
 
 		dag := Dag{
-			Tag:        rawWld.Name(dag.NameRef()),
-			Track:      rawWld.Name(srcTrack.NameRef()),
-			TrackIndex: wce.tagIndexes[rawWld.Name(srcTrack.NameRef())],
-			SubDags:    dag.SubDags,
-			SpriteTag:  spriteTag,
+			Tag:            rawWld.Name(dag.NameRef()),
+			Track:          rawWld.Name(srcTrack.NameRef()),
+			TrackIndex:     wce.tagIndexes[rawWld.Name(srcTrack.NameRef())],
+			SubDags:        dag.SubDags,
+			SpriteTag:      spriteTag,
+			SpriteTagIndex: wce.tagIndexes[spriteTag],
 		}
 
 		e.Dags = append(e.Dags, dag)
@@ -7184,6 +7213,7 @@ type ParticleCloudDef struct {
 	folders               []string // when writing, this is the folder the file is in
 	fragID                int16
 	Tag                   string
+	TagIndex              int
 	BlitSpriteDefTag      string
 	SettingOne            uint32
 	SettingTwo            uint32
@@ -7239,6 +7269,7 @@ func (e *ParticleCloudDef) Write(token *AsciiWriteToken) error {
 		}
 
 		fmt.Fprintf(w, "%s \"%s\"\n", e.Definition(), e.Tag)
+		fmt.Fprintf(w, "\tTAGINDEX %d\n", e.TagIndex)
 		fmt.Fprintf(w, "\tBLITTAG \"%s\"\n", e.BlitSpriteDefTag)
 		fmt.Fprintf(w, "\tSETTINGONE %d\n", e.SettingOne)
 		fmt.Fprintf(w, "\tSETTINGTWO %d\n", e.SettingTwo)
@@ -7275,7 +7306,17 @@ func (e *ParticleCloudDef) Write(token *AsciiWriteToken) error {
 
 func (e *ParticleCloudDef) Read(token *AsciiReadToken) error {
 	e.folders = append(e.folders, token.folder)
-	records, err := token.ReadProperty("BLITTAG", 1)
+
+	records, err := token.ReadProperty("TAGINDEX", 1)
+	if err != nil {
+		return err
+	}
+	err = parse(&e.TagIndex, records[1])
+	if err != nil {
+		return fmt.Errorf("tag index: %w", err)
+	}
+
+	records, err = token.ReadProperty("BLITTAG", 1)
 	if err != nil {
 		return err
 	}
@@ -7623,6 +7664,7 @@ func (e *ParticleCloudDef) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldF
 	}
 
 	e.Tag = rawWld.Name(frag.NameRef())
+	e.TagIndex = wce.NextTagIndex(e.Tag)
 	if len(rawWld.Fragments) < int(frag.BlitSpriteRef) {
 		return fmt.Errorf("blit sprite def ref %d out of bounds", frag.BlitSpriteRef)
 	}
@@ -7738,8 +7780,8 @@ type Heading struct {
 }
 
 type Sprite2DFrame struct {
-	TextureFile string
-	TextureTag  string
+	TextureFiles []string
+	TextureTag   string
 }
 
 func (e *Sprite2DDef) Definition() string {
@@ -7775,7 +7817,10 @@ func (e *Sprite2DDef) Write(token *AsciiWriteToken) error {
 				fmt.Fprintf(w, "\t\t\t\t\tHEADINGCAP %d\n", heading.HeadingCap)
 				fmt.Fprintf(w, "\t\t\t\t\tNUMFRAMES %d\n", len(heading.Sprite2DFrames))
 				for _, frame := range heading.Sprite2DFrames {
-					fmt.Fprintf(w, "\t\t\t\t\t\tFRAME \"%s\" \"%s\"\n", frame.TextureFile, frame.TextureTag)
+					fmt.Fprintf(w, "\t\t\t\t\t\tFRAME \"%s\" NUMFILES %d\n", frame.TextureTag, len(frame.TextureFiles))
+					for _, file := range frame.TextureFiles {
+						fmt.Fprintf(w, "\t\t\t\t\t\t\tFILE \"%s\"\n", file)
+					}
 				}
 			}
 		}
@@ -7938,13 +7983,29 @@ func (e *Sprite2DDef) Read(token *AsciiReadToken) error {
 
 			heading.Sprite2DFrames = []*Sprite2DFrame{}
 			for k := 0; k < numFrames; k++ {
-				frame := &Sprite2DFrame{}
-				records, err = token.ReadProperty("FRAME", 2)
+				records, err = token.ReadProperty("FRAME", 3)
 				if err != nil {
 					return fmt.Errorf("FRAME: %w", err)
 				}
-				frame.TextureFile = records[1]
-				frame.TextureTag = records[2]
+
+				frame := &Sprite2DFrame{
+					TextureTag: records[1],
+				}
+
+				numFiles := 0
+				err = parse(&numFiles, records[3])
+				if err != nil {
+					return fmt.Errorf("num files: %w", err)
+				}
+
+				for l := 0; l < numFiles; l++ {
+					records, err = token.ReadProperty("FILE", 1)
+					if err != nil {
+						return fmt.Errorf("FILE: %w", err)
+					}
+					frame.TextureFiles = append(frame.TextureFiles, records[1])
+				}
+
 				heading.Sprite2DFrames = append(heading.Sprite2DFrames, frame)
 			}
 			pitch.Headings = append(pitch.Headings, heading)
@@ -8119,21 +8180,16 @@ func (e *Sprite2DDef) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
 			}
 
 			if len(heading.Sprite2DFrames) > 0 {
-				wfBMInfo := &rawfrag.WldFragBMInfo{}
 				for _, frame := range heading.Sprite2DFrames {
-					frameRef := rawWld.NameAdd(frame.TextureTag)
-					if wfBMInfo.NameRef() != 0 && frameRef != wfBMInfo.NameRef() {
-						// Add the current BMInfo to fragments and reset it
-						rawWld.Fragments = append(rawWld.Fragments, wfBMInfo)
-						rawHeading.FrameRefs = append(rawHeading.FrameRefs, int32(len(rawWld.Fragments)))
-						wfBMInfo = &rawfrag.WldFragBMInfo{}
+					wfBMInfo := &rawfrag.WldFragBMInfo{}
+					nameRef := rawWld.NameAdd(frame.TextureTag)
+					wfBMInfo.SetNameRef(nameRef)
+					for _, texFile := range frame.TextureFiles {
+						wfBMInfo.TextureNames = append(wfBMInfo.TextureNames, texFile+"\x00")
 					}
-					wfBMInfo.SetNameRef(frameRef)
-					wfBMInfo.TextureNames = append(wfBMInfo.TextureNames, frame.TextureFile+"\x00")
+					rawWld.Fragments = append(rawWld.Fragments, wfBMInfo)
+					rawHeading.FrameRefs = append(rawHeading.FrameRefs, int32(len(rawWld.Fragments)))
 				}
-
-				rawWld.Fragments = append(rawWld.Fragments, wfBMInfo)
-				rawHeading.FrameRefs = append(rawHeading.FrameRefs, int32(len(rawWld.Fragments)))
 			}
 			rawPitch.Headings = append(rawPitch.Headings, rawHeading)
 		}
@@ -8267,12 +8323,10 @@ func (e *Sprite2DDef) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragSp
 				if !ok {
 					return fmt.Errorf("invalid frame ref %d", frameRef)
 				}
-				for _, textureName := range bmInfo.TextureNames {
-					heading.Sprite2DFrames = append(heading.Sprite2DFrames, &Sprite2DFrame{
-						TextureTag:  rawWld.Name(bmInfo.NameRef()),
-						TextureFile: textureName,
-					})
-				}
+				heading.Sprite2DFrames = append(heading.Sprite2DFrames, &Sprite2DFrame{
+					TextureTag:   rawWld.Name(bmInfo.NameRef()),
+					TextureFiles: bmInfo.TextureNames,
+				})
 			}
 			pitch.Headings = append(pitch.Headings, heading)
 		}

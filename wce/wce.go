@@ -266,7 +266,7 @@ func (wce *Wce) ByTagWithIndex(tag string, index int) WldDefinitioner {
 
 	if strings.HasSuffix(tag, "_MDF") {
 		for _, material := range wce.MaterialDefs {
-			if material.Tag == tag && material.Variation == index {
+			if material.Tag == tag && material.TagIndex == index {
 				return material
 			}
 		}
@@ -274,13 +274,17 @@ func (wce *Wce) ByTagWithIndex(tag string, index int) WldDefinitioner {
 
 	if strings.HasSuffix(tag, "_SPRITE") {
 		for _, sprite := range wce.SimpleSpriteDefs {
-			if sprite.Tag != tag {
-				continue
+			if sprite.Tag == tag && sprite.TagIndex == index {
+				return sprite
 			}
-			if sprite.Variation != index {
-				continue
+		}
+	}
+
+	if strings.HasSuffix(tag, "_PCD") {
+		for _, sprite := range wce.ParticleCloudDefs {
+			if sprite.Tag == tag && sprite.TagIndex == index {
+				return sprite
 			}
-			return sprite
 		}
 	}
 

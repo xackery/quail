@@ -70,7 +70,8 @@ func (a *AsciiWriteToken) SetWriter(tag string) error {
 				rootFolder = strings.Split(rootFolder, "_")[0]
 			}
 		}
-		path := filepath.Join(a.basePath, strings.ToLower(rootFolder), strings.ToLower(tag+".wce"))
+
+    path := filepath.Join(a.basePath, strings.ToLower(rootFolder), strings.ToLower(tag+".wce"))
 		switch tag {
 		case "world", "region":
 			path = filepath.Join(a.basePath, tag+".wce")

@@ -264,28 +264,60 @@ func (a *AsciiReadToken) readDefinitions() error {
 					return fmt.Errorf("definition %s has no arguments", defName)
 				}
 				frag.Tag = args[1]
-				a.wce.BlitSpriteDefs = append(a.wce.BlitSpriteDefs, frag)
+				// Check if the Tag already exists in wce.BlitSpriteDefs
+				exists := false
+				for _, existing := range a.wce.BlitSpriteDefs {
+					if existing.Tag == frag.Tag {
+						exists = true
+						break
+					}
+				}
+				// Append the current BlitSpriteDef only if no match is found
+				if !exists {
+					a.wce.BlitSpriteDefs = append(a.wce.BlitSpriteDefs, frag)
+				}
 				definitions[i] = &BlitSpriteDef{}
 			case *DMSpriteDef2:
 				if len(args) == 1 {
 					return fmt.Errorf("definition %s has no arguments", defName)
 				}
 				frag.Tag = args[1]
+				if existingIndex, exists := a.wce.tagIndexes[frag.Tag]; exists && existingIndex == frag.TagIndex {
+					definitions[i] = &DMSpriteDef2{}
+					break
+				}
 				a.wce.DMSpriteDef2s = append(a.wce.DMSpriteDef2s, frag)
+				a.wce.tagIndexes[frag.Tag] = frag.TagIndex
 				definitions[i] = &DMSpriteDef2{}
 			case *HierarchicalSpriteDef:
 				if len(args) == 1 {
 					return fmt.Errorf("definition %s has no arguments", defName)
 				}
 				frag.Tag = args[1]
-				a.wce.HierarchicalSpriteDefs = append(a.wce.HierarchicalSpriteDefs, frag)
+				exists := false
+				for _, existing := range a.wce.HierarchicalSpriteDefs {
+					if existing.Tag == frag.Tag {
+						exists = true
+						break
+					}
+				}
+				if !exists {
+					a.wce.HierarchicalSpriteDefs = append(a.wce.HierarchicalSpriteDefs, frag)
+				}
 				definitions[i] = &HierarchicalSpriteDef{}
 			case *MaterialDef:
 				if len(args) == 1 {
 					return fmt.Errorf("definition %s has no arguments", defName)
 				}
 				frag.Tag = args[1]
+				// Check if the Tag and TagIndex combination already exists
+				if existingIndex, exists := a.wce.tagIndexes[frag.Tag]; exists && existingIndex == frag.TagIndex {
+					definitions[i] = &MaterialDef{}
+					break
+				}
+				// Add to MaterialDefs and tagIndexes
 				a.wce.MaterialDefs = append(a.wce.MaterialDefs, frag)
+				a.wce.tagIndexes[frag.Tag] = frag.TagIndex
 				definitions[i] = &MaterialDef{}
 			case *MaterialPalette:
 				if len(args) == 1 {
@@ -320,16 +352,29 @@ func (a *AsciiReadToken) readDefinitions() error {
 					return fmt.Errorf("definition %s has no arguments", defName)
 				}
 				frag.Tag = args[1]
+				if existingIndex, exists := a.wce.tagIndexes[frag.Tag]; exists && existingIndex == frag.TagIndex {
+					definitions[i] = &TrackInstance{}
+					break
+				}
 				a.wce.TrackInstances = append(a.wce.TrackInstances, frag)
+				a.wce.tagIndexes[frag.Tag] = frag.TagIndex
 				definitions[i] = &TrackInstance{}
 			case *DMTrackDef2:
 				if len(args) == 1 {
 					return fmt.Errorf("definition %s has no arguments", defName)
 				}
 				frag.Tag = args[1]
-				a.wce.DMTrackDef2s = append(a.wce.DMTrackDef2s, frag)
+				exists := false
+				for _, existing := range a.wce.DMTrackDef2s {
+					if existing.Tag == frag.Tag {
+						exists = true
+						break
+					}
+				}
+				if !exists {
+					a.wce.DMTrackDef2s = append(a.wce.DMTrackDef2s, frag)
+				}
 				definitions[i] = &DMTrackDef2{}
-
 			case *LightDef:
 				if len(args) == 1 {
 					return fmt.Errorf("definition %s has no arguments", defName)
@@ -419,7 +464,12 @@ func (a *AsciiReadToken) readDefinitions() error {
 					return fmt.Errorf("definition %s has no arguments", defName)
 				}
 				frag.Tag = args[1]
+				if existingIndex, exists := a.wce.tagIndexes[frag.Tag]; exists && existingIndex == frag.TagIndex {
+					definitions[i] = &DMSpriteDef{}
+					break
+				}
 				a.wce.DMSpriteDefs = append(a.wce.DMSpriteDefs, frag)
+				a.wce.tagIndexes[frag.Tag] = frag.TagIndex
 				definitions[i] = &DMSpriteDef{}
 			case *WorldDef:
 

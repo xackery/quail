@@ -48,7 +48,6 @@ func (wce *Wce) ReadWldRaw(src *raw.Wld) error {
 
 	// Process the sorted roots
 	for _, root := range sortedRoots {
-		//fmt.Printf("Processing Root FragID: %d, Tag: %s\n", root.FragID, root.Tag)
 		setRootFolder(foldersByFrag, "", root, wce.isChr, nodes, wce)
 	}
 
@@ -122,7 +121,6 @@ func readRawFrag(e *Wce, rawWld *raw.Wld, fragment helper.FragmentReadWriter, fo
 			return fmt.Errorf("materialpalette: %w", err)
 		}
 		e.MaterialPalettes = append(e.MaterialPalettes, def)
-		// e.isVariationMaterial = true
 	case rawfrag.FragCodeDmSpriteDef2:
 		def := &DMSpriteDef2{folders: folders}
 		err := def.FromRaw(e, rawWld, fragment.(*rawfrag.WldFragDmSpriteDef2))
@@ -185,7 +183,6 @@ func readRawFrag(e *Wce, rawWld *raw.Wld, fragment helper.FragmentReadWriter, fo
 		}
 
 		e.ActorDefs = append(e.ActorDefs, def)
-		// e.isVariationMaterial = false
 	case rawfrag.FragCodeActor:
 		def := &ActorInst{folders: folders}
 		err := def.FromRaw(e, rawWld, fragment.(*rawfrag.WldFragActor))
@@ -315,153 +312,119 @@ func (wce *Wce) WriteWldRaw(w io.Writer) error {
 		}
 	}
 
-	if wce.WorldDef.Zone != 1 {
-		baseTags := []string{}
-		for _, actorDef := range wce.ActorDefs {
-			if actorDef.Tag == "" {
-				return fmt.Errorf("dmspritedef tag is empty")
-			}
-			isUnique := true
-			for _, baseTag := range baseTags {
-				if baseTag == baseTagTrim(wce.isObj, actorDef.Tag) {
-					isUnique = false
+	// Write spell blit particles? (SPB)
+	for _, blitSprite := range wce.BlitSpriteDefs {
+		if !strings.HasSuffix(blitSprite.Tag, "_SPB") {
+			continue
+		}
+		_, err = blitSprite.ToRaw(wce, dst)
+		if err != nil {
+			return fmt.Errorf("blitsprite %s: %w", blitSprite.Tag, err)
+		}
+	}
+
+	// Write other particle cloud blits
+	for _, blitSprite := range wce.BlitSpriteDefs {
+		if !strings.HasSuffix(blitSprite.Tag, "_SPRITE") {
+			continue
+		}
+		_, err = blitSprite.ToRaw(wce, dst)
+		if err != nil {
+			return fmt.Errorf("blitsprite %s: %w", blitSprite.Tag, err)
+		}
+	}
+
+	// Write spell effect actordefs
+	for _, actorDef := range wce.ActorDefs {
+		if actorDef.fragID > 0 {
+			continue
+		}
+
+		// Check if any LevelOfDetail's SpriteTag ends with "_SPRITE"
+		hasSpriteTag := false
+		for _, action := range actorDef.Actions {
+			for _, lod := range action.LevelOfDetails {
+				if strings.HasSuffix(lod.SpriteTag, "_SPRITE") {
+					hasSpriteTag = true
 					break
 				}
 			}
-			if isUnique {
-				baseTags = append(baseTags, baseTagTrim(wce.isObj, actorDef.Tag))
+			if hasSpriteTag {
+				break
 			}
 		}
 
-		//sort.Strings(baseTags)
-
-		clouds := []string{}
-		for _, cloud := range wce.ParticleCloudDefs {
-			isUnique := true
-			for _, bstr := range clouds {
-				if bstr == cloud.Tag {
-					isUnique = false
-					break
-				}
-			}
-			if !isUnique {
-				continue
-			}
-			clouds = append(clouds, cloud.Tag)
-		}
-		sort.Strings(clouds)
-
-		for _, cloud := range clouds {
-			for _, cloudDef := range wce.ParticleCloudDefs {
-				if cloud != cloudDef.Tag {
-					continue
-				}
-				_, err = cloudDef.ToRaw(wce, dst)
-				if err != nil {
-					return fmt.Errorf("cloud %s: %w", cloudDef.Tag, err)
-				}
-			}
+		if !hasSpriteTag {
+			continue
 		}
 
-		clks := make(map[string]bool)
-		for _, matDef := range wce.MaterialDefs {
-			if !strings.HasPrefix(matDef.Tag, "CLK") {
-				continue
-			}
-
-			_, err = strconv.Atoi(matDef.Tag[3:6])
-			if err != nil {
-				continue
-			}
-			if clks[matDef.Tag] {
-				continue
-			}
-			clks[matDef.Tag] = true
-
-			_, err = matDef.ToRaw(wce, dst)
-			if err != nil {
-				return fmt.Errorf("materialdef %s: %w", matDef.Tag, err)
-			}
+		_, err := actorDef.ToRaw(wce, dst)
+		if err != nil {
+			return fmt.Errorf("actordef %s: %w", actorDef.Tag, err)
 		}
+	}
 
-		for _, baseTag := range baseTags {
-
-			for _, actorDef := range wce.ActorDefs {
-				if baseTag != baseTagTrim(wce.isObj, actorDef.Tag) {
-					continue
-				}
-				_, err = actorDef.ToRaw(wce, dst)
-				if err != nil {
-					return fmt.Errorf("actordef %s: %w", actorDef.Tag, err)
-				}
-			}
-
-			for _, hiSprite := range wce.HierarchicalSpriteDefs {
-				hiBaseTag := baseTagTrim(wce.isObj, hiSprite.Tag)
-				if baseTag != hiBaseTag {
-					continue
-				}
-				_, err = hiSprite.ToRaw(wce, dst)
-				if err != nil {
-					return fmt.Errorf("hierarchicalsprite %s: %w", hiSprite.Tag, err)
-				}
-			}
-
-			for _, dmSprite := range wce.DMSpriteDef2s {
-				dmBaseTag := baseTagTrim(wce.isObj, dmSprite.Tag)
-				if baseTag != dmBaseTag {
-					continue
-				}
-				_, err = dmSprite.ToRaw(wce, dst)
-				if err != nil {
-					return fmt.Errorf("dmspritedef2 %s: %w", dmSprite.Tag, err)
-				}
-			}
-
-			for _, dmSprite := range wce.DMSpriteDefs {
-				dmBaseTag := baseTagTrim(wce.isObj, dmSprite.Tag)
-				if baseTag != dmBaseTag {
-					continue
-				}
-				_, err = dmSprite.ToRaw(wce, dst)
-				if err != nil {
-					return fmt.Errorf("dmspritedef %s: %w", dmSprite.Tag, err)
-				}
-			}
-
-			for _, track := range wce.TrackInstances {
-
-				if wce.isTrackAni(track.Tag) {
-					continue
-				}
-
-				_, err = track.ToRaw(wce, dst)
-				if err != nil {
-					return fmt.Errorf("track %s: %w", track.Tag, err)
-				}
-			}
-
+	// Write particle clouds
+	for _, cloudDef := range wce.ParticleCloudDefs {
+		_, err = cloudDef.ToRaw(wce, dst)
+		if err != nil {
+			return fmt.Errorf("cloud %s: %w", cloudDef.Tag, err)
 		}
-	} else {
-		for _, dmSprite := range wce.DMSpriteDef2s {
-			_, err = dmSprite.ToRaw(wce, dst)
-			if err != nil {
-				return fmt.Errorf("dmspritedef2 %s: %w", dmSprite.Tag, err)
-			}
-		}
-		for _, dmSprite := range wce.DMSpriteDefs {
-			_, err = dmSprite.ToRaw(wce, dst)
-			if err != nil {
-				return fmt.Errorf("dmspritedef %s: %w", dmSprite.Tag, err)
-			}
-		}
-		for _, hiSprite := range wce.HierarchicalSpriteDefs {
-			_, err = hiSprite.ToRaw(wce, dst)
-			if err != nil {
-				return fmt.Errorf("hierarchicalsprite %s: %w", hiSprite.Tag, err)
-			}
-		}
+	}
 
+	// Write other blits (for 2D Sprites and stuff)
+	for _, blitSprite := range wce.BlitSpriteDefs {
+		if strings.HasSuffix(blitSprite.Tag, "_SPB") || strings.HasSuffix(blitSprite.Tag, "_SPRITE") {
+			// Skip if the Tag ends with _SPB or _SPRITE
+			continue
+		}
+		// Process the blitSprite if it doesn't end with _SPB or _SPRITE
+		_, err := blitSprite.ToRaw(wce, dst)
+		if err != nil {
+			return fmt.Errorf("blitsprite %s: %w", blitSprite.Tag, err)
+		}
+	}
+
+	// Write out CHR_EYE materials
+	for _, matDef := range wce.MaterialDefs {
+		if !strings.HasPrefix(matDef.Tag, "CHR_EYE") {
+			continue
+		}
+		_, err = matDef.ToRaw(wce, dst)
+		if err != nil {
+			return fmt.Errorf("materialdef %s: %w", matDef.Tag, err)
+		}
+	}
+
+	// Write out "variation" materials
+	for _, matDef := range wce.MaterialDefs {
+		if matDef.Variation == 0 {
+			continue
+		}
+		_, err = matDef.ToRaw(wce, dst)
+		if err != nil {
+			return fmt.Errorf("materialdef %s: %w", matDef.Tag, err)
+		}
+	}
+
+	for _, dmSprite := range wce.DMSpriteDef2s {
+		_, err = dmSprite.ToRaw(wce, dst)
+		if err != nil {
+			return fmt.Errorf("dmspritedef2 %s: %w", dmSprite.Tag, err)
+		}
+	}
+	for _, dmSprite := range wce.DMSpriteDefs {
+		_, err = dmSprite.ToRaw(wce, dst)
+		if err != nil {
+			return fmt.Errorf("dmspritedef %s: %w", dmSprite.Tag, err)
+		}
+	}
+
+	for _, hiSprite := range wce.HierarchicalSpriteDefs {
+		_, err = hiSprite.ToRaw(wce, dst)
+		if err != nil {
+			return fmt.Errorf("hierarchicalsprite %s: %w", hiSprite.Tag, err)
+		}
 	}
 
 	for _, light := range wce.PointLights {
@@ -518,22 +481,34 @@ func (wce *Wce) WriteWldRaw(w io.Writer) error {
 
 	}
 
+	// Write non-spell effect actordefs
 	for _, actorDef := range wce.ActorDefs {
 		if actorDef.fragID > 0 {
 			continue
 		}
 
-		_, err = actorDef.ToRaw(wce, dst)
+		hasSpriteTag := false
+		for _, action := range actorDef.Actions {
+			for _, lod := range action.LevelOfDetails {
+				if strings.HasSuffix(lod.SpriteTag, "_SPRITE") {
+					hasSpriteTag = true
+					break
+				}
+			}
+			if hasSpriteTag {
+				break
+			}
+		}
+
+		if hasSpriteTag {
+			continue
+		}
+
+		// fmt.Printf("Processing ActorDef: %s\n", actorDef.Tag)
+
+		_, err := actorDef.ToRaw(wce, dst)
 		if err != nil {
 			return fmt.Errorf("actordef %s: %w", actorDef.Tag, err)
-		}
-	}
-
-	// Write out BlitSpriteDefs
-	for _, blitSprite := range wce.BlitSpriteDefs {
-		_, err = blitSprite.ToRaw(wce, dst)
-		if err != nil {
-			return fmt.Errorf("blitsprite %s: %w", blitSprite.Tag, err)
 		}
 	}
 
@@ -553,7 +528,7 @@ var (
 )
 
 func (wce *Wce) isTrackAni(tag string) bool {
-	// If isObj is true, it's not a track animation
+	// If isObj is true, it's not an animation track
 	if wce.isObj {
 		return false
 	}
@@ -622,12 +597,12 @@ func setRootFolder(foldersByFrag map[int][]string, folder string, node *tree.Nod
 			}
 		case "BlitSpriteDef":
 			if strings.HasPrefix(node.Tag, "I_") {
-				// Remove "I_" and take the part before the next "_"
+				// If the tag starts with "I_", split the tag after "I_" by the next "_"
 				strippedTag := strings.TrimPrefix(node.Tag, "I_")
 				if strings.Contains(strippedTag, "_") {
-					folder = strings.Split(strippedTag, "_")[0]
+					folder = "I_" + strings.Split(strippedTag, "_")[0]
 				} else {
-					folder = strippedTag
+					folder = node.Tag
 				}
 			}
 		case "MaterialDef":
@@ -642,6 +617,7 @@ func setRootFolder(foldersByFrag map[int][]string, folder string, node *tree.Nod
 									// Add the first 3 characters of each MaterialPalette node's tags to foldersByFrag
 									folderToAdd := potentialNode.Tag[:3]
 									foldersByFrag[int(node.FragID)] = appendUnique(foldersByFrag[int(node.FragID)], folderToAdd)
+									addChildrenFolder(foldersByFrag, folderToAdd, node)
 								}
 							}
 						}
@@ -702,6 +678,10 @@ func addChildrenFolder(foldersByFrag map[int][]string, folder string, node *tree
 }
 
 func appendUnique(slice []string, value string) []string {
+	// Skip adding empty strings
+	if strings.TrimSpace(value) == "" {
+		return slice
+	}
 	for _, v := range slice {
 		if v == value {
 			return slice
