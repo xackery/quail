@@ -10,17 +10,17 @@ import (
 
 // WldFragRegion is Region in libeq, Bsp WldFragRegion in openzone, REGION in wld, BspRegion in lantern
 type WldFragRegion struct {
-	nameRef         int32        `yaml:"name_ref"`
-	Flags           uint32       `yaml:"flags"`
-	AmbientLightRef int32        `yaml:"ambient_light_ref"`
-	RegionVertices  [][3]float32 `yaml:"region_vertices"`
-	RegionProximals [][2]float32 `yaml:"region_proximals"`
-	RenderVertices  [][3]float32 `yaml:"render_vertices"`
-	Walls           []Wall       `yaml:"walls"`
-	Obstacles       []Obstacle   `yaml:"obstacles"`
-	VisNodes        []VisNode    `yaml:"visible_nodes"`
-	VisLists        []VisList    `yaml:"vis_lists"`
-	Sphere          [4]float32   `yaml:"sphere"`
+	nameRef         int32
+	Flags           uint32
+	AmbientLightRef int32
+	RegionVertices  [][3]float32
+	RegionProximals [][2]float32
+	RenderVertices  [][3]float32
+	Walls           []Wall
+	Obstacles       []Obstacle
+	VisNodes        []VisNode
+	VisLists        []VisList
+	Sphere          [4]float32
 	ReverbVolume    float32
 	ReverbOffset    int32
 	UserData        string
@@ -28,21 +28,21 @@ type WldFragRegion struct {
 }
 
 type Wall struct {
-	Flags                       uint32       `yaml:"flags"`
-	VertexCount                 uint32       `yaml:"vertex_count"`
-	RenderMethod                uint32       `yaml:"render_method"`
-	RenderFlags                 uint32       `yaml:"render_flags"`
-	RenderPen                   uint32       `yaml:"render_pen"`
-	RenderBrightness            float32      `yaml:"render_brightness"`
-	RenderScaledAmbient         float32      `yaml:"render_scaled_ambient"`
-	RenderSimpleSpriteReference uint32       `yaml:"render_simple_sprite_reference"`
-	RenderUVInfoOrigin          [3]float32   `yaml:"render_uv_info_origin"`
-	RenderUVInfoUAxis           [3]float32   `yaml:"render_uv_info_u_axis"`
-	RenderUVInfoVAxis           [3]float32   `yaml:"render_uv_info_v_axis"`
-	RenderUVMapEntryCount       uint32       `yaml:"render_uv_map_entry_count"`
-	RenderUVMapEntries          [][2]float32 `yaml:"render_uv_map_entries"`
-	Normal                      [4]float32   `yaml:"normal"`
-	Vertices                    []uint32     `yaml:"vertices"`
+	Flags                       uint32
+	VertexCount                 uint32
+	RenderMethod                uint32
+	RenderFlags                 uint32
+	RenderPen                   uint32
+	RenderBrightness            float32
+	RenderScaledAmbient         float32
+	RenderSimpleSpriteReference uint32
+	RenderUVInfoOrigin          [3]float32
+	RenderUVInfoUAxis           [3]float32
+	RenderUVInfoVAxis           [3]float32
+	RenderUVMapEntryCount       uint32
+	RenderUVMapEntries          [][2]float32
+	Normal                      [4]float32
+	Vertices                    []uint32
 }
 
 type Obstacle struct {

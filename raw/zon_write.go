@@ -12,10 +12,13 @@ import (
 // Encode writes a zon file
 func (zon *Zon) Write(w io.Writer) error {
 	var err error
+	if zon.name == nil {
+		zon.name = &eqgName{}
+	}
 	if zon.Version >= 4 {
 		return zon.WriteV4(w)
 	}
-	zon.NameClear()
+	zon.name.clear()
 
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
 
@@ -27,26 +30,27 @@ func (zon *Zon) Write(w io.Writer) error {
 	buf := &bytes.Buffer{}
 	subEnc := encdec.NewEncoder(buf, binary.LittleEndian)
 
-	for _, modelName := range zon.Models {
-		zon.NameAdd(modelName)
+	for _, object := range zon.Objects {
+		zon.name.add(object.MeshName)
+		zon.name.add(object.InstanceName)
 	}
 
-	for _, object := range zon.Objects {
-		zon.NameAdd(object.InstanceName)
+	for _, lights := range zon.Lights {
+		zon.name.add(lights.Name)
 	}
 
 	for _, region := range zon.Regions {
-		zon.NameAdd(region.Name)
+		zon.name.add(region.Name)
 	}
 
 	for _, modelName := range zon.Models {
-		subEnc.Int32(zon.NameIndex(modelName))
+		subEnc.Int32(zon.name.indexByName(modelName))
 	}
 
 	for _, object := range zon.Objects {
 		isFound := false
 		for i, name := range zon.Models {
-			if name != object.ModelName {
+			if name != object.MeshName {
 				continue
 			}
 			subEnc.Int32(int32(i))
@@ -54,65 +58,62 @@ func (zon *Zon) Write(w io.Writer) error {
 			break
 		}
 		if !isFound {
-			return fmt.Errorf("object %s ref to model %s not found", object.InstanceName, object.ModelName)
+			return fmt.Errorf("object %s ref to model %s not found", object.InstanceName, object.MeshName)
 		}
-		subEnc.Int32(zon.NameIndex(object.InstanceName))
+		subEnc.Int32(zon.name.indexByName(object.InstanceName))
 
-		subEnc.Float32(object.Position.Y) //  y before x
-		subEnc.Float32(object.Position.X)
-		subEnc.Float32(object.Position.Z)
+		subEnc.Float32(object.Translation[1]) //  y before x
+		subEnc.Float32(object.Translation[0])
+		subEnc.Float32(object.Translation[2])
 
-		subEnc.Float32(object.Rotation.X)
-		subEnc.Float32(object.Rotation.Y)
-		subEnc.Float32(object.Rotation.Z)
+		subEnc.Float32(object.Rotation[0])
+		subEnc.Float32(object.Rotation[1])
+		subEnc.Float32(object.Rotation[2])
 
 		subEnc.Float32(object.Scale)
 		if zon.Version >= 2 {
 			subEnc.Uint32(uint32(len(object.Lits)))
 			for _, lit := range object.Lits {
-				subEnc.Uint8(lit.R)
-				subEnc.Uint8(lit.G)
-				subEnc.Uint8(lit.B)
-				subEnc.Uint8(lit.A)
+				subEnc.Uint32(lit)
 			}
 		}
 	}
 
 	for _, region := range zon.Regions {
-		subEnc.Int32(zon.NameIndex(region.Name))
+		subEnc.Int32(zon.name.indexByName(region.Name))
 
-		subEnc.Float32(region.Center.X)
-		subEnc.Float32(region.Center.Y)
-		subEnc.Float32(region.Center.Z)
+		subEnc.Float32(region.Position[0])
+		subEnc.Float32(region.Position[1])
+		subEnc.Float32(region.Position[2])
 
-		subEnc.Float32(region.Unknown.X)
-		subEnc.Float32(region.Unknown.Y)
-		subEnc.Float32(region.Unknown.Z)
+		subEnc.Float32(region.Color[0])
+		subEnc.Float32(region.Color[1])
+		subEnc.Float32(region.Color[2])
 
-		subEnc.Float32(region.Extent.X)
-		subEnc.Float32(region.Extent.Y)
-		subEnc.Float32(region.Extent.Z)
+		subEnc.Float32(region.Radius)
+		//subEnc.Float32(region.Radius[1])
+		//subEnc.Float32(region.Radius[2])
 
 		//subEnc.Uint32(region.Unk1)
 		//subEnc.Uint32(region.Unk2)
 	}
 
 	for _, light := range zon.Lights {
-		subEnc.Int32(zon.NameIndex(light.Name))
+		subEnc.Int32(zon.name.indexByName(light.Name))
 
-		subEnc.Float32(light.Position.X)
-		subEnc.Float32(light.Position.Y)
-		subEnc.Float32(light.Position.Z)
+		subEnc.Float32(light.Position[0])
+		subEnc.Float32(light.Position[1])
+		subEnc.Float32(light.Position[2])
 
-		subEnc.Float32(light.Color.X)
-		subEnc.Float32(light.Color.Y)
-		subEnc.Float32(light.Color.Z)
+		subEnc.Float32(light.Color[0])
+		subEnc.Float32(light.Color[1])
+		subEnc.Float32(light.Color[2])
 
 		subEnc.Float32(light.Radius)
 
 	}
 
-	nameData := zon.NameData()
+	nameData := zon.name.data()
 	enc.Uint32(uint32(len(nameData)))
 	enc.Uint32(uint32(len(zon.Models)))
 	enc.Uint32(uint32(len(zon.Objects)))

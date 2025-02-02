@@ -12,41 +12,44 @@ import (
 // Write writes a ter file
 func (ter *Ter) Write(w io.Writer) error {
 	var err error
+	if ter.name == nil {
+		ter.name = &eqgName{}
+	}
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
 	enc.String("EQGT")
 	enc.Uint32(ter.Version)
 
-	ter.NameClear()
+	ter.name.clear()
 
 	for _, material := range ter.Materials {
-		ter.NameAdd(material.Name)
-		ter.NameAdd(material.ShaderName)
+		ter.name.add(material.Name)
+		ter.name.add(material.EffectName)
 		for _, prop := range material.Properties {
-			ter.NameAdd(prop.Name)
-			switch prop.Category {
+			ter.name.add(prop.Name)
+			switch prop.Type {
 			case 2:
-				ter.NameAdd(prop.Value)
+				ter.name.add(prop.Value)
 			default:
 			}
 		}
 	}
 
-	nameData := ter.NameData()
+	nameData := ter.name.data()
 	enc.Uint32(uint32(len(nameData))) // nameLength
 	enc.Uint32(uint32(len(ter.Materials)))
 	enc.Uint32(uint32(len(ter.Vertices)))
-	enc.Uint32(uint32(len(ter.Triangles)))
+	enc.Uint32(uint32(len(ter.Faces)))
 	enc.Bytes(nameData)
 
 	for _, material := range ter.Materials {
 		enc.Int32(material.ID)
-		enc.Uint32(uint32(ter.NameIndex(material.Name)))
-		enc.Uint32(uint32(ter.NameIndex(material.ShaderName)))
+		enc.Uint32(uint32(ter.name.indexByName(material.Name)))
+		enc.Uint32(uint32(ter.name.indexByName(material.EffectName)))
 		enc.Uint32(uint32(len(material.Properties)))
 		for _, prop := range material.Properties {
-			enc.Uint32(uint32(ter.NameIndex(prop.Name)))
-			enc.Uint32(uint32(prop.Category))
-			switch prop.Category {
+			enc.Uint32(uint32(ter.name.indexByName(prop.Name)))
+			enc.Uint32(uint32(prop.Type))
+			switch prop.Type {
 			case 0:
 				fval, err := strconv.ParseFloat(prop.Value, 32)
 				if err != nil {
@@ -54,7 +57,7 @@ func (ter *Ter) Write(w io.Writer) error {
 				}
 				enc.Float32(float32(fval))
 			case 2:
-				enc.Int32(ter.NameIndex(prop.Value))
+				enc.Int32(ter.name.indexByName(prop.Value))
 			default:
 				return err
 			}
@@ -77,7 +80,7 @@ func (ter *Ter) Write(w io.Writer) error {
 
 	}
 
-	for _, tri := range ter.Triangles {
+	for _, tri := range ter.Faces {
 		enc.Uint32(tri.Index[0])
 		enc.Uint32(tri.Index[1])
 		enc.Uint32(tri.Index[2])
@@ -89,7 +92,7 @@ func (ter *Ter) Write(w io.Writer) error {
 			}
 		}
 		enc.Int32(matID)
-		enc.Uint32(tri.Flag)
+		enc.Uint32(tri.Flags)
 	}
 
 	err = enc.Error()

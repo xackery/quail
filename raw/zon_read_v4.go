@@ -64,17 +64,17 @@ func (zon *Zon) ReadV4(r io.ReadSeeker) error {
 			if err != nil {
 				return fmt.Errorf("line %d: MIN_EXTENTS X: %w", lineNumber, err)
 			}
-			zon.V4Info.MinExtents.X = float32(fval)
+			zon.V4Info.MinExtents[0] = float32(fval)
 			fval, err = strconv.ParseFloat(vals[1], 32)
 			if err != nil {
 				return fmt.Errorf("line %d: MIN_EXTENTS Y: %w", lineNumber, err)
 			}
-			zon.V4Info.MinExtents.Y = float32(fval)
+			zon.V4Info.MinExtents[1] = float32(fval)
 			fval, err = strconv.ParseFloat(vals[2], 32)
 			if err != nil {
 				return fmt.Errorf("line %d: MIN_EXTENTS Z: %w", lineNumber, err)
 			}
-			zon.V4Info.MinExtents.Z = float32(fval)
+			zon.V4Info.MinExtents[2] = float32(fval)
 			continue
 		}
 
@@ -86,17 +86,17 @@ func (zon *Zon) ReadV4(r io.ReadSeeker) error {
 			if err != nil {
 				return fmt.Errorf("line %d: MAX_EXTENTS X: %w", lineNumber, err)
 			}
-			zon.V4Info.MaxExtents.X = float32(fval)
+			zon.V4Info.MaxExtents[0] = float32(fval)
 			fval, err = strconv.ParseFloat(vals[1], 32)
 			if err != nil {
 				return fmt.Errorf("line %d: MAX_EXTENTS Y: %w", lineNumber, err)
 			}
-			zon.V4Info.MaxExtents.Y = float32(fval)
+			zon.V4Info.MaxExtents[1] = float32(fval)
 			fval, err = strconv.ParseFloat(vals[2], 32)
 			if err != nil {
 				return fmt.Errorf("line %d: MAX_EXTENTS Z: %w", lineNumber, err)
 			}
-			zon.V4Info.MaxExtents.Z = float32(fval)
+			zon.V4Info.MaxExtents[2] = float32(fval)
 			continue
 		}
 

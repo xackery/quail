@@ -180,6 +180,7 @@ func (a *AsciiReadToken) readDefinitions() error {
 	definitions := []definitionReader{
 		&ActorDef{},
 		&ActorInst{},
+		&AniDef{},
 		&AmbientLight{},
 		&BlitSpriteDef{},
 		&DMSpriteDef{},
@@ -188,10 +189,13 @@ func (a *AsciiReadToken) readDefinitions() error {
 		&EQMaterialDef{},
 		&GlobalAmbientLightDef{},
 		&HierarchicalSpriteDef{},
+		&LayDef{},
 		&LightDef{},
 		&MaterialDef{},
 		&MaterialPalette{},
 		&MdsDef{},
+		&ModDef{},
+		&TerDef{},
 		&ParticleCloudDef{},
 		&PointLight{},
 		&PolyhedronDefinition{},
@@ -224,7 +228,7 @@ func (a *AsciiReadToken) readDefinitions() error {
 		if strings.HasPrefix(definition, "INCLUDE") {
 			err = a.readInclude(args)
 			if err != nil {
-				return fmt.Errorf("include: %w", err)
+				return fmt.Errorf("-> %w", err)
 			}
 			definition = ""
 			continue
@@ -478,6 +482,27 @@ func (a *AsciiReadToken) readDefinitions() error {
 				frag.Tag = args[1]
 				a.wce.MdsDefs = append(a.wce.MdsDefs, frag)
 				definitions[i] = &MdsDef{}
+			case *ModDef:
+				if len(args) == 1 {
+					return fmt.Errorf("definition %s has no arguments", defName)
+				}
+				frag.Tag = args[1]
+				a.wce.ModDefs = append(a.wce.ModDefs, frag)
+				definitions[i] = &MdsDef{}
+			case *TerDef:
+				if len(args) == 1 {
+					return fmt.Errorf("definition %s has no arguments", defName)
+				}
+				frag.Tag = args[1]
+				a.wce.TerDefs = append(a.wce.TerDefs, frag)
+				definitions[i] = &TerDef{}
+			case *AniDef:
+				if len(args) == 1 {
+					return fmt.Errorf("definition %s has no arguments", defName)
+				}
+				frag.Tag = args[1]
+				a.wce.AniDefs = append(a.wce.AniDefs, frag)
+				definitions[i] = &AniDef{}
 			case *EQMaterialDef:
 				if len(args) == 1 {
 					return fmt.Errorf("definition %s has no arguments", defName)
@@ -485,6 +510,13 @@ func (a *AsciiReadToken) readDefinitions() error {
 				frag.Tag = args[1]
 				a.wce.EQMaterialDefs = append(a.wce.EQMaterialDefs, frag)
 				definitions[i] = &EQMaterialDef{}
+			case *LayDef:
+				if len(args) == 1 {
+					return fmt.Errorf("definition %s has no arguments", defName)
+				}
+				frag.Tag = args[1]
+				a.wce.LayDefs = append(a.wce.LayDefs, frag)
+				definitions[i] = &LayDef{}
 			default:
 				return fmt.Errorf("unknown definition type for rebuild: %T", definitions[i])
 			}
@@ -510,7 +542,7 @@ func (a *AsciiReadToken) readInclude(args []string) error {
 	}
 	ir, err := LoadAsciiFile(path, a.wce)
 	if err != nil {
-		return fmt.Errorf("new ascii reader: %w", err)
+		return err
 	}
 	err = ir.readDefinitions()
 	if err != nil {

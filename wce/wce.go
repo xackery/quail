@@ -47,10 +47,12 @@ type Wce struct {
 	variationMaterialDefs  map[string][]*MaterialDef
 	WorldTrees             []*WorldTree
 	Zones                  []*Zone
+	AniDefs                []*AniDef
 	MdsDefs                []*MdsDef
 	ModDefs                []*ModDef
 	TerDefs                []*TerDef
 	EQMaterialDefs         []*EQMaterialDef
+	LayDefs                []*LayDef
 }
 
 type WldDefinitioner interface {

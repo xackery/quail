@@ -10,9 +10,9 @@ import (
 
 // WldFragTrackDef is TrackDef in libeq, Mob Skeleton Piece WldFragTrackDef in openzone, TRACKDEFINITION in wld, TrackDefFragment in lantern
 type WldFragTrackDef struct {
-	nameRef         int32                       `yaml:"name_ref"`
-	Flags           uint32                      `yaml:"flags"`
-	FrameTransforms []WldFragTrackBoneTransform `yaml:"skeleton_transforms"`
+	nameRef         int32
+	Flags           uint32
+	FrameTransforms []WldFragTrackBoneTransform
 }
 
 type WldFragTrackBoneTransform struct {

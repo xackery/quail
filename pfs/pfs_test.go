@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/xackery/quail/common"
+	"github.com/xackery/quail/helper"
 )
 
 func TestPfs_Add(t *testing.T) {
@@ -144,7 +144,7 @@ func TestPfs_Extract(t *testing.T) {
 		ContentsSummary string
 		fileCount       int
 	}
-	dirTest := common.DirTest()
+	dirTest := helper.DirTest()
 	fmt.Println(dirTest)
 	type args struct {
 		path string

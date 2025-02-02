@@ -10,9 +10,9 @@ import (
 
 // WldFragCompositeSprite is empty in libeq, empty in openzone, COMPOSITESPRITE (ref) in wld
 type WldFragCompositeSprite struct {
-	nameRef               int32  `yaml:"name_ref"`
-	CompositeSpriteDefRef int32  `yaml:"composite_sprite_def_ref"`
-	Flags                 uint32 `yaml:"flags"`
+	nameRef               int32
+	CompositeSpriteDefRef int32
+	Flags                 uint32
 }
 
 func (e *WldFragCompositeSprite) FragCode() int {

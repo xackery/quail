@@ -6,8 +6,8 @@ import (
 
 // Txt is a text file
 type Txt struct {
-	MetaFileName string `yaml:"file_name"`
-	Data         string `yaml:"data"`
+	MetaFileName string
+	Data         string
 }
 
 // Identity notes this is a txt file

@@ -8,7 +8,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/xackery/quail/common"
+	"github.com/xackery/quail/helper"
 )
 
 // ReadAscii reads the ascii file at path
@@ -212,6 +212,13 @@ func (wce *Wce) writeAsciiData(path string) error {
 
 	// EQG
 
+	for _, matDef := range wce.EQMaterialDefs {
+		err = matDef.Write(token)
+		if err != nil {
+			return fmt.Errorf("eqmaterialdef %s: %w", matDef.Tag, err)
+		}
+	}
+
 	for _, mdsDef := range wce.MdsDefs {
 		err = mdsDef.Write(token)
 		if err != nil {
@@ -223,6 +230,27 @@ func (wce *Wce) writeAsciiData(path string) error {
 		err = modDef.Write(token)
 		if err != nil {
 			return fmt.Errorf("moddef %s: %w", modDef.Tag, err)
+		}
+	}
+
+	for _, terDef := range wce.TerDefs {
+		err = terDef.Write(token)
+		if err != nil {
+			return fmt.Errorf("terdef %s: %w", terDef.Tag, err)
+		}
+	}
+
+	for _, aniDef := range wce.AniDefs {
+		err = aniDef.Write(token)
+		if err != nil {
+			return fmt.Errorf("anidef %s: %w", aniDef.Tag, err)
+		}
+	}
+
+	for _, layDef := range wce.LayDefs {
+		err = layDef.Write(token)
+		if err != nil {
+			return fmt.Errorf("laydef %s: %w", layDef.Tag, err)
 		}
 	}
 
@@ -276,18 +304,39 @@ func (wce *Wce) writeAsciiData(path string) error {
 	}
 	sort.Strings(sortedFolders)
 
+	writtenSubfolders := make(map[string]bool)
 	for _, folder := range sortedFolders {
 		folderInfo, ok := folders[folder]
 		if !ok {
 			return fmt.Errorf("folder %s not found", folder)
 		}
 
+		if strings.Contains(folder, "/") {
+			rootFolder := strings.Split(folder, "/")[0]
+			tag := strings.Split(folder, "/")[1]
+			if _, ok := writtenSubfolders[rootFolder]; !ok {
+				rootW.WriteString(fmt.Sprintf("INCLUDE \"%s/_ROOT.WCE\"\n", strings.ToUpper(rootFolder)))
+			}
+
+			if folderInfo.hasBase {
+				includes[rootFolder] += fmt.Sprintf("INCLUDE \"%s.WCE\"\n", strings.ToUpper(tag))
+			}
+
+			if folderInfo.hasAni {
+				includes[rootFolder] += fmt.Sprintf("INCLUDE \"%s_ANI.WCE\"\n", strings.ToUpper(tag))
+			}
+
+			writtenSubfolders[rootFolder] = true
+
+			continue
+		}
+
 		rootW.WriteString(fmt.Sprintf("INCLUDE \"%s/_ROOT.WCE\"\n", strings.ToUpper(folder)))
 		if folderInfo.hasBase {
-			includes[folder] = fmt.Sprintf("INCLUDE \"%s.WCE\"\n", strings.ToUpper(folder))
+			includes[folder] += fmt.Sprintf("INCLUDE \"%s.WCE\"\n", strings.ToUpper(folder))
 		}
 		if folderInfo.hasAni {
-			includes[folder] = fmt.Sprintf("INCLUDE \"%s_ANI.WCE\"\n", strings.ToUpper(folder))
+			includes[folder] += fmt.Sprintf("INCLUDE \"%s_ANI.WCE\"\n", strings.ToUpper(folder))
 		}
 	}
 	rootW.Close()
@@ -307,6 +356,6 @@ func (wce *Wce) writeAsciiData(path string) error {
 
 func (wce *Wce) writeAsciiHeader(w io.Writer) {
 	fmt.Fprintf(w, "// wcemu %s\n", AsciiVersion)
-	fmt.Fprintf(w, "// This file was created by quail %s\n", common.Version)
+	fmt.Fprintf(w, "// This file was created by quail %s\n", helper.Version)
 	fmt.Fprintf(w, "// Original file: %s\n\n", wce.FileName)
 }

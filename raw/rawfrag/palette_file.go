@@ -10,9 +10,9 @@ import (
 
 // WldFragDefaultPaletteFile is DefaultPaletteFile in libeq, empty in openzone, DEFAULTPALETTEFILE in wld
 type WldFragDefaultPaletteFile struct {
-	nameRef    int32  `yaml:"name_ref"`
-	NameLength uint16 `yaml:"name_length"`
-	FileName   string `yaml:"file_name"`
+	nameRef    int32
+	NameLength uint16
+	FileName   string
 }
 
 func (e *WldFragDefaultPaletteFile) FragCode() int {

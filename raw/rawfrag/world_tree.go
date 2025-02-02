@@ -12,15 +12,15 @@ import (
 // For serialization, refer to here: https://github.com/knervous/LanternExtractor2/blob/knervous/merged/LanternExtractor/EQ/Wld/DataTypes/BspNode.cs
 // For constructing, refer to here: https://github.com/knervous/LanternExtractor2/blob/920541d15958e90aa91f7446a74226cbf26b829a/LanternExtractor/EQ/Wld/Exporters/GltfWriter.cs#L304
 type WldFragWorldTree struct {
-	nameRef int32           `yaml:"name_ref"`
-	Nodes   []WorldTreeNode `yaml:"nodes"`
+	nameRef int32
+	Nodes   []WorldTreeNode
 }
 
 type WorldTreeNode struct {
-	Normal    [4]float32 `yaml:"normal"`
-	RegionRef int32      `yaml:"region_ref"`
-	FrontRef  int32      `yaml:"front_ref"`
-	BackRef   int32      `yaml:"back_ref"`
+	Normal    [4]float32
+	RegionRef int32
+	FrontRef  int32
+	BackRef   int32
 }
 
 func (e *WldFragWorldTree) FragCode() int {

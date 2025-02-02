@@ -10,9 +10,9 @@ import (
 
 // WldFragDMSprite is DmSprite in libeq, Mesh Reference in openzone, empty in wld, MeshReference in lantern
 type WldFragDMSprite struct {
-	nameRef     int32  `yaml:"name_ref"`
-	DMSpriteRef int32  `yaml:"dm_sprite_ref"`
-	Params      uint32 `yaml:"params"`
+	nameRef     int32
+	DMSpriteRef int32
+	Params      uint32
 }
 
 func (e *WldFragDMSprite) FragCode() int {

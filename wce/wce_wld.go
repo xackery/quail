@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/xackery/quail/helper"
-	"github.com/xackery/quail/model"
 	"github.com/xackery/quail/raw"
 	"github.com/xackery/quail/raw/rawfrag"
 )
@@ -37,9 +36,9 @@ func (e *WorldDef) Write(token *AsciiWriteToken) error {
 		}
 
 		fmt.Fprintf(w, "%s\n", e.Definition())
-		fmt.Fprintf(w, "\tNEWWORLD %d\n", e.NewWorld)
-		fmt.Fprintf(w, "\tZONE %d\n", e.Zone)
-		fmt.Fprintf(w, "\tEQGVERSION? %s\n", wcVal(e.EqgVersion))
+		fmt.Fprintf(w, "\tNEWWORLD %d // in wld files this signifies a version flag\n", e.NewWorld)
+		fmt.Fprintf(w, "\tZONE %d // when 1 this parses things as if a zone\n", e.Zone)
+		fmt.Fprintf(w, "\tEQGVERSION? %s // used in eqg parsing for version rebuilding\n", wcVal(e.EqgVersion))
 		fmt.Fprintf(w, "\n")
 	}
 	e.folders = []string{}
@@ -1970,7 +1969,7 @@ func (e *MaterialDef) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
 	}
 
 	wfMaterialDef := &rawfrag.WldFragMaterialDef{
-		RenderMethod:  model.RenderMethodInt(e.RenderMethod),
+		RenderMethod:  helper.RenderMethodInt(e.RenderMethod),
 		RGBPen:        e.RGBPen,
 		Brightness:    e.Brightness,
 		ScaledAmbient: e.ScaledAmbient,
@@ -2051,7 +2050,7 @@ func (e *MaterialDef) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragMa
 	}
 	e.Tag = rawWld.Name(frag.NameRef())
 	e.TagIndex = wce.NextTagIndex(e.Tag)
-	e.RenderMethod = model.RenderMethodStr(frag.RenderMethod)
+	e.RenderMethod = helper.RenderMethodStr(frag.RenderMethod)
 	e.RGBPen = frag.RGBPen
 	e.Brightness = frag.Brightness
 	e.ScaledAmbient = frag.ScaledAmbient
@@ -4233,7 +4232,7 @@ func (e *Sprite3DDef) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
 				BackTree:      node.BackTree,
 				VertexIndexes: node.Vertices,
 
-				RenderMethod: model.RenderMethodInt(node.RenderMethod),
+				RenderMethod: helper.RenderMethodInt(node.RenderMethod),
 			}
 
 			if node.Pen.Valid {
@@ -4314,7 +4313,7 @@ func (e *Sprite3DDef) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragSp
 			FrontTree:    bspNode.FrontTree,
 			BackTree:     bspNode.BackTree,
 			Vertices:     bspNode.VertexIndexes,
-			RenderMethod: model.RenderMethodStr(bspNode.RenderMethod),
+			RenderMethod: helper.RenderMethodStr(bspNode.RenderMethod),
 		}
 
 		if bspNode.RenderFlags&0x01 == 0x01 {
@@ -8139,7 +8138,7 @@ func (e *Sprite2DDef) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
 	}
 	wfSprite2D := &rawfrag.WldFragSprite2DDef{
 		Scale:        e.Scale,
-		RenderMethod: model.RenderMethodInt(e.RenderMethod),
+		RenderMethod: helper.RenderMethodInt(e.RenderMethod),
 	}
 
 	if e.DepthScale.Valid {
@@ -8334,7 +8333,7 @@ func (e *Sprite2DDef) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragSp
 		e.Pitches = append(e.Pitches, pitch)
 	}
 
-	e.RenderMethod = model.RenderMethodStr(frag.RenderMethod)
+	e.RenderMethod = helper.RenderMethodStr(frag.RenderMethod)
 	if frag.RenderFlags&0x01 == 0x01 {
 		e.Pen.Valid = true
 		e.Pen.Uint32 = frag.RenderPen

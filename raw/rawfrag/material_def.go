@@ -10,13 +10,13 @@ import (
 
 // WldFragMaterialDef is MaterialDef in libeq, Texture in openzone, MATERIALDEFINITION in wld, Material in lantern
 type WldFragMaterialDef struct {
-	nameRef         int32    `yaml:"name_ref"`
-	Flags           uint32   `yaml:"flags"`
-	RenderMethod    uint32   `yaml:"render_method"`
-	RGBPen          [4]uint8 `yaml:"rgb_pen"`
-	Brightness      float32  `yaml:"brightness"`
-	ScaledAmbient   float32  `yaml:"scaled_ambient"`
-	SimpleSpriteRef uint32   `yaml:"sprite_instance_ref"`
+	nameRef         int32
+	Flags           uint32
+	RenderMethod    uint32
+	RGBPen          [4]uint8
+	Brightness      float32
+	ScaledAmbient   float32
+	SimpleSpriteRef uint32
 	Pair1           uint32
 	Pair2           float32
 }

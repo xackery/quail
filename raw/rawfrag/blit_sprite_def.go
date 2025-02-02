@@ -10,10 +10,10 @@ import (
 
 // WldFragBlitSpriteDef is BlitSprite in libeq, empty in openzone, BLITSPRITE (ref) in wld, ParticleSprite in lantern
 type WldFragBlitSpriteDef struct {
-	nameRef           int32  `yaml:"name_ref"`
-	Flags             uint32 `yaml:"flags"`
-	SpriteInstanceRef uint32 `yaml:"sprite_instance_ref"`
-	Unknown           int32  `yaml:"unknown"`
+	nameRef           int32
+	Flags             uint32
+	SpriteInstanceRef uint32
+	Unknown           int32
 }
 
 func (e *WldFragBlitSpriteDef) FragCode() int {

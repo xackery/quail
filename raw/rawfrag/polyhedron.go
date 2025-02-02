@@ -10,10 +10,10 @@ import (
 
 // WldFragPolyhedron is Polyhedron in libeq, Polygon Animation Reference in openzone, POLYHEDRON (ref) in wld, Fragment18 in lantern
 type WldFragPolyhedron struct {
-	nameRef     int32   `yaml:"name_ref"`
-	FragmentRef int32   `yaml:"fragment_ref"`
-	Flags       uint32  `yaml:"flags"`
-	Scale       float32 `yaml:"scale"`
+	nameRef     int32
+	FragmentRef int32
+	Flags       uint32
+	Scale       float32
 }
 
 func (e *WldFragPolyhedron) FragCode() int {

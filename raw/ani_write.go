@@ -9,14 +9,14 @@ import (
 )
 
 func (ani *Ani) Write(w io.Writer) error {
-	ani.NameClear()
+	ani.name.clear()
 	for _, bone := range ani.Bones {
-		ani.NameAdd(bone.Name)
+		ani.name.add(bone.Name)
 	}
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
 	enc.StringFixed("EQGA", 4)
 	enc.Uint32(ani.Version)
-	nameData := ani.NameData()
+	nameData := ani.name.data()
 	enc.Uint32(uint32(len(nameData)))
 	enc.Uint32(uint32(len(ani.Bones)))
 
@@ -31,19 +31,19 @@ func (ani *Ani) Write(w io.Writer) error {
 
 	for _, bone := range ani.Bones {
 		enc.Uint32(uint32(len(bone.Frames)))
-		enc.Int32(ani.NameIndex(bone.Name))
+		enc.Int32(ani.name.indexByName(bone.Name))
 		for _, frame := range bone.Frames {
 			enc.Uint32(frame.Milliseconds)
-			enc.Float32(frame.Translation.X)
-			enc.Float32(frame.Translation.Y)
-			enc.Float32(frame.Translation.Z)
-			enc.Float32(frame.Rotation.X)
-			enc.Float32(frame.Rotation.Y)
-			enc.Float32(frame.Rotation.Z)
-			enc.Float32(frame.Rotation.W)
-			enc.Float32(frame.Scale.X)
-			enc.Float32(frame.Scale.Y)
-			enc.Float32(frame.Scale.Z)
+			enc.Float32(frame.Translation[0])
+			enc.Float32(frame.Translation[1])
+			enc.Float32(frame.Translation[2])
+			enc.Float32(frame.Rotation[0])
+			enc.Float32(frame.Rotation[1])
+			enc.Float32(frame.Rotation[2])
+			enc.Float32(frame.Rotation[3])
+			enc.Float32(frame.Scale[0])
+			enc.Float32(frame.Scale[1])
+			enc.Float32(frame.Scale[2])
 		}
 	}
 	err := enc.Error()

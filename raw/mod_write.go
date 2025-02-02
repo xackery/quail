@@ -12,46 +12,49 @@ import (
 // Encode writes a mod file
 func (mod *Mod) Write(w io.Writer) error {
 	var err error
+	if mod.name == nil {
+		mod.name = &eqgName{}
+	}
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
 	enc.String("EQGM")
 	enc.Uint32(mod.Version)
 
-	mod.NameClear()
+	mod.name.clear()
 
 	for _, material := range mod.Materials {
-		mod.NameAdd(material.Name)
-		mod.NameAdd(material.ShaderName)
+		mod.name.add(material.Name)
+		mod.name.add(material.EffectName)
 		for _, prop := range material.Properties {
-			mod.NameAdd(prop.Name)
-			switch prop.Category {
+			mod.name.add(prop.Name)
+			switch prop.Type {
 			case 2:
-				mod.NameAdd(prop.Value)
+				mod.name.add(prop.Value)
 			default:
 			}
 		}
 	}
 
 	for _, bone := range mod.Bones {
-		mod.NameAdd(bone.Name)
+		mod.name.add(bone.Name)
 	}
 
-	nameData := mod.NameData()
+	nameData := mod.name.data()
 	enc.Uint32(uint32(len(nameData))) // nameLength
 	enc.Uint32(uint32(len(mod.Materials)))
 	enc.Uint32(uint32(len(mod.Vertices)))
-	enc.Uint32(uint32(len(mod.Triangles)))
+	enc.Uint32(uint32(len(mod.Faces)))
 	enc.Uint32(uint32(len(mod.Bones)))
 	enc.Bytes(nameData)
 
 	for _, material := range mod.Materials {
 		enc.Int32(material.ID)
-		enc.Uint32(uint32(mod.NameIndex(material.Name)))
-		enc.Uint32(uint32(mod.NameIndex(material.ShaderName)))
+		enc.Uint32(uint32(mod.name.offsetByName(material.Name)))
+		enc.Uint32(uint32(mod.name.offsetByName(material.EffectName)))
 		enc.Uint32(uint32(len(material.Properties)))
 		for _, prop := range material.Properties {
-			enc.Uint32(uint32(mod.NameIndex(prop.Name)))
-			enc.Uint32(uint32(prop.Category))
-			switch prop.Category {
+			enc.Uint32(uint32(mod.name.offsetByName(prop.Name)))
+			enc.Uint32(uint32(prop.Type))
+			switch prop.Type {
 			case 0:
 				fval, err := strconv.ParseFloat(prop.Value, 32)
 				if err != nil {
@@ -59,7 +62,7 @@ func (mod *Mod) Write(w io.Writer) error {
 				}
 				enc.Float32(float32(fval))
 			case 2:
-				enc.Int32(mod.NameIndex(prop.Value))
+				enc.Int32(mod.name.offsetByName(prop.Value))
 			default:
 				val, err := strconv.Atoi(prop.Value)
 				if err != nil {
@@ -91,7 +94,7 @@ func (mod *Mod) Write(w io.Writer) error {
 		}
 	}
 
-	for _, tri := range mod.Triangles {
+	for _, tri := range mod.Faces {
 		enc.Uint32(tri.Index[0])
 		enc.Uint32(tri.Index[1])
 		enc.Uint32(tri.Index[2])
@@ -103,24 +106,24 @@ func (mod *Mod) Write(w io.Writer) error {
 			}
 		}
 		enc.Int32(matID)
-		enc.Uint32(tri.Flag)
+		enc.Uint32(tri.Flags)
 	}
 
 	for _, bone := range mod.Bones {
-		enc.Int32(mod.NameIndex(bone.Name))
+		enc.Int32(mod.name.offsetByName(bone.Name))
 		enc.Int32(bone.Next)
 		enc.Uint32(bone.ChildrenCount)
 		enc.Int32(bone.ChildIndex)
 		enc.Float32(bone.Pivot[0])
 		enc.Float32(bone.Pivot[1])
 		enc.Float32(bone.Pivot[2])
-		enc.Float32(bone.Rotation[0])
-		enc.Float32(bone.Rotation[1])
-		enc.Float32(bone.Rotation[2])
+		enc.Float32(bone.Quaternion[0])
+		enc.Float32(bone.Quaternion[1])
+		enc.Float32(bone.Quaternion[2])
+		enc.Float32(bone.Quaternion[3])
 		enc.Float32(bone.Scale[0])
 		enc.Float32(bone.Scale[1])
 		enc.Float32(bone.Scale[2])
-		enc.Float32(bone.Scale2)
 	}
 
 	err = enc.Error()

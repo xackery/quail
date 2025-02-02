@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/xackery/quail/common"
+	"github.com/xackery/quail/helper"
 	"github.com/xackery/quail/pfs"
 )
 
@@ -17,7 +17,7 @@ func TestZonRead(t *testing.T) {
 	if eqPath == "" {
 		t.Skip("EQ_PATH not set")
 	}
-	dirTest := common.DirTest()
+	dirTest := helper.DirTest()
 	type args struct {
 	}
 
@@ -27,7 +27,7 @@ func TestZonRead(t *testing.T) {
 		wantErr bool
 	}{
 		// .zon|2|guardian.zon|guardian.eqg
-		//{name: "guardian.eqg"}, // PASS
+		{name: "guardian.eqg"}, // PASS
 		// .zon|1|anguish.zon|anguish.eqg
 		//{name: "anguish.eqg"}, // PASS
 		// .zon|1|bazaar.zon|bazaar.eqg
@@ -71,7 +71,7 @@ func TestZonWrite(t *testing.T) {
 	if eqPath == "" {
 		t.Skip("EQ_PATH not set")
 	}
-	dirTest := common.DirTest()
+	dirTest := helper.DirTest()
 	type args struct {
 	}
 
@@ -82,7 +82,7 @@ func TestZonWrite(t *testing.T) {
 	}{
 
 		// .zon|1|anguish.zon|anguish.eqg
-		// {name: "anguish.eqg"}, // TODO: mismatch
+		{name: "anguish.eqg"}, // TODO: mismatch
 		// .zon|1|bazaar.zon|bazaar.eqg
 		//{name: "bazaar.eqg"}, // TODO: mismatch
 		// .zon|1|bloodfields.zon|bloodfields.eqg
@@ -106,6 +106,8 @@ func TestZonWrite(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 
 			fileName := tt.name
+			baseName := strings.ReplaceAll(fileName, ".eqg", "")
+
 			var data []byte
 			ext := filepath.Ext(tt.name)
 			if ext == ".zon" {
@@ -123,6 +125,11 @@ func TestZonWrite(t *testing.T) {
 				if err != nil {
 					t.Fatalf("failed to open %s.zon: %s", tt.name, err.Error())
 				}
+				err = os.WriteFile(fmt.Sprintf("%s/%s.src%s", dirTest, baseName, ".zon"), data, 0644)
+				if err != nil {
+					t.Fatalf("failed to write %s: %s", fileName, err.Error())
+				}
+
 			}
 
 			zon := &Zon{}
@@ -162,7 +169,12 @@ func TestZonWrite(t *testing.T) {
 
 			srcData := data
 			dstData := buf.Bytes()
-			err = common.ByteCompareTest(srcData, dstData)
+			err = os.WriteFile(fmt.Sprintf("%s/%s.dst%s", dirTest, baseName, ".zon"), dstData, 0644)
+			if err != nil {
+				t.Fatalf("failed to write %s: %s", fileName, err.Error())
+			}
+
+			err = helper.ByteCompareTest(srcData, dstData)
 			if err != nil {
 				t.Fatalf("%s byteCompare: %s", tt.name, err)
 			}
@@ -175,7 +187,7 @@ func TestZonWriteV4(t *testing.T) {
 	if eqPath == "" {
 		t.Skip("EQ_PATH not set")
 	}
-	dirTest := common.DirTest()
+	dirTest := helper.DirTest()
 	type args struct {
 	}
 
@@ -254,12 +266,12 @@ func TestZonWriteV4(t *testing.T) {
 				t.Fatalf("maxLat mismatch: %d != %d", zon.V4Info.MaxLat, zon2.V4Info.MaxLat)
 			}
 
-			if zon.V4Info.MinExtents.X != zon2.V4Info.MinExtents.X {
-				t.Fatalf("minExtents.X mismatch: %f != %f", zon.V4Info.MinExtents.X, zon2.V4Info.MinExtents.X)
+			if zon.V4Info.MinExtents[0] != zon2.V4Info.MinExtents[0] {
+				t.Fatalf("minExtents.X mismatch: %f != %f", zon.V4Info.MinExtents[0], zon2.V4Info.MinExtents[0])
 			}
 
-			if zon.V4Info.MinExtents.Y != zon2.V4Info.MinExtents.Y {
-				t.Fatalf("minExtents.Y mismatch: %f != %f", zon.V4Info.MinExtents.Y, zon2.V4Info.MinExtents.Y)
+			if zon.V4Info.MinExtents[1] != zon2.V4Info.MinExtents[1] {
+				t.Fatalf("minExtents.Y mismatch: %f != %f", zon.V4Info.MinExtents[1], zon2.V4Info.MinExtents[1])
 			}
 
 		})

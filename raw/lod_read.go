@@ -17,8 +17,8 @@ LOD,OBJ_FIREPIT_STMFT_LOD2,400
 LOD,OBJ_FIREPIT_STMFT_LOD3,1000
 */
 type Lod struct {
-	MetaFileName string      `yaml:"file_name"`
-	Entries      []*LodEntry `yaml:"entries"`
+	MetaFileName string
+	Entries      []*LodEntry
 }
 
 // Identity returns the type of the struct

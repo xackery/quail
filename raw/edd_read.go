@@ -7,7 +7,7 @@ import (
 // Edd contations particle definitions used by prt
 // examples are in eq root, actoremittersnew.edd, environmentemittersnew.edd, spellsnew.edd
 type Edd struct {
-	MetaFileName string `yaml:"file_name"`
+	MetaFileName string
 }
 
 // Identity returns the type of the struct

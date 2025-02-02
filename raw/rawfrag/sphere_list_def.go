@@ -6,17 +6,16 @@ import (
 	"io"
 
 	"github.com/xackery/encdec"
-	"github.com/xackery/quail/model"
 )
 
 // WldFragSphereListDef is SphereListDef in libeq, empty in openzone, SPHERELISTDEFINITION in wld
 type WldFragSphereListDef struct {
-	nameRef     int32         `yaml:"name_ref"`
-	Flags       uint32        `yaml:"flags"`
-	SphereCount uint32        `yaml:"sphere_count"`
-	Radius      float32       `yaml:"radius"`
-	Scale       float32       `yaml:"scale"`
-	Spheres     []model.Quad4 `yaml:"spheres"`
+	nameRef     int32
+	Flags       uint32
+	SphereCount uint32
+	Radius      float32
+	Scale       float32
+	Spheres     [][4]float32
 }
 
 func (e *WldFragSphereListDef) FragCode() int {
@@ -31,10 +30,10 @@ func (e *WldFragSphereListDef) Write(w io.Writer, isNewWorld bool) error {
 	enc.Float32(e.Radius)
 	enc.Float32(e.Scale)
 	for _, sphere := range e.Spheres {
-		enc.Float32(sphere.X)
-		enc.Float32(sphere.Y)
-		enc.Float32(sphere.Z)
-		enc.Float32(sphere.W)
+		enc.Float32(sphere[0])
+		enc.Float32(sphere[1])
+		enc.Float32(sphere[2])
+		enc.Float32(sphere[3])
 	}
 	err := enc.Error()
 	if err != nil {
@@ -51,11 +50,11 @@ func (e *WldFragSphereListDef) Read(r io.ReadSeeker, isNewWorld bool) error {
 	e.Radius = dec.Float32()
 	e.Scale = dec.Float32()
 	for i := uint32(0); i < e.SphereCount; i++ {
-		var sphere model.Quad4
-		sphere.X = dec.Float32()
-		sphere.Y = dec.Float32()
-		sphere.Z = dec.Float32()
-		sphere.W = dec.Float32()
+		var sphere [4]float32
+		sphere[0] = dec.Float32()
+		sphere[1] = dec.Float32()
+		sphere[2] = dec.Float32()
+		sphere[3] = dec.Float32()
 		e.Spheres = append(e.Spheres, sphere)
 	}
 

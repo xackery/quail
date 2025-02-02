@@ -57,13 +57,28 @@ func (a *AsciiWriteToken) SetWriter(tag string) error {
 		tag = "world"
 	}
 
+	isSubfolder := false
 	w, ok := a.writers[tag]
 	if !ok {
 		rootFolder := tag
-		path := filepath.Join(a.basePath, strings.ToLower(rootFolder), strings.ToLower(tag+".wce"))
+		if strings.Contains(rootFolder, "/") {
+			rootFolder = strings.Split(rootFolder, "/")[0]
+			tag = strings.Split(tag, "/")[1]
+			isSubfolder = true
+		} else {
+			if strings.Contains(rootFolder, "_") {
+				rootFolder = strings.Split(rootFolder, "_")[0]
+			}
+		}
+
+    path := filepath.Join(a.basePath, strings.ToLower(rootFolder), strings.ToLower(tag+".wce"))
 		switch tag {
 		case "world", "region":
 			path = filepath.Join(a.basePath, tag+".wce")
+		}
+
+		if isSubfolder {
+			tag = rootFolder + "/" + tag
 		}
 
 		err = a.AddWriter(tag, path)

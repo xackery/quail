@@ -9,7 +9,6 @@ import (
 	"strings"
 
 	"github.com/xackery/quail/helper"
-	"github.com/xackery/quail/model"
 	"github.com/xackery/quail/raw"
 	"github.com/xackery/quail/raw/rawfrag"
 	"github.com/xackery/quail/tree"
@@ -68,7 +67,7 @@ func (wce *Wce) ReadWldRaw(src *raw.Wld) error {
 	return nil
 }
 
-func readRawFrag(e *Wce, rawWld *raw.Wld, fragment model.FragmentReadWriter, folders []string) error {
+func readRawFrag(e *Wce, rawWld *raw.Wld, fragment helper.FragmentReadWriter, folders []string) error {
 	if len(folders) == 0 {
 		folders = []string{"world"}
 	}
@@ -302,7 +301,7 @@ func (wce *Wce) WriteWldRaw(w io.Writer) error {
 		dst.IsNewWorld = true
 	}
 	if dst.Fragments == nil {
-		dst.Fragments = []model.FragmentReadWriter{}
+		dst.Fragments = []helper.FragmentReadWriter{}
 	}
 	dst.NameClear()
 
@@ -520,7 +519,7 @@ func (wce *Wce) WriteWldRaw(w io.Writer) error {
 		}
 	}
 
-	dst.Fragments = append([]model.FragmentReadWriter{&rawfrag.WldFragDefault{}}, dst.Fragments...)
+	dst.Fragments = append([]helper.FragmentReadWriter{&rawfrag.WldFragDefault{}}, dst.Fragments...)
 	return dst.Write(w)
 }
 

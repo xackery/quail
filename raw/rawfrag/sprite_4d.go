@@ -10,9 +10,9 @@ import (
 
 // WldFragSprite4D is Sprite4D in libeq, empty in openzone, 4DSPRITE (ref) in wld
 type WldFragSprite4D struct {
-	nameRef  int32  `yaml:"name_ref"`
-	FourDRef int32  `yaml:"four_d_ref"`
-	Params1  uint32 `yaml:"params_1"`
+	nameRef  int32
+	FourDRef int32
+	Params1  uint32
 }
 
 func (e *WldFragSprite4D) FragCode() int {

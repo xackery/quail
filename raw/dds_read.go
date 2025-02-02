@@ -7,8 +7,8 @@ import (
 
 // Dds takes a raw DDS type and converts it to an image.Image friendly format
 type Dds struct {
-	MetaFileName string `yaml:"file_name"`
-	Data         string `yaml:"data"`
+	MetaFileName string
+	Data         string
 }
 
 // Identity returns the type of the struct

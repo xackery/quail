@@ -7,8 +7,8 @@ import (
 
 // Unk is a fallback type for raw data we can't parse
 type Unk struct {
-	MetaFileName string `yaml:"file_name"`
-	Data         []byte `yaml:"data,omitempty"`
+	MetaFileName string
+	Data         []byte
 }
 
 // Identity returns the type of the struct

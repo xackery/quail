@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/xackery/quail/quail"
 )
@@ -49,13 +48,6 @@ func run() error {
 			fmt.Println(filepath.Base(path), "pfs import:", err)
 			return nil
 			//return fmt.Errorf("pfs import: %w", err)
-		}
-
-		for _, model := range q.Models {
-			if !strings.HasPrefix(strings.ToLower(model.Header.Name), "it") {
-				continue
-			}
-			fmt.Printf("%s|%s\n", model.Header.Name, filepath.Base(path))
 		}
 
 		return nil

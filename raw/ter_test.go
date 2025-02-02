@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/xackery/quail/common"
+	"github.com/xackery/quail/helper"
 	"github.com/xackery/quail/pfs"
 )
 
@@ -16,7 +16,7 @@ func TestTerRead(t *testing.T) {
 	if eqPath == "" {
 		t.Skip("EQ_PATH not set")
 	}
-	dirTest := common.DirTest()
+	dirTest := helper.DirTest()
 	type args struct {
 	}
 
@@ -26,7 +26,7 @@ func TestTerRead(t *testing.T) {
 		wantErr bool
 	}{
 		// .ter|1|ter_temple01.ter|fhalls.eqg
-		//{name: "fhalls.eqg"},
+		{name: "fhalls.eqg"},
 		// .ter|2|ter_abyss01.ter|thenest.eqg
 		// .ter|2|ter_bazaar.ter|bazaar.eqg
 		// .ter|2|ter_upper.ter|riftseekers.eqg
@@ -67,7 +67,7 @@ func TestTerWrite(t *testing.T) {
 	if eqPath == "" {
 		t.Skip("EQ_PATH not set")
 	}
-	//dirTest := common.DirTest()
+	//dirTest := helper.DirTest()
 
 	tests := []struct {
 		eqg  string
@@ -134,8 +134,8 @@ func TestTerWrite(t *testing.T) {
 				t.Fatalf("%s write: vertex count mismatch %d vs %d", tt.name, len(ter2.Vertices), len(ter.Vertices))
 			}
 
-			if len(ter2.Triangles) != len(ter.Triangles) {
-				t.Fatalf("%s write: triangle count mismatch %d vs %d", tt.name, len(ter2.Triangles), len(ter.Triangles))
+			if len(ter2.Faces) != len(ter.Faces) {
+				t.Fatalf("%s write: triangle count mismatch %d vs %d", tt.name, len(ter2.Faces), len(ter.Faces))
 			}
 
 		})

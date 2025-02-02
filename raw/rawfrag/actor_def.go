@@ -12,19 +12,19 @@ import (
 type WldFragActorDef struct {
 	nameRef         int32
 	Flags           uint32
-	CallbackNameRef int32  `yaml:"callback_name_ref"`
-	BoundsRef       int32  // ref to sphere, spherelist or polyhedron
-	CurrentAction   uint32 `yaml:"current_action"`
+	CallbackNameRef int32
+	BoundsRef       int32 // ref to sphere, spherelist or polyhedron
+	CurrentAction   uint32
 	Location        [6]float32
-	Unk1            uint32               `yaml:"unk1"`
-	Actions         []WldFragModelAction `yaml:"actions"`
-	FragmentRefs    []uint32             `yaml:"fragment_refs"`
-	Unk2            uint32               `yaml:"unk2"`
+	Unk1            uint32
+	Actions         []WldFragModelAction
+	FragmentRefs    []uint32
+	Unk2            uint32
 }
 
 type WldFragModelAction struct {
-	Unk1 uint32    `yaml:"unk1"`
-	Lods []float32 `yaml:"lods"`
+	Unk1 uint32
+	Lods []float32
 }
 
 func (e *WldFragActorDef) FragCode() int {

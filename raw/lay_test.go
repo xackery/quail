@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/xackery/quail/common"
+	"github.com/xackery/quail/helper"
 	"github.com/xackery/quail/pfs"
 )
 
@@ -16,7 +16,7 @@ func TestLayRead(t *testing.T) {
 	if eqPath == "" {
 		t.Skip("EQ_PATH not set")
 	}
-	dirTest := common.DirTest()
+	dirTest := helper.DirTest()
 	type args struct {
 	}
 
@@ -25,8 +25,9 @@ func TestLayRead(t *testing.T) {
 		args    args
 		wantErr bool
 	}{
+		{name: "mrd.eqg"},
 		// .lay|2|crs.lay|crs.eqg crs.eqg pfs import: readPrt crs.lay: 1 names materialID 0x41400000 not found
-		{name: "crs.eqg"}, // PASS
+		//{name: "crs.eqg"}, // PASS
 		// .lay|2|ddv.lay|ddv.eqg ddv.eqg pfs import: readPrt ddv.lay: 1 names materialID 0x42800000 not found
 		//{name: "ddv.eqg"}, // PASS
 		// .lay|2|prt.lay|prt.eqg prt.eqg pfs import: readPrt prt.lay: 1 names materialID 0x41400000 not found
@@ -81,7 +82,7 @@ func TestLayWrite(t *testing.T) {
 	if eqPath == "" {
 		t.Skip("EQ_PATH not set")
 	}
-	dirTest := common.DirTest()
+	dirTest := helper.DirTest()
 	type args struct {
 	}
 
@@ -151,19 +152,19 @@ func TestLayWrite(t *testing.T) {
 					t.Fatalf("failed to read %s: %s", tt.name, err.Error())
 				}
 
-				if len(lay.Entries) != len(lay2.Entries) {
-					t.Fatalf("layers mismatch: %d != %d", len(lay.Entries), len(lay2.Entries))
+				if len(lay.Layers) != len(lay2.Layers) {
+					t.Fatalf("layers mismatch: %d != %d", len(lay.Layers), len(lay2.Layers))
 				}
 
-				for i := range lay.Entries {
-					if lay.Entries[i].Material != lay2.Entries[i].Material {
-						t.Fatalf("material mismatch: %s != %s", lay.Entries[i].Material, lay2.Entries[i].Material)
+				for i := range lay.Layers {
+					if lay.Layers[i].Material != lay2.Layers[i].Material {
+						t.Fatalf("material mismatch: %s != %s", lay.Layers[i].Material, lay2.Layers[i].Material)
 					}
-					if lay.Entries[i].Diffuse != lay2.Entries[i].Diffuse {
-						t.Fatalf("diffuse mismatch: %s != %s", lay.Entries[i].Diffuse, lay2.Entries[i].Diffuse)
+					if lay.Layers[i].Diffuse != lay2.Layers[i].Diffuse {
+						t.Fatalf("diffuse mismatch: %s != %s", lay.Layers[i].Diffuse, lay2.Layers[i].Diffuse)
 					}
-					if lay.Entries[i].Normal != lay2.Entries[i].Normal {
-						t.Fatalf("normal mismatch: %s != %s", lay.Entries[i].Normal, lay2.Entries[i].Normal)
+					if lay.Layers[i].Normal != lay2.Layers[i].Normal {
+						t.Fatalf("normal mismatch: %s != %s", lay.Layers[i].Normal, lay2.Layers[i].Normal)
 					}
 				}
 

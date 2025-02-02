@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/xackery/quail/common"
+	"github.com/xackery/quail/helper"
 	"github.com/xackery/quail/pfs"
 )
 
@@ -16,7 +16,7 @@ func TestLitRead(t *testing.T) {
 	if eqPath == "" {
 		t.Skip("EQ_PATH not set")
 	}
-	dirTest := common.DirTest()
+	dirTest := helper.DirTest()
 
 	tests := []struct {
 		name    string
@@ -55,7 +55,7 @@ func TestLitWrite(t *testing.T) {
 	if eqPath == "" {
 		t.Skip("EQ_PATH not set")
 	}
-	dirTest := common.DirTest()
+	dirTest := helper.DirTest()
 
 	tests := []struct {
 		name    string
@@ -102,19 +102,11 @@ func TestLitWrite(t *testing.T) {
 				}
 
 				for i := range lit.Entries {
-					if lit.Entries[i].A != lit2.Entries[i].A {
-						t.Fatalf("a mismatch: %d != %d", lit.Entries[i].A, lit2.Entries[i].A)
+					for j := 0; j < 5; j++ {
+						if lit.Entries[i][j] != lit2.Entries[i][j] {
+							t.Fatalf("layer mismatch: %d != %d", lit.Entries[i][j], lit2.Entries[i][j])
+						}
 					}
-					if lit.Entries[i].R != lit2.Entries[i].R {
-						t.Fatalf("r mismatch: %d != %d", lit.Entries[i].R, lit2.Entries[i].R)
-					}
-					if lit.Entries[i].G != lit2.Entries[i].G {
-						t.Fatalf("g mismatch: %d != %d", lit.Entries[i].G, lit2.Entries[i].G)
-					}
-					if lit.Entries[i].B != lit2.Entries[i].B {
-						t.Fatalf("b mismatch: %d != %d", lit.Entries[i].B, lit2.Entries[i].B)
-					}
-
 				}
 			}
 		})
