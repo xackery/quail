@@ -2,7 +2,6 @@ package wce
 
 import (
 	"fmt"
-	//"sort"
 	"strconv"
 	"strings"
 
@@ -2122,7 +2121,6 @@ func (e *MaterialDef) variationParseFromRaw(wce *Wce, frag *rawfrag.WldFragMater
 			continue
 		}
 		sprite.Variation = 1
-		// sprite.folders = e.folders
 		break
 	}
 
