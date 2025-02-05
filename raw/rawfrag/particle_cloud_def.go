@@ -8,28 +8,36 @@ import (
 	"github.com/xackery/encdec"
 )
 
+const (
+	ParticleCloudFlagHasSpawnBox  = 0x01
+	ParticleCloudFlagHasBox       = 0x02
+	ParticleCloudFlagHasSpriteDef = 0x04
+)
+
 // WldFragParticleCloudDef is ParticleCloudDef in libeq, empty in openzone, empty in wld, WldFragParticleCloudDef in lantern
 type WldFragParticleCloudDef struct {
-	nameRef               int32
-	SettingOne            uint32
-	SettingTwo            uint32
-	ParticleMovement      uint32 // 0x01 sphere, 0x02 plane, 0x03 stream, 0x04 none
-	Flags                 uint32 //Flag 1, High Opacity, Flag 3, Follows Item
-	SimultaneousParticles uint32
-	Unk6                  uint32
-	Unk7                  uint32
-	Unk8                  uint32
-	Unk9                  uint32
-	Unk10                 uint32
-	SpawnRadius           float32 // sphere radius
-	SpawnAngle            float32 // cone angle
-	SpawnLifespan         uint32
-	SpawnVelocity         float32
-	SpawnNormal           [3]float32
-	SpawnRate             uint32
-	SpawnScale            float32
-	Color                 [4]uint8
-	BlitSpriteRef         uint32
+	nameRef                 int32
+	Flags                   uint32
+	ParticleType            uint32
+	SpawnType               uint32 // 0x01 sphere, 0x02 plane, 0x03 stream, 0x04 none
+	PCloudFlags             uint32 //Flag 1, High Opacity, Flag 3, Follows Item
+	Size                    uint32
+	GravityMultiplier       float32
+	Gravity                 [3]float32
+	Duration                uint32
+	SpawnRadius             float32 // sphere radius
+	SpawnAngle              float32 // cone angle
+	Lifespan                uint32
+	SpawnVelocityMultiplier float32
+	SpawnVelocity           [3]float32
+	SpawnRate               uint32
+	SpawnScale              float32
+	Tint                    [4]uint8
+	SpawnBoxMin             [3]float32
+	SpawnBoxMax             [3]float32
+	BoxMin                  [3]float32
+	BoxMax                  [3]float32
+	BlitSpriteRef           uint32
 }
 
 func (e *WldFragParticleCloudDef) FragCode() int {
@@ -39,33 +47,50 @@ func (e *WldFragParticleCloudDef) FragCode() int {
 func (e *WldFragParticleCloudDef) Write(w io.Writer, isNewWorld bool) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
 	enc.Int32(e.nameRef)
-	enc.Uint32(e.SettingOne)
-	enc.Uint32(e.SettingTwo)
-	enc.Uint32(e.ParticleMovement)
 	enc.Uint32(e.Flags)
-	enc.Uint32(e.SimultaneousParticles)
-	enc.Uint32(e.Unk6)
-	enc.Uint32(e.Unk7)
-	enc.Uint32(e.Unk8)
-	enc.Uint32(e.Unk9)
-	enc.Uint32(e.Unk10)
+	enc.Uint32(e.ParticleType)
+	enc.Uint32(e.SpawnType)
+	enc.Uint32(e.PCloudFlags)
+	enc.Uint32(e.Size)
+	enc.Float32(e.GravityMultiplier)
+	enc.Float32(e.Gravity[0])
+	enc.Float32(e.Gravity[1])
+	enc.Float32(e.Gravity[2])
+	enc.Uint32(e.Duration)
 	enc.Float32(e.SpawnRadius)
 	enc.Float32(e.SpawnAngle)
-	enc.Uint32(e.SpawnLifespan)
-	enc.Float32(e.SpawnVelocity)
-	enc.Float32(e.SpawnNormal[0])
-	enc.Float32(e.SpawnNormal[1])
-	enc.Float32(e.SpawnNormal[2])
-
+	enc.Uint32(e.Lifespan)
+	enc.Float32(e.SpawnVelocityMultiplier)
+	enc.Float32(e.SpawnVelocity[0])
+	enc.Float32(e.SpawnVelocity[1])
+	enc.Float32(e.SpawnVelocity[2])
 	enc.Uint32(e.SpawnRate)
 	enc.Float32(e.SpawnScale)
+	enc.Uint8(e.Tint[0])
+	enc.Uint8(e.Tint[1])
+	enc.Uint8(e.Tint[2])
+	enc.Uint8(e.Tint[3])
+	if e.Flags&ParticleCloudFlagHasSpawnBox != 0 {
+		enc.Float32(e.SpawnBoxMin[0])
+		enc.Float32(e.SpawnBoxMin[1])
+		enc.Float32(e.SpawnBoxMin[2])
+		enc.Float32(e.SpawnBoxMax[0])
+		enc.Float32(e.SpawnBoxMax[1])
+		enc.Float32(e.SpawnBoxMax[2])
+	}
+	if e.Flags&ParticleCloudFlagHasBox != 0 {
+		enc.Float32(e.BoxMin[0])
+		enc.Float32(e.BoxMin[1])
+		enc.Float32(e.BoxMin[2])
+		enc.Float32(e.BoxMax[0])
+		enc.Float32(e.BoxMax[1])
+		enc.Float32(e.BoxMax[2])
+	}
 
-	enc.Uint8(e.Color[0])
-	enc.Uint8(e.Color[1])
-	enc.Uint8(e.Color[2])
-	enc.Uint8(e.Color[3])
+	if e.Flags&ParticleCloudFlagHasSpriteDef != 0 {
+		enc.Uint32(e.BlitSpriteRef)
+	}
 
-	enc.Uint32(e.BlitSpriteRef)
 	err := enc.Error()
 	if err != nil {
 		return fmt.Errorf("write: %w", err)
@@ -77,25 +102,34 @@ func (e *WldFragParticleCloudDef) Write(w io.Writer, isNewWorld bool) error {
 func (e *WldFragParticleCloudDef) Read(r io.ReadSeeker, isNewWorld bool) error {
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	e.nameRef = dec.Int32()
-	e.SettingOne = dec.Uint32()
-	e.SettingTwo = dec.Uint32()
-	e.ParticleMovement = dec.Uint32()
 	e.Flags = dec.Uint32()
-	e.SimultaneousParticles = dec.Uint32()
-	e.Unk6 = dec.Uint32()
-	e.Unk7 = dec.Uint32()
-	e.Unk8 = dec.Uint32()
-	e.Unk9 = dec.Uint32()
-	e.Unk10 = dec.Uint32()
+	e.ParticleType = dec.Uint32()
+	e.SpawnType = dec.Uint32()
+	e.PCloudFlags = dec.Uint32()
+	e.Size = dec.Uint32()
+	e.GravityMultiplier = dec.Float32()
+	e.Gravity = [3]float32{dec.Float32(), dec.Float32(), dec.Float32()}
+	e.Duration = dec.Uint32()
 	e.SpawnRadius = dec.Float32()
 	e.SpawnAngle = dec.Float32()
-	e.SpawnLifespan = dec.Uint32()
-	e.SpawnVelocity = dec.Float32()
-	e.SpawnNormal = [3]float32{dec.Float32(), dec.Float32(), dec.Float32()}
+	e.Lifespan = dec.Uint32()
+	e.SpawnVelocityMultiplier = dec.Float32()
+	e.SpawnVelocity = [3]float32{dec.Float32(), dec.Float32(), dec.Float32()}
 	e.SpawnRate = dec.Uint32()
 	e.SpawnScale = dec.Float32()
-	e.Color = [4]uint8{dec.Uint8(), dec.Uint8(), dec.Uint8(), dec.Uint8()}
-	e.BlitSpriteRef = dec.Uint32()
+	e.Tint = [4]uint8{dec.Uint8(), dec.Uint8(), dec.Uint8(), dec.Uint8()}
+
+	if e.Flags&ParticleCloudFlagHasSpawnBox != 0 {
+		e.SpawnBoxMin = [3]float32{dec.Float32(), dec.Float32(), dec.Float32()}
+		e.SpawnBoxMax = [3]float32{dec.Float32(), dec.Float32(), dec.Float32()}
+	}
+	if e.Flags&ParticleCloudFlagHasBox != 0 {
+		e.BoxMin = [3]float32{dec.Float32(), dec.Float32(), dec.Float32()}
+		e.BoxMax = [3]float32{dec.Float32(), dec.Float32(), dec.Float32()}
+	}
+	if e.Flags&ParticleCloudFlagHasSpriteDef != 0 {
+		e.BlitSpriteRef = dec.Uint32()
+	}
 	err := dec.Error()
 	if err != nil {
 		return fmt.Errorf("read: %w", err)
