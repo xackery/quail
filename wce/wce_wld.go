@@ -7288,6 +7288,10 @@ func (e *ParticleCloudDef) Write(token *AsciiWriteToken) error {
 		fmt.Fprintf(w, "\tSPAWNRATE %d\n", e.SpawnRate)
 		fmt.Fprintf(w, "\tSPAWNSCALE %0.8e\n", e.SpawnScale)
 		fmt.Fprintf(w, "\tTINT %d %d %d %d\n", e.Tint[0], e.Tint[1], e.Tint[2], e.Tint[3])
+		fmt.Fprintf(w, "\tSPAWNBOXMIN? %s\n", wcVal(e.SpawnBoxMin))
+		fmt.Fprintf(w, "\tSPAWNBOXMAX? %s\n", wcVal(e.SpawnBoxMax))
+		fmt.Fprintf(w, "\tBOXMIN? %s\n", wcVal(e.BoxMin))
+		fmt.Fprintf(w, "\tBOXMAX? %s\n", wcVal(e.BoxMax))
 		fmt.Fprintf(w, "\tHEXEIGHTYFLAG %d\n", e.HexEightyFlag)
 		fmt.Fprintf(w, "\tHEXONEHUNDREDFLAG %d\n", e.HexOneHundredFlag)
 		fmt.Fprintf(w, "\tHEXFOURHUNDREDFLAG %d\n", e.HexFourHundredFlag)
@@ -7473,6 +7477,46 @@ func (e *ParticleCloudDef) Read(token *AsciiReadToken) error {
 	err = parse(&e.Tint, records[1:]...)
 	if err != nil {
 		return fmt.Errorf("tint: %w", err)
+	}
+
+	records, err = token.ReadProperty("SPAWNBOXMIN?", 3)
+	if err != nil {
+		return err
+	}
+
+	err = parse(&e.SpawnBoxMin, records[1])
+	if err != nil {
+		return fmt.Errorf("spawn box min: %w", err)
+	}
+
+	records, err = token.ReadProperty("SPAWNBOXMAX?", 3)
+	if err != nil {
+		return err
+	}
+
+	err = parse(&e.SpawnBoxMax, records[1])
+	if err != nil {
+		return fmt.Errorf("spawn box max: %w", err)
+	}
+
+	records, err = token.ReadProperty("BOXMIN?", 3)
+	if err != nil {
+		return err
+	}
+
+	err = parse(&e.BoxMin, records[1])
+	if err != nil {
+		return fmt.Errorf("box min: %w", err)
+	}
+
+	records, err = token.ReadProperty("BOXMAX?", 3)
+	if err != nil {
+		return err
+	}
+
+	err = parse(&e.BoxMax, records[1])
+	if err != nil {
+		return fmt.Errorf("box max: %w", err)
 	}
 
 	records, err = token.ReadProperty("HEXEIGHTYFLAG", 1)
