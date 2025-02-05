@@ -7210,37 +7210,38 @@ func (e *RGBTrackDef) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragDm
 }
 
 type ParticleCloudDef struct {
-	folders               []string // when writing, this is the folder the file is in
-	fragID                int16
-	Tag                   string
-	TagIndex              int
-	BlitSpriteDefTag      string
-	SettingOne            uint32
-	SettingTwo            uint32
-	Movement              string
-	HighOpacity           int
-	FollowItem            int
-	SimultaneousParticles uint32
-	UnkSix                uint32
-	UnkSeven              uint32
-	UnkEight              uint32
-	UnkNine               uint32
-	UnkTen                uint32
-	SpawnRadius           float32
-	SpawnAngle            float32
-	SpawnLifespan         uint32
-	SpawnVelocity         float32
-	SpawnNormal           [3]float32
-	SpawnRate             uint32
-	SpawnScale            float32
-	Color                 [4]uint8
-	HexEightyFlag         int
-	HexOneHundredFlag     int
-	HexFourHundredFlag    int
-	HexFourThousandFlag   int
-	HexEightThousandFlag  int
-	HexTenThousandFlag    int
-	HexTwentyThousandFlag int
+	folders                 []string // when writing, this is the folder the file is in
+	fragID                  int16
+	Tag                     string
+	TagIndex                int
+	BlitSpriteDefTag        string
+	ParticleType            uint32
+	SpawnType               string
+	Size                    uint32
+	GravityMultiplier       float32
+	Gravity                 [3]float32
+	Duration                uint32
+	SpawnRadius             float32 // sphere radius
+	SpawnAngle              float32 // cone angle
+	Lifespan                uint32
+	SpawnVelocityMultiplier float32
+	SpawnVelocity           [3]float32
+	SpawnRate               uint32
+	SpawnScale              float32
+	Tint                    [4]uint8
+	HighOpacity             int
+	FollowItem              int
+	HexEightyFlag           int
+	HexOneHundredFlag       int
+	HexFourHundredFlag      int
+	HexFourThousandFlag     int
+	HexEightThousandFlag    int
+	HexTenThousandFlag      int
+	HexTwentyThousandFlag   int
+	SpawnBoxMin             NullFloat32Slice3
+	SpawnBoxMax             NullFloat32Slice3
+	BoxMin                  NullFloat32Slice3
+	BoxMax                  NullFloat32Slice3
 }
 
 func (e *ParticleCloudDef) Definition() string {
@@ -7271,26 +7272,22 @@ func (e *ParticleCloudDef) Write(token *AsciiWriteToken) error {
 		fmt.Fprintf(w, "%s \"%s\"\n", e.Definition(), e.Tag)
 		fmt.Fprintf(w, "\tTAGINDEX %d\n", e.TagIndex)
 		fmt.Fprintf(w, "\tBLITTAG \"%s\"\n", e.BlitSpriteDefTag)
-		fmt.Fprintf(w, "\tSETTINGONE %d\n", e.SettingOne)
-		fmt.Fprintf(w, "\tSETTINGTWO %d\n", e.SettingTwo)
-		fmt.Fprintf(w, "\tMOVEMENT \"%s\" // SPHERE, PLANE, STREAM, NONE\n", e.Movement)
+		fmt.Fprintf(w, "\tPARTICLETYPE %d\n", e.ParticleType)
+		fmt.Fprintf(w, "\tMOVEMENT \"%s\" // SPHERE, PLANE, STREAM, NONE\n", e.SpawnType)
 		fmt.Fprintf(w, "\tHIGHOPACITY %d\n", e.HighOpacity)
 		fmt.Fprintf(w, "\tFOLLOWITEM %d\n", e.FollowItem)
-		fmt.Fprintf(w, "\tSIMULTANEOUSPARTICLES %d\n", e.SimultaneousParticles)
-		fmt.Fprintf(w, "\tUNKSIX %d\n", e.UnkSix)
-		fmt.Fprintf(w, "\tUNKSEVEN %d\n", e.UnkSeven)
-		fmt.Fprintf(w, "\tUNKEIGHT %d\n", e.UnkEight)
-		fmt.Fprintf(w, "\tUNKNINE %d\n", e.UnkNine)
-		fmt.Fprintf(w, "\tUNKTEN %d\n", e.UnkTen)
-		fmt.Fprintf(w, "\tSPAWN\n")
-		fmt.Fprintf(w, "\t\tRADIUS %0.8e\n", e.SpawnRadius)
-		fmt.Fprintf(w, "\t\tANGLE %0.8e\n", e.SpawnAngle)
-		fmt.Fprintf(w, "\t\tLIFESPAN %d\n", e.SpawnLifespan)
-		fmt.Fprintf(w, "\t\tVELOCITY %0.8e\n", e.SpawnVelocity)
-		fmt.Fprintf(w, "\t\tNORMALXYZ %0.8e %0.8e %0.8e\n", e.SpawnNormal[0], e.SpawnNormal[1], e.SpawnNormal[2])
-		fmt.Fprintf(w, "\t\tRATE %d\n", e.SpawnRate)
-		fmt.Fprintf(w, "\t\tSCALE %0.8e\n", e.SpawnScale)
-		fmt.Fprintf(w, "\tCOLOR %d %d %d %d\n", e.Color[0], e.Color[1], e.Color[2], e.Color[3])
+		fmt.Fprintf(w, "\tSIZE %d\n", e.Size)
+		fmt.Fprintf(w, "\tGRAVITYMULTIPLIER %0.8e\n", e.GravityMultiplier)
+		fmt.Fprintf(w, "\tGRAVITY %0.8e %0.8e %0.8e\n", e.Gravity[0], e.Gravity[1], e.Gravity[2])
+		fmt.Fprintf(w, "\tDURATION %d\n", e.Duration)
+		fmt.Fprintf(w, "\tSPAWNRADIUS %0.8e\n", e.SpawnRadius)
+		fmt.Fprintf(w, "\tSPAWNANGLE %0.8e\n", e.SpawnAngle)
+		fmt.Fprintf(w, "\tLIFESPAN %d\n", e.Lifespan)
+		fmt.Fprintf(w, "\tSPAWNVELOCITYMULTIPLIER %0.8e\n", e.SpawnVelocityMultiplier)
+		fmt.Fprintf(w, "\tSPAWNVELOCITY %0.8e %0.8e %0.8e\n", e.SpawnVelocity[0], e.SpawnVelocity[1], e.SpawnVelocity[2])
+		fmt.Fprintf(w, "\tSPAWNRATE %d\n", e.SpawnRate)
+		fmt.Fprintf(w, "\tSPAWNSCALE %0.8e\n", e.SpawnScale)
+		fmt.Fprintf(w, "\tTINT %d %d %d %d\n", e.Tint[0], e.Tint[1], e.Tint[2], e.Tint[3])
 		fmt.Fprintf(w, "\tHEXEIGHTYFLAG %d\n", e.HexEightyFlag)
 		fmt.Fprintf(w, "\tHEXONEHUNDREDFLAG %d\n", e.HexOneHundredFlag)
 		fmt.Fprintf(w, "\tHEXFOURHUNDREDFLAG %d\n", e.HexFourHundredFlag)
@@ -7322,34 +7319,28 @@ func (e *ParticleCloudDef) Read(token *AsciiReadToken) error {
 	}
 	e.BlitSpriteDefTag = records[1]
 
-	records, err = token.ReadProperty("SETTINGONE", 1)
+	records, err = token.ReadProperty("PARTICLETYPE", 1)
 	if err != nil {
 		return err
-	}
-	err = parse(&e.SettingOne, records[1])
-	if err != nil {
-		return fmt.Errorf("setting one: %w", err)
 	}
 
-	records, err = token.ReadProperty("SETTINGTWO", 1)
+	err = parse(&e.ParticleType, records[1])
 	if err != nil {
-		return err
-	}
-	err = parse(&e.SettingTwo, records[1])
-	if err != nil {
-		return fmt.Errorf("setting two: %w", err)
+		return fmt.Errorf("particle type: %w", err)
 	}
 
 	records, err = token.ReadProperty("MOVEMENT", 1)
 	if err != nil {
 		return err
 	}
-	e.Movement = records[1]
+
+	e.SpawnType = records[1]
 
 	records, err = token.ReadProperty("HIGHOPACITY", 1)
 	if err != nil {
 		return err
 	}
+
 	err = parse(&e.HighOpacity, records[1])
 	if err != nil {
 		return fmt.Errorf("high opacity: %w", err)
@@ -7364,78 +7355,61 @@ func (e *ParticleCloudDef) Read(token *AsciiReadToken) error {
 		return fmt.Errorf("follow item: %w", err)
 	}
 
-	records, err = token.ReadProperty("SIMULTANEOUSPARTICLES", 1)
-	if err != nil {
-		return err
-	}
-	err = parse(&e.SimultaneousParticles, records[1])
-	if err != nil {
-		return fmt.Errorf("simultaneous particles: %w", err)
-	}
-
-	records, err = token.ReadProperty("UNKSIX", 1)
-	if err != nil {
-		return err
-	}
-	err = parse(&e.UnkSix, records[1])
-	if err != nil {
-		return fmt.Errorf("unk six: %w", err)
-	}
-
-	records, err = token.ReadProperty("UNKSEVEN", 1)
-	if err != nil {
-		return err
-	}
-	err = parse(&e.UnkSeven, records[1])
-	if err != nil {
-		return fmt.Errorf("unk seven: %w", err)
-	}
-
-	records, err = token.ReadProperty("UNKEIGHT", 1)
-	if err != nil {
-		return err
-	}
-	err = parse(&e.UnkEight, records[1])
-	if err != nil {
-		return fmt.Errorf("unk eight: %w", err)
-	}
-
-	records, err = token.ReadProperty("UNKNINE", 1)
-	if err != nil {
-		return err
-	}
-	err = parse(&e.UnkNine, records[1])
-	if err != nil {
-		return fmt.Errorf("unk nine: %w", err)
-	}
-
-	records, err = token.ReadProperty("UNKTEN", 1)
-	if err != nil {
-		return err
-	}
-	err = parse(&e.UnkTen, records[1])
-	if err != nil {
-		return fmt.Errorf("unk ten: %w", err)
-	}
-
-	_, err = token.ReadProperty("SPAWN", 0)
+	records, err = token.ReadProperty("SIZE", 1)
 	if err != nil {
 		return err
 	}
 
-	records, err = token.ReadProperty("RADIUS", 1)
+	err = parse(&e.Size, records[1])
+	if err != nil {
+		return fmt.Errorf("size: %w", err)
+	}
+
+	records, err = token.ReadProperty("GRAVITYMULTIPLIER", 1)
 	if err != nil {
 		return err
 	}
+
+	err = parse(&e.GravityMultiplier, records[1])
+	if err != nil {
+		return fmt.Errorf("gravity multiplier: %w", err)
+	}
+
+	records, err = token.ReadProperty("GRAVITY", 3)
+	if err != nil {
+		return err
+	}
+
+	err = parse(&e.Gravity, records[1:]...)
+	if err != nil {
+		return fmt.Errorf("gravity: %w", err)
+	}
+
+	records, err = token.ReadProperty("DURATION", 1)
+	if err != nil {
+		return err
+	}
+
+	err = parse(&e.Duration, records[1])
+	if err != nil {
+		return fmt.Errorf("duration: %w", err)
+	}
+
+	records, err = token.ReadProperty("SPAWNRADIUS", 1)
+	if err != nil {
+		return err
+	}
+
 	err = parse(&e.SpawnRadius, records[1])
 	if err != nil {
 		return fmt.Errorf("spawn radius: %w", err)
 	}
 
-	records, err = token.ReadProperty("ANGLE", 1)
+	records, err = token.ReadProperty("SPAWNANGLE", 1)
 	if err != nil {
 		return err
 	}
+
 	err = parse(&e.SpawnAngle, records[1])
 	if err != nil {
 		return fmt.Errorf("spawn angle: %w", err)
@@ -7445,39 +7419,43 @@ func (e *ParticleCloudDef) Read(token *AsciiReadToken) error {
 	if err != nil {
 		return err
 	}
-	err = parse(&e.SpawnLifespan, records[1])
+
+	err = parse(&e.Lifespan, records[1])
 	if err != nil {
-		return fmt.Errorf("spawn lifespan: %w", err)
+		return fmt.Errorf("lifespan: %w", err)
 	}
 
-	records, err = token.ReadProperty("VELOCITY", 1)
+	records, err = token.ReadProperty("SPAWNVELOCITYMULTIPLIER", 1)
 	if err != nil {
 		return err
 	}
-	err = parse(&e.SpawnVelocity, records[1])
+
+	err = parse(&e.SpawnVelocityMultiplier, records[1])
+	if err != nil {
+		return fmt.Errorf("spawn velocity multiplier: %w", err)
+	}
+
+	records, err = token.ReadProperty("SPAWNVELOCITY", 3)
+	if err != nil {
+		return err
+	}
+
+	err = parse(&e.SpawnVelocity, records[1:]...)
 	if err != nil {
 		return fmt.Errorf("spawn velocity: %w", err)
 	}
 
-	records, err = token.ReadProperty("NORMALXYZ", 3)
+	records, err = token.ReadProperty("SPAWNRATE", 1)
 	if err != nil {
 		return err
-	}
-	err = parse(&e.SpawnNormal, records[1:]...)
-	if err != nil {
-		return fmt.Errorf("spawn normal: %w", err)
 	}
 
-	records, err = token.ReadProperty("RATE", 1)
-	if err != nil {
-		return err
-	}
 	err = parse(&e.SpawnRate, records[1])
 	if err != nil {
 		return fmt.Errorf("spawn rate: %w", err)
 	}
 
-	records, err = token.ReadProperty("SCALE", 1)
+	records, err = token.ReadProperty("SPAWNSCALE", 1)
 	if err != nil {
 		return err
 	}
@@ -7487,13 +7465,14 @@ func (e *ParticleCloudDef) Read(token *AsciiReadToken) error {
 		return fmt.Errorf("spawn scale: %w", err)
 	}
 
-	records, err = token.ReadProperty("COLOR", 4)
+	records, err = token.ReadProperty("TINT", 4)
 	if err != nil {
 		return err
 	}
-	err = parse(&e.Color, records[1:]...)
+
+	err = parse(&e.Tint, records[1:]...)
 	if err != nil {
-		return fmt.Errorf("color: %w", err)
+		return fmt.Errorf("tint: %w", err)
 	}
 
 	records, err = token.ReadProperty("HEXEIGHTYFLAG", 1)
@@ -7567,91 +7546,114 @@ func (e *ParticleCloudDef) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
 		return e.fragID, nil
 	}
 	wfParticleCloud := &rawfrag.WldFragParticleCloudDef{
-		SettingOne:            e.SettingOne,
-		SettingTwo:            e.SettingTwo,
-		SimultaneousParticles: e.SimultaneousParticles,
-		Unk6:                  e.UnkSix,
-		Unk7:                  e.UnkSeven,
-		Unk8:                  e.UnkEight,
-		Unk9:                  e.UnkNine,
-		Unk10:                 e.UnkTen,
-		SpawnRadius:           e.SpawnRadius,
-		SpawnAngle:            e.SpawnAngle,
-		SpawnLifespan:         e.SpawnLifespan,
-		SpawnVelocity:         e.SpawnVelocity,
-		SpawnNormal:           e.SpawnNormal,
-		SpawnRate:             e.SpawnRate,
-		SpawnScale:            e.SpawnScale,
-		Color:                 e.Color,
+		ParticleType:            e.ParticleType,
+		Size:                    e.Size,
+		GravityMultiplier:       e.GravityMultiplier,
+		Gravity:                 e.Gravity,
+		Duration:                e.Duration,
+		SpawnRadius:             e.SpawnRadius,
+		SpawnAngle:              e.SpawnAngle,
+		Lifespan:                e.Lifespan,
+		SpawnVelocityMultiplier: e.SpawnVelocityMultiplier,
+		SpawnVelocity:           e.SpawnVelocity,
+		SpawnRate:               e.SpawnRate,
+		SpawnScale:              e.SpawnScale,
+		Tint:                    e.Tint,
 	}
 
 	if e.HighOpacity != 0 {
-		wfParticleCloud.Flags |= 0x01
+		wfParticleCloud.PCloudFlags |= 0x01
 	}
 	if e.FollowItem != 0 {
-		wfParticleCloud.Flags |= 0x02
+		wfParticleCloud.PCloudFlags |= 0x02
 	}
 
 	if e.HexEightyFlag != 0 {
-		wfParticleCloud.Flags |= 0x80
+		wfParticleCloud.PCloudFlags |= 0x80
 	}
 
 	if e.HexOneHundredFlag != 0 {
-		wfParticleCloud.Flags |= 0x100
+		wfParticleCloud.PCloudFlags |= 0x100
 	}
 
 	if e.HexFourHundredFlag != 0 {
-		wfParticleCloud.Flags |= 0x400
+		wfParticleCloud.PCloudFlags |= 0x400
 	}
 
 	if e.HexFourThousandFlag != 0 {
-		wfParticleCloud.Flags |= 0x4000
+		wfParticleCloud.PCloudFlags |= 0x4000
 	}
 
 	if e.HexEightThousandFlag != 0 {
-		wfParticleCloud.Flags |= 0x8000
+		wfParticleCloud.PCloudFlags |= 0x8000
 	}
 
 	if e.HexTenThousandFlag != 0 {
-		wfParticleCloud.Flags |= 0x10000
+		wfParticleCloud.PCloudFlags |= 0x10000
 	}
 
 	if e.HexTwentyThousandFlag != 0 {
-		wfParticleCloud.Flags |= 0x20000
+		wfParticleCloud.PCloudFlags |= 0x20000
 	}
 
-	switch e.Movement {
+	switch e.SpawnType {
 	case "SPHERE":
-		wfParticleCloud.ParticleMovement = 1
+		wfParticleCloud.SpawnType = 1
 	case "PLANE":
-		wfParticleCloud.ParticleMovement = 2
+		wfParticleCloud.SpawnType = 2
 	case "STREAM":
-		wfParticleCloud.ParticleMovement = 3
+		wfParticleCloud.SpawnType = 3
 	case "NONE":
-		wfParticleCloud.ParticleMovement = 4
+		wfParticleCloud.SpawnType = 4
 	default:
-		return 0, fmt.Errorf("unknown movement type %s", e.Movement)
+		return 0, fmt.Errorf("unknown spawn type %s", e.SpawnType)
 	}
 
-	if e.BlitSpriteDefTag == "" {
-		return 0, fmt.Errorf("blit sprite def tag not set")
+	if e.SpawnBoxMin.Valid {
+		if !e.SpawnBoxMax.Valid {
+			return 0, fmt.Errorf("spawn box min set but not max")
+		}
+
+		wfParticleCloud.Flags |= rawfrag.ParticleCloudFlagHasSpawnBox
+		wfParticleCloud.SpawnBoxMin = e.SpawnBoxMin.Float32Slice3
+	}
+	if e.SpawnBoxMax.Valid && !e.SpawnBoxMin.Valid {
+		return 0, fmt.Errorf("spawn box max set but not min")
 	}
 
-	blit := wce.ByTag(e.BlitSpriteDefTag)
-	if blit == nil {
-		return 0, fmt.Errorf("blit sprite def not found: %s", e.BlitSpriteDefTag)
+	if e.BoxMin.Valid {
+		if !e.BoxMax.Valid {
+			return 0, fmt.Errorf("box min set but not max")
+		}
+
+		wfParticleCloud.Flags |= rawfrag.ParticleCloudFlagHasBox
+		wfParticleCloud.BoxMin = e.BoxMin.Float32Slice3
 	}
 
-	blitFragID, err := blit.ToRaw(wce, rawWld)
-	if err != nil {
-		return 0, fmt.Errorf("blit sprite def to raw: %w", err)
+	if e.BoxMax.Valid && !e.BoxMin.Valid {
+		return 0, fmt.Errorf("box max set but not min")
 	}
 
-	blitSpriteDefRef := uint32(blitFragID)
+	if e.BlitSpriteDefTag != "" {
 
-	wfParticleCloud.BlitSpriteRef = blitSpriteDefRef
+		blit := wce.ByTag(e.BlitSpriteDefTag)
+		if blit == nil {
+			return 0, fmt.Errorf("blit sprite def not found: %s", e.BlitSpriteDefTag)
+		}
 
-	wfParticleCloud.SetNameRef(rawWld.NameAdd(e.Tag))
+		blitFragID, err := blit.ToRaw(wce, rawWld)
+		if err != nil {
+			return 0, fmt.Errorf("blit sprite def to raw: %w", err)
+		}
+
+		blitSpriteDefRef := uint32(blitFragID)
+
+		wfParticleCloud.BlitSpriteRef = blitSpriteDefRef
+
+		wfParticleCloud.SetNameRef(rawWld.NameAdd(e.Tag))
+
+		wfParticleCloud.Flags |= rawfrag.ParticleCloudFlagHasSpriteDef
+	}
 
 	rawWld.Fragments = append(rawWld.Fragments, wfParticleCloud)
 	e.fragID = int16(len(rawWld.Fragments))
@@ -7668,78 +7670,86 @@ func (e *ParticleCloudDef) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldF
 	if len(rawWld.Fragments) < int(frag.BlitSpriteRef) {
 		return fmt.Errorf("blit sprite def ref %d out of bounds", frag.BlitSpriteRef)
 	}
-	bSprite, ok := rawWld.Fragments[frag.BlitSpriteRef].(*rawfrag.WldFragBlitSpriteDef)
-	if !ok {
-		return fmt.Errorf("blit sprite def ref %d not found", frag.BlitSpriteRef)
-	}
 
-	e.BlitSpriteDefTag = rawWld.Name(bSprite.NameRef())
-
-	if len(rawWld.Fragments) < int(bSprite.SpriteInstanceRef) {
-		return fmt.Errorf("sprite instance ref %d out of bounds", bSprite.SpriteInstanceRef)
-	}
-	sSprite, ok := rawWld.Fragments[bSprite.SpriteInstanceRef].(*rawfrag.WldFragSimpleSprite)
-	if !ok {
-		return fmt.Errorf("sprite instance ref %d not found", bSprite.SpriteInstanceRef)
-	}
-	if len(rawWld.Fragments) < int(sSprite.SpriteRef) {
-		return fmt.Errorf("sprite def ref %d out of bounds", sSprite.SpriteRef)
-	}
-	e.SettingOne = frag.SettingOne
-	e.SettingTwo = frag.SettingTwo
-	switch frag.ParticleMovement {
+	e.ParticleType = frag.ParticleType
+	switch frag.SpawnType {
 	case 1:
-		e.Movement = "SPHERE"
+		e.SpawnType = "SPHERE"
 	case 2:
-		e.Movement = "PLANE"
+		e.SpawnType = "PLANE"
 	case 3:
-		e.Movement = "STREAM"
+		e.SpawnType = "STREAM"
 	case 4:
-		e.Movement = "NONE"
+		e.SpawnType = "NONE"
 	default:
-		return fmt.Errorf("unknown movement type %d", frag.ParticleMovement)
+		return fmt.Errorf("unknown movement type %d", frag.SpawnType)
 	}
-	if frag.Flags&0x01 != 0 {
-		e.HighOpacity = 1
-	}
-	if frag.Flags&0x02 != 0 {
-		e.FollowItem = 1
-	}
-	if frag.Flags&0x80 != 0 {
-		e.HexEightyFlag = 1
-	}
-	if frag.Flags&0x100 != 0 {
-		e.HexOneHundredFlag = 1
-	}
-	if frag.Flags&0x400 != 0 {
-		e.HexFourHundredFlag = 1
-	}
-	if frag.Flags&0x4000 != 0 {
-		e.HexFourThousandFlag = 1
-	}
-	if frag.Flags&0x8000 != 0 {
-		e.HexEightThousandFlag = 1
-	}
-	if frag.Flags&0x10000 != 0 {
-		e.HexTenThousandFlag = 1
-	}
-	if frag.Flags&0x20000 != 0 {
-		e.HexTwentyThousandFlag = 1
-	}
-	e.SimultaneousParticles = frag.SimultaneousParticles
-	e.UnkSix = frag.Unk6
-	e.UnkSeven = frag.Unk7
-	e.UnkEight = frag.Unk8
-	e.UnkNine = frag.Unk9
-	e.UnkTen = frag.Unk10
+	e.Size = frag.Size
+	e.GravityMultiplier = frag.GravityMultiplier
+	e.Gravity = frag.Gravity
+	e.Duration = frag.Duration
 	e.SpawnRadius = frag.SpawnRadius
 	e.SpawnAngle = frag.SpawnAngle
-	e.SpawnLifespan = frag.SpawnLifespan
+	e.Lifespan = frag.Lifespan
+	e.SpawnVelocityMultiplier = frag.SpawnVelocityMultiplier
 	e.SpawnVelocity = frag.SpawnVelocity
-	e.SpawnNormal = frag.SpawnNormal
 	e.SpawnRate = frag.SpawnRate
 	e.SpawnScale = frag.SpawnScale
-	e.Color = frag.Color
+	e.Tint = frag.Tint
+
+	if frag.PCloudFlags&0x01 != 0 {
+		e.HighOpacity = 1
+	}
+	if frag.PCloudFlags&0x02 != 0 {
+		e.FollowItem = 1
+	}
+	if frag.PCloudFlags&0x80 != 0 {
+		e.HexEightyFlag = 1
+	}
+	if frag.PCloudFlags&0x100 != 0 {
+		e.HexOneHundredFlag = 1
+	}
+	if frag.PCloudFlags&0x400 != 0 {
+		e.HexFourHundredFlag = 1
+	}
+	if frag.PCloudFlags&0x4000 != 0 {
+		e.HexFourThousandFlag = 1
+	}
+	if frag.PCloudFlags&0x8000 != 0 {
+		e.HexEightThousandFlag = 1
+	}
+	if frag.PCloudFlags&0x10000 != 0 {
+		e.HexTenThousandFlag = 1
+	}
+	if frag.PCloudFlags&0x20000 != 0 {
+		e.HexTwentyThousandFlag = 1
+	}
+
+	if frag.Flags&rawfrag.ParticleCloudFlagHasSpawnBox != 0 {
+		e.SpawnBoxMin = NullFloat32Slice3{Valid: true, Float32Slice3: frag.SpawnBoxMin}
+		e.SpawnBoxMax = NullFloat32Slice3{Valid: true, Float32Slice3: frag.SpawnBoxMax}
+	}
+	if frag.Flags&rawfrag.ParticleCloudFlagHasBox != 0 {
+		e.BoxMin = NullFloat32Slice3{Valid: true, Float32Slice3: frag.BoxMin}
+		e.BoxMax = NullFloat32Slice3{Valid: true, Float32Slice3: frag.BoxMax}
+	}
+	if frag.Flags&rawfrag.ParticleCloudFlagHasSpriteDef != 0 {
+		bSprite, ok := rawWld.Fragments[frag.BlitSpriteRef].(*rawfrag.WldFragBlitSpriteDef)
+		if !ok {
+			return fmt.Errorf("blit sprite def ref %d not found", frag.BlitSpriteRef)
+		}
+		e.BlitSpriteDefTag = rawWld.Name(bSprite.NameRef())
+		if len(rawWld.Fragments) < int(bSprite.SpriteInstanceRef) {
+			return fmt.Errorf("sprite instance ref %d out of bounds", bSprite.SpriteInstanceRef)
+		}
+		sSprite, ok := rawWld.Fragments[bSprite.SpriteInstanceRef].(*rawfrag.WldFragSimpleSprite)
+		if !ok {
+			return fmt.Errorf("sprite instance ref %d not found", bSprite.SpriteInstanceRef)
+		}
+		if len(rawWld.Fragments) < int(sSprite.SpriteRef) {
+			return fmt.Errorf("sprite def ref %d out of bounds", sSprite.SpriteRef)
+		}
+	}
 	return nil
 }
 
