@@ -9,6 +9,10 @@ import (
 )
 
 func (ani *Ani) Write(w io.Writer) error {
+	if ani.name == nil {
+		ani.name = &eqgName{}
+	}
+
 	ani.name.clear()
 	for _, bone := range ani.Bones {
 		ani.name.add(bone.Name)
