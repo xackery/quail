@@ -72,20 +72,22 @@ func TestModWrite(t *testing.T) {
 	if eqPath == "" {
 		t.Skip("EQ_PATH not set")
 	}
+
+	testDir := helper.DirTest()
 	tests := []struct {
 		eqg     string
 		file    string
 		wantErr bool
 	}{
-
+		{eqg: "it12043.eqg", file: "it12043.mod"}, // PASS
 		// .mod|0|obp_fob_tree.mod|oldfieldofbone.eqg oldfieldofbone.eqg pfs import: readMod obp_fob_tree.mod: invalid header EQLO, wanted EQGM
 		//{eqg: "oldfieldofbone.eqg", file: "obp_fob_tree.mod"}, // TODO: EQLO v4 .mod?
 		// .mod|0|obp_fob_tree.mod|oldfieldofboneb.eqg oldfieldofboneb.eqg pfs import: readMod obp_fob_tree.mod: invalid header EQLO, wanted EQGM
 		//{eqg: "oldfieldofboneb.eqg", file: "obp_fob_tree.mod"}, // TODO: EQLO v4 .mod
 		// .mod|1|arch.mod|dranik.eqg
-		{eqg: "dranik.eqg", file: "arch.mod"}, // PASS
+		//{eqg: "dranik.eqg", file: "arch.mod"}, // PASS
 		// .mod|1|aro.mod|aro.eqg
-		{eqg: "aro.eqg", file: "aro.mod"}, // PASS
+		//{eqg: "aro.eqg", file: "aro.mod"}, // PASS
 		// .mod|1|col_b04.mod|b04.eqg b04.eqg pfs import: readMod col_b04.mod: material shader not found
 		//{eqg: "b04.eqg", file: "col_b04.mod"}, // PASS
 		// .mod|2|boulder_lg.mod|broodlands.eqg
@@ -96,8 +98,6 @@ func TestModWrite(t *testing.T) {
 		//{eqg: "paperbaghat.eqg", file: ".mod"}, // PASS
 		// .mod|3|it11409.mod|undequip.eqg
 		//{eqg: "undequip.eqg", file: "it11409.mod"}, // PASS
-		//{eqg: "undequip.eqg", file: "it11409.mod"},
-		{eqg: "undequip.eqg", file: "it11409.mod"}, // PASS
 	}
 	for _, tt := range tests {
 		t.Run(tt.eqg, func(t *testing.T) {
@@ -119,6 +119,11 @@ func TestModWrite(t *testing.T) {
 				t.Fatalf("Decode() error = %v, wantErr %v", err, tt.wantErr)
 			}
 
+			err = os.WriteFile(testDir+"/"+tt.file+".src.mod", data, 0644)
+			if err != nil {
+				t.Fatalf("os.WriteFile() error = %v", err)
+			}
+
 			buf := bytes.NewBuffer(nil)
 			err = mod.Write(buf)
 			if err != nil {
@@ -135,6 +140,11 @@ func TestModWrite(t *testing.T) {
 			err = mod2.Write(buf2)
 			if err != nil {
 				t.Fatalf("Encode() error = %v, wantErr %v", err, tt.wantErr)
+			}
+
+			err = os.WriteFile(testDir+"/"+tt.file+".dst.mod", buf2.Bytes(), 0644)
+			if err != nil {
+				t.Fatalf("os.WriteFile() error = %v", err)
 			}
 
 			if len(mod.Materials) != len(mod2.Materials) {

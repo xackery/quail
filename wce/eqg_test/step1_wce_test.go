@@ -71,9 +71,13 @@ func TestWceReadWrite(t *testing.T) {
 			defer archive.Close()
 
 			for _, file := range archive.Files() {
+				if tt.fileName != "" && file.Name() != tt.fileName {
+					continue
+				}
 				if !isKnownExt(file.Ext()) {
 					continue
 				}
+
 				err = os.WriteFile(fmt.Sprintf("%s/%s.src.%s", dirTest, baseName, file.Name()), file.Data(), 0644)
 				if err != nil {
 					t.Fatalf("failed to write %s: %s", baseName, err.Error())

@@ -181,6 +181,7 @@ func (mod *Mod) Read(r io.ReadSeeker) error {
 		materialID := dec.Int32()
 
 		var material *ModMaterial
+
 		if materialID != -1 {
 			if len(mod.Materials) < int(materialID) {
 				return fmt.Errorf("mod material %d is beyond size of materials (%d)", materialID, len(mod.Materials))

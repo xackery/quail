@@ -85,25 +85,13 @@ func (e *ModDef) Write(token *AsciiWriteToken) error {
 			}
 		}
 		fmt.Fprintf(w, "\t\t\tNUMVERTICES %d\n", len(e.Vertices))
-		for _, vert := range e.Vertices {
-			fmt.Fprintf(w, "\t\t\t\t\tXYZ %0.8e %0.8e %0.8e\n", vert.Position[0], vert.Position[1], vert.Position[2])
-		}
-		fmt.Fprintf(w, "\t\t\tNUMUVS %d\n", len(e.Vertices))
-		for _, vert := range e.Vertices {
-			fmt.Fprintf(w, "\t\t\t\t\tUV %0.8e %0.8e\n", vert.Uv[0], vert.Uv[1])
-		}
-		fmt.Fprintf(w, "\t\t\tNUMUV2S %d\n", len(e.Vertices))
-		for _, vert := range e.Vertices {
-			fmt.Fprintf(w, "\t\t\t\t\tUV2 %0.8e %0.8e\n", vert.Uv2[0], vert.Uv2[1])
-		}
-
-		fmt.Fprintf(w, "\t\t\tNUMNORMALS %d\n", len(e.Vertices))
-		for _, vert := range e.Vertices {
-			fmt.Fprintf(w, "\t\t\t\t\tNORMAL %0.8e %0.8e %0.8e\n", vert.Normal[0], vert.Normal[1], vert.Normal[2])
-		}
-		fmt.Fprintf(w, "\t\t\tNUMTINTS %d\n", len(e.Vertices))
-		for _, vert := range e.Vertices {
-			fmt.Fprintf(w, "\t\t\t\t\tTINT %d %d %d %d\n", vert.Tint[0], vert.Tint[1], vert.Tint[2], vert.Tint[3])
+		for i, vert := range e.Vertices {
+			fmt.Fprintf(w, "\t\t\t\t\tVERTEX\n // %d\n", i)
+			fmt.Fprintf(w, "\t\t\t\t\t\tXYZ %0.8e %0.8e %0.8e\n", vert.Position[0], vert.Position[1], vert.Position[2])
+			fmt.Fprintf(w, "\t\t\t\t\t\tUV %0.8e %0.8e\n", vert.Uv[0], vert.Uv[1])
+			fmt.Fprintf(w, "\t\t\t\t\t\tUV2 %0.8e %0.8e\n", vert.Uv2[0], vert.Uv2[1])
+			fmt.Fprintf(w, "\t\t\t\t\t\tNORMAL %0.8e %0.8e %0.8e\n", vert.Normal[0], vert.Normal[1], vert.Normal[2])
+			fmt.Fprintf(w, "\t\t\t\t\t\tTINT %d %d %d %d\n", vert.Tint[0], vert.Tint[1], vert.Tint[2], vert.Tint[3])
 		}
 
 		fmt.Fprintf(w, "\tNUMFACES %d\n", len(e.Faces))
@@ -186,6 +174,12 @@ func (e *ModDef) Read(token *AsciiReadToken) error {
 	}
 
 	for j := 0; j < numVertices; j++ {
+
+		_, err = token.ReadProperty("VERTEX", 0)
+		if err != nil {
+			return fmt.Errorf("vertex %d: %w", j, err)
+		}
+
 		records, err = token.ReadProperty("XYZ", 3)
 		if err != nil {
 			return fmt.Errorf("vertex %d xyz: %w", j, err)
@@ -195,24 +189,6 @@ func (e *ModDef) Read(token *AsciiReadToken) error {
 		if err != nil {
 			return fmt.Errorf("vertex %d xyz: %w", j, err)
 		}
-		e.Vertices = append(e.Vertices, vertex)
-	}
-
-	records, err = token.ReadProperty("NUMUVS", 1)
-	if err != nil {
-		return fmt.Errorf("numuvs: %w", err)
-	}
-	numUvs := 0
-	err = parse(&numUvs, records[1])
-	if err != nil {
-		return err
-	}
-
-	if len(e.Vertices) != numUvs {
-		return fmt.Errorf("vertices to uv mismatch: %d != %d", len(e.Vertices), numUvs)
-	}
-
-	for j, vertex := range e.Vertices {
 
 		records, err = token.ReadProperty("UV", 2)
 		if err != nil {
@@ -222,23 +198,6 @@ func (e *ModDef) Read(token *AsciiReadToken) error {
 		if err != nil {
 			return fmt.Errorf("vertex %d uv: %w", j, err)
 		}
-	}
-
-	records, err = token.ReadProperty("NUMUV2S", 1)
-	if err != nil {
-		return err
-	}
-	numUv2s := 0
-	err = parse(&numUv2s, records[1])
-	if err != nil {
-		return fmt.Errorf("numuv2s: %w", err)
-	}
-
-	if len(e.Vertices) != numUv2s {
-		return fmt.Errorf("vertices to uv2 mismatch: %d != %d", len(e.Vertices), numUv2s)
-	}
-
-	for j, vertex := range e.Vertices {
 
 		records, err = token.ReadProperty("UV2", 2)
 		if err != nil {
@@ -248,49 +207,15 @@ func (e *ModDef) Read(token *AsciiReadToken) error {
 		if err != nil {
 			return fmt.Errorf("vertex %d uv2: %w", j, err)
 		}
-	}
-
-	records, err = token.ReadProperty("NUMNORMALS", 1)
-	if err != nil {
-		return fmt.Errorf("numnormals: %w", err)
-	}
-	numNormals := 0
-	err = parse(&numNormals, records[1])
-	if err != nil {
-		return fmt.Errorf("numnormals: %w", err)
-	}
-
-	if len(e.Vertices) != numNormals {
-		return fmt.Errorf("vertices to normals mismatch: %d != %d", len(e.Vertices), numNormals)
-	}
-
-	for i, vertex := range e.Vertices {
 
 		records, err = token.ReadProperty("NORMAL", 3)
 		if err != nil {
-			return fmt.Errorf("vertex %d normal: %w", i, err)
+			return fmt.Errorf("vertex %d normal: %w", j, err)
 		}
 		err = parse(&vertex.Normal, records[1:]...)
 		if err != nil {
-			return fmt.Errorf("vertex %d normal: %w", i, err)
+			return fmt.Errorf("vertex %d normal: %w", j, err)
 		}
-	}
-
-	records, err = token.ReadProperty("NUMTINTS", 1)
-	if err != nil {
-		return fmt.Errorf("numtints: %w", err)
-	}
-	numTints := 0
-	err = parse(&numTints, records[1])
-	if err != nil {
-		return fmt.Errorf("numtints: %w", err)
-	}
-
-	if len(e.Vertices) != numTints {
-		return fmt.Errorf("vertices to tints mismatch: %d != %d", len(e.Vertices), numTints)
-	}
-
-	for j, vertex := range e.Vertices {
 
 		records, err = token.ReadProperty("TINT", 4)
 		if err != nil {
@@ -302,6 +227,7 @@ func (e *ModDef) Read(token *AsciiReadToken) error {
 		}
 
 		e.Vertices = append(e.Vertices, vertex)
+
 	}
 
 	records, err = token.ReadProperty("NUMFACES", 1)
@@ -681,26 +607,15 @@ func (e *MdsDef) Write(token *AsciiWriteToken) error {
 		for _, model := range e.Models {
 			fmt.Fprintf(w, "\t\tMODEL \"%s\"\n", model.Name)
 			fmt.Fprintf(w, "\t\t\tMAINPIECE %d\n", model.MainPiece)
-			fmt.Fprintf(w, "\t\t\tNUMVERTICES %d\n", len(model.Vertices))
-			for _, vert := range model.Vertices {
-				fmt.Fprintf(w, "\t\t\t\t\tXYZ %0.8e %0.8e %0.8e\n", vert.Position[0], vert.Position[1], vert.Position[2])
-			}
-			fmt.Fprintf(w, "\t\t\tNUMUVS %d\n", len(model.Vertices))
-			for _, vert := range model.Vertices {
-				fmt.Fprintf(w, "\t\t\t\t\tUV %0.8e %0.8e\n", vert.Uv[0], vert.Uv[1])
-			}
-			fmt.Fprintf(w, "\t\t\tNUMUV2S %d\n", len(model.Vertices))
-			for _, vert := range model.Vertices {
-				fmt.Fprintf(w, "\t\t\t\t\tUV2 %0.8e %0.8e\n", vert.Uv2[0], vert.Uv2[1])
-			}
 
-			fmt.Fprintf(w, "\t\t\tNUMNORMALS %d\n", len(model.Vertices))
-			for _, vert := range model.Vertices {
-				fmt.Fprintf(w, "\t\t\t\t\tNORMAL %0.8e %0.8e %0.8e\n", vert.Normal[0], vert.Normal[1], vert.Normal[2])
-			}
-			fmt.Fprintf(w, "\t\t\tNUMTINTS %d\n", len(model.Vertices))
-			for _, vert := range model.Vertices {
-				fmt.Fprintf(w, "\t\t\t\t\tTINT %d %d %d %d\n", vert.Tint[0], vert.Tint[1], vert.Tint[2], vert.Tint[3])
+			fmt.Fprintf(w, "\t\t\tNUMVERTICES %d\n", len(model.Vertices))
+			for i, vert := range model.Vertices {
+				fmt.Fprintf(w, "\t\t\t\t\tVERTEX\n // %d\n", i)
+				fmt.Fprintf(w, "\t\t\t\t\t\tXYZ %0.8e %0.8e %0.8e\n", vert.Position[0], vert.Position[1], vert.Position[2])
+				fmt.Fprintf(w, "\t\t\t\t\t\tUV %0.8e %0.8e\n", vert.Uv[0], vert.Uv[1])
+				fmt.Fprintf(w, "\t\t\t\t\t\tUV2 %0.8e %0.8e\n", vert.Uv2[0], vert.Uv2[1])
+				fmt.Fprintf(w, "\t\t\t\t\t\tNORMAL %0.8e %0.8e %0.8e\n", vert.Normal[0], vert.Normal[1], vert.Normal[2])
+				fmt.Fprintf(w, "\t\t\t\t\t\tTINT %d %d %d %d\n", vert.Tint[0], vert.Tint[1], vert.Tint[2], vert.Tint[3])
 			}
 
 			fmt.Fprintf(w, "\t\t\tNUMFACES %d\n", len(model.Faces))
@@ -869,130 +784,68 @@ func (e *MdsDef) Read(token *AsciiReadToken) error {
 		if err != nil {
 			return fmt.Errorf("model %d numvertices: %w", i, err)
 		}
-		numVertices := 0
 
+		numVertices := 0
 		err = parse(&numVertices, records[1])
 		if err != nil {
 			return fmt.Errorf("model %d numvertices: %w", i, err)
 		}
 
 		for j := 0; j < numVertices; j++ {
+
+			_, err = token.ReadProperty("VERTEX", 0)
+			if err != nil {
+				return fmt.Errorf("vertex %d: %w", j, err)
+			}
+
 			records, err = token.ReadProperty("XYZ", 3)
 			if err != nil {
-				return fmt.Errorf("model %d vertex %d xyz: %w", i, j, err)
+				return fmt.Errorf("vertex %d xyz: %w", j, err)
 			}
 			vertex := &ModVertex{}
 			err = parse(&vertex.Position, records[1:]...)
 			if err != nil {
-				return fmt.Errorf("model %d vertex %d xyz: %w", i, j, err)
+				return fmt.Errorf("vertex %d xyz: %w", j, err)
 			}
-			model.Vertices = append(model.Vertices, vertex)
-		}
-
-		records, err = token.ReadProperty("NUMUVS", 1)
-		if err != nil {
-			return fmt.Errorf("model %d numuvs: %w", i, err)
-		}
-		numUvs := 0
-		err = parse(&numUvs, records[1])
-		if err != nil {
-			return fmt.Errorf("model %d numuvs: %w", i, err)
-		}
-
-		if len(model.Vertices) != numUvs {
-			return fmt.Errorf("model %d vertices to uv mismatch: %d != %d", i, len(model.Vertices), numUvs)
-		}
-
-		for j, vertex := range model.Vertices {
 
 			records, err = token.ReadProperty("UV", 2)
 			if err != nil {
-				return fmt.Errorf("model %d vertex %d uv: %w", i, j, err)
+				return fmt.Errorf("vertex %d uv: %w", j, err)
 			}
 			err = parse(&vertex.Uv, records[1:]...)
 			if err != nil {
-				return fmt.Errorf("model %d vertex %d uv: %w", i, j, err)
+				return fmt.Errorf("vertex %d uv: %w", j, err)
 			}
-		}
-
-		records, err = token.ReadProperty("NUMUV2S", 1)
-		if err != nil {
-			return fmt.Errorf("model %d numuv2s: %w", i, err)
-		}
-		numUv2s := 0
-		err = parse(&numUv2s, records[1])
-		if err != nil {
-			return fmt.Errorf("model %d numuv2s: %w", i, err)
-		}
-
-		if len(model.Vertices) != numUv2s {
-			return fmt.Errorf("model %d vertices to uv2 mismatch: %d != %d", i, len(model.Vertices), numUv2s)
-		}
-
-		for j, vertex := range model.Vertices {
 
 			records, err = token.ReadProperty("UV2", 2)
 			if err != nil {
-				return fmt.Errorf("model %d vertex %d uv2: %w", i, j, err)
+				return fmt.Errorf("vertex %d uv2: %w", j, err)
 			}
 			err = parse(&vertex.Uv2, records[1:]...)
 			if err != nil {
-				return fmt.Errorf("model %d vertex %d uv2: %w", i, j, err)
+				return fmt.Errorf("vertex %d uv2: %w", j, err)
 			}
-		}
-
-		records, err = token.ReadProperty("NUMNORMALS", 1)
-		if err != nil {
-			return fmt.Errorf("model %d numnormals: %w", i, err)
-		}
-		numNormals := 0
-		err = parse(&numNormals, records[1])
-		if err != nil {
-			return fmt.Errorf("model %d numnormals: %w", i, err)
-		}
-
-		if len(model.Vertices) != numNormals {
-			return fmt.Errorf("model %d vertices to normals mismatch: %d != %d", i, len(model.Vertices), numNormals)
-		}
-
-		for j, vertex := range model.Vertices {
 
 			records, err = token.ReadProperty("NORMAL", 3)
 			if err != nil {
-				return fmt.Errorf("model %d vertex %d normal: %w", i, j, err)
+				return fmt.Errorf("vertex %d normal: %w", j, err)
 			}
 			err = parse(&vertex.Normal, records[1:]...)
 			if err != nil {
-				return fmt.Errorf("model %d vertex %d normal: %w", i, j, err)
+				return fmt.Errorf("vertex %d normal: %w", j, err)
 			}
-		}
-
-		records, err = token.ReadProperty("NUMTINTS", 1)
-		if err != nil {
-			return fmt.Errorf("model %d numtints: %w", i, err)
-		}
-		numTints := 0
-		err = parse(&numTints, records[1])
-		if err != nil {
-			return fmt.Errorf("model %d numtints: %w", i, err)
-		}
-
-		if len(model.Vertices) != numTints {
-			return fmt.Errorf("model %d vertices to tints mismatch: %d != %d", i, len(model.Vertices), numTints)
-		}
-
-		for j, vertex := range model.Vertices {
 
 			records, err = token.ReadProperty("TINT", 4)
 			if err != nil {
-				return fmt.Errorf("model %d vertex %d tint: %w", i, j, err)
+				return fmt.Errorf("vertex %d tint: %w", j, err)
 			}
 			err = parse(&vertex.Tint, records[1:]...)
 			if err != nil {
-				return fmt.Errorf("model %d vertex %d tint: %w", i, j, err)
+				return fmt.Errorf("vertex %d tint: %w", j, err)
 			}
 
 			model.Vertices = append(model.Vertices, vertex)
+
 		}
 
 		records, err = token.ReadProperty("NUMFACES", 1)
@@ -1336,25 +1189,13 @@ func (e *TerDef) Write(token *AsciiWriteToken) error {
 			}
 		}
 		fmt.Fprintf(w, "\t\t\tNUMVERTICES %d\n", len(e.Vertices))
-		for _, vert := range e.Vertices {
-			fmt.Fprintf(w, "\t\t\t\t\tXYZ %0.8e %0.8e %0.8e\n", vert.Position[0], vert.Position[1], vert.Position[2])
-		}
-		fmt.Fprintf(w, "\t\t\tNUMUVS %d\n", len(e.Vertices))
-		for _, vert := range e.Vertices {
-			fmt.Fprintf(w, "\t\t\t\t\tUV %0.8e %0.8e\n", vert.Uv[0], vert.Uv[1])
-		}
-		fmt.Fprintf(w, "\t\t\tNUMUV2S %d\n", len(e.Vertices))
-		for _, vert := range e.Vertices {
-			fmt.Fprintf(w, "\t\t\t\t\tUV2 %0.8e %0.8e\n", vert.Uv2[0], vert.Uv2[1])
-		}
-
-		fmt.Fprintf(w, "\t\t\tNUMNORMALS %d\n", len(e.Vertices))
-		for _, vert := range e.Vertices {
-			fmt.Fprintf(w, "\t\t\t\t\tNORMAL %0.8e %0.8e %0.8e\n", vert.Normal[0], vert.Normal[1], vert.Normal[2])
-		}
-		fmt.Fprintf(w, "\t\t\tNUMTINTS %d\n", len(e.Vertices))
-		for _, vert := range e.Vertices {
-			fmt.Fprintf(w, "\t\t\t\t\tTINT %d %d %d %d\n", vert.Tint[0], vert.Tint[1], vert.Tint[2], vert.Tint[3])
+		for i, vert := range e.Vertices {
+			fmt.Fprintf(w, "\t\t\t\t\tVERTEX\n // %d\n", i)
+			fmt.Fprintf(w, "\t\t\t\t\t\tXYZ %0.8e %0.8e %0.8e\n", vert.Position[0], vert.Position[1], vert.Position[2])
+			fmt.Fprintf(w, "\t\t\t\t\t\tUV %0.8e %0.8e\n", vert.Uv[0], vert.Uv[1])
+			fmt.Fprintf(w, "\t\t\t\t\t\tUV2 %0.8e %0.8e\n", vert.Uv2[0], vert.Uv2[1])
+			fmt.Fprintf(w, "\t\t\t\t\t\tNORMAL %0.8e %0.8e %0.8e\n", vert.Normal[0], vert.Normal[1], vert.Normal[2])
+			fmt.Fprintf(w, "\t\t\t\t\t\tTINT %d %d %d %d\n", vert.Tint[0], vert.Tint[1], vert.Tint[2], vert.Tint[3])
 		}
 
 		fmt.Fprintf(w, "\tNUMFACES %d\n", len(e.Faces))
@@ -1425,6 +1266,12 @@ func (e *TerDef) Read(token *AsciiReadToken) error {
 	}
 
 	for j := 0; j < numVertices; j++ {
+
+		_, err = token.ReadProperty("VERTEX", 0)
+		if err != nil {
+			return fmt.Errorf("vertex %d: %w", j, err)
+		}
+
 		records, err = token.ReadProperty("XYZ", 3)
 		if err != nil {
 			return fmt.Errorf("vertex %d xyz: %w", j, err)
@@ -1434,24 +1281,6 @@ func (e *TerDef) Read(token *AsciiReadToken) error {
 		if err != nil {
 			return fmt.Errorf("vertex %d xyz: %w", j, err)
 		}
-		e.Vertices = append(e.Vertices, vertex)
-	}
-
-	records, err = token.ReadProperty("NUMUVS", 1)
-	if err != nil {
-		return fmt.Errorf("numuvs: %w", err)
-	}
-	numUvs := 0
-	err = parse(&numUvs, records[1])
-	if err != nil {
-		return err
-	}
-
-	if len(e.Vertices) != numUvs {
-		return fmt.Errorf("vertices to uv mismatch: %d != %d", len(e.Vertices), numUvs)
-	}
-
-	for j, vertex := range e.Vertices {
 
 		records, err = token.ReadProperty("UV", 2)
 		if err != nil {
@@ -1461,23 +1290,6 @@ func (e *TerDef) Read(token *AsciiReadToken) error {
 		if err != nil {
 			return fmt.Errorf("vertex %d uv: %w", j, err)
 		}
-	}
-
-	records, err = token.ReadProperty("NUMUV2S", 1)
-	if err != nil {
-		return err
-	}
-	numUv2s := 0
-	err = parse(&numUv2s, records[1])
-	if err != nil {
-		return fmt.Errorf("numuv2s: %w", err)
-	}
-
-	if len(e.Vertices) != numUv2s {
-		return fmt.Errorf("vertices to uv2 mismatch: %d != %d", len(e.Vertices), numUv2s)
-	}
-
-	for j, vertex := range e.Vertices {
 
 		records, err = token.ReadProperty("UV2", 2)
 		if err != nil {
@@ -1487,49 +1299,15 @@ func (e *TerDef) Read(token *AsciiReadToken) error {
 		if err != nil {
 			return fmt.Errorf("vertex %d uv2: %w", j, err)
 		}
-	}
-
-	records, err = token.ReadProperty("NUMNORMALS", 1)
-	if err != nil {
-		return fmt.Errorf("numnormals: %w", err)
-	}
-	numNormals := 0
-	err = parse(&numNormals, records[1])
-	if err != nil {
-		return fmt.Errorf("numnormals: %w", err)
-	}
-
-	if len(e.Vertices) != numNormals {
-		return fmt.Errorf("vertices to normals mismatch: %d != %d", len(e.Vertices), numNormals)
-	}
-
-	for i, vertex := range e.Vertices {
 
 		records, err = token.ReadProperty("NORMAL", 3)
 		if err != nil {
-			return fmt.Errorf("vertex %d normal: %w", i, err)
+			return fmt.Errorf("vertex %d normal: %w", j, err)
 		}
 		err = parse(&vertex.Normal, records[1:]...)
 		if err != nil {
-			return fmt.Errorf("vertex %d normal: %w", i, err)
+			return fmt.Errorf("vertex %d normal: %w", j, err)
 		}
-	}
-
-	records, err = token.ReadProperty("NUMTINTS", 1)
-	if err != nil {
-		return fmt.Errorf("numtints: %w", err)
-	}
-	numTints := 0
-	err = parse(&numTints, records[1])
-	if err != nil {
-		return fmt.Errorf("numtints: %w", err)
-	}
-
-	if len(e.Vertices) != numTints {
-		return fmt.Errorf("vertices to tints mismatch: %d != %d", len(e.Vertices), numTints)
-	}
-
-	for j, vertex := range e.Vertices {
 
 		records, err = token.ReadProperty("TINT", 4)
 		if err != nil {
@@ -1541,6 +1319,7 @@ func (e *TerDef) Read(token *AsciiReadToken) error {
 		}
 
 		e.Vertices = append(e.Vertices, vertex)
+
 	}
 
 	records, err = token.ReadProperty("NUMFACES", 1)

@@ -99,9 +99,9 @@ func (mod *Mod) Write(w io.Writer) error {
 		enc.Uint32(tri.Index[1])
 		enc.Uint32(tri.Index[2])
 		matID := int32(0)
-		for _, mat := range mod.Materials {
+		for i, mat := range mod.Materials {
 			if mat.Name == tri.MaterialName {
-				matID = mat.ID
+				matID = int32(i)
 				break
 			}
 		}
