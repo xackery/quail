@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	"github.com/xackery/quail/helper"
@@ -139,6 +140,12 @@ func (e *Pfs) File(name string) ([]byte, error) {
 
 func (e *Pfs) Close() error {
 	e.ContentsSummary = "\n"
+	// sort files alphabetically
+
+	sort.Slice(e.files, func(i, j int) bool {
+		return strings.Compare(e.files[i].Name(), e.files[j].Name()) < 0
+	})
+
 	for i, fe := range e.files {
 		base := float64(len(fe.Data()))
 		out := ""

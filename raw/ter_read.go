@@ -12,7 +12,7 @@ type Ter struct {
 	MetaFileName string
 	Version      uint32
 	Materials    []*ModMaterial
-	Vertices     []ModVertex
+	Vertices     []*ModVertex
 	Faces        []ModFace
 	name         *eqgName
 }
@@ -80,7 +80,7 @@ func (ter *Ter) Read(r io.ReadSeeker) error {
 	}
 
 	for i := 0; i < int(verticesCount); i++ {
-		v := ModVertex{}
+		v := &ModVertex{}
 		v.Position[0] = dec.Float32()
 		v.Position[1] = dec.Float32()
 		v.Position[2] = dec.Float32()
@@ -114,19 +114,11 @@ func (ter *Ter) Read(r io.ReadSeeker) error {
 		materialID := dec.Int32()
 
 		var material *ModMaterial
-		for _, mat := range ter.Materials {
-			if mat.ID == materialID {
-				material = mat
-				break
+		if materialID != -1 {
+			if len(ter.Materials) < int(materialID) {
+				return fmt.Errorf("ter material %d is beyond size of materials (%d)", materialID, len(ter.Materials))
 			}
-		}
-		if material == nil {
-			//if materialID != -1 {
-			//log.Warnf("material %d not found", materialID)
-			//return fmt.Errorf("material %d not found", materialID)
-			//}
-			t.MaterialName = ""
-		} else {
+			material = ter.Materials[materialID]
 			t.MaterialName = material.Name
 		}
 

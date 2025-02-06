@@ -16,6 +16,7 @@ type Quail struct {
 	Wld                    *wce.Wce
 	WldObject              *wce.Wce
 	WldLights              *wce.Wce
+	BakedLights            map[string][]byte // BakedLights are lightmaps
 }
 
 // New returns a new Quail instance

@@ -51,7 +51,6 @@ type Wce struct {
 	MdsDefs                []*MdsDef
 	ModDefs                []*ModDef
 	TerDefs                []*TerDef
-	EQMaterialDefs         []*EQMaterialDef
 	LayDefs                []*LayDef
 }
 
@@ -336,5 +335,4 @@ func (wce *Wce) reset() {
 	wce.MdsDefs = []*MdsDef{}
 	wce.ModDefs = []*ModDef{}
 	wce.TerDefs = []*TerDef{}
-	wce.EQMaterialDefs = []*EQMaterialDef{}
 }

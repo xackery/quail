@@ -3,7 +3,6 @@ package quail
 import (
 	"bytes"
 	"fmt"
-	"os"
 	"path/filepath"
 	"strings"
 
@@ -15,25 +14,22 @@ import (
 // PfsRead imports the quail target file
 func (q *Quail) PfsRead(path string) error {
 	ext := strings.ToLower(filepath.Ext(path))
-	if ext == ".wld" {
-		r, err := os.Open(path)
+
+	if ext == ".eqg" {
+		archive, err := pfs.NewFile(path)
 		if err != nil {
 			return fmt.Errorf("open %s: %w", path, err)
 		}
-		defer r.Close()
-		rawWld := &raw.Wld{}
-		err = rawWld.Read(r)
+		defer archive.Close()
+
+		baseName := filepath.Base(path)
+		baseName = strings.TrimSuffix(baseName, filepath.Ext(baseName))
+
+		q.Wld = wce.New(baseName)
+		err = q.Wld.ReadEqgRaw(archive)
 		if err != nil {
 			return fmt.Errorf("wld read: %w", err)
 		}
-
-		q.Wld = wce.New(filepath.Base(path))
-
-		err = q.Wld.ReadWldRaw(rawWld)
-		if err != nil {
-			return fmt.Errorf("wld read: %w", err)
-		}
-		return nil
 	}
 	pfs, err := pfs.NewFile(path)
 	if err != nil {
@@ -43,6 +39,13 @@ func (q *Quail) PfsRead(path string) error {
 
 	for _, file := range pfs.Files() {
 		ext := strings.ToLower(filepath.Ext(file.Name()))
+		if ext == ".lit" {
+			if q.BakedLights == nil {
+				q.BakedLights = make(map[string][]byte)
+			}
+			q.BakedLights[file.Name()] = file.Data()
+			continue
+		}
 		reader, err := raw.Read(ext, bytes.NewReader(file.Data()))
 		if err != nil {
 			return fmt.Errorf("read %s: %w", file.Name(), err)

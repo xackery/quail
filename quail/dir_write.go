@@ -64,6 +64,13 @@ func (q *Quail) DirWrite(path string) error {
 		}
 	}
 
+	for name, data := range q.BakedLights {
+		err = os.WriteFile(path+"/"+name, data, 0644)
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
