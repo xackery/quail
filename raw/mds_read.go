@@ -199,19 +199,11 @@ func (mds *Mds) Read(r io.ReadSeeker) error {
 			materialID := dec.Int32()
 
 			var material *ModMaterial
-			for _, mat := range mds.Materials {
-				if mat.ID == materialID {
-					material = mat
-					break
+			if materialID != -1 {
+				if len(mds.Materials) < int(materialID) {
+					return fmt.Errorf("mds material %d is beyond size of materials (%d)", materialID, len(mds.Materials))
 				}
-			}
-			if material == nil {
-				if materialID != -1 && materialID != 65536 {
-					fmt.Printf("Material %d not found", materialID)
-					//return fmt.Errorf("material %d not found", materialID)
-				}
-				f.MaterialName = ""
-			} else {
+				material = mds.Materials[materialID]
 				f.MaterialName = material.Name
 			}
 

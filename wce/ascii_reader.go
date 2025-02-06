@@ -503,13 +503,6 @@ func (a *AsciiReadToken) readDefinitions() error {
 				frag.Tag = args[1]
 				a.wce.AniDefs = append(a.wce.AniDefs, frag)
 				definitions[i] = &AniDef{}
-			case *EQMaterialDef:
-				if len(args) == 1 {
-					return fmt.Errorf("definition %s has no arguments", defName)
-				}
-				frag.Tag = args[1]
-				a.wce.EQMaterialDefs = append(a.wce.EQMaterialDefs, frag)
-				definitions[i] = &EQMaterialDef{}
 			case *LayDef:
 				if len(args) == 1 {
 					return fmt.Errorf("definition %s has no arguments", defName)

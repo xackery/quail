@@ -57,18 +57,26 @@ func (lod *Lod) Read(r io.ReadSeeker) error {
 		line := strings.TrimSpace(lines[i])
 		// split into commas
 		records := strings.Split(line, ",")
-		if len(records) < 3 {
-			return fmt.Errorf("line %d expected 3 entries, got %d", i, len(records))
+		if len(records) == 1 {
+			continue
 		}
 		entry := &LodEntry{
-			Category:   records[0],
-			ObjectName: records[1],
+			Distance: 0,
 		}
-		val, err := strconv.Atoi(records[2])
-		if err != nil {
-			return fmt.Errorf("line %d lod %d is not a number", i, val)
+		if len(records) > 2 {
+			val, err := strconv.Atoi(records[2])
+			if err != nil {
+				return fmt.Errorf("line %d lod %d is not a number", i, val)
+			}
+			entry.Distance = val
 		}
-		entry.Distance = val
+		if len(records) < 2 {
+			return fmt.Errorf("line %d expected at least 2 entries, got %d", i, len(records))
+		}
+
+		entry.Category = records[0]
+		entry.ObjectName = records[1]
+
 		lod.Entries = append(lod.Entries, entry)
 	}
 

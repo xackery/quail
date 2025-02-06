@@ -184,32 +184,14 @@ func (wce *Wce) WriteEqgRaw(archive *pfs.Pfs) error {
 
 	for _, ter := range wce.TerDefs {
 		buf := &bytes.Buffer{}
-		dst := &raw.Ter{}
-
-		materialNames := make(map[string]bool)
-		for _, face := range ter.Faces {
-			materialNames[face.MaterialName] = true
+		dst := &raw.Ter{
+			MetaFileName: ter.Tag,
+			Version:      ter.Version,
 		}
 
-		materials := []*EQMaterialDef{}
-		for materialName := range materialNames {
-			isFound := false
-			for _, material := range wce.EQMaterialDefs {
-				if material.Tag != materialName {
-					continue
-				}
-				materials = append(materials, material)
-				isFound = true
-				break
-			}
-			if !isFound {
-				return fmt.Errorf("terrain %s refers to material %s, but not declared", ter.Tag, materialName)
-			}
-		}
-
-		dst.Materials, err = writeEqgMaterials(materials)
+		err = ter.ToRaw(wce, dst)
 		if err != nil {
-			return fmt.Errorf("write materials: %w", err)
+			return fmt.Errorf("ter to raw: %w", err)
 		}
 
 		err := dst.Write(buf)
@@ -220,6 +202,7 @@ func (wce *Wce) WriteEqgRaw(archive *pfs.Pfs) error {
 		if err != nil {
 			return fmt.Errorf("add ter: %w", err)
 		}
+
 	}
 
 	for _, ani := range wce.AniDefs {
