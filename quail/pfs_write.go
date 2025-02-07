@@ -118,18 +118,10 @@ func (e *Quail) S3DExport(fileVersion uint32, pfsVersion int, path string) error
 		isSomethingWritten = true
 	}
 
-	for fileName, textureData := range e.Textures {
-		err := archive.Add(fileName, textureData)
+	for fileName, assetData := range e.Assets {
+		err := archive.Add(fileName, assetData)
 		if err != nil {
-			return fmt.Errorf("addTexture %s: %w", fileName, err)
-		}
-		isSomethingWritten = true
-	}
-
-	for fileName, lightData := range e.BakedLights {
-		err := archive.Add(fileName, lightData)
-		if err != nil {
-			return fmt.Errorf("addLight %s: %w", fileName, err)
+			return fmt.Errorf("addAsset %s: %w", fileName, err)
 		}
 		isSomethingWritten = true
 	}

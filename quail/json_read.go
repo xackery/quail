@@ -45,8 +45,6 @@ func (q *Quail) JsonRead(path string) error {
 		}
 	}
 
-	q.Textures = make(map[string][]byte)
-
 	dirs, err := os.ReadDir(baseName)
 	if err != nil {
 		return err
@@ -62,7 +60,7 @@ func (q *Quail) JsonRead(path string) error {
 				fmt.Println("Text", err)
 				continue
 			}
-			q.Textures[dir.Name()] = textureData
+			q.assetAdd(dir.Name(), textureData)
 		}
 	}
 

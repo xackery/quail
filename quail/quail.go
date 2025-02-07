@@ -12,11 +12,10 @@ import (
 
 type Quail struct {
 	IsExtensionVersionDump bool
-	Textures               map[string][]byte // Textures are raw texture files
 	Wld                    *wce.Wce
 	WldObject              *wce.Wce
 	WldLights              *wce.Wce
-	BakedLights            map[string][]byte // BakedLights are lightmaps
+	Assets                 map[string][]byte
 }
 
 // New returns a new Quail instance

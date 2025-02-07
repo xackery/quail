@@ -86,7 +86,7 @@ func (e *ModDef) Write(token *AsciiWriteToken) error {
 		}
 		fmt.Fprintf(w, "\t\t\tNUMVERTICES %d\n", len(e.Vertices))
 		for i, vert := range e.Vertices {
-			fmt.Fprintf(w, "\t\t\t\t\tVERTEX\n // %d\n", i)
+			fmt.Fprintf(w, "\t\t\t\t\tVERTEX // %d\n", i)
 			fmt.Fprintf(w, "\t\t\t\t\t\tXYZ %0.8e %0.8e %0.8e\n", vert.Position[0], vert.Position[1], vert.Position[2])
 			fmt.Fprintf(w, "\t\t\t\t\t\tUV %0.8e %0.8e\n", vert.Uv[0], vert.Uv[1])
 			fmt.Fprintf(w, "\t\t\t\t\t\tUV2 %0.8e %0.8e\n", vert.Uv2[0], vert.Uv2[1])
@@ -610,7 +610,7 @@ func (e *MdsDef) Write(token *AsciiWriteToken) error {
 
 			fmt.Fprintf(w, "\t\t\tNUMVERTICES %d\n", len(model.Vertices))
 			for i, vert := range model.Vertices {
-				fmt.Fprintf(w, "\t\t\t\t\tVERTEX\n // %d\n", i)
+				fmt.Fprintf(w, "\t\t\t\t\tVERTEX // %d\n", i)
 				fmt.Fprintf(w, "\t\t\t\t\t\tXYZ %0.8e %0.8e %0.8e\n", vert.Position[0], vert.Position[1], vert.Position[2])
 				fmt.Fprintf(w, "\t\t\t\t\t\tUV %0.8e %0.8e\n", vert.Uv[0], vert.Uv[1])
 				fmt.Fprintf(w, "\t\t\t\t\t\tUV2 %0.8e %0.8e\n", vert.Uv2[0], vert.Uv2[1])
@@ -1190,7 +1190,7 @@ func (e *TerDef) Write(token *AsciiWriteToken) error {
 		}
 		fmt.Fprintf(w, "\t\t\tNUMVERTICES %d\n", len(e.Vertices))
 		for i, vert := range e.Vertices {
-			fmt.Fprintf(w, "\t\t\t\t\tVERTEX\n // %d\n", i)
+			fmt.Fprintf(w, "\t\t\t\t\tVERTEX // %d\n", i)
 			fmt.Fprintf(w, "\t\t\t\t\t\tXYZ %0.8e %0.8e %0.8e\n", vert.Position[0], vert.Position[1], vert.Position[2])
 			fmt.Fprintf(w, "\t\t\t\t\t\tUV %0.8e %0.8e\n", vert.Uv[0], vert.Uv[1])
 			fmt.Fprintf(w, "\t\t\t\t\t\tUV2 %0.8e %0.8e\n", vert.Uv2[0], vert.Uv2[1])

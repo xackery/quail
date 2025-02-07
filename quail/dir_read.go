@@ -54,9 +54,7 @@ func (q *Quail) DirRead(path string) error {
 		}
 	}
 
-	q.Textures = make(map[string][]byte)
-
-	dirs, err := os.ReadDir(path)
+	dirs, err := os.ReadDir(path + "/assets")
 	if err != nil {
 		return err
 	}
@@ -64,18 +62,11 @@ func (q *Quail) DirRead(path string) error {
 		if dir.IsDir() {
 			continue
 		}
-		ext := filepath.Ext(dir.Name())
-		if ext == ".wce" {
-			continue
-		}
-		if ext == ".mod" {
-			continue
-		}
-		textureData, err := os.ReadFile(path + "/" + dir.Name())
+		textureData, err := os.ReadFile(path + "/assets/" + dir.Name())
 		if err != nil {
 			return err
 		}
-		q.Textures[dir.Name()] = textureData
+		q.assetAdd(dir.Name(), textureData)
 	}
 
 	return nil

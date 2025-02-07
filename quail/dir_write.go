@@ -52,20 +52,20 @@ func (q *Quail) DirWrite(path string) error {
 		}
 	}
 
-	for name, data := range q.Textures {
+	if len(q.Assets) > 0 {
+		err = os.MkdirAll(path+"/assets/", 0755)
+		if err != nil {
+			return fmt.Errorf("mkdir: %w", err)
+		}
+	}
+
+	for name, data := range q.Assets {
 
 		/* data, err := fixWonkyDDS(name, texture)
 		if err != nil {
 			return err
 		} */
-		err = os.WriteFile(path+"/"+name, data, 0644)
-		if err != nil {
-			return err
-		}
-	}
-
-	for name, data := range q.BakedLights {
-		err = os.WriteFile(path+"/"+name, data, 0644)
+		err = os.WriteFile(path+"/assets/"+name, data, 0644)
 		if err != nil {
 			return err
 		}

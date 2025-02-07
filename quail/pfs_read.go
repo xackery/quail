@@ -40,10 +40,7 @@ func (q *Quail) PfsRead(path string) error {
 	for _, file := range pfs.Files() {
 		ext := strings.ToLower(filepath.Ext(file.Name()))
 		if ext == ".lit" {
-			if q.BakedLights == nil {
-				q.BakedLights = make(map[string][]byte)
-			}
-			q.BakedLights[file.Name()] = file.Data()
+			q.assetAdd(file.Name(), file.Data())
 			continue
 		}
 		reader, err := raw.Read(ext, bytes.NewReader(file.Data()))
@@ -57,5 +54,52 @@ func (q *Quail) PfsRead(path string) error {
 		}
 	}
 
+	summary := ""
+	if len(q.Wld.TerDefs) > 0 {
+		summary = fmt.Sprintf("%s%d terrain, ", summary, len(q.Wld.TerDefs))
+	}
+	if len(q.Wld.WorldTrees) > 0 {
+		summary = fmt.Sprintf("%s%d trees, ", summary, len(q.Wld.WorldTrees))
+	}
+
+	if len(q.Wld.ActorDefs) > 0 {
+		summary = fmt.Sprintf("%d actors, ", len(q.Wld.ActorDefs))
+	}
+	if len(q.Wld.ModDefs) > 0 {
+		summary = fmt.Sprintf("%s%d models, ", summary, len(q.Wld.ModDefs))
+	}
+	if len(q.Wld.RGBTrackDefs) > 0 {
+		summary = fmt.Sprintf("%s%d rgb tracks, ", summary, len(q.Wld.RGBTrackDefs))
+	}
+
+	if len(q.Wld.MdsDefs) > 0 {
+		summary = fmt.Sprintf("%s%d skinned models, ", summary, len(q.Wld.MdsDefs))
+	}
+	if len(q.Wld.AmbientLights) > 0 {
+		summary = fmt.Sprintf("%s%d lights, ", summary, len(q.Wld.AmbientLights))
+	}
+	if len(q.Wld.AniDefs) > 0 {
+		summary = fmt.Sprintf("%s%d animations, ", summary, len(q.Wld.AniDefs))
+	}
+	if len(q.Wld.TrackDefs) > 0 {
+		summary = fmt.Sprintf("%s%d tracks, ", summary, len(q.Wld.TrackDefs))
+	}
+	if len(q.Wld.DMTrackDef2s) > 0 {
+		summary = fmt.Sprintf("%s%d dmtracks, ", summary, len(q.Wld.DMTrackDef2s))
+	}
+
+	if len(summary) > 0 {
+		summary = summary[:len(summary)-2]
+		fmt.Printf("Converted %s.\n", summary)
+	}
+
+	return nil
+}
+
+func (q *Quail) assetAdd(name string, data []byte) error {
+	if q.Assets == nil {
+		q.Assets = make(map[string][]byte)
+	}
+	q.Assets[name] = data
 	return nil
 }
