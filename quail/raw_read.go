@@ -17,19 +17,17 @@ func (q *Quail) RawRead(in raw.ReadWriter) error {
 	switch val := in.(type) {
 	case *raw.Wld:
 		return q.wldRead(val, in.FileName())
-	case *raw.Dds:
-		return q.ddsRead(val)
-	case *raw.Bmp:
-		return q.bmpRead(val)
-	case *raw.Png:
-		return q.pngRead(val)
-	case *raw.Mod, *raw.Pts, *raw.Prt, *raw.Mds, *raw.Ter, *raw.Lod, *raw.Lay, *raw.Ani, *raw.Lit, *raw.Tog:
+	case *raw.Dds, *raw.Bmp, *raw.Png: // textures
+		return q.assetRead(val)
+	case *raw.Lit: // baked lighting in eqg
+		return q.assetRead(val)
+	case *raw.Txt:
+		return q.assetRead(val)
+	case *raw.Mod, *raw.Pts, *raw.Prt, *raw.Mds, *raw.Ter, *raw.Lod, *raw.Lay, *raw.Ani, *raw.Tog:
 		//fmt.Println("ignoring", in.Identity())
 		return nil // ignored, loaded by wce parsre
 	case *raw.Unk:
-		return nil
-	case *raw.Txt:
-		return nil
+		return q.assetRead(val)
 	default:
 		return fmt.Errorf("unknown type %T", val)
 	}
@@ -42,31 +40,11 @@ func RawRead(in raw.ReadWriter, q *Quail) error {
 	return q.RawRead(in)
 }
 
-func (q *Quail) ddsRead(in *raw.Dds) error {
+func (q *Quail) assetRead(in raw.ReadWriter) error {
 	buf := &bytes.Buffer{}
 	err := in.Write(buf)
 	if err != nil {
-		return fmt.Errorf("write dds: %w", err)
-	}
-	q.assetAdd(in.FileName(), buf.Bytes())
-	return nil
-}
-
-func (q *Quail) bmpRead(in *raw.Bmp) error {
-	buf := &bytes.Buffer{}
-	err := in.Write(buf)
-	if err != nil {
-		return fmt.Errorf("write bmp: %w", err)
-	}
-	q.assetAdd(in.FileName(), buf.Bytes())
-	return nil
-}
-
-func (q *Quail) pngRead(in *raw.Png) error {
-	buf := &bytes.Buffer{}
-	err := in.Write(buf)
-	if err != nil {
-		return fmt.Errorf("write png: %w", err)
+		return fmt.Errorf("write asset %s: %w", in.Identity(), err)
 	}
 	q.assetAdd(in.FileName(), buf.Bytes())
 	return nil
