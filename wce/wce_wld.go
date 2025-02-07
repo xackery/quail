@@ -1,6 +1,7 @@
 package wce
 
 import (
+	"bytes"
 	"fmt"
 	"strconv"
 	"strings"
@@ -5991,10 +5992,12 @@ func (e *Region) Write(token *AsciiWriteToken) error {
 		for _, vert := range e.RegionVertices {
 			fmt.Fprintf(w, "\t\tXYZ %0.8e %0.8e %0.8e\n", vert[0], vert[1], vert[2])
 		}
+
 		fmt.Fprintf(w, "\tNUMRENDERVERTICES %d\n", len(e.RenderVertices))
 		for _, vert := range e.RenderVertices {
 			fmt.Fprintf(w, "\t\tXYZ %0.8e %0.8e %0.8e\n", vert[0], vert[1], vert[2])
 		}
+
 		fmt.Fprintf(w, "\tNUMWALLS %d\n", len(e.Walls))
 		for i, wall := range e.Walls {
 			fmt.Fprintf(w, "\t\tWALL // %d\n", i)
@@ -6031,105 +6034,89 @@ func (e *Region) Write(token *AsciiWriteToken) error {
 			fmt.Fprintf(w, "\t\t\t\tFRONTTREE %d\n", node.FrontTree)
 			fmt.Fprintf(w, "\t\t\t\tBACKTREE %d\n", node.BackTree)
 		}
-		fmt.Fprintf(w, "\t\tNUMVISIBLELIST %d\n", len(e.VisTree.VisLists))
+
+		// Buffer to hold region data
+		var buf bytes.Buffer
+
+		// Handle the visibility lists
+		fmt.Fprintf(&buf, "\t\tNUMVISIBLELIST %d\n", len(e.VisTree.VisLists))
 		for i, list := range e.VisTree.VisLists {
-			// Determine if the 0x80 flag is set using e.VisListBytes
-			if e.VisListBytes == 1 {
-				// Calculate visible regions from range values using RLE
-				regions := []int{}
-				currentRegion := 1
-
-				for i < len(list.Ranges) {
-					byteVal := list.Ranges[i]
-
-					switch {
-					case byteVal <= 0x3E:
-						// Skip forward by this many region IDs
-						currentRegion += int(byteVal)
-					case byteVal == 0x3F:
-						// Skip forward by the amount given in the following 16-bit WORD
-						nextByte1 := list.Ranges[i+1]
-						nextByte2 := list.Ranges[i+2]
-						skipAmount := int(nextByte2)<<8 | int(nextByte1)
-						currentRegion += skipAmount
-						i += 2
-					case byteVal >= 0x40 && byteVal <= 0x7F:
-						// Skip forward based on bits 3..5, then include the number of IDs based on bits 0..2
-						skipAmount := int((byteVal & 0b00111000) >> 3)
-						includeCount := int(byteVal & 0b00000111)
-						currentRegion += skipAmount
-						for j := 0; j < includeCount; j++ {
-							regions = append(regions, currentRegion)
-							currentRegion++
-						}
-					case byteVal >= 0x80 && byteVal <= 0xBF:
-						// Include the number of IDs based on bits 3..5, then skip forward based on bits 0..2
-						includeCount := int((byteVal & 0b00111000) >> 3)
-						skipAmount := int(byteVal & 0b00000111)
-						for j := 0; j < includeCount; j++ {
-							regions = append(regions, currentRegion)
-							currentRegion++
-						}
-						currentRegion += skipAmount
-					case byteVal >= 0xC0 && byteVal <= 0xFE:
-						// Subtracting 0xC0, this many region IDs are nearby
-						includeCount := int(byteVal - 0xC0)
-						for j := 0; j < includeCount; j++ {
-							regions = append(regions, currentRegion)
-							currentRegion++
-						}
-					case byteVal == 0xFF:
-						// Include regions by the amount given in the following 16-bit WORD
-						nextByte1 := list.Ranges[i+1]
-						nextByte2 := list.Ranges[i+2]
-						includeCount := int(nextByte2)<<8 | int(nextByte1)
-						for j := 0; j < includeCount; j++ {
-							regions = append(regions, currentRegion)
-							currentRegion++
-						}
-						i += 2
-					}
-
-					i++
-				}
-
-				// Print the REGIONS data for the 0x80 flag set case
-				fmt.Fprintf(w, "\t\t\tVISLIST // %d\n", i)
-				fmt.Fprintf(w, "\t\t\t\tREGIONS %d", len(regions))
-				for _, region := range regions {
-					fmt.Fprintf(w, " %d", region)
-				}
-				fmt.Fprintf(w, "\n")
-
-			} else {
-				// 0x80 flag is not set, handle as pairs of uint16 WORDs
-				wordCount := len(list.Ranges) / 2
-				regions := []int{}
-
-				for j := 0; j < wordCount; j++ {
-					lowByte := list.Ranges[j*2]
-					highByte := list.Ranges[j*2+1]
-					regionIndex := int(highByte)<<8 | int(lowByte)
-					regionIndex += 1 // Convert from 0-based to 1-based indexing
-					regions = append(regions, regionIndex)
-				}
-
-				// Print the REGIONS data for the non-0x80 flag case
-				fmt.Fprintf(w, "\t\t\tVISLIST // %d\n", i)
-				fmt.Fprintf(w, "\t\t\t\tREGIONS %d", len(regions))
-				for _, region := range regions {
-					fmt.Fprintf(w, " %d", region)
-				}
-				fmt.Fprintf(w, "\n")
+			regions := processVisibilityList(e.VisListBytes, list.Ranges)
+			fmt.Fprintf(&buf, "\t\t\tVISLIST // %d\n", i)
+			fmt.Fprintf(&buf, "\t\t\t\tREGIONS %d", len(regions))
+			for _, region := range regions {
+				fmt.Fprintf(&buf, " %d", region)
 			}
+			fmt.Fprintf(&buf, "\n")
 		}
+
+		_, err = w.Write(buf.Bytes())
+		if err != nil {
+			return fmt.Errorf("write to file: %w", err)
+		}
+
 		fmt.Fprintf(w, "\tSPHERE %0.8e %0.8e %0.8e %0.8e\n", e.Sphere[0], e.Sphere[1], e.Sphere[2], e.Sphere[3])
 		fmt.Fprintf(w, "\tUSERDATA \"%s\"\n", e.UserData)
 		fmt.Fprintf(w, "\tSPRITE \"%s\"\n", e.SpriteTag)
 		fmt.Fprintf(w, "\n")
+
 	}
 	e.folders = []string{}
 	return nil
+}
+
+func processVisibilityList(visListBytes int, ranges []byte) []int {
+	regions := []int{}
+	currentRegion := 1
+
+	if visListBytes == 1 {
+		// Handle RLE Encoding
+		for i := 0; i < len(ranges); {
+			byteVal := ranges[i]
+
+			switch {
+			case byteVal <= 0x3E:
+				currentRegion += int(byteVal)
+			case byteVal == 0x3F:
+				currentRegion += int(ranges[i+2])<<8 | int(ranges[i+1])
+				i += 2
+			case byteVal >= 0x40 && byteVal <= 0x7F:
+				currentRegion += int((byteVal & 0b00111000) >> 3)
+				for j := 0; j < int(byteVal&0b00000111); j++ {
+					regions = append(regions, currentRegion)
+					currentRegion++
+				}
+			case byteVal >= 0x80 && byteVal <= 0xBF:
+				includeCount := int((byteVal & 0b00111000) >> 3)
+				for j := 0; j < includeCount; j++ {
+					regions = append(regions, currentRegion)
+					currentRegion++
+				}
+				currentRegion += int(byteVal & 0b00000111)
+			case byteVal >= 0xC0 && byteVal <= 0xFE:
+				for j := 0; j < int(byteVal-0xC0); j++ {
+					regions = append(regions, currentRegion)
+					currentRegion++
+				}
+			case byteVal == 0xFF:
+				includeCount := int(ranges[i+2])<<8 | int(ranges[i+1])
+				for j := 0; j < includeCount; j++ {
+					regions = append(regions, currentRegion)
+					currentRegion++
+				}
+				i += 2
+			}
+			i++
+		}
+	} else {
+		// Non-RLE (direct uint16 reads)
+		for i := 0; i < len(ranges); i += 2 {
+			regionIndex := int(ranges[i+1])<<8 | int(ranges[i]) + 1
+			regions = append(regions, regionIndex)
+		}
+	}
+
+	return regions
 }
 
 func (e *Region) Read(token *AsciiReadToken) error {
@@ -7871,9 +7858,10 @@ func (e *Sprite2DDef) Write(token *AsciiWriteToken) error {
 				fmt.Fprintf(w, "\t\t\t\t\tHEADINGCAP %d\n", heading.HeadingCap)
 				fmt.Fprintf(w, "\t\t\t\t\tNUMFRAMES %d\n", len(heading.Sprite2DFrames))
 				for _, frame := range heading.Sprite2DFrames {
-					fmt.Fprintf(w, "\t\t\t\t\t\tFRAME \"%s\" NUMFILES %d\n", frame.TextureTag, len(frame.TextureFiles))
+					fmt.Fprintf(w, "\t\t\t\t\t\tFRAME \"%s\"\n", frame.TextureTag)
+					fmt.Fprintf(w, "\t\t\t\t\t\t\tNUMFILES %d\n", len(frame.TextureFiles))
 					for _, file := range frame.TextureFiles {
-						fmt.Fprintf(w, "\t\t\t\t\t\t\tFILE \"%s\"\n", file)
+						fmt.Fprintf(w, "\t\t\t\t\t\t\t\tFILE \"%s\"\n", file)
 					}
 				}
 			}
@@ -8037,7 +8025,7 @@ func (e *Sprite2DDef) Read(token *AsciiReadToken) error {
 
 			heading.Sprite2DFrames = []*Sprite2DFrame{}
 			for k := 0; k < numFrames; k++ {
-				records, err = token.ReadProperty("FRAME", 3)
+				records, err = token.ReadProperty("FRAME", 1)
 				if err != nil {
 					return fmt.Errorf("FRAME: %w", err)
 				}
@@ -8046,8 +8034,13 @@ func (e *Sprite2DDef) Read(token *AsciiReadToken) error {
 					TextureTag: records[1],
 				}
 
+				records, err = token.ReadProperty("NUMFILES", 1)
+				if err != nil {
+					return fmt.Errorf("NUMFILES: %w", err)
+				}
+
 				numFiles := 0
-				err = parse(&numFiles, records[3])
+				err = parse(&numFiles, records[1])
 				if err != nil {
 					return fmt.Errorf("num files: %w", err)
 				}

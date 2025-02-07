@@ -588,6 +588,11 @@ func setRootFolder(foldersByFrag map[int][]string, folder string, node *tree.Nod
 	// If no folder is assigned, handle specific cases based on FragType
 	if len(foldersByFrag[int(node.FragID)]) == 0 {
 		switch node.FragType {
+		case "ActorDef":
+			folder = node.Tag
+			if strings.Contains(folder, "_ACTORDEF") {
+				folder = strings.Split(folder, "_ACTORDEF")[0]
+			}
 		case "AmbientLight":
 			folder = "ZONE"
 		case "DmSpriteDef2":
