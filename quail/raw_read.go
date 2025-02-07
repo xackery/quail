@@ -43,41 +43,32 @@ func RawRead(in raw.ReadWriter, q *Quail) error {
 }
 
 func (q *Quail) ddsRead(in *raw.Dds) error {
-	if q.Textures == nil {
-		q.Textures = make(map[string][]byte)
-	}
 	buf := &bytes.Buffer{}
 	err := in.Write(buf)
 	if err != nil {
 		return fmt.Errorf("write dds: %w", err)
 	}
-	q.Textures[in.FileName()] = buf.Bytes()
+	q.assetAdd(in.FileName(), buf.Bytes())
 	return nil
 }
 
 func (q *Quail) bmpRead(in *raw.Bmp) error {
-	if q.Textures == nil {
-		q.Textures = make(map[string][]byte)
-	}
 	buf := &bytes.Buffer{}
 	err := in.Write(buf)
 	if err != nil {
 		return fmt.Errorf("write bmp: %w", err)
 	}
-	q.Textures[in.FileName()] = buf.Bytes()
+	q.assetAdd(in.FileName(), buf.Bytes())
 	return nil
 }
 
 func (q *Quail) pngRead(in *raw.Png) error {
-	if q.Textures == nil {
-		q.Textures = make(map[string][]byte)
-	}
 	buf := &bytes.Buffer{}
 	err := in.Write(buf)
 	if err != nil {
 		return fmt.Errorf("write png: %w", err)
 	}
-	q.Textures[in.FileName()] = buf.Bytes()
+	q.assetAdd(in.FileName(), buf.Bytes())
 	return nil
 }
 

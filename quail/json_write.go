@@ -42,7 +42,7 @@ func (q *Quail) JsonWrite(path string) error {
 	}
 	os.MkdirAll(strings.TrimSuffix(path, ".json"), 0755)
 
-	for name, data := range q.Textures {
+	for name, data := range q.Assets {
 		err = os.WriteFile(strings.TrimSuffix(path, ".json")+"/"+name, data, 0644)
 		if err != nil {
 			return err

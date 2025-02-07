@@ -82,7 +82,7 @@ func run() error {
 
 		isModel := strings.Contains(path, "_chr")
 
-		for name, texture := range q.Textures {
+		for name, texture := range q.Assets {
 
 			outPath := ""
 			if isModel {

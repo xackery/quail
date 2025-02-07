@@ -40,10 +40,7 @@ func (q *Quail) PfsRead(path string) error {
 	for _, file := range pfs.Files() {
 		ext := strings.ToLower(filepath.Ext(file.Name()))
 		if ext == ".lit" {
-			if q.BakedLights == nil {
-				q.BakedLights = make(map[string][]byte)
-			}
-			q.BakedLights[file.Name()] = file.Data()
+			q.assetAdd(file.Name(), file.Data())
 			continue
 		}
 		reader, err := raw.Read(ext, bytes.NewReader(file.Data()))
@@ -57,5 +54,13 @@ func (q *Quail) PfsRead(path string) error {
 		}
 	}
 
+	return nil
+}
+
+func (q *Quail) assetAdd(name string, data []byte) error {
+	if q.Assets == nil {
+		q.Assets = make(map[string][]byte)
+	}
+	q.Assets[name] = data
 	return nil
 }
