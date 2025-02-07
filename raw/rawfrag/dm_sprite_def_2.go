@@ -110,8 +110,8 @@ func (e *WldFragDmSpriteDef2) Write(w io.Writer, isNewWorld bool) error {
 
 	for _, uv := range e.UVs {
 		if isNewWorld {
-			enc.Int32(int32(uv[0]))
-			enc.Int32(int32(uv[1]))
+			enc.Float32(float32(uv[0]))
+			enc.Float32(float32(uv[1]))
 		} else {
 			enc.Int16(int16(uv[0]))
 			enc.Int16(int16(uv[1]))
