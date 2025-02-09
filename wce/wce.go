@@ -15,7 +15,6 @@ type Wce struct {
 	lastReadFolder         string // used during wce parsing to remember context
 	isObj                  bool   // true when a _obj suffix is found in path
 	isChr                  bool   // true when a _chr suffix is found in path
-	modelTags              []string
 	maxMaterialHeads       map[string]int
 	maxMaterialTextures    map[string]int
 	tagIndexes             map[string]int // used when parsing to keep track of indexes

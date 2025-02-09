@@ -541,48 +541,6 @@ func (wce *Wce) isTrackAni(tag string) bool {
 	return false
 }
 
-func baseTagTrim(isObj bool, tag string) string {
-	tag = strings.ReplaceAll(tag, " ", "")
-	if len(tag) < 2 {
-		return tag
-	}
-
-	index := strings.Index(tag, "_")
-	if index > 0 {
-		tag = tag[:index]
-	}
-	/*
-		if !isObj && !strings.HasPrefix(tag, "IT") {
-			// find suffix first number
-			for i := 0; i < len(tag); i++ {
-				if tag[i] >= '0' && tag[i] <= '9' {
-					tag = tag[:i]
-					break
-				}
-			}
-		} */
-
-	if len(tag) > 4 && strings.HasSuffix(tag, "HE") {
-		tag = tag[:len(tag)-2]
-	}
-
-	if tag == "PREPE" {
-		tag = "PRE"
-	}
-
-	if strings.HasSuffix(tag, "EYE") && len(tag) >= 6 {
-		tag = tag[:len(tag)-3]
-	}
-
-	if len(tag) == 7 {
-		tag = strings.TrimSuffix(tag, "MESH")
-	}
-	if len(tag) == 6 {
-		tag = strings.TrimSuffix(tag, "BOD")
-	}
-	return tag
-}
-
 func setRootFolder(foldersByFrag map[int][]string, folder string, node *tree.Node, isChr bool, nodes map[int32]*tree.Node, wce *Wce) {
 
 	// If no folder is assigned, handle specific cases based on FragType
