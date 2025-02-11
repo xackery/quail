@@ -10,6 +10,7 @@ jobs:
       - run: make set-version-${{github.run_number}}
       - run: go get ./...
       - run: go test -tags ci ./...
+      - run: make sanitize
       - run: make build-all
       - uses: "marvinpinto/action-automatic-releases@latest"
         if: github.ref == 'refs/heads/main'

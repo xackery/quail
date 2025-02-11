@@ -11,15 +11,6 @@ import (
 	"github.com/xackery/quail/wce"
 )
 
-type tagEntry struct {
-	tag    string
-	offset int
-}
-
-func (e *tagEntry) String() string {
-	return fmt.Sprintf("%s (%d)", e.tag, e.offset)
-}
-
 func TestWceReadWrite(t *testing.T) {
 	if os.Getenv("SINGLE_TEST") != "1" {
 		t.Skip("skipping test; SINGLE_TEST not set")
