@@ -52,16 +52,16 @@ test-clear:
 	@echo "test-clear: clearing test files"
 	rm -rf test/*
 build-darwin: ## build darwin
-	@CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -trimpath -buildmode=pie -ldflags="-X main.ShowVersion=1 -s -w" -o bin/${NAME}-darwin main.go
+	@CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -trimpath -buildmode=pie -ldflags="-X main.ShowVersion=1 -s -w" -o bin/${NAME}-darwin
 
 build-linux: ## build linux
-	@CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -trimpath -ldflags="-X main.ShowVersion=1 -s -w" -o bin/${NAME}-linux main.go
+	@CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -trimpath -ldflags="-X main.ShowVersion=1 -s -w" -o bin/${NAME}-linux
 
 build-windows: ## build windows
-	@CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -trimpath -buildmode=pie -ldflags="-X main.ShowVersion=1 -s -w" -o bin/${NAME}.exe main.go
+	@CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -trimpath -buildmode=pie -ldflags="-X main.ShowVersion=1 -s -w" -o bin/${NAME}.exe
 
 build-windows-addon: ## build windows blender addon
-	@CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -trimpath -buildmode=pie -ldflags="-X main.ShowVersion=1 -s -w" -o bin/${NAME}-addon.exe main.go
+	@CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -trimpath -buildmode=pie -ldflags="-X main.ShowVersion=1 -s -w" -o bin/${NAME}-addon.exe
 
 build-wasm: ## build wasm
 	@GOOS=js GOARCH=wasm go build -o wasm/quail.wasm main_wasm.go
