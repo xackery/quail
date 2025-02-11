@@ -7,19 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - run: make set-version-${{github.run_number}}
       - run: go get ./...
       - run: go test -tags ci ./...
       - run: make sanitize
       - run: make build-all
-      - uses: "marvinpinto/action-automatic-releases@latest"
-        if: github.ref == 'refs/heads/main'
-        with:
-          repo_token: "${{secrets.GITHUB_TOKEN}}"
-          automatic_release_tag: "v${{env.VERSION}}"
-          prerelease: false
-          title: "${{env.VERSION}}"
-          files: |
-            bin/quail-linux
-            bin/quail.exe
-            bin/quail-darwin

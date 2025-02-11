@@ -2,7 +2,8 @@ package main
 
 import (
 	"fmt"
-	"time"
+
+	"runtime/debug"
 
 	"github.com/xackery/quail/cmd"
 	"github.com/xackery/quail/helper"
@@ -23,13 +24,12 @@ func main() {
 		fmt.Println(http.ListenAndServe("localhost:6060", nil))
 	}() */
 
-	if Version == "" {
-		Version = fmt.Sprintf("dev-%d-%02d-%02d", time.Now().Year(), time.Now().Month(), time.Now().Day())
-		fmt.Printf("quail %s\n", Version)
+	info, ok := debug.ReadBuildInfo()
+	if ok {
+		Version = info.Main.Version
 	}
-	if ShowVersion == "1" {
-		fmt.Printf("quail %s\n", Version)
-	}
+
+	fmt.Printf("quail %s\n", Version)
 	helper.Version = Version
 	cmd.Execute()
 }
