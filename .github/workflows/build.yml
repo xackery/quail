@@ -1,4 +1,4 @@
-name: Build Go Binaries and Prep Release
+name: Build Go Binaries
 on: [push]
 env:
   VERSION: "" # this gets set by set-version
