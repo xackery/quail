@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"time"
 
 	"runtime/debug"
 
@@ -24,12 +25,13 @@ func main() {
 		fmt.Println(http.ListenAndServe("localhost:6060", nil))
 	}() */
 
-	info, ok := debug.ReadBuildInfo()
-	if ok {
-		Version = info.Main.Version
+	info, _ := debug.ReadBuildInfo()
+	Version = info.Main.Version
+	if Version == "" {
+		Version = "dev-" + time.Now().Format("20060102")
 	}
 
-	fmt.Printf("quail %s\n", Version)
+	fmt.Printf("Quail version %s, Go version: %s\n", Version, info.GoVersion)
 	helper.Version = Version
 	cmd.Execute()
 }
