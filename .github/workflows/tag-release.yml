@@ -16,7 +16,7 @@ jobs:
         with:
           repo_token: "${{secrets.GITHUB_TOKEN}}"
           prerelease: false
-          title: ${{ github.ref }}
+          title: ${{ github.ref_name }}
           files: |
             bin/quail-linux
             bin/quail.exe
