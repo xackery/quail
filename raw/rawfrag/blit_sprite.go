@@ -12,7 +12,7 @@ import (
 type WldFragBlitSprite struct {
 	nameRef       int32
 	BlitSpriteRef int32
-	Unknown       int32
+	Flags         uint32
 }
 
 func (e *WldFragBlitSprite) FragCode() int {
@@ -23,7 +23,7 @@ func (e *WldFragBlitSprite) Write(w io.Writer, isNewWorld bool) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
 	enc.Int32(e.nameRef)
 	enc.Int32(e.BlitSpriteRef)
-	enc.Int32(e.Unknown)
+	enc.Uint32(e.Flags)
 	err := enc.Error()
 	if err != nil {
 		return fmt.Errorf("write: %w", err)
@@ -35,7 +35,7 @@ func (e *WldFragBlitSprite) Read(r io.ReadSeeker, isNewWorld bool) error {
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 	e.nameRef = dec.Int32()
 	e.BlitSpriteRef = dec.Int32()
-	e.Unknown = dec.Int32()
+	e.Flags = dec.Uint32()
 	err := dec.Error()
 	if err != nil {
 		return fmt.Errorf("read: %w", err)

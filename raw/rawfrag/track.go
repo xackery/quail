@@ -8,7 +8,7 @@ import (
 	"github.com/xackery/encdec"
 )
 
-// WldFragTrack is a bone in a skeleton. It is Track in libeq, Mob Skeleton Piece Track Reference in openzone, TRACKINSTANCE in wld, TrackDefFragment in lantern
+// WldFragTrack is a bone in a skeleton. STrack in mq2nav, Track in libeq, Mob Skeleton Piece Track Reference in openzone, TRACKINSTANCE in wld, TrackDefFragment in lantern
 type WldFragTrack struct {
 	nameRef  int32
 	TrackRef int32
