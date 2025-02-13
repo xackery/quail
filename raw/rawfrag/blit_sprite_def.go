@@ -13,7 +13,7 @@ type WldFragBlitSpriteDef struct {
 	nameRef           int32
 	Flags             uint32
 	SpriteInstanceRef uint32
-	Unknown           int32
+	RenderMethod      uint32
 }
 
 func (e *WldFragBlitSpriteDef) FragCode() int {
@@ -25,7 +25,7 @@ func (e *WldFragBlitSpriteDef) Write(w io.Writer, isNewWorld bool) error {
 	enc.Int32(e.nameRef)
 	enc.Uint32(e.Flags)
 	enc.Uint32(e.SpriteInstanceRef)
-	enc.Int32(e.Unknown)
+	enc.Uint32(e.RenderMethod)
 	err := enc.Error()
 	if err != nil {
 		return fmt.Errorf("write: %w", err)
@@ -39,7 +39,7 @@ func (e *WldFragBlitSpriteDef) Read(r io.ReadSeeker, isNewWorld bool) error {
 	e.nameRef = dec.Int32()
 	e.Flags = dec.Uint32()
 	e.SpriteInstanceRef = dec.Uint32()
-	e.Unknown = dec.Int32()
+	e.RenderMethod = dec.Uint32()
 
 	err := dec.Error()
 	if err != nil {

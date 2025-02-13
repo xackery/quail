@@ -2129,12 +2129,12 @@ func (e *MaterialDef) variationParseFromRaw(wce *Wce, frag *rawfrag.WldFragMater
 
 // BlitSpriteDef is a declaration of BLITSPRITEDEF
 type BlitSpriteDef struct {
-	folders     []string // when writing, this is the folder the file is in
-	fragID      int16
-	Tag         string
-	SpriteTag   string
-	Unknown     int32
-	Transparent int16
+	folders      []string // when writing, this is the folder the file is in
+	fragID       int16
+	Tag          string
+	SpriteTag    string
+	RenderMethod string
+	Transparent  int16
 }
 
 func (e *BlitSpriteDef) Definition() string {
@@ -2165,7 +2165,7 @@ func (e *BlitSpriteDef) Write(token *AsciiWriteToken) error {
 
 		fmt.Fprintf(w, "%s \"%s\"\n", e.Definition(), e.Tag)
 		fmt.Fprintf(w, "\tSPRITE \"%s\"\n", e.SpriteTag)
-		fmt.Fprintf(w, "\tUNKNOWN %d\n", e.Unknown)
+		fmt.Fprintf(w, "\tRENDERMETHOD \"%s\"\n", e.RenderMethod)
 		fmt.Fprintf(w, "\tTRANSPARENT %d\n", e.Transparent)
 		fmt.Fprintf(w, "\n")
 	}
@@ -2182,15 +2182,12 @@ func (e *BlitSpriteDef) Read(token *AsciiReadToken) error {
 	}
 	e.SpriteTag = records[1]
 
-	records, err = token.ReadProperty("UNKNOWN", 1)
+	records, err = token.ReadProperty("RENDERMETHOD", 1)
 	if err != nil {
-		return fmt.Errorf("UNKNOWN: %w", err)
+		return fmt.Errorf("RENDERMETHOD: %w", err)
 	}
 
-	err = parse(&e.Unknown, records[1])
-	if err != nil {
-		return fmt.Errorf("unknown: %w", err)
-	}
+	e.RenderMethod = records[1]
 
 	records, err = token.ReadProperty("TRANSPARENT", 1)
 	if err != nil {
@@ -2234,7 +2231,7 @@ func (e *BlitSpriteDef) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
 	spriteRef := int16(len(rawWld.Fragments))
 
 	wfBlitSpriteDef := &rawfrag.WldFragBlitSpriteDef{
-		Unknown:           e.Unknown,
+		RenderMethod:      helper.RenderMethodInt(e.RenderMethod),
 		SpriteInstanceRef: uint32(spriteRef),
 	}
 
@@ -2278,7 +2275,7 @@ func (e *BlitSpriteDef) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFrag
 		e.SpriteTag = rawWld.Name(spriteDef.NameRef())
 	}
 
-	e.Unknown = frag.Unknown
+	e.RenderMethod = helper.RenderMethodStr(frag.RenderMethod)
 	e.Transparent = int16(frag.Flags & 0x100)
 	return nil
 }
