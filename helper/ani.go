@@ -79,8 +79,8 @@ func TrackAnimationParse(isChr bool, tag string) (animationTag string, modelTag 
 
 		patterns := []string{
 			`^[C,D,L,O,P,S,T](0[1-9]|[1-9][0-9])([A-Z]){3}_TRACK$`,
-			`^([C,D,L,O,P,S,T]0[1-9]|[1-9][0-9]{2})_([A-Z]{3})_TRACK$`,
 			`^([C,D,L,O,P,S,T](0[1-9]|[1-9][0-9])){2}_[A-Z]{3}_TRACK$`,
+			`^[C,D,L,O,P,S,T](0[1-9]|[1-9][0-9])[A-Z]{3}[C,D,L,O,P,S,T](0[1-9]|[1-9][0-9])[A-Z]{3}_TRACK`,
 			`^[C,D,L,O,P,S,T](0[1-9]|[1-9][0-9])[A-Z]{3}[C,D,L,O,P,S,T](0[1-9]|[1-9][0-9])_[A-Z]{3}_TRACK$`,
 			`^[C,D,L,O,P,S,T](0[1-9]|[1-9][0-9])[A,B,G][A-Z]{3}[C,D,L,O,P,S,T](0[1-9]|[1-9][0-9])[A,B,G]_[A-Z]{3}_TRACK$`,
 			`^[C,D,L,O,P,S,T](0[1-9]|[1-9][0-9])[A,B,G][C,D,L,O,P,S,T](0[1-9]|[1-9][0-9])_[A-Z]{3}_TRACK$`,
