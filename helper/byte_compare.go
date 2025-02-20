@@ -9,12 +9,12 @@ import (
 func ByteCompareTest(src []byte, dst []byte) error {
 
 	if len(dst) < len(src) {
-		min := 0
-		max := len(src)
-		fmt.Printf("src (%d:%d):\n%s\n", min, max, hex.Dump(src[min:max]))
-		min = 0
-		max = len(dst)
-		fmt.Printf("dst (%d:%d):\n%s\n", min, max, hex.Dump(dst[min:max]))
+		//min := 0
+		//max := len(src)
+		//fmt.Printf("src (%d:%d):\n%s\n", min, max, hex.Dump(src[min:max]))
+		//min = 0
+		//max = len(dst)
+		//fmt.Printf("dst (%d:%d):\n%s\n", min, max, hex.Dump(dst[min:max]))
 		return fmt.Errorf("dst is too small by %d bytes", len(src)-len(dst))
 	}
 

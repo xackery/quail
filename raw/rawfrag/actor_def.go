@@ -6,6 +6,20 @@ import (
 	"io"
 
 	"github.com/xackery/encdec"
+	"github.com/xackery/quail/helper"
+)
+
+const (
+	ActorFlagHasCurrentAction  = 0x0001
+	ActorFlagHasLocation       = 0x0002
+	ActorFlagHasBoundingRadius = 0x0004
+	ActorFlagHasScaleFactor    = 0x0008
+	ActorFlagHasSound          = 0x0010
+	ActorFlagActive            = 0x0020
+	ActorFlagActiveGeometry    = 0x0040
+	ActorFlagSpriteVolumeOnly  = 0x0080
+	ActorFlagHaveDMRGBTrack    = 0x0100
+	ActorFlagUsesBoundingBox   = 0x0200
 )
 
 // WldFragActorDef is ActorDef in libeq, Static in openzone, ACTORDEF in wld
@@ -18,8 +32,8 @@ type WldFragActorDef struct {
 	Location        [6]float32
 	Unk1            uint32
 	Actions         []WldFragModelAction
-	FragmentRefs    []uint32
-	Unk2            uint32
+	SpriteRefs      []uint32
+	UserData        string
 }
 
 type WldFragModelAction struct {
@@ -33,17 +47,20 @@ func (e *WldFragActorDef) FragCode() int {
 
 func (e *WldFragActorDef) Write(w io.Writer, isNewWorld bool) error {
 	enc := encdec.NewEncoder(w, binary.LittleEndian)
+	userData := helper.WriteStringHash(e.UserData)
+	paddingSize := (4 - (len(userData) % 4)) % 4
+
 	enc.Int32(e.nameRef)
 	enc.Uint32(e.Flags)
 
 	enc.Int32(e.CallbackNameRef)
 	enc.Uint32(uint32(len(e.Actions)))
-	enc.Uint32(uint32(len(e.FragmentRefs)))
+	enc.Uint32(uint32(len(e.SpriteRefs)))
 	enc.Int32(e.BoundsRef)
-	if e.Flags&0x1 == 0x1 {
+	if helper.HasFlag(e.Flags, ActorFlagHasCurrentAction) {
 		enc.Uint32(e.CurrentAction)
 	}
-	if e.Flags&0x2 == 0x2 {
+	if helper.HasFlag(e.Flags, ActorFlagHasLocation) {
 		enc.Float32(e.Location[0])
 		enc.Float32(e.Location[1])
 		enc.Float32(e.Location[2])
@@ -59,10 +76,14 @@ func (e *WldFragActorDef) Write(w io.Writer, isNewWorld bool) error {
 			enc.Float32(lod)
 		}
 	}
-	for _, fragmentRef := range e.FragmentRefs {
+	for _, fragmentRef := range e.SpriteRefs {
 		enc.Uint32(fragmentRef)
 	}
-	enc.Uint32(e.Unk2)
+	enc.Uint32(uint32(len(userData)))
+	if len(e.UserData) > 0 {
+		enc.Bytes(userData)
+		enc.Bytes(make([]byte, paddingSize))
+	}
 	err := enc.Error()
 	if err != nil {
 		return fmt.Errorf("write: %w", err)
@@ -76,12 +97,12 @@ func (e *WldFragActorDef) Read(r io.ReadSeeker, isNewWorld bool) error {
 	e.Flags = dec.Uint32()
 	e.CallbackNameRef = dec.Int32()
 	actionCount := dec.Uint32()
-	fragmentRefCount := dec.Uint32()
+	spriteCount := dec.Uint32()
 	e.BoundsRef = dec.Int32()
-	if e.Flags&0x01 == 0x01 {
+	if helper.HasFlag(e.Flags, ActorFlagHasCurrentAction) {
 		e.CurrentAction = dec.Uint32()
 	}
-	if e.Flags&0x2 == 0x2 {
+	if helper.HasFlag(e.Flags, ActorFlagHasLocation) {
 		e.Location[0] = dec.Float32()
 		e.Location[1] = dec.Float32()
 		e.Location[2] = dec.Float32()
@@ -99,10 +120,13 @@ func (e *WldFragActorDef) Read(r io.ReadSeeker, isNewWorld bool) error {
 		}
 		e.Actions = append(e.Actions, action)
 	}
-	for i := uint32(0); i < fragmentRefCount; i++ {
-		e.FragmentRefs = append(e.FragmentRefs, dec.Uint32())
+	for i := uint32(0); i < spriteCount; i++ {
+		e.SpriteRefs = append(e.SpriteRefs, dec.Uint32())
 	}
-	e.Unk2 = dec.Uint32()
+	userDataSize := dec.Uint32()
+	if userDataSize > 0 {
+		e.UserData = helper.ReadStringHash([]byte(dec.StringFixed(int(userDataSize))))
+	}
 
 	err := dec.Error()
 	if err != nil {
