@@ -74,6 +74,8 @@ func New(ext string) ReadWriter {
 		return &Txt{}
 	case ".mdf": // model definition file, safely ignored
 		return &Txt{}
+	case ".tga":
+		return &Tga{}
 	default:
 		return nil
 	}
