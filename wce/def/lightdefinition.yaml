@@ -1,0 +1,58 @@
+name: "LIGHTDEFINITION"
+hasTag: true
+note: "Wld Light"
+properties:
+  - name: "CURRENTFRAME?"
+    note: "Is there a current frame, and what's value"
+    args:
+      - name: ""
+        note: "NULL if skipped"
+        format: "%d"
+
+  - name: "NUMFRAMES"
+    note: "Number of frames in light"
+    args:
+      - name: "count"
+        note: "Count of frames"
+        format: "%d"
+    properties:
+      - name: "LIGHTLEVELS"
+        note: "value of light level frame"
+        args:
+          - name: ""
+            note: "light level"
+            format: "%0.8e"
+
+  - name: "SLEEP?"
+    note: "Is a sleep value set?"
+    args:
+      - name: ""
+        note: "NULL if skipped, sleep value in ms"
+        format: "%d"
+
+  - name: "SKIPFRAMES"
+    note: "Are frames skipped"
+    args:
+      - name: ""
+        note: "number of frames to skip"
+        format: "%d"
+
+  - name: "NUMCOLORS"
+    note: "Number of colors"
+    args:
+      - name: "count"
+        note: "Count of colors"
+        format: "%d"
+    properties:
+      - name: "COLOR"
+        note: "Color value"
+        args:
+          - name: "r"
+            note: "R Value of color"
+            format: "%0.8e"
+          - name: "g"
+            note: "G Value of color"
+            format: "%0.8e"
+          - name: "b"
+            note: "B Value of color"
+            format: "%0.8e"

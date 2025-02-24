@@ -7,8 +7,8 @@ import (
 	"github.com/xackery/quail/raw"
 )
 
-// ModDef is an entry EQMODELDEF
-type ModDef struct {
+// EqgModDef is an entry EQMODELDEF
+type EqgModDef struct {
 	folders   []string
 	Tag       string
 	Version   uint32
@@ -46,11 +46,11 @@ type ModBone struct {
 	Scale         [3]float32
 }
 
-func (e *ModDef) Definition() string {
-	return "EQMODELDEF"
+func (e *EqgModDef) Definition() string {
+	return "EQGMODELDEF"
 }
 
-func (e *ModDef) Write(token *AsciiWriteToken) error {
+func (e *EqgModDef) Write(token *AsciiWriteToken) error {
 	for _, folder := range e.folders {
 		err := token.SetWriter(folder)
 		if err != nil {
@@ -79,9 +79,9 @@ func (e *ModDef) Write(token *AsciiWriteToken) error {
 				fmt.Fprintf(w, "\t\t\t\tPROPERTY \"%s\" %d \"%s\"\n", prop.Name, prop.Type, prop.Value)
 			}
 			fmt.Fprintf(w, "\t\t\tANIMSLEEP %d\n", material.AnimationSleep)
-			fmt.Fprintf(w, "\t\t\tANIMTEXTURES %d\n", len(material.AnimationTextures))
+			fmt.Fprintf(w, "\t\t\tNUMANIMTEXTURES %d\n", len(material.AnimationTextures))
 			for _, anim := range material.AnimationTextures {
-				fmt.Fprintf(w, " \"%s\"", anim)
+				fmt.Fprintf(w, "\t\t\t\tTEXTURE \"%s\"", anim)
 			}
 		}
 		fmt.Fprintf(w, "\t\t\tNUMVERTICES %d\n", len(e.Vertices))
@@ -125,7 +125,7 @@ func (e *ModDef) Write(token *AsciiWriteToken) error {
 	return nil
 }
 
-func (e *ModDef) Read(token *AsciiReadToken) error {
+func (e *EqgModDef) Read(token *AsciiReadToken) error {
 
 	records, err := token.ReadProperty("VERSION", 1)
 	if err != nil {
@@ -159,7 +159,9 @@ func (e *ModDef) Read(token *AsciiReadToken) error {
 		if err != nil {
 			return fmt.Errorf("material %d: %w", i, err)
 		}
+
 		e.Materials = append(e.Materials, eqMaterialDef)
+
 	}
 
 	records, err = token.ReadProperty("NUMVERTICES", 1)
@@ -398,7 +400,7 @@ func (e *ModDef) Read(token *AsciiReadToken) error {
 	return nil
 }
 
-func (e *ModDef) ToRaw(wce *Wce, dst *raw.Mod) error {
+func (e *EqgModDef) ToRaw(wce *Wce, dst *raw.Mod) error {
 	var err error
 	dst.Version = e.Version
 
@@ -459,7 +461,7 @@ func (e *ModDef) ToRaw(wce *Wce, dst *raw.Mod) error {
 	return nil
 }
 
-func (e *ModDef) FromRaw(wce *Wce, src *raw.Mod) error {
+func (e *EqgModDef) FromRaw(wce *Wce, src *raw.Mod) error {
 	e.Tag = string(src.FileName())
 	folder := strings.TrimSuffix(strings.ToLower(wce.FileName), ".eqg")
 	if wce.WorldDef.Zone == 1 {
@@ -515,14 +517,14 @@ func (e *ModDef) FromRaw(wce *Wce, src *raw.Mod) error {
 	return nil
 }
 
-// MdsDef is an entry EQSKINNEDMODELDEF
-type MdsDef struct {
+// EqgMdsDef is an entry EQSKINNEDMODELDEF
+type EqgMdsDef struct {
 	folders   []string
 	Tag       string
 	Version   uint32
 	Materials []*EQMaterialDef
 	Bones     []*MdsBone
-	Models    []*MdsModel
+	Models    []*EqgMdsModel
 }
 
 type MdsBone struct {
@@ -535,7 +537,7 @@ type MdsBone struct {
 	Scale         [3]float32
 }
 
-type MdsModel struct {
+type EqgMdsModel struct {
 	MainPiece       uint32 // 0: no, 1: yes, head is a mainpiece
 	Name            string
 	Vertices        []*ModVertex
@@ -558,11 +560,11 @@ type MdsBoneWeight struct {
 	Value     float32
 }
 
-func (e *MdsDef) Definition() string {
-	return "EQSKINNEDMODELDEF"
+func (e *EqgMdsDef) Definition() string {
+	return "EQGSKINNEDMODELDEF"
 }
 
-func (e *MdsDef) Write(token *AsciiWriteToken) error {
+func (e *EqgMdsDef) Write(token *AsciiWriteToken) error {
 	for _, folder := range e.folders {
 		err := token.SetWriter(folder)
 		if err != nil {
@@ -585,9 +587,9 @@ func (e *MdsDef) Write(token *AsciiWriteToken) error {
 				fmt.Fprintf(w, "\t\t\t\tPROPERTY \"%s\" %d \"%s\"\n", prop.Name, prop.Type, prop.Value)
 			}
 			fmt.Fprintf(w, "\t\t\tANIMSLEEP %d\n", material.AnimationSleep)
-			fmt.Fprintf(w, "\t\t\tANIMTEXTURES %d\n", len(material.AnimationTextures))
+			fmt.Fprintf(w, "\t\t\tNUMANIMTEXTURES %d\n", len(material.AnimationTextures))
 			for _, anim := range material.AnimationTextures {
-				fmt.Fprintf(w, " \"%s\"", anim)
+				fmt.Fprintf(w, "\t\t\t\tTEXTURE \"%s\"", anim)
 			}
 
 		}
@@ -640,7 +642,7 @@ func (e *MdsDef) Write(token *AsciiWriteToken) error {
 
 }
 
-func (e *MdsDef) Read(token *AsciiReadToken) error {
+func (e *EqgMdsDef) Read(token *AsciiReadToken) error {
 
 	records, err := token.ReadProperty("VERSION", 1)
 	if err != nil {
@@ -768,7 +770,7 @@ func (e *MdsDef) Read(token *AsciiReadToken) error {
 		if err != nil {
 			return fmt.Errorf("model %d: %w", i, err)
 		}
-		model := &MdsModel{}
+		model := &EqgMdsModel{}
 		model.Name = records[1]
 
 		records, err = token.ReadProperty("MAINPIECE", 1)
@@ -974,7 +976,7 @@ func (e *MdsDef) Read(token *AsciiReadToken) error {
 	return nil
 }
 
-func (e *MdsDef) ToRaw(wce *Wce, dst *raw.Mds) error {
+func (e *EqgMdsDef) ToRaw(wce *Wce, dst *raw.Mds) error {
 	var err error
 
 	dst.Version = e.Version
@@ -1055,7 +1057,7 @@ func (e *MdsDef) ToRaw(wce *Wce, dst *raw.Mds) error {
 	return nil
 }
 
-func (e *MdsDef) FromRaw(wce *Wce, src *raw.Mds) error {
+func (e *EqgMdsDef) FromRaw(wce *Wce, src *raw.Mds) error {
 	folder := strings.TrimSuffix(strings.ToLower(wce.FileName), ".eqg")
 	e.folders = append(e.folders, folder)
 	e.Tag = string(src.FileName())
@@ -1083,7 +1085,7 @@ func (e *MdsDef) FromRaw(wce *Wce, src *raw.Mds) error {
 	}
 
 	for _, model := range src.Models {
-		mdsModel := &MdsModel{
+		mdsModel := &EqgMdsModel{
 			MainPiece: model.MainPiece,
 			Name:      model.Name,
 		}
@@ -1140,8 +1142,8 @@ func (e *MdsDef) FromRaw(wce *Wce, src *raw.Mds) error {
 	return nil
 }
 
-// TerDef is an entry EQTERRAINDEF
-type TerDef struct {
+// EqgTerDef is an entry EQTERRAINDEF
+type EqgTerDef struct {
 	folders   []string
 	Tag       string
 	Version   uint32
@@ -1150,11 +1152,11 @@ type TerDef struct {
 	Faces     []*ModFace
 }
 
-func (e *TerDef) Definition() string {
-	return "EQTERDEF"
+func (e *EqgTerDef) Definition() string {
+	return "EQGTERDEF"
 }
 
-func (e *TerDef) Write(token *AsciiWriteToken) error {
+func (e *EqgTerDef) Write(token *AsciiWriteToken) error {
 	for _, folder := range e.folders {
 		err := token.SetWriter(folder)
 		if err != nil {
@@ -1183,9 +1185,9 @@ func (e *TerDef) Write(token *AsciiWriteToken) error {
 				fmt.Fprintf(w, "\t\t\t\tPROPERTY \"%s\" %d \"%s\"\n", prop.Name, prop.Type, prop.Value)
 			}
 			fmt.Fprintf(w, "\t\t\tANIMSLEEP %d\n", material.AnimationSleep)
-			fmt.Fprintf(w, "\t\t\tANIMTEXTURES %d\n", len(material.AnimationTextures))
+			fmt.Fprintf(w, "\t\t\tNUMANIMTEXTURES %d\n", len(material.AnimationTextures))
 			for _, anim := range material.AnimationTextures {
-				fmt.Fprintf(w, " \"%s\"", anim)
+				fmt.Fprintf(w, "\t\t\t\tTEXTURE \"%s\"", anim)
 			}
 		}
 		fmt.Fprintf(w, "\t\t\tNUMVERTICES %d\n", len(e.Vertices))
@@ -1217,7 +1219,7 @@ func (e *TerDef) Write(token *AsciiWriteToken) error {
 	return nil
 }
 
-func (e *TerDef) Read(token *AsciiReadToken) error {
+func (e *EqgTerDef) Read(token *AsciiReadToken) error {
 
 	records, err := token.ReadProperty("VERSION", 1)
 	if err != nil {
@@ -1404,7 +1406,7 @@ func (e *TerDef) Read(token *AsciiReadToken) error {
 	return nil
 }
 
-func (e *TerDef) ToRaw(wce *Wce, dst *raw.Ter) error {
+func (e *EqgTerDef) ToRaw(wce *Wce, dst *raw.Ter) error {
 	var err error
 	dst.Version = e.Version
 
@@ -1452,7 +1454,7 @@ func (e *TerDef) ToRaw(wce *Wce, dst *raw.Ter) error {
 	return nil
 }
 
-func (e *TerDef) FromRaw(wce *Wce, src *raw.Ter) error {
+func (e *EqgTerDef) FromRaw(wce *Wce, src *raw.Ter) error {
 	e.Tag = string(src.FileName())
 	folder := strings.TrimSuffix(strings.ToLower(wce.FileName), ".eqg")
 	if wce.WorldDef.Zone == 1 {
@@ -1526,7 +1528,7 @@ type MaterialProperty struct {
 }
 
 func (e *EQMaterialDef) Definition() string {
-	return "EQMATERIALDEF"
+	return "EQGMATERIALDEF"
 }
 
 func (e *EQMaterialDef) Write(token *AsciiWriteToken) error {
@@ -1559,9 +1561,9 @@ func (e *EQMaterialDef) Write(token *AsciiWriteToken) error {
 		}
 
 		fmt.Fprintf(w, "\tANIMSLEEP %d\n", e.AnimationSleep)
-		fmt.Fprintf(w, "\tANIMTEXTURES %d\n", len(e.AnimationTextures))
+		fmt.Fprintf(w, "\tNUMANIMTEXTURES %d\n", len(e.AnimationTextures))
 		for _, anim := range e.AnimationTextures {
-			fmt.Fprintf(w, " \"%s\"", anim)
+			fmt.Fprintf(w, "\t\tTEXTURE \"%s\"", anim)
 		}
 		fmt.Fprintf(w, "\n")
 
@@ -1624,7 +1626,7 @@ func (e *EQMaterialDef) Read(token *AsciiReadToken) error {
 		return fmt.Errorf("animsleep: %w", err)
 	}
 
-	records, err = token.ReadProperty("ANIMTEXTURES", -1)
+	records, err = token.ReadProperty("NUMANIMTEXTURES", 1)
 	if err != nil {
 		return err
 	}
@@ -1635,7 +1637,12 @@ func (e *EQMaterialDef) Read(token *AsciiReadToken) error {
 	}
 
 	for i := 0; i < numAnimTextures; i++ {
-		e.AnimationTextures = append(e.AnimationTextures, records[i+2])
+		records, err = token.ReadProperty("TEXTURE", 1)
+		if err != nil {
+			return fmt.Errorf("texture %d: %w", i, err)
+		}
+
+		e.AnimationTextures = append(e.AnimationTextures, records[1])
 	}
 
 	return nil
@@ -1687,8 +1694,8 @@ func (e *EQMaterialDef) FromRawNoAppend(wce *Wce, src *raw.ModMaterial) error {
 	return nil
 }
 
-// AniDef represents an eqg .ani file
-type AniDef struct {
+// EqgAniDef represents an eqg .ani file
+type EqgAniDef struct {
 	folders []string
 	Tag     string
 	Version uint32
@@ -1708,11 +1715,11 @@ type AniBoneFrame struct {
 	Scale        [3]float32
 }
 
-func (e *AniDef) Definition() string {
-	return "EQANIDEF"
+func (e *EqgAniDef) Definition() string {
+	return "EQGANIDEF"
 }
 
-func (e *AniDef) Write(token *AsciiWriteToken) error {
+func (e *EqgAniDef) Write(token *AsciiWriteToken) error {
 	for _, folder := range e.folders {
 		err := token.SetWriter(folder)
 		if err != nil {
@@ -1751,7 +1758,7 @@ func (e *AniDef) Write(token *AsciiWriteToken) error {
 
 }
 
-func (e *AniDef) Read(token *AsciiReadToken) error {
+func (e *EqgAniDef) Read(token *AsciiReadToken) error {
 
 	records, err := token.ReadProperty("VERSION", 1)
 	if err != nil {
@@ -1850,7 +1857,7 @@ func (e *AniDef) Read(token *AsciiReadToken) error {
 	return nil
 }
 
-func (e *AniDef) ToRaw(wce *Wce, dst *raw.Ani) error {
+func (e *EqgAniDef) ToRaw(wce *Wce, dst *raw.Ani) error {
 	dst.MetaFileName = e.Tag
 	dst.Version = e.Version
 	for _, bone := range e.Bones {
@@ -1872,7 +1879,7 @@ func (e *AniDef) ToRaw(wce *Wce, dst *raw.Ani) error {
 	return nil
 }
 
-func (e *AniDef) FromRaw(wce *Wce, src *raw.Ani) error {
+func (e *EqgAniDef) FromRaw(wce *Wce, src *raw.Ani) error {
 	folder := strings.TrimSuffix(strings.ToLower(wce.FileName), ".eqg")
 	e.folders = append(e.folders, folder+"_ani")
 	e.Tag = src.MetaFileName
@@ -1900,8 +1907,8 @@ func (e *AniDef) FromRaw(wce *Wce, src *raw.Ani) error {
 	return nil
 }
 
-// LayDef represents an eqg .lay file
-type LayDef struct {
+// EqgLayDef represents an eqg .lay file
+type EqgLayDef struct {
 	folders []string
 	Tag     string
 	Version uint32
@@ -1914,11 +1921,11 @@ type LayEntry struct {
 	Normal   string
 }
 
-func (e *LayDef) Definition() string {
-	return "EQLAYERDEF"
+func (e *EqgLayDef) Definition() string {
+	return "EQGLAYERDEF"
 }
 
-func (e *LayDef) Write(token *AsciiWriteToken) error {
+func (e *EqgLayDef) Write(token *AsciiWriteToken) error {
 	for _, folder := range e.folders {
 		err := token.SetWriter(folder)
 		if err != nil {
@@ -1951,7 +1958,7 @@ func (e *LayDef) Write(token *AsciiWriteToken) error {
 
 }
 
-func (e *LayDef) Read(token *AsciiReadToken) error {
+func (e *EqgLayDef) Read(token *AsciiReadToken) error {
 
 	records, err := token.ReadProperty("VERSION", 1)
 	if err != nil {
@@ -2008,7 +2015,7 @@ func (e *LayDef) Read(token *AsciiReadToken) error {
 	return nil
 }
 
-func (e *LayDef) ToRaw(wce *Wce, dst *raw.Lay) error {
+func (e *EqgLayDef) ToRaw(wce *Wce, dst *raw.Lay) error {
 	dst.MetaFileName = e.Tag
 	dst.Version = e.Version
 	for _, layer := range e.Layers {
@@ -2023,7 +2030,7 @@ func (e *LayDef) ToRaw(wce *Wce, dst *raw.Lay) error {
 	return nil
 }
 
-func (e *LayDef) FromRaw(wce *Wce, src *raw.Lay) error {
+func (e *EqgLayDef) FromRaw(wce *Wce, src *raw.Lay) error {
 	folder := strings.TrimSuffix(strings.ToLower(wce.FileName), ".eqg")
 	e.folders = append(e.folders, folder)
 	e.Tag = src.MetaFileName

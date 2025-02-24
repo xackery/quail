@@ -217,3 +217,7 @@ jsondifffrag-%:
 
 flagfinder:
 	source .env && EQ_PATH=$$EQ_PATH SCRIPT_TEST=1 go test -v -run ^TestFragFlags$$ github.com/xackery/quail/wce/wld_test
+
+
+docs:
+	mv test/latest.md ../eqemu-docs-v2/docs/client/wcemu/latest.md

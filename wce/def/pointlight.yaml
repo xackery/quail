@@ -1,0 +1,46 @@
+name: "POINTLIGHT"
+hasTag: true
+note: "Wld Point Light"
+properties:
+  - name: "LIGHT"
+    note: ""
+    args:
+      - name: ""
+        note: ""
+        format: "%s"
+  - name: "STATIC"
+    note: ""
+    args:
+      - name: ""
+        note: ""
+        format: "%d"
+  - name: "STATICINFLUENCE"
+    note: ""
+    args:
+      - name: ""
+        note: ""
+        format: "%s"
+  - name: "HASREGIONS"
+    note: ""
+    args:
+      - name: ""
+        note: ""
+        format: "%d"
+  - name: "XYZ"
+    note: ""
+    args:
+      - name: "x"
+        note: ""
+        format: "%0.8e"
+      - name: "y"
+        note: ""
+        format: "%0.8e"
+      - name: "z"
+        note: ""
+        format: "%0.8e"
+  - name: "RADIUSOFINFLUENCE"
+    note: ""
+    args:
+      - name: ""
+        note: ""
+        format: "%0.8e"

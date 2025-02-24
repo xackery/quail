@@ -1,0 +1,111 @@
+name: "ACTORDEF"
+hasTag: true
+note: "Wld actor definition"
+properties:
+  - name: "CALLBACK"
+    note: "The callback function for the actor"
+    args:
+      - name: "callback"
+        note: "The callback function"
+        format: "%s"
+
+  - name: "BOUNDSREF"
+    note: "The bounds reference for the actor"
+    args:
+      - name: "bounds ref"
+        note: "The bounds reference"
+        format: "%d"
+
+  - name: "CURRENTACTION?"
+    note: "The current action of the actor"
+    args:
+      - name: "current action"
+        note: "The current action"
+        format: "%s"
+
+  - name: "LOCATION?"
+    note: "The location of the actor"
+    args:
+      - name: "x"
+        note: "The x coordinate"
+        format: "%0.8e"
+      - name: "y"
+        note: "The y coordinate"
+        format: "%0.8e"
+      - name: "z"
+        note: "The z coordinate"
+        format: "%0.8e"
+      - name: "x-rot"
+        note: "The x rotation"
+        format: "%d"
+      - name: "y-rot"
+        note: "The y rotation"
+        format: "%d"
+      - name: "z-rot"
+        note: "The z rotation"
+        format: "%d"
+
+  - name: "ACTIVEGEOMETRY?"
+    note: "The active geometry of the actor"
+    args:
+      - name: "active geometry"
+        note: "The active geometry"
+        format: "%s"
+
+  - name: "NUMACTIONS"
+    note: "The number of actions for the actor"
+    args:
+      - name: "num actions"
+        note: "The number of actions"
+        format: "%d"
+    properties:
+      - name: "ACTION"
+        note: "Action entry"
+      - name: "UNK1"
+        note: "Unknown entry 1"
+        args:
+          - name: "unk1"
+            note: "value of unk1"
+            format: "%d"
+      - name: "NUMLEVELSOFDETAIL"
+        note: "Number of levels of detail"
+        args:
+          - name: "lod value"
+            note: "Number of levels of detail"
+            format: "%d"
+        properties:
+          - name: "LEVELOFDETAIL"
+            note: "Level of detail entry"
+          - name: "SPRITE"
+            note: "Sprite entry tag"
+            format: "%s"
+            args:
+              - name: "tag"
+                note: "sprite tag"
+                format: "%s"
+          - name: "SPRITEINDEX"
+            note: "Sprite index"
+            args:
+              - name: "index"
+                note: "Sprite index"
+                format: "%d"
+          - name: "MINDISTANCE"
+            note: "Minimum distance to render LOD"
+            args:
+              - name: ""
+                note: "Minimum distance"
+                format: "%0.8e"
+  - name: "USEMODELCOLLIDER"
+    note: "Ignored in RoF2. 0x80 flag. This gets ignored if ActorInst doesn't have it. Likely need to use hierarchysprite flag for things like boats"
+    args:
+      - name: "use model collider"
+        note: "0: no, 1: yes"
+        format: "%d"
+  - name: "USERDATA"
+    note: "Unknown property 2"
+    args:
+      - name: "unk2"
+        note: "Unknown property 2"
+        format: "%d"
+
+

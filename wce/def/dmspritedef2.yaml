@@ -1,0 +1,306 @@
+name: "DMSPRITEDEF2"
+hasTag: true
+note: "Wld DM sprite definition"
+properties:
+  - name: "TAGINDEX"
+    note: "The index of the tag"
+    args:
+      - name: "index"
+        note: "The index of the tag"
+        format: "%d"
+
+  - name: "CENTEROFFSET"
+    note: "The center offset of the sprite"
+    args:
+      - name: "x"
+        note: "The x offset"
+        format: "%0.8e"
+      - name: "y"
+        note: "The y offset"
+        format: "%0.8e"
+      - name: "z"
+        note: "The z offset"
+        format: "%0.8e"
+
+  - name: "NUMVERTICES"
+    note: "The number of vertices in the sprite"
+    args:
+      - name: "num vertices"
+        note: "The number of vertices"
+        format: "%d"
+    properties:
+      - name: "XYZ"
+        note: "The coordinates of a vertex"
+        args:
+          - name: "x"
+            note: "The x coordinate"
+            format: "%0.8e"
+          - name: "y"
+            note: "The y coordinate"
+            format: "%0.8e"
+          - name: "z"
+            note: "The z coordinate"
+            format: "%0.8e"
+
+  - name: "NUMUVS"
+    note: "The number of UVs in the sprite"
+    args:
+      - name: "num uvs"
+        note: "The number of UVs"
+        format: "%d"
+    properties:
+      - name: "UV"
+        note: "UV entry"
+        args:
+          - name: "u"
+            note: "U on UV map"
+            format: "%0.8e"
+          - name: "v"
+            note: "V on UV map"
+            format: "%0.8e"
+
+  - name: "NUMVERTEXNORMALS"
+    note: "The number of vertex normals in the sprite"
+    args:
+      - name: "num vertex normals"
+        note: "The number of vertex normals"
+        format: "%d"
+    properties:
+      - name: "XYZ"
+        note: "The coordinates of a texture normal"
+        args:
+          - name: "x"
+            note: "The x coordinate"
+            format: "%0.8e"
+          - name: "y"
+            note: "The y coordinate"
+            format: "%0.8e"
+          - name: "z"
+            note: "The z coordinate"
+            format: "%0.8e"
+
+  - name: "NUMVERTEXCOLORS"
+    note: "The number of vertex colors in the sprite"
+    args:
+      - name: "num vertex colors"
+        note: "The number of vertex colors"
+        format: "%d"
+    properties:
+      - name: "RGBA"
+        note: "The coordinates of a vertex"
+        args:
+          - name: "r"
+            note: "Red"
+            format: "%d"
+          - name: "g"
+            note: "Green"
+            format: "%d"
+          - name: "b"
+            note: "Blue"
+            format: "%d"
+          - name: "a"
+            note: "Alpha"
+            format: "%d"
+
+
+  - name: "SKINASSIGNMENTGROUPS"
+    note: "The skin assignment groups"
+    args:
+      - name: "group size"
+        note: "The size of the group"
+        format: "%d"
+      - name: "group data"
+        note: "The data of the group"
+        format: "%s"
+        example: "2 3"
+
+  - name: "MATERIALPALETTE"
+    note: "The material palette used by the sprite"
+    args:
+      - name: "palette name"
+        note: "The name of the material palette"
+        format: "%s"
+
+  - name: "DMTRACKINST"
+    note: "The DM track instance"
+    args:
+      - name: "track instance"
+        note: "The track instance"
+        format: "%s"
+
+  - name: "POLYHEDRON"
+    note: "The polyhedron definition"
+    args:
+      - name: "definition"
+        note: "The definition of the polyhedron"
+        format: "%s"
+
+  - name: "DEFINITION"
+    note: "The definition reference"
+    args:
+      - name: "definition"
+        note: "The definition"
+        format: "%s"
+
+  - name: "NUMFACE2S"
+    note: "The number of face2s in the sprite"
+    args:
+      - name: "num face2s"
+        note: "The number of face2s"
+        format: "%d"
+    properties:
+      - name: "DMFACE2"
+        note: "DM Face 2 Entries"
+      - name: "PASSABLE"
+        note: "Is face passable?"
+        args:
+          - name: "passable"
+            note: "Is face passable?"
+            format: "%d"
+      - name: "TRIANGLE"
+        note: "Triangle indexes"
+        args:
+          - name: "vert index 0"
+            note: "Index 0 of triangle"
+            format: "%d"
+          - name: "vert index 1"
+            note: "Index 1 of triangle"
+            format: "%d"
+          - name: "vert index 2"
+            note: "Index 2 of triangle"
+            format: "%d"
+
+
+  - name: "NUMMESHOPS"
+    note: "The number of mesh operations in the sprite"
+    args:
+      - name: "num meshops"
+        note: "The number of mesh operations"
+        format: "%d"
+    properties:
+      - name: "MESHOP"
+        note: "A mesh operation"
+        args:
+          - name: "arg 0"
+            note: "arg 0"
+            format: "%d"
+          - name: "arg 1"
+            note: "arg 1"
+            format: "%d"
+          - name: "arg 2"
+            note: "arg 2"
+            format: "%0.8e"
+          - name: "arg 3"
+            note: "arg 3"
+            format: "%d"
+          - name: "arg 4"
+            note: "arg 4"
+            format: "%d"
+
+  - name: "FACEMATERIALGROUPS"
+    note: "The face material groups"
+    args:
+      - name: "group size"
+        note: "The size of the group"
+        format: "%d"
+      - name: "group entry 1"
+        note: "The data of the group"
+        format: "%d"
+      - name: "group entry 2"
+        note: "The data of the group"
+        format: "%d"
+
+  - name: "VERTEXMATERIALGROUPS"
+    note: "The vertex material groups"
+    args:
+      - name: "group size"
+        note: "The size of the group"
+        format: "%d"
+      - name: "group entry 1"
+        note: "The data of the group"
+        format: "%d"
+      - name: "group entry 2"
+        note: "The data of the group"
+        format: "%d"
+
+  - name: "BOUNDINGBOXMIN"
+    note: "The minimum bounding box coordinates"
+    args:
+      - name: "x"
+        note: "The x coordinate"
+        format: "%0.8e"
+      - name: "y"
+        note: "The y coordinate"
+        format: "%0.8e"
+      - name: "z"
+        note: "The z coordinate"
+        format: "%0.8e"
+
+  - name: "BOUNDINGBOXMAX"
+    note: "The maximum bounding box coordinates"
+    args:
+      - name: "x"
+        note: "The x coordinate"
+        format: "%0.8e"
+      - name: "y"
+        note: "The y coordinate"
+        format: "%0.8e"
+      - name: "z"
+        note: "The z coordinate"
+        format: "%0.8e"
+
+  - name: "BOUNDINGRADIUS"
+    note: "The bounding radius of the sprite"
+    args:
+      - name: "radius"
+        note: "The bounding radius"
+        format: "%0.8e"
+
+  - name: "FPSCALE"
+    note: "The FPS scale of the sprite"
+    args:
+      - name: "scale"
+        note: "The FPS scale"
+        format: "%d"
+
+  - name: "HEXONEFLAG"
+    note: "The hex one flag"
+    args:
+      - name: "flag"
+        note: "The hex one flag"
+        format: "%d"
+
+  - name: "HEXTWOFLAG"
+    note: "The hex two flag"
+    args:
+      - name: "flag"
+        note: "The hex two flag"
+        format: "%d"
+
+  - name: "HEXFOURTHOUSANDFLAG"
+    note: "The hex four thousand flag"
+    args:
+      - name: "flag"
+        note: "The hex four thousand flag"
+        format: "%d"
+
+  - name: "HEXEIGHTTHOUSANDFLAG"
+    note: "The hex eight thousand flag"
+    args:
+      - name: "flag"
+        note: "The hex eight thousand flag"
+        format: "%d"
+
+  - name: "HEXTENTHOUSANDFLAG"
+    note: "The hex ten thousand flag"
+    args:
+      - name: "flag"
+        note: "The hex ten thousand flag"
+        format: "%d"
+
+  - name: "HEXTWENTYTHOUSANDFLAG"
+    note: "The hex twenty thousand flag"
+    args:
+      - name: "flag"
+        note: "The hex twenty thousand flag"
+        format: "%d"

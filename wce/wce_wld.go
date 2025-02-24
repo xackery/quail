@@ -302,11 +302,14 @@ func (e *DMSpriteDef2) Write(token *AsciiWriteToken) error {
 			fmt.Fprintf(w, "\tMESHOP %d %d %0.8f %d %d\n", meshOp.Index1, meshOp.Index2, meshOp.Offset, meshOp.Param1, meshOp.TypeField)
 		}
 		fmt.Fprintf(w, "\n")
+		fmt.Fprintf(w, "\t// FACEMATERIALGROUPS assigns materials per face\n")
+		fmt.Fprintf(w, "\t// Format: FACEMATERIALGROUPS group-size [pal-id-1 size-faces-1] [pal-id-2 size-faces-2]\n")
 		fmt.Fprintf(w, "\tFACEMATERIALGROUPS %d", len(e.FaceMaterialGroups))
 		for _, group := range e.FaceMaterialGroups {
 			fmt.Fprintf(w, " %d %d", group[0], group[1])
 		}
 		fmt.Fprintf(w, "\n")
+		fmt.Fprintf(w, "\t// Format: VERTEXMATERIALGROUPS group-size [pal-id-1 size-verts-1] [pal-id-2 size-verts-2]\n")
 		fmt.Fprintf(w, "\tVERTEXMATERIALGROUPS %d", len(e.VertexMaterialGroups))
 		for _, group := range e.VertexMaterialGroups {
 			fmt.Fprintf(w, " %d %d", group[0], group[1])
@@ -2545,18 +2548,18 @@ func (e *SimpleSpriteDef) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFr
 
 // ActorDef is a declaration of ACTORDEF
 type ActorDef struct {
-	folders        []string // when writing, this is the folder the file is in
-	fragID         int16
-	Tag            string
-	Callback       string
-	BoundsRef      int32
-	CurrentAction  NullUint32
-	Location       NullFloat32Slice6
-	ActiveGeometry NullUint32
-	Unk1           uint32
-	Actions        []ActorAction
-	Unk2           uint32
-	HasEightyFlag  int
+	folders          []string // when writing, this is the folder the file is in
+	fragID           int16
+	Tag              string
+	Callback         string
+	BoundsRef        int32
+	CurrentAction    NullUint32        // 0x01 flag
+	Location         NullFloat32Slice6 // 0x02 flag
+	ActiveGeometry   NullUint32        // 0x40 flag
+	Unk1             uint32
+	Actions          []ActorAction
+	UserData         string
+	UseModelCollider int // 0x80 flag
 }
 
 // ActorAction is a declaration of ACTION
@@ -2690,8 +2693,8 @@ func (e *ActorDef) Write(token *AsciiWriteToken) error {
 				fmt.Fprintf(w, "\t\t\t\t\tMINDISTANCE %0.8e\n", lod.MinDistance)
 			}
 		}
-		fmt.Fprintf(w, "\tUNK2 %d\n", e.Unk2)
-		fmt.Fprintf(w, "\tHASEIGHTYFLAG %d\n", e.HasEightyFlag)
+		fmt.Fprintf(w, "\tUSEMODELCOLLIDER %d\n", e.UseModelCollider)
+		fmt.Fprintf(w, "\tUSERDATA \"%s\"\n", e.UserData)
 		fmt.Fprintf(w, "\n")
 	}
 	e.folders = []string{}
@@ -2819,26 +2822,22 @@ func (e *ActorDef) Read(token *AsciiReadToken) error {
 		e.Actions = append(e.Actions, action)
 
 	}
-
-	records, err = token.ReadProperty("UNK2", 1)
+	records, err = token.ReadProperty("USEMODELCOLLIDER", 1)
 	if err != nil {
 		return err
 	}
 
-	err = parse(&e.Unk2, records[1])
+	err = parse(&e.UseModelCollider, records[1])
 	if err != nil {
-		return fmt.Errorf("unk2: %w", err)
+		return fmt.Errorf("sprite volume only: %w", err)
 	}
 
-	records, err = token.ReadProperty("HASEIGHTYFLAG", 1)
+	records, err = token.ReadProperty("USERDATA", 1)
 	if err != nil {
 		return err
 	}
 
-	err = parse(&e.HasEightyFlag, records[1])
-	if err != nil {
-		return fmt.Errorf("has eighty flag: %w", err)
-	}
+	e.UserData = records[1]
 
 	return nil
 }
@@ -2855,22 +2854,22 @@ func (e *ActorDef) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
 	}
 
 	if e.CurrentAction.Valid {
-		actorDef.Flags |= 0x01
+		actorDef.Flags |= rawfrag.ActorFlagHasCurrentAction
 		actorDef.CurrentAction = e.CurrentAction.Uint32
 	}
 
 	if e.Location.Valid {
-		actorDef.Flags |= 0x02
+		actorDef.Flags |= rawfrag.ActorFlagHasLocation
 		actorDef.Location = e.Location.Float32Slice6
 	}
 
 	if e.ActiveGeometry.Valid {
-		actorDef.Flags |= 0x40
+		actorDef.Flags |= rawfrag.ActorFlagActiveGeometry
 		//actorDef.ActiveGeometry = e.ActiveGeometry.Uint32
 	}
 
-	if e.HasEightyFlag > 0 {
-		actorDef.Flags |= 0x80
+	if e.UseModelCollider > 0 {
+		actorDef.Flags |= rawfrag.ActorFlagSpriteVolumeOnly
 	}
 
 	wce.lastReadFolder = strings.TrimSuffix(e.Tag, "_ACTORDEF")
@@ -2972,7 +2971,7 @@ func (e *ActorDef) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
 			}
 
 			actorAction.Lods = append(actorAction.Lods, lod.MinDistance)
-			actorDef.FragmentRefs = append(actorDef.FragmentRefs, uint32(spriteRef))
+			actorDef.SpriteRefs = append(actorDef.SpriteRefs, uint32(spriteRef))
 		}
 
 		actorDef.Actions = append(actorDef.Actions, actorAction)
@@ -2996,23 +2995,23 @@ func (e *ActorDef) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragActor
 	e.BoundsRef = frag.BoundsRef
 	e.Unk1 = frag.Unk1
 
-	if frag.Flags&0x01 == 0x01 {
+	if helper.HasFlag(frag.Flags, rawfrag.ActorFlagHasCurrentAction) {
 		e.CurrentAction.Valid = true
 		e.CurrentAction.Uint32 = frag.CurrentAction
 	}
-	if frag.Flags&0x02 == 0x02 {
+	if helper.HasFlag(frag.Flags, rawfrag.ActorFlagHasLocation) {
 		e.Location.Valid = true
 		e.Location.Float32Slice6 = frag.Location
 	}
-	if frag.Flags&0x40 == 0x40 {
+	if helper.HasFlag(frag.Flags, rawfrag.ActorFlagActiveGeometry) {
 		e.ActiveGeometry.Valid = true
 	}
 
-	if frag.Flags&0x80 == 0x80 {
-		e.HasEightyFlag = 1
+	if helper.HasFlag(frag.Flags, rawfrag.ActorFlagSpriteVolumeOnly) {
+		e.UseModelCollider = 1
 	}
 
-	if len(frag.Actions) != len(frag.FragmentRefs) {
+	if len(frag.Actions) != len(frag.SpriteRefs) {
 		return fmt.Errorf("actordef actions and fragmentrefs mismatch")
 	}
 
@@ -3021,8 +3020,8 @@ func (e *ActorDef) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragActor
 		lods := []ActorLevelOfDetail{}
 		for _, srcLod := range srcAction.Lods {
 			spriteTag := ""
-			if len(frag.FragmentRefs) > fragRefIndex {
-				spriteRef := frag.FragmentRefs[fragRefIndex]
+			if len(frag.SpriteRefs) > fragRefIndex {
+				spriteRef := frag.SpriteRefs[fragRefIndex]
 				if len(rawWld.Fragments) < int(spriteRef) {
 					return fmt.Errorf("actordef fragment ref %d not found", spriteRef)
 				}
@@ -3100,22 +3099,23 @@ func (e *ActorDef) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragActor
 
 // ActorInst is a declaration of ACTORINST
 type ActorInst struct {
-	folders           []string
-	fragID            int16
-	Tag               string
-	DefinitionTag     string
-	CurrentAction     NullUint32
-	Location          NullFloat32Slice6
-	BoundingRadius    NullFloat32
-	Scale             NullFloat32
-	SoundTag          NullString
-	Active            NullUint32
-	SpriteVolumeOnly  NullUint32
-	DMRGBTrackTag     NullString
-	SphereTag         string
-	SphereRadius      float32
-	HexTwoHundredFlag int
-	UserData          string
+	folders          []string
+	fragID           int16
+	Tag              string
+	DefinitionTag    string
+	CurrentAction    NullUint32
+	Location         NullFloat32Slice6
+	BoundingRadius   NullFloat32
+	Scale            NullFloat32
+	SoundTag         NullString
+	Active           NullUint32
+	ActiveGeometry   int
+	UseModelCollider int
+	DMRGBTrackTag    NullString
+	SphereTag        string
+	SphereRadius     float32
+	UsesBoundingBox  int
+	UserData         string
 }
 
 func (e *ActorInst) Definition() string {
@@ -3167,11 +3167,11 @@ func (e *ActorInst) Write(token *AsciiWriteToken) error {
 		fmt.Fprintf(w, "\tSCALEFACTOR? %s\n", wcVal(e.Scale))
 		fmt.Fprintf(w, "\tSOUND? \"%s\"\n", wcVal(e.SoundTag))
 		fmt.Fprintf(w, "\tACTIVE? %s\n", wcVal(e.Active))
-		fmt.Fprintf(w, "\tSPRITEVOLUMEONLY? %s\n", wcVal(e.SpriteVolumeOnly))
+		fmt.Fprintf(w, "\tSPRITEVOLUMEONLY? %s\n", wcVal(e.UseModelCollider))
 		fmt.Fprintf(w, "\tDMRGBTRACK? \"%s\"\n", wcVal(e.DMRGBTrackTag))
 		fmt.Fprintf(w, "\tSPHERE \"%s\"\n", e.SphereTag)
 		fmt.Fprintf(w, "\tSPHERERADIUS %0.8e\n", e.SphereRadius)
-		fmt.Fprintf(w, "\tHEXTWOHUNDREDFLAG %d\n", e.HexTwoHundredFlag)
+		fmt.Fprintf(w, "\tUSEBOUNDINGBOX %d\n", e.UsesBoundingBox)
 		fmt.Fprintf(w, "\tUSERDATA \"%s\"\n", e.UserData)
 		fmt.Fprintf(w, "\n")
 	}
@@ -3245,7 +3245,7 @@ func (e *ActorInst) Read(token *AsciiReadToken) error {
 	if err != nil {
 		return err
 	}
-	err = parse(&e.SpriteVolumeOnly, records[1])
+	err = parse(&e.UseModelCollider, records[1])
 	if err != nil {
 		return fmt.Errorf("sprite volume only: %w", err)
 	}
@@ -3274,13 +3274,13 @@ func (e *ActorInst) Read(token *AsciiReadToken) error {
 		return fmt.Errorf("sphere radius: %w", err)
 	}
 
-	records, err = token.ReadProperty("HEXTWOHUNDREDFLAG", 1)
+	records, err = token.ReadProperty("USEBOUNDINGBOX", 1)
 	if err != nil {
 		return err
 	}
-	err = parse(&e.HexTwoHundredFlag, records[1])
+	err = parse(&e.UsesBoundingBox, records[1])
 	if err != nil {
-		return fmt.Errorf("hex two hundred flag: %w", err)
+		return fmt.Errorf("use bounding box: %w", err)
 	}
 
 	records, err = token.ReadProperty("USERDATA", 1)
@@ -3315,40 +3315,44 @@ func (e *ActorInst) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
 	}
 
 	if e.CurrentAction.Valid {
-		wfActorInst.Flags |= 0x01
+		wfActorInst.Flags |= rawfrag.ActorFlagHasCurrentAction
 		wfActorInst.CurrentAction = e.CurrentAction.Uint32
 	}
 
 	if e.Location.Valid {
-		wfActorInst.Flags |= 0x02
+		wfActorInst.Flags |= rawfrag.ActorFlagHasLocation
 		wfActorInst.Location = e.Location.Float32Slice6
 	}
 
 	if e.BoundingRadius.Valid {
-		wfActorInst.Flags |= 0x04
+		wfActorInst.Flags |= rawfrag.ActorFlagHasBoundingRadius
 		wfActorInst.BoundingRadius = e.BoundingRadius.Float32
 	}
 
 	if e.Scale.Valid {
-		wfActorInst.Flags |= 0x08
+		wfActorInst.Flags |= rawfrag.ActorFlagHasScaleFactor
 		wfActorInst.ScaleFactor = e.Scale.Float32
 	}
 
 	if e.SoundTag.Valid {
-		wfActorInst.Flags |= 0x10
+		wfActorInst.Flags |= rawfrag.ActorFlagHasSound
 		wfActorInst.SoundNameRef = rawWld.NameAdd(e.SoundTag.String)
 	}
 
 	if e.Active.Valid {
-		wfActorInst.Flags |= 0x20
+		wfActorInst.Flags |= rawfrag.ActorFlagActive
 	}
 
-	if e.SpriteVolumeOnly.Valid {
-		wfActorInst.Flags |= 0x80
+	if e.ActiveGeometry > 0 {
+		wfActorInst.Flags |= rawfrag.ActorFlagActiveGeometry
+	}
+
+	if e.UseModelCollider > 0 {
+		wfActorInst.Flags |= rawfrag.ActorFlagSpriteVolumeOnly
 	}
 
 	if e.DMRGBTrackTag.Valid {
-		wfActorInst.Flags |= 0x100
+		wfActorInst.Flags |= rawfrag.ActorFlagHaveDMRGBTrack
 		dmRGBTrackDef := wce.ByTag(e.DMRGBTrackTag.String)
 		if dmRGBTrackDef == nil {
 			return -1, fmt.Errorf("dm rgb track def %s not found", e.DMRGBTrackTag.String)
@@ -3372,8 +3376,8 @@ func (e *ActorInst) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
 		wfActorInst.DMRGBTrackRef = int32(dmRGBTrackRef)
 	}
 
-	if e.HexTwoHundredFlag > 0 {
-		wfActorInst.Flags |= 0x200
+	if e.UsesBoundingBox > 0 {
+		wfActorInst.Flags |= rawfrag.ActorFlagUsesBoundingBox
 	}
 
 	if e.SphereRadius > 0 {
@@ -3433,41 +3437,44 @@ func (e *ActorInst) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragActo
 	e.SphereRadius = sphereRadius
 	e.UserData = frag.UserData
 
-	if frag.Flags&0x01 == 0x01 {
+	if frag.Flags&rawfrag.ActorFlagHasCurrentAction == rawfrag.ActorFlagHasCurrentAction {
 		e.CurrentAction.Valid = true
 		e.CurrentAction.Uint32 = frag.CurrentAction
 	}
 
-	if frag.Flags&0x02 == 0x02 {
+	if frag.Flags&rawfrag.ActorFlagHasLocation == rawfrag.ActorFlagHasLocation {
 		e.Location.Valid = true
 		e.Location.Float32Slice6 = frag.Location
 	}
 
-	if frag.Flags&0x04 == 0x04 {
+	if frag.Flags&rawfrag.ActorFlagHasBoundingRadius == rawfrag.ActorFlagHasBoundingRadius {
 		e.BoundingRadius.Valid = true
 		e.BoundingRadius.Float32 = frag.BoundingRadius
 	}
 
-	if frag.Flags&0x08 == 0x08 {
+	if frag.Flags&rawfrag.ActorFlagHasScaleFactor == rawfrag.ActorFlagHasScaleFactor {
 		e.Scale.Valid = true
 		e.Scale.Float32 = frag.ScaleFactor
 	}
 
-	if frag.Flags&0x10 == 0x10 {
+	if frag.Flags&rawfrag.ActorFlagHasSound == rawfrag.ActorFlagHasSound {
 		e.SoundTag.Valid = true
 		e.SoundTag.String = rawWld.Name(frag.SoundNameRef)
 	}
 
-	if frag.Flags&0x20 == 0x20 {
+	if frag.Flags&rawfrag.ActorFlagActive == rawfrag.ActorFlagActive {
 		e.Active.Valid = true
 	}
 
-	// 0x40 unknown
-	if frag.Flags&0x80 == 0x80 {
-		e.SpriteVolumeOnly.Valid = true
+	if frag.Flags&rawfrag.ActorFlagActiveGeometry == frag.Flags&rawfrag.ActorFlagActiveGeometry {
+		e.ActiveGeometry = 1
 	}
 
-	if frag.Flags&0x100 == 0x100 {
+	if frag.Flags&rawfrag.ActorFlagSpriteVolumeOnly == rawfrag.ActorFlagSpriteVolumeOnly {
+		e.UseModelCollider = 1
+	}
+
+	if frag.Flags&rawfrag.ActorFlagHaveDMRGBTrack == rawfrag.ActorFlagHaveDMRGBTrack {
 		e.DMRGBTrackTag.Valid = true
 
 		trackTag := ""
@@ -3496,8 +3503,8 @@ func (e *ActorInst) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragActo
 		e.DMRGBTrackTag.String = trackTag
 	}
 
-	if frag.Flags&0x200 == 0x200 {
-		e.HexTwoHundredFlag = 1
+	if frag.Flags&rawfrag.ActorFlagUsesBoundingBox == rawfrag.ActorFlagUsesBoundingBox {
+		e.UsesBoundingBox = 1
 	}
 
 	return nil
@@ -3534,13 +3541,13 @@ func (e *LightDef) Write(token *AsciiWriteToken) error {
 		fmt.Fprintf(w, "\tCURRENTFRAME? %s\n", wcVal(e.CurrentFrame))
 		fmt.Fprintf(w, "\tNUMFRAMES %d\n", len(e.LightLevels))
 		for _, level := range e.LightLevels {
-			fmt.Fprintf(w, "\t\tLIGHTLEVELS %0.8f\n", level)
+			fmt.Fprintf(w, "\t\tLIGHTLEVELS %0.8e\n", level)
 		}
 		fmt.Fprintf(w, "\tSLEEP? %s\n", wcVal(e.Sleep))
 		fmt.Fprintf(w, "\tSKIPFRAMES %d\n", e.SkipFrames)
 		fmt.Fprintf(w, "\tNUMCOLORS %d\n", len(e.Colors))
 		for _, color := range e.Colors {
-			fmt.Fprintf(w, "\t\tCOLOR %0.8f %0.8f %0.8f\n", color[0], color[1], color[2])
+			fmt.Fprintf(w, "\t\tCOLOR %0.8e %0.8e %0.8e\n", color[0], color[1], color[2])
 		}
 		fmt.Fprintf(w, "\n")
 	}
@@ -3714,6 +3721,7 @@ func (e *PointLight) Definition() string {
 	return "POINTLIGHT"
 }
 
+// Write
 func (e *PointLight) Write(token *AsciiWriteToken) error {
 	for _, folder := range e.folders {
 		err := token.SetWriter(folder)
@@ -3740,7 +3748,7 @@ func (e *PointLight) Write(token *AsciiWriteToken) error {
 		fmt.Fprintf(w, "\tSTATIC %d\n", e.Static)
 		fmt.Fprintf(w, "\tSTATICINFLUENCE %d\n", e.StaticInfluence)
 		fmt.Fprintf(w, "\tHASREGIONS %d\n", e.HasRegions)
-		fmt.Fprintf(w, "\tXYZ %0.8f %0.8f %0.8f\n", e.Location[0], e.Location[1], e.Location[2])
+		fmt.Fprintf(w, "\tXYZ %0.8e %0.8e %0.8e\n", e.Location[0], e.Location[1], e.Location[2])
 		fmt.Fprintf(w, "\tRADIUSOFINFLUENCE %0.8e\n", e.Radius)
 		fmt.Fprintf(w, "\n")
 	}
@@ -4786,7 +4794,7 @@ func (e *TrackDef) Write(token *AsciiWriteToken) error {
 
 		fmt.Fprintf(w, "%s \"%s\"\n", e.Definition(), e.Tag)
 		fmt.Fprintf(w, "\tTAGINDEX %d\n", e.TagIndex)
-		fmt.Fprintf(w, "\tNUMFRAMES %d\n", len(e.Frames))
+		fmt.Fprintf(w, "\tNUMFRAMES %d //Format: FRAME [scale x-loc y-loc z-loc w-rot x-rot y-rot z-rot]\n", len(e.Frames))
 		for _, frame := range e.Frames {
 			fmt.Fprintf(w, "\t\tFRAME %d %d %d %d ", frame.XYZScale, frame.XYZ[0], frame.XYZ[1], frame.XYZ[2])
 			fmt.Fprintf(w, "%d %d %d %d\n", frame.RotScale, frame.Rotation[0], frame.Rotation[1], frame.Rotation[2])
@@ -4794,7 +4802,7 @@ func (e *TrackDef) Write(token *AsciiWriteToken) error {
 		fmt.Fprintf(w, "\tNUMLEGACYFRAMES %d\n", len(e.LegacyFrames))
 		for _, frame := range e.LegacyFrames {
 			fmt.Fprintf(w, "\t\tLEGACYFRAME %d %d %d %d ", frame.XYZScale, frame.XYZ[0], frame.XYZ[1], frame.XYZ[2])
-			fmt.Fprintf(w, "%0.8f %0.8f %0.8f %0.8f\n", frame.Rotation[0], frame.Rotation[1], frame.Rotation[2], frame.Rotation[3])
+			fmt.Fprintf(w, "%0.8e %0.8e %0.8e %0.8e\n", frame.Rotation[0], frame.Rotation[1], frame.Rotation[2], frame.Rotation[3])
 		}
 		fmt.Fprintf(w, "\n")
 	}
@@ -6251,7 +6259,7 @@ func (e *Region) Read(token *AsciiReadToken) error {
 		if err != nil {
 			return err
 		}
-		err = parse(numVertices, records[1])
+		err = parse(&numVertices, records[1])
 		if err != nil {
 			return fmt.Errorf("num vertices: %w", err)
 		}
@@ -7468,7 +7476,7 @@ func (e *ParticleCloudDef) Read(token *AsciiReadToken) error {
 		return err
 	}
 
-	err = parse(&e.SpawnBoxMin, records[1])
+	err = parse(&e.SpawnBoxMin, records[1:]...)
 	if err != nil {
 		return fmt.Errorf("spawn box min: %w", err)
 	}
@@ -7478,7 +7486,7 @@ func (e *ParticleCloudDef) Read(token *AsciiReadToken) error {
 		return err
 	}
 
-	err = parse(&e.SpawnBoxMax, records[1])
+	err = parse(&e.SpawnBoxMax, records[1:]...)
 	if err != nil {
 		return fmt.Errorf("spawn box max: %w", err)
 	}
@@ -7488,7 +7496,7 @@ func (e *ParticleCloudDef) Read(token *AsciiReadToken) error {
 		return err
 	}
 
-	err = parse(&e.BoxMin, records[1])
+	err = parse(&e.BoxMin, records[1:]...)
 	if err != nil {
 		return fmt.Errorf("box min: %w", err)
 	}
@@ -7498,7 +7506,7 @@ func (e *ParticleCloudDef) Read(token *AsciiReadToken) error {
 		return err
 	}
 
-	err = parse(&e.BoxMax, records[1])
+	err = parse(&e.BoxMax, records[1:]...)
 	if err != nil {
 		return fmt.Errorf("box max: %w", err)
 	}

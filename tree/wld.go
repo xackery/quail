@@ -16,7 +16,7 @@ func fragRefs(fragment interface{}) []int32 {
 
 	case *rawfrag.WldFragActorDef:
 		refs = append(refs, frag.BoundsRef)
-		for _, ref := range frag.FragmentRefs {
+		for _, ref := range frag.SpriteRefs {
 			refs = append(refs, int32(ref)) // Cast each uint32 to int32
 		}
 

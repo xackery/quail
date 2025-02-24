@@ -21,6 +21,14 @@ type AsciiReadToken struct {
 	totalLineCount int // will be higher than lineNumber due to includes
 }
 
+func AsciiReadTokenNew(buf *bytes.Buffer, wce *Wce) *AsciiReadToken {
+	return &AsciiReadToken{
+		lineNumber: 0,
+		buf:        buf,
+		wce:        wce,
+	}
+}
+
 // LoadAsciiFile returns a new AsciiReader that reads from r.
 func LoadAsciiFile(path string, wce *Wce) (*AsciiReadToken, error) {
 	buf, err := caseInsensitiveOpen(path)
@@ -180,7 +188,7 @@ func (a *AsciiReadToken) readDefinitions() error {
 	definitions := []definitionReader{
 		&ActorDef{},
 		&ActorInst{},
-		&AniDef{},
+		&EqgAniDef{},
 		&AmbientLight{},
 		&BlitSpriteDef{},
 		&DMSpriteDef{},
@@ -189,13 +197,13 @@ func (a *AsciiReadToken) readDefinitions() error {
 		&EQMaterialDef{},
 		&GlobalAmbientLightDef{},
 		&HierarchicalSpriteDef{},
-		&LayDef{},
+		&EqgLayDef{},
 		&LightDef{},
 		&MaterialDef{},
 		&MaterialPalette{},
-		&MdsDef{},
-		&ModDef{},
-		&TerDef{},
+		&EqgMdsDef{},
+		&EqgModDef{},
+		&EqgTerDef{},
 		&ParticleCloudDef{},
 		&PointLight{},
 		&PolyhedronDefinition{},
@@ -475,41 +483,41 @@ func (a *AsciiReadToken) readDefinitions() error {
 
 				a.wce.WorldDef = frag
 				definitions[i] = &WorldDef{folders: []string{"world"}}
-			case *MdsDef:
+			case *EqgMdsDef:
 				if len(args) == 1 {
 					return fmt.Errorf("definition %s has no arguments", defName)
 				}
 				frag.Tag = args[1]
 				a.wce.MdsDefs = append(a.wce.MdsDefs, frag)
-				definitions[i] = &MdsDef{}
-			case *ModDef:
+				definitions[i] = &EqgMdsDef{}
+			case *EqgModDef:
 				if len(args) == 1 {
 					return fmt.Errorf("definition %s has no arguments", defName)
 				}
 				frag.Tag = args[1]
 				a.wce.ModDefs = append(a.wce.ModDefs, frag)
-				definitions[i] = &MdsDef{}
-			case *TerDef:
+				definitions[i] = &EqgMdsDef{}
+			case *EqgTerDef:
 				if len(args) == 1 {
 					return fmt.Errorf("definition %s has no arguments", defName)
 				}
 				frag.Tag = args[1]
 				a.wce.TerDefs = append(a.wce.TerDefs, frag)
-				definitions[i] = &TerDef{}
-			case *AniDef:
+				definitions[i] = &EqgTerDef{}
+			case *EqgAniDef:
 				if len(args) == 1 {
 					return fmt.Errorf("definition %s has no arguments", defName)
 				}
 				frag.Tag = args[1]
 				a.wce.AniDefs = append(a.wce.AniDefs, frag)
-				definitions[i] = &AniDef{}
-			case *LayDef:
+				definitions[i] = &EqgAniDef{}
+			case *EqgLayDef:
 				if len(args) == 1 {
 					return fmt.Errorf("definition %s has no arguments", defName)
 				}
 				frag.Tag = args[1]
 				a.wce.LayDefs = append(a.wce.LayDefs, frag)
-				definitions[i] = &LayDef{}
+				definitions[i] = &EqgLayDef{}
 			default:
 				return fmt.Errorf("unknown definition type for rebuild: %T", definitions[i])
 			}

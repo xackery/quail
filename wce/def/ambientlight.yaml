@@ -1,0 +1,17 @@
+name: "AMBIENTLIGHT"
+hasTag: true
+note: "Wld Ambient Light"
+properties:
+  - name: "LIGHT"
+    note: ""
+    args:
+      - name: ""
+        note: ""
+        format: "%0.8e"
+  - name: "REGIONLIST"
+    note: ""
+    args:
+      - name: ""
+        note: ""
+        format: "%d"
+        example: "1 1"

@@ -1,0 +1,220 @@
+name: "SPRITE2DDEF"
+hasTag: true
+note: "Wld Sprite 2d Def"
+properties:
+  - name: "SCALE"
+    note: ""
+    args:
+      - name: ""
+        note: ""
+        format: "%0.8e"
+      - name: ""
+        note: ""
+        format: "%0.8e"
+  - name: "SPHERELISTTAG"
+    note: ""
+    args:
+      - name: ""
+        note: ""
+        format: "%s"
+  - name: "DEPTHSCALE?"
+    note: ""
+    args:
+      - name: ""
+        note: ""
+        format: "%0.8e"
+  - name: "CENTEROFFSET?"
+    note: ""
+    args:
+      - name: ""
+        note: ""
+        format: "%0.8e"
+      - name: ""
+        note: ""
+        format: "%0.8e"
+      - name: ""
+        note: ""
+        format: "%0.8e"
+  - name: "BOUNDINGRADIUS?"
+    note: ""
+    args:
+      - name: ""
+        note: ""
+        format: "%0.8e"
+  - name: "CURRENTFRAMEREF?"
+    note: ""
+    args:
+      - name: ""
+        note: ""
+        format: "%d"
+  - name: "SLEEP?"
+    note: ""
+    args:
+      - name: ""
+        note: ""
+        format: "%d"
+  - name: "NUMPITCHES"
+    note: ""
+    args:
+      - name: ""
+        note: ""
+        format: "%d"
+    properties:
+      - name: "PITCH"
+        note: ""
+      - name: "PITCHCAP"
+        note: ""
+        args:
+          - name: ""
+            note: ""
+            format: "%d"
+      - name: "TOPORBOTTOMVIEW"
+        note: ""
+        args:
+          - name: ""
+            note: ""
+            format: "%d"
+      - name: "NUMHEADINGS"
+        note: ""
+        args:
+          - name: ""
+            note: ""
+            format: "%d"
+        properties:
+          - name: "HEADING"
+            note: ""
+          - name: "HEADINGCAP"
+            note: ""
+            args:
+              - name: ""
+                note: ""
+                format: "%d"
+          - name: "NUMFRAMES"
+            note: ""
+            args:
+              - name: ""
+                note: ""
+                format: "%d"
+            properties:
+              - name: "FRAME"
+                note: ""
+                args:
+                  - name: ""
+                    note: ""
+                    format: "%s"
+              - name: "NUMFILES"
+                note: ""
+                args:
+                  - name: ""
+                    note: ""
+                    format: "%d"
+                properties:
+                  - name: "FILE"
+                    note: ""
+                    args:
+                      - name: ""
+                        note: ""
+                        format: "%s"
+  - name: RENDERMETHOD
+    note: ""
+    args:
+      - name: ""
+        note: ""
+        format: "%s"
+  - name: "RENDERINFO"
+    note: ""
+  - name: "PEN?"
+    note: ""
+    args:
+      - name: ""
+        note: ""
+        format: "%s"
+  - name: "BRIGHTNESS?"
+    note: ""
+    args:
+      - name: ""
+        note: ""
+        format: "%0.8e"
+  - name: "SCALEDAMBIENT?"
+    note: ""
+    args:
+      - name: ""
+        note: ""
+        format: "%0.8e"
+  - name: "SPRITE?"
+    note: ""
+    args:
+      - name: ""
+        note: ""
+        format: "%s"
+  - name: "UVORIGIN?"
+    note: ""
+    args:
+      - name: ""
+        note: ""
+        format: "%0.8e"
+      - name: ""
+        note: ""
+        format: "%0.8e"
+      - name: ""
+        note: ""
+        format: "%0.8e"
+  - name: "UAXIS?"
+    note: ""
+    args:
+      - name: ""
+        note: ""
+        format: "%0.8e"
+      - name: ""
+        note: ""
+        format: "%0.8e"
+      - name: ""
+        note: ""
+        format: "%0.8e"
+  - name: "VAXIS?"
+    note: ""
+    args:
+      - name: ""
+        note: ""
+        format: "%0.8e"
+      - name: ""
+        note: ""
+        format: "%0.8e"
+      - name: ""
+        note: ""
+        format: "%0.8e"
+  - name: "UVCOUNT"
+    note: ""
+    args:
+      - name: ""
+        note: ""
+        format: "%d"
+    properties:
+      - name: "UV"
+        note: ""
+        args:
+          - name: ""
+            note: ""
+            format: "%0.8e"
+          - name: ""
+            note: ""
+            format: "%0.8e"
+  - name: "TWOSIDED"
+    note: ""
+    args:
+      - name: ""
+        note: ""
+        format: "%d"
+  - name: "HEXTENFLAG"
+    note: ""
+    args:
+      - name: ""
+        note: ""
+        format: "%d"
+
+
+
+
+
+
+

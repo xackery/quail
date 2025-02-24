@@ -1,0 +1,66 @@
+name: "SIMPLESPRITEDEF"
+hasTag: true
+note: "Wld Simple Sprite"
+properties:
+  - name: "TAGINDEX"
+    note: "Index of tag"
+    args:
+      - name: "index"
+        note: "Index of tag"
+        format: "%d"
+  - name: "VARIATION"
+    note: "Variation of tag"
+    args:
+      - name: "variation"
+        note: "Variation of tag"
+        format: "%d"
+  - name: "SKIPFRAMES?"
+    note: "Should frames be skipped?"
+    args:
+      - name: ""
+        note: "0: false, 1: true"
+        format: "%d"
+  - name: "ANIMATED?"
+    note: "Is animated?"
+    args:
+      - name: ""
+        note: "0: false, 1: true"
+        format: "%d"
+  - name: "SLEEP?"
+    note: "Is there a sleep duration (in milliseconds)"
+    args:
+      - name: ""
+        note: "NULL for non-value"
+        format: "%d"
+  - name: "CURRENTFRAME?"
+    note: "Current frame set?"
+    args:
+      - name: ""
+        note: "NULL for non-value"
+        format: "%d"
+  - name: "NUMFRAMES"
+    note: "Number of frames in simple sprite"
+    args:
+      - name: "count"
+        note: "Number of frames"
+        format: "%d"
+    properties:
+      - name: "FRAME"
+        note: "Frame tag"
+        args:
+          - name: "tag"
+            note: "Frame tag"
+            format: "%s"
+      - name: "NUMFILES"
+        note: "Number of files"
+        args:
+          - name: "count"
+            note: "Count of files"
+            format: "%d"
+        properties:
+          - name: "FILE"
+            note: "Texture file name"
+            args:
+              - name: "tag"
+                note: "tag of file"
+                format: "%s"

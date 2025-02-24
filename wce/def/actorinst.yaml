@@ -1,0 +1,114 @@
+name: "ACTORINST"
+hasTag: true
+note: "Wld actor instance"
+properties:
+  - name: "DEFINITION"
+    note: "Reference to the actor's sprite tag"
+    args:
+      - name: "tag"
+        note: "Actor's sprite reference tag"
+        format: "%s"
+
+  - name: "CURRENTACTION?"
+    note: "The current action of the actor"
+    args:
+      - name: "current action"
+        note: "The current action"
+        format: "%s"
+
+  - name: "LOCATION?"
+    note: "The location of the actor"
+    args:
+      - name: "x"
+        note: "The x coordinate"
+        format: "%0.8e"
+      - name: "y"
+        note: "The y coordinate"
+        format: "%0.8e"
+      - name: "z"
+        note: "The z coordinate"
+        format: "%0.8e"
+      - name: "x-rot"
+        note: "The x rotation"
+        format: "%d"
+      - name: "y-rot"
+        note: "The y rotation"
+        format: "%d"
+      - name: "z-rot"
+        note: "The z rotation"
+        format: "%d"
+
+  - name: "BOUNDINGRADIUS?"
+    note: "Radius around the actor instance for bounds"
+    args:
+      - name: "radius"
+        note: "Radius"
+        format: "%0.8e"
+
+  - name: "SCALEFACTOR?"
+    note: "Scale factor of the actor instance"
+    args:
+      - name: ""
+        note: "Scale factor amount"
+        format: "%0.8e"
+
+
+  - name: "SOUND?"
+    note: "Has a sound tag attached?"
+    args:
+      - name: ""
+        note: "NULL if empty, sound tag"
+        format: "%s"
+
+  - name: "ACTIVE?"
+    note: "Is actor instance active?"
+    args:
+      - name: ""
+        note: "NULL if empty, 1 if set to true"
+        format: "%d"
+
+  - name: "SPRITEVOLUMEONLY?"
+    note: "Uses sprite volume?"
+    args:
+      - name: ""
+        note: "NULL empty"
+        format: "%d"
+
+  - name: "DMRGBTRACK?"
+    note: "References an RGB Track?"
+    args:
+      - name: ""
+        note: "NULL if not set, tag otherwise"
+        format: "%s"
+
+
+  - name: "SPHERE"
+    note: "Reference to sphere tag"
+    args:
+      - name: ""
+        note: "tag of sphere"
+        format: "%s"
+
+  - name: "SPHERERADIUS"
+    note: "Radius of sphere"
+    args:
+      - name: ""
+        note: "radius of sphere"
+        format: "%0.8e"
+
+  - name: "USEBOUNDINGBOX"
+    note: "Use a bounding box"
+    args:
+      - name: ""
+        note: "0: false, 1: true"
+        format: "%d"
+
+
+  - name: "USERDATA"
+    note: "Unknown property 2"
+    args:
+      - name: "unk2"
+        note: "Unknown property 2"
+        format: "%d"
+
+

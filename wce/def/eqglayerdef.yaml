@@ -1,0 +1,37 @@
+name: "EQGLAYERDEF"
+hasTag: true
+note: "EQG Layer Definition"
+properties:
+  - name: "VERSION"
+    note: ""
+    args:
+      - name: ""
+        note: ""
+        format: "%d"
+  - name: "NUMLAYERS"
+    note: ""
+    args:
+      - name: ""
+        note: ""
+        format: "%d"
+    properties:
+      - name: "LAYER"
+        note: ""
+      - name: "MATERIAL"
+        note: ""
+        args:
+          - name: ""
+            note: ""
+            format: "%s"
+      - name: "DIFFUSE"
+        note: ""
+        args:
+          - name: ""
+            note: ""
+            format: "%s"
+      - name: "NORMAL"
+        note: ""
+        args:
+          - name: ""
+            note: ""
+            format: "%s"

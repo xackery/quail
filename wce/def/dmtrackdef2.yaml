@@ -1,0 +1,54 @@
+name: "DMTRACKDEF2"
+hasTag: true
+note: "Wld DM Track Def 2"
+properties:
+  - name: "SLEEP"
+    note: ""
+    args:
+      - name: ""
+        note: ""
+        format: "%d"
+  - name: "PARAM2"
+    note: ""
+    args:
+      - name: ""
+        note: ""
+        format: "%d"
+  - name: "FPSCALE"
+    note: ""
+    args:
+      - name: ""
+        note: ""
+        format: "%d"
+  - name: "SIZE6"
+    note: ""
+    args:
+      - name: ""
+        note: ""
+        format: "%d"
+  - name: "NUMFRAMES"
+    note: ""
+    args:
+      - name: ""
+        note: ""
+        format: "%d"
+    properties:
+      - name: "NUMVERTICES"
+        note: ""
+        args:
+          - name: ""
+            note: ""
+            format: "%d"
+        properties:
+          - name: "XYZ"
+            note: ""
+            args:
+              - name: ""
+                note: ""
+                format: "%0.8e"
+              - name: ""
+                note: ""
+                format: "%0.8e"
+              - name: ""
+                note: ""
+                format: "%0.8e"

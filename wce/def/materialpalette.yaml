@@ -1,0 +1,19 @@
+name: "MATERIALPALETTE"
+hasTag: true
+note: "Wld Material Palette"
+properties:
+  - name: "NUMMATERIALS"
+    note: "Number of materials in the palette"
+    args:
+      - name: "count"
+        note: "Number of materials"
+        format: "%d"
+    properties:
+      - name: "MATERIAL"
+        note: "Material tag"
+        args:
+          - name: "tag"
+            note: "Tag of material"
+            format: "%s"
+
+

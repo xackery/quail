@@ -1,0 +1,22 @@
+name: "BLITSPRITEDEF"
+hasTag: true
+note: "Wld Blit Sprite"
+properties:
+  - name: "SPRITE"
+    note: "Sprite tag"
+    args:
+      - name: "tag"
+        note: "Name of tag"
+        format: "%s"
+  - name: "RENDERMETHOD"
+    note: "Method for rendering"
+    args:
+      - name: "method"
+        note: "Rendering method"
+        format: "%s"
+  - name: "TRANSPARENT"
+    note: "Is Transparent"
+    args:
+      - name: ""
+        note: "0: false, 1: true"
+        format: "%d"
