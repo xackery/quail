@@ -81,6 +81,7 @@ func (e *Pfs) Add(name string, data []byte) error {
 	return nil
 }
 
+// Set upserts an entry in a pfs
 func (e *Pfs) Set(name string, data []byte) error {
 	name = strings.ToLower(name)
 	for _, fe := range e.files {

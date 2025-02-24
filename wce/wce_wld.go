@@ -3939,7 +3939,7 @@ type BSPNode struct {
 }
 
 func (e *Sprite3DDef) Definition() string {
-	return "3DSPRITEDEF"
+	return "SPRITE3DDEF"
 }
 
 func (e *Sprite3DDef) Write(token *AsciiWriteToken) error {

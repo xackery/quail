@@ -78,7 +78,7 @@ func TestWceGenTypescript(t *testing.T) {
 		}
 		defer w.Close()
 
-		w.WriteString(`// Generated
+		w.WriteString(`// Generated from quail, DO NOT EDIT
 import * as data from "./data";
 
 export const ` + defName + `: data.DefinitionInfo = {
@@ -127,7 +127,11 @@ export const ` + defName + `: data.DefinitionInfo = {
 		if yamlDef.Note != "" {
 			wceOut += "// " + yamlDef.Note + "\n"
 		}
-		wceOut += yamlDef.Name + "\n"
+		wceOut += yamlDef.Name
+		if yamlDef.HasTag {
+			wceOut += ` "tag"`
+		}
+		wceOut += "\n"
 		wceOut += wceBuf.String()
 
 		err = os.WriteFile(fmt.Sprintf("%s/%s.wce", dirTest, strings.ToLower(defName)), []byte(wceOut), os.ModePerm)
@@ -177,6 +181,7 @@ func traverseProp(buf *bytes.Buffer, prop Property, tabCount int) error {
 			propBuf += arg.Example
 			continue
 		}
+
 		switch arg.Format {
 		case `%s`:
 			propBuf += `"` + fmt.Sprintf("%d", argIndex) + `"`
