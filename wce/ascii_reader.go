@@ -21,6 +21,14 @@ type AsciiReadToken struct {
 	totalLineCount int // will be higher than lineNumber due to includes
 }
 
+func AsciiReadTokenNew(buf *bytes.Buffer, wce *Wce) *AsciiReadToken {
+	return &AsciiReadToken{
+		lineNumber: 0,
+		buf:        buf,
+		wce:        wce,
+	}
+}
+
 // LoadAsciiFile returns a new AsciiReader that reads from r.
 func LoadAsciiFile(path string, wce *Wce) (*AsciiReadToken, error) {
 	buf, err := caseInsensitiveOpen(path)

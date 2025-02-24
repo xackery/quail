@@ -1,0 +1,19 @@
+name: "GLOBALAMBIENTLIGHTDEF"
+hasTag: false
+description: "Global Ambient Light Def is used for setting the global ambient light on WLD files"
+properties:
+  - name: "COLOR"
+    description: "Is this a new wld file?"
+    args:
+      - name: "r"
+        description: "Red"
+        format: "%d"
+      - name: "g"
+        description: "Green"
+        format: "%d"
+      - name: "b"
+        description: "Blue"
+        format: "%d"
+      - name: "a"
+        description: "Alpha"
+        format: "%d"

@@ -33,7 +33,6 @@ go.mod.tags
 eq/
 _*/
 *.txt
-*.yaml
 *.sh
 
 node_modules/

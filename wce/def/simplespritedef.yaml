@@ -1,0 +1,68 @@
+name: "SIMPLESPRITEDEF"
+hasTag: true
+description: "Simple Sprite"
+properties:
+  - name: "TAGINDEX"
+    description: "Index of tag"
+    args:
+      - name: "index"
+        description: "Index of tag"
+        format: "%d"
+  - name: "VARIATION"
+    description: "Variation of tag"
+    args:
+      - name: "variation"
+        description: "Variation of tag"
+        format: "%d"
+  - name: "SKIPFRAMES?"
+    description: "Should frames be skipped?"
+    args:
+      - name: "value"
+        description: "0: false, 1: true"
+        format: "%d"
+  - name: "ANIMATED?"
+    description: "Is animated?"
+    args:
+      - name: "value"
+        description: "0: false, 1: true"
+        format: "%d"
+  - name: "SLEEP?"
+    description: "Is there a sleep duration (in milliseconds)"
+    args:
+      - name: "value"
+        description: "NULL for non-value"
+        format: "%d"
+  - name: "CURRENTFRAME?"
+    description: "Current frame set?"
+    args:
+      - name: "value"
+        description: "NULL for non-value"
+        format: "%d"
+  - name: "NUMFRAMES"
+    isArrayNum: true
+    description: "Number of frames in simple sprite"
+    args:
+      - name: "count"
+        description: "Number of frames"
+        format: "%d"
+    properties:
+      - name: "FRAME"
+        description: "Frame tag"
+        args:
+          - name: "tag"
+            description: "Frame tag"
+            format: "%s"
+      - name: "NUMFILES"
+        description: "Number of files"
+        isArrayNum: true
+        args:
+          - name: "count"
+            description: "Count of files"
+            format: "%d"
+        properties:
+          - name: "FILE"
+            description: "Texture file name"
+            args:
+              - name: "tag"
+                description: "tag of file"
+                format: "%s"

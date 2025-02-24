@@ -1,0 +1,312 @@
+name: "DMSPRITEDEF2"
+hasTag: true
+description: "A DM sprite definition"
+properties:
+  - name: "TAGINDEX"
+    description: "The index of the tag"
+    args:
+      - name: "index"
+        description: "The index of the tag"
+        format: "%d"
+
+  - name: "CENTEROFFSET"
+    description: "The center offset of the sprite"
+    args:
+      - name: "x"
+        description: "The x offset"
+        format: "%0.8e"
+      - name: "y"
+        description: "The y offset"
+        format: "%0.8e"
+      - name: "z"
+        description: "The z offset"
+        format: "%0.8e"
+
+  - name: "NUMVERTICES"
+    isArrayNum: true
+    description: "The number of vertices in the sprite"
+    args:
+      - name: "num vertices"
+        description: "The number of vertices"
+        format: "%d"
+    properties:
+      - name: "XYZ"
+        description: "The coordinates of a vertex"
+        args:
+          - name: "x"
+            description: "The x coordinate"
+            format: "%0.8e"
+          - name: "y"
+            description: "The y coordinate"
+            format: "%0.8e"
+          - name: "z"
+            description: "The z coordinate"
+            format: "%0.8e"
+
+  - name: "NUMUVS"
+    isArrayNum: true
+    description: "The number of UVs in the sprite"
+    args:
+      - name: "num uvs"
+        description: "The number of UVs"
+        format: "%d"
+    properties:
+      - name: "UV"
+        description: "UV entry"
+        args:
+          - name: "u"
+            description: "U on UV map"
+            format: "%0.8e"
+          - name: "v"
+            description: "V on UV map"
+            format: "%0.8e"
+
+  - name: "NUMVERTEXNORMALS"
+    isArrayNum: true
+    description: "The number of vertex normals in the sprite"
+    args:
+      - name: "num vertex normals"
+        description: "The number of vertex normals"
+        format: "%d"
+    properties:
+      - name: "XYZ"
+        description: "The coordinates of a texture normal"
+        args:
+          - name: "x"
+            description: "The x coordinate"
+            format: "%0.8e"
+          - name: "y"
+            description: "The y coordinate"
+            format: "%0.8e"
+          - name: "z"
+            description: "The z coordinate"
+            format: "%0.8e"
+
+  - name: "NUMVERTEXCOLORS"
+    isArrayNum: true
+    description: "The number of vertex colors in the sprite"
+    args:
+      - name: "num vertex colors"
+        description: "The number of vertex colors"
+        format: "%d"
+    properties:
+      - name: "RGBA"
+        description: "The coordinates of a vertex"
+        args:
+          - name: "r"
+            description: "Red"
+            format: "%d"
+          - name: "g"
+            description: "Green"
+            format: "%d"
+          - name: "b"
+            description: "Blue"
+            format: "%d"
+          - name: "a"
+            description: "Alpha"
+            format: "%d"
+
+
+  - name: "SKINASSIGNMENTGROUPS"
+    description: "The skin assignment groups"
+    args:
+      - name: "group size"
+        description: "The size of the group"
+        format: "%d"
+      - name: "group data"
+        description: "The data of the group"
+        format: "%s"
+        example: "2 3"
+
+  - name: "MATERIALPALETTE"
+    description: "The material palette used by the sprite"
+    args:
+      - name: "palette name"
+        description: "The name of the material palette"
+        format: "%s"
+
+  - name: "DMTRACKINST"
+    description: "The DM track instance"
+    args:
+      - name: "track instance"
+        description: "The track instance"
+        format: "%s"
+
+  - name: "POLYHEDRON"
+    description: "The polyhedron definition"
+    args:
+      - name: "definition"
+        description: "The definition of the polyhedron"
+        format: "%s"
+
+  - name: "DEFINITION"
+    description: "The definition reference"
+    args:
+      - name: "definition"
+        description: "The definition"
+        format: "%s"
+
+  - name: "NUMFACE2S"
+    isArrayNum: true
+    description: "The number of face2s in the sprite"
+    args:
+      - name: "num face2s"
+        description: "The number of face2s"
+        format: "%d"
+    properties:
+      - name: "DMFACE2"
+        description: "DM Face 2 Entries"
+      - name: "PASSABLE"
+        description: "Is face passable?"
+        args:
+          - name: "passable"
+            description: "Is face passable?"
+            format: "%d"
+      - name: "TRIANGLE"
+        description: "Triangle indexes"
+        args:
+          - name: "vert index 0"
+            description: "Index 0 of triangle"
+            format: "%d"
+          - name: "vert index 1"
+            description: "Index 1 of triangle"
+            format: "%d"
+          - name: "vert index 2"
+            description: "Index 2 of triangle"
+            format: "%d"
+
+
+  - name: "NUMMESHOPS"
+    isArrayNum: true
+    description: "The number of mesh operations in the sprite"
+    args:
+      - name: "num meshops"
+        description: "The number of mesh operations"
+        format: "%d"
+    properties:
+      - name: "MESHOP"
+        description: "A mesh operation"
+        args:
+          - name: "arg 0"
+            description: "arg 0"
+            format: "%d"
+          - name: "arg 1"
+            description: "arg 1"
+            format: "%d"
+          - name: "arg 2"
+            description: "arg 2"
+            format: "%0.8e"
+          - name: "arg 3"
+            description: "arg 3"
+            format: "%d"
+          - name: "arg 4"
+            description: "arg 4"
+            format: "%d"
+
+  - name: "FACEMATERIALGROUPS"
+    description: "The face material groups"
+    args:
+      - name: "group size"
+        description: "The size of the group"
+        format: "%d"
+      - name: "group entry 1"
+        description: "The data of the group"
+        format: "%d"
+      - name: "group entry 2"
+        description: "The data of the group"
+        format: "%d"
+
+  - name: "VERTEXMATERIALGROUPS"
+    description: "The vertex material groups"
+    args:
+      - name: "group size"
+        description: "The size of the group"
+        format: "%d"
+      - name: "group entry 1"
+        description: "The data of the group"
+        format: "%d"
+      - name: "group entry 2"
+        description: "The data of the group"
+        format: "%d"
+
+  - name: "BOUNDINGBOXMIN"
+    description: "The minimum bounding box coordinates"
+    args:
+      - name: "x"
+        description: "The x coordinate"
+        format: "%0.8e"
+      - name: "y"
+        description: "The y coordinate"
+        format: "%0.8e"
+      - name: "z"
+        description: "The z coordinate"
+        format: "%0.8e"
+
+  - name: "BOUNDINGBOXMAX"
+    description: "The maximum bounding box coordinates"
+    args:
+      - name: "x"
+        description: "The x coordinate"
+        format: "%0.8e"
+      - name: "y"
+        description: "The y coordinate"
+        format: "%0.8e"
+      - name: "z"
+        description: "The z coordinate"
+        format: "%0.8e"
+
+  - name: "BOUNDINGRADIUS"
+    description: "The bounding radius of the sprite"
+    args:
+      - name: "radius"
+        description: "The bounding radius"
+        format: "%0.8e"
+
+  - name: "FPSCALE"
+    description: "The FPS scale of the sprite"
+    args:
+      - name: "scale"
+        description: "The FPS scale"
+        format: "%d"
+
+  - name: "HEXONEFLAG"
+    description: "The hex one flag"
+    args:
+      - name: "flag"
+        description: "The hex one flag"
+        format: "%d"
+
+  - name: "HEXTWOFLAG"
+    description: "The hex two flag"
+    args:
+      - name: "flag"
+        description: "The hex two flag"
+        format: "%d"
+
+  - name: "HEXFOURTHOUSANDFLAG"
+    description: "The hex four thousand flag"
+    args:
+      - name: "flag"
+        description: "The hex four thousand flag"
+        format: "%d"
+
+  - name: "HEXEIGHTTHOUSANDFLAG"
+    description: "The hex eight thousand flag"
+    args:
+      - name: "flag"
+        description: "The hex eight thousand flag"
+        format: "%d"
+
+  - name: "HEXTENTHOUSANDFLAG"
+    description: "The hex ten thousand flag"
+    args:
+      - name: "flag"
+        description: "The hex ten thousand flag"
+        format: "%d"
+
+  - name: "HEXTWENTYTHOUSANDFLAG"
+    description: "The hex twenty thousand flag"
+    args:
+      - name: "flag"
+        description: "The hex twenty thousand flag"
+        format: "%d"

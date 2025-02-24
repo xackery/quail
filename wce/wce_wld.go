@@ -3167,8 +3167,7 @@ func (e *ActorInst) Write(token *AsciiWriteToken) error {
 		fmt.Fprintf(w, "\tSCALEFACTOR? %s\n", wcVal(e.Scale))
 		fmt.Fprintf(w, "\tSOUND? \"%s\"\n", wcVal(e.SoundTag))
 		fmt.Fprintf(w, "\tACTIVE? %s\n", wcVal(e.Active))
-		fmt.Fprintf(w, "\tACTIVEGEOMETRY %d\n", e.ActiveGeometry)
-		fmt.Fprintf(w, "\tUSEMODELCOLLIDER? %s\n", wcVal(e.UseModelCollider))
+		fmt.Fprintf(w, "\tSPRITEVOLUMEONLY? %s\n", wcVal(e.UseModelCollider))
 		fmt.Fprintf(w, "\tDMRGBTRACK? \"%s\"\n", wcVal(e.DMRGBTrackTag))
 		fmt.Fprintf(w, "\tSPHERE \"%s\"\n", e.SphereTag)
 		fmt.Fprintf(w, "\tSPHERERADIUS %0.8e\n", e.SphereRadius)
@@ -3542,13 +3541,13 @@ func (e *LightDef) Write(token *AsciiWriteToken) error {
 		fmt.Fprintf(w, "\tCURRENTFRAME? %s\n", wcVal(e.CurrentFrame))
 		fmt.Fprintf(w, "\tNUMFRAMES %d\n", len(e.LightLevels))
 		for _, level := range e.LightLevels {
-			fmt.Fprintf(w, "\t\tLIGHTLEVELS %0.8f\n", level)
+			fmt.Fprintf(w, "\t\tLIGHTLEVELS %0.8e\n", level)
 		}
 		fmt.Fprintf(w, "\tSLEEP? %s\n", wcVal(e.Sleep))
 		fmt.Fprintf(w, "\tSKIPFRAMES %d\n", e.SkipFrames)
 		fmt.Fprintf(w, "\tNUMCOLORS %d\n", len(e.Colors))
 		for _, color := range e.Colors {
-			fmt.Fprintf(w, "\t\tCOLOR %0.8f %0.8f %0.8f\n", color[0], color[1], color[2])
+			fmt.Fprintf(w, "\t\tCOLOR %0.8e %0.8e %0.8e\n", color[0], color[1], color[2])
 		}
 		fmt.Fprintf(w, "\n")
 	}
@@ -3722,6 +3721,7 @@ func (e *PointLight) Definition() string {
 	return "POINTLIGHT"
 }
 
+// Write
 func (e *PointLight) Write(token *AsciiWriteToken) error {
 	for _, folder := range e.folders {
 		err := token.SetWriter(folder)
