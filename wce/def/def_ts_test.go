@@ -124,8 +124,8 @@ export const ` + defName + `: data.DefinitionInfo = {
 		wceInst := wce.New("test")
 
 		wceOut := ""
-		if yamlDef.Comment != "" {
-			wceOut += "// " + yamlDef.Comment + "\n"
+		if yamlDef.Note != "" {
+			wceOut += "// " + yamlDef.Note + "\n"
 		}
 		wceOut += yamlDef.Name + "\n"
 		wceOut += wceBuf.String()
@@ -162,15 +162,15 @@ func traverseProp(buf *bytes.Buffer, prop Property, tabCount int) error {
 	commentBuf := ""
 	propBuf := ""
 
-	if prop.Comment != "" {
-		commentBuf += strings.Repeat("\t", tabCount) + "// " + prop.Comment
+	if prop.Note != "" {
+		commentBuf += strings.Repeat("\t", tabCount) + "// " + prop.Note
 	}
 
 	propBuf += strings.Repeat("\t", tabCount) + prop.Name
 	for i, arg := range prop.Args {
 		argIndex := i + 1
-		if arg.Comment != "" {
-			commentBuf += fmt.Sprintf("\n %s // Argument %d (%s): %s", strings.Repeat("\t", tabCount), argIndex, arg.Format, arg.Comment)
+		if arg.Note != "" {
+			commentBuf += fmt.Sprintf("\n %s // Argument %d (%s): %s", strings.Repeat("\t", tabCount), argIndex, arg.Format, arg.Note)
 		}
 		propBuf += " "
 		if arg.Example != "" {
