@@ -3748,7 +3748,7 @@ func (e *PointLight) Write(token *AsciiWriteToken) error {
 		fmt.Fprintf(w, "\tSTATIC %d\n", e.Static)
 		fmt.Fprintf(w, "\tSTATICINFLUENCE %d\n", e.StaticInfluence)
 		fmt.Fprintf(w, "\tHASREGIONS %d\n", e.HasRegions)
-		fmt.Fprintf(w, "\tXYZ %0.8f %0.8f %0.8f\n", e.Location[0], e.Location[1], e.Location[2])
+		fmt.Fprintf(w, "\tXYZ %0.8e %0.8e %0.8e\n", e.Location[0], e.Location[1], e.Location[2])
 		fmt.Fprintf(w, "\tRADIUSOFINFLUENCE %0.8e\n", e.Radius)
 		fmt.Fprintf(w, "\n")
 	}
@@ -4802,7 +4802,7 @@ func (e *TrackDef) Write(token *AsciiWriteToken) error {
 		fmt.Fprintf(w, "\tNUMLEGACYFRAMES %d\n", len(e.LegacyFrames))
 		for _, frame := range e.LegacyFrames {
 			fmt.Fprintf(w, "\t\tLEGACYFRAME %d %d %d %d ", frame.XYZScale, frame.XYZ[0], frame.XYZ[1], frame.XYZ[2])
-			fmt.Fprintf(w, "%0.8f %0.8f %0.8f %0.8f\n", frame.Rotation[0], frame.Rotation[1], frame.Rotation[2], frame.Rotation[3])
+			fmt.Fprintf(w, "%0.8e %0.8e %0.8e %0.8e\n", frame.Rotation[0], frame.Rotation[1], frame.Rotation[2], frame.Rotation[3])
 		}
 		fmt.Fprintf(w, "\n")
 	}
@@ -6259,7 +6259,7 @@ func (e *Region) Read(token *AsciiReadToken) error {
 		if err != nil {
 			return err
 		}
-		err = parse(numVertices, records[1])
+		err = parse(&numVertices, records[1])
 		if err != nil {
 			return fmt.Errorf("num vertices: %w", err)
 		}
@@ -7476,7 +7476,7 @@ func (e *ParticleCloudDef) Read(token *AsciiReadToken) error {
 		return err
 	}
 
-	err = parse(&e.SpawnBoxMin, records[1])
+	err = parse(&e.SpawnBoxMin, records[1:]...)
 	if err != nil {
 		return fmt.Errorf("spawn box min: %w", err)
 	}
@@ -7486,7 +7486,7 @@ func (e *ParticleCloudDef) Read(token *AsciiReadToken) error {
 		return err
 	}
 
-	err = parse(&e.SpawnBoxMax, records[1])
+	err = parse(&e.SpawnBoxMax, records[1:]...)
 	if err != nil {
 		return fmt.Errorf("spawn box max: %w", err)
 	}
@@ -7496,7 +7496,7 @@ func (e *ParticleCloudDef) Read(token *AsciiReadToken) error {
 		return err
 	}
 
-	err = parse(&e.BoxMin, records[1])
+	err = parse(&e.BoxMin, records[1:]...)
 	if err != nil {
 		return fmt.Errorf("box min: %w", err)
 	}
@@ -7506,7 +7506,7 @@ func (e *ParticleCloudDef) Read(token *AsciiReadToken) error {
 		return err
 	}
 
-	err = parse(&e.BoxMax, records[1])
+	err = parse(&e.BoxMax, records[1:]...)
 	if err != nil {
 		return fmt.Errorf("box max: %w", err)
 	}

@@ -1,0 +1,46 @@
+name: "WORLDTREE"
+hasTag: true
+note: ""
+properties:
+  - name: "NUMWORLDNODES"
+    note: ""
+    args:
+      - name: ""
+        note: ""
+        format: "%d"
+    properties:
+      - name: "WORLDNODE"
+        note: ""
+      - name: "NORMALABCD"
+        note: ""
+        args:
+          - name: ""
+            note: ""
+            format: "%0.8e"
+          - name: ""
+            note: ""
+            format: "%0.8e"
+          - name: ""
+            note: ""
+            format: "%0.8e"
+          - name: ""
+            note: ""
+            format: "%0.8e"
+      - name: "WORLDREGIONTAG"
+        note: ""
+        args:
+          - name: ""
+            note: ""
+            format: "%s"
+      - name: "FRONTTREE"
+        note: ""
+        args:
+          - name: ""
+            note: ""
+            format: "%d"
+      - name: "BACKTREE"
+        note: ""
+        args:
+          - name: ""
+            note: ""
+            format: "%d"

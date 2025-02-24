@@ -1,20 +1,19 @@
 name: "MATERIALPALETTE"
 hasTag: true
-description: "An actor definition"
+note: "An actor definition"
 properties:
   - name: "NUMMATERIALS"
-    isArrayNum: true
-    description: "Number of materials in the palette"
+    note: "Number of materials in the palette"
     args:
       - name: "count"
-        description: "Number of materials"
+        note: "Number of materials"
         format: "%d"
     properties:
       - name: "MATERIAL"
-        description: "Material tag"
+        note: "Material tag"
         args:
           - name: "tag"
-            description: "Tag of material"
+            note: "Tag of material"
             format: "%s"
 
 

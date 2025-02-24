@@ -1,22 +1,22 @@
 name: "BLITSPRITEDEF"
 hasTag: true
-description: "Blit Sprite"
+note: "Blit Sprite"
 properties:
   - name: "SPRITE"
-    description: "Sprite tag"
+    note: "Sprite tag"
     args:
       - name: "tag"
-        description: "Name of tag"
+        note: "Name of tag"
         format: "%s"
   - name: "RENDERMETHOD"
-    description: "Method for rendering"
+    note: "Method for rendering"
     args:
       - name: "method"
-        description: "Rendering method"
+        note: "Rendering method"
         format: "%s"
   - name: "TRANSPARENT"
-    description: "Is Transparent"
+    note: "Is Transparent"
     args:
-      - name: "value"
-        description: "0: false, 1: true"
+      - name: ""
+        note: "0: false, 1: true"
         format: "%d"

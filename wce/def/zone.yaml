@@ -1,0 +1,17 @@
+name: "ZONE"
+hasTag: true
+note: ""
+properties:
+  - name: "REGIONLIST"
+    note: ""
+    args:
+      - name: ""
+        note: ""
+        format: "%d"
+        example: "1 1"
+  - name: "USERDATA"
+    note: ""
+    args:
+      - name: ""
+        note: ""
+        format: "%s"

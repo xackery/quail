@@ -1,0 +1,40 @@
+name: "TRACKINSTANCE"
+hasTag: true
+note: ""
+properties:
+  - name: "TAGINDEX"
+    note: ""
+    args:
+      - name: ""
+        note: ""
+        format: "%d"
+  - name: "DEFINITION"
+    note: ""
+    args:
+      - name: ""
+        note: ""
+        format: "%s"
+  - name: "DEFINITIONINDEX"
+    note: ""
+    args:
+      - name: ""
+        note: ""
+        format: "%d"
+  - name: "INTERPOLATE"
+    note: "deprecated, ignored in RoF2"
+    args:
+      - name: ""
+        note: "deprecated, ignored in RoF2"
+        format: "%d"
+  - name: "REVERSE"
+    note: "deprecated, ignored in RoF2"
+    args:
+      - name: ""
+        note: "deprecated, ignored in RoF2"
+        format: "%d"
+  - name: "SLEEP?"
+    note: ""
+    args:
+      - name: ""
+        note: ""
+        format: "%d"

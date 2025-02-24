@@ -1,24 +1,26 @@
 name: "WORLDDEF"
 hasTag: false
-description: "A world definition. This is a collection of properties that defines a world"
+note: "World definition"
+description: "This is a collection of properties that defines a world"
 properties:
   - name: "NEWWORLD"
-    description: "Is this a new wld file?"
+    note: "Is this a new wld file?"
+    description: "This is used exclusively in s3d files. For most cases, can just be 0 unless imported"
     args:
       - name: "version"
-        description: "0: old wld versioning, 1: new wld versioning"
+        note: "0: old wld versioning, 1: new wld versioning"
         format: "%d"
 
   - name: "ZONE"
-    description: "Should this wce be treated like a zone?"
+    note: "Should this wce be treated like a zone?"
     args:
       - name: "is zone"
-        description: "0: no, 1: yes"
+        note: "0: no, 1: yes"
         format: "%s"
 
   - name: "EQGVERSION?"
-    description: "Used in eqg parsing for version rebuilding"
+    note: "Used in eqg parsing for version rebuilding"
     args:
       - name: "version"
-        description: "The version of the eqg file"
+        note: "The version of the eqg file"
         format: "%d"

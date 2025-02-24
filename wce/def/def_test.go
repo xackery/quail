@@ -34,6 +34,20 @@ func TestWceGenTypescript(t *testing.T) {
 		&wce.SimpleSpriteDef{},
 		&wce.WorldDef{},
 		&wce.LightDef{},
+		&wce.PointLight{},
+		&wce.Sprite3DDef{},
+		&wce.PolyhedronDefinition{},
+		&wce.TrackInstance{},
+		&wce.TrackDef{},
+		&wce.HierarchicalSpriteDef{},
+		&wce.WorldTree{},
+		&wce.Region{},
+		&wce.AmbientLight{},
+		&wce.Zone{},
+		&wce.RGBTrackDef{},
+		&wce.ParticleCloudDef{},
+		&wce.Sprite2DDef{},
+		&wce.DMTrackDef2{},
 	}
 
 	dirTest := helper.DirTest()
@@ -105,8 +119,8 @@ export const ` + defName + `: data.DefinitionInfo = {
 		wceInst := wce.New("test")
 
 		wceOut := ""
-		if yamlDef.Description != "" {
-			wceOut += "// " + yamlDef.Description + "\n"
+		if yamlDef.Comment != "" {
+			wceOut += "// " + yamlDef.Comment + "\n"
 		}
 		wceOut += yamlDef.Name + "\n"
 		wceOut += wceBuf.String()
@@ -143,15 +157,15 @@ func traverseProp(buf *bytes.Buffer, prop Property, tabCount int) error {
 	commentBuf := ""
 	propBuf := ""
 
-	if prop.Description != "" {
-		commentBuf += strings.Repeat("\t", tabCount) + "// " + prop.Description
+	if prop.Comment != "" {
+		commentBuf += strings.Repeat("\t", tabCount) + "// " + prop.Comment
 	}
 
 	propBuf += strings.Repeat("\t", tabCount) + prop.Name
 	for i, arg := range prop.Args {
 		argIndex := i + 1
-		if arg.Description != "" {
-			commentBuf += fmt.Sprintf("\n %s // Argument %d (%s): %s", strings.Repeat("\t", tabCount), argIndex, arg.Format, arg.Description)
+		if arg.Comment != "" {
+			commentBuf += fmt.Sprintf("\n %s // Argument %d (%s): %s", strings.Repeat("\t", tabCount), argIndex, arg.Format, arg.Comment)
 		}
 		propBuf += " "
 		if arg.Example != "" {
@@ -168,10 +182,11 @@ func traverseProp(buf *bytes.Buffer, prop Property, tabCount int) error {
 		default:
 			return fmt.Errorf("unhandled type: %s", arg.Format)
 		}
-
 	}
 
-	buf.WriteString(commentBuf + "\n")
+	if len(commentBuf) > 0 {
+		buf.WriteString(commentBuf + "\n")
+	}
 	buf.WriteString(propBuf + "\n")
 	for _, prop2 := range prop.Properties {
 		err := traverseProp(buf, prop2, tabCount+1)

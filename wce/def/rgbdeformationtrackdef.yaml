@@ -1,0 +1,52 @@
+name: "RGBDEFORMATIONTRACKDEF"
+hasTag: true
+note: ""
+properties:
+  - name: "DATA1"
+    note: ""
+    args:
+      - name: ""
+        note: ""
+        format: "%d"
+  - name: "DATA2"
+    note: ""
+    args:
+      - name: ""
+        note: ""
+        format: "%d"
+  - name: "SLEEP"
+    note: ""
+    args:
+      - name: ""
+        note: ""
+        format: "%d"
+  - name: "DATA4"
+    note: ""
+    args:
+      - name: ""
+        note: ""
+        format: "%d"
+  - name: "RGBDEFORMATIONFRAME"
+    note: ""
+  - name: "NUMRGBAS"
+    note: ""
+    args:
+      - name: ""
+        note: ""
+        format: "%d"
+    properties:
+      - name: "RGBA"
+        note: ""
+        args:
+          - name: ""
+            note: ""
+            format: "%d"
+          - name: ""
+            note: ""
+            format: "%d"
+          - name: ""
+            note: ""
+            format: "%d"
+          - name: ""
+            note: ""
+            format: "%d"

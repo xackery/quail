@@ -1,60 +1,58 @@
 name: "LIGHTDEFINITION"
 hasTag: true
-description: "Light"
+note: "Light"
 properties:
   - name: "CURRENTFRAME?"
-    description: "Is there a current frame, and what's value"
+    note: "Is there a current frame, and what's value"
     args:
-      - name: "value"
-        description: "NULL if skipped"
+      - name: ""
+        note: "NULL if skipped"
         format: "%d"
 
   - name: "NUMFRAMES"
-    isArrayNum: true
-    description: "Number of frames in light"
+    note: "Number of frames in light"
     args:
       - name: "count"
-        description: "Count of frames"
+        note: "Count of frames"
         format: "%d"
     properties:
       - name: "LIGHTLEVELS"
-        description: "value of light level frame"
+        note: "value of light level frame"
         args:
-          - name: "value"
-            description: "light level"
+          - name: ""
+            note: "light level"
             format: "%0.8e"
 
   - name: "SLEEP?"
-    description: "Is a sleep value set?"
+    note: "Is a sleep value set?"
     args:
-      - name: "value"
-        description: "NULL if skipped, sleep value in ms"
+      - name: ""
+        note: "NULL if skipped, sleep value in ms"
         format: "%d"
 
   - name: "SKIPFRAMES"
-    description: "Are frames skipped"
+    note: "Are frames skipped"
     args:
-      - name: "value"
-        description: "number of frames to skip"
+      - name: ""
+        note: "number of frames to skip"
         format: "%d"
 
   - name: "NUMCOLORS"
-    isArrayNum: true
-    description: "Number of colors"
+    note: "Number of colors"
     args:
       - name: "count"
-        description: "Count of colors"
+        note: "Count of colors"
         format: "%d"
     properties:
       - name: "COLOR"
-        description: "Color value"
+        note: "Color value"
         args:
           - name: "r"
-            description: "R Value of color"
+            note: "R Value of color"
             format: "%0.8e"
           - name: "g"
-            description: "G Value of color"
+            note: "G Value of color"
             format: "%0.8e"
           - name: "b"
-            description: "B Value of color"
+            note: "B Value of color"
             format: "%0.8e"

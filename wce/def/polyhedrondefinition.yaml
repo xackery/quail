@@ -1,0 +1,55 @@
+name: "POLYHEDRONDEFINITION"
+hasTag: true
+note: "Polyhedron Definition"
+properties:
+  - name: "BOUNDINGRADIUS"
+    note: ""
+    args:
+      - name: ""
+        note: ""
+        format: "%0.8e"
+  - name: "SCALEFACTOR"
+    note: ""
+    args:
+      - name: ""
+        note: ""
+        format: "%0.8e"
+  - name: "NUMVERTICES"
+    note: ""
+    args:
+      - name: ""
+        note: ""
+        format: "%d"
+    properties:
+      - name: "XYZ"
+        note: ""
+        args:
+          - name: ""
+            note: ""
+            format: "%0.8e"
+          - name: ""
+            note: ""
+            format: "%0.8e"
+          - name: ""
+            note: ""
+            format: "%0.8e"
+  - name: "NUMFACES"
+    note: ""
+    args:
+      - name: ""
+        note: ""
+        format: "%d"
+    properties:
+      - name: "VERTEXLIST"
+        note: ""
+        args:
+          - name: ""
+            note: ""
+            format: "%d"
+            example: "1 1"
+  - name: "HEXONEFLAG"
+    note: ""
+    args:
+      - name: ""
+        note: ""
+        format: "%d"

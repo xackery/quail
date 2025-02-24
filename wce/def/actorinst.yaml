@@ -1,114 +1,114 @@
 name: "ACTORINST"
 hasTag: true
-description: "An actor instance"
+note: "An actor instance"
 properties:
   - name: "DEFINITION"
-    description: "Reference to the actor's sprite tag"
+    note: "Reference to the actor's sprite tag"
     args:
       - name: "tag"
-        description: "Actor's sprite reference tag"
+        note: "Actor's sprite reference tag"
         format: "%s"
 
   - name: "CURRENTACTION?"
-    description: "The current action of the actor"
+    note: "The current action of the actor"
     args:
       - name: "current action"
-        description: "The current action"
+        note: "The current action"
         format: "%s"
 
   - name: "LOCATION?"
-    description: "The location of the actor"
+    note: "The location of the actor"
     args:
       - name: "x"
-        description: "The x coordinate"
+        note: "The x coordinate"
         format: "%0.8e"
       - name: "y"
-        description: "The y coordinate"
+        note: "The y coordinate"
         format: "%0.8e"
       - name: "z"
-        description: "The z coordinate"
+        note: "The z coordinate"
         format: "%0.8e"
       - name: "x-rot"
-        description: "The x rotation"
+        note: "The x rotation"
         format: "%d"
       - name: "y-rot"
-        description: "The y rotation"
+        note: "The y rotation"
         format: "%d"
       - name: "z-rot"
-        description: "The z rotation"
+        note: "The z rotation"
         format: "%d"
 
   - name: "BOUNDINGRADIUS?"
-    description: "Radius around the actor instance for bounds"
+    note: "Radius around the actor instance for bounds"
     args:
       - name: "radius"
-        description: "Radius"
+        note: "Radius"
         format: "%0.8e"
 
   - name: "SCALEFACTOR?"
-    description: "Scale factor of the actor instance"
+    note: "Scale factor of the actor instance"
     args:
-      - name: "value"
-        description: "Scale factor amount"
+      - name: ""
+        note: "Scale factor amount"
         format: "%0.8e"
 
 
   - name: "SOUND?"
-    description: "Has a sound tag attached?"
+    note: "Has a sound tag attached?"
     args:
-      - name: "value"
-        description: "NULL if empty, sound tag"
+      - name: ""
+        note: "NULL if empty, sound tag"
         format: "%s"
 
   - name: "ACTIVE?"
-    description: "Is actor instance active?"
+    note: "Is actor instance active?"
     args:
-      - name: "value"
-        description: "NULL if empty, 1 if set to true"
+      - name: ""
+        note: "NULL if empty, 1 if set to true"
         format: "%d"
 
   - name: "SPRITEVOLUMEONLY?"
-    description: "Uses sprite volume?"
+    note: "Uses sprite volume?"
     args:
-      - name: "value"
-        description: "NULL empty"
+      - name: ""
+        note: "NULL empty"
         format: "%d"
 
   - name: "DMRGBTRACK?"
-    description: "References an RGB Track?"
+    note: "References an RGB Track?"
     args:
-      - name: "value"
-        description: "NULL if not set, tag otherwise"
+      - name: ""
+        note: "NULL if not set, tag otherwise"
         format: "%s"
 
 
   - name: "SPHERE"
-    description: "Reference to sphere tag"
+    note: "Reference to sphere tag"
     args:
-      - name: "value"
-        description: "tag of sphere"
+      - name: ""
+        note: "tag of sphere"
         format: "%s"
 
   - name: "SPHERERADIUS"
-    description: "Radius of sphere"
+    note: "Radius of sphere"
     args:
-      - name: "value"
-        description: "radius of sphere"
+      - name: ""
+        note: "radius of sphere"
         format: "%0.8e"
 
   - name: "USEBOUNDINGBOX"
-    description: "Use a bounding box"
+    note: "Use a bounding box"
     args:
-      - name: "value"
-        description: "0: false, 1: true"
+      - name: ""
+        note: "0: false, 1: true"
         format: "%d"
 
 
   - name: "USERDATA"
-    description: "Unknown property 2"
+    note: "Unknown property 2"
     args:
       - name: "unk2"
-        description: "Unknown property 2"
+        note: "Unknown property 2"
         format: "%d"
 
 
