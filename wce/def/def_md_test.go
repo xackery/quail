@@ -97,9 +97,14 @@ func wceMarkdownGen(buf *os.File, yamlDef *Definition) error {
 	}
 
 	buf.WriteString("\n```c\n")
+	buf.WriteString(fmt.Sprintf("%s", yamlDef.Name))
+	if yamlDef.HasTag {
+		buf.WriteString(` "tag"`)
+	}
+	buf.WriteString("\n")
 
 	for _, prop := range yamlDef.Properties {
-		err := traverseMarkdownProp(buf, prop, 0)
+		err := traverseMarkdownProp(buf, prop, 1)
 		if err != nil {
 			return err
 		}
