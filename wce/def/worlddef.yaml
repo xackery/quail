@@ -1,6 +1,6 @@
 name: "WORLDDEF"
 hasTag: false
-note: "World definition"
+note: "Wld World definition"
 description: "This is a collection of properties that defines a world"
 properties:
   - name: "NEWWORLD"

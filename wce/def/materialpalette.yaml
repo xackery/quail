@@ -1,6 +1,6 @@
 name: "MATERIALPALETTE"
 hasTag: true
-note: "An actor definition"
+note: "Wld Material Palette"
 properties:
   - name: "NUMMATERIALS"
     note: "Number of materials in the palette"

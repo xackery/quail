@@ -1,6 +1,6 @@
 name: "ACTORINST"
 hasTag: true
-note: "An actor instance"
+note: "Wld actor instance"
 properties:
   - name: "DEFINITION"
     note: "Reference to the actor's sprite tag"

@@ -1,6 +1,6 @@
 name: "MATERIALDEFINITION"
 hasTag: true
-note: "Material"
+note: "Wld Material"
 properties:
   - name: "TAGINDEX"
     note: "For tag variations, starts at 0, increases by 1"

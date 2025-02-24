@@ -1,6 +1,6 @@
 name: "WORLDTREE"
 hasTag: true
-note: ""
+note: "Wld World Tree"
 properties:
   - name: "NUMWORLDNODES"
     note: ""

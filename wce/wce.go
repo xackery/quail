@@ -46,11 +46,11 @@ type Wce struct {
 	variationMaterialDefs  map[string][]*MaterialDef
 	WorldTrees             []*WorldTree
 	Zones                  []*Zone
-	AniDefs                []*AniDef
-	MdsDefs                []*MdsDef
-	ModDefs                []*ModDef
-	TerDefs                []*TerDef
-	LayDefs                []*LayDef
+	AniDefs                []*EqgAniDef
+	MdsDefs                []*EqgMdsDef
+	ModDefs                []*EqgModDef
+	TerDefs                []*EqgTerDef
+	LayDefs                []*EqgLayDef
 }
 
 type WldDefinitioner interface {
@@ -331,7 +331,7 @@ func (wce *Wce) reset() {
 	wce.RGBTrackDefs = []*RGBTrackDef{}
 	wce.ParticleCloudDefs = []*ParticleCloudDef{}
 	wce.Sprite2DDefs = []*Sprite2DDef{}
-	wce.MdsDefs = []*MdsDef{}
-	wce.ModDefs = []*ModDef{}
-	wce.TerDefs = []*TerDef{}
+	wce.MdsDefs = []*EqgMdsDef{}
+	wce.ModDefs = []*EqgModDef{}
+	wce.TerDefs = []*EqgTerDef{}
 }

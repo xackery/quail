@@ -1,6 +1,6 @@
 name: "SIMPLESPRITEDEF"
 hasTag: true
-note: "Simple Sprite"
+note: "Wld Simple Sprite"
 properties:
   - name: "TAGINDEX"
     note: "Index of tag"

@@ -1,6 +1,6 @@
 name: "POINTLIGHT"
 hasTag: true
-note: "Point Light"
+note: "Wld Point Light"
 properties:
   - name: "LIGHT"
     note: ""

@@ -1,6 +1,6 @@
 name: "REGION"
 hasTag: true
-note: ""
+note: "Wld Region"
 properties:
   - name: "REVERBVOLUME"
     note: ""

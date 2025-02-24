@@ -1,6 +1,6 @@
 name: "AMBIENTLIGHT"
 hasTag: true
-note: ""
+note: "Wld Ambient Light"
 properties:
   - name: "LIGHT"
     note: ""

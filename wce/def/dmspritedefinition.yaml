@@ -1,6 +1,6 @@
 name: "DMSPRITEDEF"
 hasTag: true
-note: "A DM sprite definition"
+note: "Wld DM sprite definition"
 properties:
   - name: "TAGINDEX"
     note: "The index of the tag"

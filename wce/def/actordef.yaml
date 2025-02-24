@@ -1,6 +1,6 @@
 name: "ACTORDEF"
 hasTag: true
-note: "An actor definition"
+note: "Wld actor definition"
 properties:
   - name: "CALLBACK"
     note: "The callback function for the actor"

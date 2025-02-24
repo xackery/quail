@@ -1,6 +1,6 @@
 name: "PARTICLECLOUDDEF"
 hasTag: true
-note: ""
+note: "Wld Particle Cloud"
 properties:
   - name: "TAGINDEX"
     note: ""

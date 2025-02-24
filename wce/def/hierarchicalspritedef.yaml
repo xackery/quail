@@ -1,6 +1,6 @@
 name: "HIERARCHICALSPRITEDEF"
 hasTag: true
-note: ""
+note: "Wld  Hierarchical Sprite Def"
 properties:
   - name: "NUMDAGS"
     note: ""

@@ -1,6 +1,6 @@
 name: "3DSPRITEDEF"
 hasTag: true
-note: "3d Sprite Definition"
+note: "Wld 3d Sprite Definition"
 properties:
   - name: "CENTEROFFSET?"
     note: ""

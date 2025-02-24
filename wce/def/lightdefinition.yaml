@@ -1,6 +1,6 @@
 name: "LIGHTDEFINITION"
 hasTag: true
-note: "Light"
+note: "Wld Light"
 properties:
   - name: "CURRENTFRAME?"
     note: "Is there a current frame, and what's value"

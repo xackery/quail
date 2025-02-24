@@ -61,7 +61,7 @@ func (wce *Wce) readEqgEntry(entry *pfs.FileEntry) error {
 		if err != nil {
 			return fmt.Errorf("read %s: %w", entry.Name(), err)
 		}
-		def := &MdsDef{}
+		def := &EqgMdsDef{}
 		err := def.FromRaw(wce, rawSrc)
 		if err != nil {
 			return fmt.Errorf("mds: %w", err)
@@ -76,7 +76,7 @@ func (wce *Wce) readEqgEntry(entry *pfs.FileEntry) error {
 		if err != nil {
 			return fmt.Errorf("read %s: %w", entry.Name(), err)
 		}
-		def := &ModDef{}
+		def := &EqgModDef{}
 		err := def.FromRaw(wce, rawSrc)
 		if err != nil {
 			return fmt.Errorf("mod: %w", err)
@@ -90,7 +90,7 @@ func (wce *Wce) readEqgEntry(entry *pfs.FileEntry) error {
 		if err != nil {
 			return fmt.Errorf("read %s: %w", entry.Name(), err)
 		}
-		def := &TerDef{}
+		def := &EqgTerDef{}
 		err := def.FromRaw(wce, rawSrc)
 		if err != nil {
 			return fmt.Errorf("ter: %w", err)
@@ -105,7 +105,7 @@ func (wce *Wce) readEqgEntry(entry *pfs.FileEntry) error {
 		if err != nil {
 			return fmt.Errorf("read %s: %w", entry.Name(), err)
 		}
-		def := &AniDef{}
+		def := &EqgAniDef{}
 		err := def.FromRaw(wce, rawSrc)
 		if err != nil {
 			return fmt.Errorf("ani: %w", err)
@@ -119,7 +119,7 @@ func (wce *Wce) readEqgEntry(entry *pfs.FileEntry) error {
 		if err != nil {
 			return fmt.Errorf("read %s: %w", entry.Name(), err)
 		}
-		def := &LayDef{}
+		def := &EqgLayDef{}
 		err := def.FromRaw(wce, rawSrc)
 		if err != nil {
 			return fmt.Errorf("lay: %w", err)

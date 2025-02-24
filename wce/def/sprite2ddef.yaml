@@ -1,6 +1,6 @@
 name: "SPRITE2DDEF"
 hasTag: true
-note: ""
+note: "Wld Sprite 2d Def"
 properties:
   - name: "SCALE"
     note: ""

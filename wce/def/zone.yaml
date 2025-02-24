@@ -1,6 +1,6 @@
 name: "ZONE"
 hasTag: true
-note: ""
+note: "Wld Zone"
 properties:
   - name: "REGIONLIST"
     note: ""

@@ -48,6 +48,11 @@ func TestWceGenTypescript(t *testing.T) {
 		&wce.ParticleCloudDef{},
 		&wce.Sprite2DDef{},
 		&wce.DMTrackDef2{},
+		&wce.EqgModDef{},
+		&wce.EqgMdsDef{},
+		&wce.EqgTerDef{},
+		&wce.EqgAniDef{},
+		&wce.EqgLayDef{},
 	}
 
 	dirTest := helper.DirTest()
@@ -188,6 +193,14 @@ func traverseProp(buf *bytes.Buffer, prop Property, tabCount int) error {
 		buf.WriteString(commentBuf + "\n")
 	}
 	buf.WriteString(propBuf + "\n")
+	if len(prop.Properties) > 0 {
+		if len(prop.Args) != 1 {
+			return fmt.Errorf("when an array of properties, count should be declared as first arg")
+		}
+		if prop.Args[0].Format != "%d" {
+			return fmt.Errorf("parse %s: when an array of properties, format of arg 1 should be %%d", prop.Name)
+		}
+	}
 	for _, prop2 := range prop.Properties {
 		err := traverseProp(buf, prop2, tabCount+1)
 		if err != nil {

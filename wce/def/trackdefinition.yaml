@@ -1,6 +1,6 @@
 name: "TRACKDEFINITION"
 hasTag: true
-note: ""
+note: "Wld Track"
 properties:
   - name: "TAGINDEX"
     note: ""

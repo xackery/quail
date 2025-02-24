@@ -1,6 +1,6 @@
 name: "POLYHEDRONDEFINITION"
 hasTag: true
-note: "Polyhedron Definition"
+note: "Wld Polyhedron Definition"
 properties:
   - name: "BOUNDINGRADIUS"
     note: ""

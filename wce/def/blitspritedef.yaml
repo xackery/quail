@@ -1,6 +1,6 @@
 name: "BLITSPRITEDEF"
 hasTag: true
-note: "Blit Sprite"
+note: "Wld Blit Sprite"
 properties:
   - name: "SPRITE"
     note: "Sprite tag"
