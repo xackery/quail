@@ -54,6 +54,13 @@ func (e *Quail) EQGExport(fileVersion uint32, pfsVersion int, path string) error
 	}
 	defer w.Close()
 
+	for fileName, assetData := range e.Assets {
+		err := archive.Add(fileName, assetData)
+		if err != nil {
+			return fmt.Errorf("addAsset %s: %w", fileName, err)
+		}
+	}
+
 	err = archive.Write(w)
 	if err != nil {
 		return fmt.Errorf("encode %s: %w", path, err)
