@@ -77,7 +77,7 @@ properties:
             format: "%d"
   - name: "POLYHEDRON"
     note: ""
-  - name: "DEFINITION"
+  - name: "SPRITE"
     note: ""
     args:
       - name: ""

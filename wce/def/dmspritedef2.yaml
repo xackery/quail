@@ -135,7 +135,7 @@ properties:
         note: "The definition of the polyhedron"
         format: "%s"
 
-  - name: "DEFINITION"
+  - name: "SPRITE"
     note: "The definition reference"
     args:
       - name: "definition"

@@ -92,6 +92,11 @@ class ` + defName + `:
 		}
 		writeBuf := &bytes.Buffer{}
 		writeBuf.WriteString("\tdef write(self, w:io.TextIOWrapper):\n")
+		if yamlDef.HasTag {
+			writeBuf.WriteString("\t\tw.write(f\"{self.definition()} \\\"{self.tag}\\\"\\n\")\n")
+		} else {
+			writeBuf.WriteString("\t\tw.write(f\"{self.definition()}\\n\")\n")
+		}
 		err = wcePyGen(decBuf, initBuf, writeBuf, yamlDef)
 		if err != nil {
 			t.Fatalf("wceGen %s: %v", defName, err)
@@ -154,7 +159,7 @@ func traversePyProp(decBuf *bytes.Buffer, initBuf *bytes.Buffer, writeBuf *bytes
 			initBuf.WriteString(fmt.Sprintf("%srecords = parse.property(r, \"%s\", %d)\n", strings.Repeat("\t", initTabCount), prop.Name, argLen))
 			if len(prop.Properties) == 0 {
 				initBuf.WriteString(fmt.Sprintf("%s%s.%s = ", strings.Repeat("\t", initTabCount), scope, strings.ToLower(trimName)))
-				writeBuf.WriteString(fmt.Sprintf("%sw.write(f\"%s \\\"{%s.%s}\\\"\\n\")\n", strings.Repeat("\t", initTabCount), prop.Name, scope, strings.ToLower(trimName)))
+				writeBuf.WriteString(fmt.Sprintf("%sw.write(f\"%s%s \\\"{%s.%s}\\\"\\n\")\n", strings.Repeat("\t", initTabCount), strings.Repeat("\\t", initTabCount-1), prop.Name, scope, strings.ToLower(trimName)))
 			} else {
 				initBuf.WriteString(fmt.Sprintf("%s%s = ", strings.Repeat("\t", initTabCount), strings.ToLower(trimName)))
 			}
@@ -214,8 +219,7 @@ func traversePyProp(decBuf *bytes.Buffer, initBuf *bytes.Buffer, writeBuf *bytes
 		propBuf += "\n"
 	} else { // no argument parse
 		initBuf.WriteString(fmt.Sprintf("%sparse.property(r, \"%s\", 0)\n", strings.Repeat("\t", initTabCount), prop.Name))
-		writeBuf.WriteString(fmt.Sprintf("%sw.write(f\"%s\\n\")\n", strings.Repeat("\t", initTabCount), prop.Name))
-
+		writeBuf.WriteString(fmt.Sprintf("%sw.write(f\"%s%s\\n\")\n", strings.Repeat("\t", initTabCount), strings.Repeat("\\t", initTabCount-1), prop.Name))
 	}
 
 	initBuf.WriteString("\n")
@@ -247,7 +251,7 @@ func traversePyProp(decBuf *bytes.Buffer, initBuf *bytes.Buffer, writeBuf *bytes
 			initBuf.WriteString(fmt.Sprintf("%sfor %s in range(%s):\n", strings.Repeat("\t", initTabCount), tabCode(initTabCount), strings.ToLower(trimName)))
 			initBuf.WriteString(fmt.Sprintf("%s\t%s = %s%s()\n", strings.Repeat("\t", initTabCount), prop2Name+tabCode(initTabCount), treeScope, prop2Name))
 
-			writeBuf.WriteString(fmt.Sprintf("%sw.write(f\"%s \\\"{len(%s.%ss)}\\\"\\n\")\n", strings.Repeat("\t", initTabCount), prop.Name, lastScope, strings.ToLower(prop2Name)))
+			writeBuf.WriteString(fmt.Sprintf("%sw.write(f\"%s%s \\\"{len(%s.%ss)}\\\"\\n\")\n", strings.Repeat("\t", initTabCount), strings.Repeat("\\t", initTabCount-1), prop.Name, lastScope, strings.ToLower(prop2Name)))
 			writeBuf.WriteString(fmt.Sprintf("%sfor %s in %s.%ss:\n", strings.Repeat("\t", initTabCount), scope, lastScope, prop2Name))
 		}
 

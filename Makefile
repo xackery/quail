@@ -11,8 +11,11 @@ contract:
 	@go test -run ^TestWceGenTypescript github.com/xackery/quail/wce/def
 	@mv test/*.ts ../wce-vscode/src/definition
 	@go test -run ^TestWceGenPython github.com/xackery/quail/wce/def
+	@mkdir -p ../wce-vscode/test/read
+	@cp test/*.wce ../wce-vscode/test/read
 	@mv test/*.py ../quail-addon/wce/data
-	@cp test/*.wce ../quail-addon/test
+	@mkdir -p ../quail-addon/test/read
+	@cp test/*.wce ../quail-addon/test/read
 	@-rm test/*.wce
 
 .PHONY: help

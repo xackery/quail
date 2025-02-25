@@ -288,7 +288,7 @@ func (e *DMSpriteDef2) Write(token *AsciiWriteToken) error {
 		fmt.Fprintf(w, "\tDMTRACKINST \"%s\"\n", e.DmTrackTag)
 		fmt.Fprintf(w, "\n")
 		fmt.Fprintf(w, "\tPOLYHEDRON\n")
-		fmt.Fprintf(w, "\t\tDEFINITION \"%s\"\n", e.PolyhedronTag)
+		fmt.Fprintf(w, "\t\tSPRITE \"%s\"\n", e.PolyhedronTag)
 		fmt.Fprintf(w, "\tNUMFACE2S %d\n", len(e.Faces))
 		for i, face := range e.Faces {
 			fmt.Fprintf(w, "\t\tDMFACE2 //%d\n", i)
@@ -488,7 +488,7 @@ func (e *DMSpriteDef2) Read(token *AsciiReadToken) error {
 	if err != nil {
 		return err
 	}
-	records, err = token.ReadProperty("DEFINITION", 1)
+	records, err = token.ReadProperty("SPRITE", 1)
 	if err != nil {
 		return err
 	}
@@ -3160,7 +3160,7 @@ func (e *ActorInst) Write(token *AsciiWriteToken) error {
 		}
 
 		fmt.Fprintf(w, "%s \"%s\"\n", e.Definition(), e.Tag)
-		fmt.Fprintf(w, "\tDEFINITION \"%s\"\n", e.DefinitionTag)
+		fmt.Fprintf(w, "\tSPRITE \"%s\"\n", e.DefinitionTag)
 		fmt.Fprintf(w, "\tCURRENTACTION? %s\n", wcVal(e.CurrentAction))
 		fmt.Fprintf(w, "\tLOCATION? %s\n", wcVal(e.Location))
 		fmt.Fprintf(w, "\tBOUNDINGRADIUS? %s\n", wcVal(e.BoundingRadius))
@@ -3181,7 +3181,7 @@ func (e *ActorInst) Write(token *AsciiWriteToken) error {
 
 func (e *ActorInst) Read(token *AsciiReadToken) error {
 	e.folders = append(e.folders, token.folder)
-	records, err := token.ReadProperty("DEFINITION", 1)
+	records, err := token.ReadProperty("SPRITE", 1)
 	if err != nil {
 		return err
 	}
@@ -4561,16 +4561,16 @@ func (e *PolyhedronDefinition) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.
 }
 
 type TrackInstance struct {
-	folders            []string // when writing, this is the folder the file is in
-	fragID             int16
-	animation          string
-	Tag                string
-	TagIndex           int
-	DefinitionTag      string
-	DefinitionTagIndex int
-	Interpolate        int
-	Reverse            int
-	Sleep              NullUint32
+	folders        []string // when writing, this is the folder the file is in
+	fragID         int16
+	animation      string
+	Tag            string
+	TagIndex       int
+	SpriteTag      string
+	SpriteTagIndex int
+	Interpolate    int
+	Reverse        int
+	Sleep          NullUint32
 }
 
 func (e *TrackInstance) Definition() string {
@@ -4588,21 +4588,21 @@ func (e *TrackInstance) Write(token *AsciiWriteToken) error {
 			return err
 		}
 
-		if e.DefinitionTag != "" {
-			trackDef := token.wce.ByTagWithIndex(e.DefinitionTag, e.DefinitionTagIndex)
+		if e.SpriteTag != "" {
+			trackDef := token.wce.ByTagWithIndex(e.SpriteTag, e.SpriteTagIndex)
 			if trackDef == nil {
-				return fmt.Errorf("track %s%d refers to trackdef %s%d but it does not exist", e.Tag, e.TagIndex, e.DefinitionTag, e.DefinitionTagIndex)
+				return fmt.Errorf("track %s%d refers to trackdef %s%d but it does not exist", e.Tag, e.TagIndex, e.SpriteTag, e.SpriteTagIndex)
 			}
 			err = trackDef.Write(token)
 			if err != nil {
-				return fmt.Errorf("trackdef %s%d write: %w", e.DefinitionTag, e.DefinitionTagIndex, err)
+				return fmt.Errorf("trackdef %s%d write: %w", e.SpriteTag, e.SpriteTagIndex, err)
 			}
 		}
 
 		fmt.Fprintf(w, "%s \"%s\"\n", e.Definition(), e.Tag)
 		fmt.Fprintf(w, "\tTAGINDEX %d\n", e.TagIndex)
-		fmt.Fprintf(w, "\tDEFINITION \"%s\"\n", e.DefinitionTag)
-		fmt.Fprintf(w, "\tDEFINITIONINDEX %d\n", e.DefinitionTagIndex)
+		fmt.Fprintf(w, "\tSPRITE \"%s\"\n", e.SpriteTag)
+		fmt.Fprintf(w, "\tSPRITEINDEX %d\n", e.SpriteTagIndex)
 		fmt.Fprintf(w, "\tINTERPOLATE %d // deprecated\n", e.Interpolate)
 		fmt.Fprintf(w, "\tREVERSE %d // deprecated \n", e.Reverse)
 		fmt.Fprintf(w, "\tSLEEP? %s\n", wcVal(e.Sleep))
@@ -4623,19 +4623,19 @@ func (e *TrackInstance) Read(token *AsciiReadToken) error {
 		return fmt.Errorf("tag index: %w", err)
 	}
 
-	records, err = token.ReadProperty("DEFINITION", 1)
+	records, err = token.ReadProperty("SPRITE", 1)
 	if err != nil {
 		return err
 	}
-	e.DefinitionTag = records[1]
+	e.SpriteTag = records[1]
 
-	records, err = token.ReadProperty("DEFINITIONINDEX", 1)
+	records, err = token.ReadProperty("SPRITEINDEX", 1)
 	if err != nil {
 		return err
 	}
-	err = parse(&e.DefinitionTagIndex, records[1])
+	err = parse(&e.SpriteTagIndex, records[1])
 	if err != nil {
-		return fmt.Errorf("definition tag index: %w", err)
+		return fmt.Errorf("sprite tag index: %w", err)
 	}
 
 	records, err = token.ReadProperty("INTERPOLATE", 1)
@@ -4675,23 +4675,23 @@ func (e *TrackInstance) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
 
 	wfTrack := &rawfrag.WldFragTrack{}
 
-	if e.DefinitionTag == "" {
-		return -1, fmt.Errorf("track instance %s has no definition", e.Tag)
+	if e.SpriteTag == "" {
+		return -1, fmt.Errorf("track instance %s has no sprite", e.Tag)
 	}
 
-	trackDefFrag := wce.ByTagWithIndex(e.DefinitionTag, e.DefinitionTagIndex)
+	trackDefFrag := wce.ByTagWithIndex(e.SpriteTag, e.SpriteTagIndex)
 	if trackDefFrag == nil {
-		return -1, fmt.Errorf("track instance %s refers to trackdef %s but it does not exist", e.Tag, e.DefinitionTag)
+		return -1, fmt.Errorf("track instance %s refers to trackdef %s but it does not exist", e.Tag, e.SpriteTag)
 	}
 
 	trackDef, ok := trackDefFrag.(*TrackDef)
 	if !ok {
-		return -1, fmt.Errorf("track instance %s refers to trackdef %s but it is not a trackdef", e.Tag, e.DefinitionTag)
+		return -1, fmt.Errorf("track instance %s refers to trackdef %s but it is not a trackdef", e.Tag, e.SpriteTag)
 	}
 
 	trackDefRef, err := trackDef.ToRaw(wce, rawWld)
 	if err != nil {
-		return -1, fmt.Errorf("track instance %s refers to trackdef %s but it failed to convert: %w", e.Tag, e.DefinitionTag, err)
+		return -1, fmt.Errorf("track instance %s refers to trackdef %s but it failed to convert: %w", e.Tag, e.SpriteTag, err)
 	}
 
 	wfTrack.SetNameRef(rawWld.NameAdd(e.Tag))
@@ -4737,8 +4737,8 @@ func (e *TrackInstance) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFrag
 		e.animation = ""
 	}
 
-	e.DefinitionTag = rawWld.Name(trackDef.NameRef())
-	e.DefinitionTagIndex = wce.tagIndexes[e.DefinitionTag]
+	e.SpriteTag = rawWld.Name(trackDef.NameRef())
+	e.SpriteTagIndex = wce.tagIndexes[e.SpriteTag]
 
 	if frag.Flags&0x01 == 0x01 {
 		e.Sleep.Valid = true
@@ -5132,7 +5132,7 @@ func (e *HierarchicalSpriteDef) Write(token *AsciiWriteToken) error {
 		fmt.Fprintf(w, "\n")
 
 		fmt.Fprintf(w, "\tPOLYHEDRON\n")
-		fmt.Fprintf(w, "\t\tDEFINITION \"%s\" // refer to polyhedron tag, or SPECIAL_COLLISION = 4294967293\n", e.PolyhedronTag)
+		fmt.Fprintf(w, "\t\tSPRITE \"%s\" // refer to polyhedron tag, or SPECIAL_COLLISION = 4294967293\n", e.PolyhedronTag)
 
 		fmt.Fprintf(w, "\tCENTEROFFSET? %s\n", wcVal(e.CenterOffset))
 		fmt.Fprintf(w, "\tBOUNDINGRADIUS? %s\n", wcVal(e.BoundingRadius))
@@ -5272,7 +5272,7 @@ func (e *HierarchicalSpriteDef) Read(token *AsciiReadToken) error {
 		return err
 	}
 
-	records, err = token.ReadProperty("DEFINITION", 1)
+	records, err = token.ReadProperty("SPRITE", 1)
 	if err != nil {
 		return err
 	}
