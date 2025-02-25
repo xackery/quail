@@ -6,9 +6,14 @@ contract:
 	@-rm test/*.wce
 	@-rm test/*.md
 	@-rm test/*.ts
+	@-rm test/*.py
 
 	@go test -run ^TestWceGenTypescript github.com/xackery/quail/wce/def
 	@mv test/*.ts ../wce-vscode/src/definition
+	@go test -run ^TestWceGenPython github.com/xackery/quail/wce/def
+	@mv test/*.py ../quail-addon/wce/data
+	@cp test/*.wce ../quail-addon/test
+	@-rm test/*.wce
 
 .PHONY: help
 help: ## Display this help
