@@ -1881,7 +1881,7 @@ func (e *EqgAniDef) ToRaw(wce *Wce, dst *raw.Ani) error {
 
 func (e *EqgAniDef) FromRaw(wce *Wce, src *raw.Ani) error {
 	folder := strings.TrimSuffix(strings.ToLower(wce.FileName), ".eqg")
-	e.folders = append(e.folders, folder+"_ani")
+	e.folders = append(e.folders, folder+"/"+folder+"_ani")
 	e.Tag = src.MetaFileName
 	e.Version = src.Version
 	for _, bone := range src.Bones {
@@ -2009,7 +2009,6 @@ func (e *EqgLayDef) Read(token *AsciiReadToken) error {
 		layer.Normal = records[1]
 
 		e.Layers = append(e.Layers, layer)
-
 	}
 
 	return nil
