@@ -1,4 +1,4 @@
-name: "DMSPRITEDEF"
+name: "DMSPRITEDEFINITION"
 hasTag: true
 note: "Wld DM sprite definition"
 properties:
