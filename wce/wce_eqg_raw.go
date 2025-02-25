@@ -229,13 +229,6 @@ func (wce *Wce) WriteEqgRaw(archive *pfs.Pfs) error {
 			MetaFileName: lay.Tag,
 			Version:      lay.Version,
 		}
-		for _, layEntry := range lay.Layers {
-			dst.Layers = append(dst.Layers, &raw.LayEntry{
-				Material: layEntry.Material,
-				Diffuse:  layEntry.Diffuse,
-				Normal:   layEntry.Normal,
-			})
-		}
 
 		err = lay.ToRaw(wce, dst)
 		if err != nil {
