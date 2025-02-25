@@ -263,7 +263,7 @@ properties:
         args:
           - name: ""
             note: ""
-            format: "%d"
+            format: "%d..."
             example: "1 1"
   - name: "SPHERE"
     note: ""

@@ -1,4 +1,4 @@
-name: "DMSPRITEDEF"
+name: "DMSPRITEDEFINITION"
 hasTag: true
 note: "Wld DM sprite definition"
 properties:
@@ -208,7 +208,7 @@ properties:
         format: "%d"
       - name: "group data"
         note: "The data of the group"
-        format: "%s"
+        format: "%d..."
         example: "2 3"
 
   - name: "DATA8"

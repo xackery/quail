@@ -1,4 +1,4 @@
-name: "3DSPRITEDEF"
+name: "SPRITE3DDEF"
 hasTag: true
 note: "Wld 3d Sprite Definition"
 properties:
@@ -59,7 +59,7 @@ properties:
         args:
           - name: ""
             note: ""
-            format: "%d"
+            format: "%d..."
             example: "1 1"
   - name: "RENDERMETHOD"
     note: ""

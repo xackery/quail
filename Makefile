@@ -2,6 +2,22 @@ NAME := quail
 
 SHELL := /bin/bash
 
+contract:
+	@-rm test/*.wce
+	@-rm test/*.md
+	@-rm test/*.ts
+	@-rm test/*.py
+
+	@go test -run ^TestWceGenTypescript github.com/xackery/quail/wce/def
+	@mv test/*.ts ../wce-vscode/src/definition
+	@go test -run ^TestWceGenPython github.com/xackery/quail/wce/def
+	@mkdir -p ../wce-vscode/test/read
+	@cp test/*.wce ../wce-vscode/test/read
+	@mv test/*.py ../quail-addon/wce/data
+	@mkdir -p ../quail-addon/test/read
+	@cp test/*.wce ../quail-addon/test/read
+	@-rm test/*.wce
+
 .PHONY: help
 help: ## Display this help
 	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n"} /^[a-zA-Z_0-9-]+:.*?##/ { printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)

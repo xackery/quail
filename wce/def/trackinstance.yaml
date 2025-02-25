@@ -8,13 +8,13 @@ properties:
       - name: ""
         note: ""
         format: "%d"
-  - name: "DEFINITION"
+  - name: "SPRITE"
     note: ""
     args:
       - name: ""
         note: ""
         format: "%s"
-  - name: "DEFINITIONINDEX"
+  - name: "SPRITEINDEX"
     note: ""
     args:
       - name: ""
