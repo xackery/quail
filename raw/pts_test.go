@@ -25,6 +25,7 @@ func TestPtsRead(t *testing.T) {
 		args    args
 		wantErr bool
 	}{
+		{name: "mrd.eqg"},
 		// .pts|1|aam.pts|aam.eqg
 		{name: "aam.eqg"},
 		// .pts|1|ahf.pts|ahf.eqg
@@ -71,6 +72,7 @@ func TestPtsWrite(t *testing.T) {
 		wantErr bool
 		isDump  bool
 	}{
+		{name: "mrd.eqg"}, // PASS
 		// .pts|1|aam.pts|aam.eqg
 		//{name: "aam.eqg", isDump: true}, // PASS
 		// .pts|1|ae3.pts|ae3.eqg

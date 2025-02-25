@@ -198,6 +198,7 @@ func (a *AsciiReadToken) readDefinitions() error {
 		&GlobalAmbientLightDef{},
 		&HierarchicalSpriteDef{},
 		&EqgLayDef{},
+		&EqgParticlePointDef{},
 		&LightDef{},
 		&MaterialDef{},
 		&MaterialPalette{},
@@ -518,6 +519,13 @@ func (a *AsciiReadToken) readDefinitions() error {
 				frag.Tag = args[1]
 				a.wce.LayDefs = append(a.wce.LayDefs, frag)
 				definitions[i] = &EqgLayDef{}
+			case *EqgParticlePointDef:
+				if len(args) == 1 {
+					return fmt.Errorf("definition %s has no arguments", defName)
+				}
+				frag.Tag = args[1]
+				a.wce.PtsDefs = append(a.wce.PtsDefs, frag)
+				definitions[i] = &EqgParticlePointDef{}
 			default:
 				return fmt.Errorf("unknown definition type for rebuild: %T", definitions[i])
 			}

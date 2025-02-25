@@ -53,6 +53,7 @@ func TestWceGenTypescript(t *testing.T) {
 		&wce.EqgTerDef{},
 		&wce.EqgAniDef{},
 		&wce.EqgLayDef{},
+		&wce.EqgParticlePointDef{},
 	}
 
 	dirTest := helper.DirTest()

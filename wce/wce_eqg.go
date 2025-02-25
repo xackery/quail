@@ -2046,3 +2046,160 @@ func (e *EqgLayDef) FromRaw(wce *Wce, src *raw.Lay) error {
 
 	return nil
 }
+
+// EqgParticlePointDef represents an eqg .lay file
+type EqgParticlePointDef struct {
+	folders []string
+	Tag     string
+	Version uint32
+	Points  []*ParticlePointEntry
+}
+
+type ParticlePointEntry struct {
+	Name        string
+	BoneName    string
+	Translation [3]float32
+	Rotation    [3]float32
+	Scale       [3]float32
+}
+
+func (e *EqgParticlePointDef) Definition() string {
+	return "EQGPARTICLEPOINTDEF"
+}
+
+func (e *EqgParticlePointDef) Write(token *AsciiWriteToken) error {
+	for _, folder := range e.folders {
+		err := token.SetWriter(folder)
+		if err != nil {
+			return err
+		}
+		w, err := token.Writer()
+		if err != nil {
+			return err
+		}
+
+		fmt.Fprintf(w, "%s \"%s\"\n", e.Definition(), e.Tag)
+		fmt.Fprintf(w, "\tVERSION %d\n", e.Version)
+		fmt.Fprintf(w, "\tNUMPOINTS %d\n", len(e.Points))
+		for i, point := range e.Points {
+			fmt.Fprintf(w, "\t\tPOINT \"%s\"// %d\n", point.Name, i)
+			fmt.Fprintf(w, "\t\t\tBONENAME \"%s\"\n", point.BoneName)
+			fmt.Fprintf(w, "\t\t\tTRANSLATION %0.8e %0.8e %0.8e\n", point.Translation[0], point.Translation[1], point.Translation[2])
+			fmt.Fprintf(w, "\t\t\tROTATION %0.8e %0.8e %0.8e\n", point.Rotation[0], point.Rotation[1], point.Rotation[2])
+			fmt.Fprintf(w, "\t\t\tSCALE %0.8e %0.8e %0.8e\n", point.Scale[0], point.Scale[1], point.Scale[2])
+		}
+		fmt.Fprintf(w, "\n")
+
+		token.TagSetIsWritten(e.Tag)
+	}
+	return nil
+
+}
+
+func (e *EqgParticlePointDef) Read(token *AsciiReadToken) error {
+
+	records, err := token.ReadProperty("VERSION", 1)
+	if err != nil {
+		return err
+	}
+	err = parse(&e.Version, records[1])
+	if err != nil {
+		return fmt.Errorf("version: %w", err)
+	}
+
+	records, err = token.ReadProperty("NUMPOINTS", 1)
+	if err != nil {
+		return err
+	}
+
+	numEntries := 0
+	err = parse(&numEntries, records[1])
+	if err != nil {
+		return fmt.Errorf("num entries: %w", err)
+	}
+
+	for i := 0; i < numEntries; i++ {
+		point := &ParticlePointEntry{}
+
+		records, err = token.ReadProperty("POINT", 1)
+		if err != nil {
+			return fmt.Errorf("entry %d name: %w", i, err)
+		}
+
+		point.Name = records[1]
+
+		records, err = token.ReadProperty("BONENAME", 1)
+		if err != nil {
+			return fmt.Errorf("entry %d bonename: %w", i, err)
+		}
+		point.BoneName = records[1]
+
+		records, err = token.ReadProperty("TRANSLATION", 3)
+		if err != nil {
+			return fmt.Errorf("entry %d translation: %w", i, err)
+		}
+
+		err = parse(&point.Translation, records[1:]...)
+		if err != nil {
+			return fmt.Errorf("entry %d translation: %w", i, err)
+		}
+		records, err = token.ReadProperty("ROTATION", 3)
+		if err != nil {
+			return fmt.Errorf("entry %d rotation: %w", i, err)
+		}
+
+		err = parse(&point.Rotation, records[1:]...)
+		if err != nil {
+			return fmt.Errorf("entry %d rotation: %w", i, err)
+		}
+		records, err = token.ReadProperty("SCALE", 3)
+		if err != nil {
+			return fmt.Errorf("entry %d scale: %w", i, err)
+		}
+
+		err = parse(&point.Scale, records[1:]...)
+		if err != nil {
+			return fmt.Errorf("entry %d scale: %w", i, err)
+		}
+		e.Points = append(e.Points, point)
+	}
+
+	return nil
+}
+
+func (e *EqgParticlePointDef) ToRaw(wce *Wce, dst *raw.Pts) error {
+	dst.MetaFileName = e.Tag
+	dst.Version = e.Version
+	for _, point := range e.Points {
+		ptsEntry := &raw.PtsEntry{
+			Name:        point.Name,
+			BoneName:    point.BoneName,
+			Translation: point.Translation,
+			Rotation:    point.Rotation,
+			Scale:       point.Scale,
+		}
+		dst.Entries = append(dst.Entries, ptsEntry)
+	}
+
+	return nil
+}
+
+func (e *EqgParticlePointDef) FromRaw(wce *Wce, src *raw.Pts) error {
+	folder := strings.TrimSuffix(strings.ToLower(wce.FileName), ".eqg")
+	e.folders = append(e.folders, folder)
+	e.Tag = src.MetaFileName
+	e.Version = src.Version
+
+	for _, point := range src.Entries {
+		ptsEntry := &ParticlePointEntry{
+			Name:        point.Name,
+			BoneName:    point.BoneName,
+			Translation: point.Translation,
+			Rotation:    point.Rotation,
+			Scale:       point.Scale,
+		}
+		e.Points = append(e.Points, ptsEntry)
+	}
+
+	return nil
+}
