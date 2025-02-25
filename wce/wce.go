@@ -52,6 +52,7 @@ type Wce struct {
 	TerDefs                []*EqgTerDef
 	LayDefs                []*EqgLayDef
 	PtsDefs                []*EqgParticlePointDef
+	PrtDefs                []*EqgParticleRenderDef
 }
 
 type WldDefinitioner interface {

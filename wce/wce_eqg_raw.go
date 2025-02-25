@@ -139,6 +139,20 @@ func (wce *Wce) readEqgEntry(entry *pfs.FileEntry) error {
 			return fmt.Errorf("pts: %w", err)
 		}
 		wce.PtsDefs = append(wce.PtsDefs, def)
+	case ".prt":
+		rawSrc := &raw.Prt{
+			MetaFileName: strings.TrimSuffix(entry.Name(), ".prt"),
+		}
+		err = rawSrc.Read(bytes.NewReader(entry.Data()))
+		if err != nil {
+			return fmt.Errorf("read %s: %w", entry.Name(), err)
+		}
+		def := &EqgParticleRenderDef{}
+		err := def.FromRaw(wce, rawSrc)
+		if err != nil {
+			return fmt.Errorf("prt: %w", err)
+		}
+		wce.PrtDefs = append(wce.PrtDefs, def)
 
 	default:
 		return nil
@@ -280,6 +294,31 @@ func (wce *Wce) WriteEqgRaw(archive *pfs.Pfs) error {
 		if err != nil {
 			return fmt.Errorf("add pts: %w", err)
 		}
+	}
+
+	for _, prt := range wce.PrtDefs {
+		buf := &bytes.Buffer{}
+		dst := &raw.Prt{
+			MetaFileName: prt.Tag,
+			Version:      prt.Version,
+		}
+
+		err = prt.ToRaw(wce, dst)
+		if err != nil {
+			return fmt.Errorf("prt to raw: %w", err)
+		}
+
+		err := dst.Write(buf)
+		if err != nil {
+			return fmt.Errorf("prt write: %w", err)
+		}
+
+		err = archive.Add(prt.Tag+".prt", buf.Bytes())
+
+		if err != nil {
+			return fmt.Errorf("add prt: %w", err)
+		}
+
 	}
 
 	return nil

@@ -26,6 +26,7 @@ func TestWceGenMarkdown(t *testing.T) {
 		&wce.EqgModDef{},
 		&wce.EqgTerDef{},
 		&wce.EqgParticlePointDef{},
+		&wce.EqgParticleRenderDef{},
 		&wce.GlobalAmbientLightDef{},
 		&wce.HierarchicalSpriteDef{},
 		&wce.LightDef{},

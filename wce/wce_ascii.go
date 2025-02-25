@@ -254,6 +254,13 @@ func (wce *Wce) writeAsciiData(path string) error {
 		}
 	}
 
+	for _, prtDef := range wce.PrtDefs {
+		err = prtDef.Write(token)
+		if err != nil {
+			return fmt.Errorf("prtdef %s: %w", prtDef.Tag, err)
+		}
+	}
+
 	token.Close()
 
 	type folderType struct {

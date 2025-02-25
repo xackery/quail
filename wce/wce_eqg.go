@@ -2047,7 +2047,7 @@ func (e *EqgLayDef) FromRaw(wce *Wce, src *raw.Lay) error {
 	return nil
 }
 
-// EqgParticlePointDef represents an eqg .lay file
+// EqgParticlePointDef represents an eqg .pts file
 type EqgParticlePointDef struct {
 	folders []string
 	Tag     string
@@ -2199,6 +2199,256 @@ func (e *EqgParticlePointDef) FromRaw(wce *Wce, src *raw.Pts) error {
 			Scale:       point.Scale,
 		}
 		e.Points = append(e.Points, ptsEntry)
+	}
+
+	return nil
+}
+
+// EqgParticleRenderDef represents an eqg .prt file
+type EqgParticleRenderDef struct {
+	folders []string
+	Tag     string
+	Version uint32
+	Renders []*ParticleRenderEntry
+}
+
+type ParticleRenderEntry struct {
+	ID              uint32
+	ID2             uint32
+	ParticlePoint   string
+	UnknownA1       uint32
+	UnknownA2       uint32
+	UnknownA3       uint32
+	UnknownA4       uint32
+	UnknownA5       uint32
+	Duration        uint32
+	UnknownB        uint32
+	UnknownFFFFFFFF int32
+	UnknownC        uint32
+}
+
+func (e *EqgParticleRenderDef) Definition() string {
+	return "EQGPARTICLERENDERDEF"
+}
+
+func (e *EqgParticleRenderDef) Write(token *AsciiWriteToken) error {
+	for _, folder := range e.folders {
+		err := token.SetWriter(folder)
+		if err != nil {
+			return err
+		}
+		w, err := token.Writer()
+		if err != nil {
+			return err
+		}
+
+		fmt.Fprintf(w, "%s \"%s\"\n", e.Definition(), e.Tag)
+		fmt.Fprintf(w, "\tVERSION %d\n", e.Version)
+		fmt.Fprintf(w, "\tNUMRENDERS %d\n", len(e.Renders))
+		for i, render := range e.Renders {
+			fmt.Fprintf(w, "\t\tRENDER %d // %d\n", render.ID, i)
+			fmt.Fprintf(w, "\t\t\tID2 %d\n", render.ID2)
+			fmt.Fprintf(w, "\t\t\tPARTICLEPOINT \"%s\"\n", render.ParticlePoint)
+			fmt.Fprintf(w, "\t\t\tUNKNOWNA1 %d\n", render.UnknownA1)
+			fmt.Fprintf(w, "\t\t\tUNKNOWNA2 %d\n", render.UnknownA2)
+			fmt.Fprintf(w, "\t\t\tUNKNOWNA3 %d\n", render.UnknownA3)
+			fmt.Fprintf(w, "\t\t\tUNKNOWNA4 %d\n", render.UnknownA4)
+			fmt.Fprintf(w, "\t\t\tUNKNOWNA5 %d\n", render.UnknownA5)
+			fmt.Fprintf(w, "\t\t\tDURATION %d\n", render.Duration)
+			fmt.Fprintf(w, "\t\t\tUNKNOWNB %d\n", render.UnknownB)
+			fmt.Fprintf(w, "\t\t\tUNKNOWNFFFFFFFF %d\n", render.UnknownFFFFFFFF)
+			fmt.Fprintf(w, "\t\t\tUNKNOWNC %d\n", render.UnknownC)
+		}
+		fmt.Fprintf(w, "\n")
+
+		token.TagSetIsWritten(e.Tag)
+	}
+	return nil
+
+}
+
+func (e *EqgParticleRenderDef) Read(token *AsciiReadToken) error {
+
+	records, err := token.ReadProperty("VERSION", 1)
+	if err != nil {
+		return err
+	}
+	err = parse(&e.Version, records[1])
+	if err != nil {
+		return fmt.Errorf("version: %w", err)
+	}
+
+	records, err = token.ReadProperty("NUMRENDERS", 1)
+	if err != nil {
+		return err
+	}
+
+	numEntries := 0
+	err = parse(&numEntries, records[1])
+	if err != nil {
+		return fmt.Errorf("num entries: %w", err)
+	}
+
+	for i := 0; i < numEntries; i++ {
+		render := &ParticleRenderEntry{}
+
+		records, err = token.ReadProperty("RENDER", 1)
+		if err != nil {
+			return fmt.Errorf("entry %d render: %w", i, err)
+		}
+
+		err = parse(&render.ID, records[1])
+		if err != nil {
+			return err
+		}
+
+		records, err = token.ReadProperty("ID2", 1)
+		if err != nil {
+			return fmt.Errorf("entry %d id2: %w", i, err)
+		}
+		err = parse(&render.ID2, records[1])
+		if err != nil {
+			return err
+		}
+
+		records, err = token.ReadProperty("PARTICLEPOINT", 1)
+		if err != nil {
+			return fmt.Errorf("entry %d particlepoint: %w", i, err)
+		}
+		render.ParticlePoint = records[1]
+
+		records, err = token.ReadProperty("UNKNOWNA1", 1)
+		if err != nil {
+			return fmt.Errorf("entry %d unknowna1: %w", i, err)
+		}
+		err = parse(&render.UnknownA1, records[1])
+		if err != nil {
+			return err
+		}
+
+		records, err = token.ReadProperty("UNKNOWNA2", 1)
+		if err != nil {
+			return fmt.Errorf("entry %d unknowna2: %w", i, err)
+		}
+		err = parse(&render.UnknownA2, records[1])
+		if err != nil {
+			return err
+		}
+
+		records, err = token.ReadProperty("UNKNOWNA3", 1)
+		if err != nil {
+			return fmt.Errorf("entry %d unknowna3: %w", i, err)
+		}
+		err = parse(&render.UnknownA3, records[1])
+		if err != nil {
+			return err
+		}
+
+		records, err = token.ReadProperty("UNKNOWNA4", 1)
+		if err != nil {
+			return fmt.Errorf("entry %d unknowna4: %w", i, err)
+		}
+		err = parse(&render.UnknownA4, records[1])
+		if err != nil {
+			return err
+		}
+
+		records, err = token.ReadProperty("UNKNOWNA5", 1)
+		if err != nil {
+			return fmt.Errorf("entry %d unknowna5: %w", i, err)
+		}
+		err = parse(&render.UnknownA5, records[1])
+		if err != nil {
+			return err
+		}
+
+		records, err = token.ReadProperty("DURATION", 1)
+		if err != nil {
+			return fmt.Errorf("entry %d duration: %w", i, err)
+		}
+		err = parse(&render.Duration, records[1])
+		if err != nil {
+			return err
+		}
+
+		records, err = token.ReadProperty("UNKNOWNB", 1)
+		if err != nil {
+			return fmt.Errorf("entry %d unknownb: %w", i, err)
+		}
+		err = parse(&render.UnknownB, records[1])
+		if err != nil {
+			return err
+		}
+
+		records, err = token.ReadProperty("UNKNOWNFFFFFFFF", 1)
+		if err != nil {
+			return fmt.Errorf("entry %d unknownffffffff: %w", i, err)
+		}
+		err = parse(&render.UnknownFFFFFFFF, records[1])
+		if err != nil {
+			return err
+		}
+
+		records, err = token.ReadProperty("UNKNOWNC", 1)
+		if err != nil {
+			return fmt.Errorf("entry %d unknownc: %w", i, err)
+		}
+		err = parse(&render.UnknownC, records[1])
+		if err != nil {
+			return err
+		}
+		e.Renders = append(e.Renders, render)
+	}
+
+	return nil
+}
+
+func (e *EqgParticleRenderDef) ToRaw(wce *Wce, dst *raw.Prt) error {
+	dst.MetaFileName = e.Tag
+	dst.Version = e.Version
+	for _, render := range e.Renders {
+		prtEntry := &raw.PrtEntry{
+			ID:              render.ID,
+			ID2:             render.ID2,
+			ParticlePoint:   render.ParticlePoint,
+			UnknownA1:       render.UnknownA1,
+			UnknownA2:       render.UnknownA2,
+			UnknownA3:       render.UnknownA3,
+			UnknownA4:       render.UnknownA4,
+			UnknownA5:       render.UnknownA5,
+			Duration:        render.Duration,
+			UnknownB:        render.UnknownB,
+			UnknownFFFFFFFF: render.UnknownFFFFFFFF,
+			UnknownC:        render.UnknownC,
+		}
+		dst.Entries = append(dst.Entries, prtEntry)
+	}
+
+	return nil
+}
+
+func (e *EqgParticleRenderDef) FromRaw(wce *Wce, src *raw.Prt) error {
+	folder := strings.TrimSuffix(strings.ToLower(wce.FileName), ".eqg")
+	e.folders = append(e.folders, folder)
+	e.Tag = src.MetaFileName
+	e.Version = src.Version
+
+	for _, render := range src.Entries {
+		prtEntry := &ParticleRenderEntry{
+			ID:              render.ID,
+			ID2:             render.ID2,
+			ParticlePoint:   render.ParticlePoint,
+			UnknownA1:       render.UnknownA1,
+			UnknownA2:       render.UnknownA2,
+			UnknownA3:       render.UnknownA3,
+			UnknownA4:       render.UnknownA4,
+			UnknownA5:       render.UnknownA5,
+			Duration:        render.Duration,
+			UnknownB:        render.UnknownB,
+			UnknownFFFFFFFF: render.UnknownFFFFFFFF,
+			UnknownC:        render.UnknownC,
+		}
+		e.Renders = append(e.Renders, prtEntry)
 	}
 
 	return nil

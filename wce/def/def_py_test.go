@@ -46,6 +46,7 @@ func TestWceGenPython(t *testing.T) {
 		&wce.EqgAniDef{},
 		&wce.EqgLayDef{},
 		&wce.EqgParticlePointDef{},
+		&wce.EqgParticleRenderDef{},
 	}
 
 	dirTest := helper.DirTest()

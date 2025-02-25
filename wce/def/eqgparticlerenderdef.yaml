@@ -1,0 +1,89 @@
+name: "EQGPARTICLERENDERDEF"
+hasTag: true
+note: "EQG Particle Point Definition"
+properties:
+  - name: "VERSION"
+    note: ""
+    args:
+      - name: ""
+        note: ""
+        format: "%d"
+  - name: "NUMRENDERS"
+    note: ""
+    args:
+      - name: ""
+        note: ""
+        format: "%d"
+    properties:
+      - name: "RENDER"
+        note: ""
+        args:
+          - name: ""
+            note: ""
+            format: "%d"
+      - name: "ID2"
+        note: ""
+        args:
+          - name: ""
+            note: ""
+            format: "%d"
+      - name: "PARTICLEPOINT"
+        note: ""
+        args:
+          - name: ""
+            note: ""
+            format: "%s"
+      - name: "UNKNOWNA1"
+        note: ""
+        args:
+          - name: ""
+            note: ""
+            format: "%d"
+      - name: "UNKNOWNA2"
+        note: ""
+        args:
+          - name: ""
+            note: ""
+            format: "%d"
+      - name: "UNKNOWNA3"
+        note: ""
+        args:
+          - name: ""
+            note: ""
+            format: "%d"
+      - name: "UNKNOWNA4"
+        note: ""
+        args:
+          - name: ""
+            note: ""
+            format: "%d"
+      - name: "UNKNOWNA5"
+        note: ""
+        args:
+          - name: ""
+            note: ""
+            format: "%d"
+      - name: "DURATION"
+        note: ""
+        args:
+          - name: ""
+            note: ""
+            format: "%d"
+      - name: "UNKNOWNB"
+        note: ""
+        args:
+          - name: ""
+            note: ""
+            format: "%d"
+      - name: "UNKNOWNFFFFFFFF"
+        note: ""
+        args:
+          - name: ""
+            note: ""
+            format: "%d"
+      - name: "UNKNOWNC"
+        note: ""
+        args:
+          - name: ""
+            note: ""
+            format: "%d"
