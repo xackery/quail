@@ -8,7 +8,7 @@ import (
 
 var tests = []testEntry{
 	//{baseName: "gequip"}, // soul binder uses  IT124, IT124_MP uses 114CRYSBLAK_MDF, probably a rendermethod on that. Will have to wait, I'm working on improvements for quail to work with gequip, but should be doable
-	{baseName: "twilight"},
+	//{baseName: "twilight"},
 	//{baseName: "global_chr"},
 	//{baseName: "globalelf_chr"},
 	//{baseName: "emeraldjungle"},
@@ -83,9 +83,10 @@ var tests = []testEntry{
 	//{baseName: "qeynos", wldName: "lights.wld"},
 	//{baseName: "globalogm_chr"},
 
-	{baseName: "acrylia_obj"}, //acrylia_obj failed to write acrylia_obj: hierarchicalsprite ACTORCH301_HS_DEF: collision volume not found: I_L301_SPB
+	//{baseName: "acrylia_obj"}, //acrylia_obj failed to write acrylia_obj: hierarchicalsprite ACTORCH301_HS_DEF: collision volume not found: I_L301_SPB
 	// {baseName: "ael_chr"}, //failed to write ael_chr: actordef AEL_ACTORDEF: sprite AEL_HS_DEF to raw: collision volume not found: I_AELCLOUD01_SPB
 	//{baseName: "gequip.takp", wldName: "gequip.wld"},
+	{baseName: "dra_chr"}, // fails at DRAHE0212_MDF. There are 2 materials with same name but different simplesprites.
 
 }
 
