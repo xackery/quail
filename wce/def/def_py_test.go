@@ -74,7 +74,7 @@ func TestWceGenPython(t *testing.T) {
 
 		w.WriteString(`# Generated from quail, DO NOT EDIT
 import io
-import wce.parse as parse
+from .parse import property
 
 class ` + defName + `:
 	@staticmethod
@@ -158,7 +158,7 @@ func traversePyProp(decBuf *bytes.Buffer, initBuf *bytes.Buffer, writeBuf *bytes
 		argLen := len(prop.Args)
 
 		if !isManyArg {
-			initBuf.WriteString(fmt.Sprintf("%srecords = parse.property(r, \"%s\", %d)\n", strings.Repeat("\t", initTabCount), prop.Name, argLen))
+			initBuf.WriteString(fmt.Sprintf("%srecords = property(r, \"%s\", %d)\n", strings.Repeat("\t", initTabCount), prop.Name, argLen))
 			if len(prop.Properties) == 0 {
 				initBuf.WriteString(fmt.Sprintf("%s%s.%s = ", strings.Repeat("\t", initTabCount), scope, strings.ToLower(trimName)))
 				writeBuf.WriteString(fmt.Sprintf("%sw.write(f\"%s%s \\\"{%s.%s}\\\"\\n\")\n", strings.Repeat("\t", initTabCount), strings.Repeat("\\t", initTabCount-1), prop.Name, scope, strings.ToLower(trimName)))
@@ -201,7 +201,7 @@ func traversePyProp(decBuf *bytes.Buffer, initBuf *bytes.Buffer, writeBuf *bytes
 				}
 			}
 		} else { // many args
-			initBuf.WriteString(fmt.Sprintf("%srecords = parse.property(r, \"%s\", -1)\n", strings.Repeat("\t", initTabCount), prop.Name))
+			initBuf.WriteString(fmt.Sprintf("%srecords = property(r, \"%s\", -1)\n", strings.Repeat("\t", initTabCount), prop.Name))
 			if len(prop.Properties) == 0 {
 				initBuf.WriteString(fmt.Sprintf("%s%s.%s = ", strings.Repeat("\t", initTabCount), scope, strings.ToLower(trimName)))
 				writeBuf.WriteString(fmt.Sprintf("%sw.write(f\"%s \\\"{%s.%s}\\\"\\n\")\n", strings.Repeat("\t", initTabCount), prop.Name, scope, strings.ToLower(trimName)))
@@ -220,7 +220,7 @@ func traversePyProp(decBuf *bytes.Buffer, initBuf *bytes.Buffer, writeBuf *bytes
 		}
 		propBuf += "\n"
 	} else { // no argument parse
-		initBuf.WriteString(fmt.Sprintf("%sparse.property(r, \"%s\", 0)\n", strings.Repeat("\t", initTabCount), prop.Name))
+		initBuf.WriteString(fmt.Sprintf("%sproperty(r, \"%s\", 0)\n", strings.Repeat("\t", initTabCount), prop.Name))
 		writeBuf.WriteString(fmt.Sprintf("%sw.write(f\"%s%s\\n\")\n", strings.Repeat("\t", initTabCount), strings.Repeat("\\t", initTabCount-1), prop.Name))
 	}
 

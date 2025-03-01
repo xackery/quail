@@ -8,7 +8,7 @@ import (
 
 var tests = []testEntry{
 	//{baseName: "gequip"}, // soul binder uses  IT124, IT124_MP uses 114CRYSBLAK_MDF, probably a rendermethod on that. Will have to wait, I'm working on improvements for quail to work with gequip, but should be doable
-	{baseName: "twilight"},
+	//{baseName: "twilight"},
 	//{baseName: "global_chr"},
 	//{baseName: "globalelf_chr"},
 	//{baseName: "emeraldjungle"},
@@ -20,7 +20,7 @@ var tests = []testEntry{
 	//{baseName: "load2"}, // dmspritedef2: fragment4 unknown type *rawfrag.WldFragBMInfo
 	//{baseName: "globalogm_chr2"}, //track L10BOGML10B_OGM_TRACK model too short ()
 	//{baseName: "sseru_2_obj"}, // OK
-	//{baseName: "mim_chr"}, // OK
+	{baseName: "mim_chr"}, // OK
 	//{baseName: "chardok_2_obj"}, // OK
 	//{baseName: "butcher2_chr"}, // OK
 	//{baseName: "chequip"}, // OK

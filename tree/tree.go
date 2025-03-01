@@ -53,7 +53,7 @@ func BuildFragReferenceTree(isChr bool, wld *raw.Wld) (map[int32]*Node, map[int3
 			continue
 		}
 		switch frag.(type) {
-	
+
 		case *rawfrag.WldFragHierarchicalSpriteDef:
 		default:
 			continue
@@ -83,7 +83,7 @@ func BuildFragReferenceTree(isChr bool, wld *raw.Wld) (map[int32]*Node, map[int3
 		node := upsertNode(nodes, fmt.Sprintf("%T", frag), fragID, strings.TrimSpace(tag))
 
 		switch frag.(type) {
-		
+
 		}
 
 		// Extract references from the fragment

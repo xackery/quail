@@ -66,10 +66,8 @@ properties:
     args:
       - name: "pairs"
         note: "Pairs 0"
-        format: "%d"
-      - name: "pairs"
-        note: "Pairs 1"
-        format: "%d"
+        format: "%d..."
+        example: "1 2"
   - name: "DOUBLESIDED"
     note: "Is material double sided?"
     args:

@@ -29,7 +29,7 @@ properties:
         note: "The number of vertices"
         format: "%d"
     properties:
-      - name: "XYZ"
+      - name: "VXYZ"
         note: "The coordinates of a vertex"
         args:
           - name: "x"
@@ -66,7 +66,7 @@ properties:
         note: "The number of vertex normals"
         format: "%d"
     properties:
-      - name: "XYZ"
+      - name: "NXYZ"
         note: "The coordinates of a texture normal"
         args:
           - name: "x"
@@ -130,10 +130,6 @@ properties:
 
   - name: "POLYHEDRON"
     note: "The polyhedron definition"
-    args:
-      - name: "definition"
-        note: "The definition of the polyhedron"
-        format: "%s"
 
   - name: "SPRITE"
     note: "The definition reference"
@@ -200,28 +196,18 @@ properties:
   - name: "FACEMATERIALGROUPS"
     note: "The face material groups"
     args:
-      - name: "group size"
+      - name: "group entries"
         note: "The size of the group"
-        format: "%d"
-      - name: "group entry 1"
-        note: "The data of the group"
-        format: "%d"
-      - name: "group entry 2"
-        note: "The data of the group"
-        format: "%d"
+        format: "%d..."
+        example: "1 1 1"
 
   - name: "VERTEXMATERIALGROUPS"
     note: "The vertex material groups"
     args:
       - name: "group size"
         note: "The size of the group"
-        format: "%d"
-      - name: "group entry 1"
-        note: "The data of the group"
-        format: "%d"
-      - name: "group entry 2"
-        note: "The data of the group"
-        format: "%d"
+        format: "%d..."
+        example: "1 1 1"
 
   - name: "BOUNDINGBOXMIN"
     note: "The minimum bounding box coordinates"

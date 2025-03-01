@@ -8,14 +8,23 @@ contract:
 	@-rm test/*.ts
 	@-rm test/*.py
 
+	@go test -run ^TestWceGenMarkdown github.com/xackery/quail/wce/def
+	@mv test/latest.md ../eqemu-docs-v2/docs/client/wcemu/latest.md
+
 	@go test -run ^TestWceGenTypescript github.com/xackery/quail/wce/def
 	@mv test/*.ts ../wce-vscode/src/definition
+
 	@go test -run ^TestWceGenPython github.com/xackery/quail/wce/def
+	@mv test/*.py ../quail-addon/wce
+
 	@mkdir -p ../wce-vscode/test/read
+	@-rm -rf ../wce-vscode/test/read/*
 	@cp test/*.wce ../wce-vscode/test/read
-	@mv test/*.py ../quail-addon/wce/data
+
 	@mkdir -p ../quail-addon/test/read
+	@-rm -rf ../quail-addon/test/read/*
 	@cp test/*.wce ../quail-addon/test/read
+
 	@-rm test/*.wce
 
 .PHONY: help
@@ -234,6 +243,3 @@ jsondifffrag-%:
 flagfinder:
 	source .env && EQ_PATH=$$EQ_PATH SCRIPT_TEST=1 go test -v -run ^TestFragFlags$$ github.com/xackery/quail/wce/wld_test
 
-
-docs:
-	mv test/latest.md ../eqemu-docs-v2/docs/client/wcemu/latest.md

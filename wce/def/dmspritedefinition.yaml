@@ -57,7 +57,7 @@ properties:
         note: "The number of vertices"
         format: "%d"
     properties:
-      - name: "XYZ"
+      - name: "VXYZ"
         note: "The coordinates of a vertex"
         args:
           - name: "x"
@@ -94,7 +94,7 @@ properties:
         note: "The number of vertex normals"
         format: "%d"
     properties:
-      - name: "XYZ"
+      - name: "NXYZ"
         note: "The coordinates of a texture normal"
         args:
           - name: "x"
