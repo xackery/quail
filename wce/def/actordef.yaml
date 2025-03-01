@@ -78,7 +78,6 @@ properties:
             note: "Level of detail entry"
           - name: "SPRITE"
             note: "Sprite entry tag"
-            format: "%s"
             args:
               - name: "tag"
                 note: "sprite tag"
@@ -102,10 +101,10 @@ properties:
         note: "0: no, 1: yes"
         format: "%d"
   - name: "USERDATA"
-    note: "Unknown property 2"
+    note: "User Data"
     args:
-      - name: "unk2"
-        note: "Unknown property 2"
-        format: "%d"
+      - name: "USERDATA"
+        note: "User Data"
+        format: "%s"
 
 
