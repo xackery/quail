@@ -260,7 +260,7 @@ func (e *DMSpriteDef2) Write(token *AsciiWriteToken) error {
 		fmt.Fprintf(w, "\n")
 		fmt.Fprintf(w, "\tNUMVERTICES %d\n", len(e.Vertices))
 		for _, vert := range e.Vertices {
-			fmt.Fprintf(w, "\t\tXYZ %0.8e %0.8e %0.8e\n", vert[0], vert[1], vert[2])
+			fmt.Fprintf(w, "\t\tVXYZ %0.8e %0.8e %0.8e\n", vert[0], vert[1], vert[2])
 		}
 		fmt.Fprintf(w, "\n")
 		fmt.Fprintf(w, "\tNUMUVS %d\n", len(e.UVs))
@@ -270,7 +270,7 @@ func (e *DMSpriteDef2) Write(token *AsciiWriteToken) error {
 		fmt.Fprintf(w, "\n")
 		fmt.Fprintf(w, "\tNUMVERTEXNORMALS %d\n", len(e.VertexNormals))
 		for _, vn := range e.VertexNormals {
-			fmt.Fprintf(w, "\t\tXYZ %0.8e %0.8e %0.8e\n", vn[0], vn[1], vn[2])
+			fmt.Fprintf(w, "\t\tNXYZ %0.8e %0.8e %0.8e\n", vn[0], vn[1], vn[2])
 		}
 		fmt.Fprintf(w, "\n")
 		fmt.Fprintf(w, "\tNUMVERTEXCOLORS %d\n", len(e.VertexColors))
@@ -365,7 +365,7 @@ func (e *DMSpriteDef2) Read(token *AsciiReadToken) error {
 		return err
 	}
 	for i := 0; i < numVertices; i++ {
-		records, err = token.ReadProperty("XYZ", 3)
+		records, err = token.ReadProperty("VXYZ", 3)
 		if err != nil {
 			return err
 		}
@@ -411,7 +411,7 @@ func (e *DMSpriteDef2) Read(token *AsciiReadToken) error {
 	}
 
 	for i := 0; i < numNormals; i++ {
-		records, err = token.ReadProperty("XYZ", 3)
+		records, err = token.ReadProperty("NXYZ", 3)
 		if err != nil {
 			return err
 		}
@@ -1126,7 +1126,7 @@ func (e *DMSpriteDef) Write(token *AsciiWriteToken) error {
 		fmt.Fprintf(w, "\n")
 		fmt.Fprintf(w, "\tNUMVERTICES %d\n", len(e.Vertices))
 		for _, vert := range e.Vertices {
-			fmt.Fprintf(w, "\t\tXYZ %0.8e %0.8e %0.8e\n", vert[0], vert[1], vert[2])
+			fmt.Fprintf(w, "\t\tVXYZ %0.8e %0.8e %0.8e\n", vert[0], vert[1], vert[2])
 		}
 		fmt.Fprintf(w, "\n")
 		fmt.Fprintf(w, "\tNUMTEXCOORDS %d\n", len(e.TexCoords))
@@ -1136,7 +1136,7 @@ func (e *DMSpriteDef) Write(token *AsciiWriteToken) error {
 		fmt.Fprintf(w, "\n")
 		fmt.Fprintf(w, "\tNUMNORMALS %d\n", len(e.Normals))
 		for _, normal := range e.Normals {
-			fmt.Fprintf(w, "\t\tXYZ %0.8e %0.8e %0.8e\n", normal[0], normal[1], normal[2])
+			fmt.Fprintf(w, "\t\tNXYZ %0.8e %0.8e %0.8e\n", normal[0], normal[1], normal[2])
 		}
 		fmt.Fprintf(w, "\n")
 		fmt.Fprintf(w, "\tNUMCOLORS %d\n", len(e.Colors))
@@ -1255,7 +1255,7 @@ func (e *DMSpriteDef) Read(token *AsciiReadToken) error {
 		return fmt.Errorf("num vertices: %w", err)
 	}
 	for i := 0; i < numVertices; i++ {
-		records, err = token.ReadProperty("XYZ", 3)
+		records, err = token.ReadProperty("VXYZ", 3)
 		if err != nil {
 			return err
 		}
@@ -1303,7 +1303,7 @@ func (e *DMSpriteDef) Read(token *AsciiReadToken) error {
 	}
 
 	for i := 0; i < numNormals; i++ {
-		records, err = token.ReadProperty("XYZ", 3)
+		records, err = token.ReadProperty("NXYZ", 3)
 		if err != nil {
 			return err
 		}
