@@ -4806,7 +4806,7 @@ func (e *TrackDef) Write(token *AsciiWriteToken) error {
 
 		fmt.Fprintf(w, "%s \"%s\"\n", e.Definition(), e.Tag)
 		fmt.Fprintf(w, "\tTAGINDEX %d\n", e.TagIndex)
-		fmt.Fprintf(w, "\tNUMFRAMES %d //Format: FRAME [scale x-loc y-loc z-loc w-rot x-rot y-rot z-rot]\n", len(e.Frames))
+		fmt.Fprintf(w, "\tNUMFRAMES %d // Format: FRAME [scale x-loc y-loc z-loc w-rot x-rot y-rot z-rot]\n", len(e.Frames))
 		for _, frame := range e.Frames {
 			fmt.Fprintf(w, "\t\tFRAME %d %d %d %d ", frame.XYZScale, frame.XYZ[0], frame.XYZ[1], frame.XYZ[2])
 			fmt.Fprintf(w, "%d %d %d %d\n", frame.RotScale, frame.Rotation[0], frame.Rotation[1], frame.Rotation[2])
