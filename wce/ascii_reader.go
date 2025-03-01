@@ -123,8 +123,11 @@ func (a *AsciiReadToken) ReadSegmentedLine() ([]string, error) {
 	matches := regexLine.FindAllStringSubmatch(line, -1)
 	args := []string{}
 	for _, match := range matches {
-		if match[2] == "//" {
-			break
+		if strings.Contains(match[2], "//") {
+			match[2] = match[2][:strings.Index(match[2], "//")]
+			if match[2] == "" {
+				break
+			}
 		}
 		if match[1] != "" {
 			args = append(args, match[1])
@@ -163,7 +166,7 @@ func (a *AsciiReadToken) ReadProperty(name string, minNumArgs int) ([]string, er
 		return args, fmt.Errorf("expected property '%s' got '%s'", name, args[0])
 	}
 	if minNumArgs > 0 && minNumArgs != len(args)-1 {
-		return args, fmt.Errorf("property %s needs %d arguments, got %d", name, minNumArgs, len(args)-1)
+		return args, fmt.Errorf("property %s needs %d arguments, got %d: %s", name, minNumArgs, len(args)-1, args)
 	}
 
 	if minNumArgs == -1 && len(args) == 1 {
