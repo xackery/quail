@@ -1854,7 +1854,7 @@ func (e *MaterialDef) Write(token *AsciiWriteToken) error {
 		fmt.Fprintf(w, "\tBRIGHTNESS %0.8e\n", e.Brightness)
 		fmt.Fprintf(w, "\tSCALEDAMBIENT %0.8e\n", e.ScaledAmbient)
 		fmt.Fprintf(w, "\tSIMPLESPRITEINST\n")
-		fmt.Fprintf(w, "\t\tTAG \"%s\"\n", e.SimpleSpriteTag)
+		fmt.Fprintf(w, "\t\tINSTTAG \"%s\"\n", e.SimpleSpriteTag)
 		fmt.Fprintf(w, "\t\tHEXFIFTYFLAG %d\n", e.SpriteHexFiftyFlag)
 		fmt.Fprintf(w, "\tPAIRS? %s %s\n", wcVal(e.Pair1), wcVal(e.Pair2))
 		fmt.Fprintf(w, "\tDOUBLESIDED %d\n", e.DoubleSided)
@@ -1924,7 +1924,7 @@ func (e *MaterialDef) Read(token *AsciiReadToken) error {
 		return err
 	}
 
-	records, err = token.ReadProperty("TAG", 1)
+	records, err = token.ReadProperty("INSTTAG", 1)
 	if err != nil {
 		return err
 	}
@@ -5108,8 +5108,7 @@ func (e *HierarchicalSpriteDef) Write(token *AsciiWriteToken) error {
 		fmt.Fprintf(w, "%s \"%s\"\n", e.Definition(), e.Tag)
 		fmt.Fprintf(w, "\tNUMDAGS %d\n", len(e.Dags))
 		for i, dag := range e.Dags {
-			fmt.Fprintf(w, "\t\tDAG // %d\n", i)
-			fmt.Fprintf(w, "\t\t\tTAG \"%s\"\n", dag.Tag)
+			fmt.Fprintf(w, "\t\tDAG \"%s\"// %d\n", i, dag.Tag)
 			fmt.Fprintf(w, "\t\t\tSPRITE \"%s\"\n", dag.SpriteTag)
 			fmt.Fprintf(w, "\t\t\tSPRITEINDEX %d\n", dag.SpriteTagIndex)
 			fmt.Fprintf(w, "\t\t\tTRACK \"%s\"\n", dag.Track)
@@ -5159,12 +5158,7 @@ func (e *HierarchicalSpriteDef) Read(token *AsciiReadToken) error {
 
 	for i := 0; i < numDags; i++ {
 		dag := Dag{}
-		_, err = token.ReadProperty("DAG", 0)
-		if err != nil {
-			return err
-		}
-
-		records, err = token.ReadProperty("TAG", 1)
+		records, err = token.ReadProperty("DAG", 1)
 		if err != nil {
 			return err
 		}

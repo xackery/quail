@@ -49,7 +49,7 @@ properties:
         format: "%0.8e"
   - name: "SIMPLESPRITEINST"
     note: "Simple sprite instance section"
-  - name: "TAG"
+  - name: "INSTTAG"
     note: "Simple sprite instance tag"
     args:
       - name: "tag"

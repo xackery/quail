@@ -17,8 +17,8 @@ properties:
   - name: "MATERIALPALETTE"
     note: "Material palette tag"
     args:
-      - name: "tag"
-        note: "Tag"
+      - name: ""
+        note: ""
         format: "%s"
   - name: "FRAGMENT3"
     note: "Fragment 3"

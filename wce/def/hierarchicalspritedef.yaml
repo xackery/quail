@@ -11,8 +11,6 @@ properties:
     properties:
       - name: "DAG"
         note: ""
-      - name: "TAG"
-        note: ""
         args:
           - name: ""
             note: ""
