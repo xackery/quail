@@ -4593,7 +4593,7 @@ func (e *TrackInstance) Write(token *AsciiWriteToken) error {
 	for _, folder := range e.folders {
 		var filename string
 		if e.animation != "" {
-			filename = fmt.Sprintf("%s/%s_%s", folder, strings.ToLower(e.animation), strings.ToLower(folder))
+			filename = fmt.Sprintf("%s/animations/%s_%s", folder, strings.ToLower(e.animation), strings.ToLower(folder))
 		} else {
 			filename = folder
 		}
@@ -4805,7 +4805,7 @@ func (e *TrackDef) Write(token *AsciiWriteToken) error {
 	for _, folder := range e.folders {
 		var filename string
 		if e.animation != "" {
-			filename = fmt.Sprintf("%s/%s_%s", folder, strings.ToLower(e.animation), strings.ToLower(folder))
+			filename = fmt.Sprintf("%s/animations/%s_%s", folder, strings.ToLower(e.animation), strings.ToLower(folder))
 		} else {
 			filename = folder
 		}
