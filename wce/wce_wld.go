@@ -4591,7 +4591,15 @@ func (e *TrackInstance) Definition() string {
 
 func (e *TrackInstance) Write(token *AsciiWriteToken) error {
 	for _, folder := range e.folders {
-		err := token.SetWriter(folder)
+		var filename string
+		if e.animation != "" {
+			filename = fmt.Sprintf("%s/%s_%s", folder, strings.ToLower(e.animation), strings.ToLower(folder))
+		} else {
+			filename = folder
+		}
+
+		// Set the writer for the determined filename
+		err := token.SetWriter(filename)
 		if err != nil {
 			return err
 		}
@@ -4795,7 +4803,15 @@ func (e *TrackDef) Definition() string {
 
 func (e *TrackDef) Write(token *AsciiWriteToken) error {
 	for _, folder := range e.folders {
-		err := token.SetWriter(folder)
+		var filename string
+		if e.animation != "" {
+			filename = fmt.Sprintf("%s/%s_%s", folder, strings.ToLower(e.animation), strings.ToLower(folder))
+		} else {
+			filename = folder
+		}
+
+		// Set the writer for the determined filename
+		err := token.SetWriter(filename)
 		if err != nil {
 			return err
 		}
