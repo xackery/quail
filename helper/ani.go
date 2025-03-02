@@ -79,6 +79,7 @@ func TrackAnimationParse(isChr bool, tag string) (animationTag string, modelTag 
 
 		patterns := []string{
 			`^[C,D,L,O,P,S,T](0[1-9]|[1-9][0-9])([A-Z]){3}_TRACK$`,
+			`^([C,D,L,O,P,S,T](0[1-9]|[1-9][0-9])){2}[A-Z]{3}_TRACK$`,
 			`^([C,D,L,O,P,S,T](0[1-9]|[1-9][0-9])){2}_[A-Z]{3}_TRACK$`,
 			`^[C,D,L,O,P,S,T](0[1-9]|[1-9][0-9])[A-Z]{3}[C,D,L,O,P,S,T](0[1-9]|[1-9][0-9])[A-Z]{3}_TRACK`,
 			`^[C,D,L,O,P,S,T](0[1-9]|[1-9][0-9])[A-Z]{3}[C,D,L,O,P,S,T](0[1-9]|[1-9][0-9])_[A-Z]{3}_TRACK$`,
@@ -94,12 +95,14 @@ func TrackAnimationParse(isChr bool, tag string) (animationTag string, modelTag 
 				case 0: // Pattern 1
 					return handleNewAniModelCode(tag[:3], tag[3:6])
 				case 1: // Pattern 2
+					return handleNewAniModelCode(tag[:3], tag[6:9])
+				case 2: // Pattern 3
 					return handleNewAniModelCode(tag[:3], tag[7:10])
-				case 2, 3: // Pattern 3 and 4
+				case 3, 4: // Pattern 4 and 5
 					return handleNewAniModelCode(tag[:3], tag[3:6])
-				case 4: // Pattern 5
-					return handleNewAniModelCode(tag[:4], tag[4:7])
 				case 5: // Pattern 6
+					return handleNewAniModelCode(tag[:4], tag[4:7])
+				case 6: // Pattern 7
 					return handleNewAniModelCode(tag[:4], tag[8:11])
 				}
 			}
