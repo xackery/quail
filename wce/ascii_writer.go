@@ -61,9 +61,14 @@ func (a *AsciiWriteToken) SetWriter(tag string) error {
 	w, ok := a.writers[tag]
 	if !ok {
 		rootFolder := tag
+
 		if strings.Contains(rootFolder, "/") {
-			rootFolder = strings.Split(rootFolder, "/")[0]
-			tag = strings.Split(tag, "/")[1]
+			chunks := strings.Split(rootFolder, "/")
+			rootFolder = chunks[0]
+			for i := 1; i < len(chunks)-1; i++ {
+				rootFolder += "/" + chunks[i]
+			}
+			tag = chunks[len(chunks)-1]
 			isSubfolder = true
 		}
 
