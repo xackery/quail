@@ -312,6 +312,7 @@ func (wce *Wce) writeAsciiData(path string) error {
 	sort.Strings(sortedFolders)
 
 	writtenSubfolders := make(map[string]bool)
+	writtenRoots := make(map[string]bool)
 	for _, folder := range sortedFolders {
 		folderInfo, ok := folders[folder]
 		if !ok {
@@ -344,11 +345,18 @@ func (wce *Wce) writeAsciiData(path string) error {
 			}
 
 			writtenSubfolders[parentFolder] = true
+			if !writtenRoots[parentFolder] {
+				rootW.WriteString(fmt.Sprintf("INCLUDE \"%s/_ROOT.WCE\"\n", strings.ToUpper(parentFolder)))
+				writtenRoots[parentFolder] = true
+			}
 
 			continue
 		}
 
-		rootW.WriteString(fmt.Sprintf("INCLUDE \"%s/_ROOT.WCE\"\n", strings.ToUpper(folder)))
+		if !writtenRoots[folder] {
+			rootW.WriteString(fmt.Sprintf("INCLUDE \"%s/_ROOT.WCE\"\n", strings.ToUpper(folder)))
+			writtenRoots[folder] = true
+		}
 		if folderInfo.hasBase {
 			includes[folder] += fmt.Sprintf("INCLUDE \"%s.WCE\"\n", strings.ToUpper(folder))
 		}
