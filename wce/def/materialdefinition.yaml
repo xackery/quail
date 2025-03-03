@@ -55,6 +55,12 @@ properties:
       - name: "tag"
         note: "Simple sprite instance tag"
         format: "%s"
+  - name: "SIMPLESPRITETAGINDEX"
+    note: ""
+    args:
+      - name: ""
+        note: ""
+        format: "%d"
   - name: "HEXFIFTYFLAG"
     note: "Hex fifty flag"
     args:
