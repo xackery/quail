@@ -312,6 +312,7 @@ func (wce *Wce) writeAsciiData(path string) error {
 	sort.Strings(sortedFolders)
 
 	writtenSubfolders := make(map[string]bool)
+	writtenRoots := make(map[string]bool)
 	for _, folder := range sortedFolders {
 		folderInfo, ok := folders[folder]
 		if !ok {
@@ -319,10 +320,20 @@ func (wce *Wce) writeAsciiData(path string) error {
 		}
 
 		if strings.Contains(folder, "/") {
-			rootFolder := strings.Split(folder, "/")[0]
-			tag := strings.Split(folder, "/")[1]
-			if _, ok := writtenSubfolders[rootFolder]; !ok {
-				rootW.WriteString(fmt.Sprintf("INCLUDE \"%s/_ROOT.WCE\"\n", strings.ToUpper(rootFolder)))
+			chunks := strings.Split(folder, "/")
+			rootFolder := chunks[0]
+			parentFolder := chunks[0]
+			parentSubfolder := ""
+			for i := 1; i < len(chunks)-1; i++ {
+				rootFolder += "/" + chunks[i]
+				parentSubfolder += "/" + chunks[i]
+			}
+			parentSubfolder = strings.TrimLeft(parentSubfolder, "/")
+
+			tag := chunks[len(chunks)-1]
+			ok := writtenSubfolders[parentFolder]
+			if !ok {
+				includes[parentFolder] += fmt.Sprintf("INCLUDE \"%s/_ROOT.WCE\"\n", strings.ToUpper(parentSubfolder))
 			}
 
 			if folderInfo.hasBase {
@@ -333,12 +344,19 @@ func (wce *Wce) writeAsciiData(path string) error {
 				includes[rootFolder] += fmt.Sprintf("INCLUDE \"%s_ANI.WCE\"\n", strings.ToUpper(tag))
 			}
 
-			writtenSubfolders[rootFolder] = true
+			writtenSubfolders[parentFolder] = true
+			if !writtenRoots[parentFolder] {
+				rootW.WriteString(fmt.Sprintf("INCLUDE \"%s/_ROOT.WCE\"\n", strings.ToUpper(parentFolder)))
+				writtenRoots[parentFolder] = true
+			}
 
 			continue
 		}
 
-		rootW.WriteString(fmt.Sprintf("INCLUDE \"%s/_ROOT.WCE\"\n", strings.ToUpper(folder)))
+		if !writtenRoots[folder] {
+			rootW.WriteString(fmt.Sprintf("INCLUDE \"%s/_ROOT.WCE\"\n", strings.ToUpper(folder)))
+			writtenRoots[folder] = true
+		}
 		if folderInfo.hasBase {
 			includes[folder] += fmt.Sprintf("INCLUDE \"%s.WCE\"\n", strings.ToUpper(folder))
 		}

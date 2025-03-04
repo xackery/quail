@@ -55,7 +55,7 @@ func (q *Quail) DirRead(path string) error {
 	}
 
 	dirs, err := os.ReadDir(path + "/assets")
-	if err != nil {
+	if err != nil && !os.IsNotExist(err) {
 		return err
 	}
 	for _, dir := range dirs {
