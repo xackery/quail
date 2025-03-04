@@ -1802,20 +1802,21 @@ func (e *MaterialPalette) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFr
 
 // MaterialDef is an entry MATERIALDEFINITION
 type MaterialDef struct {
-	folders            []string // when writing, this is the folder the file is in
-	fragID             int16
-	Tag                string
-	TagIndex           int
-	Variation          int
-	SpriteHexFiftyFlag int
-	RenderMethod       string
-	RGBPen             [4]uint8
-	Brightness         float32
-	ScaledAmbient      float32
-	SimpleSpriteTag    string
-	Pair1              NullUint32
-	Pair2              NullFloat32
-	DoubleSided        int
+	folders              []string // when writing, this is the folder the file is in
+	fragID               int16
+	Tag                  string
+	TagIndex             int
+	Variation            int
+	SpriteHexFiftyFlag   int
+	RenderMethod         string
+	RGBPen               [4]uint8
+	Brightness           float32
+	ScaledAmbient        float32
+	SimpleSpriteTag      string
+	SimpleSpriteTagIndex int
+	Pair1                NullUint32
+	Pair2                NullFloat32
+	DoubleSided          int
 }
 
 func (e *MaterialDef) Definition() string {
@@ -1836,7 +1837,7 @@ func (e *MaterialDef) Write(token *AsciiWriteToken) error {
 
 		if e.SimpleSpriteTag != "" {
 
-			simpleSprite := token.wce.ByTagWithIndex(e.SimpleSpriteTag, e.TagIndex)
+			simpleSprite := token.wce.ByTagWithIndex(e.SimpleSpriteTag, e.SimpleSpriteTagIndex)
 			if simpleSprite == nil {
 				return fmt.Errorf("simple sprite %s not found", e.SimpleSpriteTag)
 			}
@@ -1854,7 +1855,8 @@ func (e *MaterialDef) Write(token *AsciiWriteToken) error {
 		fmt.Fprintf(w, "\tBRIGHTNESS %0.8e\n", e.Brightness)
 		fmt.Fprintf(w, "\tSCALEDAMBIENT %0.8e\n", e.ScaledAmbient)
 		fmt.Fprintf(w, "\tSIMPLESPRITEINST\n")
-		fmt.Fprintf(w, "\t\tINSTTAG \"%s\"\n", e.SimpleSpriteTag)
+		fmt.Fprintf(w, "\t\tTAG \"%s\"\n", e.SimpleSpriteTag)
+		fmt.Fprintf(w, "\t\tSIMPLESPRITETAGINDEX %d\n", e.SimpleSpriteTagIndex)
 		fmt.Fprintf(w, "\t\tHEXFIFTYFLAG %d\n", e.SpriteHexFiftyFlag)
 		fmt.Fprintf(w, "\tPAIRS? %s %s\n", wcVal(e.Pair1), wcVal(e.Pair2))
 		fmt.Fprintf(w, "\tDOUBLESIDED %d\n", e.DoubleSided)
@@ -1930,6 +1932,15 @@ func (e *MaterialDef) Read(token *AsciiReadToken) error {
 	}
 	e.SimpleSpriteTag = records[1]
 
+	records, err = token.ReadProperty("SIMPLESPRITETAGINDEX", 1)
+	if err != nil {
+		return err
+	}
+	err = parse(&e.SimpleSpriteTagIndex, records[1])
+	if err != nil {
+		return fmt.Errorf("simple sprite tag index: %w", err)
+	}
+
 	records, err = token.ReadProperty("HEXFIFTYFLAG", 1)
 	if err != nil {
 		return err
@@ -1993,7 +2004,7 @@ func (e *MaterialDef) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
 	}
 
 	if e.SimpleSpriteTag != "" {
-		spriteDef := wce.ByTag(e.SimpleSpriteTag)
+		spriteDef := wce.ByTagWithIndex(e.SimpleSpriteTag, e.SimpleSpriteTagIndex)
 		if spriteDef == nil {
 			return -1, fmt.Errorf("simple sprite %s not found", e.SimpleSpriteTag)
 		}
@@ -2051,6 +2062,7 @@ func (e *MaterialDef) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragMa
 		}
 
 		e.SimpleSpriteTag = rawWld.Name(spriteDef.NameRef())
+		e.SimpleSpriteTagIndex = wce.tagIndexes[rawWld.Name(spriteDef.NameRef())]
 	}
 	e.Tag = rawWld.Name(frag.NameRef())
 	e.TagIndex = wce.NextTagIndex(e.Tag)
@@ -4579,7 +4591,15 @@ func (e *TrackInstance) Definition() string {
 
 func (e *TrackInstance) Write(token *AsciiWriteToken) error {
 	for _, folder := range e.folders {
-		err := token.SetWriter(folder)
+		var filename string
+		if e.animation != "" {
+			filename = fmt.Sprintf("%s/animations/%s_%s", folder, strings.ToLower(e.animation), strings.ToLower(folder))
+		} else {
+			filename = folder
+		}
+
+		// Set the writer for the determined filename
+		err := token.SetWriter(filename)
 		if err != nil {
 			return err
 		}
@@ -4783,7 +4803,15 @@ func (e *TrackDef) Definition() string {
 
 func (e *TrackDef) Write(token *AsciiWriteToken) error {
 	for _, folder := range e.folders {
-		err := token.SetWriter(folder)
+		var filename string
+		if e.animation != "" {
+			filename = fmt.Sprintf("%s/animations/%s_%s", folder, strings.ToLower(e.animation), strings.ToLower(folder))
+		} else {
+			filename = folder
+		}
+
+		// Set the writer for the determined filename
+		err := token.SetWriter(filename)
 		if err != nil {
 			return err
 		}
