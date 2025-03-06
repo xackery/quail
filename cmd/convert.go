@@ -82,6 +82,24 @@ func runConvertE(args []string) error {
 		if err != nil {
 			return fmt.Errorf("dir write: %w", err)
 		}
+
+		err = os.MkdirAll(dstPath+"/.vscode/", 0755)
+		if err != nil {
+			return fmt.Errorf("mkdir vscode: %w", err)
+		}
+
+		ext := filepath.Ext(srcPath)
+		w, err := os.Create(dstPath + "/.vscode/settings.json")
+		if err != nil {
+			return fmt.Errorf("create vscode settings: %w", err)
+		}
+		defer w.Close()
+		w.WriteString("{\n")
+		w.WriteString("    // quail path can be set via your environment PATH, a vscode workspace path, or uncomment below\n")
+		w.WriteString("    // \"wce-vscode.quailPath\": \"/path/to/quail\"\n")
+		w.WriteString("    \"wce-vscode.convertOnSave\": true,\n")
+		w.WriteString(fmt.Sprintf("    \"wce-vscode.convertTargetPath\": \"temp%s\"\n", ext))
+		w.WriteString("}\n")
 		return nil
 	case ".json":
 		err = q.JsonWrite(dstPath)
