@@ -190,7 +190,7 @@ func traverseProp(buf *bytes.Buffer, prop Property, tabCount int) error {
 		case `%d`:
 			propBuf += fmt.Sprintf("%d", argIndex)
 		case `%0.8e`:
-			propBuf += fmt.Sprintf("%0.8f", float64(argIndex)+0.12345678)
+			propBuf += fmt.Sprintf("%0.8f", float64(argIndex)+0.1234567)
 		default:
 			return fmt.Errorf("unhandled type: %s", arg.Format)
 		}

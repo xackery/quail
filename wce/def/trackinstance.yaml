@@ -8,13 +8,13 @@ properties:
       - name: ""
         note: ""
         format: "%d"
-  - name: "SPRITE"
+  - name: "SEQUENCE"
     note: ""
     args:
       - name: ""
         note: ""
         format: "%s"
-  - name: "SPRITEINDEX"
+  - name: "SEQUENCEINDEX"
     note: ""
     args:
       - name: ""
