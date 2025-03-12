@@ -54,6 +54,11 @@ func (q *Quail) PfsRead(path string) error {
 		}
 	}
 
+	if q.Wld == nil {
+		// edge cases like grass.s3d has no wld data
+		return nil
+	}
+
 	summary := ""
 	if len(q.Wld.TerDefs) > 0 {
 		summary = fmt.Sprintf("%s%d terrain, ", summary, len(q.Wld.TerDefs))
