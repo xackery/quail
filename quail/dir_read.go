@@ -22,7 +22,23 @@ func (q *Quail) DirRead(path string) error {
 
 	fi, err = os.Stat(path + "/_root.wce")
 	if err != nil {
-		return err
+		// there's a fallback case where only assets are being packed
+		dirs, err := os.ReadDir(path + "/assets")
+		if err != nil && !os.IsNotExist(err) {
+			return err
+		}
+		for _, dir := range dirs {
+			if dir.IsDir() {
+				continue
+			}
+			textureData, err := os.ReadFile(path + "/assets/" + dir.Name())
+			if err != nil {
+				return err
+			}
+			q.assetAdd(dir.Name(), textureData)
+		}
+		return nil
+
 	}
 	if fi.IsDir() {
 		return fmt.Errorf("path %s is a directory, but should be a file", path+"/_root.wce")
