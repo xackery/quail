@@ -514,6 +514,19 @@ func (e *EqgModDef) FromRaw(wce *Wce, src *raw.Mod) error {
 		e.Faces = append(e.Faces, ModFace)
 	}
 
+	for _, bone := range src.Bones {
+		ModBone := &ModBone{
+			Name:          string(bone.Name),
+			Next:          bone.Next,
+			ChildrenCount: bone.ChildrenCount,
+			ChildIndex:    bone.ChildIndex,
+			Pivot:         bone.Pivot,
+			Quaternion:    bone.Quaternion,
+			Scale:         bone.Scale,
+		}
+		e.Bones = append(e.Bones, ModBone)
+	}
+
 	return nil
 }
 
