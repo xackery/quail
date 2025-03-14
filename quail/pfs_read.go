@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/xackery/quail/helper"
 	"github.com/xackery/quail/pfs"
 	"github.com/xackery/quail/raw"
 	"github.com/xackery/quail/wce"
@@ -64,33 +65,45 @@ func (q *Quail) PfsRead(path string) error {
 		summary = fmt.Sprintf("%s%d terrain, ", summary, len(q.Wld.TerDefs))
 	}
 	if len(q.Wld.WorldTrees) > 0 {
-		summary = fmt.Sprintf("%s%d trees, ", summary, len(q.Wld.WorldTrees))
+		summary = fmt.Sprintf("%s%d tree%s, ", summary, len(q.Wld.WorldTrees), helper.Pluralize(len(q.Wld.WorldTrees)))
 	}
 
 	if len(q.Wld.ActorDefs) > 0 {
-		summary = fmt.Sprintf("%d actors, ", len(q.Wld.ActorDefs))
+		summary = fmt.Sprintf("%d actor%s, ", len(q.Wld.ActorDefs), helper.Pluralize(len(q.Wld.ActorDefs)))
 	}
 	if len(q.Wld.ModDefs) > 0 {
-		summary = fmt.Sprintf("%s%d models, ", summary, len(q.Wld.ModDefs))
+		summary = fmt.Sprintf("%s%d model%s, ", summary, len(q.Wld.ModDefs), helper.Pluralize(len(q.Wld.ModDefs)))
 	}
 	if len(q.Wld.RGBTrackDefs) > 0 {
-		summary = fmt.Sprintf("%s%d rgb tracks, ", summary, len(q.Wld.RGBTrackDefs))
+		summary = fmt.Sprintf("%s%d rgb track%s, ", summary, len(q.Wld.RGBTrackDefs), helper.Pluralize(len(q.Wld.RGBTrackDefs)))
 	}
 
 	if len(q.Wld.MdsDefs) > 0 {
-		summary = fmt.Sprintf("%s%d skinned models, ", summary, len(q.Wld.MdsDefs))
+		summary = fmt.Sprintf("%s%d skinned model%s, ", summary, len(q.Wld.MdsDefs), helper.Pluralize(len(q.Wld.MdsDefs)))
 	}
 	if len(q.Wld.AmbientLights) > 0 {
-		summary = fmt.Sprintf("%s%d lights, ", summary, len(q.Wld.AmbientLights))
+		summary = fmt.Sprintf("%s%d light%s, ", summary, len(q.Wld.AmbientLights), helper.Pluralize(len(q.Wld.AmbientLights)))
 	}
 	if len(q.Wld.AniDefs) > 0 {
-		summary = fmt.Sprintf("%s%d animations, ", summary, len(q.Wld.AniDefs))
+		summary = fmt.Sprintf("%s%d animation%s, ", summary, len(q.Wld.AniDefs), helper.Pluralize(len(q.Wld.AniDefs)))
 	}
 	if len(q.Wld.TrackDefs) > 0 {
-		summary = fmt.Sprintf("%s%d tracks, ", summary, len(q.Wld.TrackDefs))
+		summary = fmt.Sprintf("%s%d track%s, ", summary, len(q.Wld.TrackDefs), helper.Pluralize(len(q.Wld.TrackDefs)))
 	}
 	if len(q.Wld.DMTrackDef2s) > 0 {
-		summary = fmt.Sprintf("%s%d dmtracks, ", summary, len(q.Wld.DMTrackDef2s))
+		summary = fmt.Sprintf("%s%d dmtrack%s, ", summary, len(q.Wld.DMTrackDef2s), helper.Pluralize(len(q.Wld.DMTrackDef2s)))
+	}
+	if len(q.Wld.PrtDefs) > 0 {
+		summary = fmt.Sprintf("%s%d particle render%s, ", summary, len(q.Wld.PrtDefs), helper.Pluralize(len(q.Wld.PrtDefs)))
+	}
+	if len(q.Wld.PtsDefs) > 0 {
+		summary = fmt.Sprintf("%s%d particle point%s, ", summary, len(q.Wld.PtsDefs), helper.Pluralize(len(q.Wld.PtsDefs)))
+	}
+	if len(q.Wld.ParticleCloudDefs) > 0 {
+		summary = fmt.Sprintf("%s%d particle cloud%s, ", summary, len(q.Wld.ParticleCloudDefs), helper.Pluralize(len(q.Wld.ParticleCloudDefs)))
+	}
+	if len(q.Assets) > 0 {
+		summary = fmt.Sprintf("%s%d asset%s, ", summary, len(q.Assets), helper.Pluralize(len(q.Assets)))
 	}
 
 	if len(summary) > 0 {
