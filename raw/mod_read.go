@@ -91,6 +91,17 @@ func (mod *Mod) Identity() string {
 	return "mod"
 }
 
+func (mod *Mod) String() string {
+	out := ""
+	out += fmt.Sprintf("metafilename: %s\n", mod.MetaFileName)
+	out += fmt.Sprintf("version: %d\n", mod.Version)
+	out += fmt.Sprintf("materials: %d\n", len(mod.Materials))
+	out += fmt.Sprintf("vertices: %d\n", len(mod.Vertices))
+	out += fmt.Sprintf("faces: %d\n", len(mod.Faces))
+	out += fmt.Sprintf("bones: %d", len(mod.Bones))
+	return out
+}
+
 // Decode reads a MOD file
 func (mod *Mod) Read(r io.ReadSeeker) error {
 	if mod.name == nil {
