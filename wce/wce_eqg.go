@@ -1803,11 +1803,15 @@ func (e *EqgAniDef) Read(token *AsciiReadToken) error {
 	}
 
 	for i := 0; i < numBones; i++ {
-		_, err = token.ReadProperty("BONE", 1)
+		bone := &AniBone{}
+
+		records, err = token.ReadProperty("BONE", 1)
 		if err != nil {
 			return fmt.Errorf("bone %d: %w", i, err)
 		}
-		bone := &AniBone{}
+
+		bone.Name = records[1]
+
 		records, err = token.ReadProperty("NUMFRAMES", 1)
 		if err != nil {
 			return err
