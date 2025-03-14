@@ -332,7 +332,7 @@ func (wce *Wce) writeAsciiData(path string) error {
 
 			tag := chunks[len(chunks)-1]
 			ok := writtenSubfolders[parentFolder]
-			if !ok {
+			if !ok && parentSubfolder != "" {
 				includes[parentFolder] += fmt.Sprintf("INCLUDE \"%s/_ROOT.WCE\"\n", strings.ToUpper(parentSubfolder))
 			}
 
