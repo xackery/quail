@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -31,7 +30,7 @@ func AsciiReadTokenNew(buf *bytes.Buffer, wce *Wce) *AsciiReadToken {
 
 // LoadAsciiFile returns a new AsciiReader that reads from r.
 func LoadAsciiFile(path string, wce *Wce) (*AsciiReadToken, error) {
-	buf, err := caseInsensitiveOpen(path)
+	buf, err := caseInsensitiveOpen(path, wce)
 	if err != nil {
 		return nil, err
 	}
@@ -55,11 +54,11 @@ func (a *AsciiReadToken) Close() error {
 }
 
 // caseInsensitiveOpen attempts to open a file in a case-insensitive manner.
-func caseInsensitiveOpen(path string) (*bytes.Buffer, error) {
+func caseInsensitiveOpen(path string, wce *Wce) (*bytes.Buffer, error) {
 	dir := filepath.Dir(path)
 	base := filepath.Base(path)
 
-	entries, err := os.ReadDir(strings.ToLower(dir))
+	entries, err := wce.FileSystem.ReadDir(strings.ToLower(dir))
 	if err != nil {
 		return nil, err
 	}
@@ -68,12 +67,12 @@ func caseInsensitiveOpen(path string) (*bytes.Buffer, error) {
 		if !strings.EqualFold(entry.Name(), base) {
 			continue
 		}
-		data, err := os.ReadFile(filepath.Join(strings.ToLower(dir), entry.Name()))
+		data, err := wce.FileSystem.ReadFile(filepath.Join(strings.ToLower(dir), entry.Name()))
 		if err != nil {
 			return nil, err
 		}
 		return bytes.NewBuffer(data), nil
-		//			return os.Open(filepath.Join(strings.ToLower(dir), entry.Name()))
+		//			return wce.FileSystem.Open(filepath.Join(strings.ToLower(dir), entry.Name()))
 	}
 
 	return nil, fmt.Errorf("file %s not found", path)

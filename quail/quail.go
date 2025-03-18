@@ -3,9 +3,11 @@ package quail
 import (
 	"fmt"
 	"io"
+	"io/fs"
 	"path/filepath"
 	"strings"
 
+	"github.com/xackery/quail/qfs"
 	"github.com/xackery/quail/raw"
 	"github.com/xackery/quail/wce"
 )
@@ -16,6 +18,9 @@ type Quail struct {
 	WldObject              *wce.Wce
 	WldLights              *wce.Wce
 	Assets                 map[string][]byte
+	StatFS                 fs.StatFS
+	ReadDirFS              fs.ReadDirFS
+	FileSystem             qfs.QFS
 }
 
 // New returns a new Quail instance
