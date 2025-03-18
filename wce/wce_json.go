@@ -11,7 +11,7 @@ import (
 func ReadJSON(name string, path string) (*Wce, error) {
 
 	wce := New(name)
-	r, err := os.Open(path)
+	r, err := wce.FileSystem.Open(path)
 	if err != nil {
 		return nil, fmt.Errorf("open: %w, path: %s", err, path)
 	}
@@ -29,12 +29,12 @@ func ReadJSON(name string, path string) (*Wce, error) {
 func (wce *Wce) WriteJSON(path string) error {
 	var err error
 
-	err = os.MkdirAll(filepath.Dir(path), os.ModePerm)
+	err = wce.FileSystem.MkdirAll(filepath.Dir(path), os.ModePerm)
 	if err != nil {
 		return fmt.Errorf("mkdir: %w", err)
 	}
 
-	w, err := os.Create(path)
+	w, err := wce.FileSystem.Create(path)
 	if err != nil {
 		return fmt.Errorf("create: %w", err)
 	}

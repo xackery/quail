@@ -2,30 +2,35 @@ package quail
 
 import (
 	"fmt"
-	"os"
 	"strings"
+
+	"github.com/xackery/quail/qfs"
 )
 
 // DirWrite exports the quail target to a directory
 func (q *Quail) DirWrite(path string) error {
+
+	if q.FileSystem == nil {
+		q.FileSystem = &qfs.OSFS{}
+	}
 
 	path = strings.TrimSuffix(path, ".eqg")
 	path = strings.TrimSuffix(path, ".s3d")
 	path = strings.TrimSuffix(path, ".quail")
 	path += ".quail"
 
-	_, err := os.Stat(path)
+	_, err := q.FileSystem.Stat(path)
 	if err == nil {
-		err = os.RemoveAll(path)
+		err = q.FileSystem.RemoveAll(path)
 		if err != nil {
 			return err
 		}
 	}
-	err = os.MkdirAll(path, 0755)
+	err = q.FileSystem.MkdirAll(path, 0755)
 	if err != nil {
 		return err
 	}
-	fi, err := os.Stat(path)
+	fi, err := q.FileSystem.Stat(path)
 	if err != nil {
 		return err
 	}
@@ -53,7 +58,7 @@ func (q *Quail) DirWrite(path string) error {
 	}
 
 	if len(q.Assets) > 0 {
-		err = os.MkdirAll(path+"/assets/", 0755)
+		err = q.FileSystem.MkdirAll(path+"/assets/", 0755)
 		if err != nil {
 			return fmt.Errorf("mkdir: %w", err)
 		}
@@ -65,7 +70,7 @@ func (q *Quail) DirWrite(path string) error {
 		if err != nil {
 			return err
 		} */
-		err = os.WriteFile(path+"/assets/"+name, data, 0644)
+		err = q.FileSystem.WriteFile(path+"/assets/"+name, data, 0644)
 		if err != nil {
 			return err
 		}

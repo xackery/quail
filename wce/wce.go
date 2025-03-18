@@ -4,6 +4,7 @@ package wce
 import (
 	"strings"
 
+	"github.com/xackery/quail/qfs"
 	"github.com/xackery/quail/raw"
 )
 
@@ -11,6 +12,7 @@ var AsciiVersion = "v0.0.1"
 
 // Wce is a struct representing a Wce file
 type Wce struct {
+	FileSystem             qfs.QFS
 	isVariationMaterial    bool   // set true while writing or reading variations
 	lastReadFolder         string // used during wce parsing to remember context
 	isObj                  bool   // true when a _obj suffix is found in path
@@ -66,6 +68,7 @@ func New(filename string) *Wce {
 	isChr := strings.Contains(filename, "_chr")
 
 	return &Wce{
+		FileSystem:            qfs.OSFS{},
 		FileName:              filename,
 		isObj:                 isObj,
 		isChr:                 isChr,

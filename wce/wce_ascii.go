@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/xackery/quail/helper"
+	"github.com/xackery/quail/qfs"
 )
 
 // ReadAscii reads the ascii file at path
@@ -26,23 +27,26 @@ func (wce *Wce) ReadAscii(path string) error {
 	if err != nil {
 		return fmt.Errorf("%s:%d: %w", path, asciiReader.lineNumber, err)
 	}
-	dir, err := os.Getwd()
-	if err != nil {
-		return fmt.Errorf("getwd: %w", err)
-	}
 
-	relPath, err := filepath.Rel(dir, path)
-	if err != nil {
-		relPath = path
+	switch wce.FileSystem.(type) {
+	case *qfs.OSFS:
+		dir, err := os.Getwd()
+		if err != nil {
+			return fmt.Errorf("getwd: %w", err)
+		}
+		relPath, err := filepath.Rel(dir, path)
+		if err != nil {
+			relPath = path
+		}
+		fmt.Println(asciiReader.TotalLineCountRead(), "total lines parsed for", relPath)
 	}
-	fmt.Println(asciiReader.TotalLineCountRead(), "total lines parsed for", relPath)
 	return nil
 }
 
 func (wce *Wce) WriteAscii(path string) error {
 	var err error
 
-	err = os.MkdirAll(path, os.ModePerm)
+	err = wce.FileSystem.MkdirAll(path, os.ModePerm)
 	if err != nil {
 		return fmt.Errorf("mkdir: %w", err)
 	}
@@ -289,18 +293,18 @@ func (wce *Wce) writeAsciiData(path string) error {
 		folders[key].hasBase = true
 	}
 
-	rootW, err := os.Create(fmt.Sprintf("%s/_root.wce", path))
+	rootW, err := wce.FileSystem.Create(fmt.Sprintf("%s/_root.wce", path))
 	if err != nil {
 		return err
 	}
 	wce.writeAsciiHeader(rootW)
 
 	if token.IsWriterUsed("region") {
-		rootW.WriteString("INCLUDE \"REGION.WCE\"\n")
+		rootW.Write([]byte("INCLUDE \"REGION.WCE\"\n"))
 	}
 
 	if token.IsWriterUsed("world") {
-		rootW.WriteString("INCLUDE \"WORLD.WCE\"\n")
+		rootW.Write([]byte("INCLUDE \"WORLD.WCE\"\n"))
 	}
 
 	includes := make(map[string]string)
@@ -346,7 +350,7 @@ func (wce *Wce) writeAsciiData(path string) error {
 
 			writtenSubfolders[parentFolder] = true
 			if !writtenRoots[parentFolder] {
-				rootW.WriteString(fmt.Sprintf("INCLUDE \"%s/_ROOT.WCE\"\n", strings.ToUpper(parentFolder)))
+				rootW.Write([]byte(fmt.Sprintf("INCLUDE \"%s/_ROOT.WCE\"\n", strings.ToUpper(parentFolder))))
 				writtenRoots[parentFolder] = true
 			}
 
@@ -354,7 +358,7 @@ func (wce *Wce) writeAsciiData(path string) error {
 		}
 
 		if !writtenRoots[folder] {
-			rootW.WriteString(fmt.Sprintf("INCLUDE \"%s/_ROOT.WCE\"\n", strings.ToUpper(folder)))
+			rootW.Write([]byte(fmt.Sprintf("INCLUDE \"%s/_ROOT.WCE\"\n", strings.ToUpper(folder))))
 			writtenRoots[folder] = true
 		}
 		if folderInfo.hasBase {
@@ -367,12 +371,12 @@ func (wce *Wce) writeAsciiData(path string) error {
 	rootW.Close()
 
 	for folder, out := range includes {
-		w, err := os.Create(fmt.Sprintf("%s/%s/_root.wce", path, strings.ToLower(folder)))
+		w, err := wce.FileSystem.Create(fmt.Sprintf("%s/%s/_root.wce", path, strings.ToLower(folder)))
 		if err != nil {
 			return err
 		}
 		wce.writeAsciiHeader(w)
-		w.WriteString(out)
+		w.Write([]byte(out))
 		w.Close()
 	}
 

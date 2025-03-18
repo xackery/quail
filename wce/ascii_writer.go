@@ -2,6 +2,7 @@ package wce
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -10,10 +11,10 @@ import (
 type AsciiWriteToken struct {
 	basePath      string
 	wce           *Wce
-	lastWriter    *os.File
+	lastWriter    io.WriteCloser
 	lastWriterTag string
 	writtenDefs   map[string]bool
-	writers       map[string]*os.File
+	writers       map[string]io.WriteCloser
 	writersUsed   map[string]bool
 }
 
@@ -22,7 +23,7 @@ func NewAsciiWriteToken(path string, wce *Wce) *AsciiWriteToken {
 		basePath:    path,
 		wce:         wce,
 		writtenDefs: make(map[string]bool),
-		writers:     make(map[string]*os.File),
+		writers:     make(map[string]io.WriteCloser),
 		writersUsed: make(map[string]bool),
 	}
 }
@@ -44,7 +45,7 @@ func (a *AsciiWriteToken) TagClearIsWritten() {
 	}
 }
 
-func (a *AsciiWriteToken) Writer() (*os.File, error) {
+func (a *AsciiWriteToken) Writer() (io.Writer, error) {
 	if a.lastWriter == nil {
 		return nil, fmt.Errorf("no writer set")
 	}
@@ -106,12 +107,12 @@ func (a *AsciiWriteToken) AddWriter(tag string, path string) error {
 
 	dir := filepath.Dir(path)
 
-	err := os.MkdirAll(dir, os.ModePerm)
+	err := a.wce.FileSystem.MkdirAll(dir, os.ModePerm)
 	if err != nil {
 		return fmt.Errorf("mkdir: %w", err)
 	}
 
-	w, err := os.Create(path)
+	w, err := a.wce.FileSystem.Create(path)
 	if err != nil {
 		return err
 	}
