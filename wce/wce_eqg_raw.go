@@ -167,6 +167,11 @@ func (wce *Wce) WriteEqgRaw(archive *pfs.Pfs) error {
 	}
 	var err error
 
+	err = wce.convertWldToEQG()
+	if err != nil {
+		return fmt.Errorf("convert wld to eqg: %w", err)
+	}
+
 	for _, mds := range wce.MdsDefs {
 		buf := &bytes.Buffer{}
 		dst := &raw.Mds{
@@ -346,4 +351,75 @@ func writeEqgMaterials(srcMaterials []*EQMaterialDef) ([]*raw.ModMaterial, error
 		dstMaterials = append(dstMaterials, mat)
 	}
 	return dstMaterials, nil
+}
+
+func (wce *Wce) convertWldToEQG() error {
+	//var err error
+
+	// Write spell blit particles? (SPB)
+	for _, blitSprite := range wce.BlitSpriteDefs {
+		prt := &EqgParticleRenderDef{
+			Tag: blitSprite.Tag,
+		}
+		wce.PrtDefs = append(wce.PrtDefs, prt)
+	}
+
+	// Write other particle cloud blits
+	//for _, blitSprite := range wce.BlitSpriteDefs {
+	//}
+
+	// Write spell effect actordefs
+	//for _, actorDef := range wce.ActorDefs {
+	//}
+
+	// Write particle clouds
+	//for _, cloudDef := range wce.ParticleCloudDefs {
+	//	}
+
+	// Write other blits (for 2D Sprites and stuff)
+	//for _, blitSprite := range wce.BlitSpriteDefs {
+	//}
+
+	// Write out CHR_EYE materials
+	//	for _, matDef := range wce.MaterialDefs {
+	//	}
+
+	//for _, dmSprite := range wce.DMSpriteDef2s {
+	//}
+
+	//for _, dmSprite := range wce.DMSpriteDefs {
+	//}
+
+	//for _, hiSprite := range wce.HierarchicalSpriteDefs {
+	//}
+
+	//for _, light := range wce.PointLights {
+	//}
+
+	//for _, sprite := range wce.Sprite3DDefs {
+	//}
+
+	//for _, tree := range wce.WorldTrees {
+	//}
+
+	//for _, region := range wce.Regions {
+	//}
+
+	//for _, alight := range wce.AmbientLights {
+	//}
+
+	//for _, actor := range wce.ActorInsts {
+	//}
+
+	//for _, track := range wce.TrackInstances {
+	//}
+
+	// Write non-spell effect actordefs
+	//for _, actorDef := range wce.ActorDefs {
+	//}
+
+	//for _, zone := range wce.Zones {
+	//}
+
+	return nil
 }
