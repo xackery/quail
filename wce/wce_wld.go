@@ -8704,11 +8704,6 @@ func (e *DMTrackDef2) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
 	rawWld.Fragments = append(rawWld.Fragments, wfTrack2)
 	e.fragID = int16(len(rawWld.Fragments))
 
-	// wfTrack := &rawfrag.WldFragDMTrack{
-	// 	TrackRef: int32(e.fragID),
-	// 	Flags:    0,
-	// }
-	// rawWld.Fragments = append(rawWld.Fragments, wfTrack)
 	return int16(e.fragID), nil
 }
 
