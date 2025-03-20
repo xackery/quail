@@ -755,7 +755,12 @@ func (e *DMSpriteDef2) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
 			if err != nil {
 				return -1, fmt.Errorf("dmtrackdef %s to raw: %w", e.DmTrackTag, err)
 			}
-			dmSpriteDef.DMTrackRef = int32(dmTrackRef)
+
+			wfDmtrack := &rawfrag.WldFragDMTrack{
+				TrackRef: int32(dmTrackRef),
+			}
+			rawWld.Fragments = append(rawWld.Fragments, wfDmtrack)
+			dmSpriteDef.DMTrackRef = int32(len(rawWld.Fragments))
 		default:
 			return -1, fmt.Errorf("dmtrackdef %s unknown type %T", e.DmTrackTag, dmTrackDef)
 		}
@@ -8699,11 +8704,11 @@ func (e *DMTrackDef2) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
 	rawWld.Fragments = append(rawWld.Fragments, wfTrack2)
 	e.fragID = int16(len(rawWld.Fragments))
 
-	wfTrack := &rawfrag.WldFragDMTrack{
-		TrackRef: int32(e.fragID),
-		Flags:    0,
-	}
-	rawWld.Fragments = append(rawWld.Fragments, wfTrack)
+	// wfTrack := &rawfrag.WldFragDMTrack{
+	// 	TrackRef: int32(e.fragID),
+	// 	Flags:    0,
+	// }
+	// rawWld.Fragments = append(rawWld.Fragments, wfTrack)
 	return int16(e.fragID), nil
 }
 
