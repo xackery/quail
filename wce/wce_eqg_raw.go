@@ -111,20 +111,6 @@ func (wce *Wce) readEqgEntry(entry *pfs.FileEntry) error {
 			return fmt.Errorf("ani: %w", err)
 		}
 		wce.AniDefs = append(wce.AniDefs, def)
-	case ".lay":
-		rawSrc := &raw.Lay{
-			MetaFileName: strings.TrimSuffix(entry.Name(), ".lay"),
-		}
-		err = rawSrc.Read(bytes.NewReader(entry.Data()))
-		if err != nil {
-			return fmt.Errorf("read %s: %w", entry.Name(), err)
-		}
-		def := &EqgLayDef{}
-		err := def.FromRaw(wce, rawSrc)
-		if err != nil {
-			return fmt.Errorf("lay: %w", err)
-		}
-		wce.LayDefs = append(wce.LayDefs, def)
 	case ".pts":
 		rawSrc := &raw.Pts{
 			MetaFileName: strings.TrimSuffix(entry.Name(), ".pts"),
@@ -153,7 +139,34 @@ func (wce *Wce) readEqgEntry(entry *pfs.FileEntry) error {
 			return fmt.Errorf("prt: %w", err)
 		}
 		wce.PrtDefs = append(wce.PrtDefs, def)
-
+	case ".lod":
+		rawSrc := &raw.Lod{
+			MetaFileName: strings.TrimSuffix(entry.Name(), ".lod"),
+		}
+		err = rawSrc.Read(bytes.NewReader(entry.Data()))
+		if err != nil {
+			return fmt.Errorf("read %s: %w", entry.Name(), err)
+		}
+		def := &EqgLodDef{}
+		err := def.FromRaw(wce, rawSrc)
+		if err != nil {
+			return fmt.Errorf("lod: %w", err)
+		}
+		wce.LodDefs = append(wce.LodDefs, def)
+	case ".lay":
+		rawSrc := &raw.Lay{
+			MetaFileName: strings.TrimSuffix(entry.Name(), ".lay"),
+		}
+		err = rawSrc.Read(bytes.NewReader(entry.Data()))
+		if err != nil {
+			return fmt.Errorf("read %s: %w", entry.Name(), err)
+		}
+		def := &EqgLayDef{}
+		err := def.FromRaw(wce, rawSrc)
+		if err != nil {
+			return fmt.Errorf("lay: %w", err)
+		}
+		wce.LayDefs = append(wce.LayDefs, def)
 	default:
 		return nil
 	}
@@ -324,6 +337,27 @@ func (wce *Wce) WriteEqgRaw(archive *pfs.Pfs) error {
 			return fmt.Errorf("add prt: %w", err)
 		}
 
+	}
+
+	for _, lod := range wce.LodDefs {
+		buf := &bytes.Buffer{}
+		dst := &raw.Lod{
+			MetaFileName: lod.Tag,
+		}
+
+		err = lod.ToRaw(wce, dst)
+		if err != nil {
+			return fmt.Errorf("lod to raw: %w", err)
+		}
+
+		err := dst.Write(buf)
+		if err != nil {
+			return fmt.Errorf("lod write: %w", err)
+		}
+		err = archive.Add(lod.Tag+".lod", buf.Bytes())
+		if err != nil {
+			return fmt.Errorf("add lod: %w", err)
+		}
 	}
 
 	return nil

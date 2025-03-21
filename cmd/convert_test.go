@@ -33,7 +33,7 @@ func TestDoubleConvertQuail(t *testing.T) {
 	}
 	dirTest := helper.DirTest()
 
-	keyword := "dbx"
+	keyword := "ggy"
 
 	err := runConvertE([]string{
 		fmt.Sprintf("%s/%s.eqg", eqPath, keyword),
@@ -56,4 +56,12 @@ func TestDoubleConvertQuail(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	err = runConvertE([]string{
+		fmt.Sprintf("%s/%s2.quail", dirTest, keyword),
+		fmt.Sprintf("%s/%s2.eqg", dirTest, keyword),
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
 }

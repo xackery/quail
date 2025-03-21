@@ -21,15 +21,15 @@ type Lod struct {
 	Entries      []*LodEntry
 }
 
-// Identity returns the type of the struct
-func (lod *Lod) Identity() string {
-	return "lod"
-}
-
 type LodEntry struct {
 	Category   string
 	ObjectName string
-	Distance   float64
+	Distance   float32
+}
+
+// Identity returns the type of the struct
+func (lod *Lod) Identity() string {
+	return "lod"
 }
 
 func (lod *Lod) Read(r io.ReadSeeker) error {
@@ -84,7 +84,7 @@ func (lod *Lod) Read(r io.ReadSeeker) error {
 			if err != nil {
 				return fmt.Errorf("line %d lod %0.3f (%s) is not a number", lineNumber, val, records[2])
 			}
-			entry.Distance = val
+			entry.Distance = float32(val)
 		}
 		if len(records) < 2 {
 			return fmt.Errorf("line %d expected at least 2 entries, got %d", lineNumber, len(records))

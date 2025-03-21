@@ -55,6 +55,13 @@ func Open(name string, r io.ReadSeeker) (interface{}, error) {
 			return nil, fmt.Errorf("particle.Decode: %w", err)
 		}
 		return prt, nil
+	case ".lod":
+		lod := &raw.Lod{}
+		err = lod.Read(r)
+		if err != nil {
+			return nil, fmt.Errorf("lod.Decode: %w", err)
+		}
+		return lod, nil
 	case ".lay":
 		lay := &raw.Lay{}
 		err = lay.Read(r)

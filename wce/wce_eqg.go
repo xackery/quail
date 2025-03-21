@@ -922,26 +922,18 @@ func (e *EqgMdsDef) Read(token *AsciiReadToken) error {
 			}
 
 			for k := 0; k < numWeights; k++ {
-				_, err = token.ReadProperty("WEIGHT", 0)
+				records, err = token.ReadProperty("WEIGHT", 2)
 				if err != nil {
 					return fmt.Errorf("vertex %d weight %d: %w", j, k, err)
 				}
 				weight := &ModBoneWeight{}
 
-				records, err = token.ReadProperty("BONEINDEX", 1)
-				if err != nil {
-					return fmt.Errorf("vertex %d weight %d boneindex: %w", j, k, err)
-				}
 				err = parse(&weight.BoneIndex, records[1])
 				if err != nil {
 					return fmt.Errorf("vertex %d weight %d boneindex: %w", j, k, err)
 				}
 
-				records, err = token.ReadProperty("VALUE", 1)
-				if err != nil {
-					return fmt.Errorf("vertex %d weight %d value: %w", j, k, err)
-				}
-				err = parse(&weight.Value, records[1])
+				err = parse(&weight.Value, records[2])
 				if err != nil {
 					return fmt.Errorf("vertex %d weight %d value: %w", j, k, err)
 				}
@@ -1033,16 +1025,6 @@ func (e *EqgMdsDef) Read(token *AsciiReadToken) error {
 			}
 
 			model.Faces = append(model.Faces, face)
-		}
-
-		records, err = token.ReadProperty("NUMWEIGHTS", 1)
-		if err != nil {
-			return fmt.Errorf("model %d numbonesassignments: %w", i, err)
-		}
-		numBoneAssignments := 0
-		err = parse(&numBoneAssignments, records[1])
-		if err != nil {
-			return fmt.Errorf("model %d numbonesassignments: %w", i, err)
 		}
 
 		e.Models = append(e.Models, model)
@@ -2012,11 +1994,6 @@ func (e *EqgLayDef) Write(token *AsciiWriteToken) error {
 		if err != nil {
 			return err
 		}
-		if token.TagIsWritten(e.Tag) {
-			return nil
-		}
-
-		token.TagSetIsWritten(e.Tag)
 
 		fmt.Fprintf(w, "%s \"%s\"\n", e.Definition(), e.Tag)
 		fmt.Fprintf(w, "\tVERSION %d\n", e.Version)
@@ -2536,6 +2513,127 @@ func (e *EqgParticleRenderDef) FromRaw(wce *Wce, src *raw.Prt) error {
 			UnknownC:        render.UnknownC,
 		}
 		e.Renders = append(e.Renders, prtEntry)
+	}
+
+	return nil
+}
+
+// EqgLodDef represents an eqg .lod file
+type EqgLodDef struct {
+	folders []string
+	Tag     string
+	Lods    []*LodEntry
+}
+
+type LodEntry struct {
+	Category   string
+	ObjectName string
+	Distance   float32
+}
+
+func (e *EqgLodDef) Definition() string {
+	return "EQGLODDEF"
+}
+
+func (e *EqgLodDef) Write(token *AsciiWriteToken) error {
+	for _, folder := range e.folders {
+		err := token.SetWriter(folder)
+		if err != nil {
+			return err
+		}
+		w, err := token.Writer()
+		if err != nil {
+			return err
+		}
+
+		fmt.Fprintf(w, "%s \"%s\"\n", e.Definition(), e.Tag)
+		fmt.Fprintf(w, "\tNUMLODS %d\n", len(e.Lods))
+		for _, lod := range e.Lods {
+			fmt.Fprintf(w, "\t\tLOD \"%s\"\n", lod.ObjectName)
+			fmt.Fprintf(w, "\t\t\tCATEGORY \"%s\"\n", lod.Category)
+			fmt.Fprintf(w, "\t\t\tDISTANCE \"%0.8e\"\n", lod.Distance)
+		}
+		fmt.Fprintf(w, "\n")
+
+		token.TagSetIsWritten(e.Tag)
+	}
+	return nil
+
+}
+
+func (e *EqgLodDef) Read(token *AsciiReadToken) error {
+
+	records, err := token.ReadProperty("NUMLODS", 1)
+	if err != nil {
+		return err
+	}
+
+	numEntries := 0
+	err = parse(&numEntries, records[1])
+	if err != nil {
+		return fmt.Errorf("num entries: %w", err)
+	}
+
+	for i := 0; i < numEntries; i++ {
+		lod := &LodEntry{}
+
+		records, err = token.ReadProperty("LOD", 1)
+		if err != nil {
+			return fmt.Errorf("entry %d name: %w", i, err)
+		}
+
+		lod.ObjectName = records[1]
+
+		records, err = token.ReadProperty("CATEGORY", 1)
+		if err != nil {
+			return fmt.Errorf("entry %d category: %w", i, err)
+		}
+
+		lod.Category = records[1]
+
+		records, err = token.ReadProperty("DISTANCE", 1)
+		if err != nil {
+			return fmt.Errorf("entry %d distance: %w", i, err)
+		}
+
+		err = parse(&lod.Distance, records[1])
+		if err != nil {
+			return fmt.Errorf("entry %d distance: %w", i, err)
+		}
+
+		e.Lods = append(e.Lods, lod)
+	}
+
+	return nil
+}
+
+func (e *EqgLodDef) ToRaw(wce *Wce, dst *raw.Lod) error {
+	dst.MetaFileName = e.Tag
+
+	for _, lod := range e.Lods {
+		lodEntry := &raw.LodEntry{
+			Category:   lod.Category,
+			ObjectName: lod.ObjectName,
+			Distance:   lod.Distance,
+		}
+		dst.Entries = append(dst.Entries, lodEntry)
+	}
+
+	return nil
+}
+
+func (e *EqgLodDef) FromRaw(wce *Wce, src *raw.Lod) error {
+	folder := strings.TrimSuffix(strings.ToLower(wce.FileName), ".eqg")
+	e.folders = append(e.folders, folder)
+	e.Tag = src.MetaFileName
+
+	for _, lod := range src.Entries {
+		lodEntry := &LodEntry{
+			Category:   lod.Category,
+			ObjectName: lod.ObjectName,
+			Distance:   lod.Distance,
+		}
+		e.Lods = append(e.Lods, lodEntry)
 	}
 
 	return nil

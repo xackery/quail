@@ -209,6 +209,8 @@ func (a *AsciiReadToken) readDefinitions() error {
 		&EqgMdsDef{},
 		&EqgModDef{},
 		&EqgTerDef{},
+		&EqgLodDef{},
+		&EqgLayDef{},
 		&ParticleCloudDef{},
 		&PointLight{},
 		&PolyhedronDefinition{},
@@ -501,7 +503,7 @@ func (a *AsciiReadToken) readDefinitions() error {
 				}
 				frag.Tag = args[1]
 				a.wce.ModDefs = append(a.wce.ModDefs, frag)
-				definitions[i] = &EqgMdsDef{}
+				definitions[i] = &EqgModDef{}
 			case *EqgTerDef:
 				if len(args) == 1 {
 					return fmt.Errorf("definition %s has no arguments", defName)
@@ -516,6 +518,13 @@ func (a *AsciiReadToken) readDefinitions() error {
 				frag.Tag = args[1]
 				a.wce.AniDefs = append(a.wce.AniDefs, frag)
 				definitions[i] = &EqgAniDef{}
+			case *EqgLodDef:
+				if len(args) == 1 {
+					return fmt.Errorf("definition %s has no arguments", defName)
+				}
+				frag.Tag = args[1]
+				a.wce.LodDefs = append(a.wce.LodDefs, frag)
+				definitions[i] = &EqgLodDef{}
 			case *EqgLayDef:
 				if len(args) == 1 {
 					return fmt.Errorf("definition %s has no arguments", defName)
