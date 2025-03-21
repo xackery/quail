@@ -64,6 +64,7 @@ func TestAniWrite(t *testing.T) {
 		name    string
 		wantErr bool
 	}{
+		{name: "dbx.eqg"},
 		// .ani|1|sidl_ba_1_tln.ani|tln.eqg
 		//{name: "tln.eqg"}, // PASS
 		// .ani|2|stnd_ba_1_exo.ani|exo.eqg

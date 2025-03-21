@@ -35,7 +35,7 @@ func (ani *Ani) Write(w io.Writer) error {
 
 	for _, bone := range ani.Bones {
 		enc.Uint32(uint32(len(bone.Frames)))
-		enc.Int32(ani.name.indexByName(bone.Name))
+		enc.Int32(ani.name.offsetByName(bone.Name))
 		for _, frame := range bone.Frames {
 			enc.Uint32(frame.Milliseconds)
 			enc.Float32(frame.Translation[0])
