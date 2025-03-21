@@ -2094,7 +2094,7 @@ func (e *EqgParticlePointDef) Write(token *AsciiWriteToken) error {
 		fmt.Fprintf(w, "\tVERSION %d\n", e.Version)
 		fmt.Fprintf(w, "\tNUMPOINTS %d\n", len(e.Points))
 		for i, point := range e.Points {
-			fmt.Fprintf(w, "\t\tPOINT \"%s\"// %d\n", point.Name, i)
+			fmt.Fprintf(w, "\t\tPOINT \"%s\" // %d\n", point.Name, i)
 			fmt.Fprintf(w, "\t\t\tBONENAME \"%s\"\n", point.BoneName)
 			fmt.Fprintf(w, "\t\t\tTRANSLATION %0.8e %0.8e %0.8e\n", point.Translation[0], point.Translation[1], point.Translation[2])
 			fmt.Fprintf(w, "\t\t\tROTATION %0.8e %0.8e %0.8e\n", point.Rotation[0], point.Rotation[1], point.Rotation[2])
@@ -2228,6 +2228,7 @@ type ParticleRenderEntry struct {
 	ID              uint32
 	ID2             uint32
 	ParticlePoint   string
+	ParticleSuffix  string
 	UnknownA1       uint32
 	UnknownA2       uint32
 	UnknownA3       uint32
@@ -2261,6 +2262,7 @@ func (e *EqgParticleRenderDef) Write(token *AsciiWriteToken) error {
 			fmt.Fprintf(w, "\t\tRENDER %d // %d\n", render.ID, i)
 			fmt.Fprintf(w, "\t\t\tID2 %d\n", render.ID2)
 			fmt.Fprintf(w, "\t\t\tPARTICLEPOINT \"%s\"\n", render.ParticlePoint)
+			fmt.Fprintf(w, "\t\t\tPARTICLESUFFIX \"%s\"\n", render.ParticleSuffix)
 			fmt.Fprintf(w, "\t\t\tUNKNOWNA1 %d\n", render.UnknownA1)
 			fmt.Fprintf(w, "\t\t\tUNKNOWNA2 %d\n", render.UnknownA2)
 			fmt.Fprintf(w, "\t\t\tUNKNOWNA3 %d\n", render.UnknownA3)
@@ -2328,6 +2330,12 @@ func (e *EqgParticleRenderDef) Read(token *AsciiReadToken) error {
 			return fmt.Errorf("entry %d particlepoint: %w", i, err)
 		}
 		render.ParticlePoint = records[1]
+
+		records, err = token.ReadProperty("PARTICLESUFFIX", 1)
+		if err != nil {
+			return fmt.Errorf("entry %d particlesuffix: %w", i, err)
+		}
+		render.ParticleSuffix = records[1]
 
 		records, err = token.ReadProperty("UNKNOWNA1", 1)
 		if err != nil {
@@ -2423,6 +2431,7 @@ func (e *EqgParticleRenderDef) ToRaw(wce *Wce, dst *raw.Prt) error {
 			ID:              render.ID,
 			ID2:             render.ID2,
 			ParticlePoint:   render.ParticlePoint,
+			ParticleSuffix:  render.ParticleSuffix,
 			UnknownA1:       render.UnknownA1,
 			UnknownA2:       render.UnknownA2,
 			UnknownA3:       render.UnknownA3,
@@ -2450,6 +2459,7 @@ func (e *EqgParticleRenderDef) FromRaw(wce *Wce, src *raw.Prt) error {
 			ID:              render.ID,
 			ID2:             render.ID2,
 			ParticlePoint:   render.ParticlePoint,
+			ParticleSuffix:  render.ParticleSuffix,
 			UnknownA1:       render.UnknownA1,
 			UnknownA2:       render.UnknownA2,
 			UnknownA3:       render.UnknownA3,

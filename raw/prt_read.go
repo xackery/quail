@@ -2,6 +2,7 @@ package raw
 
 import (
 	"encoding/binary"
+	"encoding/hex"
 	"fmt"
 	"io"
 
@@ -17,10 +18,10 @@ type Prt struct {
 
 // PrtEntry is  ParticleRender entry
 type PrtEntry struct {
-	ID            uint32
-	ID2           uint32
-	ParticlePoint string
-	//ParticlePointSuffix []byte
+	ID              uint32
+	ID2             uint32
+	ParticlePoint   string
+	ParticleSuffix  string
 	UnknownA1       uint32
 	UnknownA2       uint32
 	UnknownA3       uint32
@@ -74,7 +75,8 @@ func (prt *Prt) Read(r io.ReadSeeker) error {
 		}
 
 		entry.ParticlePoint = dec.StringZero()
-		_ = dec.Bytes(64 - len(entry.ParticlePoint) - 1) // was entry.ParticlePointSuffix
+		data := dec.Bytes(64 - len(entry.ParticlePoint) - 1) // was entry.ParticlePointSuffix
+		entry.ParticleSuffix = hex.EncodeToString(data)
 
 		entry.UnknownA1 = dec.Uint32()
 		entry.UnknownA2 = dec.Uint32()

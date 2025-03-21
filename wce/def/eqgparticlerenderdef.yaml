@@ -33,6 +33,12 @@ properties:
           - name: ""
             note: ""
             format: "%s"
+      - name: "PARTICLESUFFIX"
+        note: ""
+        args:
+          - name: ""
+            note: ""
+            format: "%s"
       - name: "UNKNOWNA1"
         note: ""
         args:
