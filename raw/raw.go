@@ -78,6 +78,8 @@ func New(ext string) ReadWriter {
 		return &Tga{}
 	case ".bat":
 		return &Txt{}
+	case ".db":
+		return &Txt{}
 	default:
 		return nil
 	}

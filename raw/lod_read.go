@@ -29,33 +29,49 @@ func (lod *Lod) Identity() string {
 type LodEntry struct {
 	Category   string
 	ObjectName string
-	Distance   int
+	Distance   float64
 }
 
 func (lod *Lod) Read(r io.ReadSeeker) error {
+	var err error
+	line := ""
 
-	// read all of r as a string
-	buf := make([]byte, 1024)
-	var str string
-	for {
-		n, err := r.Read(buf)
-		if err != nil {
-			break
-		}
-		str += string(buf[:n])
-	}
-
-	// split by newline
-	lines := strings.Split(str, "\n")
-	if strings.TrimSpace(lines[0]) != "EQLOD" {
-		return fmt.Errorf("header does not match EQLOD, got %s", lines[0])
-	}
+	lineNumber := 0
 
 	lod.Entries = []*LodEntry{}
-	// parse each line
-	for i := 1; i < len(lines); i++ {
-		line := strings.TrimSpace(lines[i])
-		// split into commas
+
+	hasHeader := false
+	isNewline := false
+	for {
+		if isNewline {
+			line = ""
+			isNewline = false
+		}
+		chunk := make([]byte, 1)
+		_, err = r.Read(chunk)
+		if err != nil {
+			if err == io.EOF {
+				return nil
+			}
+			break
+		}
+		line += string(chunk)
+		if chunk[0] != '\n' {
+			continue
+		}
+		line = strings.TrimSuffix(line, "\n")
+		line = strings.TrimSuffix(line, "\r")
+
+		lineNumber++
+		isNewline = true
+		if !hasHeader {
+			if line != "EQLOD" {
+				return fmt.Errorf("invalid header %s, wanted EQLOD", line)
+			}
+			hasHeader = true
+			continue
+		}
+
 		records := strings.Split(line, ",")
 		if len(records) == 1 {
 			continue
@@ -64,14 +80,14 @@ func (lod *Lod) Read(r io.ReadSeeker) error {
 			Distance: 0,
 		}
 		if len(records) > 2 {
-			val, err := strconv.Atoi(records[2])
+			val, err := strconv.ParseFloat(records[2], 32)
 			if err != nil {
-				return fmt.Errorf("line %d lod %d is not a number", i, val)
+				return fmt.Errorf("line %d lod %0.3f (%s) is not a number", lineNumber, val, records[2])
 			}
 			entry.Distance = val
 		}
 		if len(records) < 2 {
-			return fmt.Errorf("line %d expected at least 2 entries, got %d", i, len(records))
+			return fmt.Errorf("line %d expected at least 2 entries, got %d", lineNumber, len(records))
 		}
 
 		entry.Category = records[0]
