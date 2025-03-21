@@ -126,6 +126,23 @@ func (mod *Mod) Write(w io.Writer) error {
 		enc.Float32(bone.Scale[2])
 	}
 
+	if len(mod.Bones) > 0 {
+		for i := 0; i < len(mod.Vertices); i++ {
+			vert := mod.Vertices[i]
+			enc.Int32(int32(len(vert.Weights)))
+			for j := 0; j < int(4); j++ {
+				if j >= len(vert.Weights) {
+					enc.Int32(0)
+					enc.Float32(0)
+					continue
+				}
+
+				enc.Int32(vert.Weights[j].BoneIndex)
+				enc.Float32(vert.Weights[j].Value)
+			}
+		}
+	}
+
 	err = enc.Error()
 	if err != nil {
 		return fmt.Errorf("encode: %w", err)

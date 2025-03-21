@@ -18,6 +18,16 @@ type Mod struct {
 	name         *eqgName
 }
 
+// ModVertex is a vertex
+type ModVertex struct {
+	Position [3]float32
+	Normal   [3]float32
+	Tint     [4]uint8
+	Uv       [2]float32
+	Uv2      [2]float32
+	Weights  []*ModBoneWeight
+}
+
 // ModBone is a bone
 type ModBone struct {
 	Name          string
@@ -27,6 +37,11 @@ type ModBone struct {
 	Pivot         [3]float32
 	Quaternion    [4]float32
 	Scale         [3]float32
+}
+
+type ModBoneWeight struct {
+	BoneIndex int32
+	Value     float32
 }
 
 // ModFace is a triangle
@@ -65,15 +80,6 @@ type ModMaterialParam struct {
 type ModMaterialAnimation struct {
 	Sleep    uint32
 	Textures []string
-}
-
-// ModVertex is a vertex
-type ModVertex struct {
-	Position [3]float32
-	Normal   [3]float32
-	Tint     [4]uint8
-	Uv       [2]float32
-	Uv2      [2]float32
 }
 
 type ModFaceFlag uint32
@@ -223,6 +229,23 @@ func (mod *Mod) Read(r io.ReadSeeker) error {
 		bone.Scale[2] = dec.Float32()
 
 		mod.Bones = append(mod.Bones, bone)
+	}
+
+	if bonesCount > 0 {
+		for i := 0; i < int(verticesCount); i++ {
+			count := dec.Int32()
+			mod.Vertices[i].Weights = []*ModBoneWeight{}
+			for j := 0; j < int(4); j++ {
+				weight := &ModBoneWeight{
+					BoneIndex: dec.Int32(),
+					Value:     dec.Float32(),
+				}
+				if j >= int(count) {
+					continue
+				}
+				mod.Vertices[i].Weights = append(mod.Vertices[i].Weights, weight)
+			}
+		}
 	}
 
 	if dec.Error() != nil {

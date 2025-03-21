@@ -19,21 +19,16 @@ type Mds struct {
 	name   *eqgName
 }
 
+type MdsModel struct {
+	MainPiece uint32 // 0: no, 1: yes, head is a mainpiece
+	Name      string
+	Vertices  []*ModVertex
+	Faces     []*ModFace
+	BoneCount uint32
+}
+
 func (mds *Mds) Identity() string {
 	return "mds"
-}
-
-type MdsModel struct {
-	MainPiece       uint32 // 0: no, 1: yes, head is a mainpiece
-	Name            string
-	Vertices        []*ModVertex
-	Faces           []*ModFace
-	BoneAssignments [][4]*MdsBoneWeight
-}
-
-type MdsBoneWeight struct {
-	BoneIndex int32
-	Value     float32
 }
 
 func (mds *Mds) String() string {
@@ -155,15 +150,13 @@ func (mds *Mds) Read(r io.ReadSeeker) error {
 	//verticesCount := dec.Uint32()
 	//triangleCount := dec.Uint32()
 
-	//boneAssignmentCount := dec.Uint32()
-
 	for i := 0; i < int(modelCount); i++ {
 		model := &MdsModel{}
 		model.MainPiece = dec.Uint32()
 		model.Name = mds.name.byOffset(dec.Int32())
 		verticesCount := dec.Uint32()
 		faceCount := dec.Uint32()
-		boneAssignmentCount := dec.Uint32()
+		model.BoneCount = dec.Uint32()
 		for i := 0; i < int(verticesCount); i++ {
 			v := &ModVertex{}
 			v.Position[0] = dec.Float32()
@@ -211,20 +204,21 @@ func (mds *Mds) Read(r io.ReadSeeker) error {
 			model.Faces = append(model.Faces, f)
 		}
 
-		if boneAssignmentCount > 99999 {
-			return fmt.Errorf("bone assignment count too high: %d", boneAssignmentCount)
-		}
-
-		for i := 0; i < int(boneAssignmentCount); i++ {
-			_ = dec.Uint32() //weightCount
-			weights := [4]*MdsBoneWeight{}
-			for j := 0; j < int(4); j++ {
-				weight := &MdsBoneWeight{}
-				weight.BoneIndex = dec.Int32()
-				weight.Value = dec.Float32()
-				weights[j] = weight
+		if model.BoneCount > 0 {
+			for i := 0; i < int(verticesCount); i++ {
+				count := dec.Int32()
+				model.Vertices[i].Weights = []*ModBoneWeight{}
+				for j := 0; j < int(4); j++ {
+					weight := &ModBoneWeight{
+						BoneIndex: dec.Int32(),
+						Value:     dec.Float32(),
+					}
+					if j < int(count) {
+						continue
+					}
+					model.Vertices[i].Weights = append(model.Vertices[i].Weights, weight)
+				}
 			}
-			model.BoneAssignments = append(model.BoneAssignments, weights)
 		}
 
 		mds.Models = append(mds.Models, model)

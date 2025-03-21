@@ -24,6 +24,7 @@ type ModVertex struct {
 	Tint     [4]uint8
 	Uv       [2]float32
 	Uv2      [2]float32
+	Weights  []*ModBoneWeight
 }
 
 type ModFace struct {
@@ -92,6 +93,10 @@ func (e *EqgModDef) Write(token *AsciiWriteToken) error {
 			fmt.Fprintf(w, "\t\t\tUV2 %0.8e %0.8e\n", vert.Uv2[0], vert.Uv2[1])
 			fmt.Fprintf(w, "\t\t\tNORMAL %0.8e %0.8e %0.8e\n", vert.Normal[0], vert.Normal[1], vert.Normal[2])
 			fmt.Fprintf(w, "\t\t\tTINT %d %d %d %d\n", vert.Tint[0], vert.Tint[1], vert.Tint[2], vert.Tint[3])
+			fmt.Fprintf(w, "\t\t\tNUMWEIGHTS %d\n", len(vert.Weights))
+			for _, weight := range vert.Weights {
+				fmt.Fprintf(w, "\t\t\t\tWEIGHT %d %0.8e\n", weight.BoneIndex, weight.Value)
+			}
 		}
 
 		fmt.Fprintf(w, "\tNUMFACES %d\n", len(e.Faces))
@@ -225,6 +230,33 @@ func (e *EqgModDef) Read(token *AsciiReadToken) error {
 		err = parse(&vertex.Tint, records[1:]...)
 		if err != nil {
 			return fmt.Errorf("vertex %d tint: %w", j, err)
+		}
+
+		records, err = token.ReadProperty("NUMWEIGHTS", 1)
+		if err != nil {
+			return fmt.Errorf("vertex %d numweights: %w", j, err)
+		}
+		numWeights := 0
+		err = parse(&numWeights, records[1])
+		if err != nil {
+			return fmt.Errorf("vertex %d numweights: %w", j, err)
+		}
+
+		for i := 0; i < numWeights; i++ {
+			weight := &ModBoneWeight{}
+			records, err = token.ReadProperty("WEIGHT", 2)
+			if err != nil {
+				return fmt.Errorf("vertex %d weight %d: %w", j, i, err)
+			}
+			err = parse(&weight.BoneIndex, records[1])
+			if err != nil {
+				return fmt.Errorf("vertex %d weight %d: %w", j, i, err)
+			}
+			err = parse(&weight.Value, records[2])
+			if err != nil {
+				return fmt.Errorf("vertex %d weight %d: %w", j, i, err)
+			}
+			vertex.Weights = append(vertex.Weights, weight)
 		}
 
 		e.Vertices = append(e.Vertices, vertex)
@@ -452,6 +484,17 @@ func (e *EqgModDef) ToRaw(wce *Wce, dst *raw.Mod) error {
 		}
 		dst.Bones = append(dst.Bones, rawBone)
 	}
+	if len(dst.Bones) > 0 {
+		for i := 0; i < len(e.Vertices); i++ {
+			srcVert := e.Vertices[i]
+			for _, weight := range srcVert.Weights {
+				dst.Vertices[i].Weights = append(dst.Vertices[i].Weights, &raw.ModBoneWeight{
+					BoneIndex: weight.BoneIndex,
+					Value:     weight.Value,
+				})
+			}
+		}
+	}
 
 	return nil
 }
@@ -522,6 +565,18 @@ func (e *EqgModDef) FromRaw(wce *Wce, src *raw.Mod) error {
 		e.Bones = append(e.Bones, ModBone)
 	}
 
+	if len(src.Bones) > 0 {
+		for i := 0; i < len(src.Vertices); i++ {
+			srcVert := src.Vertices[i]
+			for _, weight := range srcVert.Weights {
+				e.Vertices[i].Weights = append(e.Vertices[i].Weights, &ModBoneWeight{
+					BoneIndex: weight.BoneIndex,
+					Value:     weight.Value,
+				})
+			}
+		}
+	}
+
 	return nil
 }
 
@@ -546,11 +601,11 @@ type MdsBone struct {
 }
 
 type EqgMdsModel struct {
-	MainPiece       uint32 // 0: no, 1: yes, head is a mainpiece
-	Name            string
-	Vertices        []*ModVertex
-	Faces           []*MdsFace
-	BoneAssignments [][4]*MdsBoneWeight
+	MainPiece uint32 // 0: no, 1: yes, head is a mainpiece
+	Name      string
+	Vertices  []*ModVertex
+	Faces     []*MdsFace
+	BoneCount uint32
 }
 
 type MdsFace struct {
@@ -563,7 +618,7 @@ type MdsFace struct {
 	Degenerate   int
 }
 
-type MdsBoneWeight struct {
+type ModBoneWeight struct {
 	BoneIndex int32
 	Value     float32
 }
@@ -626,6 +681,10 @@ func (e *EqgMdsDef) Write(token *AsciiWriteToken) error {
 				fmt.Fprintf(w, "\t\t\t\t\t\tUV2 %0.8e %0.8e\n", vert.Uv2[0], vert.Uv2[1])
 				fmt.Fprintf(w, "\t\t\t\t\t\tNORMAL %0.8e %0.8e %0.8e\n", vert.Normal[0], vert.Normal[1], vert.Normal[2])
 				fmt.Fprintf(w, "\t\t\t\t\t\tTINT %d %d %d %d\n", vert.Tint[0], vert.Tint[1], vert.Tint[2], vert.Tint[3])
+				fmt.Fprintf(w, "\t\t\t\t\t\tNUMWEIGHTS %d\n", len(vert.Weights))
+				for _, weight := range vert.Weights {
+					fmt.Fprintf(w, "\t\t\t\t\t\t\tWEIGHT %d %0.8e\n", weight.BoneIndex, weight.Value)
+				}
 			}
 
 			fmt.Fprintf(w, "\t\t\tNUMFACES %d\n", len(model.Faces))
@@ -638,10 +697,6 @@ func (e *EqgMdsDef) Write(token *AsciiWriteToken) error {
 				fmt.Fprintf(w, "\t\t\t\t\tCOLLISIONREQUIRED %d\n", face.Collision)
 				fmt.Fprintf(w, "\t\t\t\t\tCULLED %d\n", face.Culled)
 				fmt.Fprintf(w, "\t\t\t\t\tDEGENERATE %d\n", face.Degenerate)
-			}
-			fmt.Fprintf(w, "\t\t\tNUMWEIGHTS %d\n", len(model.BoneAssignments))
-			for _, weights := range model.BoneAssignments {
-				fmt.Fprintf(w, "\t\t\t\tWEIGHT %d %0.8e %d %0.8e %d %0.8e %d %0.8e \n", weights[0].BoneIndex, weights[0].Value, weights[1].BoneIndex, weights[1].Value, weights[2].BoneIndex, weights[2].Value, weights[3].BoneIndex, weights[3].Value)
 			}
 		}
 		fmt.Fprintf(w, "\n")
@@ -854,6 +909,46 @@ func (e *EqgMdsDef) Read(token *AsciiReadToken) error {
 				return fmt.Errorf("vertex %d tint: %w", j, err)
 			}
 
+			records, err = token.ReadProperty("NUMWEIGHTS", 1)
+			if err != nil {
+				return fmt.Errorf("vertex %d numweights: %w", j, err)
+			}
+
+			numWeights := 0
+
+			err = parse(&numWeights, records[1])
+			if err != nil {
+				return fmt.Errorf("vertex %d numweights: %w", j, err)
+			}
+
+			for k := 0; k < numWeights; k++ {
+				_, err = token.ReadProperty("WEIGHT", 0)
+				if err != nil {
+					return fmt.Errorf("vertex %d weight %d: %w", j, k, err)
+				}
+				weight := &ModBoneWeight{}
+
+				records, err = token.ReadProperty("BONEINDEX", 1)
+				if err != nil {
+					return fmt.Errorf("vertex %d weight %d boneindex: %w", j, k, err)
+				}
+				err = parse(&weight.BoneIndex, records[1])
+				if err != nil {
+					return fmt.Errorf("vertex %d weight %d boneindex: %w", j, k, err)
+				}
+
+				records, err = token.ReadProperty("VALUE", 1)
+				if err != nil {
+					return fmt.Errorf("vertex %d weight %d value: %w", j, k, err)
+				}
+				err = parse(&weight.Value, records[1])
+				if err != nil {
+					return fmt.Errorf("vertex %d weight %d value: %w", j, k, err)
+				}
+
+				vertex.Weights = append(vertex.Weights, weight)
+			}
+
 			model.Vertices = append(model.Vertices, vertex)
 
 		}
@@ -950,34 +1045,6 @@ func (e *EqgMdsDef) Read(token *AsciiReadToken) error {
 			return fmt.Errorf("model %d numbonesassignments: %w", i, err)
 		}
 
-		for j := 0; j < numBoneAssignments; j++ {
-
-			weights := [4]*MdsBoneWeight{}
-			records, err = token.ReadProperty("WEIGHT", 8)
-			if err != nil {
-				return fmt.Errorf("model %d boneassignment %d: %w", i, j, err)
-			}
-
-			for k := 0; k < 4; k++ {
-				var val1 int32
-				var val2 float32
-				err = parse(&val1, records[1+k*2])
-				if err != nil {
-					return fmt.Errorf("model %d boneassignment %d: %w", i, j, err)
-				}
-				err = parse(&val2, records[2+k*2])
-				if err != nil {
-					return fmt.Errorf("model %d boneassignment %d: %w", i, j, err)
-				}
-				weights[k] = &MdsBoneWeight{
-					BoneIndex: val1,
-					Value:     val2,
-				}
-			}
-
-			model.BoneAssignments = append(model.BoneAssignments, weights)
-		}
-
 		e.Models = append(e.Models, model)
 	}
 
@@ -1045,20 +1112,20 @@ func (e *EqgMdsDef) ToRaw(wce *Wce, dst *raw.Mds) error {
 
 			rawModel.Faces = append(rawModel.Faces, rawFace)
 		}
-		for _, weights := range model.BoneAssignments {
-			rawWeights := [4]*raw.MdsBoneWeight{}
-			for i := 0; i < 4; i++ {
-				rawWeights[i] = &raw.MdsBoneWeight{}
-				if i >= len(weights) {
-					continue
-				}
-				weight := weights[i]
-				rawWeights[i].BoneIndex = weight.BoneIndex
-				rawWeights[i].Value = weight.Value
-			}
 
-			rawModel.BoneAssignments = append(rawModel.BoneAssignments, rawWeights)
+		rawModel.BoneCount = model.BoneCount
+		if model.BoneCount > 0 {
+			for i := 0; i < len(model.Vertices); i++ {
+				srcVert := model.Vertices[i]
+				for _, weight := range srcVert.Weights {
+					rawModel.Vertices[i].Weights = append(rawModel.Vertices[i].Weights, &raw.ModBoneWeight{
+						BoneIndex: weight.BoneIndex,
+						Value:     weight.Value,
+					})
+				}
+			}
 		}
+
 		dst.Models = append(dst.Models, rawModel)
 	}
 
@@ -1130,19 +1197,17 @@ func (e *EqgMdsDef) FromRaw(wce *Wce, src *raw.Mds) error {
 
 			mdsModel.Faces = append(mdsModel.Faces, mdsFace)
 		}
-		for _, weights := range model.BoneAssignments {
-			mdsWeights := [4]*MdsBoneWeight{}
-			for i := 0; i < 4; i++ {
-				mdsWeight := &MdsBoneWeight{}
-				if i >= len(weights) {
-					continue
+
+		if model.BoneCount > 0 {
+			for i := 0; i < len(model.Vertices); i++ {
+				srcVert := model.Vertices[i]
+				for _, weight := range srcVert.Weights {
+					mdsModel.Vertices[i].Weights = append(mdsModel.Vertices[i].Weights, &ModBoneWeight{
+						BoneIndex: weight.BoneIndex,
+						Value:     weight.Value,
+					})
 				}
-				weight := weights[i]
-				mdsWeight.BoneIndex = weight.BoneIndex
-				mdsWeight.Value = weight.Value
-				mdsWeights[i] = mdsWeight
 			}
-			mdsModel.BoneAssignments = append(mdsModel.BoneAssignments, mdsWeights)
 		}
 		e.Models = append(e.Models, mdsModel)
 	}

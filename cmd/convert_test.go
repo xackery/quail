@@ -33,23 +33,25 @@ func TestDoubleConvertQuail(t *testing.T) {
 	}
 	dirTest := helper.DirTest()
 
+	keyword := "dbx"
+
 	err := runConvertE([]string{
-		fmt.Sprintf("%s/dbx.eqg", eqPath),
-		fmt.Sprintf("%s/dbx.quail", dirTest),
+		fmt.Sprintf("%s/%s.eqg", eqPath, keyword),
+		fmt.Sprintf("%s/%s.quail", dirTest, keyword),
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
 	err = runConvertE([]string{
-		fmt.Sprintf("%s/dbx.quail", dirTest),
-		fmt.Sprintf("%s/dbx.eqg", dirTest),
+		fmt.Sprintf("%s/%s.quail", dirTest, keyword),
+		fmt.Sprintf("%s/%s.eqg", dirTest, keyword),
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
 	err = runConvertE([]string{
-		fmt.Sprintf("%s/dbx.eqg", dirTest),
-		fmt.Sprintf("%s/dbx2.quail", dirTest),
+		fmt.Sprintf("%s/%s.eqg", dirTest, keyword),
+		fmt.Sprintf("%s/%s2.quail", dirTest, keyword),
 	})
 	if err != nil {
 		t.Fatal(err)
