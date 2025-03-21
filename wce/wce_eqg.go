@@ -84,14 +84,14 @@ func (e *EqgModDef) Write(token *AsciiWriteToken) error {
 				fmt.Fprintf(w, "\t\t\t\tTEXTURE \"%s\"", anim)
 			}
 		}
-		fmt.Fprintf(w, "\t\t\tNUMVERTICES %d\n", len(e.Vertices))
+		fmt.Fprintf(w, "\tNUMVERTICES %d\n", len(e.Vertices))
 		for i, vert := range e.Vertices {
-			fmt.Fprintf(w, "\t\t\t\t\tVERTEX // %d\n", i)
-			fmt.Fprintf(w, "\t\t\t\t\t\tXYZ %0.8e %0.8e %0.8e\n", vert.Position[0], vert.Position[1], vert.Position[2])
-			fmt.Fprintf(w, "\t\t\t\t\t\tUV %0.8e %0.8e\n", vert.Uv[0], vert.Uv[1])
-			fmt.Fprintf(w, "\t\t\t\t\t\tUV2 %0.8e %0.8e\n", vert.Uv2[0], vert.Uv2[1])
-			fmt.Fprintf(w, "\t\t\t\t\t\tNORMAL %0.8e %0.8e %0.8e\n", vert.Normal[0], vert.Normal[1], vert.Normal[2])
-			fmt.Fprintf(w, "\t\t\t\t\t\tTINT %d %d %d %d\n", vert.Tint[0], vert.Tint[1], vert.Tint[2], vert.Tint[3])
+			fmt.Fprintf(w, "\t\tVERTEX // %d\n", i)
+			fmt.Fprintf(w, "\t\t\tXYZ %0.8e %0.8e %0.8e\n", vert.Position[0], vert.Position[1], vert.Position[2])
+			fmt.Fprintf(w, "\t\t\tUV %0.8e %0.8e\n", vert.Uv[0], vert.Uv[1])
+			fmt.Fprintf(w, "\t\t\tUV2 %0.8e %0.8e\n", vert.Uv2[0], vert.Uv2[1])
+			fmt.Fprintf(w, "\t\t\tNORMAL %0.8e %0.8e %0.8e\n", vert.Normal[0], vert.Normal[1], vert.Normal[2])
+			fmt.Fprintf(w, "\t\t\tTINT %d %d %d %d\n", vert.Tint[0], vert.Tint[1], vert.Tint[2], vert.Tint[3])
 		}
 
 		fmt.Fprintf(w, "\tNUMFACES %d\n", len(e.Faces))
@@ -108,8 +108,7 @@ func (e *EqgModDef) Write(token *AsciiWriteToken) error {
 
 		fmt.Fprintf(w, "\tNUMBONES %d\n", len(e.Bones))
 		for i, bone := range e.Bones {
-			fmt.Fprintf(w, "\t\tBONE // %d\n", i)
-			fmt.Fprintf(w, "\t\t\tNAME \"%s\"\n", bone.Name)
+			fmt.Fprintf(w, "\t\tBONE \"%s\"// %d\n", bone.Name, i)
 			fmt.Fprintf(w, "\t\t\tNEXT %d\n", bone.Next)
 			fmt.Fprintf(w, "\t\t\tCHILDREN %d\n", bone.ChildrenCount)
 			fmt.Fprintf(w, "\t\t\tCHILDINDEX %d\n", bone.ChildIndex)
@@ -323,14 +322,10 @@ func (e *EqgModDef) Read(token *AsciiReadToken) error {
 	}
 
 	for i := 0; i < numBones; i++ {
-		_, err = token.ReadProperty("BONE", 0)
+		bone := &ModBone{}
+		records, err = token.ReadProperty("BONE", 1)
 		if err != nil {
 			return fmt.Errorf("bone %d: %w", i, err)
-		}
-		bone := &ModBone{}
-		records, err = token.ReadProperty("NAME", 1)
-		if err != nil {
-			return fmt.Errorf("bone %d name: %w", i, err)
 		}
 		bone.Name = records[1]
 
