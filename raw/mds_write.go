@@ -141,7 +141,7 @@ func (mds *Mds) Write(w io.Writer) error {
 			enc.Uint32(tri.Flags)
 		}
 
-		if model.BoneCount > 0 {
+		if len(mds.Bones) > 0 {
 			for i := 0; i < len(model.Vertices); i++ {
 				vert := model.Vertices[i]
 				enc.Int32(int32(len(vert.Weights)))
