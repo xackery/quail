@@ -138,6 +138,22 @@ properties:
           - name: ""
             note: ""
             format: "%d"
+      - name: "NUMWEIGHTS"
+        note: ""
+        args:
+          - name: ""
+            note: ""
+            format: "%d"
+        properties:
+          - name: "WEIGHT"
+            note: ""
+            args:
+              - name: ""
+                note: ""
+                format: "%d"
+              - name: ""
+                note: ""
+                format: "%0.8e"
   - name: "NUMFACES"
     note: ""
     args:
