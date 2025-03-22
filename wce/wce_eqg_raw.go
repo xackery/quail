@@ -111,20 +111,6 @@ func (wce *Wce) readEqgEntry(entry *pfs.FileEntry) error {
 			return fmt.Errorf("ani: %w", err)
 		}
 		wce.AniDefs = append(wce.AniDefs, def)
-	case ".lay":
-		rawSrc := &raw.Lay{
-			MetaFileName: strings.TrimSuffix(entry.Name(), ".lay"),
-		}
-		err = rawSrc.Read(bytes.NewReader(entry.Data()))
-		if err != nil {
-			return fmt.Errorf("read %s: %w", entry.Name(), err)
-		}
-		def := &EqgLayDef{}
-		err := def.FromRaw(wce, rawSrc)
-		if err != nil {
-			return fmt.Errorf("lay: %w", err)
-		}
-		wce.LayDefs = append(wce.LayDefs, def)
 	case ".pts":
 		rawSrc := &raw.Pts{
 			MetaFileName: strings.TrimSuffix(entry.Name(), ".pts"),
@@ -153,7 +139,34 @@ func (wce *Wce) readEqgEntry(entry *pfs.FileEntry) error {
 			return fmt.Errorf("prt: %w", err)
 		}
 		wce.PrtDefs = append(wce.PrtDefs, def)
-
+	case ".lod":
+		rawSrc := &raw.Lod{
+			MetaFileName: strings.TrimSuffix(entry.Name(), ".lod"),
+		}
+		err = rawSrc.Read(bytes.NewReader(entry.Data()))
+		if err != nil {
+			return fmt.Errorf("read %s: %w", entry.Name(), err)
+		}
+		def := &EqgLodDef{}
+		err := def.FromRaw(wce, rawSrc)
+		if err != nil {
+			return fmt.Errorf("lod: %w", err)
+		}
+		wce.LodDefs = append(wce.LodDefs, def)
+	case ".lay":
+		rawSrc := &raw.Lay{
+			MetaFileName: strings.TrimSuffix(entry.Name(), ".lay"),
+		}
+		err = rawSrc.Read(bytes.NewReader(entry.Data()))
+		if err != nil {
+			return fmt.Errorf("read %s: %w", entry.Name(), err)
+		}
+		def := &EqgLayDef{}
+		err := def.FromRaw(wce, rawSrc)
+		if err != nil {
+			return fmt.Errorf("lay: %w", err)
+		}
+		wce.LayDefs = append(wce.LayDefs, def)
 	default:
 		return nil
 	}
@@ -166,6 +179,11 @@ func (wce *Wce) WriteEqgRaw(archive *pfs.Pfs) error {
 		return fmt.Errorf("archive is nil")
 	}
 	var err error
+
+	err = wce.convertWldToEQG()
+	if err != nil {
+		return fmt.Errorf("convert wld to eqg: %w", err)
+	}
 
 	for _, mds := range wce.MdsDefs {
 		buf := &bytes.Buffer{}
@@ -321,6 +339,27 @@ func (wce *Wce) WriteEqgRaw(archive *pfs.Pfs) error {
 
 	}
 
+	for _, lod := range wce.LodDefs {
+		buf := &bytes.Buffer{}
+		dst := &raw.Lod{
+			MetaFileName: lod.Tag,
+		}
+
+		err = lod.ToRaw(wce, dst)
+		if err != nil {
+			return fmt.Errorf("lod to raw: %w", err)
+		}
+
+		err := dst.Write(buf)
+		if err != nil {
+			return fmt.Errorf("lod write: %w", err)
+		}
+		err = archive.Add(lod.Tag+".lod", buf.Bytes())
+		if err != nil {
+			return fmt.Errorf("add lod: %w", err)
+		}
+	}
+
 	return nil
 }
 
@@ -346,4 +385,75 @@ func writeEqgMaterials(srcMaterials []*EQMaterialDef) ([]*raw.ModMaterial, error
 		dstMaterials = append(dstMaterials, mat)
 	}
 	return dstMaterials, nil
+}
+
+func (wce *Wce) convertWldToEQG() error {
+	//var err error
+
+	// Write spell blit particles? (SPB)
+	for _, blitSprite := range wce.BlitSpriteDefs {
+		prt := &EqgParticleRenderDef{
+			Tag: blitSprite.Tag,
+		}
+		wce.PrtDefs = append(wce.PrtDefs, prt)
+	}
+
+	// Write other particle cloud blits
+	//for _, blitSprite := range wce.BlitSpriteDefs {
+	//}
+
+	// Write spell effect actordefs
+	//for _, actorDef := range wce.ActorDefs {
+	//}
+
+	// Write particle clouds
+	//for _, cloudDef := range wce.ParticleCloudDefs {
+	//	}
+
+	// Write other blits (for 2D Sprites and stuff)
+	//for _, blitSprite := range wce.BlitSpriteDefs {
+	//}
+
+	// Write out CHR_EYE materials
+	//	for _, matDef := range wce.MaterialDefs {
+	//	}
+
+	//for _, dmSprite := range wce.DMSpriteDef2s {
+	//}
+
+	//for _, dmSprite := range wce.DMSpriteDefs {
+	//}
+
+	//for _, hiSprite := range wce.HierarchicalSpriteDefs {
+	//}
+
+	//for _, light := range wce.PointLights {
+	//}
+
+	//for _, sprite := range wce.Sprite3DDefs {
+	//}
+
+	//for _, tree := range wce.WorldTrees {
+	//}
+
+	//for _, region := range wce.Regions {
+	//}
+
+	//for _, alight := range wce.AmbientLights {
+	//}
+
+	//for _, actor := range wce.ActorInsts {
+	//}
+
+	//for _, track := range wce.TrackInstances {
+	//}
+
+	// Write non-spell effect actordefs
+	//for _, actorDef := range wce.ActorDefs {
+	//}
+
+	//for _, zone := range wce.Zones {
+	//}
+
+	return nil
 }

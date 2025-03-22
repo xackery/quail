@@ -103,7 +103,7 @@ func (mds *Mds) Write(w io.Writer) error {
 		enc.Int32(mds.name.offsetByName(model.Name))
 		enc.Uint32(uint32(len(model.Vertices)))
 		enc.Uint32(uint32(len(model.Faces)))
-		enc.Uint32(uint32(len(model.BoneAssignments)))
+		enc.Uint32(model.BoneCount)
 
 		for _, vert := range model.Vertices {
 			enc.Float32(vert.Position[0])
@@ -141,15 +141,19 @@ func (mds *Mds) Write(w io.Writer) error {
 			enc.Uint32(tri.Flags)
 		}
 
-		for _, weights := range model.BoneAssignments {
-			enc.Uint32(uint32(len(weights)))
-			for i := 0; i < 4; i++ {
-				if i < len(weights) {
-					enc.Int32(weights[i].BoneIndex)
-					enc.Float32(weights[i].Value)
-				} else {
-					enc.Int32(0)
-					enc.Float32(0)
+		if len(mds.Bones) > 0 {
+			for i := 0; i < len(model.Vertices); i++ {
+				vert := model.Vertices[i]
+				enc.Int32(int32(len(vert.Weights)))
+				for j := 0; j < int(4); j++ {
+					if j >= len(vert.Weights) {
+						enc.Int32(0)
+						enc.Float32(0)
+						continue
+					}
+
+					enc.Int32(vert.Weights[j].BoneIndex)
+					enc.Float32(vert.Weights[j].Value)
 				}
 			}
 		}

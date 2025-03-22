@@ -2,6 +2,7 @@ package raw
 
 import (
 	"encoding/binary"
+	"encoding/hex"
 	"fmt"
 	"io"
 
@@ -22,7 +23,12 @@ func (prt *Prt) Write(w io.Writer) error {
 		}
 
 		enc.StringZero(entry.ParticlePoint)
-		enc.Bytes(make([]byte, 64-len(entry.ParticlePoint)))
+
+		data, err := hex.DecodeString(entry.ParticleSuffix)
+		if err != nil {
+			return fmt.Errorf("decode: %w", err)
+		}
+		enc.Bytes(data)
 		enc.Uint32(entry.UnknownA1)
 		enc.Uint32(entry.UnknownA2)
 		enc.Uint32(entry.UnknownA3)
@@ -33,6 +39,7 @@ func (prt *Prt) Write(w io.Writer) error {
 		enc.Int32(entry.UnknownFFFFFFFF)
 		enc.Uint32(entry.UnknownC)
 	}
+
 	err := enc.Error()
 	if err != nil {
 		return fmt.Errorf("encode: %w", err)

@@ -18,11 +18,12 @@ func TestLodRead(t *testing.T) {
 	}
 	dirTest := helper.DirTest()
 
-	// TODO: add lod
 	tests := []struct {
 		name    string
 		lodName string
-	}{}
+	}{
+		{name: "ggy.eqg", lodName: "ggy.lod"},
+	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -31,7 +32,7 @@ func TestLodRead(t *testing.T) {
 				t.Fatalf("failed to open eqg %s: %s", tt.name, err.Error())
 			}
 			for _, file := range pfs.Files() {
-				if filepath.Ext(file.Name()) != ".lay" {
+				if filepath.Ext(file.Name()) != ".lod" {
 					continue
 				}
 				lod := &Lod{}
@@ -56,7 +57,9 @@ func TestLodWrite(t *testing.T) {
 	tests := []struct {
 		name    string
 		lodName string
-	}{}
+	}{
+		{name: "ggy.eqg", lodName: "ggy.lod"},
+	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -65,7 +68,7 @@ func TestLodWrite(t *testing.T) {
 				t.Fatalf("failed to open eqg %s: %s", tt.name, err.Error())
 			}
 			for _, file := range pfs.Files() {
-				if filepath.Ext(file.Name()) != ".lay" {
+				if filepath.Ext(file.Name()) != ".lod" {
 					continue
 				}
 				lod := &Lod{}
@@ -97,7 +100,7 @@ func TestLodWrite(t *testing.T) {
 						t.Fatalf("category mismatch: %s != %s", lod.Entries[i].Category, lod2.Entries[i].Category)
 					}
 					if lod.Entries[i].Distance != lod2.Entries[i].Distance {
-						t.Fatalf("distance mismatch: %d != %d", lod.Entries[i].Distance, lod2.Entries[i].Distance)
+						t.Fatalf("distance mismatch: %0.2f != %0.2f", lod.Entries[i].Distance, lod2.Entries[i].Distance)
 					}
 
 					if lod.Entries[i].ObjectName != lod2.Entries[i].ObjectName {

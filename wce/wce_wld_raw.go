@@ -294,6 +294,12 @@ func readRawFrag(e *Wce, rawWld *raw.Wld, fragment helper.FragmentReadWriter, fo
 
 func (wce *Wce) WriteWldRaw(w io.Writer) error {
 	var err error
+
+	err = wce.convertEQGToWld()
+	if err != nil {
+		return fmt.Errorf("convert eqg to wld: %w", err)
+	}
+
 	dst := &raw.Wld{
 		IsNewWorld: false,
 	}
@@ -651,4 +657,30 @@ func appendUnique(slice []string, value string) []string {
 		}
 	}
 	return append(slice, value)
+}
+
+func (wce *Wce) convertEQGToWld() error {
+
+	//for _, mds := range wce.MdsDefs {
+	//}
+
+	//for _, mod := range wce.ModDefs {
+	//}
+
+	//for _, ter := range wce.TerDefs {
+	//}
+
+	//for _, ani := range wce.AniDefs {
+	//}
+
+	//for _, lay := range wce.LayDefs {
+	//}
+
+	//for _, pts := range wce.PtsDefs {
+
+	//}
+
+	//for _, prt := range wce.PrtDefs {
+	//}
+	return nil
 }

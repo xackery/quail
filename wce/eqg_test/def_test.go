@@ -13,6 +13,7 @@ var tests = []struct {
 	//{baseName: "it12043"},
 	//{baseName: "mrd"}, //v1 mds
 	{baseName: "sin"}, //v1 mds
+	//{baseName: "dbx"}, //v1 mod
 	//{baseName: "ork"}, //v1 mds
 	//{baseName: "arena"},
 	//{baseName: "commonlands"},

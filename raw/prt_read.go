@@ -2,6 +2,7 @@ package raw
 
 import (
 	"encoding/binary"
+	"encoding/hex"
 	"fmt"
 	"io"
 
@@ -15,17 +16,12 @@ type Prt struct {
 	Entries      []*PrtEntry
 }
 
-// Identity returns the type of the struct
-func (prt *Prt) Identity() string {
-	return "prt"
-}
-
 // PrtEntry is  ParticleRender entry
 type PrtEntry struct {
-	ID            uint32
-	ID2           uint32
-	ParticlePoint string
-	//ParticlePointSuffix []byte
+	ID              uint32
+	ID2             uint32
+	ParticlePoint   string
+	ParticleSuffix  string
 	UnknownA1       uint32
 	UnknownA2       uint32
 	UnknownA3       uint32
@@ -35,6 +31,24 @@ type PrtEntry struct {
 	UnknownB        uint32
 	UnknownFFFFFFFF int32
 	UnknownC        uint32
+}
+
+// Identity returns the type of the struct
+func (prt *Prt) Identity() string {
+	return "prt"
+}
+
+func (prt *Prt) String() string {
+	out := ""
+	out += fmt.Sprintf("metafilename: %s\n", prt.MetaFileName)
+	out += fmt.Sprintf("version: %d\n", prt.Version)
+	out += fmt.Sprintf("entries: %d\n", len(prt.Entries))
+	for i, entry := range prt.Entries {
+		out += fmt.Sprintf("  %d: %s %d %d %d %d %d\n", i, entry.ParticlePoint, entry.ID, entry.ID2, entry.Duration, entry.UnknownA1, entry.UnknownA2)
+
+	}
+	return out
+
 }
 
 // Read reads a PRT file
@@ -61,7 +75,8 @@ func (prt *Prt) Read(r io.ReadSeeker) error {
 		}
 
 		entry.ParticlePoint = dec.StringZero()
-		_ = dec.Bytes(64 - len(entry.ParticlePoint) - 1) // was entry.ParticlePointSuffix
+		data := dec.Bytes(64 - len(entry.ParticlePoint) - 1) // was entry.ParticlePointSuffix
+		entry.ParticleSuffix = hex.EncodeToString(data)
 
 		entry.UnknownA1 = dec.Uint32()
 		entry.UnknownA2 = dec.Uint32()

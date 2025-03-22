@@ -91,6 +91,7 @@ func TestLayWrite(t *testing.T) {
 		args    args
 		wantErr bool
 	}{
+		{name: "ggy.eqg"},
 		// .lay|2|crs.lay|crs.eqg crs.eqg pfs import: readPrt crs.lay: 1 names materialID 0x41400000 not found
 		//{name: "crs.eqg"}, // PASS
 		// .lay|2|ddv.lay|ddv.eqg ddv.eqg pfs import: readPrt ddv.lay: 1 names materialID 0x42800000 not found

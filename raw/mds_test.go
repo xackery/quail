@@ -19,12 +19,14 @@ func TestMdsRead(t *testing.T) {
 		file    string
 		wantErr bool
 	}{
+		{eqg: "ggy.eqg", file: "ggy.mds"}, // PASS
+
 		// .mds|1|aam.mds|aam.eqg
 		//{eqg: "aam.eqg", file: "aam.mds"}, // PASS
 		// .mds|1|ae3.mds|ae3.eqg
 		//{eqg: "ae3.eqg", file: "ae3.mds"}, // PASS
 		//{eqg: "djf.eqg", file: "djf.mds"}, // PASS
-		{eqg: "mrd.eqg", file: "mrd.mds"}, // PASS
+		//{eqg: "mrd.eqg", file: "mrd.mds"}, // PASS
 		// .mds|1|bcn.mds|harbingers.eqg
 		//{eqg: "harbingers.eqg", file: "bcn.mds"}, // PASS
 		// .mds|1|stnd_gnome_wave.mds|it12095.eqg
@@ -61,7 +63,11 @@ func TestMdsWrite(t *testing.T) {
 		file    string
 		wantErr bool
 	}{
-		{eqg: "mrd.eqg", file: "mrd.mds"}, // PASS
+		{eqg: "it12095.eqg", file: "it12095.mds"}, // PASS
+
+		//{eqg: "ggy.eqg", file: "ggy.mds"}, // PASS
+
+		//{eqg: "mrd.eqg", file: "mrd.mds"}, // PASS
 		// .mds|1|aam.mds|aam.eqg
 		//{eqg: "aam.eqg", file: "aam.mds"}, // PASS
 		// .mds|1|ae3.mds|ae3.eqg

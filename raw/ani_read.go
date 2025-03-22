@@ -33,6 +33,21 @@ type AniBoneFrame struct {
 	Scale        [3]float32
 }
 
+func (ani *Ani) String() string {
+	out := ""
+	out += fmt.Sprintf("metafilename %s\n", ani.MetaFileName)
+	out += fmt.Sprintf("version %d\n", ani.Version)
+	out += fmt.Sprintf("strict %t\n", ani.IsStrict)
+	out += fmt.Sprintf("bones %d\n", len(ani.Bones))
+	if len(ani.Bones) == 0 {
+		return out
+	}
+	out += fmt.Sprintf("frames per bone %d", len(ani.Bones[0].Frames))
+
+	return out
+
+}
+
 // Read an ANI file
 func (ani *Ani) Read(r io.ReadSeeker) error {
 	if ani.name == nil {

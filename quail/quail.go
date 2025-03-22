@@ -60,6 +60,13 @@ func Open(name string, r io.ReadSeeker) (interface{}, error) {
 			return nil, fmt.Errorf("particle.Decode: %w", err)
 		}
 		return prt, nil
+	case ".lod":
+		lod := &raw.Lod{}
+		err = lod.Read(r)
+		if err != nil {
+			return nil, fmt.Errorf("lod.Decode: %w", err)
+		}
+		return lod, nil
 	case ".lay":
 		lay := &raw.Lay{}
 		err = lay.Read(r)
@@ -127,6 +134,8 @@ func Open(name string, r io.ReadSeeker) (interface{}, error) {
 			return nil, fmt.Errorf("wld.Decode: %w", err)
 		}
 		return wld, nil
+	case ".db":
+		return nil, nil
 	case ".sph":
 		return nil, nil
 	case ".sps": // map file, safely ignored

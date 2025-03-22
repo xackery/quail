@@ -18,6 +18,16 @@ type Mod struct {
 	name         *eqgName
 }
 
+// ModVertex is a vertex
+type ModVertex struct {
+	Position [3]float32
+	Normal   [3]float32
+	Tint     [4]uint8
+	Uv       [2]float32
+	Uv2      [2]float32
+	Weights  []*ModBoneWeight
+}
+
 // ModBone is a bone
 type ModBone struct {
 	Name          string
@@ -27,6 +37,11 @@ type ModBone struct {
 	Pivot         [3]float32
 	Quaternion    [4]float32
 	Scale         [3]float32
+}
+
+type ModBoneWeight struct {
+	BoneIndex int32
+	Value     float32
 }
 
 // ModFace is a triangle
@@ -67,15 +82,6 @@ type ModMaterialAnimation struct {
 	Textures []string
 }
 
-// ModVertex is a vertex
-type ModVertex struct {
-	Position [3]float32
-	Normal   [3]float32
-	Tint     [4]uint8
-	Uv       [2]float32
-	Uv2      [2]float32
-}
-
 type ModFaceFlag uint32
 
 const (
@@ -89,6 +95,17 @@ const (
 
 func (mod *Mod) Identity() string {
 	return "mod"
+}
+
+func (mod *Mod) String() string {
+	out := ""
+	out += fmt.Sprintf("metafilename: %s\n", mod.MetaFileName)
+	out += fmt.Sprintf("version: %d\n", mod.Version)
+	out += fmt.Sprintf("materials: %d\n", len(mod.Materials))
+	out += fmt.Sprintf("vertices: %d\n", len(mod.Vertices))
+	out += fmt.Sprintf("faces: %d\n", len(mod.Faces))
+	out += fmt.Sprintf("bones: %d", len(mod.Bones))
+	return out
 }
 
 // Decode reads a MOD file
@@ -212,6 +229,23 @@ func (mod *Mod) Read(r io.ReadSeeker) error {
 		bone.Scale[2] = dec.Float32()
 
 		mod.Bones = append(mod.Bones, bone)
+	}
+
+	if bonesCount > 0 {
+		for i := 0; i < int(verticesCount); i++ {
+			count := dec.Int32()
+			mod.Vertices[i].Weights = []*ModBoneWeight{}
+			for j := 0; j < int(4); j++ {
+				weight := &ModBoneWeight{
+					BoneIndex: dec.Int32(),
+					Value:     dec.Float32(),
+				}
+				if j >= int(count) {
+					continue
+				}
+				mod.Vertices[i].Weights = append(mod.Vertices[i].Weights, weight)
+			}
+		}
 	}
 
 	if dec.Error() != nil {
