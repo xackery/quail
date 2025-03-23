@@ -120,6 +120,11 @@ func TestTerWrite(t *testing.T) {
 				t.Fatalf("failed to write %s: %s", tt.name, err.Error())
 			}
 
+			fmt.Println("src size:", len(data))
+			fmt.Println("dst size:", buf.Len())
+
+			os.WriteFile(fmt.Sprintf("%s/%s", helper.DirTest(), tt.name), buf.Bytes(), 0644)
+
 			ter2 := &Ter{}
 			err = ter2.Read(bytes.NewReader(buf.Bytes()))
 			if err != nil {
@@ -137,6 +142,11 @@ func TestTerWrite(t *testing.T) {
 			if len(ter2.Faces) != len(ter.Faces) {
 				t.Fatalf("%s write: triangle count mismatch %d vs %d", tt.name, len(ter2.Faces), len(ter.Faces))
 			}
+
+			// err = helper.ByteCompareTest(data, buf.Bytes())
+			// if err != nil {
+			// 	t.Fatalf("%s byteCompare: %s", tt.name, err)
+			// }
 
 		})
 	}

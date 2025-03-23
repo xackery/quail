@@ -1471,7 +1471,7 @@ func (e *EqgTerDef) ToRaw(wce *Wce, dst *raw.Ter) error {
 	}
 
 	for _, vert := range e.Vertices {
-		rawVertex := &raw.ModVertex{
+		rawVertex := &raw.TerVertex{
 			Position: vert.Position,
 			Normal:   vert.Normal,
 			Tint:     vert.Tint,

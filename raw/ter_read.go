@@ -12,9 +12,18 @@ type Ter struct {
 	MetaFileName string
 	Version      uint32
 	Materials    []*ModMaterial
-	Vertices     []*ModVertex
+	Vertices     []*TerVertex
 	Faces        []ModFace
 	name         *eqgName
+}
+
+// TerVertex is a vertex
+type TerVertex struct {
+	Position [3]float32
+	Normal   [3]float32
+	Tint     [4]uint8
+	Uv       [2]float32
+	Uv2      [2]float32
 }
 
 // Identity returns the type of the struct
@@ -31,56 +40,53 @@ func (ter *Ter) Read(r io.ReadSeeker) error {
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 
 	header := dec.StringFixed(4)
-	if header != "EQGT" {
-		return fmt.Errorf("invalid header %s, wanted EQGT", header)
-	}
-
 	ter.Version = dec.Uint32()
+	if header != "EQGT" {
+		return fmt.Errorf("invalid header %s on version %d, wanted EQGT", header, ter.Version)
+	}
 
 	nameLength := int(dec.Uint32())
 	materialCount := dec.Uint32()
 	verticesCount := dec.Uint32()
-	triangleCount := dec.Uint32()
+	faceCount := dec.Uint32()
 	nameData := dec.Bytes(int(nameLength))
 	ter.name.parse(nameData)
 
-	nameCounter := 0
 	for i := 0; i < int(materialCount); i++ {
 		material := &ModMaterial{}
 		material.ID = dec.Int32()
-		nameCounter++
 
 		material.Name = ter.name.byOffset(dec.Int32())
 		material.EffectName = ter.name.byOffset(dec.Int32())
 
 		ter.Materials = append(ter.Materials, material)
 
-		propertyCount := dec.Uint32()
-		for j := 0; j < int(propertyCount); j++ {
-			property := &ModMaterialParam{
+		paramCount := dec.Uint32()
+		for j := 0; j < int(paramCount); j++ {
+			param := &ModMaterialParam{
 				Name: material.Name,
 			}
 
-			property.Name = ter.name.byOffset(dec.Int32())
+			param.Name = ter.name.byOffset(dec.Int32())
 
-			property.Type = MaterialParamType(dec.Uint32())
-			if property.Type == 0 {
-				property.Value = fmt.Sprintf("%0.8f", dec.Float32())
+			param.Type = MaterialParamType(dec.Uint32())
+			if param.Type == 0 {
+				param.Value = fmt.Sprintf("%0.8f", dec.Float32())
 			} else {
 				val := dec.Int32()
-				if property.Type == 2 {
-					property.Value = ter.name.byOffset(val)
+				if param.Type == 2 {
+					param.Value = ter.name.byOffset(val)
+
 				} else {
-					property.Value = fmt.Sprintf("%d", val)
+					param.Value = fmt.Sprintf("%d", val)
 				}
 			}
-
-			material.Properties = append(material.Properties, property)
+			material.Properties = append(material.Properties, param)
 		}
 	}
 
 	for i := 0; i < int(verticesCount); i++ {
-		v := &ModVertex{}
+		v := &TerVertex{}
 		v.Position[0] = dec.Float32()
 		v.Position[1] = dec.Float32()
 		v.Position[2] = dec.Float32()
@@ -105,7 +111,7 @@ func (ter *Ter) Read(r io.ReadSeeker) error {
 		ter.Vertices = append(ter.Vertices, v)
 	}
 
-	for i := 0; i < int(triangleCount); i++ {
+	for i := 0; i < int(faceCount); i++ {
 		t := ModFace{}
 		t.Index[0] = dec.Uint32()
 		t.Index[1] = dec.Uint32()
@@ -114,10 +120,7 @@ func (ter *Ter) Read(r io.ReadSeeker) error {
 		materialID := dec.Int32()
 
 		var material *ModMaterial
-		if materialID != -1 {
-			if len(ter.Materials) < int(materialID) {
-				return fmt.Errorf("ter material %d is beyond size of materials (%d)", materialID, len(ter.Materials))
-			}
+		if materialID != -1 && len(ter.Materials) > int(materialID) {
 			material = ter.Materials[materialID]
 			t.MaterialName = material.Name
 		}
