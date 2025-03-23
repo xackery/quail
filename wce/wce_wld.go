@@ -5808,7 +5808,7 @@ func (e *WorldTree) Write(token *AsciiWriteToken) error {
 		fmt.Fprintf(w, "%s \"%s\"\n", e.Definition(), e.Tag)
 		fmt.Fprintf(w, "\tNUMWORLDNODES %d\n", len(e.WorldNodes))
 		for i, node := range e.WorldNodes {
-			fmt.Fprintf(w, "\t\tWORLDNODE // %d\n", i)
+			fmt.Fprintf(w, "\t\tWORLDNODE // %d\n", i+1)
 			fmt.Fprintf(w, "\t\t\tNORMALABCD %0.8e %0.8e %0.8e %0.8e\n", node.Normals[0], node.Normals[1], node.Normals[2], node.Normals[3])
 			fmt.Fprintf(w, "\t\t\tWORLDREGIONTAG \"%s\"\n", node.WorldRegionTag)
 			fmt.Fprintf(w, "\t\t\tFRONTTREE %d\n", node.FrontTree)
