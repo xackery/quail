@@ -57,7 +57,7 @@ func (ter *Ter) Read(r io.ReadSeeker) error {
 		material.ID = dec.Int32()
 
 		material.Name = ter.name.byOffset(dec.Int32())
-		material.EffectName = ter.name.byOffset(dec.Int32())
+		material.ShaderName = ter.name.byOffset(dec.Int32())
 
 		ter.Materials = append(ter.Materials, material)
 

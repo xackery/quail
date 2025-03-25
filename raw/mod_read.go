@@ -54,7 +54,7 @@ type ModFace struct {
 type ModMaterial struct {
 	ID         int32
 	Name       string
-	EffectName string
+	ShaderName string
 	Flags      uint32
 	Properties []*ModMaterialParam
 	Animation  ModMaterialAnimation
@@ -116,7 +116,6 @@ func (mod *Mod) Read(r io.ReadSeeker) error {
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 
 	header := dec.StringFixed(4)
-
 	mod.Version = dec.Uint32()
 	if header != "EQGM" {
 		return fmt.Errorf("invalid header %s on version %d, wanted EQGM", header, mod.Version)
@@ -128,14 +127,13 @@ func (mod *Mod) Read(r io.ReadSeeker) error {
 	faceCount := dec.Uint32()
 	bonesCount := dec.Uint32()
 	nameData := dec.Bytes(int(nameLength))
-
 	mod.name.parse(nameData)
 
 	for i := 0; i < int(materialCount); i++ {
 		material := &ModMaterial{}
 		material.ID = dec.Int32()
 		material.Name = mod.name.byOffset(dec.Int32())
-		material.EffectName = mod.name.byOffset(dec.Int32())
+		material.ShaderName = mod.name.byOffset(dec.Int32())
 		mod.Materials = append(mod.Materials, material)
 
 		paramCount := dec.Uint32()
@@ -199,7 +197,7 @@ func (mod *Mod) Read(r io.ReadSeeker) error {
 
 		var material *ModMaterial
 
-		if materialID != -1 {
+		if materialID != -1 && len(mod.Materials) > 0 {
 			if len(mod.Materials) < int(materialID) {
 				return fmt.Errorf("mod material %d is beyond size of materials (%d)", materialID, len(mod.Materials))
 			}

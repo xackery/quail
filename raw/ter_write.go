@@ -23,7 +23,7 @@ func (ter *Ter) Write(w io.Writer) error {
 
 	for _, material := range ter.Materials {
 		ter.name.add(material.Name)
-		ter.name.add(material.EffectName)
+		ter.name.add(material.ShaderName)
 		for _, prop := range material.Properties {
 			ter.name.add(prop.Name)
 			switch prop.Type {
@@ -44,7 +44,7 @@ func (ter *Ter) Write(w io.Writer) error {
 	for _, material := range ter.Materials {
 		enc.Int32(material.ID)
 		enc.Uint32(uint32(ter.name.indexByName(material.Name)))
-		enc.Uint32(uint32(ter.name.indexByName(material.EffectName)))
+		enc.Uint32(uint32(ter.name.indexByName(material.ShaderName)))
 		enc.Uint32(uint32(len(material.Properties)))
 		for _, prop := range material.Properties {
 			enc.Uint32(uint32(ter.name.indexByName(prop.Name)))

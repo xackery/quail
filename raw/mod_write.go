@@ -23,7 +23,7 @@ func (mod *Mod) Write(w io.Writer) error {
 
 	for _, material := range mod.Materials {
 		mod.name.add(material.Name)
-		mod.name.add(material.EffectName)
+		mod.name.add(material.ShaderName)
 		for _, prop := range material.Properties {
 			mod.name.add(prop.Name)
 			switch prop.Type {
@@ -49,7 +49,7 @@ func (mod *Mod) Write(w io.Writer) error {
 	for _, material := range mod.Materials {
 		enc.Int32(material.ID)
 		enc.Uint32(uint32(mod.name.offsetByName(material.Name)))
-		enc.Uint32(uint32(mod.name.offsetByName(material.EffectName)))
+		enc.Uint32(uint32(mod.name.offsetByName(material.ShaderName)))
 		enc.Uint32(uint32(len(material.Properties)))
 		for _, prop := range material.Properties {
 			enc.Uint32(uint32(mod.name.offsetByName(prop.Name)))
