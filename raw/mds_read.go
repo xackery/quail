@@ -97,7 +97,7 @@ func (mds *Mds) Read(r io.ReadSeeker) error {
 		material := &ModMaterial{}
 		material.ID = dec.Int32()
 		material.Name = mds.name.byOffset(dec.Int32())
-		material.EffectName = mds.name.byOffset(dec.Int32())
+		material.ShaderName = mds.name.byOffset(dec.Int32())
 
 		mds.Materials = append(mds.Materials, material)
 		propertyCount := dec.Uint32()
@@ -185,7 +185,7 @@ func (mds *Mds) Read(r io.ReadSeeker) error {
 			materialID := dec.Int32()
 
 			var material *ModMaterial
-			if materialID != -1 {
+			if materialID != -1 && len(mds.Materials) > 0 {
 				if len(mds.Materials) < int(materialID) {
 					return fmt.Errorf("mds material %d is beyond size of materials (%d)", materialID, len(mds.Materials))
 				}

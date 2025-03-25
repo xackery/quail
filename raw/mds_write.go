@@ -23,7 +23,7 @@ func (mds *Mds) Write(w io.Writer) error {
 
 	for _, material := range mds.Materials {
 		mds.name.add(material.Name)
-		mds.name.add(material.EffectName)
+		mds.name.add(material.ShaderName)
 		for _, prop := range material.Properties {
 			mds.name.add(prop.Name)
 			switch prop.Type {
@@ -54,7 +54,7 @@ func (mds *Mds) Write(w io.Writer) error {
 	for _, material := range mds.Materials {
 		enc.Int32(material.ID)
 		enc.Uint32(uint32(mds.name.offsetByName(material.Name)))
-		enc.Uint32(uint32(mds.name.offsetByName(material.EffectName)))
+		enc.Uint32(uint32(mds.name.offsetByName(material.ShaderName)))
 		enc.Uint32(uint32(len(material.Properties)))
 		for _, prop := range material.Properties {
 			enc.Uint32(uint32(mds.name.offsetByName(prop.Name)))
