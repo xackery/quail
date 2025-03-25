@@ -1860,9 +1860,9 @@ func (e *MaterialDef) Write(token *AsciiWriteToken) error {
 		fmt.Fprintf(w, "\tBRIGHTNESS %0.8e\n", e.Brightness)
 		fmt.Fprintf(w, "\tSCALEDAMBIENT %0.8e\n", e.ScaledAmbient)
 		fmt.Fprintf(w, "\tSIMPLESPRITEINST\n")
-		fmt.Fprintf(w, "\t\tTAG \"%s\"\n", e.SimpleSpriteTag)
+		fmt.Fprintf(w, "\t\tSIMPLESPRITETAG \"%s\"\n", e.SimpleSpriteTag)
 		fmt.Fprintf(w, "\t\tSIMPLESPRITETAGINDEX %d\n", e.SimpleSpriteTagIndex)
-		fmt.Fprintf(w, "\t\tHEXFIFTYFLAG %d\n", e.SpriteHexFiftyFlag)
+		fmt.Fprintf(w, "\t\tSIMPLESPRITEHEXFIFTYFLAG %d\n", e.SpriteHexFiftyFlag)
 		fmt.Fprintf(w, "\tPAIRS? %s %s\n", wcVal(e.Pair1), wcVal(e.Pair2))
 		fmt.Fprintf(w, "\tDOUBLESIDED %d\n", e.DoubleSided)
 		fmt.Fprintf(w, "\n")
@@ -1931,7 +1931,7 @@ func (e *MaterialDef) Read(token *AsciiReadToken) error {
 		return err
 	}
 
-	records, err = token.ReadProperty("TAG", 1)
+	records, err = token.ReadProperty("SIMPLESPRITETAG", 1)
 	if err != nil {
 		return err
 	}
@@ -1946,7 +1946,7 @@ func (e *MaterialDef) Read(token *AsciiReadToken) error {
 		return fmt.Errorf("simple sprite tag index: %w", err)
 	}
 
-	records, err = token.ReadProperty("HEXFIFTYFLAG", 1)
+	records, err = token.ReadProperty("SIMPLESPRITEHEXFIFTYFLAG", 1)
 	if err != nil {
 		return err
 	}

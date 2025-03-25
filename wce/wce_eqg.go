@@ -1705,7 +1705,7 @@ func (e *EQMaterialDef) Read(token *AsciiReadToken) error {
 
 func (e *EQMaterialDef) ToRaw(wce *Wce, dst *raw.ModMaterial) error {
 	dst.Name = e.Tag
-	dst.EffectName = e.ShaderTag
+	dst.ShaderName = e.ShaderTag
 	if e.HexOneFlag == 1 {
 		dst.Flags = 0x01
 	}
@@ -1731,7 +1731,7 @@ func (e *EQMaterialDef) FromRawNoAppend(wce *Wce, src *raw.ModMaterial) error {
 	e.folders = append(e.folders, folder)
 
 	e.Tag = src.Name
-	e.ShaderTag = src.EffectName
+	e.ShaderTag = src.ShaderName
 	if src.Flags&0x01 != 0 {
 		e.HexOneFlag = 1
 	}

@@ -368,7 +368,7 @@ func writeEqgMaterials(srcMaterials []*EQMaterialDef) ([]*raw.ModMaterial, error
 	for _, srcMat := range srcMaterials {
 		mat := &raw.ModMaterial{
 			Name:       srcMat.Tag,
-			EffectName: srcMat.ShaderTag,
+			ShaderName: srcMat.ShaderTag,
 		}
 		if srcMat.HexOneFlag == 1 {
 			mat.Flags &= 1

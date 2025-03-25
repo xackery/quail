@@ -49,7 +49,7 @@ properties:
         format: "%0.8e"
   - name: "SIMPLESPRITEINST"
     note: "Simple sprite instance section"
-  - name: "TAG"
+  - name: "SIMPLESPRITETAG"
     note: "Simple sprite instance tag"
     args:
       - name: "tag"
@@ -61,7 +61,7 @@ properties:
       - name: ""
         note: ""
         format: "%d"
-  - name: "HEXFIFTYFLAG"
+  - name: "SIMPLESPRITEHEXFIFTYFLAG"
     note: "Hex fifty flag"
     args:
       - name: "flag"
