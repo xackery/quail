@@ -43,11 +43,11 @@ func (ter *Ter) Write(w io.Writer) error {
 
 	for _, material := range ter.Materials {
 		enc.Int32(material.ID)
-		enc.Uint32(uint32(ter.name.indexByName(material.Name)))
-		enc.Uint32(uint32(ter.name.indexByName(material.ShaderName)))
+		enc.Uint32(uint32(ter.name.offsetByName(material.Name)))
+		enc.Uint32(uint32(ter.name.offsetByName(material.ShaderName)))
 		enc.Uint32(uint32(len(material.Properties)))
 		for _, prop := range material.Properties {
-			enc.Uint32(uint32(ter.name.indexByName(prop.Name)))
+			enc.Uint32(uint32(ter.name.offsetByName(prop.Name)))
 			enc.Uint32(uint32(prop.Type))
 			switch prop.Type {
 			case 0:
@@ -57,7 +57,7 @@ func (ter *Ter) Write(w io.Writer) error {
 				}
 				enc.Float32(float32(fval))
 			case 2:
-				enc.Int32(ter.name.indexByName(prop.Value))
+				enc.Int32(ter.name.offsetByName(prop.Value))
 			default:
 				return err
 			}
@@ -71,6 +71,13 @@ func (ter *Ter) Write(w io.Writer) error {
 		enc.Float32(vertex.Normal[0])
 		enc.Float32(vertex.Normal[1])
 		enc.Float32(vertex.Normal[2])
+		if ter.Version > 2 {
+			enc.Uint8(vertex.Tint[0])
+			enc.Uint8(vertex.Tint[1])
+			enc.Uint8(vertex.Tint[2])
+			enc.Uint8(vertex.Tint[3])
+		}
+
 		enc.Float32(vertex.Uv[0])
 		enc.Float32(vertex.Uv[1])
 		if ter.Version > 2 {
