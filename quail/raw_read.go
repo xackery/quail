@@ -23,7 +23,7 @@ func (q *Quail) RawRead(in raw.ReadWriter) error {
 		return q.assetRead(val)
 	case *raw.Txt:
 		return q.assetRead(val)
-	case *raw.Mod, *raw.Pts, *raw.Prt, *raw.Mds, *raw.Ter, *raw.Lod, *raw.Lay, *raw.Ani, *raw.Tog:
+	case *raw.Mod, *raw.Pts, *raw.Prt, *raw.Mds, *raw.Ter, *raw.Lod, *raw.Lay, *raw.Ani, *raw.Tog, *raw.Zon:
 		//fmt.Println("ignoring", in.Identity())
 		return nil // ignored, loaded by wce parsre
 	case *raw.Unk:
