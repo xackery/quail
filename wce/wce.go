@@ -56,6 +56,7 @@ type Wce struct {
 	PtsDefs                []*EqgParticlePointDef
 	PrtDefs                []*EqgParticleRenderDef
 	LodDefs                []*EqgLodDef
+	ZonDefs                []*EqgZonDef
 }
 
 type WldDefinitioner interface {
@@ -340,4 +341,9 @@ func (wce *Wce) reset() {
 	wce.MdsDefs = []*EqgMdsDef{}
 	wce.ModDefs = []*EqgModDef{}
 	wce.TerDefs = []*EqgTerDef{}
+	wce.LayDefs = []*EqgLayDef{}
+	wce.PtsDefs = []*EqgParticlePointDef{}
+	wce.PrtDefs = []*EqgParticleRenderDef{}
+	wce.LodDefs = []*EqgLodDef{}
+	wce.ZonDefs = []*EqgZonDef{}
 }

@@ -167,6 +167,21 @@ func (wce *Wce) readEqgEntry(entry *pfs.FileEntry) error {
 			return fmt.Errorf("lay: %w", err)
 		}
 		wce.LayDefs = append(wce.LayDefs, def)
+	case ".zon":
+		rawSrc := &raw.Zon{
+			MetaFileName: strings.TrimSuffix(entry.Name(), ".zon"),
+		}
+		err = rawSrc.Read(bytes.NewReader(entry.Data()))
+		if err != nil {
+			return fmt.Errorf("read %s: %w", entry.Name(), err)
+		}
+		def := &EqgZonDef{}
+		err := def.FromRaw(wce, rawSrc)
+		if err != nil {
+			return fmt.Errorf("zon: %w", err)
+		}
+		wce.ZonDefs = append(wce.ZonDefs, def)
+		wce.WorldDef.Zone = 1
 	default:
 		return nil
 	}
@@ -250,6 +265,31 @@ func (wce *Wce) WriteEqgRaw(archive *pfs.Pfs) error {
 			return fmt.Errorf("add ter: %w", err)
 		}
 
+	}
+
+	if len(wce.ZonDefs) > 1 {
+		return fmt.Errorf("only one zon def is supported")
+	}
+	for _, zon := range wce.ZonDefs {
+		buf := &bytes.Buffer{}
+		dst := &raw.Zon{
+			MetaFileName: zon.Tag,
+			Version:      zon.Version,
+		}
+
+		err = zon.ToRaw(wce, dst)
+		if err != nil {
+			return fmt.Errorf("zon to raw: %w", err)
+		}
+
+		err := dst.Write(buf)
+		if err != nil {
+			return fmt.Errorf("zon write: %w", err)
+		}
+		err = archive.Add(zon.Tag+".zon", buf.Bytes())
+		if err != nil {
+			return fmt.Errorf("add zon: %w", err)
+		}
 	}
 
 	for _, ani := range wce.AniDefs {

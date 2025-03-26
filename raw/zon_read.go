@@ -13,16 +13,12 @@ type Zon struct {
 	MetaFileName string
 	Version      uint32
 	Models       []string
-	Objects      []ZonInstance
-	Regions      []ZonArea
-	Lights       []Light
+	Objects      []ZonObject
+	Regions      []ZonRegion
+	Lights       []ZonLight
 	V4Info       V4Info
 	V4Dat        V4Dat
 	name         *eqgName
-}
-
-func (zon *Zon) Identity() string {
-	return "zon"
 }
 
 type V4Info struct {
@@ -55,8 +51,8 @@ type V4DatTile struct {
 	Colors2 []uint32
 }
 
-// ZonInstance is an object
-type ZonInstance struct {
+// ZonObject is an object
+type ZonObject struct {
 	MeshName     string
 	InstanceName string
 	Translation  [3]float32
@@ -65,8 +61,8 @@ type ZonInstance struct {
 	Lits         []uint32
 }
 
-// ZonArea is a region
-type ZonArea struct {
+// ZonRegion is a region
+type ZonRegion struct {
 	Name     string
 	Position [3]float32
 	Color    [3]float32
@@ -75,12 +71,26 @@ type ZonArea struct {
 	Unk2     uint32
 }
 
-// Light is a light
-type Light struct {
+// ZonLight is a light
+type ZonLight struct {
 	Name     string
 	Position [3]float32
 	Color    [3]float32
 	Radius   float32
+}
+
+func (zon *Zon) Identity() string {
+	return "zon"
+}
+
+func (zon *Zon) String() string {
+	out := ""
+	out += fmt.Sprintf("Version: %d\n", zon.Version)
+	out += fmt.Sprintf("Models: %d\n", len(zon.Models))
+	out += fmt.Sprintf("Objects: %d\n", len(zon.Objects))
+	out += fmt.Sprintf("Regions: %d\n", len(zon.Regions))
+	out += fmt.Sprintf("Lights: %d\n", len(zon.Lights))
+	return out
 }
 
 // Decode reads a ZON file
@@ -119,7 +129,7 @@ func (zon *Zon) Read(r io.ReadSeeker) error {
 	}
 
 	for i := 0; i < int(instanceCount); i++ {
-		instance := ZonInstance{}
+		instance := ZonObject{}
 		meshIndex := dec.Int32()
 
 		if meshIndex >= int32(len(zon.Models)) {
@@ -152,7 +162,7 @@ func (zon *Zon) Read(r io.ReadSeeker) error {
 	}
 
 	for i := 0; i < int(areaCount); i++ {
-		area := ZonArea{}
+		area := ZonRegion{}
 
 		area.Name = zon.name.byOffset(dec.Int32())
 
@@ -175,7 +185,7 @@ func (zon *Zon) Read(r io.ReadSeeker) error {
 	}
 
 	for i := 0; i < int(lightCount); i++ {
-		light := Light{}
+		light := ZonLight{}
 
 		light.Name = zon.name.byOffset(dec.Int32())
 

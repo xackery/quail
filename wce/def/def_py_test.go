@@ -8,47 +8,11 @@ import (
 	"testing"
 
 	"github.com/xackery/quail/helper"
-	"github.com/xackery/quail/wce"
 	"gopkg.in/yaml.v3"
 )
 
 func TestWceGenPython(t *testing.T) {
-
-	defs := []defReadWriter{
-		&wce.ActorDef{},
-		&wce.ActorInst{},
-		&wce.BlitSpriteDef{},
-		&wce.DMSpriteDef{},
-		&wce.DMSpriteDef2{},
-		&wce.GlobalAmbientLightDef{},
-		&wce.MaterialDef{},
-		&wce.MaterialPalette{},
-		&wce.SimpleSpriteDef{},
-		&wce.WorldDef{},
-		&wce.LightDef{},
-		&wce.PointLight{},
-		&wce.Sprite3DDef{},
-		&wce.PolyhedronDefinition{},
-		&wce.TrackInstance{},
-		&wce.TrackDef{},
-		&wce.HierarchicalSpriteDef{},
-		&wce.WorldTree{},
-		&wce.Region{},
-		&wce.AmbientLight{},
-		&wce.Zone{},
-		&wce.RGBTrackDef{},
-		&wce.ParticleCloudDef{},
-		&wce.Sprite2DDef{},
-		&wce.DMTrackDef2{},
-		&wce.EqgModDef{},
-		&wce.EqgMdsDef{},
-		&wce.EqgTerDef{},
-		&wce.EqgAniDef{},
-		&wce.EqgLayDef{},
-		&wce.EqgParticlePointDef{},
-		&wce.EqgParticleRenderDef{},
-	}
-
+	// defs declared in def_md_test.go
 	dirTest := helper.DirTest()
 
 	for _, def := range defs {

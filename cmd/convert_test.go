@@ -33,8 +33,8 @@ func TestDoubleConvertQuail(t *testing.T) {
 	}
 	dirTest := helper.DirTest()
 
-	keyword := "mim_chr"
-	ext := "s3d"
+	keyword := "anguish"
+	ext := "eqg"
 
 	err := runConvertE([]string{
 		fmt.Sprintf("%s/%s.%s", eqPath, keyword, ext),
