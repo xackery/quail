@@ -80,6 +80,10 @@ func New(ext string) ReadWriter {
 		return &Txt{}
 	case ".db":
 		return &Txt{}
+	case ".max":
+		return &Txt{}
+	case ".uvw":
+		return &Txt{}
 	default:
 		return nil
 	}

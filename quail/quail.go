@@ -136,6 +136,10 @@ func Open(name string, r io.ReadSeeker) (interface{}, error) {
 		return wld, nil
 	case ".db":
 		return nil, nil
+	case ".uvw":
+		return nil, nil
+	case ".max":
+		return nil, nil
 	case ".sph":
 		return nil, nil
 	case ".sps": // map file, safely ignored

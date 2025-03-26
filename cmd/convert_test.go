@@ -33,10 +33,11 @@ func TestDoubleConvertQuail(t *testing.T) {
 	}
 	dirTest := helper.DirTest()
 
-	keyword := "ggy"
+	keyword := "mim_chr"
+	ext := "s3d"
 
 	err := runConvertE([]string{
-		fmt.Sprintf("%s/%s.eqg", eqPath, keyword),
+		fmt.Sprintf("%s/%s.%s", eqPath, keyword, ext),
 		fmt.Sprintf("%s/%s.quail", dirTest, keyword),
 	})
 	if err != nil {
@@ -44,13 +45,13 @@ func TestDoubleConvertQuail(t *testing.T) {
 	}
 	err = runConvertE([]string{
 		fmt.Sprintf("%s/%s.quail", dirTest, keyword),
-		fmt.Sprintf("%s/%s.eqg", dirTest, keyword),
+		fmt.Sprintf("%s/%s.%s", dirTest, keyword, ext),
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
 	err = runConvertE([]string{
-		fmt.Sprintf("%s/%s.eqg", dirTest, keyword),
+		fmt.Sprintf("%s/%s.%s", dirTest, keyword, ext),
 		fmt.Sprintf("%s/%s2.quail", dirTest, keyword),
 	})
 	if err != nil {
@@ -58,7 +59,7 @@ func TestDoubleConvertQuail(t *testing.T) {
 	}
 	err = runConvertE([]string{
 		fmt.Sprintf("%s/%s2.quail", dirTest, keyword),
-		fmt.Sprintf("%s/%s2.eqg", dirTest, keyword),
+		fmt.Sprintf("%s/%s2.%s", dirTest, keyword, ext),
 	})
 	if err != nil {
 		t.Fatal(err)
