@@ -91,9 +91,9 @@ build-windows-addon: ## build windows blender addon
 build-wasm: ## build wasm
 	@GOOS=js GOARCH=wasm go build -o wasm/quail.wasm main_wasm.go
 
-build-copy: build-darwin ## used by xackery, build darwin copy and move to blender path
+build-blender: build-linux ## used by xackery, build darwin copy and move to blender path
 	@echo "copying to quail-addons..."
-	cp bin/quail-darwin "/Users/xackery/Library/Application Support/Blender/3.4/scripts/addons/quail-addon/quail-darwin"
+	cp bin/quail-linux ~/.config/blender/4.2/scripts/addons/quail-addon
 
 ##@ Profiling
 
