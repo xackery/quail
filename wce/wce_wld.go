@@ -5143,7 +5143,7 @@ func (e *HierarchicalSpriteDef) Write(token *AsciiWriteToken) error {
 		for i, dag := range e.Dags {
 			fmt.Fprintf(w, "\t\tDAG // %d\n", i)
 			fmt.Fprintf(w, "\t\t\tTAG \"%s\"\n", dag.Tag)
-			fmt.Fprintf(w, "\t\t\tSPRITE \"%s\"\n", dag.SpriteTag)
+			fmt.Fprintf(w, "\t\t\tSPRITETAG \"%s\"\n", dag.SpriteTag)
 			fmt.Fprintf(w, "\t\t\tSPRITEINDEX %d\n", dag.SpriteTagIndex)
 			fmt.Fprintf(w, "\t\t\tTRACK \"%s\"\n", dag.Track)
 			fmt.Fprintf(w, "\t\t\tTRACKINDEX %d\n", dag.TrackIndex)
@@ -5203,7 +5203,7 @@ func (e *HierarchicalSpriteDef) Read(token *AsciiReadToken) error {
 		}
 		dag.Tag = records[1]
 
-		records, err = token.ReadProperty("SPRITE", 1)
+		records, err = token.ReadProperty("SPRITETAG", 1)
 		if err != nil {
 			return err
 		}
@@ -6042,32 +6042,32 @@ func (e *Region) Write(token *AsciiWriteToken) error {
 			fmt.Fprintf(w, "\t\t\tNORMALABCD %0.8e %0.8e %0.8e %0.8e\n", wall.Normal[0], wall.Normal[1], wall.Normal[2], wall.Normal[3])
 			fmt.Fprintf(w, "\t\t\tNUMVERTICES %d\n", len(wall.Vertices))
 			for _, vert := range wall.Vertices {
-				fmt.Fprintf(w, "\t\t\t\tXYZ %0.8e %0.8e %0.8e\n", vert[0], vert[1], vert[2])
+				fmt.Fprintf(w, "\t\t\t\tVXYZ %0.8e %0.8e %0.8e\n", vert[0], vert[1], vert[2])
 			}
 		}
 		fmt.Fprintf(w, "\tNUMOBSTACLES %d\n", len(e.Obstacles))
 		for i, obs := range e.Obstacles {
 			fmt.Fprintf(w, "\t\tOBSTACLE // %d\n", i)
-			fmt.Fprintf(w, "\t\t\tNORMALABCD %0.8e %0.8e %0.8e %0.8e\n", obs.Normal[0], obs.Normal[1], obs.Normal[2], obs.Normal[3])
-			fmt.Fprintf(w, "\t\t\tNUMVERTICES %d\n", len(obs.Vertices))
+			fmt.Fprintf(w, "\t\t\tONORMALABCD %0.8e %0.8e %0.8e %0.8e\n", obs.Normal[0], obs.Normal[1], obs.Normal[2], obs.Normal[3])
+			fmt.Fprintf(w, "\t\t\tNUMOVERTICES %d\n", len(obs.Vertices))
 			for _, vert := range obs.Vertices {
-				fmt.Fprintf(w, "\t\t\t\tXYZ %0.8e %0.8e %0.8e\n", vert[0], vert[1], vert[2])
+				fmt.Fprintf(w, "\t\t\t\tOXYZ %0.8e %0.8e %0.8e\n", vert[0], vert[1], vert[2])
 			}
 		}
 		fmt.Fprintf(w, "\tNUMCUTTINGOBSTACLES %d\n", len(e.CuttingObstacles))
 		for i, obs := range e.CuttingObstacles {
 			fmt.Fprintf(w, "\t\tCUTTINGOBSTACLE // %d\n", i)
-			fmt.Fprintf(w, "\t\t\tNORMALABCD %0.8e %0.8e %0.8e %0.8e\n", obs.Normal[0], obs.Normal[1], obs.Normal[2], obs.Normal[3])
-			fmt.Fprintf(w, "\t\t\tNUMVERTICES %d\n", len(obs.Vertices))
+			fmt.Fprintf(w, "\t\t\tCNORMALABCD %0.8e %0.8e %0.8e %0.8e\n", obs.Normal[0], obs.Normal[1], obs.Normal[2], obs.Normal[3])
+			fmt.Fprintf(w, "\t\t\tNUMCVERTICES %d\n", len(obs.Vertices))
 			for _, vert := range obs.Vertices {
-				fmt.Fprintf(w, "\t\t\t\tXYZ %0.8e %0.8e %0.8e\n", vert[0], vert[1], vert[2])
+				fmt.Fprintf(w, "\t\t\t\tCXYZ %0.8e %0.8e %0.8e\n", vert[0], vert[1], vert[2])
 			}
 		}
 		fmt.Fprintf(w, "\tVISTREE\n")
 		fmt.Fprintf(w, "\t\tNUMVISNODE %d\n", len(e.VisTree.VisNodes))
 		for i, node := range e.VisTree.VisNodes {
 			fmt.Fprintf(w, "\t\t\tVISNODE // %d\n", i)
-			fmt.Fprintf(w, "\t\t\t\tNORMALABCD %0.8e %0.8e %0.8e %0.8e\n", node.Normal[0], node.Normal[1], node.Normal[2], node.Normal[3])
+			fmt.Fprintf(w, "\t\t\t\tVNORMALABCD %0.8e %0.8e %0.8e %0.8e\n", node.Normal[0], node.Normal[1], node.Normal[2], node.Normal[3])
 			fmt.Fprintf(w, "\t\t\t\tVISLISTINDEX %d\n", node.VisListIndex)
 			fmt.Fprintf(w, "\t\t\t\tFRONTTREE %d\n", node.FrontTree)
 			fmt.Fprintf(w, "\t\t\t\tBACKTREE %d\n", node.BackTree)
@@ -6250,7 +6250,7 @@ func (e *Region) Read(token *AsciiReadToken) error {
 	}
 
 	for i := 0; i < numVertices; i++ {
-		records, err = token.ReadProperty("XYZ", 3)
+		records, err = token.ReadProperty("VXYZ", 3)
 		if err != nil {
 			return err
 		}
@@ -6298,7 +6298,7 @@ func (e *Region) Read(token *AsciiReadToken) error {
 		}
 
 		for j := 0; j < numVertices; j++ {
-			records, err = token.ReadProperty("XYZ", 3)
+			records, err = token.ReadProperty("WXYZ", 3)
 			if err != nil {
 				return err
 			}
@@ -6331,7 +6331,7 @@ func (e *Region) Read(token *AsciiReadToken) error {
 			return err
 		}
 
-		records, err = token.ReadProperty("NORMALABCD", 4)
+		records, err = token.ReadProperty("ONORMALABCD", 4)
 		if err != nil {
 			return err
 		}
@@ -6340,7 +6340,7 @@ func (e *Region) Read(token *AsciiReadToken) error {
 			return fmt.Errorf("obstacle normal: %w", err)
 		}
 
-		records, err = token.ReadProperty("NUMVERTICES", 1)
+		records, err = token.ReadProperty("NUMOVERTICES", 1)
 		if err != nil {
 			return err
 		}
@@ -6350,7 +6350,7 @@ func (e *Region) Read(token *AsciiReadToken) error {
 		}
 
 		for j := 0; j < numVertices; j++ {
-			records, err = token.ReadProperty("XYZ", 3)
+			records, err = token.ReadProperty("OXYZ", 3)
 			if err != nil {
 				return err
 			}
@@ -6382,7 +6382,7 @@ func (e *Region) Read(token *AsciiReadToken) error {
 			return err
 		}
 
-		records, err = token.ReadProperty("NORMALABCD", 4)
+		records, err = token.ReadProperty("CNORMALABCD", 4)
 		if err != nil {
 			return err
 		}
@@ -6392,7 +6392,7 @@ func (e *Region) Read(token *AsciiReadToken) error {
 			return fmt.Errorf("cutting obstacle normal: %w", err)
 		}
 
-		records, err = token.ReadProperty("NUMVERTICES", 1)
+		records, err = token.ReadProperty("NUMCVERTICES", 1)
 		if err != nil {
 			return err
 		}
@@ -6403,7 +6403,7 @@ func (e *Region) Read(token *AsciiReadToken) error {
 		}
 
 		for j := 0; j < numVertices; j++ {
-			records, err = token.ReadProperty("XYZ", 3)
+			records, err = token.ReadProperty("CXYZ", 3)
 			if err != nil {
 				return err
 			}
@@ -6443,7 +6443,7 @@ func (e *Region) Read(token *AsciiReadToken) error {
 			return err
 		}
 
-		records, err = token.ReadProperty("NORMALABCD", 4)
+		records, err = token.ReadProperty("VNORMALABCD", 4)
 		if err != nil {
 			return err
 		}

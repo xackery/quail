@@ -151,7 +151,7 @@ properties:
           - name: ""
             note: ""
             format: "%s"
-      - name: "POSITION"
+      - name: "LIGHTPOS"
         note: ""
         args:
           - name: ""
@@ -163,7 +163,7 @@ properties:
           - name: ""
             note: ""
             format: "%0.8e"
-      - name: "COLOR"
+      - name: "LIGHTCOLOR"
         note: ""
         args:
           - name: ""
@@ -175,7 +175,7 @@ properties:
           - name: ""
             note: ""
             format: "%0.8e"
-      - name: "RADIUS"
+      - name: "LIGHTRADIUS"
         note: ""
         args:
           - name: ""

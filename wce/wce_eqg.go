@@ -72,7 +72,7 @@ func (e *EqgModDef) Write(token *AsciiWriteToken) error {
 		fmt.Fprintf(w, "\tVERSION %d\n", e.Version)
 		fmt.Fprintf(w, "\tNUMMATERIALS %d\n", len(e.Materials))
 		for _, material := range e.Materials {
-			fmt.Fprintf(w, "\t\tMATERIAL \"%s\"\n", material.Tag)
+			fmt.Fprintf(w, "\t\tMATERIALTAG \"%s\"\n", material.Tag)
 			fmt.Fprintf(w, "\t\t\tSHADERTAG \"%s\"\n", material.ShaderTag)
 			fmt.Fprintf(w, "\t\t\tHEXONEFLAG %d\n", material.HexOneFlag)
 			fmt.Fprintf(w, "\t\t\tNUMPROPERTIES %d\n", len(material.Properties))
@@ -153,7 +153,7 @@ func (e *EqgModDef) Read(token *AsciiReadToken) error {
 
 	for i := 0; i < numMaterials; i++ {
 		eqMaterialDef := &EQMaterialDef{}
-		records, err = token.ReadProperty("MATERIAL", 1)
+		records, err = token.ReadProperty("MATERIALTAG", 1)
 		if err != nil {
 			return fmt.Errorf("material %d: %w", i, err)
 		}
@@ -642,7 +642,7 @@ func (e *EqgMdsDef) Write(token *AsciiWriteToken) error {
 		fmt.Fprintf(w, "\tVERSION %d\n", e.Version)
 		fmt.Fprintf(w, "\tNUMMATERIALS %d\n", len(e.Materials))
 		for _, material := range e.Materials {
-			fmt.Fprintf(w, "\t\tMATERIAL \"%s\"\n", material.Tag)
+			fmt.Fprintf(w, "\t\tMATERIALTAG \"%s\"\n", material.Tag)
 			fmt.Fprintf(w, "\t\t\tSHADERTAG \"%s\"\n", material.ShaderTag)
 			fmt.Fprintf(w, "\t\t\tHEXONEFLAG %d\n", material.HexOneFlag)
 			fmt.Fprintf(w, "\t\t\tNUMPROPERTIES %d\n", len(material.Properties))
@@ -729,7 +729,7 @@ func (e *EqgMdsDef) Read(token *AsciiReadToken) error {
 
 	for i := 0; i < numMaterials; i++ {
 		eqMaterialDef := &EQMaterialDef{}
-		records, err = token.ReadProperty("MATERIAL", 1)
+		records, err = token.ReadProperty("MATERIALTAG", 1)
 		if err != nil {
 			return fmt.Errorf("material %d: %w", i, err)
 		}
@@ -1232,7 +1232,7 @@ func (e *EqgTerDef) Write(token *AsciiWriteToken) error {
 		fmt.Fprintf(w, "\tVERSION %d\n", e.Version)
 		fmt.Fprintf(w, "\tNUMMATERIALS %d\n", len(e.Materials))
 		for _, material := range e.Materials {
-			fmt.Fprintf(w, "\t\tMATERIAL \"%s\"\n", material.Tag)
+			fmt.Fprintf(w, "\t\tMATERIALTAG \"%s\"\n", material.Tag)
 			fmt.Fprintf(w, "\t\t\tSHADERTAG \"%s\"\n", material.ShaderTag)
 			fmt.Fprintf(w, "\t\t\tHEXONEFLAG %d\n", material.HexOneFlag)
 			fmt.Fprintf(w, "\t\t\tNUMPROPERTIES %d\n", len(material.Properties))
@@ -1298,7 +1298,7 @@ func (e *EqgTerDef) Read(token *AsciiReadToken) error {
 
 	for i := 0; i < numMaterials; i++ {
 		eqMaterialDef := &EQMaterialDef{}
-		records, err = token.ReadProperty("MATERIAL", 1)
+		records, err = token.ReadProperty("MATERIALTAG", 1)
 		if err != nil {
 			return fmt.Errorf("material %d: %w", i, err)
 		}
@@ -2730,9 +2730,9 @@ func (e *EqgZonDef) Write(token *AsciiWriteToken) error {
 		fmt.Fprintf(w, "\tNUMLIGHTS %d\n", len(e.Lights))
 		for _, light := range e.Lights {
 			fmt.Fprintf(w, "\t\tLIGHT \"%s\"\n", light.Name)
-			fmt.Fprintf(w, "\t\t\tPOSITION %0.8e %0.8e %0.8e\n", light.Position[0], light.Position[1], light.Position[2])
-			fmt.Fprintf(w, "\t\t\tCOLOR %0.8e %0.8e %0.8e\n", light.Color[0], light.Color[1], light.Color[2])
-			fmt.Fprintf(w, "\t\t\tRADIUS %0.8e\n", light.Radius)
+			fmt.Fprintf(w, "\t\t\tLIGHTPOS %0.8e %0.8e %0.8e\n", light.Position[0], light.Position[1], light.Position[2])
+			fmt.Fprintf(w, "\t\t\tLIGHTCOLOR %0.8e %0.8e %0.8e\n", light.Color[0], light.Color[1], light.Color[2])
+			fmt.Fprintf(w, "\t\t\tLIGHTRADIUS %0.8e\n", light.Radius)
 		}
 
 		fmt.Fprintf(w, "\n")
@@ -2940,7 +2940,7 @@ func (e *EqgZonDef) Read(token *AsciiReadToken) error {
 		}
 		light.Name = records[1]
 
-		records, err = token.ReadProperty("POSITION", 3)
+		records, err = token.ReadProperty("LIGHTPOS", 3)
 		if err != nil {
 			return fmt.Errorf("light %d position: %w", i, err)
 		}
@@ -2949,7 +2949,7 @@ func (e *EqgZonDef) Read(token *AsciiReadToken) error {
 			return fmt.Errorf("light %d position: %w", i, err)
 		}
 
-		records, err = token.ReadProperty("COLOR", 3)
+		records, err = token.ReadProperty("LIGHTCOLOR", 3)
 		if err != nil {
 			return fmt.Errorf("light %d color: %w", i, err)
 		}
@@ -2958,7 +2958,7 @@ func (e *EqgZonDef) Read(token *AsciiReadToken) error {
 			return fmt.Errorf("light %d color: %w", i, err)
 		}
 
-		records, err = token.ReadProperty("RADIUS", 1)
+		records, err = token.ReadProperty("LIGHTRADIUS", 1)
 		if err != nil {
 			return fmt.Errorf("light %d radius: %w", i, err)
 		}

@@ -64,7 +64,7 @@ properties:
         note: ""
         format: "%d"
     properties:
-      - name: "XYZ"
+      - name: "VXYZ"
         note: ""
         args:
           - name: ""
@@ -107,7 +107,7 @@ properties:
             note: ""
             format: "%d"
         properties:
-          - name: "XYZ"
+          - name: "WXYZ"
             note: ""
             args:
               - name: ""
@@ -128,7 +128,7 @@ properties:
     properties:
       - name: "OBSTACLE"
         note: ""
-      - name: "NORMALABCD"
+      - name: "ONORMALABCD"
         note: ""
         args:
           - name: ""
@@ -143,14 +143,14 @@ properties:
           - name: ""
             note: ""
             format: "%0.8e"
-      - name: "NUMVERTICES"
+      - name: "NUMOVERTICES"
         note: ""
         args:
           - name: ""
             note: ""
             format: "%d"
         properties:
-          - name: "XYZ"
+          - name: "OXYZ"
             note: ""
             args:
               - name: ""
@@ -171,7 +171,7 @@ properties:
     properties:
       - name: "CUTTINGOBSTACLE"
         note: ""
-      - name: "NORMALABCD"
+      - name: "CNORMALABCD"
         note: ""
         args:
           - name: ""
@@ -186,14 +186,14 @@ properties:
           - name: ""
             note: ""
             format: "%0.8e"
-      - name: "NUMVERTICES"
+      - name: "NUMCVERTICES"
         note: ""
         args:
           - name: ""
             note: ""
             format: "%d"
         properties:
-          - name: "XYZ"
+          - name: "CXYZ"
             note: ""
             args:
               - name: ""
@@ -216,7 +216,7 @@ properties:
     properties:
       - name: "VISNODE"
         note: ""
-      - name: "NORMALABCD"
+      - name: "VNORMALABCD"
         note: ""
         args:
           - name: ""
