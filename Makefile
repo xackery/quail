@@ -95,6 +95,9 @@ build-blender: build-linux ## used by xackery, build darwin copy and move to ble
 	@echo "copying to quail-addons..."
 	cp bin/quail-linux ~/.config/blender/4.2/scripts/addons/quail-addon
 
+build-dll: ## build dll
+	@echo "building dll..."
+	CC=x86_64-w64-mingw32-gcc CGO_ENABLED=1 GOOS=windows go build -o bin/quail.dll -buildmode=c-shared ./dll/quail_dll.go
 ##@ Profiling
 
 profile-heap: ## run pprof and dump 4 snapshots of heap
