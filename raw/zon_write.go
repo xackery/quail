@@ -1,7 +1,6 @@
 package raw
 
 import (
-	"bytes"
 	"encoding/binary"
 	"fmt"
 	"io"
@@ -26,111 +25,96 @@ func (zon *Zon) Write(w io.Writer) error {
 
 	enc.Uint32(uint32(zon.Version))
 
-	// rest of writer is written later
-	buf := &bytes.Buffer{}
-	subEnc := encdec.NewEncoder(buf, binary.LittleEndian)
-
-	for _, object := range zon.Objects {
-		zon.name.add(object.MeshName)
-		zon.name.add(object.InstanceName)
+	for _, instance := range zon.Instances {
+		zon.name.add(instance.ModelTag)
+		zon.name.add(instance.InstanceTag)
 	}
 
 	for _, lights := range zon.Lights {
 		zon.name.add(lights.Name)
 	}
 
-	for _, region := range zon.Regions {
-		zon.name.add(region.Name)
+	for _, area := range zon.Areas {
+		zon.name.add(area.Name)
 	}
 
-	for _, modelName := range zon.Models {
-		subEnc.Int32(zon.name.indexByName(modelName))
+	enc.Uint32(uint32(len(zon.name.data())))
+	enc.Uint32(uint32(len(zon.Models)))
+	enc.Uint32(uint32(len(zon.Instances)))
+	enc.Uint32(uint32(len(zon.Areas)))
+	enc.Uint32(uint32(len(zon.Lights)))
+
+	enc.Bytes(zon.name.data())
+
+	for _, modelTag := range zon.Models {
+		enc.Int32(zon.name.offsetByName(modelTag))
 	}
 
-	for _, object := range zon.Objects {
+	for _, instance := range zon.Instances {
 		isFound := false
 		for i, name := range zon.Models {
-			if name != object.MeshName {
+			if name != instance.ModelTag {
 				continue
 			}
-			subEnc.Int32(int32(i))
+			enc.Int32(int32(i))
 			isFound = true
 			break
 		}
 		if !isFound {
-			return fmt.Errorf("object %s ref to model %s not found", object.InstanceName, object.MeshName)
+			return fmt.Errorf("instance %s ref to model %s not found", instance.InstanceTag, instance.ModelTag)
 		}
-		subEnc.Int32(zon.name.indexByName(object.InstanceName))
+		enc.Int32(zon.name.offsetByName(instance.InstanceTag))
 
-		subEnc.Float32(object.Translation[1]) //  y before x
-		subEnc.Float32(object.Translation[0])
-		subEnc.Float32(object.Translation[2])
+		enc.Float32(instance.Translation[0])
+		enc.Float32(instance.Translation[1])
+		enc.Float32(instance.Translation[2])
 
-		subEnc.Float32(object.Rotation[0])
-		subEnc.Float32(object.Rotation[1])
-		subEnc.Float32(object.Rotation[2])
+		enc.Float32(instance.Rotation[0])
+		enc.Float32(instance.Rotation[1])
+		enc.Float32(instance.Rotation[2])
 
-		subEnc.Float32(object.Scale)
-		if zon.Version >= 2 {
-			subEnc.Uint32(uint32(len(object.Lits)))
-			for _, lit := range object.Lits {
-				subEnc.Uint32(lit)
+		enc.Float32(instance.Scale)
+		if zon.Version > 1 {
+			enc.Uint32(uint32(len(instance.Lits)))
+			for _, lit := range instance.Lits {
+				enc.Uint32(lit)
 			}
 		}
 	}
 
-	for _, region := range zon.Regions {
-		subEnc.Int32(zon.name.indexByName(region.Name))
+	for _, area := range zon.Areas {
+		enc.Int32(zon.name.offsetByName(area.Name))
 
-		subEnc.Float32(region.Position[0])
-		subEnc.Float32(region.Position[1])
-		subEnc.Float32(region.Position[2])
+		enc.Float32(area.Center[0])
+		enc.Float32(area.Center[1])
+		enc.Float32(area.Center[2])
 
-		subEnc.Float32(region.Color[0])
-		subEnc.Float32(region.Color[1])
-		subEnc.Float32(region.Color[2])
+		enc.Float32(area.Orientation[0])
+		enc.Float32(area.Orientation[1])
+		enc.Float32(area.Orientation[2])
 
-		subEnc.Float32(region.Radius)
-		//subEnc.Float32(region.Radius[1])
-		//subEnc.Float32(region.Radius[2])
-
-		//subEnc.Uint32(region.Unk1)
-		//subEnc.Uint32(region.Unk2)
+		enc.Float32(area.Extents[0])
+		enc.Float32(area.Extents[1])
+		enc.Float32(area.Extents[2])
 	}
 
 	for _, light := range zon.Lights {
-		subEnc.Int32(zon.name.indexByName(light.Name))
+		enc.Int32(zon.name.offsetByName(light.Name))
 
-		subEnc.Float32(light.Position[0])
-		subEnc.Float32(light.Position[1])
-		subEnc.Float32(light.Position[2])
+		enc.Float32(light.Position[0])
+		enc.Float32(light.Position[1])
+		enc.Float32(light.Position[2])
 
-		subEnc.Float32(light.Color[0])
-		subEnc.Float32(light.Color[1])
-		subEnc.Float32(light.Color[2])
+		enc.Float32(light.Color[0])
+		enc.Float32(light.Color[1])
+		enc.Float32(light.Color[2])
 
-		subEnc.Float32(light.Radius)
-
-	}
-
-	nameData := zon.name.data()
-	enc.Uint32(uint32(len(nameData)))
-	enc.Uint32(uint32(len(zon.Models)))
-	enc.Uint32(uint32(len(zon.Objects)))
-	enc.Uint32(uint32(len(zon.Regions)))
-	enc.Uint32(uint32(len(zon.Lights)))
-
-	enc.Bytes(nameData)
-	enc.Bytes(buf.Bytes()) // write delayed info
-
-	err = subEnc.Error()
-	if err != nil {
-		return fmt.Errorf("subEncode: %w", err)
+		enc.Float32(light.Radius)
 	}
 
 	err = enc.Error()
 	if err != nil {
-		return fmt.Errorf("encode: %w", err)
+		return fmt.Errorf("subEncode: %w", err)
 	}
 
 	return nil
