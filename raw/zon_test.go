@@ -142,12 +142,21 @@ func TestZonWrite(t *testing.T) {
 			if err != nil {
 				t.Fatalf("failed to encode %s: %s", tt.name, err.Error())
 			}
+			if len(data) != buf.Len() {
+				t.Fatalf("size mismatch: %d != %d (off by %d)", len(data), buf.Len(), len(data)-buf.Len())
+			}
 
 			zon2 := &Zon{}
 			err = zon2.Read(bytes.NewReader(buf.Bytes()))
 			if err != nil {
 				t.Fatalf("failed to read %s: %s", tt.name, err.Error())
 			}
+
+			// for _, e := range zon.name.names {
+			// 	if e.name != zon2.name.byOffset(int32(e.offset)) {
+			// 		t.Fatalf("name mismatch: %s != %s", e.name, zon2.name.byOffset(int32(e.offset)))
+			// 	}
+			// }
 
 			if len(zon.Lights) != len(zon2.Lights) {
 				t.Fatalf("lights mismatch: %d != %d", len(zon.Lights), len(zon2.Lights))
@@ -157,12 +166,12 @@ func TestZonWrite(t *testing.T) {
 				t.Fatalf("models mismatch: %d != %d", len(zon.Models), len(zon2.Models))
 			}
 
-			if len(zon.Objects) != len(zon2.Objects) {
-				t.Fatalf("objects mismatch: %d != %d", len(zon.Objects), len(zon2.Objects))
+			if len(zon.Instances) != len(zon2.Instances) {
+				t.Fatalf("instances mismatch: %d != %d", len(zon.Instances), len(zon2.Instances))
 			}
 
-			if len(zon.Regions) != len(zon2.Regions) {
-				t.Fatalf("regions mismatch: %d != %d", len(zon.Regions), len(zon2.Regions))
+			if len(zon.Areas) != len(zon2.Areas) {
+				t.Fatalf("regions mismatch: %d != %d", len(zon.Areas), len(zon2.Areas))
 			}
 
 			// srcData := data

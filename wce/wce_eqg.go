@@ -2641,31 +2641,29 @@ func (e *EqgLodDef) FromRaw(wce *Wce, src *raw.Lod) error {
 
 // EqgZonDef is an entry EQTERRAINDEF
 type EqgZonDef struct {
-	folders []string
-	Tag     string
-	Version uint32
-	Models  []string
-	Objects []EqgZonObject
-	Regions []EqgZonRegion
-	Lights  []EqgZonLight
+	folders   []string
+	Tag       string
+	Version   uint32
+	Models    []string
+	Instances []EqgZonInstance
+	Areas     []EqgZonRegion
+	Lights    []EqgZonLight
 }
 
-type EqgZonObject struct {
-	MeshName     string
-	InstanceName string
-	Translation  [3]float32
-	Rotation     [3]float32
-	Scale        float32
-	Lits         []uint32
+type EqgZonInstance struct {
+	ModelTag    string
+	InstanceTag string
+	Translation [3]float32
+	Rotation    [3]float32
+	Scale       float32
+	Lits        []uint32
 }
 
 type EqgZonRegion struct {
 	Name     string
 	Position [3]float32
 	Color    [3]float32
-	Radius   float32
-	Unk1     uint32
-	Unk2     uint32
+	Extents  [3]float32
 }
 
 type EqgZonLight struct {
@@ -2704,27 +2702,25 @@ func (e *EqgZonDef) Write(token *AsciiWriteToken) error {
 			fmt.Fprintf(w, "\t\tMODEL \"%s\"\n", model)
 		}
 
-		fmt.Fprintf(w, "\tNUMOBJECTS %d\n", len(e.Objects))
-		for _, object := range e.Objects {
-			fmt.Fprintf(w, "\t\tOBJECT \"%s\"\n", object.MeshName)
-			fmt.Fprintf(w, "\t\t\tINSTANCE \"%s\"\n", object.InstanceName)
-			fmt.Fprintf(w, "\t\t\tTRANSLATION %0.8e %0.8e %0.8e\n", object.Translation[0], object.Translation[1], object.Translation[2])
-			fmt.Fprintf(w, "\t\t\tROTATION %0.8e %0.8e %0.8e\n", object.Rotation[0], object.Rotation[1], object.Rotation[2])
-			fmt.Fprintf(w, "\t\t\tSCALE %0.8e\n", object.Scale)
-			fmt.Fprintf(w, "\t\t\tNUMLITS %d\n", len(object.Lits))
-			for _, lit := range object.Lits {
+		fmt.Fprintf(w, "\tNUMINSTANCES %d\n", len(e.Instances))
+		for _, instance := range e.Instances {
+			fmt.Fprintf(w, "\t\tMODELTAG \"%s\"\n", instance.ModelTag)
+			fmt.Fprintf(w, "\t\t\tINSTANCETAG \"%s\"\n", instance.InstanceTag)
+			fmt.Fprintf(w, "\t\t\tTRANSLATION %0.8e %0.8e %0.8e\n", instance.Translation[0], instance.Translation[1], instance.Translation[2])
+			fmt.Fprintf(w, "\t\t\tROTATION %0.8e %0.8e %0.8e\n", instance.Rotation[0], instance.Rotation[1], instance.Rotation[2])
+			fmt.Fprintf(w, "\t\t\tSCALE %0.8e\n", instance.Scale)
+			fmt.Fprintf(w, "\t\t\tNUMLITS %d\n", len(instance.Lits))
+			for _, lit := range instance.Lits {
 				fmt.Fprintf(w, "\t\t\t\tLIT %d\n", lit)
 			}
 		}
 
-		fmt.Fprintf(w, "\tNUMAREAS %d\n", len(e.Regions))
-		for _, region := range e.Regions {
+		fmt.Fprintf(w, "\tNUMAREAS %d\n", len(e.Areas))
+		for _, region := range e.Areas {
 			fmt.Fprintf(w, "\t\tAREA \"%s\"\n", region.Name)
 			fmt.Fprintf(w, "\t\t\tPOSITION %0.8e %0.8e %0.8e\n", region.Position[0], region.Position[1], region.Position[2])
 			fmt.Fprintf(w, "\t\t\tCOLOR %0.8e %0.8e %0.8e\n", region.Color[0], region.Color[1], region.Color[2])
-			fmt.Fprintf(w, "\t\t\tRADIUS %0.8e\n", region.Radius)
-			fmt.Fprintf(w, "\t\t\tUNK1 %d\n", region.Unk1)
-			fmt.Fprintf(w, "\t\t\tUNK2 %d\n", region.Unk2)
+			fmt.Fprintf(w, "\t\t\tEXTENTS %0.8e %0.8e %0.8e\n", region.Extents[0], region.Extents[1], region.Extents[2])
 		}
 
 		fmt.Fprintf(w, "\tNUMLIGHTS %d\n", len(e.Lights))
@@ -2772,83 +2768,83 @@ func (e *EqgZonDef) Read(token *AsciiReadToken) error {
 		e.Models = append(e.Models, records[1])
 	}
 
-	records, err = token.ReadProperty("NUMOBJECTS", 1)
+	records, err = token.ReadProperty("NUMINSTANCES", 1)
 	if err != nil {
-		return fmt.Errorf("num objects: %w", err)
+		return fmt.Errorf("num instances: %w", err)
 	}
 
-	numObjects := 0
-	err = parse(&numObjects, records[1])
+	numInstances := 0
+	err = parse(&numInstances, records[1])
 	if err != nil {
-		return fmt.Errorf("num objects: %w", err)
+		return fmt.Errorf("num instances: %w", err)
 	}
 
-	for i := 0; i < numObjects; i++ {
-		obj := EqgZonObject{}
+	for i := 0; i < numInstances; i++ {
+		obj := EqgZonInstance{}
 
-		records, err = token.ReadProperty("OBJECT", 1)
+		records, err = token.ReadProperty("MODELTAG", 1)
 		if err != nil {
-			return fmt.Errorf("object %d: %w", i, err)
+			return fmt.Errorf("modeltag %d: %w", i, err)
 		}
-		obj.MeshName = records[1]
+		obj.ModelTag = records[1]
 
-		records, err = token.ReadProperty("INSTANCE", 1)
+		records, err = token.ReadProperty("INSTANCETAG", 1)
 		if err != nil {
-			return fmt.Errorf("object %d instance: %w", i, err)
+			return fmt.Errorf("instance %d instancetag: %w", i, err)
 		}
-		obj.InstanceName = records[1]
+		obj.InstanceTag = records[1]
 
 		records, err = token.ReadProperty("TRANSLATION", 3)
 		if err != nil {
-			return fmt.Errorf("object %d translation: %w", i, err)
+			return fmt.Errorf("instance %d translation: %w", i, err)
 		}
 		err = parse(&obj.Translation, records[1:]...)
 		if err != nil {
-			return fmt.Errorf("object %d translation: %w", i, err)
+			return fmt.Errorf("instance %d translation: %w", i, err)
 		}
 
 		records, err = token.ReadProperty("ROTATION", 3)
 		if err != nil {
-			return fmt.Errorf("object %d rotation: %w", i, err)
+			return fmt.Errorf("instance %d rotation: %w", i, err)
 		}
 		err = parse(&obj.Rotation, records[1:]...)
 		if err != nil {
-			return fmt.Errorf("object %d rotation: %w", i, err)
+			return fmt.Errorf("instance %d rotation: %w", i, err)
 		}
 
 		records, err = token.ReadProperty("SCALE", 1)
 		if err != nil {
-			return fmt.Errorf("object %d scale: %w", i, err)
+			return fmt.Errorf("instance %d scale: %w", i, err)
 		}
 		err = parse(&obj.Scale, records[1])
 		if err != nil {
-			return fmt.Errorf("object %d scale: %w", i, err)
+			return fmt.Errorf("instance %d scale: %w", i, err)
 		}
 
 		records, err = token.ReadProperty("NUMLITS", 1)
 		if err != nil {
-			return fmt.Errorf("object %d numlits: %w", i, err)
+			return fmt.Errorf("instance %d numlits: %w", i, err)
 		}
 		numLits := 0
 		err = parse(&numLits, records[1])
 		if err != nil {
-			return fmt.Errorf("object %d numlits: %w", i, err)
+			return fmt.Errorf("instance %d numlits: %w", i, err)
 		}
 
 		for j := 0; j < numLits; j++ {
 			records, err = token.ReadProperty("LIT", 1)
 			if err != nil {
-				return fmt.Errorf("object %d lit %d: %w", i, j, err)
+				return fmt.Errorf("instance %d lit %d: %w", i, j, err)
 			}
 			var lit uint32
 			err = parse(&lit, records[1])
 			if err != nil {
-				return fmt.Errorf("object %d lit %d: %w", i, j, err)
+				return fmt.Errorf("instance %d lit %d: %w", i, j, err)
 			}
 			obj.Lits = append(obj.Lits, lit)
 		}
 
-		e.Objects = append(e.Objects, obj)
+		e.Instances = append(e.Instances, obj)
 	}
 
 	records, err = token.ReadProperty("NUMAREAS", 1)
@@ -2890,34 +2886,16 @@ func (e *EqgZonDef) Read(token *AsciiReadToken) error {
 			return fmt.Errorf("area %d color: %w", i, err)
 		}
 
-		records, err = token.ReadProperty("RADIUS", 1)
+		records, err = token.ReadProperty("EXTENTS", 3)
 		if err != nil {
-			return fmt.Errorf("area %d radius: %w", i, err)
+			return fmt.Errorf("area %d extents: %w", i, err)
 		}
-		err = parse(&region.Radius, records[1])
+		err = parse(&region.Extents, records[1:]...)
 		if err != nil {
-			return fmt.Errorf("area %d radius: %w", i, err)
-		}
-
-		records, err = token.ReadProperty("UNK1", 1)
-		if err != nil {
-			return fmt.Errorf("area %d unk1: %w", i, err)
-		}
-		err = parse(&region.Unk1, records[1])
-		if err != nil {
-			return fmt.Errorf("area %d unk1: %w", i, err)
+			return fmt.Errorf("area %d extents: %w", i, err)
 		}
 
-		records, err = token.ReadProperty("UNK2", 1)
-		if err != nil {
-			return fmt.Errorf("area %d unk2: %w", i, err)
-		}
-		err = parse(&region.Unk2, records[1])
-		if err != nil {
-			return fmt.Errorf("area %d unk2: %w", i, err)
-		}
-
-		e.Regions = append(e.Regions, region)
+		e.Areas = append(e.Areas, region)
 	}
 
 	records, err = token.ReadProperty("NUMLIGHTS", 1)
@@ -2980,28 +2958,26 @@ func (e *EqgZonDef) ToRaw(wce *Wce, dst *raw.Zon) error {
 		dst.Models = append(dst.Models, model)
 	}
 
-	for _, obj := range e.Objects {
-		rawObj := raw.ZonObject{
-			MeshName:     obj.MeshName,
-			InstanceName: obj.InstanceName,
-			Translation:  obj.Translation,
-			Rotation:     obj.Rotation,
-			Scale:        obj.Scale,
-			Lits:         obj.Lits,
+	for _, obj := range e.Instances {
+		rawObj := raw.ZonInstance{
+			ModelTag:    obj.ModelTag,
+			InstanceTag: obj.InstanceTag,
+			Translation: obj.Translation,
+			Rotation:    obj.Rotation,
+			Scale:       obj.Scale,
+			Lits:        obj.Lits,
 		}
-		dst.Objects = append(dst.Objects, rawObj)
+		dst.Instances = append(dst.Instances, rawObj)
 	}
 
-	for _, region := range e.Regions {
-		rawRegion := raw.ZonRegion{
-			Name:     region.Name,
-			Position: region.Position,
-			Color:    region.Color,
-			Radius:   region.Radius,
-			Unk1:     region.Unk1,
-			Unk2:     region.Unk2,
+	for _, area := range e.Areas {
+		rawRegion := raw.ZonArea{
+			Name:        area.Name,
+			Center:      area.Position,
+			Orientation: area.Color,
+			Extents:     area.Extents,
 		}
-		dst.Regions = append(dst.Regions, rawRegion)
+		dst.Areas = append(dst.Areas, rawRegion)
 	}
 
 	for _, light := range e.Lights {
@@ -3031,28 +3007,26 @@ func (e *EqgZonDef) FromRaw(wce *Wce, src *raw.Zon) error {
 		e.Models = append(e.Models, model)
 	}
 
-	for _, obj := range src.Objects {
-		eqObj := EqgZonObject{
-			MeshName:     obj.MeshName,
-			InstanceName: obj.InstanceName,
-			Translation:  obj.Translation,
-			Rotation:     obj.Rotation,
-			Scale:        obj.Scale,
-			Lits:         obj.Lits,
+	for _, obj := range src.Instances {
+		eqObj := EqgZonInstance{
+			ModelTag:    obj.ModelTag,
+			InstanceTag: obj.InstanceTag,
+			Translation: obj.Translation,
+			Rotation:    obj.Rotation,
+			Scale:       obj.Scale,
+			Lits:        obj.Lits,
 		}
-		e.Objects = append(e.Objects, eqObj)
+		e.Instances = append(e.Instances, eqObj)
 	}
 
-	for _, region := range src.Regions {
+	for _, region := range src.Areas {
 		eqRegion := EqgZonRegion{
 			Name:     region.Name,
-			Position: region.Position,
-			Color:    region.Color,
-			Radius:   region.Radius,
-			Unk1:     region.Unk1,
-			Unk2:     region.Unk2,
+			Position: region.Center,
+			Color:    region.Orientation,
+			Extents:  region.Extents,
 		}
-		e.Regions = append(e.Regions, eqRegion)
+		e.Areas = append(e.Areas, eqRegion)
 	}
 
 	for _, light := range src.Lights {
