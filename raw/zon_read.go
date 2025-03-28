@@ -118,12 +118,11 @@ func (zon *Zon) Read(r io.ReadSeeker) error {
 	nameData := dec.Bytes(int(nameLength))
 	zon.name.parse(nameData)
 
-	//os.WriteFile("src.txt", []byte(fmt.Sprintf("%+v", names)), 0644)
-
 	for i := 0; i < int(modelCount); i++ {
 		name := zon.name.byOffset(dec.Int32())
 		zon.Models = append(zon.Models, name)
 	}
+	//dec.SetDebugMode(true)
 
 	for i := 0; i < int(instanceCount); i++ {
 		instance := ZonInstance{}
@@ -135,7 +134,7 @@ func (zon *Zon) Read(r io.ReadSeeker) error {
 
 		instanceID := dec.Int32()
 		// for v1 zones, this is lit name, for v2+ it's instance name
-		if instanceID < int32(zon.name.len()) {
+		if instanceID < int32(len(zon.name.nameBuf)) {
 			instance.InstanceTag = zon.name.byOffset(instanceID)
 		}
 
@@ -156,7 +155,9 @@ func (zon *Zon) Read(r io.ReadSeeker) error {
 		}
 
 		zon.Instances = append(zon.Instances, instance)
+
 	}
+	//os.WriteFile("/src/quail/test/src.bin", dec.DebugBuf(), 0644)
 
 	for i := 0; i < int(areaCount); i++ {
 		area := ZonArea{}

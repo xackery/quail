@@ -81,6 +81,7 @@ func TestZonWrite(t *testing.T) {
 		wantErr bool
 	}{
 
+		//{name: "alkabormare.zon"},
 		// .zon|1|anguish.zon|anguish.eqg
 		{name: "anguish.eqg"}, // TODO: mismatch
 		// .zon|1|bazaar.zon|bazaar.eqg

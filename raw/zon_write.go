@@ -25,8 +25,12 @@ func (zon *Zon) Write(w io.Writer) error {
 
 	enc.Uint32(uint32(zon.Version))
 
+	modWritten := make(map[string]bool)
 	for _, instance := range zon.Instances {
-		zon.name.add(instance.ModelTag)
+		if !modWritten[instance.ModelTag] {
+			zon.name.add(instance.ModelTag)
+		}
+		modWritten[instance.ModelTag] = true
 		zon.name.add(instance.InstanceTag)
 	}
 
@@ -50,6 +54,7 @@ func (zon *Zon) Write(w io.Writer) error {
 		enc.Int32(zon.name.offsetByName(modelTag))
 	}
 
+	//enc.SetDebugMode(true)
 	for _, instance := range zon.Instances {
 		isFound := false
 		for i, name := range zon.Models {
@@ -80,7 +85,9 @@ func (zon *Zon) Write(w io.Writer) error {
 				enc.Uint32(lit)
 			}
 		}
+
 	}
+	//os.WriteFile("/src/quail/test/dst.bin", enc.DebugBuf(), 0644)
 
 	for _, area := range zon.Areas {
 		enc.Int32(zon.name.offsetByName(area.Name))

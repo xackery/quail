@@ -224,7 +224,7 @@ biodiffwld-%:
 	biodiff test/$*.src.wld test/$*.dst.wld
 
 biodifftest:
-	biodiff test/src.frag test/dst.frag
+	biodiff test/src.bin test/dst.bin
 
 jddiff-%:
 	wld-cli extract test/$*.src.wld -f json test/$*.src.json
