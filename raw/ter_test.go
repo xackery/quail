@@ -92,6 +92,7 @@ func TestTerWrite(t *testing.T) {
 		// .ter|3|ter_am_main.ter|arxmentis.eqg
 		//{eqg: "arxmentis.eqg", name: "ter_am_main.ter"}, // PASS
 		// .ter|3|ter_arena.ter|arena.eqg
+		//{eqg: "alkabormare.eqg", name: "ter_faydark.ter"},
 		{eqg: "arena.eqg", name: "ter_arena.ter"}, // PASS
 	}
 

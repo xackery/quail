@@ -17,7 +17,7 @@ properties:
           - name: ""
             note: ""
             format: "%s"
-      - name: "SPRITE"
+      - name: "SPRITETAG"
         note: ""
         args:
           - name: ""

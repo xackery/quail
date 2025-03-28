@@ -15,7 +15,7 @@ properties:
         note: ""
         format: "%d"
     properties:
-      - name: "MATERIAL"
+      - name: "MATERIALTAG"
         note: ""
         args:
           - name: ""

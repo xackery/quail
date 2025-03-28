@@ -8,47 +8,15 @@ import (
 	"testing"
 
 	"github.com/xackery/quail/helper"
-	"github.com/xackery/quail/wce"
 	"gopkg.in/yaml.v3"
 )
 
+var (
+	knownProps = make(map[string]bool)
+)
+
 func TestWceGenPython(t *testing.T) {
-
-	defs := []defReadWriter{
-		&wce.ActorDef{},
-		&wce.ActorInst{},
-		&wce.BlitSpriteDef{},
-		&wce.DMSpriteDef{},
-		&wce.DMSpriteDef2{},
-		&wce.GlobalAmbientLightDef{},
-		&wce.MaterialDef{},
-		&wce.MaterialPalette{},
-		&wce.SimpleSpriteDef{},
-		&wce.WorldDef{},
-		&wce.LightDef{},
-		&wce.PointLight{},
-		&wce.Sprite3DDef{},
-		&wce.PolyhedronDefinition{},
-		&wce.TrackInstance{},
-		&wce.TrackDef{},
-		&wce.HierarchicalSpriteDef{},
-		&wce.WorldTree{},
-		&wce.Region{},
-		&wce.AmbientLight{},
-		&wce.Zone{},
-		&wce.RGBTrackDef{},
-		&wce.ParticleCloudDef{},
-		&wce.Sprite2DDef{},
-		&wce.DMTrackDef2{},
-		&wce.EqgModDef{},
-		&wce.EqgMdsDef{},
-		&wce.EqgTerDef{},
-		&wce.EqgAniDef{},
-		&wce.EqgLayDef{},
-		&wce.EqgParticlePointDef{},
-		&wce.EqgParticleRenderDef{},
-	}
-
+	// defs declared in def_md_test.go
 	dirTest := helper.DirTest()
 
 	for _, def := range defs {
@@ -116,6 +84,7 @@ class ` + defName + `:
 }
 
 func wcePyGen(decBuf *bytes.Buffer, initBuf *bytes.Buffer, writeBuf *bytes.Buffer, yamlDef *Definition) error {
+	knownProps = make(map[string]bool)
 	for _, prop := range yamlDef.Properties {
 		err := traversePyProp(decBuf, initBuf, writeBuf, prop, "self", 2, 1, "")
 		if err != nil {
@@ -128,6 +97,10 @@ func wcePyGen(decBuf *bytes.Buffer, initBuf *bytes.Buffer, writeBuf *bytes.Buffe
 
 func traversePyProp(decBuf *bytes.Buffer, initBuf *bytes.Buffer, writeBuf *bytes.Buffer, prop Property, scope string, initTabCount int, decTabCount int, treeScope string) error {
 
+	if knownProps[prop.Name] {
+		return fmt.Errorf("duplicate property: %s", prop.Name)
+	}
+	knownProps[prop.Name] = true
 	propBuf := ""
 	scopeTmp := scope
 	if scope != "self" {

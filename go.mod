@@ -4,7 +4,7 @@ go 1.21
 
 require (
 	github.com/spf13/cobra v1.8.1
-	github.com/xackery/encdec v0.1.11
+	github.com/xackery/encdec v0.1.16
 )
 
 require github.com/go-test/deep v1.1.1

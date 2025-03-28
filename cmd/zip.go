@@ -44,9 +44,13 @@ func runZip(cmd *cobra.Command, args []string) {
 }
 
 func runZipE(cmd *cobra.Command, args []string) error {
-	path, err := cmd.Flags().GetString("path")
-	if err != nil {
-		return fmt.Errorf("parse path: %w", err)
+	var path string
+	var err error
+	if cmd != nil {
+		path, err = cmd.Flags().GetString("path")
+		if err != nil {
+			return fmt.Errorf("parse path: %w", err)
+		}
 	}
 	if path == "" {
 		if len(args) < 1 {
@@ -54,15 +58,19 @@ func runZipE(cmd *cobra.Command, args []string) error {
 		}
 		path = args[0]
 	}
+
 	defer func() {
 		if err != nil {
 			fmt.Println("Error:", err)
 			os.Exit(1)
 		}
 	}()
-	out, err := cmd.Flags().GetString("out")
-	if err != nil {
-		return fmt.Errorf("parse out: %w", err)
+	var out string
+	if cmd != nil {
+		out, err = cmd.Flags().GetString("out")
+		if err != nil {
+			return fmt.Errorf("parse out: %w", err)
+		}
 	}
 	absPath, err := filepath.Abs(path)
 	if err != nil {

@@ -4,13 +4,18 @@ import "fmt"
 
 // eqgName stores and manages names structures for eqg related files
 type eqgName struct {
-	names   []*nameEntry
-	nameBuf []byte
+	lastIndex int
+	names     []*nameEntry
+	nameBuf   []byte
 }
 
 type nameEntry struct {
 	name   string
 	offset int
+}
+
+func (e *nameEntry) String() string {
+	return fmt.Sprintf("%s(%d)", e.name, e.offset)
 }
 
 func (e *eqgName) parse(nameData []byte) error {

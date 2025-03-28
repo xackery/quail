@@ -140,6 +140,19 @@ func (wld *Wld) Read(r io.ReadSeeker) error {
 	if totalRegions != int(bspRegionCount) {
 		return fmt.Errorf("region count mismatch, wanted %d, got %d", bspRegionCount, totalRegions)
 	}
+
+	pos := dec.Pos()
+	endPos, err := r.Seek(0, io.SeekEnd)
+	if err != nil {
+		return fmt.Errorf("seek end: %w", err)
+	}
+	if pos != endPos {
+		if pos < endPos {
+			return fmt.Errorf("%d bytes remaining (%d total)", endPos-pos, endPos)
+		}
+
+		return fmt.Errorf("read past end of file")
+	}
 	return nil
 }
 

@@ -22,7 +22,9 @@ func TestLodRead(t *testing.T) {
 		name    string
 		lodName string
 	}{
-		{name: "ggy.eqg", lodName: "ggy.lod"},
+		//{name: "ggy.eqg", lodName: "ggy.lod"},
+		//{name: "alkabormare.eqg", lodName: "obp_treelg.lod"},
+		{name: "alkabormare.eqg"},
 	}
 
 	for _, tt := range tests {
@@ -58,7 +60,9 @@ func TestLodWrite(t *testing.T) {
 		name    string
 		lodName string
 	}{
-		{name: "ggy.eqg", lodName: "ggy.lod"},
+		{name: "alkabormare.eqg", lodName: "obp_treelg.lod"},
+
+		//{name: "ggy.eqg", lodName: "ggy.lod"},
 	}
 
 	for _, tt := range tests {
@@ -106,6 +110,11 @@ func TestLodWrite(t *testing.T) {
 					if lod.Entries[i].ObjectName != lod2.Entries[i].ObjectName {
 						t.Fatalf("object name mismatch: %s != %s", lod.Entries[i].ObjectName, lod2.Entries[i].ObjectName)
 					}
+				}
+
+				err = helper.ByteCompareTest(file.Data(), buf.Bytes())
+				if err != nil {
+					t.Fatalf("%s byteCompare: %s", tt.name, err)
 				}
 			}
 		})

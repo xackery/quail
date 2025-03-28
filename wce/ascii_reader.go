@@ -208,6 +208,7 @@ func (a *AsciiReadToken) readDefinitions() error {
 		&EqgMdsDef{},
 		&EqgModDef{},
 		&EqgTerDef{},
+		&EqgZonDef{},
 		&EqgLodDef{},
 		&EqgLayDef{},
 		&ParticleCloudDef{},
@@ -545,6 +546,13 @@ func (a *AsciiReadToken) readDefinitions() error {
 				frag.Tag = args[1]
 				a.wce.PrtDefs = append(a.wce.PrtDefs, frag)
 				definitions[i] = &EqgParticleRenderDef{}
+			case *EqgZonDef:
+				if len(args) == 1 {
+					return fmt.Errorf("definition %s has no arguments", defName)
+				}
+				frag.Tag = args[1]
+				a.wce.ZonDefs = append(a.wce.ZonDefs, frag)
+				definitions[i] = &EqgZonDef{}
 			default:
 				return fmt.Errorf("unknown definition type for rebuild: %T", definitions[i])
 			}

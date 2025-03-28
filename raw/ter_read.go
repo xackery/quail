@@ -129,6 +129,19 @@ func (ter *Ter) Read(r io.ReadSeeker) error {
 		ter.Faces = append(ter.Faces, t)
 	}
 
+	pos := dec.Pos()
+	endPos, err := r.Seek(0, io.SeekEnd)
+	if err != nil {
+		return fmt.Errorf("seek end: %w", err)
+	}
+	if pos != endPos {
+		if pos < endPos {
+			return fmt.Errorf("%d bytes remaining (%d total)", endPos-pos, endPos)
+		}
+
+		return fmt.Errorf("read past end of file")
+	}
+
 	if dec.Error() != nil {
 		return fmt.Errorf("read: %w", dec.Error())
 	}

@@ -38,9 +38,14 @@ func runUnzip(cmd *cobra.Command, args []string) {
 }
 
 func runUnzipE(cmd *cobra.Command, args []string) error {
-	srcArchivePath, err := cmd.Flags().GetString("path")
-	if err != nil {
-		return fmt.Errorf("parse path: %w", err)
+	var srcArchivePath string
+	var err error
+
+	if cmd != nil {
+		srcArchivePath, err = cmd.Flags().GetString("path")
+		if err != nil {
+			return fmt.Errorf("parse path: %w", err)
+		}
 	}
 	if srcArchivePath == "" {
 		if len(args) > 0 {
@@ -58,9 +63,12 @@ func runUnzipE(cmd *cobra.Command, args []string) error {
 		srcArchivePath = strings.Split(srcArchivePath, ":")[0]
 	}
 
-	dstPath, err := cmd.Flags().GetString("out")
-	if err != nil {
-		return fmt.Errorf("parse out: %w", err)
+	var dstPath string
+	if cmd != nil {
+		dstPath, err = cmd.Flags().GetString("out")
+		if err != nil {
+			return fmt.Errorf("parse out: %w", err)
+		}
 	}
 	if dstPath == "" && srcFile == "" {
 		dstPath = fmt.Sprintf("./_%s", filepath.Base(srcArchivePath))

@@ -11,8 +11,8 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-func TestWceGenMarkdown(t *testing.T) {
-	defs := []defReadWriter{
+var (
+	defs = []defReadWriter{
 		&wce.ActorDef{},
 		&wce.ActorInst{},
 		&wce.AmbientLight{},
@@ -24,9 +24,10 @@ func TestWceGenMarkdown(t *testing.T) {
 		&wce.EqgLayDef{},
 		&wce.EqgMdsDef{},
 		&wce.EqgModDef{},
-		&wce.EqgTerDef{},
 		&wce.EqgParticlePointDef{},
 		&wce.EqgParticleRenderDef{},
+		&wce.EqgTerDef{},
+		&wce.EqgZonDef{},
 		&wce.GlobalAmbientLightDef{},
 		&wce.HierarchicalSpriteDef{},
 		&wce.LightDef{},
@@ -46,6 +47,9 @@ func TestWceGenMarkdown(t *testing.T) {
 		&wce.WorldTree{},
 		&wce.Zone{},
 	}
+)
+
+func TestWceGenMarkdown(t *testing.T) {
 
 	dirTest := helper.DirTest()
 

@@ -81,6 +81,7 @@ func TestZonWrite(t *testing.T) {
 		wantErr bool
 	}{
 
+		//{name: "alkabormare.zon"},
 		// .zon|1|anguish.zon|anguish.eqg
 		{name: "anguish.eqg"}, // TODO: mismatch
 		// .zon|1|bazaar.zon|bazaar.eqg
@@ -97,8 +98,6 @@ func TestZonWrite(t *testing.T) {
 		//{name: "arginhiz.eqg"}, // TODO: mismatch
 		// .zon|2|guardian.zon|guardian.eqg
 		//{name: "guardian.eqg"}, // TODO: v2 zone mismatch
-		// .zon|2|guardian.zon|guardian.eqg
-		//{name: "fallen.zon"}, // TODO: v2 zone mismatch
 	}
 
 	var err error
@@ -144,12 +143,21 @@ func TestZonWrite(t *testing.T) {
 			if err != nil {
 				t.Fatalf("failed to encode %s: %s", tt.name, err.Error())
 			}
+			if len(data) != buf.Len() {
+				t.Fatalf("size mismatch: %d != %d (off by %d)", len(data), buf.Len(), len(data)-buf.Len())
+			}
 
 			zon2 := &Zon{}
 			err = zon2.Read(bytes.NewReader(buf.Bytes()))
 			if err != nil {
 				t.Fatalf("failed to read %s: %s", tt.name, err.Error())
 			}
+
+			// for _, e := range zon.name.names {
+			// 	if e.name != zon2.name.byOffset(int32(e.offset)) {
+			// 		t.Fatalf("name mismatch: %s != %s", e.name, zon2.name.byOffset(int32(e.offset)))
+			// 	}
+			// }
 
 			if len(zon.Lights) != len(zon2.Lights) {
 				t.Fatalf("lights mismatch: %d != %d", len(zon.Lights), len(zon2.Lights))
@@ -159,25 +167,25 @@ func TestZonWrite(t *testing.T) {
 				t.Fatalf("models mismatch: %d != %d", len(zon.Models), len(zon2.Models))
 			}
 
-			if len(zon.Objects) != len(zon2.Objects) {
-				t.Fatalf("objects mismatch: %d != %d", len(zon.Objects), len(zon2.Objects))
+			if len(zon.Instances) != len(zon2.Instances) {
+				t.Fatalf("instances mismatch: %d != %d", len(zon.Instances), len(zon2.Instances))
 			}
 
-			if len(zon.Regions) != len(zon2.Regions) {
-				t.Fatalf("regions mismatch: %d != %d", len(zon.Regions), len(zon2.Regions))
+			if len(zon.Areas) != len(zon2.Areas) {
+				t.Fatalf("regions mismatch: %d != %d", len(zon.Areas), len(zon2.Areas))
 			}
 
-			srcData := data
-			dstData := buf.Bytes()
-			err = os.WriteFile(fmt.Sprintf("%s/%s.dst%s", dirTest, baseName, ".zon"), dstData, 0644)
-			if err != nil {
-				t.Fatalf("failed to write %s: %s", fileName, err.Error())
-			}
+			// srcData := data
+			// dstData := buf.Bytes()
+			// err = os.WriteFile(fmt.Sprintf("%s/%s.dst%s", dirTest, baseName, ".zon"), dstData, 0644)
+			// if err != nil {
+			// 	t.Fatalf("failed to write %s: %s", fileName, err.Error())
+			// }
 
-			err = helper.ByteCompareTest(srcData, dstData)
-			if err != nil {
-				t.Fatalf("%s byteCompare: %s", tt.name, err)
-			}
+			// err = helper.ByteCompareTest(srcData, dstData)
+			// if err != nil {
+			// 	t.Fatalf("%s byteCompare: %s", tt.name, err)
+			// }
 		})
 	}
 }

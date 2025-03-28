@@ -237,6 +237,16 @@ func (wce *Wce) writeAsciiData(path string) error {
 		}
 	}
 
+	if len(wce.ZonDefs) > 1 {
+		return fmt.Errorf("multiple zondefs found")
+	}
+	for _, zonDef := range wce.ZonDefs {
+		err = zonDef.Write(token)
+		if err != nil {
+			return fmt.Errorf("zondef %s: %w", zonDef.Tag, err)
+		}
+	}
+
 	for _, aniDef := range wce.AniDefs {
 		err = aniDef.Write(token)
 		if err != nil {
