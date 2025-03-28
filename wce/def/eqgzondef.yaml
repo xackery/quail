@@ -21,20 +21,20 @@ properties:
           - name: ""
             note: ""
             format: "%s"
-  - name: "NUMOBJECTS"
+  - name: "NUMINSTANCES"
     note: ""
     args:
       - name: ""
         note: ""
         format: "%d"
     properties:
-      - name: "OBJECT"
+      - name: "MODELTAG"
         note: ""
         args:
           - name: ""
             note: ""
             format: "%s"
-      - name: "INSTANCE"
+      - name: "INSTANCETAG"
         note: ""
         args:
           - name: ""
@@ -120,24 +120,18 @@ properties:
           - name: ""
             note: ""
             format: "%0.8e"
-      - name: "RADIUS"
+      - name: "EXTENTS"
         note: ""
         args:
           - name: ""
             note: ""
             format: "%0.8e"
-      - name: "UNK1"
-        note: ""
-        args:
           - name: ""
             note: ""
-            format: "%d"
-      - name: "UNK2"
-        note: ""
-        args:
+            format: "%0.8e"
           - name: ""
             note: ""
-            format: "%d"
+            format: "%0.8e"
   - name: "NUMLIGHTS"
     note: ""
     args:
