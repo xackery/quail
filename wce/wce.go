@@ -60,7 +60,7 @@ type Wce struct {
 
 type WldDefinitioner interface {
 	Definition() string
-	ToRaw(src *Wce, dst *raw.Wld) (int16, error)
+	ToRaw(src *Wce, dst *raw.Wld) (int32, error)
 	Write(token *AsciiWriteToken) error
 }
 

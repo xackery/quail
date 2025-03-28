@@ -20,7 +20,7 @@ var tests = []testEntry{
 	//{baseName: "load2"}, // dmspritedef2: fragment4 unknown type *rawfrag.WldFragBMInfo
 	//{baseName: "globalogm_chr2"}, //track L10BOGML10B_OGM_TRACK model too short ()
 	//{baseName: "sseru_2_obj"}, // OK
-	{baseName: "mim_chr"}, // OK
+	//{baseName: "mim_chr"}, // OK
 	//{baseName: "chardok_2_obj"}, // OK
 	//{baseName: "butcher2_chr"}, // OK
 	//{baseName: "chequip"}, // OK
@@ -86,8 +86,8 @@ var tests = []testEntry{
 	//{baseName: "acrylia_obj"}, //acrylia_obj failed to write acrylia_obj: hierarchicalsprite ACTORCH301_HS_DEF: collision volume not found: I_L301_SPB
 	// {baseName: "ael_chr"}, //failed to write ael_chr: actordef AEL_ACTORDEF: sprite AEL_HS_DEF to raw: collision volume not found: I_AELCLOUD01_SPB
 	//{baseName: "gequip.takp", wldName: "gequip.wld"},
-	{baseName: "dra_chr"}, // fails at DRAHE0212_MDF. There are 2 materials with same name but different simplesprites.
-
+	//{baseName: "dra_chr"}, // fails at DRAHE0212_MDF. There are 2 materials with same name but different simplesprites.
+	{baseName: "iceclad"},
 }
 
 type testEntry struct {
