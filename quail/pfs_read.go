@@ -46,12 +46,12 @@ func (q *Quail) PfsRead(path string) error {
 		}
 		reader, err := raw.Read(ext, bytes.NewReader(file.Data()))
 		if err != nil {
-			return fmt.Errorf("read %s: %w", file.Name(), err)
+			return fmt.Errorf("raw.Read %s: %w", file.Name(), err)
 		}
 		reader.SetFileName(file.Name())
 		err = q.RawRead(reader)
 		if err != nil {
-			return fmt.Errorf("rawRead %s: %w", file.Name(), err)
+			return fmt.Errorf("q rawRead %s: %w", file.Name(), err)
 		}
 	}
 
