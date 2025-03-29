@@ -7,7 +7,9 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/xackery/quail/helper"
 	"github.com/xackery/quail/pfs"
+	"github.com/xackery/quail/wce"
 )
 
 // Write exports the quail target
@@ -66,7 +68,26 @@ func (e *Quail) EQGExport(fileVersion uint32, pfsVersion int, path string) error
 		return fmt.Errorf("encode %s: %w", path, err)
 	}
 
-	fmt.Printf("Wrote %s with %d entries\n", path, archive.Len())
+	noExtBaseName := strings.TrimSuffix(filepath.Base(path), filepath.Ext(path))
+	dirPath := filepath.Dir(path)
+
+	sideFileOut := ""
+	numSideFiles := 0
+	ok, err := e.Wld.WriteSingleFile(wce.SideFileZon, filepath.Join(dirPath, noExtBaseName+".zon"))
+	if err != nil {
+		return fmt.Errorf("write side file .zon: %w", err)
+	}
+	if ok {
+		sideFileOut += ".zon, "
+		numSideFiles++
+	}
+
+	if len(sideFileOut) > 0 {
+		sideFileOut = strings.TrimSuffix(sideFileOut, ", ")
+		sideFileOut = fmt.Sprintf(" and side file%s: %s", helper.Pluralize(numSideFiles), sideFileOut)
+	}
+
+	fmt.Printf("Wrote %s with %d entries%s\n", path, archive.Len(), sideFileOut)
 
 	return nil
 }

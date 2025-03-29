@@ -108,7 +108,7 @@ func (q *Quail) PfsRead(path string) error {
 
 	if len(summary) > 0 {
 		summary = summary[:len(summary)-2]
-		fmt.Printf("Converted %s.\n", summary)
+		fmt.Printf("Converted eqg %s.\n", summary)
 	}
 
 	return nil
