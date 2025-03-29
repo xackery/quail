@@ -31,6 +31,16 @@ func (ter *Ter) Identity() string {
 	return "ter"
 }
 
+func (ter *Ter) String() string {
+	out := ""
+	out += fmt.Sprintf("metafilename: %s\n", ter.MetaFileName)
+	out += fmt.Sprintf("version: %d\n", ter.Version)
+	out += fmt.Sprintf("materials: %d\n", len(ter.Materials))
+	out += fmt.Sprintf("vertices: %d\n", len(ter.Vertices))
+	out += fmt.Sprintf("faces: %d\n", len(ter.Faces))
+	return out
+}
+
 // Read reads a TER file
 func (ter *Ter) Read(r io.ReadSeeker) error {
 	if ter.name == nil {
