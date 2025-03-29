@@ -92,9 +92,9 @@ func (ter *Ter) Write(w io.Writer) error {
 		enc.Uint32(tri.Index[1])
 		enc.Uint32(tri.Index[2])
 		matID := int32(0)
-		for _, mat := range ter.Materials {
+		for i, mat := range ter.Materials {
 			if mat.Name == tri.MaterialName {
-				matID = mat.ID
+				matID = int32(i)
 				break
 			}
 		}

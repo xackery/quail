@@ -3,6 +3,7 @@ package wce
 import (
 	"bytes"
 	"fmt"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -189,6 +190,24 @@ func (wce *Wce) readEqgEntry(entry *pfs.FileEntry) error {
 	return nil
 }
 
+// ReadRaw takes a raw entry and reads it into the Wce object.
+func (wce *Wce) ReadRaw(rawEntry raw.Reader) error {
+	switch rawInfo := rawEntry.(type) {
+	case *raw.Zon:
+		def := &EqgZonDef{}
+		err := def.FromRaw(wce, rawInfo)
+		if err != nil {
+			return fmt.Errorf("zon: %w", err)
+		}
+		wce.ZonDefs = append(wce.ZonDefs, def)
+		wce.WorldDef.Zone = 1
+	default:
+		return fmt.Errorf("unsupported raw type: %s", rawEntry.Identity())
+	}
+
+	return nil
+}
+
 func (wce *Wce) WriteEqgRaw(archive *pfs.Pfs) error {
 	if archive == nil {
 		return fmt.Errorf("archive is nil")
@@ -271,6 +290,9 @@ func (wce *Wce) WriteEqgRaw(archive *pfs.Pfs) error {
 		return fmt.Errorf("only one zon def is supported")
 	}
 	for _, zon := range wce.ZonDefs {
+		if zon.Version == 2 {
+			continue // skip v2 zones, it's handled on WriteSingleFile
+		}
 		buf := &bytes.Buffer{}
 		dst := &raw.Zon{
 			MetaFileName: zon.Tag,
@@ -401,6 +423,49 @@ func (wce *Wce) WriteEqgRaw(archive *pfs.Pfs) error {
 	}
 
 	return nil
+}
+
+type SideFileType int
+
+const (
+	SideFileNone SideFileType = iota
+	SideFileZon
+)
+
+// WriteSideFile is used to write out side files beyond an archive
+func (wce *Wce) WriteSingleFile(sidefileType SideFileType, path string) (bool, error) {
+	switch sidefileType {
+	case SideFileZon:
+		for _, zon := range wce.ZonDefs {
+			if zon.Version != 2 {
+				continue
+			}
+			w, err := os.Create(path)
+			if err != nil {
+				return false, fmt.Errorf("create zon file: %w", err)
+			}
+			defer w.Close()
+
+			dst := &raw.Zon{
+				MetaFileName: zon.Tag,
+				Version:      zon.Version,
+			}
+
+			err = zon.ToRaw(wce, dst)
+			if err != nil {
+				return false, fmt.Errorf("zon to raw: %w", err)
+			}
+
+			err = dst.Write(w)
+			if err != nil {
+				return false, fmt.Errorf("zon write: %w", err)
+			}
+			return true, nil
+		}
+	default:
+		return false, fmt.Errorf("unsupported side file type %d", sidefileType)
+	}
+	return false, nil
 }
 
 func writeEqgMaterials(srcMaterials []*EQMaterialDef) ([]*raw.ModMaterial, error) {

@@ -8,6 +8,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/xackery/quail/quail"
+	"github.com/xackery/quail/raw"
 )
 
 func init() {
@@ -73,6 +74,13 @@ func runConvertE(args []string) error {
 		if err != nil {
 			return fmt.Errorf("pfs read: %w", err)
 		}
+		if srcExt == ".eqg" {
+			srcPathNoExt := srcPath[:len(srcPath)-len(srcExt)] // remove the .eqg
+			err = quailLoadSideFile(q, srcPathNoExt+".zon")
+			if err != nil {
+				return fmt.Errorf("load side file .zon: %w", err)
+			}
+		}
 	}
 
 	dstExt := filepath.Ext(dstPath)
@@ -114,5 +122,30 @@ func runConvertE(args []string) error {
 
 	}
 
+	return nil
+}
+
+func quailLoadSideFile(q *quail.Quail, path string) error {
+	ext := filepath.Ext(path)
+	r, err := os.Open(path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return nil // side files are optional
+		}
+		return fmt.Errorf("open side file %s: %w", ext, err)
+	}
+	defer r.Close()
+	rawSideFile, err := raw.Read(ext, r) // read the raw data
+	if err != nil {
+		return fmt.Errorf("read %s side file: %w", ext, err)
+	}
+	if q.Wld == nil {
+		return fmt.Errorf("no quail wld found to load side file %s", ext)
+	}
+	err = q.Wld.ReadRaw(rawSideFile) // read the raw data into Wld
+	if err != nil {
+		return fmt.Errorf("raw read side file %s: %w", ext, err)
+	}
+	fmt.Printf("Loaded side file %s\n", filepath.Base(path))
 	return nil
 }

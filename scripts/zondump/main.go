@@ -59,7 +59,7 @@ func run() error {
 			}
 			switch z := zon.(type) {
 			case *raw.Zon:
-				fmt.Println(zonName, z.Version)
+				fmt.Println("extrnal", zonName, z.Version)
 				zones[zonName] = int(z.Version)
 			default:
 				return fmt.Errorf("unknown type %T", z)

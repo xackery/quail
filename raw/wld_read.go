@@ -141,6 +141,15 @@ func (wld *Wld) Read(r io.ReadSeeker) error {
 		return fmt.Errorf("region count mismatch, wanted %d, got %d", bspRegionCount, totalRegions)
 	}
 
+	// end of file has 4 bytes padded
+	finalBytes := dec.Bytes(4)
+	// they're all 0x00
+	for _, b := range finalBytes {
+		if b != 0xff {
+			return fmt.Errorf("final bytes not 0x00, got %x", finalBytes)
+		}
+	}
+
 	pos := dec.Pos()
 	endPos, err := r.Seek(0, io.SeekEnd)
 	if err != nil {
@@ -148,6 +157,8 @@ func (wld *Wld) Read(r io.ReadSeeker) error {
 	}
 	if pos != endPos {
 		if pos < endPos {
+			//remainingBytes := dec.Bytes(int(endPos - pos))
+			//fmt.Printf("remaining bytes: %x\n", remainingBytes)
 			return fmt.Errorf("%d bytes remaining (%d total)", endPos-pos, endPos)
 		}
 

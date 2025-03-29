@@ -94,6 +94,7 @@ func (wld *Wld) Write(w io.Writer) error {
 
 	enc.Bytes(nameData)
 	enc.Bytes(totalFragBuf.Bytes())
+	enc.Bytes([]byte{0xff, 0xff, 0xff, 0xff}) // end of file
 	err = enc.Error()
 	if err != nil {
 		return fmt.Errorf("write: %w", err)
