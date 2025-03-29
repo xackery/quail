@@ -160,6 +160,12 @@ func TestModWrite(t *testing.T) {
 				t.Fatalf("Triangles mismatch, got %d, expected %d", len(mod.Faces), len(mod2.Faces))
 			}
 
+			for i := 0; i < len(mod.Faces); i++ {
+				if mod.Faces[i].MaterialName != mod.Faces[i].MaterialName {
+					t.Fatalf("face %d material name mismatch %s vs %s", i, mod.Faces[i].MaterialName, mod.Faces[i].MaterialName)
+				}
+			}
+
 			if len(mod.Bones) != len(mod2.Bones) {
 				t.Fatalf("Bones mismatch, got %d, expected %d", len(mod.Bones), len(mod2.Bones))
 			}

@@ -132,6 +132,12 @@ func TestTerWrite(t *testing.T) {
 				t.Fatalf("failed to read %s: %s", tt.name, err.Error())
 			}
 
+			buf2 := bytes.NewBuffer(nil)
+			err = ter2.Write(buf2)
+			if err != nil {
+				t.Fatalf("failed to write %s: %s", tt.name, err.Error())
+			}
+
 			if len(ter2.Materials) != len(ter.Materials) {
 				t.Fatalf("%s write: material count mismatch %d vs %d", tt.name, len(ter2.Materials), len(ter.Materials))
 			}
@@ -144,6 +150,21 @@ func TestTerWrite(t *testing.T) {
 				t.Fatalf("%s write: triangle count mismatch %d vs %d", tt.name, len(ter2.Faces), len(ter.Faces))
 			}
 
+			for i := 0; i < len(ter.Faces); i++ {
+				if ter2.Faces[i].MaterialName != ter.Faces[i].MaterialName {
+					t.Fatalf("%s write: face %d material name mismatch %s vs %s", tt.name, i, ter2.Faces[i].MaterialName, ter.Faces[i].MaterialName)
+				}
+			}
+
+			err = helper.ByteCompareTest(ter.name.data(), ter.name.data())
+			if err != nil {
+				t.Fatalf("Name data mismatch: %s", err.Error())
+			}
+
+			err = helper.ByteCompareTest(buf.Bytes(), buf2.Bytes())
+			if err != nil {
+				t.Fatalf("%s write: byte compare failed: %s", tt.name, err.Error())
+			}
 			// err = helper.ByteCompareTest(data, buf.Bytes())
 			// if err != nil {
 			// 	t.Fatalf("%s byteCompare: %s", tt.name, err)

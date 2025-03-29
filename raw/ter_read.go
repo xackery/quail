@@ -118,11 +118,18 @@ func (ter *Ter) Read(r io.ReadSeeker) error {
 		t.Index[2] = dec.Uint32()
 
 		materialID := dec.Int32()
+		if i == 4859 {
+			// debug breakpoint
+			fmt.Println("found face 4859")
+		}
 
 		var material *ModMaterial
 		if materialID != -1 && len(ter.Materials) > int(materialID) {
 			material = ter.Materials[materialID]
 			t.MaterialName = material.Name
+		}
+		if materialID == -1 {
+			t.MaterialName = "FailsafeShader"
 		}
 
 		t.Flags = dec.Uint32()
