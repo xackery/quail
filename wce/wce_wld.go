@@ -83,7 +83,7 @@ func (e *WorldDef) Read(token *AsciiReadToken) error {
 // GlobalAmbientLightDef is a declaration of GLOBALAMBIENTLIGHTDEF
 type GlobalAmbientLightDef struct {
 	folders []string // when writing, this is the folder the file is in
-	fragID  int16
+	fragID  int32
 	Color   [4]uint8
 }
 
@@ -123,7 +123,7 @@ func (e *GlobalAmbientLightDef) Read(token *AsciiReadToken) error {
 	return nil
 }
 
-func (e *GlobalAmbientLightDef) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
+func (e *GlobalAmbientLightDef) ToRaw(wce *Wce, rawWld *raw.Wld) (int32, error) {
 	if e.fragID != 0 {
 		return e.fragID, nil
 	}
@@ -132,8 +132,8 @@ func (e *GlobalAmbientLightDef) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) 
 	}
 
 	rawWld.Fragments = append(rawWld.Fragments, wfGlobalAmbientLightDef)
-	e.fragID = int16(len(rawWld.Fragments))
-	return int16(len(rawWld.Fragments)), nil
+	e.fragID = int32(len(rawWld.Fragments))
+	return int32(len(rawWld.Fragments)), nil
 }
 
 func (e *GlobalAmbientLightDef) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragGlobalAmbientLightDef) error {
@@ -149,7 +149,7 @@ func (e *GlobalAmbientLightDef) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag
 // DMSpriteDef2 is a declaration of DMSpriteDef2
 type DMSpriteDef2 struct {
 	folders               []string // when writing, this is the folder the file is in
-	fragID                int16
+	fragID                int32
 	Tag                   string
 	TagIndex              int
 	DmTrackTag            string
@@ -710,14 +710,14 @@ func (e *DMSpriteDef2) Read(token *AsciiReadToken) error {
 	return nil
 }
 
-func (e *DMSpriteDef2) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
+func (e *DMSpriteDef2) ToRaw(wce *Wce, rawWld *raw.Wld) (int32, error) {
 	var err error
 
 	if e.fragID != 0 {
 		return e.fragID, nil
 	}
 
-	materialPaletteRef := int16(0)
+	materialPaletteRef := int32(0)
 	if e.MaterialPaletteTag != "" {
 		palette := wce.ByTag(e.MaterialPaletteTag)
 		if palette == nil {
@@ -905,8 +905,8 @@ func (e *DMSpriteDef2) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
 	}
 
 	rawWld.Fragments = append(rawWld.Fragments, dmSpriteDef)
-	e.fragID = int16(len(rawWld.Fragments))
-	return int16(len(rawWld.Fragments)), nil
+	e.fragID = int32(len(rawWld.Fragments))
+	return int32(len(rawWld.Fragments)), nil
 }
 
 func (e *DMSpriteDef2) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragDmSpriteDef2) error {
@@ -1060,7 +1060,7 @@ func (e *DMSpriteDef2) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragD
 // DMSpriteDef is a declaration of DMSPRITEDEF
 type DMSpriteDef struct {
 	folders              []string // when writing, this is the folder the file is in
-	fragID               int16
+	fragID               int32
 	Tag                  string
 	TagIndex             int
 	Fragment1            int16
@@ -1557,13 +1557,13 @@ func (e *DMSpriteDef) Read(token *AsciiReadToken) error {
 	return nil
 }
 
-func (e *DMSpriteDef) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
+func (e *DMSpriteDef) ToRaw(wce *Wce, rawWld *raw.Wld) (int32, error) {
 	var err error
 	if e.fragID != 0 {
 		return e.fragID, nil
 	}
 
-	materialPaletteRef := int16(0)
+	materialPaletteRef := int32(0)
 	if e.MaterialPaletteTag != "" {
 		palette := wce.ByTag(e.MaterialPaletteTag)
 		if palette == nil {
@@ -1629,9 +1629,9 @@ func (e *DMSpriteDef) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
 	}
 
 	rawWld.Fragments = append(rawWld.Fragments, wfDMSpriteDef)
-	e.fragID = int16(len(rawWld.Fragments))
+	e.fragID = int32(len(rawWld.Fragments))
 
-	return int16(len(rawWld.Fragments)), nil
+	return int32(len(rawWld.Fragments)), nil
 }
 
 func (e *DMSpriteDef) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragDMSpriteDef) error {
@@ -1700,7 +1700,7 @@ func (e *DMSpriteDef) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragDM
 // MaterialPalette is a declaration of MATERIALPALETTE
 type MaterialPalette struct {
 	folders   []string // when writing, this is the folder the file is in
-	fragID    int16
+	fragID    int32
 	Tag       string
 	flags     uint32
 	Materials []string
@@ -1755,7 +1755,7 @@ func (e *MaterialPalette) Read(token *AsciiReadToken) error {
 	return nil
 }
 
-func (e *MaterialPalette) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
+func (e *MaterialPalette) ToRaw(wce *Wce, rawWld *raw.Wld) (int32, error) {
 	if e.fragID != 0 {
 		return e.fragID, nil
 	}
@@ -1779,9 +1779,9 @@ func (e *MaterialPalette) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
 
 	wfPalette.SetNameRef(rawWld.NameAdd(e.Tag))
 	rawWld.Fragments = append(rawWld.Fragments, wfPalette)
-	e.fragID = int16(len(rawWld.Fragments))
+	e.fragID = int32(len(rawWld.Fragments))
 
-	return int16(len(rawWld.Fragments)), nil
+	return int32(len(rawWld.Fragments)), nil
 }
 
 func (e *MaterialPalette) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragMaterialPalette) error {
@@ -1808,7 +1808,7 @@ func (e *MaterialPalette) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFr
 // MaterialDef is an entry MATERIALDEFINITION
 type MaterialDef struct {
 	folders              []string // when writing, this is the folder the file is in
-	fragID               int16
+	fragID               int32
 	Tag                  string
 	TagIndex             int
 	Variation            int
@@ -1983,7 +1983,7 @@ func (e *MaterialDef) Read(token *AsciiReadToken) error {
 	return nil
 }
 
-func (e *MaterialDef) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
+func (e *MaterialDef) ToRaw(wce *Wce, rawWld *raw.Wld) (int32, error) {
 	if !wce.isVariationMaterial && e.fragID != 0 {
 		return e.fragID, nil
 	}
@@ -2037,8 +2037,8 @@ func (e *MaterialDef) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
 	wfMaterialDef.SetNameRef(rawWld.NameAdd(e.Tag))
 
 	rawWld.Fragments = append(rawWld.Fragments, wfMaterialDef)
-	e.fragID = int16(len(rawWld.Fragments))
-	return int16(len(rawWld.Fragments)), nil
+	e.fragID = int32(len(rawWld.Fragments))
+	return int32(len(rawWld.Fragments)), nil
 }
 
 func (e *MaterialDef) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragMaterialDef) error {
@@ -2150,7 +2150,7 @@ func (e *MaterialDef) variationParseFromRaw(wce *Wce, frag *rawfrag.WldFragMater
 // BlitSpriteDef is a declaration of BLITSPRITEDEF
 type BlitSpriteDef struct {
 	folders      []string // when writing, this is the folder the file is in
-	fragID       int16
+	fragID       int32
 	Tag          string
 	SpriteTag    string
 	RenderMethod string
@@ -2222,7 +2222,7 @@ func (e *BlitSpriteDef) Read(token *AsciiReadToken) error {
 	return nil
 }
 
-func (e *BlitSpriteDef) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
+func (e *BlitSpriteDef) ToRaw(wce *Wce, rawWld *raw.Wld) (int32, error) {
 	if e.fragID != 0 {
 		return e.fragID, nil
 	}
@@ -2248,7 +2248,7 @@ func (e *BlitSpriteDef) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
 
 	rawWld.Fragments = append(rawWld.Fragments, wfSprite)
 
-	spriteRef := int16(len(rawWld.Fragments))
+	spriteRef := int32(len(rawWld.Fragments))
 
 	wfBlitSpriteDef := &rawfrag.WldFragBlitSpriteDef{
 		RenderMethod:      helper.RenderMethodInt(e.RenderMethod),
@@ -2262,7 +2262,7 @@ func (e *BlitSpriteDef) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
 	wfBlitSpriteDef.SetNameRef(rawWld.NameAdd(e.Tag))
 
 	rawWld.Fragments = append(rawWld.Fragments, wfBlitSpriteDef)
-	e.fragID = int16(len(rawWld.Fragments))
+	e.fragID = int32(len(rawWld.Fragments))
 
 	return e.fragID, nil
 }
@@ -2303,7 +2303,7 @@ func (e *BlitSpriteDef) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFrag
 // SimpleSpriteDef is a declaration of SIMPLESPRITEDEF
 type SimpleSpriteDef struct {
 	folders            []string // when writing, this is the folder the file is in
-	fragID             int16
+	fragID             int32
 	Tag                string
 	TagIndex           int
 	Variation          int
@@ -2464,7 +2464,7 @@ func (e *SimpleSpriteDef) Read(token *AsciiReadToken) error {
 	return nil
 }
 
-func (e *SimpleSpriteDef) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
+func (e *SimpleSpriteDef) ToRaw(wce *Wce, rawWld *raw.Wld) (int32, error) {
 
 	/* if !wce.isVariationMaterial && e.fragID != 0 {
 		return e.fragID, nil
@@ -2512,8 +2512,8 @@ func (e *SimpleSpriteDef) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
 	wfSimpleSpriteDef.SetNameRef(rawWld.NameAdd(e.Tag))
 
 	rawWld.Fragments = append(rawWld.Fragments, wfSimpleSpriteDef)
-	e.fragID = int16(len(rawWld.Fragments))
-	return int16(len(rawWld.Fragments)), nil
+	e.fragID = int32(len(rawWld.Fragments))
+	return int32(len(rawWld.Fragments)), nil
 }
 
 func (e *SimpleSpriteDef) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragSimpleSpriteDef) error {
@@ -2566,7 +2566,7 @@ func (e *SimpleSpriteDef) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFr
 // ActorDef is a declaration of ACTORDEF
 type ActorDef struct {
 	folders          []string // when writing, this is the folder the file is in
-	fragID           int16
+	fragID           int32
 	Tag              string
 	Callback         string
 	BoundsRef        int32
@@ -2859,7 +2859,7 @@ func (e *ActorDef) Read(token *AsciiReadToken) error {
 	return nil
 }
 
-func (e *ActorDef) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
+func (e *ActorDef) ToRaw(wce *Wce, rawWld *raw.Wld) (int32, error) {
 	var err error
 	if e.fragID != 0 {
 		return e.fragID, nil
@@ -2901,7 +2901,7 @@ func (e *ActorDef) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
 				continue
 			}
 
-			var spriteRef int16
+			var spriteRef int32
 			spriteVar := wce.ByTag(lod.SpriteTag)
 			if spriteVar == nil {
 				return -1, fmt.Errorf("lod sprite %s not found", lod.SpriteTag)
@@ -2917,7 +2917,7 @@ func (e *ActorDef) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
 				}
 
 				rawWld.Fragments = append(rawWld.Fragments, sprite)
-				spriteRef = int16(len(rawWld.Fragments))
+				spriteRef = int32(len(rawWld.Fragments))
 			case *DMSpriteDef2:
 				spriteRef, err = spriteDef.ToRaw(wce, rawWld)
 				if err != nil {
@@ -2928,7 +2928,7 @@ func (e *ActorDef) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
 				}
 
 				rawWld.Fragments = append(rawWld.Fragments, sprite)
-				spriteRef = int16(len(rawWld.Fragments))
+				spriteRef = int32(len(rawWld.Fragments))
 			case *Sprite3DDef:
 				spriteRef, err = spriteDef.ToRaw(wce, rawWld)
 				if err != nil {
@@ -2940,7 +2940,7 @@ func (e *ActorDef) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
 				}
 
 				rawWld.Fragments = append(rawWld.Fragments, sprite)
-				spriteRef = int16(len(rawWld.Fragments))
+				spriteRef = int32(len(rawWld.Fragments))
 			case *HierarchicalSpriteDef:
 				spriteRef, err = spriteDef.ToRaw(wce, rawWld)
 				if err != nil {
@@ -2954,7 +2954,7 @@ func (e *ActorDef) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
 				}
 
 				rawWld.Fragments = append(rawWld.Fragments, sprite)
-				spriteRef = int16(len(rawWld.Fragments))
+				spriteRef = int32(len(rawWld.Fragments))
 
 			case *Sprite2DDef:
 				spriteRef, err = spriteDef.ToRaw(wce, rawWld)
@@ -2967,7 +2967,7 @@ func (e *ActorDef) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
 				}
 
 				rawWld.Fragments = append(rawWld.Fragments, sprite)
-				spriteRef = int16(len(rawWld.Fragments))
+				spriteRef = int32(len(rawWld.Fragments))
 			case *BlitSpriteDef:
 				spriteRef, err = spriteDef.ToRaw(wce, rawWld)
 				if err != nil {
@@ -2979,7 +2979,7 @@ func (e *ActorDef) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
 				}
 
 				rawWld.Fragments = append(rawWld.Fragments, sprite)
-				spriteRef = int16(len(rawWld.Fragments))
+				spriteRef = int32(len(rawWld.Fragments))
 			default:
 				return -1, fmt.Errorf("actordef %s lod %s unknown sprite type %T", e.Tag, lod.SpriteTag, spriteDef)
 			}
@@ -2998,8 +2998,8 @@ func (e *ActorDef) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
 	actorDef.SetNameRef(rawWld.NameAdd(e.Tag))
 
 	rawWld.Fragments = append(rawWld.Fragments, actorDef)
-	e.fragID = int16(len(rawWld.Fragments))
-	return int16(len(rawWld.Fragments)), err
+	e.fragID = int32(len(rawWld.Fragments))
+	return int32(len(rawWld.Fragments)), err
 }
 
 func (e *ActorDef) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragActorDef) error {
@@ -3117,7 +3117,7 @@ func (e *ActorDef) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragActor
 // ActorInst is a declaration of ACTORINST
 type ActorInst struct {
 	folders          []string
-	fragID           int16
+	fragID           int32
 	Tag              string
 	DefinitionTag    string
 	CurrentAction    NullUint32
@@ -3309,7 +3309,7 @@ func (e *ActorInst) Read(token *AsciiReadToken) error {
 	return nil
 }
 
-func (e *ActorInst) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
+func (e *ActorInst) ToRaw(wce *Wce, rawWld *raw.Wld) (int32, error) {
 	var err error
 	if e.fragID != 0 {
 		return e.fragID, nil
@@ -3389,7 +3389,7 @@ func (e *ActorInst) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
 			wfActorInst.ActorDefRef = rawWld.NameAdd(e.DefinitionTag)
 		}
 		rawWld.Fragments = append(rawWld.Fragments, wfRGBTrack)
-		dmRGBTrackRef := int16(len(rawWld.Fragments))
+		dmRGBTrackRef := int32(len(rawWld.Fragments))
 		wfActorInst.DMRGBTrackRef = int32(dmRGBTrackRef)
 	}
 
@@ -3410,8 +3410,8 @@ func (e *ActorInst) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
 	wfActorInst.UserData = e.UserData
 
 	rawWld.Fragments = append(rawWld.Fragments, wfActorInst)
-	e.fragID = int16(len(rawWld.Fragments))
-	return int16(len(rawWld.Fragments)), err
+	e.fragID = int32(len(rawWld.Fragments))
+	return int32(len(rawWld.Fragments)), err
 }
 
 func (e *ActorInst) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragActor) error {
@@ -3530,7 +3530,7 @@ func (e *ActorInst) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragActo
 // LightDef is a declaration of LIGHTDEF
 type LightDef struct {
 	folders      []string // when writing, this is the folder the file is in
-	fragID       int16
+	fragID       int32
 	Tag          string
 	CurrentFrame NullUint32
 	Sleep        NullUint32
@@ -3650,7 +3650,7 @@ func (e *LightDef) Read(token *AsciiReadToken) error {
 	return nil
 }
 
-func (e *LightDef) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
+func (e *LightDef) ToRaw(wce *Wce, rawWld *raw.Wld) (int32, error) {
 	if e.fragID != 0 {
 		return e.fragID, nil
 	}
@@ -3684,8 +3684,8 @@ func (e *LightDef) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
 	}
 
 	rawWld.Fragments = append(rawWld.Fragments, wfLightDef)
-	e.fragID = int16(len(rawWld.Fragments))
-	return int16(len(rawWld.Fragments)), err
+	e.fragID = int32(len(rawWld.Fragments))
+	return int32(len(rawWld.Fragments)), err
 }
 
 func (e *LightDef) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragLightDef) error {
@@ -3722,7 +3722,7 @@ func (e *LightDef) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragLight
 // PointLight is a declaration of POINTLIGHT
 type PointLight struct {
 	folders         []string // when writing, this is the folder the file is in
-	fragID          int16
+	fragID          int32
 	Tag             string
 	LightDefTag     string
 	Static          int
@@ -3829,7 +3829,7 @@ func (e *PointLight) Read(token *AsciiReadToken) error {
 	return nil
 }
 
-func (e *PointLight) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
+func (e *PointLight) ToRaw(wce *Wce, rawWld *raw.Wld) (int32, error) {
 	if e.fragID != 0 {
 		return e.fragID, nil
 	}
@@ -3877,8 +3877,8 @@ func (e *PointLight) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
 	}
 
 	rawWld.Fragments = append(rawWld.Fragments, light)
-	e.fragID = int16(len(rawWld.Fragments))
-	return int16(len(rawWld.Fragments)), nil
+	e.fragID = int32(len(rawWld.Fragments))
+	return int32(len(rawWld.Fragments)), nil
 }
 
 func (e *PointLight) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragPointLight) error {
@@ -3929,7 +3929,7 @@ func (e *PointLight) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragPoi
 // Sprite3DDef is a declaration of SPRITE3DDEF
 type Sprite3DDef struct {
 	folders        []string // when writing, this is the folder the file is in
-	fragID         int16
+	fragID         int32
 	Tag            string
 	CenterOffset   NullFloat32Slice3
 	BoundingRadius NullFloat32
@@ -4229,7 +4229,7 @@ func (e *Sprite3DDef) Read(token *AsciiReadToken) error {
 	return nil
 }
 
-func (e *Sprite3DDef) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
+func (e *Sprite3DDef) ToRaw(wce *Wce, rawWld *raw.Wld) (int32, error) {
 	if e.fragID != 0 {
 		return e.fragID, nil
 	}
@@ -4297,8 +4297,8 @@ func (e *Sprite3DDef) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
 	wfSprite3DDef.SetNameRef(rawWld.NameAdd(e.Tag))
 
 	rawWld.Fragments = append(rawWld.Fragments, wfSprite3DDef)
-	e.fragID = int16(len(rawWld.Fragments))
-	return int16(len(rawWld.Fragments)), nil
+	e.fragID = int32(len(rawWld.Fragments))
+	return int32(len(rawWld.Fragments)), nil
 }
 
 func (e *Sprite3DDef) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragSprite3DDef) error {
@@ -4400,7 +4400,7 @@ func (e *Sprite3DDef) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragSp
 
 type PolyhedronDefinition struct {
 	folders        []string // when writing, this is the folder the file is in
-	fragID         int16
+	fragID         int32
 	Tag            string
 	BoundingRadius float32
 	ScaleFactor    float32
@@ -4542,7 +4542,7 @@ func (e *PolyhedronDefinition) Read(token *AsciiReadToken) error {
 	return nil
 }
 
-func (e *PolyhedronDefinition) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
+func (e *PolyhedronDefinition) ToRaw(wce *Wce, rawWld *raw.Wld) (int32, error) {
 	if e.fragID != 0 {
 		return e.fragID, nil
 	}
@@ -4560,8 +4560,8 @@ func (e *PolyhedronDefinition) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
 	}
 
 	rawWld.Fragments = append(rawWld.Fragments, wfPolyhedronDef)
-	e.fragID = int16(len(rawWld.Fragments))
-	return int16(len(rawWld.Fragments)), nil
+	e.fragID = int32(len(rawWld.Fragments))
+	return int32(len(rawWld.Fragments)), nil
 }
 
 func (e *PolyhedronDefinition) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragPolyhedronDef) error {
@@ -4579,7 +4579,7 @@ func (e *PolyhedronDefinition) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.
 
 type TrackInstance struct {
 	folders        []string // when writing, this is the folder the file is in
-	fragID         int16
+	fragID         int32
 	animation      string
 	Tag            string
 	TagIndex       int
@@ -4693,7 +4693,7 @@ func (e *TrackInstance) Read(token *AsciiReadToken) error {
 	return nil
 }
 
-func (e *TrackInstance) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
+func (e *TrackInstance) ToRaw(wce *Wce, rawWld *raw.Wld) (int32, error) {
 	if e.fragID != 0 {
 		return e.fragID, nil
 	}
@@ -4733,8 +4733,8 @@ func (e *TrackInstance) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
 	}
 
 	rawWld.Fragments = append(rawWld.Fragments, wfTrack)
-	e.fragID = int16(len(rawWld.Fragments))
-	return int16(len(rawWld.Fragments)), nil
+	e.fragID = int32(len(rawWld.Fragments))
+	return int32(len(rawWld.Fragments)), nil
 }
 
 func (e *TrackInstance) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragTrack) error {
@@ -4781,7 +4781,7 @@ func (e *TrackInstance) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFrag
 
 type TrackDef struct {
 	folders      []string // when writing, this is the folder the file is in
-	fragID       int16
+	fragID       int32
 	animation    string
 	Tag          string
 	TagIndex     int
@@ -4939,7 +4939,7 @@ func (e *TrackDef) Read(token *AsciiReadToken) error {
 	return nil
 }
 
-func (e *TrackDef) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
+func (e *TrackDef) ToRaw(wce *Wce, rawWld *raw.Wld) (int32, error) {
 
 	wfTrack := &rawfrag.WldFragTrackDef{}
 
@@ -4983,8 +4983,8 @@ func (e *TrackDef) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
 
 	wfTrack.SetNameRef(rawWld.NameAdd(e.Tag))
 	rawWld.Fragments = append(rawWld.Fragments, wfTrack)
-	e.fragID = int16(len(rawWld.Fragments))
-	return int16(len(rawWld.Fragments)), nil
+	e.fragID = int32(len(rawWld.Fragments))
+	return int32(len(rawWld.Fragments)), nil
 }
 
 func (e *TrackDef) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragTrackDef) error {
@@ -5042,7 +5042,7 @@ func (e *TrackDef) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragTrack
 
 type HierarchicalSpriteDef struct {
 	folders               []string // when writing, this is the folder the file is in
-	fragID                int16
+	fragID                int32
 	Tag                   string
 	Dags                  []Dag
 	AttachedSkins         []AttachedSkin
@@ -5350,7 +5350,7 @@ func (e *HierarchicalSpriteDef) Read(token *AsciiReadToken) error {
 	return nil
 }
 
-func (e *HierarchicalSpriteDef) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
+func (e *HierarchicalSpriteDef) ToRaw(wce *Wce, rawWld *raw.Wld) (int32, error) {
 	if e.fragID != 0 {
 		return e.fragID, nil
 	}
@@ -5606,8 +5606,8 @@ func (e *HierarchicalSpriteDef) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) 
 	}
 
 	rawWld.Fragments = append(rawWld.Fragments, wfHierarchicalSpriteDef)
-	e.fragID = int16(len(rawWld.Fragments))
-	return int16(len(rawWld.Fragments)), nil
+	e.fragID = int32(len(rawWld.Fragments))
+	return int32(len(rawWld.Fragments)), nil
 }
 
 func (e *HierarchicalSpriteDef) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragHierarchicalSpriteDef) error {
@@ -5777,7 +5777,7 @@ func (e *HierarchicalSpriteDef) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag
 
 type WorldTree struct {
 	folders    []string // when writing, this is the folder the file is in
-	fragID     int16
+	fragID     int32
 	Tag        string
 	WorldNodes []*WorldNode
 }
@@ -5880,7 +5880,7 @@ func (e *WorldTree) Read(token *AsciiReadToken) error {
 	return nil
 }
 
-func (e *WorldTree) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
+func (e *WorldTree) ToRaw(wce *Wce, rawWld *raw.Wld) (int32, error) {
 	if e.fragID != 0 {
 		return e.fragID, nil
 	}
@@ -5920,8 +5920,8 @@ func (e *WorldTree) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
 	wfWorldTree.SetNameRef(rawWld.NameAdd(e.Tag))
 
 	rawWld.Fragments = append(rawWld.Fragments, wfWorldTree)
-	e.fragID = int16(len(rawWld.Fragments))
-	return int16(len(rawWld.Fragments)), nil
+	e.fragID = int32(len(rawWld.Fragments))
+	return int32(len(rawWld.Fragments)), nil
 }
 
 func (e *WorldTree) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragWorldTree) error {
@@ -5947,7 +5947,7 @@ func (e *WorldTree) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragWorl
 
 type Region struct {
 	folders           []string // when writing, this is the folder the file is in
-	fragID            int16
+	fragID            int32
 	Tag               string
 	RegionFog         int
 	Gouraud2          int
@@ -6674,7 +6674,7 @@ func (e *Region) Read(token *AsciiReadToken) error {
 	return nil
 }
 
-func (e *Region) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
+func (e *Region) ToRaw(wce *Wce, rawWld *raw.Wld) (int32, error) {
 	if e.fragID != 0 {
 		return e.fragID, nil
 	}
@@ -6764,8 +6764,8 @@ func (e *Region) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
 	wfRegion.SetNameRef(rawWld.NameAdd(e.Tag))
 
 	rawWld.Fragments = append(rawWld.Fragments, wfRegion)
-	e.fragID = int16(len(rawWld.Fragments))
-	return int16(len(rawWld.Fragments)), nil
+	e.fragID = int32(len(rawWld.Fragments))
+	return int32(len(rawWld.Fragments)), nil
 }
 
 func (e *Region) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragRegion) error {
@@ -6853,7 +6853,7 @@ func (e *Region) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragRegion)
 
 type AmbientLight struct {
 	folders    []string // when writing, this is the folder the file is in
-	fragID     int16
+	fragID     int32
 	Tag        string
 	LightTag   string
 	LightFlags uint32
@@ -6921,7 +6921,7 @@ func (e *AmbientLight) Read(token *AsciiReadToken) error {
 	return nil
 }
 
-func (e *AmbientLight) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
+func (e *AmbientLight) ToRaw(wce *Wce, rawWld *raw.Wld) (int32, error) {
 	if e.fragID != 0 {
 		return e.fragID, nil
 	}
@@ -6956,8 +6956,8 @@ func (e *AmbientLight) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
 	wfAmbientLight.SetNameRef(rawWld.NameAdd(e.Tag))
 
 	rawWld.Fragments = append(rawWld.Fragments, wfAmbientLight)
-	e.fragID = int16(len(rawWld.Fragments))
-	return int16(len(rawWld.Fragments)), nil
+	e.fragID = int32(len(rawWld.Fragments))
+	return int32(len(rawWld.Fragments)), nil
 }
 
 func (e *AmbientLight) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragAmbientLight) error {
@@ -6998,7 +6998,7 @@ func (e *AmbientLight) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragA
 
 type Zone struct {
 	folders  []string // when writing, this is the folder the file is in
-	fragID   int16
+	fragID   int32
 	Tag      string
 	Regions  []uint32
 	UserData string
@@ -7064,7 +7064,7 @@ func (e *Zone) Read(token *AsciiReadToken) error {
 	return nil
 }
 
-func (e *Zone) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
+func (e *Zone) ToRaw(wce *Wce, rawWld *raw.Wld) (int32, error) {
 	if e.fragID != 0 {
 		return e.fragID, nil
 	}
@@ -7077,8 +7077,8 @@ func (e *Zone) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
 	wfZone.SetNameRef(rawWld.NameAdd(e.Tag))
 
 	rawWld.Fragments = append(rawWld.Fragments, wfZone)
-	e.fragID = int16(len(rawWld.Fragments))
-	return int16(len(rawWld.Fragments)), nil
+	e.fragID = int32(len(rawWld.Fragments))
+	return int32(len(rawWld.Fragments)), nil
 }
 
 func (e *Zone) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragZone) error {
@@ -7094,7 +7094,7 @@ func (e *Zone) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragZone) err
 
 type RGBTrackDef struct {
 	folders []string // when writing, this is the folder the file is in
-	fragID  int16
+	fragID  int32
 	Tag     string
 	Data1   uint32
 	Data2   uint32
@@ -7205,7 +7205,7 @@ func (e *RGBTrackDef) Read(token *AsciiReadToken) error {
 	return nil
 }
 
-func (e *RGBTrackDef) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
+func (e *RGBTrackDef) ToRaw(wce *Wce, rawWld *raw.Wld) (int32, error) {
 	if e.fragID != 0 {
 		return e.fragID, nil
 	}
@@ -7216,8 +7216,8 @@ func (e *RGBTrackDef) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
 	wfRGBTrack.SetNameRef(rawWld.NameAdd(e.Tag))
 
 	rawWld.Fragments = append(rawWld.Fragments, wfRGBTrack)
-	e.fragID = int16(len(rawWld.Fragments))
-	return int16(len(rawWld.Fragments)), nil
+	e.fragID = int32(len(rawWld.Fragments))
+	return int32(len(rawWld.Fragments)), nil
 }
 
 func (e *RGBTrackDef) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragDmRGBTrackDef) error {
@@ -7236,7 +7236,7 @@ func (e *RGBTrackDef) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragDm
 
 type ParticleCloudDef struct {
 	folders                 []string // when writing, this is the folder the file is in
-	fragID                  int16
+	fragID                  int32
 	Tag                     string
 	TagIndex                int
 	BlitSpriteDefTag        string
@@ -7610,7 +7610,7 @@ func (e *ParticleCloudDef) Read(token *AsciiReadToken) error {
 	return nil
 }
 
-func (e *ParticleCloudDef) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
+func (e *ParticleCloudDef) ToRaw(wce *Wce, rawWld *raw.Wld) (int32, error) {
 	if e.fragID != 0 {
 		return e.fragID, nil
 	}
@@ -7725,8 +7725,8 @@ func (e *ParticleCloudDef) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
 	}
 
 	rawWld.Fragments = append(rawWld.Fragments, wfParticleCloud)
-	e.fragID = int16(len(rawWld.Fragments))
-	return int16(len(rawWld.Fragments)), nil
+	e.fragID = int32(len(rawWld.Fragments))
+	return int32(len(rawWld.Fragments)), nil
 }
 
 func (e *ParticleCloudDef) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragParticleCloudDef) error {
@@ -7824,7 +7824,7 @@ func (e *ParticleCloudDef) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldF
 
 type Sprite2DDef struct {
 	folders         []string // when writing, this is the folder the file is in
-	fragID          int16
+	fragID          int32
 	Tag             string
 	Scale           [2]float32
 	SphereListTag   string
@@ -8217,7 +8217,7 @@ func (e *Sprite2DDef) Read(token *AsciiReadToken) error {
 	return nil
 }
 
-func (e *Sprite2DDef) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
+func (e *Sprite2DDef) ToRaw(wce *Wce, rawWld *raw.Wld) (int32, error) {
 	if e.fragID != 0 {
 		return e.fragID, nil
 	}
@@ -8333,8 +8333,8 @@ func (e *Sprite2DDef) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
 	wfSprite2D.SetNameRef(rawWld.NameAdd(e.Tag))
 
 	rawWld.Fragments = append(rawWld.Fragments, wfSprite2D)
-	e.fragID = int16(len(rawWld.Fragments))
-	return int16(len(rawWld.Fragments)), nil
+	e.fragID = int32(len(rawWld.Fragments))
+	return int32(len(rawWld.Fragments)), nil
 }
 
 func (e *Sprite2DDef) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragSprite2DDef) error {
@@ -8541,7 +8541,7 @@ func spriteVariationToRaw(wce *Wce, rawWld *raw.Wld, e WldDefinitioner) error {
 
 type DMTrackDef2 struct {
 	folders []string // when writing, this is the folder the file is in
-	fragID  int16
+	fragID  int32
 	Tag     string
 	Sleep   uint16
 	Param2  uint16
@@ -8673,7 +8673,7 @@ func (e *DMTrackDef2) Read(token *AsciiReadToken) error {
 	return nil
 }
 
-func (e *DMTrackDef2) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
+func (e *DMTrackDef2) ToRaw(wce *Wce, rawWld *raw.Wld) (int32, error) {
 	//if e.fragID != 0 {
 	//	return e.fragID, nil
 	//}
@@ -8702,9 +8702,9 @@ func (e *DMTrackDef2) ToRaw(wce *Wce, rawWld *raw.Wld) (int16, error) {
 	wfTrack2.SetNameRef(rawWld.NameAdd(e.Tag))
 	// flags?
 	rawWld.Fragments = append(rawWld.Fragments, wfTrack2)
-	e.fragID = int16(len(rawWld.Fragments))
+	e.fragID = int32(len(rawWld.Fragments))
 
-	return int16(e.fragID), nil
+	return int32(e.fragID), nil
 }
 
 func (e *DMTrackDef2) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragDmTrackDef2) error {
