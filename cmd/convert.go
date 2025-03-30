@@ -11,8 +11,13 @@ import (
 	"github.com/xackery/quail/raw"
 )
 
+var (
+	flagPrintRegionPVS bool
+)
+
 func init() {
 	rootCmd.AddCommand(convertCmd)
+	convertCmd.Flags().BoolVarP(&flagPrintRegionPVS, "regpvs", "r", false, "Print translated Region PVS values instead of RLE")
 }
 
 // convertCmd represents the convert command
@@ -81,6 +86,10 @@ func runConvertE(args []string) error {
 				return fmt.Errorf("load side file .zon: %w", err)
 			}
 		}
+	}
+
+	if q.Wld != nil {
+		q.Wld.RangesToRegionsPVS = flagPrintRegionPVS
 	}
 
 	dstExt := filepath.Ext(dstPath)
