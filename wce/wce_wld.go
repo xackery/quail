@@ -6080,7 +6080,7 @@ func (e *Region) Write(token *AsciiWriteToken) error {
 		fmt.Fprintf(w, "\t\tNUMVISIBLELIST %d\n", len(e.VisTree.VisLists))
 		for i, list := range e.VisTree.VisLists {
 			fmt.Fprintf(w, "\t\t\tVISLIST // %d\n", i)
-			if token.wce.RangesToRegionsPVS {
+			if token.wce.IsRangesToRegionsPVS {
 				regions := processVisibilityList(e.VisListBytes, list.Ranges)
 				fmt.Fprintf(w, "\t\t\t\tREGIONS %d", len(regions))
 				for _, region := range regions {
