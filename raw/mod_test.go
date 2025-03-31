@@ -23,7 +23,6 @@ func TestModRead(t *testing.T) {
 		file    string
 		wantErr bool
 	}{
-
 		// .mod|0|obp_fob_tree.mod|oldfieldofbone.eqg oldfieldofbone.eqg pfs import: readMod obp_fob_tree.mod: invalid header EQLO, wanted EQGM
 		//{eqg: "oldfieldofbone.eqg", file: "obp_fob_tree.mod"}, // TODO: EQLO v4 .mod?
 		// .mod|0|obp_fob_tree.mod|oldfieldofboneb.eqg oldfieldofboneb.eqg pfs import: readMod obp_fob_tree.mod: invalid header EQLO, wanted EQGM
@@ -79,7 +78,9 @@ func TestModWrite(t *testing.T) {
 		file    string
 		wantErr bool
 	}{
-		{eqg: "dbx.eqg", file: "dbx.mod"}, // PASS
+
+		{eqg: "bazaar.eqg", file: "obj_sackc.mod"}, // TODO: 7813 bytes remaining
+		{eqg: "dbx.eqg", file: "dbx.mod"},          // PASS
 		//	{eqg: "it12043.eqg", file: "it12043.mod"}, // PASS
 		// .mod|0|obp_fob_tree.mod|oldfieldofbone.eqg oldfieldofbone.eqg pfs import: readMod obp_fob_tree.mod: invalid header EQLO, wanted EQGM
 		//{eqg: "oldfieldofbone.eqg", file: "obp_fob_tree.mod"}, // TODO: EQLO v4 .mod?

@@ -36,7 +36,7 @@ func TestDoubleConvertQuail(t *testing.T) {
 	dirTest := helper.DirTest()
 	testCmd := &cobra.Command{}
 
-	keyword := "alkabormare"
+	keyword := "anguish"
 	ext := "eqg"
 
 	fmt.Printf("quail convert %s.%s %s.quail\n", keyword, ext, keyword)
