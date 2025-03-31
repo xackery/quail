@@ -2845,23 +2845,30 @@ func (e *EqgZonDef) Read(token *AsciiReadToken) error {
 		}
 		litGzip := records[2]
 
-		litData, err := helper.GzipBase64Decode(litGzip)
-		if err != nil {
-			return fmt.Errorf("instance %d litgzip decode: %w", i, err)
+		if litGzip == "2" {
+			numLits = 0
+			litGzip = ""
 		}
 
-		buf := bytes.NewBuffer(litData)
-		obj.Lits = []uint32{}
-		for {
-			var lit uint32
-			err = binary.Read(buf, binary.LittleEndian, &lit)
+		if numLits > 0 {
+			litData, err := helper.GzipBase64Decode(litGzip)
 			if err != nil {
-				if err == io.EOF {
-					break
-				}
+				return fmt.Errorf("instance %d litgzip decode: %w", i, err)
 			}
 
-			obj.Lits = append(obj.Lits, lit)
+			buf := bytes.NewBuffer(litData)
+			obj.Lits = []uint32{}
+			for {
+				var lit uint32
+				err = binary.Read(buf, binary.LittleEndian, &lit)
+				if err != nil {
+					if err == io.EOF {
+						break
+					}
+				}
+
+				obj.Lits = append(obj.Lits, lit)
+			}
 		}
 		if len(obj.Lits) != numLits {
 			return fmt.Errorf("instance %d litgzip mismatch: expected %d, got %d", i, numLits, len(obj.Lits))
