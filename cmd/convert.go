@@ -41,8 +41,6 @@ func runConvertE(cmd *cobra.Command, args []string) error {
 		os.Exit(1)
 	}
 
-	flagPrintRegionPVS, err := cmd.Flags().GetBool("regpvs")
-
 	start := time.Now()
 	defer func() {
 		fmt.Printf("Finished in %0.2f seconds\n", time.Since(start).Seconds())
