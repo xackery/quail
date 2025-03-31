@@ -52,6 +52,7 @@ func (q *Quail) DirRead(path string) error {
 	baseName := filepath.Base(path)
 	baseName = strings.TrimSuffix(baseName, ".quail")
 	q.Wld = wce.New(baseName + ".wld")
+	q.Wld.IsStripped = q.IsStripped
 	err = q.Wld.ReadAscii(path + "/_root.wce")
 	if err != nil {
 		return err

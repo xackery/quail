@@ -53,6 +53,8 @@ func (q *Quail) assetRead(in raw.ReadWriter) error {
 func (q *Quail) wldRead(srcWld *raw.Wld, filename string) error {
 
 	wld := wce.New(filename)
+	wld.IsStripped = q.IsStripped
+
 	err := wld.ReadWldRaw(srcWld)
 	if err != nil {
 		return fmt.Errorf("read wld: %w", err)

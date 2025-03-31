@@ -410,5 +410,13 @@ func (wce *Wce) writeAsciiData(path string) error {
 func (wce *Wce) writeAsciiHeader(w io.Writer) {
 	fmt.Fprintf(w, "// wcemu %s\n", AsciiVersion)
 	fmt.Fprintf(w, "// This file was created by quail %s\n", helper.Version)
+	buildCmds := ""
+	if wce.IsStripped {
+		buildCmds += "strip, "
+	}
+	if len(buildCmds) > 0 {
+		buildCmds = strings.TrimSuffix(buildCmds, ", ")
+		fmt.Fprintf(w, "// Build commands: %s\n", buildCmds)
+	}
 	fmt.Fprintf(w, "// Original file: %s\n\n", wce.FileName)
 }

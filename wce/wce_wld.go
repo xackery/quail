@@ -5998,6 +5998,7 @@ func (e *Region) Definition() string {
 }
 
 func (e *Region) Write(token *AsciiWriteToken) error {
+
 	for _, folder := range e.folders {
 		err := token.SetWriter(folder)
 		if err != nil {
@@ -6017,6 +6018,11 @@ func (e *Region) Write(token *AsciiWriteToken) error {
 			if err != nil {
 				return fmt.Errorf("sprite write: %w", err)
 			}
+		}
+
+		if token.wce.IsStripped {
+			fmt.Fprintf(w, "// REGION %s removed due to --strip", e.Tag)
+			continue
 		}
 
 		fmt.Fprintf(w, "%s \"%s\"\n", e.Definition(), e.Tag)
@@ -6080,6 +6086,7 @@ func (e *Region) Write(token *AsciiWriteToken) error {
 		fmt.Fprintf(w, "\t\tNUMVISIBLELIST %d\n", len(e.VisTree.VisLists))
 		for i, list := range e.VisTree.VisLists {
 			fmt.Fprintf(w, "\t\t\tVISLIST // %d\n", i)
+
 			if e.VisListBytes == 1 {
 				fmt.Fprintf(w, "\t\t\t\tRANGE %d", len(list.Ranges))
 				for _, val := range list.Ranges {

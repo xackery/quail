@@ -49,7 +49,6 @@ func run() error {
 		//fmt.Println(filepath.Base(path))
 		q := quail.New()
 		defer q.Close()
-		q.IsExtensionVersionDump = true
 
 		err = q.PfsRead(path)
 		if err != nil {

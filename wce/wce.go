@@ -13,6 +13,7 @@ var AsciiVersion = "v0.0.1"
 // Wce is a struct representing a Wce file
 type Wce struct {
 	FileSystem             qfs.QFS
+	IsStripped             bool   // IsStriped causes omission of lit data, pvs data
 	isVariationMaterial    bool   // set true while writing or reading variations
 	lastReadFolder         string // used during wce parsing to remember context
 	isObj                  bool   // true when a _obj suffix is found in path

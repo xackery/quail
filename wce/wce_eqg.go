@@ -2713,6 +2713,14 @@ func (e *EqgZonDef) Write(token *AsciiWriteToken) error {
 			fmt.Fprintf(w, "\t\t\tTRANSLATION %0.8e %0.8e %0.8e\n", instance.Translation[0], instance.Translation[1], instance.Translation[2])
 			fmt.Fprintf(w, "\t\t\tROTATION %0.8e %0.8e %0.8e\n", instance.Rotation[0], instance.Rotation[1], instance.Rotation[2])
 			fmt.Fprintf(w, "\t\t\tSCALE %0.8e\n", instance.Scale)
+			if token.wce.IsStripped {
+				fmt.Fprintf(w, "\t\t\tLITGZIP 0 \"\" // stripped out via --strip\n")
+				continue
+			}
+			if len(instance.Lits) == 0 {
+				fmt.Fprintf(w, "\t\t\tLITGZIP 0 \"\"\n")
+				continue
+			}
 			buf := bytes.Buffer{}
 			for _, lit := range instance.Lits {
 
