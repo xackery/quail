@@ -258,7 +258,7 @@ properties:
     properties:
       - name: "VISLIST"
         note: ""
-      - name: "REGIONS"
+      - name: "RANGE"
         note: ""
         args:
           - name: ""
