@@ -21,7 +21,6 @@ type Wce struct {
 	maxMaterialTextures    map[string]int
 	tagIndexes             map[string]int // used when parsing to keep track of indexes
 	FileName               string
-	RangesToRegionsPVS     bool
 	WorldDef               *WorldDef
 	GlobalAmbientLightDef  *GlobalAmbientLightDef
 	Version                uint32
