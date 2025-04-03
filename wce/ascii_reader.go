@@ -39,7 +39,7 @@ func LoadAsciiFile(path string, wce *Wce) (*AsciiReadToken, error) {
 		buf:        buf,
 		wce:        wce,
 	}
-	a.basePath = filepath.Dir(strings.ToLower(path))
+	a.basePath = filepath.Dir(path)
 	a.folder = filepath.Base(a.basePath)
 
 	err = a.readDefinitions()
@@ -58,16 +58,26 @@ func caseInsensitiveOpen(path string, wce *Wce) (*bytes.Buffer, error) {
 	dir := filepath.Dir(path)
 	base := filepath.Base(path)
 
-	entries, err := wce.FileSystem.ReadDir(strings.ToLower(dir))
+	entries, err := wce.FileSystem.ReadDir(dir)
 	if err != nil {
-		return nil, err
+		// find where .quail starts, lowercase all files after
+
+		quailIndex := strings.Index(dir, ".quail")
+		if quailIndex != -1 {
+			dir = dir[:quailIndex] + strings.ToLower(dir[quailIndex:])
+		}
+
+		entries, err = wce.FileSystem.ReadDir(dir)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	for _, entry := range entries {
 		if !strings.EqualFold(entry.Name(), base) {
 			continue
 		}
-		data, err := wce.FileSystem.ReadFile(filepath.Join(strings.ToLower(dir), entry.Name()))
+		data, err := wce.FileSystem.ReadFile(filepath.Join(dir, entry.Name()))
 		if err != nil {
 			return nil, err
 		}
