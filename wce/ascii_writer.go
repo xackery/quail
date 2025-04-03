@@ -75,7 +75,7 @@ func (a *AsciiWriteToken) SetWriter(tag string) error {
 
 		path := filepath.Join(a.basePath, strings.ToLower(rootFolder), strings.ToLower(tag+".wce"))
 		switch tag {
-		case "world", "region":
+		case "world":
 			path = filepath.Join(a.basePath, tag+".wce")
 		}
 

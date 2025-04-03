@@ -1055,6 +1055,17 @@ func (e *DMSpriteDef2) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragD
 			TypeField: mop.TypeField,
 		})
 	}
+
+	if len(e.folders) == 1 && e.folders[0] == "region/region" && len(e.Tag) > 1 {
+		regionNum := strings.TrimSuffix(e.Tag[1:], "_DMSPRITEDEF")
+
+		regionGroup, err := strconv.Atoi(regionNum)
+		if err != nil {
+			return fmt.Errorf("region group %s %s: %w", e.Tag, regionNum, err)
+		}
+		regionGroup = ((regionGroup-1)/1000 + 1) * 1000
+		e.folders = []string{fmt.Sprintf("region/r%d.wce", regionGroup)}
+	}
 	return nil
 }
 
