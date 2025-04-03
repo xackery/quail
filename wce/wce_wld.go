@@ -137,6 +137,7 @@ func (e *GlobalAmbientLightDef) ToRaw(wce *Wce, rawWld *raw.Wld) (int32, error) 
 }
 
 func (e *GlobalAmbientLightDef) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragGlobalAmbientLightDef) error {
+	e.folders = []string{"ZONE"}
 	if wce.GlobalAmbientLightDef != nil {
 		return fmt.Errorf("duplicate globalambientlightdef found")
 	}
@@ -1053,6 +1054,17 @@ func (e *DMSpriteDef2) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragD
 			Param1:    mop.Param1,
 			TypeField: mop.TypeField,
 		})
+	}
+
+	if len(e.folders) == 1 && e.folders[0] == "region/region" && len(e.Tag) > 1 {
+		regionNum := strings.TrimSuffix(e.Tag[1:], "_DMSPRITEDEF")
+
+		regionGroup, err := strconv.Atoi(regionNum)
+		if err != nil {
+			return fmt.Errorf("region group %s %s: %w", e.Tag, regionNum, err)
+		}
+		regionGroup = ((regionGroup-1)/1000 + 1) * 1000
+		e.folders = []string{fmt.Sprintf("region/r%d.wce", regionGroup)}
 	}
 	return nil
 }
@@ -3111,6 +3123,9 @@ func (e *ActorDef) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragActor
 		})
 	}
 
+	if len(e.folders) == 1 && e.folders[0] == "world" && e.Tag == "PLAYER_1" {
+		e.folders = []string{"ZONE"}
+	}
 	return nil
 }
 
@@ -3524,6 +3539,9 @@ func (e *ActorInst) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragActo
 		e.UsesBoundingBox = 1
 	}
 
+	if len(e.folders) == 1 && e.folders[0] == "world" && e.Tag == "" && e.DefinitionTag == "PLAYER_1" {
+		e.folders = []string{"ZONE"}
+	}
 	return nil
 }
 
@@ -3692,6 +3710,7 @@ func (e *LightDef) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragLight
 	if frag == nil {
 		return fmt.Errorf("frag is not lightdef (wrong fragcode?)")
 	}
+	e.folders = []string{"ZONE"}
 
 	e.Tag = rawWld.Name(frag.NameRef())
 	e.LightLevels = frag.LightLevels
@@ -4395,6 +4414,9 @@ func (e *Sprite3DDef) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragSp
 		e.BSPNodes = append(e.BSPNodes, node)
 	}
 
+	if len(e.folders) == 1 && e.folders[0] == "world" && e.Tag == "CAMERA_DUMMY" {
+		e.folders = []string{"ZONE"}
+	}
 	return nil
 }
 
@@ -5928,6 +5950,8 @@ func (e *WorldTree) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragWorl
 	if frag == nil {
 		return fmt.Errorf("frag is not world tree (wrong fragcode?)")
 	}
+
+	e.folders = []string{"ZONE"}
 
 	for _, srcNode := range frag.Nodes {
 		regionTag := ""

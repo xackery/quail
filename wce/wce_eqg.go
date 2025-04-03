@@ -1515,11 +1515,7 @@ func (e *EqgTerDef) ToRaw(wce *Wce, dst *raw.Ter) error {
 
 func (e *EqgTerDef) FromRaw(wce *Wce, src *raw.Ter) error {
 	e.Tag = string(src.FileName())
-	folder := strings.TrimSuffix(strings.ToLower(wce.FileName), ".eqg")
-	if wce.WorldDef.Zone == 1 {
-		folder = "obj/" + e.Tag
-	}
-	e.folders = append(e.folders, folder)
+	e.folders = append(e.folders, "ter/"+e.Tag)
 
 	for _, mat := range src.Materials {
 		eqMaterialDef := &EQMaterialDef{}
@@ -3025,11 +3021,7 @@ func (e *EqgZonDef) ToRaw(wce *Wce, dst *raw.Zon) error {
 
 func (e *EqgZonDef) FromRaw(wce *Wce, src *raw.Zon) error {
 	e.Tag = string(src.FileName())
-	folder := strings.TrimSuffix(strings.ToLower(wce.FileName), ".eqg")
-	if wce.WorldDef.Zone == 1 {
-		folder = "world"
-	}
-	e.folders = append(e.folders, folder)
+	e.folders = append(e.folders, "ZONE")
 
 	e.Version = src.Version
 
