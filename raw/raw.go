@@ -84,6 +84,12 @@ func New(ext string) ReadWriter {
 		return &Txt{}
 	case ".uvw":
 		return &Txt{}
+	case ".eco":
+		return &Eco{}
+	case ".rfd":
+		return &Rfd{}
+	case ".prj":
+		return &Txt{}
 	default:
 		return nil
 	}

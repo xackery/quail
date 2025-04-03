@@ -71,9 +71,10 @@ func runConvertE(cmd *cobra.Command, args []string) error {
 			return fmt.Errorf("json read: %w", err)
 		}
 	default:
+		baseName := filepath.Base(srcPath)
 		err = q.PfsRead(srcPath)
 		if err != nil {
-			return fmt.Errorf("pfs read: %w", err)
+			return fmt.Errorf("convert %s: %w", baseName, err)
 		}
 		if srcExt == ".eqg" {
 			srcPathNoExt := srcPath[:len(srcPath)-len(srcExt)] // remove the .eqg

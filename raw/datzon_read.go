@@ -105,6 +105,9 @@ func (e *DatZon) Read(r io.ReadSeeker) error {
 	dec := encdec.NewDecoder(r, binary.LittleEndian)
 
 	e.Version = dec.Uint32()
+	if e.Version == 4 {
+		return nil
+	}
 
 	e.Flags = dec.Uint32()
 	e.FallbackDetailRepeat = dec.Uint32()

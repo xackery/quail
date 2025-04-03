@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/spf13/cobra"
 	"github.com/xackery/quail/helper"
@@ -43,8 +44,8 @@ func TestDoubleConvertQuail(t *testing.T) {
 	dirTest := helper.DirTest()
 	testCmd := &cobra.Command{}
 
-	keyword := "iceclad"
-	ext := "s3d"
+	keyword := "arcstone"
+	ext := "eqg"
 
 	fmt.Printf("quail convert %s.%s %s.quail\n", keyword, ext, keyword)
 	err := runConvertE(testCmd, []string{
@@ -85,6 +86,8 @@ func TestDoubleConvertQuail(t *testing.T) {
 }
 
 func TestDoubleConvertQuailDir(t *testing.T) {
+	totalTime := time.Now()
+
 	eqPath := os.Getenv("EQ_PATH")
 	if eqPath == "" {
 		t.Skip("EQ_PATH not set")
@@ -177,5 +180,6 @@ func TestDoubleConvertQuailDir(t *testing.T) {
 			t.Fatalf("error walking dir: %v", err)
 		}
 	}
+	fmt.Printf("Total time: %0.2fs\n", time.Since(totalTime).Seconds())
 
 }

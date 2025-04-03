@@ -1,6 +1,7 @@
 package raw
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 )
@@ -12,6 +13,7 @@ const (
 	DatTypeZon
 	DatTypeInvisibleWall
 	DatTypeWater
+	DatTypeFloraExclude
 )
 
 // Dat is a generic type that turns into a derived dat type
@@ -20,6 +22,7 @@ type Dat struct {
 	DatIw   *DatIw
 	DatZon  *DatZon
 	DatWtr  *DatWtr
+	DatFe   *DatFe
 }
 
 func (dat *Dat) Identity() string {
@@ -36,17 +39,40 @@ func (dat *Dat) Identity() string {
 }
 
 func (e *Dat) Read(r io.ReadSeeker) error {
-	switch e.DatType {
-	case DatTypeUnknown:
-		return fmt.Errorf("unknown dat type")
-	case DatTypeZon:
-		return e.DatZon.Read(r)
-	case DatTypeInvisibleWall:
-		return e.DatIw.Read(r)
-	case DatTypeWater:
-		return e.DatWtr.Read(r)
+
+	header := make([]byte, 4)
+	_, err := r.Read(header)
+	if err != nil {
+		return fmt.Errorf("read header: %w", err)
+	}
+
+	r.Seek(0, io.SeekStart)
+
+	switch string(header) {
+	case "*BEG":
+		e.DatType = DatTypeFloraExclude
+		e.DatFe = &DatFe{}
+		return e.DatFe.Read(r)
+
+	//case DatTypeUnknown:
+	//	return fmt.Errorf("unknown dat type")
+	//case DatTypeZon:
+	//	return e.DatZon.Read(r)
+	//case DatTypeInvisibleWall:
+	//	return e.DatIw.Read(r)
+	//case DatTypeWater:
+	//	return e.DatWtr.Read(r)
 	default:
-		return fmt.Errorf("unknown dat type")
+		if bytes.Equal(header[1:], []byte{0x0, 0x0, 0x0}) {
+			e.DatType = DatTypeInvisibleWall
+			e.DatIw = &DatIw{}
+			return e.DatIw.Read(r)
+		}
+		fmt.Printf("unknown dat type: type: %x (%s)\n", header, header)
+		e.DatType = DatTypeZon
+		e.DatZon = &DatZon{}
+		return e.DatZon.Read(r)
+		//		return fmt.Errorf("unknown dat type: %x (%s)", header, header)
 	}
 }
 
