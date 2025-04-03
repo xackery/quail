@@ -101,8 +101,16 @@ func TestDoubleConvertQuailDir(t *testing.T) {
 		"/src/eq/ls",
 	}
 
+	//nextPath := "/src/eq/rof2/B09.eqg"
+	nextPath := ""
+
+	isNextPathFound := false
+	if nextPath == "" {
+		isNextPathFound = true
+	}
 	for _, dirPath := range dirPaths {
 		fmt.Printf("dirPath: %s\n", dirPath)
+
 		err := filepath.WalkDir(dirPath, func(path string, d os.DirEntry, err error) error {
 			if err != nil {
 				t.Fatalf("error walking dir: %v", err)
@@ -110,6 +118,14 @@ func TestDoubleConvertQuailDir(t *testing.T) {
 			if d.IsDir() {
 				return nil
 			}
+			if !isNextPathFound {
+				nextPathTemp := filepath.Join(dirPath, d.Name())
+				if nextPathTemp != nextPath {
+					return nil
+				}
+				isNextPathFound = true
+			}
+
 			ext := filepath.Ext(d.Name())
 			keyword := d.Name()[:len(d.Name())-len(ext)]
 			if len(ext) > 1 {
@@ -120,9 +136,9 @@ func TestDoubleConvertQuailDir(t *testing.T) {
 			}
 			fmt.Println(d.Name())
 
-			fmt.Printf("quail convert %s/%s %s.quail\n", eqPath, d.Name(), keyword)
+			fmt.Printf("quail convert %s/%s %s.quail\n", dirPath, d.Name(), keyword)
 			err = runConvertE(testCmd, []string{
-				fmt.Sprintf("%s/%s.%s", eqPath, keyword, ext),
+				fmt.Sprintf("%s/%s.%s", dirPath, keyword, ext),
 				fmt.Sprintf("%s/%s.quail", dirTest, keyword),
 			})
 			if err != nil {
