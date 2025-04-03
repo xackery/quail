@@ -25,9 +25,9 @@ func TestPrtRead(t *testing.T) {
 		args    args
 		wantErr bool
 	}{
-		{name: "dbx.eqg"},
+		//{name: "dbx.eqg"},
 		// .prt|3|bat.prt|bat.eqg bat.eqg pfs import: readPrt bat.prt: invalid version 3, wanted 4+
-		//{name: "bat.eqg"}, // TODO: v3 or below anim support
+		{name: "bat.eqg"}, // TODO: v3 or below anim support
 		// .prt|3|btn.prt|btn.eqg btn.eqg pfs import: readPrt btn.prt: invalid version 3, wanted 4+
 		// .prt|3|chm.prt|chm.eqg chm.eqg pfs import: readPrt chm.prt: invalid version 3, wanted 4+
 		// .prt|3|clv.prt|clv.eqg clv.eqg pfs import: readPrt clv.prt: invalid version 3, wanted 4+

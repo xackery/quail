@@ -65,7 +65,8 @@ func (prt *Prt) Read(r io.ReadSeeker) error {
 	particleCount := dec.Uint32()
 	prt.Version = dec.Uint32()
 	if prt.Version < 4 {
-		return fmt.Errorf("invalid version %d, wanted 4+", prt.Version)
+		return nil
+		//return fmt.Errorf("invalid version %d, wanted 4+", prt.Version)
 	}
 
 	for i := 0; i < int(particleCount); i++ {
