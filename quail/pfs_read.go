@@ -29,7 +29,7 @@ func (q *Quail) PfsRead(path string) error {
 		q.Wld = wce.New(baseName)
 		err = q.Wld.ReadEqgRaw(archive)
 		if err != nil {
-			return fmt.Errorf("wld read: %w", err)
+			return err
 		}
 	}
 	pfs, err := pfs.NewFile(path)

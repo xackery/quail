@@ -42,7 +42,7 @@ func (wce *Wce) ReadEqgRaw(archive *pfs.Pfs) error {
 	for _, file := range files {
 		err := wce.readEqgEntry(file)
 		if err != nil {
-			return fmt.Errorf("read eqg entry %s: %w", file.Name(), err)
+			return fmt.Errorf("%s: %w", file.Name(), err)
 		}
 	}
 
@@ -60,7 +60,7 @@ func (wce *Wce) readEqgEntry(entry *pfs.FileEntry) error {
 		}
 		err = rawSrc.Read(bytes.NewReader(entry.Data()))
 		if err != nil {
-			return fmt.Errorf("read %s: %w", entry.Name(), err)
+			return err
 		}
 		def := &EqgMdsDef{}
 		err := def.FromRaw(wce, rawSrc)
@@ -75,7 +75,7 @@ func (wce *Wce) readEqgEntry(entry *pfs.FileEntry) error {
 		}
 		err = rawSrc.Read(bytes.NewReader(entry.Data()))
 		if err != nil {
-			return fmt.Errorf("read %s: %w", entry.Name(), err)
+			return err
 		}
 		def := &EqgModDef{}
 		err := def.FromRaw(wce, rawSrc)
@@ -89,7 +89,7 @@ func (wce *Wce) readEqgEntry(entry *pfs.FileEntry) error {
 		}
 		err = rawSrc.Read(bytes.NewReader(entry.Data()))
 		if err != nil {
-			return fmt.Errorf("read %s: %w", entry.Name(), err)
+			return err
 		}
 		def := &EqgTerDef{}
 		err := def.FromRaw(wce, rawSrc)
@@ -104,7 +104,7 @@ func (wce *Wce) readEqgEntry(entry *pfs.FileEntry) error {
 		}
 		err = rawSrc.Read(bytes.NewReader(entry.Data()))
 		if err != nil {
-			return fmt.Errorf("read %s: %w", entry.Name(), err)
+			return err
 		}
 		def := &EqgAniDef{}
 		err := def.FromRaw(wce, rawSrc)
@@ -118,7 +118,7 @@ func (wce *Wce) readEqgEntry(entry *pfs.FileEntry) error {
 		}
 		err = rawSrc.Read(bytes.NewReader(entry.Data()))
 		if err != nil {
-			return fmt.Errorf("read %s: %w", entry.Name(), err)
+			return err
 		}
 		def := &EqgParticlePointDef{}
 		err := def.FromRaw(wce, rawSrc)
@@ -132,7 +132,7 @@ func (wce *Wce) readEqgEntry(entry *pfs.FileEntry) error {
 		}
 		err = rawSrc.Read(bytes.NewReader(entry.Data()))
 		if err != nil {
-			return fmt.Errorf("read %s: %w", entry.Name(), err)
+			return err
 		}
 		def := &EqgParticleRenderDef{}
 		err := def.FromRaw(wce, rawSrc)
@@ -146,7 +146,7 @@ func (wce *Wce) readEqgEntry(entry *pfs.FileEntry) error {
 		}
 		err = rawSrc.Read(bytes.NewReader(entry.Data()))
 		if err != nil {
-			return fmt.Errorf("read %s: %w", entry.Name(), err)
+			return err
 		}
 		def := &EqgLodDef{}
 		err := def.FromRaw(wce, rawSrc)
@@ -160,7 +160,7 @@ func (wce *Wce) readEqgEntry(entry *pfs.FileEntry) error {
 		}
 		err = rawSrc.Read(bytes.NewReader(entry.Data()))
 		if err != nil {
-			return fmt.Errorf("read %s: %w", entry.Name(), err)
+			return err
 		}
 		def := &EqgLayDef{}
 		err := def.FromRaw(wce, rawSrc)
@@ -174,7 +174,7 @@ func (wce *Wce) readEqgEntry(entry *pfs.FileEntry) error {
 		}
 		err = rawSrc.Read(bytes.NewReader(entry.Data()))
 		if err != nil {
-			return fmt.Errorf("read %s: %w", entry.Name(), err)
+			return err
 		}
 		def := &EqgZonDef{}
 		err := def.FromRaw(wce, rawSrc)
