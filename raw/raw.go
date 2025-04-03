@@ -76,6 +76,8 @@ func New(ext string) ReadWriter {
 		return &Txt{}
 	case ".tga":
 		return &Tga{}
+	case ".jpg":
+		return &Jpg{}
 	case ".bat":
 		return &Txt{}
 	case ".db":

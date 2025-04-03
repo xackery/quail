@@ -17,7 +17,7 @@ func (q *Quail) RawRead(in raw.ReadWriter) error {
 	switch val := in.(type) {
 	case *raw.Wld:
 		return q.wldRead(val, in.FileName())
-	case *raw.Dds, *raw.Bmp, *raw.Png, *raw.Tga: // textures
+	case *raw.Dds, *raw.Bmp, *raw.Png, *raw.Tga, *raw.Jpg: // textures
 		return q.assetRead(val)
 	case *raw.Lit: // baked lighting in eqg
 		return q.assetRead(val)
