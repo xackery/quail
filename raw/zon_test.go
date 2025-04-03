@@ -81,8 +81,9 @@ func TestZonWrite(t *testing.T) {
 		wantErr bool
 	}{
 
+		{name: "barren.eqg"},
 		//{name: "barren.eqg"},
-		{name: "alkabormare.zon"},
+		//		{name: "alkabormare.zon"},
 		// .zon|1|anguish.zon|anguish.eqg
 		//{name: "anguish.eqg"}, // TODO: mismatch
 		// .zon|1|bazaar.zon|bazaar.eqg
@@ -123,7 +124,19 @@ func TestZonWrite(t *testing.T) {
 				fileName := strings.ReplaceAll(tt.name, ".eqg", "") + ".zon"
 				data, err = pfs.File(fileName)
 				if err != nil {
-					t.Fatalf("failed to open %s.zon: %s", tt.name, err.Error())
+					isFound := false
+					for _, f := range pfs.Files() {
+						if !strings.HasSuffix(f.Name(), ".zon") {
+							continue
+						}
+						data = f.Data()
+						isFound = true
+						break
+
+					}
+					if !isFound {
+						t.Fatalf("failed to open %s.zon: %s", tt.name, err.Error())
+					}
 				}
 				err = os.WriteFile(fmt.Sprintf("%s/%s.src%s", dirTest, baseName, ".zon"), data, 0644)
 				if err != nil {
@@ -144,6 +157,19 @@ func TestZonWrite(t *testing.T) {
 			if err != nil {
 				t.Fatalf("failed to encode %s: %s", tt.name, err.Error())
 			}
+
+			srcData := data
+			dstData := buf.Bytes()
+			err = os.WriteFile(fmt.Sprintf("%s/%s.src%s", dirTest, baseName, ".zon"), srcData, 0644)
+			if err != nil {
+				t.Fatalf("failed to write %s: %s", fileName, err.Error())
+			}
+
+			err = os.WriteFile(fmt.Sprintf("%s/%s.dst%s", dirTest, baseName, ".zon"), dstData, 0644)
+			if err != nil {
+				t.Fatalf("failed to write %s: %s", fileName, err.Error())
+			}
+
 			if len(data) != buf.Len() {
 				t.Fatalf("size mismatch: %d != %d (off by %d)", len(data), buf.Len(), len(data)-buf.Len())
 			}
@@ -175,13 +201,6 @@ func TestZonWrite(t *testing.T) {
 			if len(zon.Areas) != len(zon2.Areas) {
 				t.Fatalf("regions mismatch: %d != %d", len(zon.Areas), len(zon2.Areas))
 			}
-
-			// srcData := data
-			// dstData := buf.Bytes()
-			// err = os.WriteFile(fmt.Sprintf("%s/%s.dst%s", dirTest, baseName, ".zon"), dstData, 0644)
-			// if err != nil {
-			// 	t.Fatalf("failed to write %s: %s", fileName, err.Error())
-			// }
 
 			// err = helper.ByteCompareTest(srcData, dstData)
 			// if err != nil {
