@@ -98,6 +98,8 @@ func New(ext string) ReadWriter {
 		return &Rfd{}
 	case ".prj":
 		return &Txt{}
+	case ".obg":
+		return &Obg{}
 	default:
 		return nil
 	}
