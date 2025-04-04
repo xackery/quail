@@ -10,59 +10,6 @@ import (
 	"github.com/xackery/quail/pfs"
 )
 
-func TestModRead(t *testing.T) {
-	if os.Getenv("SINGLE_TEST") != "1" {
-		t.Skip("skipping test; SINGLE_TEST not set")
-	}
-	eqPath := os.Getenv("EQ_PATH")
-	if eqPath == "" {
-		t.Skip("EQ_PATH not set")
-	}
-	tests := []struct {
-		eqg     string
-		file    string
-		wantErr bool
-	}{
-		// .mod|0|obp_fob_tree.mod|oldfieldofbone.eqg oldfieldofbone.eqg pfs import: readMod obp_fob_tree.mod: invalid header EQLO, wanted EQGM
-		//{eqg: "oldfieldofbone.eqg", file: "obp_fob_tree.mod"}, // TODO: EQLO v4 .mod?
-		// .mod|0|obp_fob_tree.mod|oldfieldofboneb.eqg oldfieldofboneb.eqg pfs import: readMod obp_fob_tree.mod: invalid header EQLO, wanted EQGM
-		//{eqg: "oldfieldofboneb.eqg", file: "obp_fob_tree.mod"}, // TODO: EQLO v4 .mod
-		// .mod|1|arch.mod|dranik.eqg
-		//{eqg: "dranik.eqg", file: "arch.mod"}, // PASS
-		// .mod|1|aro.mod|aro.eqg
-		//{eqg: "aro.eqg", file: "aro.mod"}, // PASS
-		// .mod|1|col_b04.mod|b04.eqg b04.eqg pfs import: readMod col_b04.mod: material shader not found
-		//{eqg: "b04.eqg", file: "col_b04.mod"}, // PASS
-		// .mod|2|boulder_lg.mod|broodlands.eqg
-		//{eqg: "broodlands.eqg", file: "boulder_lg.mod"}, // PASS
-		// .mod|2|et_door01.mod|stillmoona.eqg
-		//{eqg: "stillmoona.eqg", file: "et_door01.mod"}, // PASS
-		// .mod|3|.mod|paperbaghat.eqg
-		//{eqg: "paperbaghat.eqg", file: ".mod"}, // PASS
-		// .mod|3|it11409.mod|undequip.eqg
-		//{eqg: "undequip.eqg", file: "it11409.mod"}, // PASS
-	}
-	for _, tt := range tests {
-		t.Run(tt.eqg, func(t *testing.T) {
-			archive, err := pfs.NewFile(eqPath + "/" + tt.eqg)
-			if err != nil {
-				t.Fatalf("pfs.NewFile() error = %v", err)
-			}
-
-			data, err := archive.File(tt.file)
-			if err != nil {
-				t.Fatalf("archive.Open() error = %v", err)
-			}
-
-			mod := &Mod{}
-			err = mod.Read(bytes.NewReader(data))
-			if (err != nil) != tt.wantErr {
-				t.Fatalf("Decode() error = %v, wantErr %v", err, tt.wantErr)
-			}
-		})
-	}
-}
-
 func TestModWrite(t *testing.T) {
 	if os.Getenv("SINGLE_TEST") != "1" {
 		t.Skip("skipping test; SINGLE_TEST not set")

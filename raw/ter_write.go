@@ -102,6 +102,15 @@ func (ter *Ter) Write(w io.Writer) error {
 		enc.Uint32(tri.Flags)
 	}
 
+	if ter.Version < 3 {
+		for _, vertex := range ter.Vertices {
+			enc.Float32(vertex.Uv2[0])
+			enc.Float32(vertex.Uv2[1])
+		}
+	}
+
+	enc.Uint32(0) // padding
+
 	err = enc.Error()
 	if err != nil {
 		return fmt.Errorf("write: %w", err)

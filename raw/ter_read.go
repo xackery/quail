@@ -110,7 +110,7 @@ func (ter *Ter) Read(r io.ReadSeeker) error {
 		}
 		v.Uv[0] = dec.Float32()
 		v.Uv[1] = dec.Float32()
-		if ter.Version <= 2 {
+		if ter.Version < 3 {
 			v.Uv2[0] = 0
 			v.Uv2[1] = 0
 		} else {
@@ -140,6 +140,19 @@ func (ter *Ter) Read(r io.ReadSeeker) error {
 
 		t.Flags = dec.Uint32()
 		ter.Faces = append(ter.Faces, t)
+	}
+
+	if ter.Version < 3 {
+		for i := 0; i < int(verticesCount); i++ {
+			vert := ter.Vertices[i]
+			vert.Uv2[0] = dec.Float32()
+			vert.Uv2[1] = dec.Float32()
+		}
+	}
+
+	excess := dec.Uint32()
+	if excess != 0 {
+		return fmt.Errorf("excess data found %d", excess)
 	}
 
 	pos := dec.Pos()

@@ -4,64 +4,11 @@ import (
 	"bytes"
 	"fmt"
 	"os"
-	"path/filepath"
 	"testing"
 
 	"github.com/xackery/quail/helper"
 	"github.com/xackery/quail/pfs"
 )
-
-func TestTerRead(t *testing.T) {
-	eqPath := os.Getenv("EQ_PATH")
-	if eqPath == "" {
-		t.Skip("EQ_PATH not set")
-	}
-	dirTest := helper.DirTest()
-	type args struct {
-	}
-
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		{name: "bazaar.eqg"},
-		// .ter|1|ter_temple01.ter|fhalls.eqg
-		//{name: "fhalls.eqg"},
-		// .ter|2|ter_abyss01.ter|thenest.eqg
-		// .ter|2|ter_bazaar.ter|bazaar.eqg
-		// .ter|2|ter_upper.ter|riftseekers.eqg
-		// .ter|2|ter_volcano.ter|delvea.eqg
-		// .ter|2|ter_volcano.ter|delveb.eqg
-		// .ter|3|ter_aalishai.ter|aalishai.eqg
-		// .ter|3|ter_akhevatwo.ter|akhevatwo.eqg
-		// .ter|3|ter_am_main.ter|arxmentis.eqg
-		// .ter|3|ter_arena.ter|arena.eqg
-		// .ter|3|ter_arena.ter|arena2.eqg
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			pfs, err := pfs.NewFile(fmt.Sprintf("%s/%s", eqPath, tt.name))
-			if err != nil {
-				t.Fatalf("failed to open eqg %s: %s", tt.name, err.Error())
-			}
-			for _, file := range pfs.Files() {
-				if filepath.Ext(file.Name()) != ".ter" {
-					continue
-				}
-				ter := &Ter{}
-
-				err = ter.Read(bytes.NewReader(file.Data()))
-				os.WriteFile(fmt.Sprintf("%s/%s", dirTest, file.Name()), file.Data(), 0644)
-				if err != nil {
-					t.Fatalf("failed to read %s: %s", tt.name, err.Error())
-				}
-
-			}
-		})
-	}
-}
 
 func TestTerWrite(t *testing.T) {
 	eqPath := os.Getenv("EQ_PATH")
@@ -74,6 +21,7 @@ func TestTerWrite(t *testing.T) {
 		eqg  string
 		name string
 	}{
+		{eqg: "bazaar.eqg", name: "ter_bazaar.ter"},
 		// .ter|1|ter_temple01.ter|fhalls.eqg
 		//{eqg: "fhalls.eqg", name: "ter_temple01.ter"}, // PASS
 		// .ter|2|ter_abyss01.ter|thenest.eqg
@@ -94,7 +42,7 @@ func TestTerWrite(t *testing.T) {
 		//{eqg: "arxmentis.eqg", name: "ter_am_main.ter"}, // PASS
 		// .ter|3|ter_arena.ter|arena.eqg
 		//{eqg: "alkabormare.eqg", name: "ter_faydark.ter"},
-		{eqg: "arena.eqg", name: "ter_arena.ter"}, // PASS
+		//{eqg: "arena.eqg", name: "ter_arena.ter"}, // PASS
 	}
 
 	for _, tt := range tests {

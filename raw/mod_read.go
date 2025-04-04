@@ -1,7 +1,6 @@
 package raw
 
 import (
-	"bytes"
 	"encoding/binary"
 	"encoding/hex"
 	"fmt"
@@ -246,11 +245,10 @@ func (mod *Mod) Read(r io.ReadSeeker) error {
 		}
 	}
 
-	suffix := dec.Bytes(4)
-	if !bytes.Equal(suffix, []byte{0x0, 0x0, 0x0, 0x0}) {
-		return fmt.Errorf("invalid suffix %x, wanted 0x00000000", suffix)
+	excess := dec.Uint32()
+	if excess != 0 {
+		return fmt.Errorf("excess bytes %d", excess)
 	}
-
 	pos := dec.Pos()
 	endPos, err := r.Seek(0, io.SeekEnd)
 	if err != nil {
