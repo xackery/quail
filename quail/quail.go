@@ -156,6 +156,8 @@ func Open(name string, r io.ReadSeeker) (interface{}, error) {
 		return nil, nil
 	case ".sph":
 		return nil, nil
+	case ".fx": // raw fx files
+		return nil, nil
 	case ".sps": // map file, safely ignored
 		return nil, nil
 	case ".prj": // project file, safely ignored

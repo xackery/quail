@@ -68,6 +68,8 @@ func New(ext string) ReadWriter {
 		return &Txt{}
 	case ".sph": // map file, safely ignored
 		return &Txt{}
+	case ".fx": // raw fxo files
+		return &Txt{}
 	case ".spk": // map file, safely ignored
 		return &Txt{}
 	case ".spm": // map file, safely ignored
