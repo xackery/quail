@@ -231,21 +231,24 @@ func (mod *Mod) Read(r io.ReadSeeker) error {
 		mod.Bones = append(mod.Bones, bone)
 	}
 
-	if bonesCount > 0 {
-		for i := 0; i < int(verticesCount); i++ {
-			count := dec.Int32()
-			mod.Vertices[i].Weights = []*ModBoneWeight{}
-			for j := 0; j < int(4); j++ {
-				weight := &ModBoneWeight{
-					BoneIndex: dec.Int32(),
-					Value:     dec.Float32(),
-				}
-				if j >= int(count) {
-					continue
-				}
-				mod.Vertices[i].Weights = append(mod.Vertices[i].Weights, weight)
+	for i := 0; i < int(verticesCount); i++ {
+		count := dec.Int32()
+		mod.Vertices[i].Weights = []*ModBoneWeight{}
+		for j := 0; j < int(4); j++ {
+			weight := &ModBoneWeight{
+				BoneIndex: dec.Int32(),
+				Value:     dec.Float32(),
 			}
+			if j >= int(count) {
+				continue
+			}
+			mod.Vertices[i].Weights = append(mod.Vertices[i].Weights, weight)
 		}
+	}
+
+	suffix := dec.Bytes(4)
+	if !bytes.Equal(suffix, []byte{0x0, 0x0, 0x0, 0x0}) {
+		return fmt.Errorf("invalid suffix %x, wanted 0x00000000", suffix)
 	}
 
 	pos := dec.Pos()
@@ -255,10 +258,8 @@ func (mod *Mod) Read(r io.ReadSeeker) error {
 	}
 	if pos < endPos {
 		remaining := dec.Bytes(int(endPos - pos))
-		if !bytes.Equal(remaining, []byte{0x0, 0x0, 0x0, 0x0}) {
-			fmt.Printf("remaining bytes: %s\n", hex.Dump(remaining))
-			return fmt.Errorf("%d bytes remaining (%d total)", endPos-pos, endPos)
-		}
+		fmt.Printf("remaining bytes: %s\n", hex.Dump(remaining))
+		return fmt.Errorf("%d bytes remaining (%d total)", endPos-pos, endPos)
 	}
 	if pos > endPos {
 		return fmt.Errorf("read past end of file")
