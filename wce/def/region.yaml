@@ -38,7 +38,7 @@ properties:
       - name: ""
         note: ""
         format: "%d"
-  - name: "NUMREGIONVERTEX"
+  - name: "NUMREGIONVERTEXS"
     note: ""
     args:
       - name: ""
@@ -207,7 +207,7 @@ properties:
                 format: "%0.8e"
   - name: "VISTREE"
     note: ""
-  - name: "NUMVISNODE"
+  - name: "NUMVISNODES"
     note: ""
     args:
       - name: ""
@@ -249,7 +249,7 @@ properties:
           - name: ""
             note: ""
             format: "%d"
-  - name: "NUMVISIBLELIST"
+  - name: "NUMVISIBLELISTS"
     note: ""
     args:
       - name: ""

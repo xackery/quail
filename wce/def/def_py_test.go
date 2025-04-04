@@ -56,10 +56,13 @@ class ` + defName + `:
 
 		decBuf := &bytes.Buffer{}
 		initBuf := &bytes.Buffer{}
-		initBuf.WriteString("\tdef __init__(self, tag:str, r:io.TextIOWrapper):\n")
+		initBuf.WriteString("\tdef __init__(self, tag:str, r:io.TextIOWrapper|None):\n")
 		if yamlDef.HasTag {
 			initBuf.WriteString("\t\tself.tag = tag\n")
 		}
+		initBuf.WriteString("\t\tif r is None:\n")
+		initBuf.WriteString("\t\t\treturn\n")
+
 		writeBuf := &bytes.Buffer{}
 		writeBuf.WriteString("\tdef write(self, w:io.TextIOWrapper):\n")
 		if yamlDef.HasTag {

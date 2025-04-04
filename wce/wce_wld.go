@@ -2714,7 +2714,7 @@ func (e *ActorDef) Write(token *AsciiWriteToken) error {
 		for _, action := range e.Actions {
 			fmt.Fprintf(w, "\t\tACTION\n")
 			fmt.Fprintf(w, "\t\t\tUNK1 %d\n", action.Unk1)
-			fmt.Fprintf(w, "\t\t\tNUMLEVELSOFDETAIL %d\n", len(action.LevelOfDetails))
+			fmt.Fprintf(w, "\t\t\tNUMLEVELSOFDETAILS %d\n", len(action.LevelOfDetails))
 			for _, lod := range action.LevelOfDetails {
 				fmt.Fprintf(w, "\t\t\t\tLEVELOFDETAIL\n")
 				fmt.Fprintf(w, "\t\t\t\t\tSPRITE \"%s\"\n", lod.SpriteTag)
@@ -2802,7 +2802,7 @@ func (e *ActorDef) Read(token *AsciiReadToken) error {
 			return fmt.Errorf("unk1: %w", err)
 		}
 
-		records, err = token.ReadProperty("NUMLEVELSOFDETAIL", 1)
+		records, err = token.ReadProperty("NUMLEVELSOFDETAILS", 1)
 		if err != nil {
 			return err
 		}
@@ -6050,7 +6050,7 @@ func (e *Region) Write(token *AsciiWriteToken) error {
 		fmt.Fprintf(w, "\tGOURAND2 %d\n", e.Gouraud2)
 		fmt.Fprintf(w, "\tENCODEDVISIBILITY %d\n", e.EncodedVisibility)
 		fmt.Fprintf(w, "\tVISLISTBYTES %d\n", e.VisListBytes)
-		fmt.Fprintf(w, "\tNUMREGIONVERTEX %d\n", len(e.RegionVertices))
+		fmt.Fprintf(w, "\tNUMREGIONVERTEXS %d\n", len(e.RegionVertices))
 		for _, vert := range e.RegionVertices {
 			fmt.Fprintf(w, "\t\tXYZ %0.8e %0.8e %0.8e\n", vert[0], vert[1], vert[2])
 		}
@@ -6088,7 +6088,7 @@ func (e *Region) Write(token *AsciiWriteToken) error {
 			}
 		}
 		fmt.Fprintf(w, "\tVISTREE\n")
-		fmt.Fprintf(w, "\t\tNUMVISNODE %d\n", len(e.VisTree.VisNodes))
+		fmt.Fprintf(w, "\t\tNUMVISNODES %d\n", len(e.VisTree.VisNodes))
 		for i, node := range e.VisTree.VisNodes {
 			fmt.Fprintf(w, "\t\t\tVISNODE // %d\n", i)
 			fmt.Fprintf(w, "\t\t\t\tVNORMALABCD %0.8e %0.8e %0.8e %0.8e\n", node.Normal[0], node.Normal[1], node.Normal[2], node.Normal[3])
@@ -6101,7 +6101,7 @@ func (e *Region) Write(token *AsciiWriteToken) error {
 		var buf bytes.Buffer
 
 		// Handle the visibility lists
-		fmt.Fprintf(w, "\t\tNUMVISIBLELIST %d\n", len(e.VisTree.VisLists))
+		fmt.Fprintf(w, "\t\tNUMVISIBLELISTS %d\n", len(e.VisTree.VisLists))
 		for i, list := range e.VisTree.VisLists {
 			fmt.Fprintf(w, "\t\t\tVISLIST // %d\n", i)
 			if e.VisListBytes == 1 {
@@ -6200,7 +6200,7 @@ func (e *Region) Read(token *AsciiReadToken) error {
 		return fmt.Errorf("vis list bytes: expected 0 or 1, got %d", e.VisListBytes)
 	}
 
-	records, err = token.ReadProperty("NUMREGIONVERTEX", 1)
+	records, err = token.ReadProperty("NUMREGIONVERTEXS", 1)
 	if err != nil {
 		return err
 	}
@@ -6408,7 +6408,7 @@ func (e *Region) Read(token *AsciiReadToken) error {
 		return err
 	}
 
-	records, err = token.ReadProperty("NUMVISNODE", 1)
+	records, err = token.ReadProperty("NUMVISNODES", 1)
 	if err != nil {
 		return err
 	}
@@ -6470,7 +6470,7 @@ func (e *Region) Read(token *AsciiReadToken) error {
 
 	}
 
-	records, err = token.ReadProperty("NUMVISIBLELIST", 1)
+	records, err = token.ReadProperty("NUMVISIBLELISTS", 1)
 	if err != nil {
 		return err
 	}

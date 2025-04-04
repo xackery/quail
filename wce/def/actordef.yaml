@@ -67,7 +67,7 @@ properties:
           - name: "unk1"
             note: "value of unk1"
             format: "%d"
-      - name: "NUMLEVELSOFDETAIL"
+      - name: "NUMLEVELSOFDETAILS"
         note: "Number of levels of detail"
         args:
           - name: "lod value"
