@@ -81,6 +81,13 @@ func Open(name string, r io.ReadSeeker) (interface{}, error) {
 			return nil, fmt.Errorf("lit.Decode: %w", err)
 		}
 		return lit, nil
+	case ".eco":
+		eco := &raw.Eco{}
+		err = eco.Read(r)
+		if err != nil {
+			return nil, fmt.Errorf("eco.Decode: %w", err)
+		}
+		return eco, nil
 	case ".ani":
 		ani := &raw.Ani{}
 		err = ani.Read(r)
@@ -109,6 +116,13 @@ func Open(name string, r io.ReadSeeker) (interface{}, error) {
 			return nil, fmt.Errorf("mds.Decode: %w", err)
 		}
 		return mds, nil
+	case ".rfd":
+		rfd := &raw.Rfd{}
+		err = rfd.Read(r)
+		if err != nil {
+			return nil, fmt.Errorf("rfd.Decode: %w", err)
+		}
+		return rfd, nil
 	case ".wld":
 		header := make([]byte, 4)
 		_, err = r.Read(header)
@@ -143,6 +157,8 @@ func Open(name string, r io.ReadSeeker) (interface{}, error) {
 	case ".sph":
 		return nil, nil
 	case ".sps": // map file, safely ignored
+		return nil, nil
+	case ".prj": // project file, safely ignored
 		return nil, nil
 	}
 

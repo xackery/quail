@@ -2639,7 +2639,7 @@ func (e *EqgLodDef) FromRaw(wce *Wce, src *raw.Lod) error {
 	return nil
 }
 
-// EqgZonDef is an entry EQTERRAINDEF
+// EqgZonDef is an entry
 type EqgZonDef struct {
 	folders   []string
 	Tag       string

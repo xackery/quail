@@ -76,6 +76,10 @@ func New(ext string) ReadWriter {
 		return &Txt{}
 	case ".tga":
 		return &Tga{}
+	case ".def":
+		return &Def{}
+	case ".jpg":
+		return &Jpg{}
 	case ".bat":
 		return &Txt{}
 	case ".db":
@@ -83,6 +87,12 @@ func New(ext string) ReadWriter {
 	case ".max":
 		return &Txt{}
 	case ".uvw":
+		return &Txt{}
+	case ".eco":
+		return &Eco{}
+	case ".rfd":
+		return &Rfd{}
+	case ".prj":
 		return &Txt{}
 	default:
 		return nil

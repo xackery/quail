@@ -11,7 +11,6 @@ import (
 // Decode reads a v4 ZON file
 // https://github.com/EQEmu/zone-utilities/blob/master/src/common/eqg_v4_loader.cpp#L736
 func (zon *Zon) ReadV4(r io.ReadSeeker) error {
-	// header is already partially read
 	var err error
 	scanner := bufio.NewScanner(r)
 	lineNumber := 1

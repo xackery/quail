@@ -246,3 +246,5 @@ jsondifffrag-%:
 flagfinder:
 	source .env && EQ_PATH=$$EQ_PATH SCRIPT_TEST=1 go test -v -run ^TestFragFlags$$ github.com/xackery/quail/wce/wld_test
 
+test-extensive:
+	EQ_PATH=/src/eq/rof2 SINGLE_TEST=1 go test -v -run ^TestDoubleConvertQuailDir$$ github.com/xackery/quail/cmd

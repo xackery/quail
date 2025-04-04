@@ -1,7 +1,9 @@
 package raw
 
 import (
+	"bytes"
 	"encoding/binary"
+	"encoding/hex"
 	"fmt"
 	"io"
 
@@ -251,11 +253,14 @@ func (mod *Mod) Read(r io.ReadSeeker) error {
 	if err != nil {
 		return fmt.Errorf("seek end: %w", err)
 	}
-	if pos != endPos {
-		if pos < endPos {
+	if pos < endPos {
+		remaining := dec.Bytes(int(endPos - pos))
+		if !bytes.Equal(remaining, []byte{0x0, 0x0, 0x0, 0x0}) {
+			fmt.Printf("remaining bytes: %s\n", hex.Dump(remaining))
 			return fmt.Errorf("%d bytes remaining (%d total)", endPos-pos, endPos)
 		}
-
+	}
+	if pos > endPos {
 		return fmt.Errorf("read past end of file")
 	}
 	if dec.Error() != nil {

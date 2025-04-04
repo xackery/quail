@@ -1,6 +1,7 @@
 package raw
 
 import (
+	"bytes"
 	"encoding/binary"
 	"encoding/hex"
 	"fmt"
@@ -64,7 +65,8 @@ func (prt *Prt) Read(r io.ReadSeeker) error {
 	particleCount := dec.Uint32()
 	prt.Version = dec.Uint32()
 	if prt.Version < 4 {
-		return fmt.Errorf("invalid version %d, wanted 4+", prt.Version)
+		return nil
+		//return fmt.Errorf("invalid version %d, wanted 4+", prt.Version)
 	}
 
 	for i := 0; i < int(particleCount); i++ {
@@ -97,11 +99,14 @@ func (prt *Prt) Read(r io.ReadSeeker) error {
 	if err != nil {
 		return fmt.Errorf("seek end: %w", err)
 	}
-	if pos != endPos {
-		if pos < endPos {
+	if pos < endPos {
+		remaining := dec.Bytes(int(endPos - pos))
+		if !bytes.Equal(remaining, []byte{0x0, 0x0, 0x0, 0x0}) {
+			fmt.Printf("remaining bytes: %s\n", hex.Dump(remaining))
 			return fmt.Errorf("%d bytes remaining (%d total)", endPos-pos, endPos)
 		}
-
+	}
+	if pos > endPos {
 		return fmt.Errorf("read past end of file")
 	}
 

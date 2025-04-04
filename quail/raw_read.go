@@ -17,19 +17,19 @@ func (q *Quail) RawRead(in raw.ReadWriter) error {
 	switch val := in.(type) {
 	case *raw.Wld:
 		return q.wldRead(val, in.FileName())
-	case *raw.Dds, *raw.Bmp, *raw.Png, *raw.Tga: // textures
+	case *raw.Dds, *raw.Bmp, *raw.Png, *raw.Tga, *raw.Jpg: // textures
 		return q.assetRead(val)
 	case *raw.Lit: // baked lighting in eqg
 		return q.assetRead(val)
 	case *raw.Txt:
 		return q.assetRead(val)
-	case *raw.Mod, *raw.Pts, *raw.Prt, *raw.Mds, *raw.Ter, *raw.Lod, *raw.Lay, *raw.Ani, *raw.Tog, *raw.Zon:
+	case *raw.Mod, *raw.Pts, *raw.Prt, *raw.Mds, *raw.Ter, *raw.Lod, *raw.Lay, *raw.Ani, *raw.Tog, *raw.Zon, *raw.Dat, *raw.Eco, *raw.Rfd, *raw.Def:
 		//fmt.Println("ignoring", in.Identity())
 		return nil // ignored, loaded by wce parsre
 	case *raw.Unk:
 		return q.assetRead(val)
 	default:
-		return fmt.Errorf("unknown type %T", val)
+		return fmt.Errorf("unknown type %T (%s)", val, val)
 	}
 }
 

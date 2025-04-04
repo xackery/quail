@@ -10,47 +10,6 @@ import (
 	"github.com/xackery/quail/pfs"
 )
 
-func TestDatRead(t *testing.T) {
-	eqPath := os.Getenv("EQ_PATH")
-	if eqPath == "" {
-		t.Skip("EQ_PATH not set")
-	}
-	dirTest := helper.DirTest()
-
-	tests := []struct {
-		name         string
-		pfsName      string
-		quadsPerTile int
-		wantErr      bool
-	}{
-		// .dat|?|arthicrex_te.dat|arthicrex.eqg
-		// {name: "arthicrex_te.dat", pfsName: "arthicrex.eqg", quadsPerTile: 32}, // PASS
-
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			pfs, err := pfs.NewFile(fmt.Sprintf("%s/%s", eqPath, tt.pfsName))
-			if err != nil {
-				t.Fatalf("failed to open eqg %s: %s", tt.name, err.Error())
-			}
-			data, err := pfs.File(tt.name)
-			if err != nil {
-				t.Fatalf("failed to open %s: %s", tt.name, err.Error())
-			}
-
-			dat := &Dat{
-				QuadsPerTile: tt.quadsPerTile,
-			}
-			err = dat.Read(bytes.NewReader(data))
-			os.WriteFile(fmt.Sprintf("%s/%s", dirTest, tt.name), data, 0644)
-			if err != nil {
-				t.Fatalf("failed to read %s: %s", tt.name, err.Error())
-			}
-		})
-	}
-}
-
 func TestDatWrite(t *testing.T) {
 	eqPath := os.Getenv("EQ_PATH")
 	if eqPath == "" {
@@ -68,14 +27,6 @@ func TestDatWrite(t *testing.T) {
 		//{name: "hillsofshade.dat", pfsName: "cryptofshade.eqg", quadsPerTile: 16, isDump: false}, // PASS
 		// .dat|?|ascent.dat|direwind.eqg
 		//{name: "ascent.dat", pfsName: "direwind.eqg", quadsPerTile: 16, isDump: false}, // PASS
-		// .dat|?|bakup_water.dat|buriedsea.eqg
-		//{name: "bakup_water.dat", pfsName: "buriedsea.eqg", quadsPerTile: 16, isDump: false}, // PASS
-		// .dat|?|bakup_water.dat|jardelshook.eqg
-		//{name: "bakup_water.dat", pfsName: "jardelshook.eqg", quadsPerTile: 16}, // PASS
-		// .dat|?|bakup_water.dat|maidensgrave.eqg
-		//{name: "bakup_water.dat", pfsName: "maidensgrave.eqg", quadsPerTile: 16}, // PASS
-		// .dat|?|bakup_water.dat|monkeyrock.eqg
-		//{name: "bakup_water.dat", pfsName: "monkeyrock.eqg", quadsPerTile: 16}, // PASS
 		// .dat|?|barrencoast.dat|barren.eqg
 		//{name: "barrencoast.dat", pfsName: "barren.eqg", quadsPerTile: 16}, // PASS
 		// .dat|?|blacksail.dat|blacksail.eqg
@@ -307,7 +258,7 @@ func TestDatWrite(t *testing.T) {
 				t.Fatalf("failed to open %s: %s", tt.name, err.Error())
 			}
 
-			dat := &Dat{
+			dat := &DatZon{
 				QuadsPerTile: tt.quadsPerTile,
 			}
 
@@ -329,7 +280,19 @@ func TestDatWrite(t *testing.T) {
 				t.Fatalf("failed to encode %s: %s", tt.name, err.Error())
 			}
 
-			dat2 := &Dat{
+			srcData := data
+			dstData := buf.Bytes()
+			err = os.WriteFile(fmt.Sprintf("%s/%s.src%s", dirTest, "water", ".dat"), srcData, 0644)
+			if err != nil {
+				t.Fatalf("failed to write %s: %s", "src water", err.Error())
+			}
+
+			err = os.WriteFile(fmt.Sprintf("%s/%s.dst%s", dirTest, "water", ".dat"), dstData, 0644)
+			if err != nil {
+				t.Fatalf("failed to write %s: %s", "dst water", err.Error())
+			}
+
+			dat2 := &DatZon{
 				QuadsPerTile: tt.quadsPerTile,
 			}
 			err = dat2.Read(bytes.NewReader(buf.Bytes()))
@@ -362,6 +325,11 @@ func TestDatWrite(t *testing.T) {
 				if len(tile.Flags) != len(tile2.Flags) {
 					t.Fatalf("tile flag count mismatch %d != %d", len(tile.Flags), len(tile2.Flags))
 				}
+			}
+
+			err = helper.ByteCompareTest(srcData, dstData)
+			if err != nil {
+				t.Fatalf("%s byteCompare: %s", tt.name, err)
 			}
 			fmt.Println(tt.pfsName, tt.name, "PASS")
 		})
