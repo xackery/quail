@@ -160,6 +160,8 @@ func Open(name string, r io.ReadSeeker) (interface{}, error) {
 		return nil, nil
 	case ".prj": // project file, safely ignored
 		return nil, nil
+	case ".ms": // select file? safely ignored
+		return nil, nil
 	}
 
 	return nil, fmt.Errorf("unknown extension %s", ext)

@@ -72,6 +72,8 @@ func New(ext string) ReadWriter {
 		return &Txt{}
 	case ".spm": // map file, safely ignored
 		return &Txt{}
+	case ".ms": // map file, safely ignored
+		return &Txt{}
 	case ".mdf": // model definition file, safely ignored
 		return &Txt{}
 	case ".tga":
