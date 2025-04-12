@@ -120,6 +120,9 @@ func initPyProperties(tabIndex int, props []Property, scope string, hasTag bool)
 
 	tabIndex++
 	out += fmt.Sprintf("%sdef __init__(self):\n", strings.Repeat("\t", tabIndex-1))
+	if hasTag {
+		out += fmt.Sprintf("%sself.tag = \"\"\n", strings.Repeat("\t", tabIndex))
+	}
 
 	for _, prop := range props {
 		if len(prop.Properties) > 0 {
