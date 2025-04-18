@@ -597,7 +597,7 @@ func setRootFolder(foldersByFrag map[int][]string, folder string, node *tree.Nod
 				}
 			}
 		case "Region":
-			folder = "region/region"
+			folder = "REGION"
 		case "Track":
 			if wce.isTrackAni(node.Tag) {
 				_, prefix := helper.TrackAnimationParse(isChr, node.Tag)
