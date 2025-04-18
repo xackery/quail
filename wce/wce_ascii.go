@@ -323,10 +323,6 @@ func (wce *Wce) writeAsciiData(path string) error {
 	}
 	wce.writeAsciiHeader(rootW)
 
-	if token.IsWriterUsed("region") {
-		rootW.Write([]byte("INCLUDE \"REGION.WCE\"\n"))
-	}
-
 	if token.IsWriterUsed("world") {
 		rootW.Write([]byte("INCLUDE \"WORLD.WCE\"\n"))
 	}
