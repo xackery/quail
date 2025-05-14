@@ -2471,7 +2471,7 @@ func (e *SimpleSpriteDef) ToRaw(wce *Wce, rawWld *raw.Wld) (int32, error) {
 		return e.fragID, nil
 	} */
 
-	flags := uint32(0)
+	flags := uint32(0x10)
 	wfSimpleSpriteDef := &rawfrag.WldFragSimpleSpriteDef{
 		Sleep: e.Sleep.Uint32,
 	}
