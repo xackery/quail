@@ -873,9 +873,9 @@ func (e *DMSpriteDef2) ToRaw(wce *Wce, rawWld *raw.Wld) (int32, error) {
 
 	for _, normal := range e.VertexNormals {
 		dmSpriteDef.VertexNormals = append(dmSpriteDef.VertexNormals, [3]int8{
-			int8(normal[0] * 128),
-			int8(normal[1] * 128),
-			int8(normal[2] * 128),
+			int8(normal[0] * 127),
+			int8(normal[1] * 127),
+			int8(normal[2] * 127),
 		})
 	}
 
@@ -1005,9 +1005,9 @@ func (e *DMSpriteDef2) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragD
 	}
 	for _, vn := range frag.VertexNormals {
 		e.VertexNormals = append(e.VertexNormals, [3]float32{
-			float32(vn[0]) / float32(128),
-			float32(vn[1]) / float32(128),
-			float32(vn[2]) / float32(128),
+			float32(vn[0]) / float32(127),
+			float32(vn[1]) / float32(127),
+			float32(vn[2]) / float32(127),
 		})
 	}
 
@@ -1056,7 +1056,7 @@ func (e *DMSpriteDef2) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragD
 		})
 	}
 
-	if len(e.folders) == 1 && e.folders[0] == "region/region" && len(e.Tag) > 1 {
+	if len(e.folders) == 1 && e.folders[0] == "REGION" && len(e.Tag) > 1 {
 		regionNum := strings.TrimSuffix(e.Tag[1:], "_DMSPRITEDEF")
 
 		regionGroup, err := strconv.Atoi(regionNum)
@@ -1064,7 +1064,7 @@ func (e *DMSpriteDef2) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragD
 			return fmt.Errorf("region group %s %s: %w", e.Tag, regionNum, err)
 		}
 		regionGroup = ((regionGroup-1)/1000 + 1) * 1000
-		e.folders = []string{fmt.Sprintf("region/r%d.wce", regionGroup)}
+		e.folders = []string{fmt.Sprintf("REGION/r%d", regionGroup)}
 	}
 	return nil
 }
@@ -2319,10 +2319,9 @@ type SimpleSpriteDef struct {
 	Tag                string
 	TagIndex           int
 	Variation          int
-	SkipFrames         NullUint32
+	SkipFrames         uint16
 	Sleep              NullUint32
 	CurrentFrame       NullInt32
-	Animated           NullUint32
 	SimpleSpriteFrames []SimpleSpriteFrame
 }
 
@@ -2349,8 +2348,7 @@ func (e *SimpleSpriteDef) Write(token *AsciiWriteToken) error {
 		fmt.Fprintf(w, "%s \"%s\"\n", e.Definition(), e.Tag)
 		fmt.Fprintf(w, "\tTAGINDEX %d\n", e.TagIndex)
 		fmt.Fprintf(w, "\tVARIATION %d\n", e.Variation)
-		fmt.Fprintf(w, "\tSKIPFRAMES? %s\n", wcVal(e.SkipFrames))
-		fmt.Fprintf(w, "\tANIMATED? %s\n", wcVal(e.Animated))
+		fmt.Fprintf(w, "\tSKIPFRAMES %d\n", e.SkipFrames)
 		fmt.Fprintf(w, "\tSLEEP? %s\n", wcVal(e.Sleep))
 		fmt.Fprintf(w, "\tCURRENTFRAME? %s\n", wcVal(e.CurrentFrame))
 		fmt.Fprintf(w, "\tNUMFRAMES %d\n", len(e.SimpleSpriteFrames))
@@ -2392,7 +2390,7 @@ func (e *SimpleSpriteDef) Read(token *AsciiReadToken) error {
 		return fmt.Errorf("variation: %w", err)
 	}
 
-	records, err = token.ReadProperty("SKIPFRAMES?", 1)
+	records, err = token.ReadProperty("SKIPFRAMES", 1)
 	if err != nil {
 		return fmt.Errorf("SKIPFRAMES?: %w", err)
 	}
@@ -2400,15 +2398,6 @@ func (e *SimpleSpriteDef) Read(token *AsciiReadToken) error {
 	err = parse(&e.SkipFrames, records[1])
 	if err != nil {
 		return fmt.Errorf("skip frames: %w", err)
-	}
-
-	records, err = token.ReadProperty("ANIMATED?", 1)
-	if err != nil {
-		return fmt.Errorf("ANIMATED?: %w", err)
-	}
-	err = parse(&e.Animated, records[1])
-	if err != nil {
-		return fmt.Errorf("animated: %w", err)
 	}
 
 	records, err = token.ReadProperty("SLEEP?", 1)
@@ -2482,28 +2471,24 @@ func (e *SimpleSpriteDef) ToRaw(wce *Wce, rawWld *raw.Wld) (int32, error) {
 		return e.fragID, nil
 	} */
 
-	flags := uint32(0)
+	flags := uint32(0x10)
 	wfSimpleSpriteDef := &rawfrag.WldFragSimpleSpriteDef{
 		Sleep: e.Sleep.Uint32,
 	}
 
-	if e.SkipFrames.Valid {
-		flags |= 0x02
+	if e.SkipFrames != 0 {
+		flags |= 0x40
 	}
 	//flags |= 0x04
 	//if len(e.SimpleSpriteFrames) > 1 {
 	//	flags |= 0x08
 	//}
 
-	if e.Animated.Valid {
+	if e.Sleep.Valid {
 		flags |= 0x08
 	}
-
-	if e.Sleep.Valid {
-		flags |= 0x10
-	}
 	if e.CurrentFrame.Valid {
-		flags |= 0x20
+		flags |= 0x04
 	}
 
 	wfSimpleSpriteDef.Flags = flags
@@ -2534,17 +2519,14 @@ func (e *SimpleSpriteDef) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFr
 	}
 	e.Tag = rawWld.Name(frag.NameRef())
 	e.TagIndex = wce.NextTagIndex(e.Tag)
-	if frag.Flags&0x02 == 0x02 {
-		e.SkipFrames.Valid = true
+	if frag.Flags&0x40 != 0 {
+		e.SkipFrames = 1
 	}
 	if frag.Flags&0x08 == 0x08 {
-		e.Animated.Valid = true
-	}
-	if frag.Flags&0x10 == 0x10 {
 		e.Sleep.Valid = true
 		e.Sleep.Uint32 = frag.Sleep
 	}
-	if frag.Flags&0x20 == 0x20 {
+	if frag.Flags&0x04 == 0x04 {
 		e.CurrentFrame.Valid = true
 		e.CurrentFrame.Int32 = frag.CurrentFrame
 	}

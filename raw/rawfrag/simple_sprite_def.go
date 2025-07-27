@@ -26,10 +26,10 @@ func (e *WldFragSimpleSpriteDef) Write(w io.Writer, isNewWorld bool) error {
 	enc.Int32(e.nameRef)
 	enc.Uint32(e.Flags)
 	enc.Uint32(uint32(len(e.BitmapRefs)))
-	if e.Flags&0x20 != 0 {
+	if e.Flags&0x04 != 0 {
 		enc.Int32(e.CurrentFrame)
 	}
-	if e.Flags&0x08 != 0 && e.Flags&0x10 != 0 {
+	if e.Flags&0x08 != 0 {
 		enc.Uint32(e.Sleep)
 	}
 	for _, textureRef := range e.BitmapRefs {
@@ -47,10 +47,10 @@ func (e *WldFragSimpleSpriteDef) Read(r io.ReadSeeker, isNewWorld bool) error {
 	e.nameRef = dec.Int32()
 	e.Flags = dec.Uint32()
 	textureRefCount := dec.Uint32()
-	if e.Flags&0x20 != 0 {
+	if e.Flags&0x04 != 0 {
 		e.CurrentFrame = dec.Int32()
 	}
-	if e.Flags&0x08 != 0 && e.Flags&0x10 != 0 {
+	if e.Flags&0x08 != 0 {
 		e.Sleep = dec.Uint32()
 	}
 	for i := 0; i < int(textureRefCount); i++ {
