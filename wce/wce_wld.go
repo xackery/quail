@@ -873,9 +873,9 @@ func (e *DMSpriteDef2) ToRaw(wce *Wce, rawWld *raw.Wld) (int32, error) {
 
 	for _, normal := range e.VertexNormals {
 		dmSpriteDef.VertexNormals = append(dmSpriteDef.VertexNormals, [3]int8{
-			int8(normal[0] * 128),
-			int8(normal[1] * 128),
-			int8(normal[2] * 128),
+			int8(normal[0] * 127),
+			int8(normal[1] * 127),
+			int8(normal[2] * 127),
 		})
 	}
 
@@ -1005,9 +1005,9 @@ func (e *DMSpriteDef2) FromRaw(wce *Wce, rawWld *raw.Wld, frag *rawfrag.WldFragD
 	}
 	for _, vn := range frag.VertexNormals {
 		e.VertexNormals = append(e.VertexNormals, [3]float32{
-			float32(vn[0]) / float32(128),
-			float32(vn[1]) / float32(128),
-			float32(vn[2]) / float32(128),
+			float32(vn[0]) / float32(127),
+			float32(vn[1]) / float32(127),
+			float32(vn[2]) / float32(127),
 		})
 	}
 
